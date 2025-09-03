@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <title>Quadratische Gleichungen Übungsaufgaben</title>
+
+    <style>
+        html {
+            overflow-y: scroll;
+        }
+
+        body {
+            font-family: Calibri, sans-serif;
+            padding: 0 2% 0 2%;
+        }
+
+        p {
+            margin: 1%;
+        }
+
+        button {
+            background-color: #4CAF50; /* Hintergrundfarbe */
+            border: none; /* Kein Rahmen */
+            color: white; /* Textfarbe */
+            padding: 10px 20px; /* Innenabstand */
+            text-align: center; /* Text zentriert */
+            text-decoration: none; /* Keine Unterstreichung */
+            display: inline-block; /* Inline-Block-Element */
+            font-size: 12px; /* Schriftgröße */
+            margin: 4px 2px; /* Außenabstand */
+            cursor: pointer; /* Mauszeiger ändern bei Hover */
+            border-radius: 5px; /* Abgerundete Ecken */
+        }
+        
+        #formula {
+            font-size: 130%;
+        }
+        #loesung {
+            font-size: 130%;
+            color: #ff0000; /*rgb(255, 0, 0)grundfarbe */
+        }
+        
+        .form-block {
+            margin: 10px;
+        }
+
+
+        details {
+            padding: 0px;
+            border: 2px solid #000000;
+        }
+
+        summary {
+            margin: 5px;
+            padding: 0px 3px 3px 3px;
+            /* border: 2px solid #000000; */
+            cursor: pointer;
+            font-weight: bold;
+            display: block;
+        }
+
+        
+
+        summary::after {
+            margin-left: 1ch;
+            display: inline-block;
+            content: '▶️';
+            transition: 0.2s;
+        }
+
+        details[open] > summary::after {
+            transform: rotate(90deg);
+        }
+
+        .form-block {
+            border: 1px solid black;
+            padding: 3px;
+            margin-bottom: 10px;
+        }
+
+        /* Stil für die Radiobuttons */
+        input[type="radio"], input[type="checkbox"] {
+            margin-top: 5px;
+            margin-right: 3px;
+            margin-left: 10px;
+        }
+
+        .solution {
+            display: none;
+            color: red;
+            /* margin */
+        }
+
+        .loesungstext {
+            color: rgb(61, 61, 61);
+            font-weight: bold;
+            font-style: italic;
+            cursor: pointer;
+            background-color: #ededed; /* Hintergrundfarbe */
+            padding: 1px 5px 2px 5px;
+            margin: 2% 0% 2% 0%;
+        }
+
+        .container {
+            display: flex;
+        }
+
+        .column {
+            flex: 1;
+            padding: 3px;
+        }
+
+        #vorgehen { 
+            padding: 1% 2% 1% 2%;
+        }
+
+        .hier_anzeigen{
+            margin-left: 10%;
+        }
+    </style>
+
+
+
+    <script>
+        document.addEventListener('click', function(event) {
+                if (event.target.classList.contains('loesungstext')) {
+                    var id = event.target.getAttribute('data-solution-id');
+                    toggleSolution(id, event.target);
+                }
+            });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('radioForm');
+            const queryParams = new URLSearchParams(window.location.search);
+            
+            // Setzen der Standardwerte für Radiobuttons basierend auf URL-Parametern
+            form.querySelectorAll('input[type="radio"]').forEach(radio => {
+                const name = radio.name;
+                const value = radio.value;
+                if (queryParams.getAll(name).includes(value)) {
+                    radio.checked = true;
+                }
+                
+                // Hinzufügen eines Event-Listeners für Radiobutton-Änderungen, um URL-Parameter zu aktualisieren
+                radio.addEventListener('change', () => {
+                    updateURLParams();
+                });
+            });
+            
+            // Setzen der Standardwerte für Checkboxes basierend auf URL-Parametern
+            form.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+                const name = checkbox.name;
+                const value = queryParams.getAll(name).includes("1") ? "1" : "0"; // Wert auf "1" oder "0" setzen
+                if (queryParams.getAll(name).includes("1")) {
+                    checkbox.checked = true;
+                }
+                
+                // Hinzufügen eines Event-Listeners für Checkbox-Änderungen, um URL-Parameter zu aktualisieren
+                checkbox.addEventListener('change', () => {
+                    updateURLParams();
+                });
+            });
+            
+            // Funktion zum Aktualisieren der URL-Parameter
+            function updateURLParams() {
+                const queryParams = new URLSearchParams();
+                form.querySelectorAll('input[type="radio"]:checked, input[type="checkbox"]').forEach(input => {
+                    if (input.type === 'checkbox') {
+                        queryParams.append(input.name, input.checked ? "1" : "0");
+                    } else {
+                        queryParams.append(input.name, input.value);
+                    }
+                });
+                const newURL = window.location.pathname + '?' + queryParams.toString();
+                history.pushState({}, '', newURL);
+            }
+        });
+        
+        function getParams() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return {
+                diff: urlParams.has('diff') ? parseInt(urlParams.get('diff')) : 1,
+                as: urlParams.has('as') ? parseInt(urlParams.get('as')) : 3,
+                auch0: urlParams.has('auch0') ? parseInt(urlParams.get('auch0')) : 1,
+                auch1: urlParams.has('auch1') ? parseInt(urlParams.get('auch1')) : 1,
+                auch2: urlParams.has('auch2') ? parseInt(urlParams.get('auch2')) : 1,
+                nurSpez: urlParams.has('nurSpez') ? parseInt(urlParams.get('nurSpez')) : 0,
+                keinP: urlParams.has('keinP') ? parseInt(urlParams.get('keinP')) : 1,
+                keinQ: urlParams.has('keinQ') ? parseInt(urlParams.get('keinQ')) : 1
+            };
+        }
+
+        function monomText(coefficient, exponent, printPlusSign = 1, printNull = 0, printKlammernBeiNegativen = 0, variable = 'x') {
+            let coefficientText = '';
+            if (coefficient === 0) {
+                if (printNull === 1){
+                    return '0';
+                } else {
+                    return '';
+                }
+            }
+            if (coefficient === 1 && exponent > 0){
+                coefficientText = '';
+            } else if (coefficient === -1  && exponent > 0) {
+                coefficientText = '-';
+            } else {
+                coefficientText = `${coefficient}`.replace('.','{,}');
+            }
+            let exponentText = '';
+            if (exponent === 0) {
+                exponentText = '';
+            } else if (exponent === 1) {
+                exponentText = variable;
+            } else {
+                exponentText = `${variable}^${exponent}`;
+            }
+            if (printKlammernBeiNegativen === 1 && coefficient < 0) {
+                coefficientText = `(${coefficientText})`;
+            }
+            // console.log(`${coefficient}, ${exponent}, ${printPlusSign}, ${printNull}, ${printKlammernBeiNegativen}, ${variable}`)
+            let plusSign = '';
+            if (printPlusSign === 1 && coefficient > 0){
+                plusSign = '+';
+            }
+            return `${plusSign} ${coefficientText}${exponentText}`;
+        }
+
+        function randomElement(array) {
+            // console.log(array);
+            // console.log(array.length);
+            return array[Math.floor(Math.random() * array.length)];
+        }
+
+// XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+        function generateRandomNumbers() {
+
+            const { diff, as, auch0, auch1, auch2, nurSpez, keinP, keinQ} = getParams();
+            // console.log(as);
+
+            // Mögliche Werte für a mit entsprechender Häufigkeit
+            const easyAValues = [1, 1, 1];
+            const mediumAValues = [2, 2, 2, 3, 3, 4, 5, 10];
+            const mediumNegativeAValues = [-1, -1, -2, -2, -2, -3, -3, -4, -5, -10];
+            const hardAValues = [.5, -.5, .25, -0.25, 1.5, -1.5, 2.5, -2.5];
+            
+            let possibleAValues = [];
+            if (as === 1) {
+                possibleAValues = easyAValues;
+            } else if (as === 2) {
+                possibleAValues = easyAValues.concat(mediumAValues);
+            } else if (as === 3) {
+                possibleAValues = easyAValues.concat(mediumAValues, mediumNegativeAValues);
+            } else if (as === 4) {
+                possibleAValues = easyAValues.concat(mediumAValues, mediumNegativeAValues, hardAValues);
+            }
+            // console.log(possibleAValues);
+
+            // Generiere zufällige Werte für a
+            a = randomElement(possibleAValues);
+            console.log('a =', a);
+
+
+            let possiblePValues = [];
+            if (keinP === 1) {
+                possiblePValues.push(0);
+                possiblePValues.push(0);
+            }
+            
+            if (keinP === 0 || nurSpez === 0){
+                if (diff === 0) {
+                    einfacheWerte.forEach(element => {
+                        if (einfacheWerte.includes(element/2) && einfacheQuadratzahlen.includes(element*element/4)) {
+                            possiblePValues.push(element);
+                        }
+                    })
+                } else if (diff === 1) {
+                    mittlereWerte.forEach(element => {
+                        if (mittlereWerte.includes(element/2) && mittlereQuadratzahlen.includes(element*element/4)) {
+                            possiblePValues.push(element);
+                        }
+                    })
+                }
+            }
+            console.log('possiblePValues =', possiblePValues);
+
+            p = randomElement(possiblePValues);
+            console.log('p =', p);
+
+            let possibleQuadratZahlen = [];
+            if (diff === 0) {
+                possibleQuadratZahlen = [].concat(einfacheQuadratzahlen);
+            } else if (diff === 1) {
+                possibleQuadratZahlen = [].concat(mittlereQuadratzahlen);
+            }
+            console.log('possibleQuadratZahlen =', possibleQuadratZahlen);
+
+            
+            let possibleQValues = [];
+            
+            if (auch2 == 1 && keinQ === 1){
+                possibleQValues.push(0);
+                possibleQValues.push(0);
+            }
+
+            if (auch1 == 1  && (keinQ == 0  || nurSpez == 0)) {
+                    // if (poolQ.includes(p*p/4) || (keinP === 1 && p === 0)) {
+                        possibleQValues.push(p*p/4);
+                        possibleQValues.push(p*p/4);
+                        possibleQValues.push(p*p/4);
+                        possibleQValues.push(p*p/4);
+                    // }
+                } 
+            
+            // console.log('possibleQValues =', possibleQValues);
+            // console.log('keinQ =', keinQ);
+            // console.log('nurSpez =', nurSpez);
+
+            if (keinQ === 0 || nurSpez === 0){
+                if (auch2 === 1 || auch0 === 1){
+                    poolQ.forEach(element => {
+                        if (auch2 === 1) {
+                            if (possibleQuadratZahlen.includes(p*p/4 - element)) {
+                                possibleQValues.push(element);
+                            }
+                        } 
+                        if (auch0 === 1) {
+                            if (possibleQuadratZahlen.includes(element - p*p/4)) {
+                                possibleQValues.push(element);
+                            }
+                        }
+                    });
+                }
+            }
+            
+            console.log('possibleQValues =', possibleQValues);
+            q = randomElement(possibleQValues);
+            console.log('q =', q);
+
+            b = p*a;
+            c = q*a;
+            console.log('b =', b);
+            console.log('c =', c);
+
+            // Berechne die Lösungen der quadratischen Gleichung
+            const discriminant = b*b - 4*a*c;
+            if (discriminant < 0) {
+                x1 = '\\text{Keine Lösung}';
+                x2 = '\\text{Keine Lösung}';
+            } else if (discriminant === 0) {
+                x1 = -b / (2*a);
+                x2 = x1;
+            } else {
+                x1 = (-b + Math.sqrt(discriminant)) / (2*a);
+                x2 = (-b - Math.sqrt(discriminant)) / (2*a);
+            }
+
+            let temp = x1;
+            if (x1 > x2) {
+                x1 = x2;
+                x2 = temp;
+            }
+
+            // b = a * (-x1 - x2);
+            // c = a * (x1 * x2);
+            
+            const formula = `0 = ${monomText(a, 2, 0)} ${monomText(b, 1)} ${monomText(c, 0)}`;
+            
+            if ((auch0 === 0 && auch1 === 0 && auch2 ===0) || possibleQValues.length === 0){
+                document.getElementById('formula').innerHTML = "$$\\text{Keine Gleichung möglich}$$"
+            } else {
+                document.getElementById('formula').innerHTML = `$$${formula}$$`;
+            }
+            loesung_anzeigen = 0;
+            hilfe_anzeigen = 0;
+            document.getElementById('loesung').innerHTML = '';
+            document.getElementById('schritte_button').innerHTML = '';
+            document.getElementById('vorgehen').innerHTML = '';
+            
+            // MathJax neu rendern
+            MathJax.typeset();
+        }
+
+        function loesung() {
+            let loesungstext = '';
+            loesung_anzeigen = 1 - loesung_anzeigen;
+            console.log('loesung_anzeigen =', loesung_anzeigen);
+            if (loesung_anzeigen === 0) {
+                document.getElementById('loesung').innerHTML = ``;
+            } else {
+                if (x1 === '\\text{Keine Lösung}') {
+                    loesungstext = `$$\\text{Keine Lösung}$$`;
+                } else if (x1 === x2) {
+                    loesungstext = `$$x_{1,~2} = ${x1}$$`;
+                } else {
+                    loesungstext = `$$x_1 = ${x1}, \\quad x_2 = ${x2}$$`;
+                }
+            }
+            document.getElementById('loesung').innerHTML = loesungstext;
+            // MathJax neu rendern
+            MathJax.typeset();
+        }
+
+        function toggleSolution(id, element) {
+            var solutionDiv = document.getElementById(id);
+            if (solutionDiv && element && element.parentNode) {
+                element.parentNode.replaceChild(solutionDiv, element);
+                solutionDiv.style.display = 'inline';
+                solutionDiv.style.color = 'red';
+            } else {
+                if (!solutionDiv) {
+                    console.error(`Element with ID ${id} was not found.`);
+                }
+                if (!element) {
+                    console.error(`The element to be replaced was not found.`);
+                }
+                if (element && !element.parentNode) {
+                    console.error(`The element to be replaced does not have a parent node.`);
+                }
+            }
+        }
+
+
+        function toggleAllSolutions() {
+            // loesungsschritte_anzeigen = 1 - loesungsschritte_anzeigen;
+            var details = document.querySelectorAll('.loesungstext');
+            details.forEach(function(detail) {
+                var id = detail.getAttribute('data-solution-id');
+                var solutionDiv = document.getElementById(id);
+                if (solutionDiv && detail) {
+                    detail.parentNode.replaceChild(solutionDiv, detail);
+                    solutionDiv.style.display = 'inline';
+                    solutionDiv.style.color = 'red';
+                } else {
+                    console.error(`Element with ID ${id} or the detail element to be replaced was not found.`);
+                }
+            });
+        }
+
+        function hilfe() {
+            const ph = p/2;
+            const phs = p*p/4;
+            const D = p*p/4-q;
+            const W = Math.sqrt(D);
+            // TODO: Überprüfen, ob eine Seite 0
+            // TODO: Überprüfen, ob quadratisch
+            // TODO: Überprüfen, ob durch a teilen
+            document.getElementById('solutions').innerHTML = `
+                <div id="solution1" class="solution">
+                    \(a = 3\)
+                </div>
+                <div id="solution2" class="solution">
+                    \(0 = x^2 + 6x - 7\)
+                </div>
+                <div id="solution3" class="solution">
+                    \(p = +6,\quad q=-7\)
+                </div>
+                <div id="solution4" class="solution">
+                    \(x_{1,~2}=-\frac p2 \pm \sqrt{\left(\frac p2\right)^2-q}\)
+                </div>
+                <div id="solution5" class="solution">
+                    \(x_{1,~2}=-\frac 62 \pm \sqrt{\left(\frac 62\right)^2-(-7))}\)
+                </div>
+                <div id="solution6" class="solution">
+                    \(x_{1,~2}=-3 \pm \sqrt{9+7}\)
+                </div>
+                <div id="solution7" class="solution">
+                    \(x_{1,~2}=-3 \pm \sqrt{16}\)
+                </div>
+                <div id="solution8" class="solution">
+                    \(x_{1,~2}=-3 \pm 4\)
+                </div>
+                <div id="solution9" class="solution">
+                    \(x_{1}=-3 - 4\)
+                </div>
+                <div id="solution10" class="solution">
+                    \(x_{1}=-7\)
+                </div>
+                <div id="solution11" class="solution">
+                    \(x_{2}=-3 + 4\)
+                </div>
+                <div id="solution12" class="solution">
+                    \(x_{2}=1\)
+                </div>`
+            
+            hilfe_anzeigen = 1 - hilfe_anzeigen;
+
+            if (hilfe_anzeigen === 0) {
+                document.getElementById('schritte_button').innerHTML = ``
+                document.getElementById('vorgehen').innerHTML = ``
+            } else {
+                document.getElementById('schritte_button').innerHTML = `<button style="background-color: #FF0000;" onclick="toggleAllSolutions()">Alle Lösungsschritte anzeigen</button>`
+
+                document.getElementById('vorgehen').innerHTML = `
+                <p style="color: #FF0000;"> 
+                    <div class="hier_anzeigen">
+                        \\(0 = ${monomText(a, 2, 0)} ${monomText(b, 1)} ${monomText(c, 0)}\\)
+                    </div>
+                </p>
+                <p>
+                    Du musst zunächst durch \\(a\\) teilen, hier also durch 
+                    <span class="loesungstext" onclick="toggleSolution('solution1', this)" data-solution-id="solution1">Lösung anzeigen</span>
+                    , damit vor dem \\(x^2~\\) keine Zahl mehr steht (d.h. \\(a=1\\)).<br>
+                    Du erhältst dann folgende neue Gleichung:
+                </p>
+                <p>
+                    <div class="hier_anzeigen">
+                        <span class="loesungstext" onclick="toggleSolution('solution2', this)" data-solution-id="solution2">Lösung anzeigen</span>
+                    </div>
+                </p>
+                <p>Lies nun die Werte für \\(p\\) und \\(q\\) ab (<strong>mit Vorzeichen</strong>):
+                <br>
+                (TIPP: \\(p\\) ist der Wert vor dem \\(x\\) und \\(q\\) ist der Wert ohne \\(x\\))
+                </p>
+                <p>
+                    <div class="hier_anzeigen">
+                        <span class="loesungstext" onclick="toggleSolution('solution3', this)" data-solution-id="solution3">Lösung anzeigen</span>
+                    </div>
+                </p>
+                <p>
+                Nun benötigst du die p-q-Formel (auswendig lernen!):
+                </p>
+                <p>
+                    <div class="hier_anzeigen">
+                        <span class="loesungstext" onclick="toggleSolution('solution4', this)" data-solution-id="solution4">Lösung anzeigen</span>
+                    </div>
+                </p>
+                <p>
+                    Setze die Werte für \\(p\\) und \\(q\\) in die p-q-Formel ein und löse sie:
+                </p>
+                <p>
+                    <div class="hier_anzeigen">
+                        <span class="loesungstext" onclick="toggleSolution('solution5', this)" data-solution-id="solution5">Lösung anzeigen</span>
+                    </div>
+                </p>
+                <p>
+                    Beachte: Der erste Wert in der p-q-Formel ist immer die Hälfte von \\(p\\) mit anderem Vorzeichen, 
+                    der erste Wert in der Wurzel ist diese Zahl quadriert (<strong>positiv</strong>), 
+                    dahinter folgt das negative \\(q\\). Siehe hier:
+                </p>
+                <p>
+                    <div class="hier_anzeigen">
+                        <span class="loesungstext" onclick="toggleSolution('solution6', this)" data-solution-id="solution6">Lösung anzeigen</span> 
+                    </div>
+                </p>
+                <p>
+                    Berechne nun die Wurzel und fasse zusammen:
+                </p>
+                <p>
+                    <div class="hier_anzeigen">
+                        <span class="loesungstext" onclick="toggleSolution('solution7', this)" data-solution-id="solution7">Lösung anzeigen</span>
+                        <span class="loesungstext" onclick="toggleSolution('solution8', this)" data-solution-id="solution8">Lösung anzeigen</span>
+                    </div>
+                </p>
+                <p>
+                    Rechne wegen des \\(\\pm\\) einmal Minus für \\(x_1\\) und einmal Plus für \\(x_2\\):
+                </p>
+                <div class="hier_anzeigen">
+                    <div class="container">
+                        <div class="column">
+                                <span class="loesungstext" data-solution-id="solution9">Lösung anzeigen</span>
+                            <br>
+                                <span class="loesungstext" data-solution-id="solution10">Lösung anzeigen</span>
+                        </div>
+                        <div class="column">
+                                <span class="loesungstext" data-solution-id="solution11">Lösung anzeigen</span>
+                            <br>
+                                <span class="loesungstext" data-solution-id="solution12">Lösung anzeigen</span>
+                        </div>
+                    </div>
+                </div>
+                `;
+            }
+            
+        <!-- Versteckte Lösungen -->
+        document.getElementById('solution1').innerHTML = `\\(a = ${monomText(a, 0, 0)}\\)`;
+        document.getElementById('solution2').innerHTML = `\\(0 = ${monomText(1, 2, 0)} ${monomText(p, 1)} ${monomText(q, 0)}\\)`;
+        document.getElementById('solution3').innerHTML = `\\(p = ${monomText(p, 0, 1, 1)},\\quad q=${monomText(q, 0, 1, 1)}\\)`;
+        document.getElementById('solution4').innerHTML = `\\(x_{1,~2}=-\\frac{p}{2} \\pm \\sqrt{\\left(\\frac p2\\right)^2-q}\\)`;
+        document.getElementById('solution5').innerHTML = `\\(x_{1,~2}=-\\frac{${monomText(p,0,0,1)}}{2} \\pm \\sqrt{\\left(\\frac{${p}}{2}\\right)^2-${monomText(q, 0, 0, 1, 1)}}\\)`;
+        document.getElementById('solution6').innerHTML = `\\(x_{1,~2}=${monomText(-ph, 0, 0)} \\pm \\sqrt{${monomText(phs,0,0,1)}${monomText(-q, 0, 1, 0, 0)}}\\)`;
+        document.getElementById('solution7').innerHTML = `\\(x_{1,~2}=${monomText(-ph, 0, 0)} \\pm \\sqrt{${monomText(D,0,0,1)}}~~\\)`;
+        if (D >= 0){
+            document.getElementById('solution8').innerHTML = `\\(=~${monomText(-ph, 0, 0)} \\pm ${monomText(W,0,0,1)}\\)`;
+            document.getElementById('solution9').innerHTML = `\\(x_{1}=${monomText(-ph, 0, 0)}-${monomText(W,0,0,1)}\\)`;
+            document.getElementById('solution10').innerHTML = `\\(x_{1}=${x1}\\)`;
+            document.getElementById('solution11').innerHTML = `\\(x_{2}=${monomText(-ph, 0, 0)}+${monomText(W,0,0,1)}\\)`;
+            document.getElementById('solution12').innerHTML = `\\(x_{2}=${x2}\\)`;
+        }
+        else {
+            document.getElementById('solution8').innerHTML = `\\(=~\\text{n.l.}\\)`;
+            document.getElementById('solution9').innerHTML = `\\(x_{1}=\\text{n.l.}\\)`;
+            document.getElementById('solution10').innerHTML = `\\(x_{1}=\\text{n.l.}\\)`;
+            document.getElementById('solution11').innerHTML = `\\(x_{2}=\\text{n.l.}\\)`;
+            document.getElementById('solution12').innerHTML = `\\(x_{2}=\\text{n.l.}\\)`;
+        }
+        
+        
+
+        MathJax.typeset();
+        // MathJax neu rendern     
+    }
+
+// XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+        // Generiere die Zufallszahlen beim Laden der Seite
+        window.onload = generateRandomNumbers;
+        // Generiere die Zufallszahlen bei jeder Änderung 
+        window.onchange = generateRandomNumbers;
+        let a = 1;
+        let b = 0;
+        let c = 0;
+        let x1 = 0;
+        let x2 = 0;
+        let hilfe_anzeigen = 0;
+        let loesung_anzeigen = 0;
+
+        let einfacheWerte = [];
+        for (let i = 1; i < 21; i++) {
+            einfacheWerte.push(i);
+            einfacheWerte.push(-i);
+        }
+        console.log('einfacheWerte =', einfacheWerte);
+
+        let mittlereWerte = [].concat(einfacheWerte, [0.5, -0.5, 1.5, -1.5, 2.5, -2.5, 3.5, -3.5]);
+        console.log('mittlereWerte =', mittlereWerte);
+        
+        const einfacheQuadratzahlen = [];
+        for (let i = 1; i < 11; i++) {
+            einfacheQuadratzahlen.push(i*i);
+        }
+        console.log('einfacheQuadratzahlen =', einfacheQuadratzahlen);
+        const mittlereQuadratzahlen = [].concat(einfacheQuadratzahlen, [0.25, 2.25, 12.25]);
+        for (let i = 11; i < 21; i++) {
+            mittlereQuadratzahlen.push(i*i);
+        }
+        console.log('mittlereQuadratzahlen =', mittlereQuadratzahlen);
+
+        const poolQ = [];
+        for (let i = 1; i < 804; i++) {
+            poolQ.push(i/4);
+            poolQ.push(-i/4);
+        }
+        console.log('poolQ =', poolQ);
+
+    </script>
+
+</head>
+
+<!-- XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX -->
+
+<body>
+    <h1>Quadratische Gleichungen Übungsaufgaben</h1>
+    
+    <details>
+        <summary>Settings</summary>
+        <form id="radioForm" action="" method="get">
+
+          <div class="form-block">
+
+            <label for="diff"><b>Schwierigkeit der Zahlen:</b></label><br>
+
+            <input type="radio" id="diff1" name="diff" value="0">
+            <label for="diff1" title="Nur ganze Zahlen in der Rechnung">Nur einfache Zahlen</label><br>
+
+            <input type="radio" id="diff2" name="diff" value="1" checked>
+            <label for="diff2" title="Übliche Zahlen">Normale Zahlen</label><br>
+
+            <input type="radio" id="diff3" name="diff" value="2">
+            <label for="diff3" title="Auch irrationale Lösungen">TODO: Auch schwierigere Zahlen</label><br>
+          </div>
+
+
+          <div class="form-block">
+            <label for="mitA"><b>Mit Streckfaktor a?</b></label><br>
+
+            <input type="radio" id="a1" name="as" value="1">
+            <label for="a1">Kein a (bzw. \(a=1\))</label><br>
+
+            <input type="radio" id="a2" name="as" value="2">
+            <label for="a2">Einfache a</label><br>
+
+            <input type="radio" id="a3" name="as" value="3" checked>
+            <label for="a3">Auch negative a</label><br>
+
+            <input type="radio" id="a3" name="as" value="4">
+            <label for="a3">Beliebige a</label><br>
+          </div>
+
+
+          <div class="form-block">
+            <label for="anzahlLsg"><b>Anzahl an Lösungen:</b></label><br>
+
+            <input type="checkbox" id="auch0" name="auch0" value="1" checked>
+            <label for="auch0">0 Lösungen</label><br>
+
+            <input type="checkbox" id="auch1" name="auch1" value="1" checked>
+            <label for="auch1">1 Lösung (doppelt)</label><br>
+            
+            <input type="checkbox" id="auch2" name="auch2" value="1" checked>
+            <label for="auch2">2 Lösungen (verschieden)</label><br>
+          </div>
+
+
+          <div class="form-block">
+            <label for="Spezialfälle"><b>Auch Spezialfälle?</b></label><br>
+
+            <input type="checkbox" id="nurSpez" name="nurSpez" value="0">
+            <label for="nurSpez">Nur Spezialfälle?</label><br>
+
+            <input type="checkbox" id="keinP" name="keinP" value="1" checked>
+            <label for="keinP">Kein p (Symmetrische Lösungen)</label><br>
+
+            <input type="checkbox" id="keinQ" name="keinQ" value="1" checked>
+            <label for="keinQ">Kein q (d.h. \(x=0\) ist NST)</label><br>
+            
+            <!-- <input type="checkbox" id="biqu" name="biqu" value="0">
+            <label for="biqu" title="TODO">TODO: Biquadratisch</label><br> -->
+          </div>
+        </form>
+    </details>
+    
+    <p> 
+    </p>
+        <button onclick="generateRandomNumbers()">Neue Aufgabe generieren</button>
+    <!-- </p> -->
+    <p>
+        Löse die quadratische Gleichung:
+    </p>
+    <p><span id="formula"></span></p>
+
+    <button onclick="loesung()">Lösung anzeigen</button>
+    
+    <p><span id="loesung" height="50px"></span></p>
+    <button onclick="hilfe()">Hilfe anzeigen</button>
+    <span id="schritte_button"></span>
+    <div id="vorgehen"></div>
+
+    <!-- Versteckte Lösungen -->
+    <!-- 0 = 3x^2 + 18x - 21 -->
+    <div id="solutions" class="solution">
+        <div id="solution1" class="solution">
+            \(a = 3\)
+        </div>
+        <div id="solution2" class="solution">
+            \(0 = x^2 + 6x - 7\)
+        </div>
+        <div id="solution3" class="solution">
+            \(p = +6,\quad q=-7\)
+        </div>
+        <div id="solution4" class="solution">
+            \(x_{1,~2}=-\frac p2 \pm \sqrt{\left(\frac p2\right)^2-q}\)
+        </div>
+        <div id="solution5" class="solution">
+            \(x_{1,~2}=-\frac 62 \pm \sqrt{\left(\frac 62\right)^2-(-7))}\)
+        </div>
+        <div id="solution6" class="solution">
+            \(x_{1,~2}=-3 \pm \sqrt{9+7}\)
+        </div>
+        <div id="solution7" class="solution">
+            \(x_{1,~2}=-3 \pm \sqrt{16}\)
+        </div>
+        <div id="solution8" class="solution">
+            \(x_{1,~2}=-3 \pm 4\)
+        </div>
+        <div id="solution9" class="solution">
+            \(x_{1}=-3 - 4\)
+        </div>
+        <div id="solution10" class="solution">
+            \(x_{1}=-7\)
+        </div>
+        <div id="solution11" class="solution">
+            \(x_{2}=-3 + 4\)
+        </div>
+        <div id="solution12" class="solution">
+            \(x_{2}=1\)
+        </div>
+     </div>
+</body>
+</html>
