@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script id="MathJax-script" async
+          src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <title>Lineare Gleichungssysteme Übungsaufgaben</title>
+<style>
+        html {
+            overflow-y: scroll;
+        }
+
+        body {
+            font-family: Calibri, sans-serif;
+            padding: 0 2% 0 2%;
+        }
+
+        p {
+            margin: 1%;
+        }
+
+        button {
+            background-color: #4CAF50; /* Hintergrundfarbe */
+            border: none; /* Kein Rahmen */
+            color: white; /* Textfarbe */
+            padding: 10px 20px; /* Innenabstand */
+            text-align: center; /* Text zentriert */
+            text-decoration: none; /* Keine Unterstreichung */
+            display: inline-block; /* Inline-Block-Element */
+            font-size: 12px; /* Schriftgröße */
+            margin: 4px 2px; /* Außenabstand */
+            cursor: pointer; /* Mauszeiger ändern bei Hover */
+            border-radius: 5px; /* Abgerundete Ecken */
+        }
+        
+        #formula {
+            font-size: 130%;
+        }
+        #loesung {
+            font-size: 130%;
+            color: #ff0000; /*rgb(255, 0, 0)grundfarbe */
+        }
+        
+        .form-block {
+            margin: 10px;
+        }
+
+
+        details {
+            padding: 0px;
+            border: 2px solid #000000;
+        }
+
+        summary {
+            margin: 5px;
+            padding: 0px 3px 3px 3px;
+            /* border: 2px solid #000000; */
+            cursor: pointer;
+            font-weight: bold;
+            display: block;
+        }
+
+        
+
+        summary::after {
+            margin-left: 1ch;
+            display: inline-block;
+            content: '▶️';
+            transition: 0.2s;
+        }
+
+        details[open] > summary::after {
+            transform: rotate(90deg);
+        }
+
+        .form-block {
+            border: 1px solid black;
+            padding: 3px;
+            margin-bottom: 10px;
+        }
+
+        /* Stil für die Radiobuttons */
+        input[type="radio"], input[type="checkbox"] {
+            margin-top: 5px;
+            margin-right: 3px;
+            margin-left: 10px;
+        }
+
+        .solution {
+            display: none;
+            color: red;
+            /* margin */
+        }
+
+        .loesungstext {
+            color: rgb(61, 61, 61);
+            font-weight: bold;
+            font-style: italic;
+            cursor: pointer;
+            background-color: #ededed; /* Hintergrundfarbe */
+            padding: 1px 5px 2px 5px;
+            margin: 2% 0% 2% 0%;
+        }
+
+        .container {
+            display: flex;
+        }
+
+        .column {
+            flex: 1;
+            padding: 3px;
+        }
+
+        #vorgehen { 
+            padding: 1% 2% 1% 2%;
+        }
+
+        .hier_anzeigen{
+            margin-left: 10%;
+        }
+    </style>
+
+</head>
+<body>
+  <h1>Lineare Gleichungssysteme (LGS) Übungsaufgaben</h1>
+
+  <details>
+    <summary>Settings</summary>
+    <form id="settingsForm">
+      <div class="form-block">
+        <b>Anzahl Gleichungen:</b><br>
+        <input type="radio" name="anzahl" value="2" checked> 2<br>
+        <input type="radio" name="anzahl" value="3"> 3<br>
+      </div>
+      <div class="form-block">
+        <b>Variablen:</b><br>
+        <input type="radio" name="vars" value="xyz" checked> x,y,(z)<br>
+        <input type="radio" name="vars" value="abc"> a,b,(c)<br>
+        <input type="radio" name="vars" value="emoji"> 🍎,🍌, (🍇)<br>
+      </div>
+      <div class="form-block">
+        <b>Lösungen:</b><br>
+        <input type="radio" name="loes" value="int_easy"> Ganze Zahlen (einfach)<br>
+        <input type="radio" name="loes" value="int_mid" checked> Ganze Zahlen (mittel)<br>
+        <input type="radio" name="loes" value="int_hard"> Ganze Zahlen (schwierig)<br>
+        <input type="radio" name="loes" value="frac"> TODO: Auch Brüche<br>
+      </div>
+      <div class="form-block">
+        <b>Koeffizienten:</b><br>
+        <input type="radio" name="coeff" value="int_easy"> Ganze Zahlen (einfach)<br>
+        <input type="radio" name="coeff" value="int_mid" checked> Ganze Zahlen (mittel)<br>
+        <input type="radio" name="coeff" value="int_hard"> Ganze Zahlen (schwierig)<br>
+        <input type="radio" name="coeff" value="frac"> TODO: Auch Brüche<br>
+      </div>
+      <div class="form-block">
+        <b>Sonderfälle:</b><br>
+        <input type="checkbox" name="zeros" value="1"> Koeffizienten dürfen 0 sein<br>
+      </div>
+    </form>
+  </details>
+  <p></p>
+  <button onclick="generateSystem()">Neue Aufgabe generieren</button>
+  <p><span id = "Aufgabe">Klicke auf "Neue Aufgabe generieren"</span></p>
+  <p><span id="formula"></span></p>
+
+  <button id="showSolutionBtn" onclick="toggleSolution()" style="display:none;">Lösung anzeigen</button>
+  <p><span id="loesung"></span></p>
+
+<script>
+function randomInt(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function getParams() {
+    const urlParams = new URLSearchParams(window.location.search);
+    return {
+        anzahl: urlParams.has('anzahl') ? parseInt(urlParams.get('anzahl')) : 2,
+        vars: urlParams.has('vars') ? urlParams.get('vars') : 'xyz',
+        loes: urlParams.has('loes') ? urlParams.get('loes') : 'int_mid',
+        coeff: urlParams.has('coeff') ? urlParams.get('coeff') : 'int_mid',
+        zeros: urlParams.has('zeros') ? urlParams.get('zeros') === "1" : true
+    };
+}
+
+function updateURLParams() {
+    const form = document.getElementById('settingsForm');
+    const queryParams = new URLSearchParams();
+    queryParams.set('anzahl', form.anzahl.value);
+    queryParams.set('vars', form.vars.value);
+    queryParams.set('loes', form.loes.value);
+    queryParams.set('coeff', form.coeff.value);
+    queryParams.set('zeros', form.zeros.checked ? "1" : "0");
+    const newURL = window.location.pathname + '?' + queryParams.toString();
+    history.replaceState({}, '', newURL);
+}
+
+function generateSystem() {
+    document.getElementById('Aufgabe').innerHTML = "Löse das Gleichungssystem:";
+    document.getElementById("showSolutionBtn").style.display = "inline-block";
+    const params = getParams();
+    const anzahl = params.anzahl;
+    const vars = params.vars === "abc" ? ["a","b","c"] 
+            : params.vars === "emoji" ? ["🍎","🍌","🍇"] 
+            : ["x","y","z"];
+
+    const allowZero = params.zeros;
+
+    // Lösung zufällig bestimmen
+    const solution = [];
+    for (let i = 0; i < anzahl; i++) {
+        if (params.loes === "int_easy") solution.push(randomInt(1, 5));
+        else if (params.loes === "int_mid") solution.push(randomInt(-10, 10));
+        else if (params.loes === "int_hard") solution.push(randomInt(-35, 35));
+        else solution.push(randomInt(0, 3));
+    }
+
+    // Koeffizienten erzeugen
+let equations = [];
+let attempts = 0;
+while (equations.length < anzahl && attempts < 1000) {
+    attempts++;
+    let coeffs = [];
+    for (let j = 0; j < anzahl; j++) {
+        let c;
+        do {
+            if (params.coeff === "int_easy") c = randomInt(0, 3);
+            else if (params.coeff === "int_mid") c = randomInt(-6, 6);
+            else if (params.coeff === "int_hard") c = randomInt(-35, 35);
+            else c = randomInt(0, 3);
+        } while (!allowZero && c === 0);
+        coeffs.push(c);
+    }
+
+    // Keine triviale Gleichung 0 = 0
+    if (coeffs.every(c => c === 0)) continue;
+
+    // Rechte Seite berechnen
+    let rhs = coeffs.reduce((sum, c, j) => sum + c * solution[j], 0);
+
+    // Prüfen auf lineare Abhängigkeit mit existierenden Gleichungen
+    let dependent = false;
+    for (let eq of equations) {
+        // Überprüfen, ob die neuen Koeffizienten ein Vielfaches der bestehenden sind
+        let ratio = null;
+        for (let k = 0; k < anzahl; k++) {
+            if (eq.coeffs[k] === 0 && coeffs[k] === 0) continue;
+            else if (eq.coeffs[k] === 0 || coeffs[k] === 0) {
+                ratio = null;
+                break;
+            } else {
+                let r = coeffs[k] / eq.coeffs[k];
+                if (ratio === null) ratio = r;
+                else if (Math.abs(r - ratio) > 1e-8) {
+                    ratio = null;
+                    break;
+                }
+            }
+        }
+        if (ratio !== null && Math.abs(rhs - ratio * eq.rhs) < 1e-8) {
+            dependent = true;
+            break;
+        }
+    }
+    if (dependent) continue;
+
+    equations.push({ coeffs, rhs });
+}
+
+if (equations.length < anzahl) {
+    console.error("Konnte kein eindeutiges LGS generieren, bitte Parameter anpassen!");
+}
+
+
+let tex = "\\begin{array}{";
+for (let j = 0; j < anzahl; j++) {
+    if (j === 0) tex += "r ";       // erste Variable: nur Koeff+Var
+    else tex += "c r ";             // restliche Variablen: Vorzeichen + Koeff
+}
+tex += "c r}";
+
+equations.forEach(eq => {
+    let row = "";
+    let firstTerm = true; // Flag für das erste nicht-null-Term
+
+    for (let j = 0; j < anzahl; j++) {
+        let cj = eq.coeffs[j];
+
+        if (cj === 0) {
+            // leere Spalten, falls Variable 0
+            if (j === 0) row += " & ";
+            else row += " & & ";
+        } else {
+            if (j === 0) {
+                // erste Variable: Vorzeichen nur, wenn negativ
+                row += (cj < 0 ? "-" : "") + (Math.abs(cj) === 1 ? "" : Math.abs(cj)) + vars[j] + " & ";
+            } else {
+                // weitere Variablen
+                let sign = "";
+                if (!firstTerm) sign = cj > 0 ? "+" : "-";
+                else if (cj < 0) sign = "-"; // führendes negatives Vorzeichen
+
+                row += sign + " & " + (Math.abs(cj) === 1 ? "" : Math.abs(cj)) + vars[j] + " & ";
+            }
+            firstTerm = false; // erste sichtbare Variable gefunden
+        }
+    }
+
+    // Gleichheitszeichen + RHS
+    row += "= & " + eq.rhs + " \\\\ ";
+    tex += row;
+});
+
+tex += "\\end{array}";
+
+
+    document.getElementById("formula").innerHTML = "$$" + tex + "$$";
+    document.getElementById("loesung").innerHTML = "";
+    MathJax.typeset();
+    window.currentSolution = "\\begin{array}{rcl}" +
+    solution.map((v,j) => vars[j] + " & = & " + v + " \\\\").join('') +
+    "\\end{array}";
+}
+
+function toggleSolution() {
+    const target = document.getElementById("loesung");
+
+    if (!window.currentSolution) {
+        // Keine Lösung generiert → zuerst generieren
+        generateSystem();
+    }
+
+    if (target.innerHTML === "") {
+        target.innerHTML = "$$" + window.currentSolution + "$$";
+        MathJax.typeset();
+    } else {
+        target.innerHTML = "";
+    }
+}
+
+
+// URL-basierte Initialisierung und EventListener für Settings
+document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('settingsForm');
+    const params = getParams();
+    // Standardwerte aus URL setzen
+    form.anzahl.value = params.anzahl;
+    form.vars.value = params.vars;
+    form.loes.value = params.loes;
+    form.coeff.value = params.coeff;
+    form.zeros.checked = params.zeros;
+
+    // Änderungen überwachen
+    form.querySelectorAll('input').forEach(input => {
+        input.addEventListener('change', () => {
+            updateURLParams();
+            generateSystem();
+        });
+    });
+
+    // erste Aufgabe generieren
+    // generateSystem();
+});
+</script>
+
+</body>
+</html>
