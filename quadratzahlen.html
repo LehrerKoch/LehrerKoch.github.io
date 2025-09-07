@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script id="MathJax-script" async
+          src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <title>Quadratzahlen Übungsaufgaben</title>
+  <link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+  <h1>Quadratzahlen Übungsaufgaben</h1>
+
+  <details>
+    <summary>Settings</summary>
+    <form id="settingsForm">
+
+      <div class="form-block">
+        <b>Zahlenbereiche:</b><br>
+
+        <button type="button" onclick="toggleRange(1,10)">1–10</button><br>
+        <div id="range1_10"></div>
+
+        <button type="button" onclick="toggleRange(11,20)">11–20</button><br>
+        <div id="range11_20"></div>
+
+        <button type="button" onclick="toggleRange(21,25)">21–25</button><br>
+        <div id="range21_25"></div>
+      </div>
+
+      <div class="form-block">
+        <b>Optionen:</b><br>
+        <input type="checkbox" id="multifactor"> Auch 10-, 100-, 1000-fach<br>
+        <input type="checkbox" id="fractional"> Auch Zehntel, Hundertstel, Tausendstel<br>
+      </div>
+
+      <div class="form-block">
+        <b>Aufgabentyp:</b><br>
+        <input type="radio" name="wurzelmode" value="none" checked> Keine Wurzelaufgaben<br>
+        <input type="radio" name="wurzelmode" value="both"> Auch Wurzelaufgaben<br>
+        <input type="radio" name="wurzelmode" value="only"> Nur Wurzelaufgaben<br>
+      </div>
+
+    </form>
+  </details>
+
+  <p></p>
+  <button onclick="generateSquare()">Neue Aufgabe generieren</button>
+
+  <!-- Aufgabe -->
+  <p id="counter" style="font-weight:bold;"></p>
+  <p><span id="Aufgabe">Klicke auf "Neue Aufgabe generieren"</span></p>
+  
+<!-- Formel mit Buttons links/rechts -->
+<div style="position: relative; width: 100%; height: 120px; margin-top: 20px;">
+
+    <!-- Falsch-Button links -->
+    <button id="wrongBtn" onclick="markAnswer(false)"
+            style="position: absolute; left: 0; top: 50%; transform: translateY(-50%);
+                  background-color:#f8d7da; color:#721c24; padding:10px; border:none; border-radius:5px;display:none;">
+      Falsch
+    </button>
+
+    <!-- Formel Container -->
+    <div id="formulaContainer" 
+         style="position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+                text-align: center; font-size: 1.5em; padding: 20px 30px; 
+                border-radius: 15px; cursor: grab; display: inline-block;">
+        <span id="formula"></span>
+    </div>
+
+    <!-- Korrekt-Button rechts -->
+    <button id="correctBtn" onclick="markAnswer(true)"
+            style="position: absolute; right: 0; top: 50%; transform: translateY(-50%);
+                  background-color:#d4edda; color:#155724; padding:10px; border:none; border-radius:5px;display:none;">
+      Korrekt
+    </button>
+</div>
+
+
+
+  <button id="showSolutionBtn" onclick="toggleSolution()" style="display:none;">Lösung anzeigen</button>
+  <p><span id="loesung"></span></p>
+
+<script>
+function makeCheckboxes(containerId, start, end) {
+  const container = document.getElementById(containerId);
+  for (let i = start; i <= end; i++) {
+    const cb = document.createElement("input");
+    cb.type = "checkbox";
+    cb.name = "num";
+    cb.value = i;
+    container.appendChild(cb);
+    container.appendChild(document.createTextNode(" " + i + " "));
+  }
+}
+
+function getParams() {
+  const urlParams = new URLSearchParams(window.location.search);
+
+  return {
+    selectedNums: urlParams.has('nums') ? urlParams.get('nums').split(',').map(Number) : [],
+    multifactor: urlParams.get('multifactor') === "1",
+    fractional: urlParams.get('fractional') === "1",
+    wurzelmode: urlParams.has('wurzelmode') ? urlParams.get('wurzelmode') : "none"
+  };
+}
+
+function updateURLParams() {
+  const queryParams = new URLSearchParams();
+
+  // ausgewählte Zahlen
+  const selected = [];
+  document.querySelectorAll('input[name=num]:checked').forEach(cb => {
+    selected.push(cb.value);
+  });
+  if (selected.length > 0) {
+    queryParams.set('nums', selected.join(','));
+  }
+
+  // Optionen
+  queryParams.set('multifactor', document.getElementById("multifactor").checked ? "1" : "0");
+  queryParams.set('fractional', document.getElementById("fractional").checked ? "1" : "0");
+
+  // Wurzelmodus
+  const wurzelMode = document.querySelector('input[name="wurzelmode"]:checked').value;
+  queryParams.set('wurzelmode', wurzelMode);
+
+  const newURL = window.location.pathname + '?' + queryParams.toString();
+  history.replaceState({}, '', newURL);
+}
+
+
+function toggleRange(start, end) {
+  const checkboxes = document.querySelectorAll(`input[name=num][value]`);
+  let alleTrue = true;
+  for (let cb of checkboxes) {
+    const v = parseInt(cb.value);
+    if (v >= start && v <= end && !cb.checked) {
+      alleTrue = false;
+      break;
+    }
+  }
+  for (let cb of checkboxes) {
+    const v = parseInt(cb.value);
+    if (v >= start && v <= end) {
+        cb.checked = !alleTrue;
+    }
+  }
+  updateURLParams();
+}
+
+function getSelectedNumbers() {
+  const baseNums = [];
+  document.querySelectorAll('input[name=num]:checked').forEach(cb => {
+    baseNums.push(parseInt(cb.value));
+  });
+
+  let allNums = [...baseNums];
+  const mult = document.getElementById("multifactor").checked;
+  const frac = document.getElementById("fractional").checked;
+
+  if (mult) {
+    baseNums.forEach(n => {
+      allNums.push(n*10, n*100, n*1000);
+    });
+  }
+  if (frac) {
+    baseNums.forEach(n => {
+      allNums.push(n/10, n/100, n/1000);
+    });
+  }
+
+  return allNums;
+}
+
+function randomChoice(arr) {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
+function roundNumber(x, decimals = 6) {
+  return Number.parseFloat(x.toFixed(decimals));
+}
+
+
+let lastN = null; // global speichern
+
+let taskPool = [];   // aktuelle Aufgabenliste
+let solved = new Set(); // gelöste Aufgaben
+
+let korrekteAntworten = 0;
+let anzahlAufgaben = 0;
+
+function refillPool() {
+  taskPool = getSelectedNumbers();
+  solved.clear();
+}
+
+function generateSquare() {
+  if (taskPool.length === 0) {
+    alert("Alle Aufgaben bearbeitet! Neue Runde wird gestartet.");
+    refillPool();
+  }
+
+  // Zahl auswählen aus Pool
+  let n;
+  do {
+    n = randomChoice(taskPool);
+  } while (taskPool.length > 1 && n === lastN);
+  lastN = n;
+  window.currentN = n;
+
+  // Aufgabe + Lösung erzeugen
+  const wurzelMode = document.querySelector('input[name="wurzelmode"]:checked').value;
+  const squared = roundNumber(n*n,6);
+  let aufgabe, loesung;
+  if(wurzelMode === "none") { 
+    aufgabe = n+"^2 = ?"; 
+    loesung = n+"^2 = "+squared; 
+  }
+  else if(wurzelMode === "only") { 
+    aufgabe = "\\sqrt{"+squared+"} = ?"; 
+    loesung = "\\sqrt{"+squared+"} = "+n; 
+  }
+  else { 
+    if(Math.random()<0.5) { 
+      aufgabe = n+"^2 = ?"; 
+      loesung = n+"^2 = "+squared; 
+    } 
+    else { 
+      aufgabe = "\\sqrt{"+squared+"} = ?"; 
+      loesung = "\\sqrt{"+squared+"} = "+n; 
+    } 
+  }
+
+  // Aufgabe anzeigen
+  document.getElementById('Aufgabe').innerHTML = "Berechne:";
+  document.getElementById('formula').innerHTML = "$$"+aufgabe+"$$";
+  document.getElementById("showSolutionBtn").style.display = "inline-block";
+  document.getElementById("wrongBtn").style.display = "inline-block";
+  document.getElementById("correctBtn").style.display = "inline-block";
+  MathJax.typeset();
+
+  // Lösung speichern
+  window.currentSolution = "$$"+loesung+"$$";
+
+  // Gesamtaufgaben hochzählen
+  updateCounterDisplay();
+}
+
+function markAnswer(correct) {
+  if (!window.currentN) return;
+
+  const loesungEl = document.getElementById("loesung");
+  
+  const n = window.currentN;
+
+  if (correct) {
+    // Aufgabe aus Pool entfernen
+    korrekteAntworten++;
+    const idx = taskPool.indexOf(window.currentN);
+    if (idx !== -1) taskPool.splice(idx,1);
+  }
+
+  // Aufgabe sofort sperren
+  window.currentN = null;
+  
+  // Lösung anzeigen
+  loesungEl.innerHTML = window.currentSolution;
+  MathJax.typeset();
+
+  // Flash-Effekt
+  flashResult(correct ? "lightgreen" : "lightcoral");
+
+  // Alte Lösung nach 1 Sekunde ausblenden + neue Aufgabe
+  setTimeout(() => {
+    anzahlAufgaben++;
+    updateCounterDisplay();
+    loesungEl.innerHTML = "";
+    generateSquare();
+  }, 1000);
+}
+
+function toggleSolution() {
+  const target = document.getElementById("loesung");
+  if (!window.currentSolution) return;
+
+  if (target.innerHTML === "") {
+    target.innerHTML = window.currentSolution;
+    MathJax.typeset();
+  } else {
+    target.innerHTML = "";
+  }
+}
+
+// Feedback-Animation
+function flashResult(color) {
+  const body = document.body;
+  body.style.transition = "none";
+  body.style.backgroundColor = color;
+
+  // gleichmäßig zurück nach weiß
+  setTimeout(() => {
+    body.style.transition = "background-color 1s";
+    body.style.backgroundColor = "white";
+  }, 50);
+}
+
+function updateCounterDisplay() {
+  const counterEl = document.getElementById("counter");
+  if (!counterEl) return;
+
+  counterEl.innerHTML = `Richtig: ${korrekteAntworten} / ${anzahlAufgaben}`;
+}
+
+// Tastatursteuerung
+document.addEventListener("keydown", (e) => {
+  if (e.code === "Space") {
+    e.preventDefault();
+    toggleSolution();
+  } else if (e.code === "ArrowRight") {
+    e.preventDefault();
+    markAnswer(true);
+  } else if (e.code === "ArrowLeft") {
+    e.preventDefault();
+    markAnswer(false);
+  }
+});
+
+const formulaContainer = document.getElementById("formulaContainer");
+let startX = null;
+let currentX = 0;
+
+function updateFormulaPosition(dx) {
+    formulaContainer.style.transform = `translate(calc(-50% + ${dx}px), -50%)`;
+    formulaContainer.style.boxShadow = `${dx/10}px ${Math.abs(dx)/10}px 10px rgba(0,0,0,0.3)`;
+
+    // Dynamische Hintergrundfarbe: rot nach links, grün nach rechts
+    const maxDistance = 200; // max Distanz für volle Farbe
+    let intensity = Math.min(Math.abs(dx) / maxDistance, 1); // zwischen 0 und 1
+    if (dx > 0) { // rechts → grün
+        formulaContainer.style.backgroundColor = `rgba(0, 255, 0, ${intensity*0.3})`;
+    } else if (dx < 0) { // links → rot
+        formulaContainer.style.backgroundColor = `rgba(255, 0, 0, ${intensity*0.3})`;
+    } else {
+        formulaContainer.style.backgroundColor = "transparent";
+    }
+}
+
+// Maus Drag
+formulaContainer.addEventListener("mousedown", (e) => {
+    startX = e.clientX;
+    formulaContainer.style.transition = "none";
+    formulaContainer.style.cursor = "grabbing";
+});
+document.addEventListener("mousemove", (e) => {
+    if (startX === null) return;
+    currentX = e.clientX - startX;
+    updateFormulaPosition(currentX);
+});
+document.addEventListener("mouseup", (e) => {
+    if (startX === null) return;
+    if (currentX > 50) markAnswer(true);
+    else if (currentX < -50) markAnswer(false);
+    formulaContainer.style.transition = "transform 0.3s ease, background-color 0.3s ease";
+    formulaContainer.style.transform = "translate(-50%, -50%)";
+    formulaContainer.style.boxShadow = "none";
+    formulaContainer.style.backgroundColor = "transparent";
+    formulaContainer.style.cursor = "grab";
+    startX = null;
+    currentX = 0;
+});
+
+// Touch Drag (für Mobil)
+formulaContainer.addEventListener("touchstart", (e) => {
+    startX = e.touches[0].clientX;
+    formulaContainer.style.transition = "none";
+});
+formulaContainer.addEventListener("touchmove", (e) => {
+    if (startX === null) return;
+    currentX = e.touches[0].clientX - startX;
+    updateFormulaPosition(currentX);
+});
+formulaContainer.addEventListener("touchend", (e) => {
+    if (startX === null) return;
+    if (currentX > 50) markAnswer(true);
+    else if (currentX < -50) markAnswer(false);
+    formulaContainer.style.transition = "transform 0.3s ease, background-color 0.3s ease";
+    formulaContainer.style.transform = "translate(-50%, -50%)";
+    formulaContainer.style.boxShadow = "none";
+    formulaContainer.style.backgroundColor = "transparent";
+    startX = null;
+    currentX = 0;
+});
+
+
+document.addEventListener('DOMContentLoaded', () => {
+  makeCheckboxes("range1_10", 1, 10);
+  makeCheckboxes("range11_20", 11, 20);
+  makeCheckboxes("range21_25", 21, 25);
+
+  const params = getParams();
+
+  if (params.selectedNums.length > 0) {
+    params.selectedNums.forEach(num => {
+      const cb = document.querySelector(`input[name=num][value="${num}"]`);
+      if (cb) cb.checked = true;
+    });
+  } else {
+    // Standard: 1–10 anhaken
+    for (let i = 1; i <= 10; i++) {
+      const cb = document.querySelector(`input[name=num][value="${i}"]`);
+      if (cb) cb.checked = true;
+    }
+    updateURLParams();
+  }
+
+  document.getElementById("multifactor").checked = params.multifactor;
+  document.getElementById("fractional").checked = params.fractional;
+
+  const wurzelRadio = document.querySelector(`input[name="wurzelmode"][value="${params.wurzelmode}"]`);
+  if (wurzelRadio) wurzelRadio.checked = true;
+
+  // Eventlistener
+  document.querySelectorAll('#settingsForm input').forEach(input => {
+    input.addEventListener('change', () => {
+      updateURLParams();
+      // kurze Verzögerung, damit der Checked-Status übernommen ist
+      setTimeout(() => {
+        refillPool();  // Pool jetzt NEU füllen
+      }, 0);
+    });
+  });
+
+  refillPool();              // 🆕 Pool initial füllen
+  // generateSquare();          // Erste Aufgabe
+});
+
+document.getElementById("correctBtn").addEventListener("click", () => {
+  if (window.currentN != null) markAnswer(true);
+});
+
+document.getElementById("wrongBtn").addEventListener("click", () => {
+  if (window.currentN != null) markAnswer(false);
+});
+
+
+</script>
+
+</body>
+</html>
