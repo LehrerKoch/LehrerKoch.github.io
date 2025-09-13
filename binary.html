@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Binär ↔ Dezimal Übung</title>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+<style>
+  body {
+    font-family: sans-serif;
+    padding: 20px;
+  }
+
+  .row {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 10px;
+  }
+
+  .col {
+    flex: 1;
+    text-align: center;
+  }
+
+  label {
+    display: block;
+    margin-bottom: 4px;
+    text-align: center;
+  }
+
+  input {
+    width: 120px;
+    padding: 5px;
+  }
+
+  button {
+    margin-top: 6px;
+    padding: 4px 8px;
+    font-size: 0.9em;
+  }
+
+  button.small {
+    width: auto;   /* nur so breit wie der Text */
+    display: inline-block;
+    padding: 2px 6px;
+  }
+
+  button.full {
+    width: 120px;  /* genauso breit wie Input */
+  }
+
+  .hilfe {
+    margin-top: 20px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    display: none;
+  }
+
+  .steps {
+    margin: 5px 0;
+  }
+
+  .correct {
+    background-color: #c8f7c5;
+  }
+
+  .wrong {
+    background-color: #f7c5c5;
+  }
+
+  .invalid {
+    background-color: #fdd; /* rot hinterlegt bei falscher Eingabe */
+  }
+/* Buttons im Converter-Grid: kein zusätzlicher top-margin, Inhalt zentriert */
+#converter button {
+  margin-top: 0 !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  /* Höhe bleibt die, die du inline gesetzt hast (z.B. height:40px) */
+}
+
+</style>
+
+
+</head>
+<body>
+  <h1 id="title">Binärzahl → Dezimalzahl</h1>
+<div id="converter"
+     style="
+       display: grid;
+       grid-template-columns: 120px 220px 60px 220px 60px;
+       grid-template-rows: auto auto auto;
+       gap: 8px;
+       align-items: center;
+       justify-items: center;
+       width: 100%;
+       max-width: 920px;
+       margin: 24px auto;
+     ">
+  <!-- ============ Zeile 1 ============ -->
+  <!-- Spalte 1: leer -->
+  <div></div>
+
+  <!-- Spalte 2: Binär-Label -->
+  <label  id="labelLeft" for="inputLeft" style="justify-self:center; align-self:center;">Binärzahl</label>
+
+  <!-- Spalte 3: Pfeil -->
+  <div id="labelArrow" style="font-size:20px; font-weight:700;">→</div>
+
+  <!-- Spalte 4: Dezimal-Label -->
+  <label id="labelRight" for="inputRight" style="justify-self:center; align-self:center;">Dezimalzahl</label>
+
+  <!-- Spalte 5: leer -->
+  <div></div>
+
+  <!-- ============ Zeile 2 ============ -->
+  <!-- Spalte 1: Zufallszahl-Button -->
+  <button id="randomBtn"
+          style="height:40px; width:100%; box-sizing:border-box;">Zufallszahl</button>
+
+  <!-- Spalte 2: Eingabefeld (Binär) -->
+  <input type="text" id="inputLeft" placeholder="z.B. 1011"
+         style="height:40px; width:100%; text-align:center; box-sizing:border-box;">
+
+  <!-- Spalte 3: Gleichheitszeichen -->
+  <div style="font-size:20px; font-weight:700;">=</div>
+
+  <!-- Spalte 4: Ausgabefeld (Dezimal) -->
+  <input type="text" id="inputRight" placeholder="Ergebnis"
+           style="height:40px; width:100%; text-align:center; box-sizing:border-box;">
+    
+  <!-- Spalte 5: Check-Button (ausgeblendet) -->
+  <div><button id="checkBtn"
+        style="height:40px; width:100%; box-sizing:border-box; visibility:hidden;">✔</button>
+  </div>  
+
+  <!-- ============ Zeile 3 ============ -->
+  <!-- Spalte 1: leer -->
+  <div></div>
+
+
+  <!-- Spalte 2: Hilfe-Button (gleiche Größe wie Eingabefeld darüber) -->
+  <button id="helpBtn"
+          style="height:40px; width:100%; box-sizing:border-box;">Hilfe</button>
+
+  <!-- Spalte 3: Tauschen-Button (gleiche Größe wie Inhalt darüber, d.h. schmal wie '=') -->
+  <button id="swapBtn"
+          style="height:40px; width:100%; box-sizing:border-box;">↔</button>
+
+  <!-- Spalte 4: Lösung-Button (gleiche Größe wie Ausgabefeld darüber) -->
+  <button id="solutionBtn"
+          style="height:40px; width:100%; box-sizing:border-box;">Lösung</button>
+
+  <!-- Spalte 5: leer -->
+  <div></div>
+
+</div>
+  
+  <div id="helpBox"></div>
+
+  <script>
+    
+    // Modus: "bin2dec" oder "dec2bin"
+    let mode = 'bin2dec';
+
+    // Elemente
+    const inputLeft = document.getElementById('inputLeft');
+    const inputRight = document.getElementById('inputRight');
+    const randomBtn = document.getElementById('randomBtn');
+    const helpBtn = document.getElementById('helpBtn');
+    const swapBtn = document.getElementById('swapBtn');
+    const solutionBtn = document.getElementById('solutionBtn');
+    const checkBtn = document.getElementById('checkBtn');
+    const helpBox = document.getElementById('helpBox');
+    const labelLeft = document.getElementById('labelLeft');
+    const labelRight = document.getElementById('labelRight');
+    const labelArrow = document.getElementById('labelArrow');
+    const title = document.getElementById('title');
+
+    // Hilfsfunktionen
+    function setInvalid(el, invalid) {
+      el.classList.toggle('invalid', invalid);
+    }
+    function setResultClass(el, cls) {
+      el.classList.remove('correct','wrong');
+      if (cls) el.classList.add(cls);
+    }
+    
+    function resetResultAndHelp() {
+      inputRight.value = '';
+      inputRight.classList.remove('invalid','correct','wrong');
+      checkBtn.style.visibility = 'hidden';
+      helpBox.style.display = 'none';
+    }
+
+
+    function switchMode() {
+      mode = (mode === 'bin2dec') ? 'dec2bin' : 'bin2dec';
+      // labels & placeholders
+      if (mode === 'bin2dec') {
+        title.textContent = 'Binärzahl → Dezimalzahl';
+        labelLeft.textContent = 'Binärzahl';
+        labelRight.textContent = 'Dezimalzahl';
+        labelArrow.textContent = '→';
+        inputLeft.placeholder = 'z. B. 1011';
+        inputRight.placeholder = 'Ergebnis';
+      } else {
+        title.textContent = 'Dezimalzahl → Binärzahl';
+        labelLeft.textContent = 'Dezimalzahl';
+        labelRight.textContent = 'Binärzahl';
+        labelArrow.textContent = '→';
+        inputLeft.placeholder = 'z. B. 55';
+        inputRight.placeholder = 'Ergebnis';
+      }
+      // reset fields
+      inputLeft.value = '';
+      resetResultAndHelp();
+      inputLeft.classList.remove('invalid');
+      checkBtn.style.visibility = 'hidden'; // sicherheitshalber
+      updateCheckButtonVisibility(); // überprüft sofort, falls Feld schon Werte enthält
+
+    }
+
+    // Zufallszahl einfügen
+    function insertRandom() {
+      resetResultAndHelp();
+      if (mode === 'bin2dec') {
+        const length = Math.floor(Math.random()*5) + 3; // 3-7 Stellen
+        let b = '';
+        for (let i=0;i<length;i++) b += Math.random()<0.5 ? '0' : '1';
+        inputLeft.value = b.replace(/^0+/, '') || '0';
+        validateLeft();
+      } else {
+        const n = Math.floor(Math.random()*256); // 0-255
+        inputLeft.value = String(n);
+        validateLeft();
+      }
+      checkBtn.style.visibility = 'hidden'; // sicherheitshalber
+      updateCheckButtonVisibility(); // überprüft sofort, falls Feld schon Werte enthält
+
+    }
+
+    function showSolution() {
+      const left = inputLeft.value.trim();
+      if (!validateLeft() || left === '') return;
+
+      let result = '';
+      if (mode === 'bin2dec') {
+        result = parseInt(left, 2).toString();
+      } else {
+        result = parseInt(left, 10).toString(2);
+      }
+
+      inputRight.value = result;
+      inputRight.classList.remove('wrong', 'invalid');
+      setResultClass(inputRight, 'correct');  // ← Ergebnis grün einfärben
+      checkBtn.style.visibility = 'hidden';   // Check-Button weiterhin ausblenden
+    }
+
+
+    // Überprüfen (check) — steht rechts vom Ergebnisfeld
+    function checkAnswer() {
+      if (!validateLeft()) return;
+      const left = inputLeft.value.trim();
+      const right = inputRight.value.trim();
+      if (right === '') return;
+      let expected;
+      if (mode === 'bin2dec') {
+        expected = String(parseInt(left, 2));
+      } else {
+        expected = parseInt(left,10).toString(2);
+      }
+      if (expected === right) {
+        setResultClass(inputRight, 'correct');
+      } else {
+        setResultClass(inputRight, 'wrong');
+      }
+    }
+
+    // Validierung der Eingaben beim Tippen
+    function validateLeft() {
+      const v = inputLeft.value.trim();
+      if (v === '') { setInvalid(inputLeft,false); return true; }
+      if (mode === 'bin2dec') {
+        const ok = /^[01]+$/.test(v);
+        setInvalid(inputLeft, !ok);
+        if (!ok) {
+          resetResultAndHelp();
+        }
+        return ok;
+      } else {
+        const ok = /^\d+$/.test(v);
+        setInvalid(inputLeft, !ok);
+        if (!ok) resetResultAndHelp();
+        return ok;
+      }
+    }
+
+    function validateRight() {
+      const v = inputRight.value.trim();
+
+      // leeres Feld -> kein Fehler
+      if (v === '') {
+        inputRight.classList.remove('invalid');
+        // entferne evtl. vorherige Ergebnisfärbung
+        setResultClass(inputRight, null);
+        return true;
+      }
+
+      // je nach Modus andere erlaubte Zeichen
+      const ok = (mode === 'bin2dec') ? /^\d+$/.test(v) : /^[01]+$/.test(v);
+
+      // visuelle Markierung bei ungültiger Eingabe
+      inputRight.classList.toggle('invalid', !ok);
+
+      // wenn ungültig, entferne Korrekt/Fehler-Färbung
+      if (!ok) setResultClass(inputRight, null);
+
+      return ok;
+    }
+
+    function updateCheckButtonVisibility() {
+      const leftVal = inputLeft.value.trim();
+      const rightVal = inputRight.value.trim();
+
+      const leftValid = (mode === 'bin2dec') ? /^[01]+$/.test(leftVal) : /^\d+$/.test(leftVal);
+      const rightValid = (mode === 'bin2dec') ? /^\d+$/.test(rightVal) : /^[01]+$/.test(rightVal);
+
+      if (leftVal !== '' && rightVal !== '' && leftValid && rightValid) {
+        checkBtn.style.visibility = 'visible';
+      } else {
+        checkBtn.style.visibility = 'hidden';
+      }
+    }
+
+    function toggleHelp() {
+      if (helpBox.style.display === 'block') { 
+        helpBox.style.display = 'none'; 
+        return; 
+      }
+
+      // Prüfe Linkseingabe
+      if (!validateLeft()) {
+        alert('Bitte erst eine gültige Eingabe im linken Feld machen.');
+        return;
+      }
+      const left = inputLeft.value.trim();
+      if (left === '') { 
+        alert('Bitte zuerst eine Zahl eingeben.'); 
+        return; 
+      }
+
+      if (mode === 'bin2dec') {
+          const bits = left.split('').map(b => b.trim());
+          const n = bits.length;
+          const values = Array.from({length: n}, (_, i) => Math.pow(2, n - 1 - i));
+          const dec = parseInt(left, 2);
+
+          // Obere Reihe: Stellenwerte, kleiner, blau bei 1
+          const topRow = values.map((v, i) =>
+              bits[i] === '1' ? `\\scriptstyle \\color{blue}{${v}}` : `\\scriptstyle ${v}`
+          ).join(' & ');
+
+          // Mittlere Reihe: Binärzahl fett, größer, blau bei 1
+          const middleRow = bits.map(b =>
+              b === '1' ? `\\Huge \\mathbf{\\color{blue}{${b}}}` : `\\Huge \\mathbf{${b}}`
+          ).join(' & ');
+
+          // Untere Reihe: Summe mit Pluszeichen nur dort, wo nachfolgend noch eine 1 kommt
+          let sumRow = '';
+          for (let i = 0; i < n; i++) {
+              if (bits[i] === '1') {
+                  sumRow += `\\color{blue}{${values[i]}}`;
+                  // Prüfen, ob noch weitere 1 folgen, dann +~ setzen
+                  let restHasOne = bits.slice(i + 1).some(b => b === '1');
+                  if (restHasOne) sumRow += ' & +~ ';
+              } else {
+                  sumRow += `\\phantom{${values[i]}} & `;
+              }
+          }
+          sumRow += ` & = \\vcenter{\\hbox{$\\Huge\\mathbf{\\color{red}{${dec}}}$}}`;
+
+          // LaTeX Array
+          const latex = `
+            \\[
+            \\begin{array}{${'c '.repeat(n)}l}
+            ${topRow} \\\\
+            ${middleRow} \\\\
+            ${sumRow}
+            \\end{array}
+            \\]
+            `;
+
+          // HTML einsetzen
+          helpBox.innerHTML = `<div><strong>Stellenwertsystem</strong><br>${latex}</div>`;
+          helpBox.style.display = 'block';
+
+          // MathJax stabil rendern
+          if (typeof MathJax !== "undefined") {
+            MathJax.typesetClear();
+            MathJax.typesetPromise([helpBox]).catch((err) => console.error(err.message));
+          }
+      }
+      else {
+        // --- Dezimal → Binär (Modulo-Verfahren) ---
+        let n = parseInt(left,10);
+        if (isNaN(n)) { alert('Bitte eine gültige Dezimalzahl eingeben.'); return; }
+
+        const steps = [];
+        let num = n;
+        const remainders = [];
+        while (num > 0) {
+          const q = Math.floor(num / 2);
+          const r = num % 2;
+          steps.push({num, q, r});
+          remainders.push(r);
+          num = q;
+        }
+        const binary = remainders.length ? remainders.reverse().join('') : '0';
+
+        // LaTeX array: rechtsbündige Zahlen, Rest links, gleiche Breite minimal
+        const rows = steps.map(s => {
+          return `${s.num} : 2 = & ${s.q} & \\text{Rest:} & ${s.r} \\\\`;
+        }).join('\n');
+
+        const latex = `
+          \\(
+          \\begin{array}{r r l r}
+          ${rows}
+          \\end{array}\\)
+           <h4>Ergebnis (Reste von unten nach oben lesen):</h4>
+           \\(${n} = ${binary}_2\\)
+        `;
+
+        helpBox.innerHTML = `<div><h3>Modulo-Verfahren (Division durch 2)</h3>${latex}</div>`;
+        helpBox.style.display = 'block';
+        MathJax.typeset();
+      }
+    }
+
+    // Event-Listener
+    randomBtn.addEventListener('click', () => insertRandom());
+    swapBtn.addEventListener('click', () => switchMode());
+    solutionBtn.addEventListener('click', () => showSolution());
+    helpBtn.addEventListener('click', () => toggleHelp());
+    checkBtn.addEventListener('click', () => checkAnswer());
+
+    inputLeft.addEventListener('input', () => {
+      resetResultAndHelp();
+      validateLeft();
+      updateCheckButtonVisibility(); // neu
+    });
+
+    inputRight.addEventListener('input', () => {
+      inputRight.classList.remove('correct','wrong');
+      validateRight();
+      updateCheckButtonVisibility(); // neu
+    });
+
+
+    // initial
+    (function init(){
+      // ggf. initiale Zufallszahl
+      inputLeft.value = '';
+      inputRight.value = '';
+      helpBox.style.display = 'none';
+      checkBtn.style.visibility = 'hidden'; // <-- statt display = 'none'
+    })();
+  </script>
+</body>
+</html>
