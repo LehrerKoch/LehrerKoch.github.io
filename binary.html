@@ -94,7 +94,7 @@
 
   @media (max-width: 700px) {
     :root {
-      transform: scale(0.93); /* z.B. 50% */
+      transform: scale(0.92); /* z.B. 50% */
       transform-origin: top left; /* Skalierung läuft links ab */
     }
   }
@@ -108,7 +108,7 @@
 
   @media (max-width: 620px) {
     :root {
-      transform: scale(0.88); /* z.B. 50% */
+      transform: scale(0.87); /* z.B. 50% */
       transform-origin: top left; /* Skalierung läuft links ab */
     }
   }
@@ -122,34 +122,41 @@
   
   @media (max-width: 580px) {
     :root {
-      transform: scale(0.84); /* z.B. 50% */
+      transform: scale(0.83); /* z.B. 50% */
+      transform-origin: top left; /* Skalierung läuft links ab */
+    }
+  }
+
+  @media (max-width: 560px) {
+    #converter {
+      transform: scale(0.8); /* z.B. 50% */
       transform-origin: top left; /* Skalierung läuft links ab */
     }
   }
 
   @media (max-width: 540px) {
     :root {
-      transform: scale(0.8); /* z.B. 50% */
+      transform: scale(0.79); /* z.B. 50% */
       transform-origin: top left; /* Skalierung läuft links ab */
     }
   }
 
   @media (max-width: 510px) {
     :root {
-      transform: scale(0.78); /* z.B. 50% */
+      transform: scale(0.77); /* z.B. 50% */
       transform-origin: top left; /* Skalierung läuft links ab */
     }
   }
 
   @media (max-width: 480px) {
     :root {
-      transform: scale(0.74); /* z.B. 50% */
+      transform: scale(0.73); /* z.B. 50% */
       transform-origin: top left; /* Skalierung läuft links ab */
     }
   }
   @media (max-width: 460px) {
     :root {
-      transform: scale(0.71); /* z.B. 50% */
+      transform: scale(0.70); /* z.B. 50% */
       transform-origin: top left; /* Skalierung läuft links ab */
     }
   }
@@ -256,10 +263,28 @@
     const labelArrow = document.getElementById('labelArrow');
     const title = document.getElementById('title');
 
+    // URL-Parameter auslesen
+    function getParams() {
+      const urlParams = new URLSearchParams(window.location.search);
+      return {
+        mode: urlParams.has('mode') ? urlParams.get('mode') : 'bin2dec'
+      };
+    }
+
+    // URL-Parameter aktualisieren
+    function updateURLParams() {
+      const queryParams = new URLSearchParams(window.location.search);
+      queryParams.set('mode', mode);
+      const newURL = window.location.pathname + '?' + queryParams.toString();
+      history.replaceState({}, '', newURL);
+    }
+
+
     // Hilfsfunktionen
     function setInvalid(el, invalid) {
       el.classList.toggle('invalid', invalid);
     }
+
     function setResultClass(el, cls) {
       el.classList.remove('correct','wrong');
       if (cls) el.classList.add(cls);
@@ -271,7 +296,6 @@
       checkBtn.style.visibility = 'hidden';
       helpBox.style.display = 'none';
     }
-
 
     function switchMode() {
       mode = (mode === 'bin2dec') ? 'dec2bin' : 'bin2dec';
@@ -297,7 +321,7 @@
       inputLeft.classList.remove('invalid');
       checkBtn.style.visibility = 'hidden'; // sicherheitshalber
       updateCheckButtonVisibility(); // überprüft sofort, falls Feld schon Werte enthält
-
+      updateURLParams();
     }
 
     // Zufallszahl einfügen
@@ -335,7 +359,6 @@
       setResultClass(inputRight, 'correct');  // ← Ergebnis grün einfärben
       checkBtn.style.visibility = 'hidden';   // Check-Button weiterhin ausblenden
     }
-
 
     // Überprüfen (check) — steht rechts vom Ergebnisfeld
     function checkAnswer() {
@@ -499,7 +522,7 @@
 
         // LaTeX array: rechtsbündige Zahlen, Rest links, gleiche Breite minimal
         const rows = steps.map(s => {
-          return `${s.num} : 2 = & ${s.q} & \\text{Rest:} & ${s.r} \\\\`;
+          return `${s.num} : 2 = & ${s.q} & \\text{Rest:} & \\color{red}{${s.r}} \\\\`;
         }).join('\n');
 
         const latex = `
@@ -508,12 +531,17 @@
           ${rows}
           \\end{array}\\)
            <h4>Ergebnis (Reste von unten nach oben lesen):</h4>
-           \\(${n} = ${binary}_2\\)
+           \\(${n} = \\vcenter{\\hbox{$\\Large\\mathbf{\\color{red}{${binary}_2}}$}}\\)
         `;
 
         helpBox.innerHTML = `<div><h3>Modulo-Verfahren (Division durch 2)</h3>${latex}</div>`;
         helpBox.style.display = 'block';
-        MathJax.typeset();
+        // MathJax stabil rendern
+          if (typeof MathJax !== "undefined") {
+            MathJax.typesetClear();
+            MathJax.typesetPromise([helpBox]).catch((err) => console.error(err.message));
+          }
+
       }
     }
 
@@ -539,12 +567,31 @@
 
     // initial
     (function init(){
-      // ggf. initiale Zufallszahl
+      const params = getParams();
+      mode = params.mode === 'dec2bin' ? 'dec2bin' : 'bin2dec';
+      // Titel & Labels direkt beim Start setzen
+      if (mode === 'dec2bin') {
+        title.textContent = 'Dezimalzahl → Binärzahl';
+        labelLeft.textContent = 'Dezimalzahl';
+        labelRight.textContent = 'Binärzahl';
+        labelArrow.textContent = '→';
+        inputLeft.placeholder = 'z. B. 55';
+        inputRight.placeholder = 'Ergebnis';
+      } else {
+        title.textContent = 'Binärzahl → Dezimalzahl';
+        labelLeft.textContent = 'Binärzahl';
+        labelRight.textContent = 'Dezimalzahl';
+        labelArrow.textContent = '→';
+        inputLeft.placeholder = 'z. B. 1011';
+        inputRight.placeholder = 'Ergebnis';
+      }
+
       inputLeft.value = '';
       inputRight.value = '';
       helpBox.style.display = 'none';
-      checkBtn.style.visibility = 'hidden'; // <-- statt display = 'none'
+      checkBtn.style.visibility = 'hidden';
     })();
+
   </script>
 </body>
 </html>
