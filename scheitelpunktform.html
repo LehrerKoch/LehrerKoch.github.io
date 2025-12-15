@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Normalform ⇄ Scheitelpunktform</title>
+<link rel="stylesheet" href="styles.css">
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+<script>
+// ================= HILFSFUNKTIONEN =================
+
+function randomInt(min, max, step=1) {
+    const range = Math.floor((max - min)/step) + 1;
+    return min + step*Math.floor(Math.random()*range);
+}
+function pick(arr){return arr[Math.floor(Math.random()*arr.length)];}
+
+// HILFSFUNKTION: findet den Nenner (für z.B. 0.25 -> 4)
+function getDenominator(a) {
+    const tolerance = 1e-9;
+    if (Math.abs(a) < tolerance) return 1; // a ist 0
+    if (Math.abs(a - Math.round(a)) < tolerance) return 1; // a ist Ganzzahl
+    
+    // Max 10 Nachkommastellen prüfen
+    const str = a.toFixed(10).toString();
+    const decimalIndex = str.indexOf('.');
+    if (decimalIndex === -1) return 1;
+    
+    let denominator = 1;
+    let temp_a = a;
+    
+    // Erhöhe den Nenner bis a * Nenner eine Ganzzahl ist
+    for (let i = 0; i < 10; i++) {
+        temp_a *= 10;
+        denominator *= 10;
+        // Prüfung auf Ganzzahligkeit
+        if (Math.abs(temp_a - Math.round(temp_a)) < tolerance) break;
+    }
+    
+    // Kürzen des Bruchs (GCD verwenden, um 0.5 -> 2 statt 10 zu bekommen)
+    const gcd = (x, y) => (y ? gcd(y, x % y) : x);
+    const num = Math.round(a * denominator);
+    const common = gcd(Math.abs(num), denominator);
+    
+    // Sicherstellen, dass common nicht 0 ist
+    return common === 0 ? 1 : denominator / common;
+}
+
+
+// ==== URL Helfer ====
+function updateURLParam(key, value) {
+    const url = new URL(window.location);
+    url.searchParams.set(key, value);
+    window.history.replaceState({}, '', url);
+}
+
+function getURLParam(key, defaultValue) {
+    const url = new URL(window.location);
+    return url.searchParams.has(key) ? url.searchParams.get(key) : defaultValue;
+}
+
+/**
+ * Formatiert einen Koeffizienten oder Term für die MathJax-Ausgabe.
+ * Verwendet Komma nur, wenn nötig, und rundet auf maximal 2 Dezimalstellen für die ANZEIGE.
+ */
+function formatTerm(value, varStr = '', isFirst = false, isInParenthesis = false) {
+    // Toleranz für die Rundungsprüfung
+    const tolerance = 1e-9;
+    
+    // Die interne Berechnung ist präzise, aber für die Anzeige wird gerundet.
+    let displayValue = value;
+    let isInteger = Math.abs(value - Math.round(value)) < tolerance;
+    
+    if (!isInteger) {
+        // Auf maximal 2 Nachkommastellen runden
+        displayValue = Math.round(value * 100) / 100;
+        // Erneut prüfen, ob durch die Rundung eine Ganzzahl entsteht
+        isInteger = Math.abs(displayValue - Math.round(displayValue)) < tolerance;
+    }
+
+    // Wenn der Wert nahe Null ist
+    if (Math.abs(displayValue) < tolerance) {
+        if (isFirst && !varStr && !isInParenthesis) return '0';
+        return ''; 
+    }
+    
+    let sign = displayValue >= 0 ? '+' : '';
+    let absValue = Math.abs(displayValue);
+    
+    let displayStr;
+    if (isInteger) {
+        displayStr = Math.round(absValue).toString();
+    } else {
+        // Erzeugt Komma für die deutsche Darstellung und trimmt überflüssige Nullen
+        displayStr = absValue.toFixed(2).replace('.', ',');
+        while (displayStr.endsWith('0') && displayStr.includes(',')) {
+            displayStr = displayStr.slice(0, -1);
+        }
+        if (displayStr.endsWith(',')) displayStr = displayStr.slice(0, -1);
+    }
+    
+    // Vorzeichensetzung
+    if (isFirst && displayValue > 0) {
+        sign = ''; 
+    } else if (displayValue < 0) {
+        sign = '-';
+    }
+
+    // Koeffizient 1 weglassen (nur wenn es eine Variable gibt)
+    if (varStr && Math.abs(absValue - 1) < tolerance) {
+        displayStr = '';
+    }
+    
+    // Koeffizient 'a' muss manchmal als 1 angezeigt werden, wenn es die einzige Zahl ist.
+    if (!varStr && Math.abs(absValue - 1) < tolerance && isFirst && displayValue > 0) {
+        // Falls z.B. f(x) = (x+d)^2 + e formatiert wird, wird 'a' nicht angezeigt
+        if (displayStr === '') displayStr = '1';
+    }
+
+    if (isInParenthesis) {
+        // Für Konstanten in Klammern (x +/- d) oder QE (x +/- Q)
+        if (displayValue > 0) return `+ ${displayStr}`;
+        if (displayValue < 0) return `- ${displayStr}`;
+    }
+    
+    // Reguläre Ausgabe: Vorzeichen, Leerzeichen, Wert, Variable
+    return `${sign} ${displayStr}${varStr}`;
+}
+
+/**
+ * Entfernt unnötige Leerzeichen/Vorzeichen und konvertiert Kommas zu {;} für MathJax.
+ */
+function finalCleanUp(formula) {
+    return formula
+        .replace(/,/g, '{,}') // Konvertiert Dezimalkomma zu TeX-Komma
+        // Entfernt führende Leerzeichen nach f(x) =
+        .replace(/f\(x\) = \s*/, 'f(x) = ')
+        // Ersetzt +/- oder -/- durch saubere Operatoren
+        .replace(/\s\+\s*-\s*/g, ' - ') // Bsp: " + - " -> " - "
+        .replace(/\s-\s*-\s*/g, ' + ') // Bsp: " - - " -> " + "
+        // Bereinigt einzelne Operatoren mit Leerzeichen
+        .replace(/\s\+/g, ' +').replace(/\s-/g, ' -')
+        // Entfernt überflüssige führende Operatoren am Anfang der Formel (nur bei f(x)=)
+        .replace(/f\(x\) = \+\s*/, 'f(x) = ')
+        // Entfernt doppelte Leerzeichen
+        .replace(/\s\s+/g, ' ')
+        .trim();
+}
+
+
+// ================= GENERATOREN =================
+
+function generateA(aLevel, aNegativ, valueLevel) {
+    let aOptions = [];
+    
+    // Anpassen der a-Optionen gemäß den neuen Vorgaben
+    if(aLevel === "a1") aOptions = [1];
+    else if(aLevel === "leicht") aOptions = [1, 2, 2, 2, 3, 3, 4, 5];
+    else if(aLevel === "leicht+gestaucht") aOptions = [1, 2, 2, 2, 3, 3, 4, 5, 0.5, 0.25, 0.2, 0.1, 1/2, 1/4, 1/5, 1/10];
+    else if(aLevel === "mittel") aOptions = [1, 2, 3, 4, 5, 6, 10, 0.75, 3/4, 1.5, 1/5, 2/5, 3/5, 4/5, 0.2, 0.4, 0.6, 0.8];
+    // Der 'schwer'-Fall von a wurde nicht definiert, nehme 'mittel' an
+    else aOptions = [1, 2, 3, 4, 5, 6, 10, 0.75, 3/4, 1.5, 1/5, 2/5, 3/5, 4/5, 0.2, 0.4, 0.6, 0.8];
+
+    if (aOptions.length === 0) aOptions = [1];
+    let a = pick(aOptions);
+    
+    if(aNegativ && Math.abs(a - 1) > 1e-9) { // nur negativ, wenn a != 1
+        a *= Math.random() < 0.5 ? -1 : 1;
+    }
+    return a;
+}
+
+// === ZENTRALE GENERIERUNGSFUNKTION FÜR BEIDE MODI ===
+function generateParameters(mode, valueLevel, sonderfaelle, a, aLevel, aNegativ) {
+    const tolerance = 1e-9;
+
+    // --- NF2SF MODUS: Generiere P und Q (Koeffizienten von x^2+Px+Q) ---
+    if (mode === "nf2sf") {
+        let P_base, Q_base; 
+        let P_range_max, Q_range_max;
+        
+        // 1. Definiere P/Q-Ranges
+        if(valueLevel === "sehr leicht") {
+            P_range_max = 10; Q_range_max = 20; 
+        } else if(valueLevel === "leicht") {
+            P_range_max = 20; Q_range_max = 50;
+        } else if(valueLevel === "mittel") {
+            P_range_max = 20; Q_range_max = 100;
+        } else { // schwer
+            P_range_max = 40; Q_range_max = 100;
+        }
+
+        const N = getDenominator(Math.abs(a));
+        const isFractionalA = N > 1;
+
+        do {
+            // 2. Generiere Basis P und Q
+            
+            // P muss gerade sein (für sehr leicht und leicht)
+            P_base = randomInt(-P_range_max / 2, P_range_max / 2) * 2;
+            
+            if (valueLevel === "mittel" || valueLevel === "schwer") {
+                P_base = randomInt(-P_range_max, P_range_max);
+            }
+            
+            Q_base = randomInt(-Q_range_max, Q_range_max);
+            
+            // Spezialfall: Q im Modus 'sehr leicht' muss > 0 sein
+            if (valueLevel === "sehr leicht" && Q_base <= 0) Q_base = randomInt(1, Q_range_max);
+
+            // 3. Anwendung der Sonderfälle (Nullwerte in P und Q)
+            let P = P_base;
+            let Q = Q_base;
+
+            if(sonderfaelle) {
+                if(Math.random() < 0.25) P = 0;
+                if(Math.random() < 0.25) Q = 0;
+            } else {
+                 while (P === 0) P = (valueLevel === "sehr leicht" || valueLevel === "leicht") ? randomInt(-P_range_max / 2, P_range_max / 2) * 2 : randomInt(-P_range_max, P_range_max);
+                 while (Q === 0) Q = randomInt(-Q_range_max, Q_range_max);
+            }
+            
+            // 4. Anpassung P und Q, falls a gebrochen ist, um b und c ganzzahlig zu garantieren
+            let P_final = P;
+            let Q_final = Q;
+            
+            if (isFractionalA) {
+                // Multipliziere P und Q mit dem Nenner N, um $b$ und $c$ ganzzahlig zu machen.
+                if (N <= 10) { 
+                    P_final = P * N;
+                    Q_final = Q * N;
+                }
+            }
+
+            // 5. Berechnung von b, c, d und e
+            const b_val = a * P_final; 
+            const c_val = a * Q_final; 
+            const d_val = -P_final / 2; // d ist Scheitelpunkt-x-Wert
+            const e_val = c_val - (a * d_val * d_val); // e ist Scheitelpunkt-y-Wert
+            
+            // 6. Prüfung auf Ganzzahligkeit von b und c (muss IMMER ganzzahlig sein)
+            if (Math.abs(b_val - Math.round(b_val)) > tolerance || Math.abs(c_val - Math.round(c_val)) > tolerance) {
+                 // Sollte nicht passieren, wenn die Anpassung funktioniert, aber zur Sicherheit
+                 continue;
+            }
+            
+            // Rückgabe der Parameter
+            return { 
+                d: d_val, 
+                e: e_val, 
+                b: Math.round(b_val), 
+                c: Math.round(c_val)
+            };
+
+        } while (true);
+    
+    // --- SF2NF MODUS: Generiere d und e ---
+    } else { 
+        let d_range_max, e_range_max;
+        
+        // 1. Definiere d/e-Ranges
+        if(valueLevel === "sehr leicht") {
+            d_range_max = 5; e_range_max = 10; 
+        } else if(valueLevel === "leicht") {
+            d_range_max = 10; e_range_max = 50;
+        } else if(valueLevel === "mittel") {
+            d_range_max = 10; e_range_max = 100;
+        } else { // schwer
+            d_range_max = 20; e_range_max = 400;
+        }
+
+        do {
+            // 2. Generiere Basis d und e
+            let d_val = randomInt(-d_range_max, d_range_max);
+            let e_val = randomInt(-e_range_max, e_range_max);
+            
+            // Spezialfall: e im Modus 'sehr leicht' muss > 0 sein
+            if (valueLevel === "sehr leicht" && e_val <= 0) e_val = randomInt(1, e_range_max);
+
+            // 3. Anwendung der Sonderfälle (Nullwerte in d und e)
+            if(sonderfaelle) {
+                if(Math.random() < 0.25) d_val = 0;
+                if(Math.random() < 0.25) e_val = 0;
+            } else {
+                 while (d_val === 0) d_val = randomInt(-d_range_max, d_range_max);
+                 if (valueLevel !== "sehr leicht") {
+                     while (e_val === 0) e_val = randomInt(-e_range_max, e_range_max);
+                 }
+            }
+            
+            // 4. Berechnung von b und c
+            const b_val = a * 2 * d_val; 
+            const c_val = a * d_val * d_val + e_val; 
+
+            // 5. Prüfung auf Ganzzahligkeit von b und c (muss IMMER ganzzahlig sein)
+            if (Math.abs(b_val - Math.round(b_val)) > tolerance || Math.abs(c_val - Math.round(c_val)) > tolerance) {
+                 // Wenn b oder c keine Ganzzahl ist, dann muss a neu generiert werden.
+                 // Rekursiver Aufruf mit neuem, hoffentlich einfacherem a.
+                 const new_a = generateA(aLevel, aNegativ, valueLevel);
+                 // Achtung: Rekursiver Aufruf muss das neue 'a' übergeben
+                 return generateParameters(mode, valueLevel, sonderfaelle, new_a, aLevel, aNegativ); 
+            }
+
+            // Rückgabe der Parameter
+            return { 
+                d: d_val, 
+                e: e_val, 
+                b: Math.round(b_val), 
+                c: Math.round(c_val)
+            };
+
+        } while (true);
+    }
+}
+
+
+// ================= LÖSUNGSWEG GENERIERUNG =================
+
+function generateSolutionPath(a, d, e, b, c, mode) {
+    
+    // --- Allgemeine Variablen ---
+    const a_str = formatTerm(a, '', true).trim(); // Verwende formatTerm für a
+
+    // SF Formatierung
+    const Q_sf = b / (2 * a); // Q ist der Koeffizient im Binom (x+Q)^2
+    const sf_a_factor = (Math.abs(a) === 1 && Math.abs(a-1) < 1e-9) ? '' : (Math.abs(a) === 1 && Math.abs(a+1) < 1e-9 ? '-' : formatTerm(a, '', true));
+    
+    // Binomklammer verwendet Q
+    const sf_d_term = formatTerm(Q_sf, '', false, true).trim(); 
+    const sf_paren_start = (Math.abs(Q_sf) < 1e-9) ? `x^2` : `\\left(x ${sf_d_term}\\right)^2`; 
+    
+    const e_term_for_initial_SF = formatTerm(e, '', (sf_a_factor === '' && sf_paren_start === 'x^2')); 
+    let scheitelpunktform_start = `f(x) = ${sf_a_factor}${sf_paren_start} ${e_term_for_initial_SF}`;
+    
+    // NF Formatierung
+    const nf_a = formatTerm(a, 'x^2', true);
+    const nf_b = formatTerm(b, 'x', nf_a === '0' || nf_a === ''); 
+    const nf_c = formatTerm(c, '', (nf_a === '0' || nf_a === '') && (nf_b === '0' || nf_b === ''));
+    let normalform_start = `f(x) = ${nf_a} ${nf_b} ${nf_c}`;
+    
+    let final_result_str;
+
+
+    if (mode === "nf2sf") {
+        // --- Normalform zu Scheitelpunktform (Quadratische Ergänzung mit alignat) ---
+        
+        const Q = b / (2 * a); 
+        const Q_sq = Q * Q;
+
+        const b_over_a = b / a; // p
+        const c_over_a = c / a; // q
+        
+        const Q_sq_str = formatTerm(Q_sq, '', true).trim();
+        
+        // Summe der Konstanten in der Klammer: q - Q^2
+        const sum_const_in_paren = c_over_a - Q_sq;
+        
+        // Endkonstante: a * (q - Q^2)
+        const final_const_e_str = formatTerm(e, '', false); 
+
+        const a_factor_paren = (Math.abs(a) === 1 && Math.abs(a-1) < 1e-9) ? '' : formatTerm(a, '', true);
+        
+        // Binomteil mit \left \right (Koeffizient Q)
+        const binom_part = `\\left(x ${formatTerm(Q, '', false, true).trim()}\\right)^2`;
+
+        // Line 1: NF Start (ohne f(x)=)
+        const line1 = finalCleanUp(normalform_start.replace('f(x) = ', ''));
+
+        let output_lines_nf2sf = [];
+        let current_expr = line1;
+        
+        // Step 1: Ausklammern (if a != 1)
+        if (Math.abs(a) !== 1) {
+            const term_x2_bx_c = `\\left( x^2 ${formatTerm(b_over_a, 'x', false)} ${formatTerm(c_over_a, '', false)} \\right)`;
+            const line2_content = `${a_factor_paren} ${term_x2_bx_c}`;
+            const ausklammern_note = `\\text{Faktor } a=${a_str} \\text{ ausklammern}`;
+            output_lines_nf2sf.push(`${current_expr} &\\quad |~& ${ausklammern_note}`);
+            current_expr = line2_content;
+
+            // Step 2: QE (nach Ausklammern)
+            const b_over_a_str = formatTerm(b_over_a).trim();
+            const qe_note = `\\text{QE: } \\left(\\frac{${b_over_a_str}}{2}\\right)^2 = ${Q_sq_str}`;
+            const qe_term = `+ ${Q_sq_str} - ${Q_sq_str}`;
+            const term_x2_bx_qe_c = `\\left( x^2 ${formatTerm(b_over_a, 'x', false)} ${qe_term} ${formatTerm(c_over_a, '', false)} \\right)`;
+            const line3_content = `${a_factor_paren} ${term_x2_bx_qe_c}`;
+            output_lines_nf2sf.push(`${current_expr} &\\quad |~& ${qe_note}`);
+            current_expr = line3_content;
+            
+        } else { // a = 1 oder a = -1: Nur QE auf Line 1
+            const b_over_a_str = formatTerm(b_over_a).trim();
+            const qe_note = `\\text{QE: } \\left(\\frac{${b_over_a_str}}{2}\\right)^2 = ${Q_sq_str}`;
+            const qe_term = `+ ${Q_sq_str} - ${Q_sq_str}`;
+            
+            // Wenn a=-1, muss der Faktor a noch vor der Klammer bleiben
+            const is_a_minus_1 = Math.abs(a+1) < 1e-9;
+            const pre_a_factor = is_a_minus_1 ? '-' : '';
+
+            const line2_content = `${pre_a_factor}\\left( x^2 ${formatTerm(b_over_a, 'x', false)} ${qe_term} ${formatTerm(c_over_a, '', false)} \\right)`;
+            output_lines_nf2sf.push(`${line1} &\\quad |~& ${qe_note}`); 
+            current_expr = line2_content;
+        }
+        
+        // Step 3: Binomial (gilt für beide Fälle)
+        const binom_note = `\\text{Binomische Formel anwenden}`;
+        
+        // Konstanten sind -Q^2 und c_over_a
+        const const_parts = formatTerm(-Q_sq, '', false) + formatTerm(c_over_a, '', false);
+        
+        const line_binom_applied_content = (Math.abs(a) === 1 && Math.abs(a-1) < 1e-9)
+            ? `${binom_part} ${const_parts}`
+            : `${a_factor_paren} \\left[ ${binom_part} ${const_parts} \\right]`;
+            
+        output_lines_nf2sf.push(`${current_expr} &\\quad |~& ${binom_note}`);
+        current_expr = line_binom_applied_content;
+        
+        // Step 4: Sum Constants (gilt für beide Fälle)
+        const sum_note = (Math.abs(a) === 1 && Math.abs(a-1) < 1e-9) ? `\\text{Konstanten zusammenfassen}` : `\\text{Konstanten in Klammer zusammenfassen}`;
+        
+        const line_summed_content = (Math.abs(a) === 1 && Math.abs(a-1) < 1e-9)
+            ? `${binom_part} ${final_const_e_str}`
+            : `${sf_a_factor} ${binom_part} ${final_const_e_str}`; // Vereinfachung
+            
+        output_lines_nf2sf.push(`${current_expr} &\\quad |~& ${sum_note}`);
+        current_expr = line_summed_content;
+        
+        final_result_str = finalCleanUp(current_expr);
+
+        // Ausgabe zusammenstellen: Erste Zeile f(x)=, alle anderen &=
+        let final_output = `f(x) &= ${output_lines_nf2sf[0]} \\\\ \n`;
+        
+        for (let i = 1; i < output_lines_nf2sf.length; i++) {
+            final_output += `&= ${output_lines_nf2sf[i]} \\\\ \n`;
+        }
+        
+        // Letzte Zeile ohne Operation (das Endergebnis)
+        final_output += `&= ${final_result_str}`;
+
+        return {
+            solution: final_result_str,
+            path: `
+                \\begin{alignat*}{2}
+                ${finalCleanUp(final_output)}
+                \\end{alignat*}
+            `
+        };
+
+    } else {
+        // --- Scheitelpunktform zu Normalform (Binomische Formel mit alignat) ---
+        
+        // Binomische Formel (der Koeffizient ist d)
+        const d_term_paren = formatTerm(d, '', false, true).trim();
+        
+        // Binomteil: (x +/- d)^2 auflösen -> x^2 +/- 2dx + d^2
+        const binom_content = (Math.abs(d) < 1e-9) 
+            ? `x^2` 
+            : `\\left(x^2 ${formatTerm(2*d, 'x', false)} ${formatTerm(d*d, '', false)}\\right)`;
+        
+        // Ausmultiplizierte Terme
+        const term_ax2 = formatTerm(a, 'x^2', true);
+        const term_bx = formatTerm(2*a*d, 'x', false);
+        const term_ad2 = formatTerm(a*d*d, '', false);
+        
+        // Finaler Term c
+        const term_c_final = formatTerm(c, '', false); 
+        
+        // e-Term für Schritte (muss immer Vorzeichen haben, wenn e!=0)
+        const e_term_for_steps = formatTerm(e, '', false); 
+
+        // Line 1: SF Start (ohne f(x)=)
+        const line1 = finalCleanUp(scheitelpunktform_start.replace('f(x) = ', ''));
+        
+        // Der Multiplikationsoperator (Entfällt bei a=1 oder a=-1)
+        const op_dot = (Math.abs(a - 1) < 1e-9 || Math.abs(a + 1) < 1e-9) ? '' : ' \\cdot ';
+        
+        let output_lines_sf2nf = [];
+        let current_expr = line1;
+
+        // Step 1: Binomische Formel auflösen
+        const line2_content = `${sf_a_factor}${op_dot}${binom_content} ${e_term_for_steps}`;
+        const binom_note = `\\text{Binom: } \\left(x ${d_term_paren}\\right)^2 \\text{ auflösen}`; 
+        output_lines_sf2nf.push(`${current_expr} &\\quad |~& ${binom_note}`);
+        current_expr = line2_content;
+
+        // Step 2: Ausmultiplizieren
+        const line3_content = `${term_ax2} ${term_bx} ${term_ad2} ${e_term_for_steps}`;
+        const multi_note = `\\text{Ausmultiplizieren}`;
+        output_lines_sf2nf.push(`${current_expr} &\\quad |~& ${multi_note}`);
+        current_expr = line3_content;
+
+        // Step 3: Konstanten zusammenfassen
+        const line4_content = `${term_ax2} ${term_bx} ${term_c_final}`;
+        const final_note = `\\text{Konstanten zusammenfassen}`;
+        output_lines_sf2nf.push(`${current_expr} &\\quad |~& ${final_note}`);
+        current_expr = line4_content;
+        
+        final_result_str = finalCleanUp(current_expr);
+        
+        // Ausgabe zusammenstellen: Erste Zeile f(x)=, alle anderen &=
+        let final_output = `f(x) &= ${output_lines_sf2nf[0]} \\\\ \n`;
+        
+        for (let i = 1; i < output_lines_sf2nf.length; i++) {
+            final_output += `&= ${output_lines_sf2nf[i]} \\\\ \n`;
+        }
+        
+        // Letzte Zeile ohne Operation (das Endergebnis)
+        final_output += `&= ${final_result_str}`;
+        
+        return {
+            solution: final_result_str,
+            path: `
+                \\begin{alignat*}{2}
+                ${finalCleanUp(final_output)}
+                \\end{alignat*}
+            `
+        };
+    }
+}
+
+
+// ================= HAUPTLOGIK =================
+
+function generateTask() {
+    const solutionDetailsContainer = document.getElementById("solutionDetailsContainer");
+    if(solutionDetailsContainer) solutionDetailsContainer.open = false; 
+
+    document.getElementById("solutionPath").style.display = 'none'; 
+    document.getElementById("solutionPathContent").innerHTML = ''; 
+    
+    // Holt den Modus und die Einstellungen
+    const mode = document.getElementById("modeSwitchInput").checked ? "sf2nf" : "nf2sf";
+    const aNegativ = document.getElementById("aNegativ").checked;
+    const sonderfaelle = document.getElementById("sonderfaelle").checked;
+    const aLevel = document.querySelector('input[name="aLevel"]:checked').value;
+    const valueLevel = document.querySelector('input[name="valueLevel"]:checked').value;
+
+    updateURLParam("aLevel", aLevel);
+    updateURLParam("valueLevel", valueLevel);
+    updateURLParam("aNegativ", aNegativ);
+    updateURLParam("sonderfaelle", sonderfaelle);
+    updateURLParam("mode", mode);
+
+    const a = generateA(aLevel, aNegativ, valueLevel);
+
+    // Ruft die konsolidierte Funktion auf
+    const { d, e, b, c } = generateParameters(mode, valueLevel, sonderfaelle, a, aLevel, aNegativ);
+
+    // --- 1. Scheitelpunktform (SF) formatieren ---
+    // Q = b/(2a) ist der Koeffizient im Binom (x+Q)^2
+    const Q_sf = b / (2 * a);
+    
+    const sf_a_factor = (Math.abs(a) === 1 && Math.abs(a-1) < 1e-9) ? '' : (Math.abs(a) === 1 && Math.abs(a+1) < 1e-9 ? '-' : formatTerm(a, '', true));
+    
+    // Binomklammer verwendet Q
+    const sf_d_term = formatTerm(Q_sf, '', false, true).trim(); 
+    const sf_paren_start = (Math.abs(Q_sf) < 1e-9) ? `x^2` : `\\left(x ${sf_d_term}\\right)^2`; 
+    
+    const e_term_for_initial_SF = formatTerm(e, '', (sf_a_factor === '' && sf_paren_start === 'x^2')); 
+
+    let scheitelpunktform = `f(x) = ${sf_a_factor}${sf_paren_start} ${e_term_for_initial_SF}`.trim();
+    if (scheitelpunktform === "f(x) =") scheitelpunktform = "f(x) = 0";
+
+
+    // --- 2. Normalform (NF) formatieren ---
+    const nf_a = formatTerm(a, 'x^2', true);
+    const nf_b = formatTerm(b, 'x', nf_a === '0' || nf_a === ''); 
+    const nf_c = formatTerm(c, '', (nf_a === '0' || nf_a === '') && (nf_b === '0' || nf_b === ''));
+    let normalform = `f(x) = ${nf_a} ${nf_b} ${nf_c}`.trim();
+    if (normalform === "f(x) =") normalform = "f(x) = 0";
+
+
+    // --- 3. Zuweisung basierend auf dem Modus ---
+    let taskFormula;
+    if(mode === "nf2sf") {
+        taskFormula = normalform;
+    } else {
+        taskFormula = scheitelpunktform;
+    }
+
+    const { solution: final_solution_str, path: solutionPath } = generateSolutionPath(a, d, e, b, c, mode);
+    
+    document.getElementById("task").innerHTML = `$$${finalCleanUp(taskFormula)}$$`;
+    // GEÄNDERT: Fängt die finale Lösung mit f(x) = auf
+    document.getElementById("solution").innerHTML = `<span class="red-text">$$f(x) = ${final_solution_str}$$</span>`; 
+    document.getElementById("solutionPathContent").innerHTML = `<span class="red-text">$$${solutionPath}$$</span>`;
+
+
+    if(window.MathJax) MathJax.typesetPromise();
+}
+
+function showSolutionPath() {
+    const pathDiv = document.getElementById("solutionPath");
+    // Toggle-Funktion
+    if (pathDiv.style.display === 'none') { 
+        pathDiv.style.display = 'block';
+    } else {
+        pathDiv.style.display = 'none';
+    }
+    if (window.MathJax) MathJax.typesetPromise();
+}
+
+
+// ==== Lade Einstellungen aus URL ====
+function loadSettingsFromURL() {
+    const aLevel = getURLParam("aLevel", "leicht");
+    const valueLevel = getURLParam("valueLevel", "sehr leicht");
+    const aNegativ = getURLParam("aNegativ", "false") === "true";
+    const sonderfaelle = getURLParam("sonderfaelle", "false") === "true";
+    const mode = getURLParam("mode", "nf2sf");
+    
+    const aLevelEl = document.querySelector(`input[name="aLevel"][value="${aLevel}"]`);
+    if(aLevelEl) aLevelEl.checked = true;
+
+    const valueLevelEl = document.querySelector(`input[name="valueLevel"][value="${valueLevel}"]`);
+    if(valueLevelEl) valueLevelEl.checked = true;
+
+    const aNegativEl = document.getElementById("aNegativ");
+    if(aNegativEl) aNegativEl.checked = aNegativ;
+    
+    const sonderfaelleEl = document.getElementById("sonderfaelle");
+    if(sonderfaelleEl) sonderfaelleEl.checked = sonderfaelle;
+
+    const modeSwitchEl = document.getElementById("modeSwitchInput");
+    if(modeSwitchEl) modeSwitchEl.checked = mode === "sf2nf";
+}
+
+window.onload = () => {
+    loadSettingsFromURL();
+    
+    document.getElementById("modeSwitchInput")?.addEventListener("change", generateTask);
+    document.querySelectorAll('input[name="aLevel"], input[name="valueLevel"], #aNegativ, #sonderfaelle')
+        .forEach(el => el.addEventListener("change", generateTask));
+        
+    generateTask();
+};
+</script>
+</head>
+<body>
+
+<h1>Normalform ⇄ Scheitelpunktform</h1>
+
+<details>
+<summary>Einstellungen</summary>
+<div class="form-block">
+<b>a-Werte:</b><br>
+<input type="radio" name="aLevel" value="a1"> a = 1<br>
+<input type="radio" name="aLevel" value="leicht" checked> leicht<br>
+<input type="radio" name="aLevel" value="leicht+gestaucht"> leicht + gestaucht<br>
+<input type="radio" name="aLevel" value="mittel"> mittel<br>
+<input type="checkbox" id="aNegativ"> auch negativ
+</div>
+
+<div class="form-block">
+<b>Werte:</b><br>
+<input type="radio" name="valueLevel" value="sehr leicht" checked> sehr leicht<br>
+<input type="radio" name="valueLevel" value="leicht"> leicht<br>
+<input type="radio" name="valueLevel" value="mittel"> mittel<br>
+<input type="radio" name="valueLevel" value="schwer"> schwer<br>
+<input type="checkbox" id="sonderfaelle"> Sonderfälle
+</div>
+</details>
+
+<h2>Aufgabe</h2>
+
+<!-- Umwandlungs-Slider -->
+<div>
+<label class="switch">
+    <input type="checkbox" id="modeSwitchInput">
+    <span class="slider"></span>
+    <span class="labels">
+        <span>Normalform → Scheitelpunktform</span>
+        <span>Scheitelpunktform → Normalform</span>
+    </span>
+</label>
+</div>
+<br>
+<button onclick="generateTask()">Neue Aufgabe</button>
+
+<div id="task"></div>
+
+<details id="solutionDetailsContainer">
+<summary>Lösung anzeigen</summary>
+<div id="solution"></div>
+
+<button onclick="showSolutionPath()">Lösungsweg</button> 
+<div id="solutionPath" style="display:none;">
+    <div id="solutionPathContent"></div>
+</div>
+</details>
+
+</body>
+</html>
