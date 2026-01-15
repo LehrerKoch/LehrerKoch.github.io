@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script id="MathJax-script"
+          src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <title>Graphen erkennen</title>
+  <link rel="stylesheet" type="text/css" href="styles.css">
+  <style>
+  
+    /* Container für Bild + Buttons */
+    #FuncArea {
+      position: relative;
+      width: 100%;
+      max-width: 400px;
+      height: 300px;
+      margin: 20px auto;
+    }
+
+    /* #funktionsContainer {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      border-radius: 15px;
+      cursor: grab;
+      overflow: hidden;
+      width: 100%;
+      height: 100%;
+      background-color: #f0f0f0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+    } */
+
+    /* #funktionsContainer img {
+      max-width: 100%;
+      max-height: 100%;
+    } */
+
+    /* Bild auf max. 50% Breite oder Höhe */
+    #funktionsContainer {
+      cursor: grab;
+      display: inline-block;
+      transition: transform 0.3s ease, background-color 0.3s ease;
+      padding: 20px 100px 20px 100px; /* Platz für Buttons */
+      border-radius: 15px; 
+      max-width: 50vw;   /* 50% der Viewport-Breite */
+      max-height: 50vh;  /* 50% der Viewport-Höhe */ 
+      z-index: 2;
+      display: block;
+      margin: 0 auto; 
+    }
+    #funktionText {
+      font-size: 2em;
+      text-align: center;
+    }
+
+    #loesung {
+      width: 100%;
+      text-align: center;
+    }
+
+  </style>
+</head>
+<body>
+  <h1>Ableitungen der Standardfunktionen</h1>
+  ️<p>Gib die Funktionsgleichung \(f'(x)\) der Ableitungsfunktion zur gegebenen Funktion \(f\) an.</p>
+  <p></p>
+  <p id="counter" style="font-weight:bold;"></p>
+  
+<!-- Formel mit Buttons links/rechts -->
+<div style="position: relative; width: 100%; height: 50%; margin-top: 20px;">
+
+  <!-- Falsch-Button links -->
+  <button id="wrongBtn" onclick="markAnswer(false)"
+          style="position: absolute; left: 0; top: 50%; transform: translateY(-50%);
+                background-color:#f8d7da; color:#721c24; border:none; border-radius:5px;
+                display:none; height:100%; width:120px; font-size:1em;">
+    Noch unsicher
+  </button>
+
+  <div id="funktionsContainer" style="cursor: grab;">
+    <p id="funktionText" style="font-size:2em; text-align:center;">
+  </div>
+
+  <!-- Korrekt-Button rechts -->
+  <button id="correctBtn" onclick="markAnswer(true)"
+          style="position: absolute; right: 0; top: 50%; transform: translateY(-50%);
+                background-color:#d4edda; color:#155724; border:none; border-radius:5px;
+                display:none; height:100%; width:120px; font-size:1em;">
+    Kann ich sicher
+  </button>
+
+</div>
+
+<div style="position: relative; width: 100%; height: 120px; margin-top: 20px;">
+  
+<button id="showloesungBtn" style="display:none; width: 100%;">Lösung anzeigen</button>
+<p id="loesung" style="font-size:2em; text-align:center; margin-top:10px;"></p>
+</div>
+
+<p> </p>
+<script>
+
+  const funktionen = [
+    {funktion: "\\(f(x)=1\\)", ableitung: "\\(f'(x)=0\\)"},
+    {funktion: "\\(f(x)=x\\)", ableitung: "\\(f'(x)=1\\)"},
+    {funktion: "\\(f(x)=x^2\\)", ableitung: "\\(f'(x)=2x\\)"},
+    {funktion: "\\(f(x)=x^3\\)", ableitung: "\\(f'(x)=3x^2\\)"},
+    {funktion: "\\(f(x)=e^x\\)", ableitung: "\\(f'(x)=e^x\\)"},
+    {funktion: "\\(f(x)=\\ln(x)\\)", ableitung: "\\(f'(x)=\\frac{1}{x}\\)"},
+    {funktion: "\\(f(x)=\\frac{1}{x}\\)", ableitung: "\\(f'(x)=-\\frac{1}{x^2}\\)<br>(beachte das Minus-Zeichen)"},
+    {funktion: "\\(f(x)=\\sqrt{x}\\)", ableitung: "\\(f'(x)=\\frac{1}{2\\sqrt{x}}\\)"},
+    {funktion: "\\(f(x)=\\sin(x)\\)", ableitung: "\\(f'(x)=\\cos(x)\\)"},
+    {funktion: "\\(f(x)=\\cos(x)\\)", ableitung: "\\(f'(x)=-\\sin(x)\\)<br>(beachte das Minus-Zeichen)"},
+  ];
+
+let correctCount = 0;
+let totalCount = 0;
+let lastFunc = null;
+let currentFunc = null;
+
+const imgEl = document.getElementById("FuncImage");
+const loesungEl = document.getElementById("loesung");
+const counterEl = document.getElementById("counter");
+const wrongBtn = document.getElementById("wrongBtn");
+const correctBtn = document.getElementById("correctBtn");
+const showloesungBtn = document.getElementById("showloesungBtn");
+
+function updateCounter() {
+  counterEl.textContent = `Richtig: ${correctCount} / ${totalCount}`;
+}
+
+let taskPool = [...funktionen];
+
+function pickRandomFunc() {
+  if (taskPool.length === 0) taskPool = [...funktionen]; // Pool ggf. zurücksetzen
+
+  let Func;
+  if (taskPool.length === 1) {
+    Func = taskPool[0]; // einzige Karte im Pool → darf wiederkommen
+  } else {
+    do {
+      const idx = Math.floor(Math.random() * taskPool.length);
+      Func = taskPool[idx];
+    } while (Func === lastFunc); // gleiche Karte wie zuletzt vermeiden
+  }
+
+  lastFunc = Func;
+  currentFunc = Func;
+
+  funktionText.innerHTML = Func.funktion;
+  loesungEl.innerHTML = "";
+  showloesungBtn.style.display = "inline-block";
+  wrongBtn.style.display = "inline-block";
+  correctBtn.style.display = "inline-block";
+
+  MathJax.typeset();
+}
+
+
+let locked = false;
+
+function markAnswer(correct) {
+  if (!currentFunc || locked) return;
+  locked = true;
+
+  totalCount++;
+  if (correct) {
+    correctCount++;
+
+    // Karte nur entfernen, wenn korrekt
+    const idx = taskPool.indexOf(currentFunc);
+    if (idx !== -1) taskPool.splice(idx, 1);
+  }
+
+  loesungEl.innerHTML = currentFunc.ableitung;
+  MathJax.typeset();
+  flashResult(correct ? "lightgreen" : "lightcoral");
+  updateCounter();
+
+  setTimeout(() => {
+    loesungEl.innerHTML = "";
+    locked = false;
+    pickRandomFunc();
+  }, 1000);
+}
+
+function toggleloesung() {
+  if (!currentFunc) return;
+
+  const loesungEl = document.getElementById("loesung");
+
+  if (loesungEl.innerHTML === "") {
+    loesungEl.innerHTML = currentFunc.ableitung;
+  } else {
+    loesungEl.innerHTML = "";
+  }
+
+  MathJax.typeset();
+}
+
+
+// Flash-Effekt
+function flashResult(color) {
+  const body = document.body;
+  body.style.transition = "none";
+  body.style.backgroundColor = color;
+  setTimeout(() => {
+    body.style.transition = "background-color 1s";
+    body.style.backgroundColor = "white";
+  }, 50);
+}
+
+// Eventlistener für Buttons
+correctBtn.addEventListener("click", () => {
+    markAnswer(true);
+    correctBtn.blur(); // Fokus entfernen
+});
+
+wrongBtn.addEventListener("click", () => {
+    markAnswer(false);
+    wrongBtn.blur(); // Fokus entfernen
+});
+
+showloesungBtn.addEventListener("click", () => {
+    toggleloesung();
+    showloesungBtn.blur(); // Fokus entfernen
+});
+
+// Tastatursteuerung
+document.addEventListener("keydown", (e) => {
+  if (e.code === "Space") toggleloesung();
+  else if (e.code === "ArrowRight" || e.key.toUpperCase() === "D") markAnswer(true);
+  else if (e.code === "ArrowLeft"  || e.key.toUpperCase() === "A") markAnswer(false);
+});
+
+// --- Drag Logik verbessert ---
+  const funktionsContainer = document.getElementById("funktionsContainer");
+  let startX = null;
+  let currentX = 0;
+
+  function updateFormulaPosition(dx) {
+      funktionsContainer.style.transform = `translateX(${dx}px)`;
+      funktionsContainer.style.boxShadow = `${dx/10}px ${Math.abs(dx)/10}px 10px rgba(0,0,0,0.2)`;
+
+      const maxDistance = 150; 
+      let intensity = Math.min(Math.abs(dx) / maxDistance, 1);
+      if (dx > 0) {
+          funktionsContainer.style.backgroundColor = `rgba(0, 255, 0, ${intensity*0.3})`;
+      } else if (dx < 0) {
+          funktionsContainer.style.backgroundColor = `rgba(255, 0, 0, ${intensity*0.3})`;
+      } else {
+          funktionsContainer.style.backgroundColor = "transparent";
+      }
+  }
+
+  funktionsContainer.addEventListener("mousedown", (e) => {
+      startX = e.clientX;
+      funktionsContainer.style.transition = "none";
+      funktionsContainer.style.cursor = "grabbing";
+  });
+
+  document.addEventListener("mousemove", (e) => {
+      if (startX === null) return;
+      currentX = e.clientX - startX;
+      updateFormulaPosition(currentX);
+  });
+
+  document.addEventListener("mouseup", () => {
+      if (startX === null) return;
+      if (currentX > 80) markAnswer(true);
+      else if (currentX < -80) markAnswer(false);
+      
+      funktionsContainer.style.transition = "transform 0.3s ease, background-color 0.3s ease";
+      funktionsContainer.style.transform = "translateX(0)";
+      funktionsContainer.style.boxShadow = "none";
+      funktionsContainer.style.backgroundColor = "transparent";
+      funktionsContainer.style.cursor = "grab";
+      startX = null;
+      currentX = 0;
+  })
+
+// Initial starten
+updateCounter();
+pickRandomFunc();
+
+</script>
+
+</body>
+</html>
