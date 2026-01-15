@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<title>Kettenregel Trainer</title>
+<link rel="stylesheet" href="styles.css">
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+<style>
+#task { font-size: 1.6em; }
+#solution { color:red; font-size:1.3em }
+</style>
+</head>
+
+<body>
+
+<h1>Kettenregel Trainer</h1>
+
+<details>
+<summary>Einstellungen</summary>
+
+<div class="form-block">
+<b>Äußere Funktion</b><br>
+<label><input type="checkbox" class="outer" value="linear" checked> Linear</label><br>
+<label><input type="checkbox" class="outer" value="power" checked> Potenz</label><br>
+<label><input type="checkbox" class="outer" value="exp" checked> e-Funktion</label><br>
+<label><input type="checkbox" class="outer" value="ln" checked> ln</label><br>
+<label><input type="checkbox" class="outer" value="frac" checked> Bruch</label><br>
+<label><input type="checkbox" class="outer" value="sqrt" checked> Wurzel</label><br>
+<label><input type="checkbox" class="outer" value="trig" checked> Trigonometrisch</label>
+</div>
+
+<div class="form-block">
+<b>Innere Funktion</b><br>
+<label><input type="checkbox" class="inner" value="linear" checked disabled> Linear</label><br>
+<label><input type="checkbox" class="inner" value="power"> Potenz</label><br>
+<label><input type="checkbox" class="inner" value="exp"> e-Funktion</label><br>
+<label><input type="checkbox" class="inner" value="ln"> ln</label><br>
+<label><input type="checkbox" class="inner" value="frac"> Bruch</label><br>
+<label><input type="checkbox" class="inner" value="sqrt"> Wurzel</label><br>
+<label><input type="checkbox" class="inner" value="trig"> Trigonometrisch</label>
+</div>
+
+</details>
+
+<button onclick="newTask()">Neue Aufgabe</button>
+
+<h2>Aufgabe</h2>
+<div id="task"></div>
+
+<details>
+<summary>Lösung</summary>
+<div id="solution"></div>
+<br>
+<button id="stepBtn" onclick="openSteps()">Lösungsweg</button>
+</details>
+
+
+<script>
+// ---------------- URL Sync ----------------
+function updateURL(){
+    let o=[...document.querySelectorAll(".outer:checked")].map(x=>x.value).join(",");
+    let i=[...document.querySelectorAll(".inner:checked")].map(x=>x.value).join(",");
+    let url=new URL(window.location);
+    url.searchParams.set("outer",o);
+    url.searchParams.set("inner",i);
+    history.replaceState({},'',url);
+}
+
+function loadURL(){
+    let url=new URL(window.location);
+    if(url.searchParams.has("outer")){
+        let o=url.searchParams.get("outer").split(",");
+        document.querySelectorAll(".outer").forEach(x=>x.checked=o.includes(x.value));
+    }
+    if(url.searchParams.has("inner")){
+        let i=url.searchParams.get("inner").split(",");
+        document.querySelectorAll(".inner").forEach(x=>x.checked=i.includes(x.value));
+    }
+}
+
+document.querySelectorAll("input").forEach(e=>e.addEventListener("change",updateURL));
+loadURL();
+
+// ---------------- Random helpers ----------------
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const rand=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+
+function isForbidden(outer, inner){
+  const hard = ["power","sqrt","frac"];
+  return hard.includes(outer) && hard.includes(inner);
+}
+
+// ---------------- Function generators ----------------
+function innerFunc(type){
+if(type=="linear"){
+   let a = rand(1,4), b = rand(-5,5);
+
+   let f = "";
+   if(a === 1) f = "x";
+   else f = a + "x";
+
+   if(b !== 0){
+      f += (b > 0 ? "+" : "") + b;
+   }
+
+   return {f, d: ""+a};
+}
+if(type=="power"){
+   let n = rand(2,5);
+
+   let d;
+   if(n-1 === 1){
+      d = `${n}x`;
+   } else {
+      d = `${n}x^{${n-1}}`;
+   }
+
+   return {f:`x^${n}`, d};
+}
+
+ if(type=="exp") return {f:`e^x`, d:`e^x`};
+ if(type=="ln") return {f:`\\ln(x)`, d:`\\frac1x`};
+ if(type=="frac") return {f:`\\frac1x`, d:`-\\frac1{x^2}`};
+ if(type=="sqrt") return {f:`\\sqrt{x}`, d:`\\frac1{2\\sqrt{x}}`};
+ if(type=="trig"){
+   return Math.random()<.5 ?
+   {f:`\\sin(x)`, d:`\\cos(x)`} :
+   {f:`\\cos(x)`, d:`-\\sin(x)`};
+ }
+}
+
+function outerFunc(type,u,du){
+if(type=="linear"){
+   let a = rand(1,4), b = rand(-5,5);
+
+   let f = "";
+   let d = "";
+
+   // f(x) = a*u + b
+   if(a === 1) f += u;
+   else f += `${a}\\left(${u}\\right)`;
+
+   if(b !== 0){
+      f += (b > 0 ? "+" : "") + b;
+   }
+
+   // f'(x) = a * u'
+   if(a === 1) d = du;
+   else d = `${a}\\cdot\\left(${du}\\right)`;
+
+   return {f,d};
+}
+
+if(type=="power"){
+   let n = rand(2,5);
+
+   let f = `(${u})^${n}`;
+
+   let d;
+   if(n-1 === 1){
+      d = `${n}\\left(${u}\\right)\\cdot\\left(${du}\\right)`;
+   } else {
+      d = `${n}\\left(${u}\\right)^{${n-1}}\\cdot\\left(${du}\\right)`;
+   }
+
+   return {f,d};
+}
+
+ if(type=="exp") return {f:`e^{${u}}`, d:`e^{${u}}\\cdot\\left(${du}\\right)`};
+ if(type=="ln") return {f:`\\ln\\left(${u}\\right)`, d:`\\frac1{${u}}\\cdot\\left(${du}\\right)`};
+ if(type=="frac") return {f:`\\frac1{${u}}`, d:`-\\frac1{\\left(${u}\\right)^2}\\cdot\\left(${du}\\right)`};
+ if(type=="sqrt") return {f:`\\sqrt{${u}}`, d:`\\frac1{2\\sqrt{${u}}}\\cdot\\left(${du}\\right)`};
+ if(type=="trig"){
+   return Math.random()<.5 ?
+    {f:`\\sin\\left(${u}\\right)`, d:`\\cos\\left(${u}\\right)\\cdot\\left(${du}\\right)`} :
+    {f:`\\cos\\left(${u}\\right)`, d:`-\\sin\\left(${u}\\right)\\cdot\\left(${du}\\right)`};
+ }
+}
+
+let currentExpr = "";
+
+
+function openSteps(){
+   const url =
+     "https://www.ableitungsrechner.net/#expr="
+     + encodeURIComponent(currentExpr)
+     + "&showsteps=1";
+
+   window.open(url, "_blank");
+}
+
+
+
+// ---------------- Task ----------------
+function newTask(){
+document.querySelector("details[open]")?.removeAttribute("open");
+
+ let innerTypes=[...document.querySelectorAll(".inner:checked")].map(x=>x.value);
+ let outerTypes=[...document.querySelectorAll(".outer:checked")].map(x=>x.value);
+
+ if(innerTypes.length==0||outerTypes.length==0) return;
+
+let outer, inner;
+
+do{
+   outer = pick(outerTypes);
+   inner = pick(innerTypes);
+}while(isForbidden(outer, inner));
+
+let I = innerFunc(inner);
+let O = outerFunc(outer, I.f, I.d);
+
+
+ document.getElementById("task").innerHTML=`$$f(x)=${O.f}$$`;
+ document.getElementById("solution").innerHTML=`$$f'(x)=${O.d}$$`;
+
+ MathJax.typesetPromise();
+currentExpr = O.f;
+
+}
+
+newTask();
+</script>
+
+</body>
+</html>
