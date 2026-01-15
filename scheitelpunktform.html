@@ -433,7 +433,7 @@ function generateSolutionPath(a, d, e, b, c, mode) {
 
             // Step 2: QE (nach Ausklammern)
             const b_over_a_str = formatTerm(b_over_a).trim();
-            const qe_note = `\\text{QE: } \\left(\\frac{${b_over_a_str}}{2}\\right)^2 = ${Q_sq_str}`;
+            const qe_note = `\\text{Quadrat. Ergänzung: } \\left(\\frac{${b_over_a_str}}{2}\\right)^2 = ${Q_sq_str}`;
             const qe_term = `+ ${Q_sq_str} - ${Q_sq_str}`;
             const term_x2_bx_qe_c = `\\left( x^2 ${formatTerm(b_over_a, 'x', false)} ${qe_term} ${formatTerm(c_over_a, '', false)} \\right)`;
             const line3_content = `${a_factor_paren} ${term_x2_bx_qe_c}`;
@@ -467,8 +467,19 @@ function generateSolutionPath(a, d, e, b, c, mode) {
         output_lines_nf2sf.push(`${current_expr} &\\quad |~& ${binom_note}`);
         current_expr = line_binom_applied_content;
         
+        // NEU nach Step 3 (nur für a ≠ 1): Konstanten in der Klammer zuerst zusammenfassen
+        if (Math.abs(a) !== 1) {
+            const const_sum_str = formatTerm(sum_const_in_paren, '', false);
+
+            const line_const_sum_inside = `${a_factor_paren} \\left[ ${binom_part} ${const_sum_str} \\right]`;
+            const const_sum_note = `\\text{Konstanten in der Klammer zusammenfassen}`;
+
+            output_lines_nf2sf.push(`${current_expr} &\\quad |~& ${const_sum_note}`);
+            current_expr = line_const_sum_inside;
+        }
+
         // Step 4: Sum Constants (gilt für beide Fälle)
-        const sum_note = (Math.abs(a) === 1 && Math.abs(a-1) < 1e-9) ? `\\text{Konstanten zusammenfassen}` : `\\text{Konstanten in Klammer zusammenfassen}`;
+        const sum_note = (Math.abs(a) === 1 && Math.abs(a-1) < 1e-9) ? `\\text{Konstanten zusammenfassen}` : `\\text{Klammer ausmultizieren}`;
         
         const line_summed_content = (Math.abs(a) === 1 && Math.abs(a-1) < 1e-9)
             ? `${binom_part} ${final_const_e_str}`
@@ -535,11 +546,14 @@ function generateSolutionPath(a, d, e, b, c, mode) {
         output_lines_sf2nf.push(`${current_expr} &\\quad |~& ${binom_note}`);
         current_expr = line2_content;
 
-        // Step 2: Ausmultiplizieren
-        const line3_content = `${term_ax2} ${term_bx} ${term_ad2} ${e_term_for_steps}`;
-        const multi_note = `\\text{Ausmultiplizieren}`;
-        output_lines_sf2nf.push(`${current_expr} &\\quad |~& ${multi_note}`);
-        current_expr = line3_content;
+        // Step 2: Ausmultiplizieren (nur, wenn a != 1)
+        if (Math.abs(a) !== 1) {
+            const line3_content = `${term_ax2} ${term_bx} ${term_ad2} ${e_term_for_steps}`;
+            const multi_note = `\\text{Ausmultiplizieren}`;
+            output_lines_sf2nf.push(`${current_expr} &\\quad |~& ${multi_note}`);
+            current_expr = line3_content;
+        }
+
 
         // Step 3: Konstanten zusammenfassen
         const line4_content = `${term_ax2} ${term_bx} ${term_c_final}`;
