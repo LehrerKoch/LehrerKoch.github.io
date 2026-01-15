@@ -46,13 +46,14 @@
       cursor: grab;
       transition: transform 0.3s ease, background-color 0.3s ease;
       border-radius: 15px; 
-      max-width: 50vw;
-      max-height: 50vh;
+      max-width: 40vw;
+      max-height: 40vh;
       z-index: 2;
       margin: 0 auto; 
       display: flex;         /* Nutzt Flexbox zum Zentrieren */
       justify-content: center; 
       align-items: center;
+      touch-action: none;
     }
 
     #cardImage {
@@ -290,31 +291,38 @@ document.addEventListener("keydown", (e) => {
       currentX = 0;
   })
 
-    cardContainer.addEventListener("touchstart", (e) => {
-      startX = e.clientX;
+  cardContainer.addEventListener("touchstart", (e) => {
+      const touch = e.touches[0];
+      startX = touch.clientX;
       cardContainer.style.transition = "none";
       cardContainer.style.cursor = "grabbing";
-  });
+      e.preventDefault();
+  }, { passive: false });
 
   document.addEventListener("touchmove", (e) => {
       if (startX === null) return;
-      currentX = e.clientX - startX;
+      const touch = e.touches[0];
+      currentX = touch.clientX - startX;
       updateFormulaPosition(currentX);
-  });
+      e.preventDefault();
+  }, { passive: false });
 
-  document.addEventListener("touchend", () => {
+  document.addEventListener("touchend", (e) => {
       if (startX === null) return;
+
       if (currentX > 80) markAnswer(true);
       else if (currentX < -80) markAnswer(false);
-      
+
       cardContainer.style.transition = "transform 0.3s ease, background-color 0.3s ease";
       cardContainer.style.transform = "translateX(0)";
       cardContainer.style.boxShadow = "none";
       cardContainer.style.backgroundColor = "transparent";
       cardContainer.style.cursor = "grab";
+
       startX = null;
       currentX = 0;
-  })
+  });
+
 
 // Initial starten
 updateCounter();

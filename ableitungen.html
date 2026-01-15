@@ -52,7 +52,8 @@
       max-height: 50vh;  /* 50% der Viewport-Höhe */ 
       z-index: 2;
       display: block;
-      margin: 0 auto; 
+      margin: 0 auto;
+      touch-action: none;
     }
     #funktionText {
       font-size: 2em;
@@ -284,6 +285,39 @@ document.addEventListener("keydown", (e) => {
       startX = null;
       currentX = 0;
   })
+
+  funktionsContainer.addEventListener("touchstart", (e) => {
+    const touch = e.touches[0];
+    startX = touch.clientX;
+    funktionsContainer.style.transition = "none";
+    funktionsContainer.style.cursor = "grabbing";
+    e.preventDefault();
+}, { passive: false });
+
+document.addEventListener("touchmove", (e) => {
+    if (startX === null) return;
+    const touch = e.touches[0];
+    currentX = touch.clientX - startX;
+    updateFormulaPosition(currentX);
+    e.preventDefault();
+}, { passive: false });
+
+document.addEventListener("touchend", () => {
+    if (startX === null) return;
+
+    if (currentX > 80) markAnswer(true);
+    else if (currentX < -80) markAnswer(false);
+
+    funktionsContainer.style.transition = "transform 0.3s ease, background-color 0.3s ease";
+    funktionsContainer.style.transform = "translateX(0)";
+    funktionsContainer.style.boxShadow = "none";
+    funktionsContainer.style.backgroundColor = "transparent";
+    funktionsContainer.style.cursor = "grab";
+
+    startX = null;
+    currentX = 0;
+});
+
 
 // Initial starten
 updateCounter();
