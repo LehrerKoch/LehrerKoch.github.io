@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<title>Produktregel Übung</title>
+<link rel="stylesheet" href="styles.css">
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+<style>
+#task { font-size: 1.6em; }
+#solution { color:red; font-size:1.3em }
+
+.inner-label.disabled {
+  opacity: 0.4;
+}
+</style>
+
+</head>
+
+<body>
+
+<h1>Produktregel Übung</h1>
+
+<details>
+<summary>Einstellungen</summary>
+
+<div class="form-block">
+<b>Funktionen für die Faktoren</b><br>
+<label><input type="checkbox" class="func" value="linear" checked> Linear</label><br>
+<label><input type="checkbox" class="func" value="power" checked> Potenz</label><br>
+<label><input type="checkbox" class="func" value="exp" checked> e-Funktion</label><br>
+<label><input type="checkbox" class="func" value="ln" checked> ln</label><br>
+<label><input type="checkbox" class="func" value="frac" checked> Bruch</label><br>
+<label><input type="checkbox" class="func" value="sqrt" checked> Wurzel</label><br>
+<label><input type="checkbox" class="func" value="trig" checked> Trigonometrisch</label><br>
+<label><input type="checkbox" class="func" value="poly" checked> Polynom</label><br>
+</div>
+<div class="form-block">
+<label><input type="checkbox" id="allowChain" checked> Auch verkettet?</label>
+</div>
+<div class="form-block">
+<b>Mögliche innere Funktionen</b><br>
+<label class="inner-label"><input type="checkbox" class="inner" value="linear" checked disabled> Linear</label><br>
+<label class="inner-label"><input type="checkbox" class="inner" value="power"> Potenz</label><br>
+<label class="inner-label"><input type="checkbox" class="inner" value="exp"> e-Funktion</label><br>
+<label class="inner-label"><input type="checkbox" class="inner" value="ln"> ln</label><br>
+<label class="inner-label"><input type="checkbox" class="inner" value="frac"> Bruch</label><br>
+<label class="inner-label"><input type="checkbox" class="inner" value="sqrt"> Wurzel</label><br>
+<label class="inner-label"><input type="checkbox" class="inner" value="trig"> Trigonometrisch</label>
+</div>
+
+</details>
+
+<button onclick="newTask()">Neue Aufgabe</button>
+
+<h2>Aufgabe</h2>
+<div id="task"></div>
+
+<details>
+<summary>Lösung</summary>
+<div id="solution"></div>
+<br>
+<button id="stepBtn" onclick="openSteps()">Lösungsweg</button>
+</details>
+
+<script>
+// ---------------- URL Sync ----------------
+function updateURL(){
+  let f=[...document.querySelectorAll('.func:checked')].map(x=>x.value).join(',');
+  let i=[...document.querySelectorAll('.inner:checked')].map(x=>x.value).join(',');
+  let c=document.getElementById('allowChain').checked?1:0;
+  let url=new URL(window.location);
+  url.searchParams.set('func',f);
+  url.searchParams.set('inner',i);
+  url.searchParams.set('chain',c);
+  history.replaceState({},'',url);
+}
+
+function loadURL(){
+  let url=new URL(window.location);
+  if(url.searchParams.has('func')){
+    let f=url.searchParams.get('func').split(',');
+    document.querySelectorAll('.func').forEach(x=>x.checked=f.includes(x.value));
+  }
+  if(url.searchParams.has('inner')){
+    let i=url.searchParams.get('inner').split(',');
+    document.querySelectorAll('.inner').forEach(x=>x.checked=i.includes(x.value));
+  }
+  if(url.searchParams.has('chain')){
+    document.getElementById('allowChain').checked=url.searchParams.get('chain')==='1';
+  }
+}
+
+function syncInnerDisabled(){
+  let allow = document.getElementById('allowChain').checked;
+
+  document.querySelectorAll('.inner').forEach(x=>{
+    let label = x.closest('.inner-label');
+
+    if(x.value === 'linear'){
+      x.checked = true;
+      x.disabled = true;
+      label?.classList.add('disabled');
+    } else {
+      if(!allow){
+        x.disabled = true;
+        x.checked = false;
+        label?.classList.add('disabled');
+      } else {
+        x.disabled = false;
+        label?.classList.remove('disabled');
+      }
+    }
+  });
+}
+
+
+syncInnerDisabled();
+loadURL();
+syncInnerDisabled();
+
+document.querySelectorAll('input').forEach(e=>e.addEventListener('change',()=>{
+  syncInnerDisabled();
+  updateURL();
+}));
+
+
+// ---------------- Random helpers ----------------
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const rand=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+
+// ---------------- Base functions ----------------
+function baseFunc(type){
+  if(type=='linear'){
+    let a=rand(1,4), b=rand(-5,5);
+    let f=a===1?'x':a+'x';
+    if(b!==0) f+=(b>0?'+':'')+b;
+    return {f, d:''+a};
+  }
+  if(type=='power'){
+    let n=rand(2,5);
+    return {f:`x^${n}`, d:`${n}x^{${n-1}}`};
+  }
+  if(type=='exp') return {f:'e^{x}', d:'e^{x}'};
+  if(type=='ln') return {f:'\\ln(x)', d:'\\frac1x'};
+  if(type=='frac') return {f:'\\frac{1}{x}', d:'-\\frac1{x^2}'};
+  if(type=='sqrt') return {f:'\\sqrt{x}', d:'\\frac1{2\\sqrt{x}}'};
+  if(type=='trig'){
+    return Math.random()<.5?
+      {f:'\\sin(x)', d:'\\cos(x)'}:
+      {f:'\\cos(x)', d:'-\\sin(x)'};
+  }
+  if(type=='poly'){
+    let deg=rand(1,4);
+    let coeffs=[];
+    for(let i=deg;i>=0;i--){ coeffs.push(rand(-5,5)); }
+    coeffs[0]=coeffs[0]||rand(1,5);
+    let f='';
+    let d='';
+    coeffs.forEach((c,idx)=>{
+      let p=deg-idx;
+      if(c===0) return;
+      let term='';
+      if(p===0) term=''+c;
+      else if(p===1) term=(c===1?'':c===-1?'-':c)+'x';
+      else term=(c===1?'':c===-1?'-':c)+`x^${p}`;
+      f+=(term.startsWith('-')?term:'+'+term);
+      if(p>0){
+        let dc=c*p;
+        let dterm='';
+        if(p-1===0) dterm=''+dc;
+        else if(p-1===1) dterm=(dc===1?'':dc===-1?'-':dc)+'x';
+        else dterm=(dc===1?'':dc===-1?'-':dc)+`x^${p-1}`;
+        d+=(dterm.startsWith('-')?dterm:'+'+dterm);
+      }
+    });
+    f=f.replace(/^\+/,''); d=d.replace(/^\+/,'');
+    return {f, d};
+  }
+}
+
+function needsParens(expr){
+  // braucht Klammern, wenn kein einzelnes Symbol
+  // und keine bereits geklammerte Funktionsform
+  return !(
+    expr === 'x' ||
+    expr.startsWith('\\sin') ||
+    expr.startsWith('\\cos') ||
+    expr.startsWith('\\ln') ||
+    expr.startsWith('\\sqrt') ||
+    expr.startsWith('e^{') ||
+    expr.startsWith('\\frac')
+  );
+}
+
+function chainFunc(outer, inner){
+  let u=inner.f, du=inner.d;
+  if(outer.type=='linear'){
+    let a=outer.a, b=outer.b;
+    let f=(a===1?u:`${a}(${u})`)+(b!==0?(b>0?'+':'')+b:'');
+    let d=a===1?du:`${a}\\cdot(${du})`;
+    return {f,d};
+  }
+}
+
+let currentExpr='';
+
+function openSteps(){
+  const url='https://www.ableitungsrechner.net/#expr='+encodeURIComponent(currentExpr)+'&showsteps=1';
+  window.open(url,'_blank');
+}
+
+// ---------------- Task ----------------
+function makeFactor(){
+  let types=[...document.querySelectorAll('.func:checked')].map(x=>x.value);
+  let base=baseFunc(pick(types));
+
+  let allow=document.getElementById('allowChain').checked;
+  let isPoly=base.f.includes('x^')||base.f.includes('x')&&base.f.match(/[0-9]/)&&types.includes('poly');
+
+  if(allow && Math.random()<0.5 && !isPoly){
+    let innerTypes=[...document.querySelectorAll('.inner:checked')].map(x=>x.value);
+    let inner=baseFunc(pick(innerTypes));
+    let innerF = needsParens(inner.f) ? `(${inner.f})` : inner.f;
+
+    // Potenzbasis immer klammern
+    if(base.f.includes('x^')){
+        innerF = `(${inner.f})`;
+    }
+
+    let f, d;
+
+    // Falls die äußere Funktion bereits (x) oder {x} hat → dort ersetzen
+    if(base.f.includes('(x)')){
+        f = base.f.replace('(x)', `(${inner.f})`);
+    } else if(base.f.includes('{x}')){
+        f = base.f.replace('{x}', `{${inner.f}}`);
+    } else {
+        f = base.f.replace(/x/g, innerF);
+    }
+
+    // Ableitung analog
+    if(base.d.includes('(x)')){
+        d = base.d.replace('(x)', `(${inner.f})`) + `\\\\cdot(${inner.d})`;
+    } else if(base.d.includes('{x}')){
+        d = base.d.replace('{x}', `{${inner.f}}`) + `\\\\cdot(${inner.d})`;
+    } else {
+        d = base.d.replace(/x/g, innerF) + `\\\\cdot(${inner.d})`;
+    }
+
+    return {f,d};
+  }
+  return base;
+}
+
+function newTask(){
+  document.querySelector('details[open]')?.removeAttribute('open');
+
+  let f1=makeFactor();
+  let f2=makeFactor();
+
+  let f=`\\left(${f1.f}\\right)\\cdot\\left(${f2.f}\\right)`;
+  let d=`\\left(${f1.d}\\right)\\cdot\\left(${f2.f}\\right) + \\left(${f1.f}\\right)\\cdot\\left(${f2.d}\\right)`;
+
+  document.getElementById('task').innerHTML=`$$f(x)=${f}$$`;
+  document.getElementById('solution').innerHTML=`$$f'(x)=${d}$$`;
+
+  MathJax.typesetPromise();
+  currentExpr=f;
+}
+
+newTask();
+</script>
+
+</body>
+</html>
