@@ -72,6 +72,16 @@ input[type="range"] {
   margin: 10px 0;
 }
 
+.disabled-text {
+  color: #999 !important;
+  transition: color 0.2s ease;
+}
+
+input[type="range"]:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 </style>
 </head>
 
@@ -95,11 +105,14 @@ input[type="range"] {
 </div>
 
 <div class="form-block">
-  <label><input type="checkbox" id="allowInner" checked oninput="updateParams()"> Innere Funktion verwenden?</label>
+  <label>
+    <input type="checkbox" id="allowInner" checked oninput="updateParams()">
+    Innere Funktion verwenden?
+  </label>
 </div>
 
 <div class="form-block">
-  <b>Grad der inneren Funktion: <span id="degIn">1</span></b><br>
+  <span id="innerDegLabel"><b>Grad der inneren Funktion: <span id="degIn">1</span></b></span><br>
   <input type="range" id="innerDeg" min="1" max="3" value="1" step="1" list="tickmarks" oninput="updateParams()">
 </div>
 
@@ -438,24 +451,49 @@ function updateLabels() {
 }
 
 function updateParams() {
-  updateLabels();
-  const pDeg = document.getElementById('polyDeg').value;
-  const iDeg = document.getElementById('innerDeg').value;
-  const allow = document.getElementById('allowInner').checked;
+  const polyDeg = document.getElementById('polyDeg');
+  const innerDeg = document.getElementById('innerDeg');
+  const allowInner = document.getElementById('allowInner');
+  const innerDegLabel = document.getElementById('innerDegLabel');
+  
+  // UI-Zustand steuern
+  if (!allowInner.checked) {
+    innerDeg.disabled = true;
+    innerDegLabel.classList.add('disabled-text');
+  } else {
+    innerDeg.disabled = false;
+    innerDegLabel.classList.remove('disabled-text');
+  }
+
+  // Labels aktualisieren
+  document.getElementById('degOut').innerText = polyDeg.value;
+  document.getElementById('degIn').innerText = innerDeg.value;
+
+  // URL-Parameter synchronisieren
+  const pDeg = polyDeg.value;
+  const iDeg = innerDeg.value;
+  const allow = allowInner.checked;
   const order = document.querySelector('input[name="order"]:checked').value;
   
   const newURL = `${window.location.pathname}?pDeg=${pDeg}&iDeg=${iDeg}&allow=${allow}&order=${order}`;
   window.history.replaceState({}, '', newURL);
 }
 
-// Registriere Events für alle Inputs (auch Radios)
-document.addEventListener('change', (e) => {
-  if (e.target.name === 'order' || e.target.type === 'checkbox' || e.target.type === 'range') {
-    updateParams();
+// In window.onload am Ende ergänzen:
+window.onload = () => {
+  const params = new URLSearchParams(window.location.search);
+  if (params.has('pDeg')) document.getElementById('polyDeg').value = params.get('pDeg');
+  if (params.has('iDeg')) document.getElementById('innerDeg').value = params.get('iDeg');
+  if (params.has('allow')) document.getElementById('allowInner').checked = params.get('allow') === 'true';
+  if (params.has('order')) {
+    const radio = document.querySelector(`input[name="order"][value="${params.get('order')}"]`);
+    if (radio) radio.checked = true;
   }
-});
-
-// ... (Restliche Hilfsfunktionen wie makePoly etc. bleiben gleich)
+  
+  // WICHTIG: updateParams stellt den Initialzustand der UI (Disabled/Grau) her
+  updateParams(); 
+  newTask();
+};
 
 newTask();
 </script>
