@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<title>e-Funktion ableiten und zusammenfassen</title>
+<link rel="stylesheet" href="styles.css">
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']],
+    displayMath: [['$$', '$$'], ['\\[', '\\]']],
+    packages: {'[+]': ['color']}
+  },
+  loader: {load: ['[tex]/color']}
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+<style>
+#task { font-size: 1.6em; }
+#solution { color:red; font-size:1.0em; transform-origin: top left;
+    scale: 100% !important;
+    width: max-content; }
+  
+@media (max-width: 1000px) {
+  #solution {
+    transform-origin: top left;
+    scale: 95% !important;
+    width: max-content;
+  }
+}   
+@media (max-width: 900px) {
+  #solution {
+    transform-origin: top left;
+    scale: 90% !important;
+    width: max-content;
+  }
+}
+ 
+@media (max-width: 800px) {
+  #solution {
+    transform-origin: top left;
+    scale: 85% !important;
+    width: max-content;
+  }
+}
+@media (max-width: 700px) {
+  #solution {
+    transform-origin: top left;
+    scale: 80% !important;
+    width: max-content;
+  }
+}
+
+@media (max-width: 600px) {
+  #solution {
+    transform-origin: top left;
+    scale: 70% !important;
+    width: max-content;
+  }
+}
+
+@media (max-width: 500px) {
+  #solution {
+    transform-origin: top left;
+    scale: 60% !important;
+    width: max-content;
+  }
+}
+input[type="range"] {
+  width: 200px;
+  margin: 10px 0;
+}
+
+</style>
+</head>
+
+<body>
+
+<h1>$e$-Funktion ableiten und zusammenfassen</h1>
+
+<details>
+<summary>Einstellungen</summary>
+
+<div class="form-block">
+  <b>Reihenfolge der Faktoren</b><br>
+  <label><input type="radio" name="order" value="eFirst" checked> $e^x \cdot P(x)$</label><br>
+  <label><input type="radio" name="order" value="both" > beide Formen</label><br>
+  <label><input type="radio" name="order" value="pFirst"> $P(x) \cdot e^x$</label>
+</div>
+
+<div class="form-block">
+  <b>Maximaler Grad des Polynoms: <span id="degOut">2</span></b><br>
+  <input type="range" id="polyDeg" min="1" max="3" value="2" step="1" list="tickmarks" oninput="updateParams()">
+</div>
+
+<div class="form-block">
+  <label><input type="checkbox" id="allowInner" checked oninput="updateParams()"> Innere Funktion verwenden?</label>
+</div>
+
+<div class="form-block">
+  <b>Grad der inneren Funktion: <span id="degIn">1</span></b><br>
+  <input type="range" id="innerDeg" min="1" max="3" value="1" step="1" list="tickmarks" oninput="updateParams()">
+</div>
+
+<datalist id="tickmarks">
+  <option value="1" label="1"></option>
+  <option value="2" label="2"></option>
+  <option value="3" label="3"></option>
+</datalist>
+
+</details>
+
+<button onclick="newTask()">Neue Aufgabe</button>
+
+<h2>Aufgabe</h2>
+<div id="task"></div>
+
+<details>
+<summary>Lösung</summary>
+<div id="solution"></div>
+<br>
+<button id="stepBtn" onclick="openSteps()">Lösungsweg</button>
+</details>
+
+<script>
+// ---------------- Hilfsfunktionen ----------------
+const rand = (a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+
+// erzeugt Polynom bis Grad maxDeg
+function makePoly(maxDeg){
+  // Grad zufällig zwischen 1 und maxDeg
+  let deg = rand(1, maxDeg);
+
+  let coeffs = [];
+  for(let i=deg;i>=0;i--){
+    let c;
+
+    if(i === deg){
+      // Leitkoeffizient darf NICHT 0 sein → sichert den Grad
+      do {
+        c = rand(-5,5);
+      } while(c === 0);
+    } else {
+      // alle anderen dürfen auch 0 sein
+      c = rand(-5,5);
+    }
+
+    coeffs.push(c);
+  }
+
+  function polyToString(coeffs){
+    let s='';
+    let deg = coeffs.length-1;
+    coeffs.forEach((c,idx)=>{
+      let p = deg-idx;
+      if(c===0) return;
+      let term='';
+      if(p===0) term=''+c;
+      else if(p===1) term=(c===1?'':c===-1?'-':c)+'x';
+      else term=(c===1?'':c===-1?'-':c)+`x^${p}`;
+      s += (term.startsWith('-')?term:'+'+term);
+    });
+    return s.replace(/^\+/,'');
+  }
+
+  function polyDerivative(coeffs){
+    let deg = coeffs.length-1;
+    let d = [];
+    coeffs.forEach((c,idx)=>{
+      let p = deg-idx;
+      if(p>0) d.push(c*p);
+    });
+    return polyToString(d);
+  }
+
+  return {
+    f: polyToString(coeffs),
+    d: polyDerivative(coeffs),
+    deg: deg   // falls du den Grad später anzeigen willst
+  };
+}
+
+// ---- Polynom-Parser: "2x^2-3x+1" -> Map {2:2, 1:-3, 0:1}
+function parsePoly(str){
+  let terms = new Map();
+  str = str.replace(/\s+/g,'');
+
+  // Normieren: führendes + ergänzen
+  if(!str.startsWith('-')) str = '+' + str;
+
+  let regex = /([+-])([^+-]+)/g;
+  let m;
+  while((m = regex.exec(str)) !== null){
+    let sign = m[1] === '-' ? -1 : 1;
+    let term = m[2];
+
+    let coeff, power;
+
+    if(term.includes('x')){
+      let parts = term.split('x');
+      coeff = parts[0] === '' ? 1 : parts[0] === '-' ? -1 : Number(parts[0]);
+      power = parts[1].startsWith('^') ? Number(parts[1].slice(1)) : 1;
+    } else {
+      coeff = Number(term);
+      power = 0;
+    }
+
+    let old = terms.get(power) || 0;
+    terms.set(power, old + sign*coeff);
+  }
+
+  return terms; // Map(power -> coeff)
+}
+
+// ---- Multipliziert zwei Polynome (als Strings)
+function multiplyPolys(p1, p2){
+  let A = parsePoly(p1);
+  let B = parsePoly(p2);
+
+  let R = new Map();
+
+  for(let [pA, cA] of A){
+    for(let [pB, cB] of B){
+      let p = pA + pB;
+      let c = cA * cB;
+      let old = R.get(p) || 0;
+      R.set(p, old + c);
+    }
+  }
+
+  return R; // Map
+}
+
+// ---- Addiert zwei Polynome (Maps)
+function addPolys(A, B){
+  let R = new Map(A);
+  for(let [p,c] of B){
+    let old = R.get(p) || 0;
+    R.set(p, old + c);
+  }
+  return R;
+}
+
+// ---- Map -> String in Standardform
+function polyMapToString(M){
+  let powers = [...M.keys()].sort((a,b)=>b-a);
+  let s = '';
+
+  powers.forEach(p=>{
+    let c = M.get(p);
+    if(c === 0) return;
+
+    let term = '';
+    if(p === 0) term = '' + c;
+    else if(p === 1) term = (c===1?'':c===-1?'-':c) + 'x';
+    else term = (c===1?'':c===-1?'-':c) + `x^${p}`;
+
+    s += (term.startsWith('-') ? term : '+' + term);
+  });
+
+  return s.replace(/^\+/,'') || '0';
+}
+
+// ---- Farbmarkierung nach Potenzen
+function colorPoly(expr) {
+  // Trenne am Vorzeichen, behalte das Vorzeichen aber beim Term
+  let terms = expr.match(/[+-]?[^+-]+/g) || [];
+  
+  return terms.map(t => {
+    let term = t.trim();
+    if (term === '') return '';
+    
+    let color = 'blue'; // Standard für Konstanten
+    if (term.includes('x^5')) color = 'brown';
+    else if (term.includes('x^4')) color = 'orange';
+    else if (term.includes('x^3')) color = 'purple';
+    else if (term.includes('x^2')) color = 'green';
+    else if (term.includes('x')) color = 'cyan';
+
+    // Nutze geschweifte Klammern um den gesamten Farbblock zu isolieren
+    return `{\\color{${color}}{${term}}}`;
+  }).join('\\,\\,'); // Nutze ein einfaches Leerzeichen statt der Tilde
+}
+
+// ---- erzeugt Liste einzelner Terme als Strings, ohne Zusammenfassen
+function expandPolyTerms(p1, p2){
+  let A = parsePoly(p1);
+  let B = parsePoly(p2);
+
+  let terms = [];
+
+  for(let [pA, cA] of A){
+    for(let [pB, cB] of B){
+      let p = pA + pB;
+      let c = cA * cB;
+
+      if(c === 0) continue;
+
+      let term = '';
+      if(p === 0) term = '' + c;
+      else if(p === 1) term = (c===1?'':c===-1?'-':c) + 'x';
+      else term = (c===1?'':c===-1?'-':c) + `x^${p}`;
+
+      terms.push(term);
+    }
+  }
+
+  return terms; // Array von Term-Strings, z.B. ["6x^3","-2x"]
+}
+
+
+let currentExpr = '';
+
+// externer Lösungsrechner wie bisher
+function openSteps(){
+  const url='https://www.ableitungsrechner.net/#expr='+
+            encodeURIComponent(currentExpr)+'&showsteps=1';
+  window.open(url,'_blank');
+}
+
+// ---------------- Task ----------------
+function newTask(){
+  document.querySelector('details[open]')?.removeAttribute('open');
+
+  const maxDeg   = +document.getElementById('polyDeg').value;
+  const allowIn  = document.getElementById('allowInner').checked;
+  const innerDeg = +document.getElementById('innerDeg').value;
+  const orderVal = document.querySelector('input[name="order"]:checked').value;
+
+  // Bestimme swap basierend auf Radio-Auswahl
+  let swap = false;
+  if (orderVal === 'pFirst') swap = true;
+  if (orderVal === 'both') swap = Math.random() > 0.5;
+
+  // äußeres Polynom p(x)
+  let p = makePoly(maxDeg);
+
+  // innere Funktion g(x)
+  let g = { f:'x', d:'1' };
+  if(allowIn){
+    let inner = makePoly(innerDeg);
+    g = { f: inner.f, d: inner.d };
+  }
+
+  const gDerivSafe = (g.d.includes('x') || g.d.includes('+') || g.d.includes('-')) ? `(${g.d})` : g.d;
+
+  // e^{g(x)} und Ableitung
+  let eF  = `e^{${g.f}}`;
+  let deF = g.d === '1' ? `e^{${g.f}}` : `e^{${g.f}}\\cdot ${gDerivSafe}`;
+
+  let f, prod1, prod2;
+
+  if(!swap){
+    f     = `${eF}\\cdot\\left(${p.f}\\right)`;
+    prod1= `${deF}\\cdot\\left(${p.f}\\right)`;
+    prod2= `${eF}\\cdot\\left(${p.d}\\right)`;
+  } else {
+    f     = `\\left(${p.f}\\right)\\cdot ${eF}`;
+    prod1= `\\left(${p.d}\\right)\\cdot ${eF}`;
+    prod2= `\\left(${p.f}\\right)\\cdot ${deF}`;
+  }
+  // 1. Produktregel
+  let step1 = `${prod1} + ${prod2}`;
+
+  // 2. e-Funktion ausklammern
+  // let step2 = `e^{${g.f}}\\cdot\\left( (${g.d})\\cdot(${p.f}) + (${p.d}) \\right)`;
+  let step2 = `e^{${g.f}}\\cdot\\left( ${gDerivSafe}\\cdot(${p.f}) + (${p.d}) \\right)`;
+  // 3. Ausmultipliziert & Farbig (dein alter step4)
+  let rawTerms = expandPolyTerms(g.d, p.f);
+  let derivTerms = expandPolyTerms("1", p.d);
+  let allTerms = rawTerms.concat(derivTerms);
+  let expandedRaw = allTerms.map(t => (t.startsWith('-') ? t : '+' + t)).join('').replace(/^\+/,'');
+  let stepColor = `e^{${g.f}}\\cdot\\left( ${colorPoly(expandedRaw)} \\right)`;
+
+  // 4. Zusammengefasst (dein alter step5)
+  let sumPoly = new Map();
+  allTerms.forEach(term => {
+    let M = parsePoly(term);
+    for(let [pwr, coeff] of M) {
+      let old = sumPoly.get(pwr) || 0;
+      sumPoly.set(pwr, old + coeff);
+    }
+  });
+  let stepFinal = `e^{${g.f}}\\cdot\\left( ${colorPoly(polyMapToString(sumPoly))} \\right)`;
+
+  // --- Zusammenbau der Rechenkette ---
+  let solutionHTML = '';
+  const op1 = `&&\\quad | \\text{ \\(e\\)-Term ausklammern}`;
+  const op2 = `&&\\quad | \\text{ innere Klammer ausmult.}`;
+  const op3 = `&&\\quad | \\text{ gleichartige Terme zusammenf.}`;
+
+  if (!allowIn || g.d === '1') {
+    // Spezialfall: Keine innere Ableitung nötig -> step2 überspringen
+    solutionHTML = `
+    $$
+    \\begin{aligned}
+    f'(x) &= ${step1} ${op1} \\\\
+          &= ${stepColor} ${op3} \\\\
+          &= ${stepFinal}
+    \\end{aligned}
+    $$`;
+  } else {
+    // Normalfall: Alle Schritte
+    solutionHTML = `
+    $$
+    \\begin{aligned}
+    f'(x) &= ${step1} ${op1} \\\\
+          &= ${step2} ${op2} \\\\
+          &= ${stepColor} ${op3} \\\\
+          &= ${stepFinal}
+    \\end{aligned}
+    $$`;
+  }
+
+  document.getElementById('solution').innerHTML = solutionHTML;
+  document.getElementById('task').innerHTML = `$$f(x) = ${f}$$`;
+  MathJax.typesetPromise();
+  currentExpr = f;
+}
+// Beim Laden der Seite Parameter prüfen
+window.onload = () => {
+  const params = new URLSearchParams(window.location.search);
+  if (params.has('pDeg')) document.getElementById('polyDeg').value = params.get('pDeg');
+  if (params.has('iDeg')) document.getElementById('innerDeg').value = params.get('iDeg');
+  if (params.has('allow')) document.getElementById('allowInner').checked = params.get('allow') === 'true';
+  if (params.has('order')) {
+    const radio = document.querySelector(`input[name="order"][value="${params.get('order')}"]`);
+    if (radio) radio.checked = true;
+  }
+  updateLabels();
+  newTask();
+};
+
+function updateLabels() {
+  document.getElementById('degOut').innerText = document.getElementById('polyDeg').value;
+  document.getElementById('degIn').innerText = document.getElementById('innerDeg').value;
+}
+
+function updateParams() {
+  updateLabels();
+  const pDeg = document.getElementById('polyDeg').value;
+  const iDeg = document.getElementById('innerDeg').value;
+  const allow = document.getElementById('allowInner').checked;
+  const order = document.querySelector('input[name="order"]:checked').value;
+  
+  const newURL = `${window.location.pathname}?pDeg=${pDeg}&iDeg=${iDeg}&allow=${allow}&order=${order}`;
+  window.history.replaceState({}, '', newURL);
+}
+
+// Registriere Events für alle Inputs (auch Radios)
+document.addEventListener('change', (e) => {
+  if (e.target.name === 'order' || e.target.type === 'checkbox' || e.target.type === 'range') {
+    updateParams();
+  }
+});
+
+// ... (Restliche Hilfsfunktionen wie makePoly etc. bleiben gleich)
+
+newTask();
+</script>
+
+</body>
+</html>
