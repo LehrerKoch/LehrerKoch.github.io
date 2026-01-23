@@ -6,7 +6,15 @@
 <title>Lösungsverfahren erkennen</title>
 <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 <link rel="stylesheet" type="text/css" href="styles.css">
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-5K8WYYXDL2"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
 
+  gtag('config', 'G-5K8WYYXDL2');
+</script>
 <style>
 body {
   font-family: Calibri, sans-serif;
@@ -1151,18 +1159,32 @@ function is_solvable_by_quadratisch() {
 }
 
 // potenz: bis auf Index 0 gibt es nur noch ein Element != 0
+// potenz: bis auf Index 0 gibt es nur noch ein Element != 0
+// UND dieses Element muss Index >= 2 haben (nicht Index 1, das wäre linear)
 function is_solvable_by_potenz() {
     if (currentEqType === 'potenz') return true; // wenn es generiert wurde, ist es Potenz
     const coeffs = currentCoeffs || [];
+    
     // sammle Indizes mit nicht-null
     const nonZeroIdx = [];
     for (let i = 0; i < coeffs.length; i++) {
         if (!isZero(coeffs[i])) nonZeroIdx.push(i);
     }
+    
     if (nonZeroIdx.length === 0) return false; // 0 ≡ keine Gleichung
-    if (nonZeroIdx.length === 1) return true;  // nur ein Nicht-Null-Term -> Potenz-Form möglich
-    // Erlaube genau zwei Nicht-Null, wobei einer Index 0 sein darf (z.B. a*x^n + c = 0)
-    if (nonZeroIdx.length === 2 && nonZeroIdx.includes(0)) return true;
+    
+    // Nur ein Nicht-Null-Term (außer Index 0)
+    if (nonZeroIdx.length === 1) {
+        // Dieser muss Index >= 2 haben (nicht 0, nicht 1)
+        return nonZeroIdx[0] >= 2;
+    }
+    
+    // Genau zwei Nicht-Null: einer muss Index 0 sein, der andere >= 2
+    if (nonZeroIdx.length === 2 && nonZeroIdx.includes(0)) {
+        const otherIdx = nonZeroIdx.find(i => i !== 0);
+        return otherIdx >= 2; // nicht Index 1 (das wäre linear)
+    }
+    
     return false;
 }
 
