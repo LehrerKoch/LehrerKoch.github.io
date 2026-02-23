@@ -3,21 +3,21 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
-<title>Polynom Integration Übung</title>
+<title>Polynom Ableitung Übung</title>
 <link rel="stylesheet" href="styles.css">
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-5K8WYYXDL2"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
 
-        gtag('config', 'G-5K8WYYXDL2');
-    </script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-5K8WYYXDL2"></script>
+<script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-5K8WYYXDL2');
+</script>
 <style>
-#task-instruction { font-size: 1.1em; text-align: left; margin-bottom: 0.2em; }
-#task-formula { font-size: 1.6em; text-align: center; }
+#task { font-size: 1.6em; }
 #solution { color:red; font-size:1.3em }
 #intermediate { color:blue; font-size:1.3em }
 
@@ -61,39 +61,40 @@
 
 /* Responsive Skalierung */
 @media (max-width: 900px) {
-  #task-formula, #solution, #intermediate {
+  #task, #solution, #intermediate {
     scale: 90% !important;
   }
 }
 @media (max-width: 800px) {
-  #task-formula, #solution, #intermediate {
+  #task, #solution, #intermediate {
     scale: 80% !important;
   }
 }
 @media (max-width: 700px) {
-  #task-formula, #solution, #intermediate {
+  #task, #solution, #intermediate {
     scale: 70% !important;
   }
 }
 @media (max-width: 600px) {
-  #task-formula, #solution, #intermediate {
+  #task, #solution, #intermediate {
     scale: 60% !important;
   }
 }
 @media (max-width: 500px) {
-  #task-formula, #solution, #intermediate {
+  #task, #solution, #intermediate {
     scale: 50% !important;
   }
 }
 
 .intermediate-details {
-    display: inline-block;
+    display: inline-block; /* Sorgt dafür, dass der Block nur so breit wie der Inhalt ist */
     border: 1px solid #ccc;
     border-radius: 5px;
     padding: 3px 5px;
     margin: 5px auto;
-    min-width: 500px;
-    max-width: 90%;
+    /* ÄNDERUNGEN HIER: */
+    min-width: 500px;      /* Verhindert, dass der Block bei kurzen Formeln zu mickrig aussieht */
+    max-width: 90%;       /* Erlaubt dem Block, bis zu 90% der verfügbaren Breite zu nutzen */
     width: auto;
 }
 
@@ -108,7 +109,7 @@
 
 <body>
 
-<h1>Polynom Integration Übung</h1>
+<h1>Polynom Ableitung Übung</h1>
 
 <details>
 <summary>Einstellungen</summary>
@@ -137,20 +138,12 @@
 <label><input type="checkbox" id="allowFactor"> Extra Faktor vor der Funktion</label>
 </div>
 
-<div class="form-block">
-<b>Aufgabentyp</b><br>
-<label><input type="radio" name="taskMode" value="antiderivative" checked> Stammfunktion angeben (\(F(x)\))</label><br>
-<label><input type="radio" name="taskMode" value="indefinite"> Menge aller Stammfunktionen (unbestimmtes Integral, \(\int f(x)\,dx\))</label><br>
-<label><input type="radio" name="taskMode" value="random"> Zufällig eine der beiden</label><br>
-</div>
-
 </details>
 
 <button onclick="newTask()">Neue Aufgabe</button>
 
 <h2>Aufgabe</h2>
-<div id="task-instruction"></div>
-<div id="task-formula"></div>
+<div id="task"></div>
 
 <details>
   <summary>Lösung</summary>
@@ -177,7 +170,6 @@ function updateURL(){
   let dec = document.getElementById('allowDecimals').checked ? 1 : 0;
   let frac = document.getElementById('allowFractions').checked ? 1 : 0;
   let fact = document.getElementById('allowFactor').checked ? 1 : 0;
-  let mode = document.querySelector('input[name="taskMode"]:checked').value;
   
   let url = new URL(window.location);
   url.searchParams.set('type', type);
@@ -185,7 +177,6 @@ function updateURL(){
   url.searchParams.set('decimals', dec);
   url.searchParams.set('fractions', frac);
   url.searchParams.set('factor', fact);
-  url.searchParams.set('mode', mode);
   history.replaceState({}, '', url);
 }
 
@@ -208,14 +199,13 @@ function loadURL(){
   if(url.searchParams.has('factor')){
     document.getElementById('allowFactor').checked = url.searchParams.get('factor') === '1';
   }
-  if(url.searchParams.has('mode')){
-    let mode = url.searchParams.get('mode');
-    document.querySelector(`input[name="taskMode"][value="${mode}"]`).checked = true;
-  }
 }
 
 function syncDegreeDisplay(){
+  let funcType = document.querySelector('input[name="funcType"]:checked').value;
   let slider = document.getElementById('maxDegree');
+  
+  // Alle Typen nutzen den gewählten Grad
   slider.max = 10;
   document.getElementById('degreeValue').textContent = slider.value;
 }
@@ -254,16 +244,8 @@ function gcd(a, b) {
 }
 
 function simplifyFraction(num, den) {
-  if(den < 0) { num = -num; den = -den; }
-  let g = gcd(Math.abs(num), Math.abs(den));
+  let g = gcd(num, den);
   return [num / g, den / g];
-}
-
-// Returns a coeff object, converting fraction to integer when den==1
-function makeFraction(num, den) {
-  let [n, d] = simplifyFraction(num, den);
-  if(d === 1) return { type: 'integer', value: n };
-  return { type: 'fraction', num: n, den: d };
 }
 
 // ---------------- Coefficient Generator ----------------
@@ -272,15 +254,20 @@ function generateCoeff(isExtraFactor = false) {
   let allowFrac = document.getElementById('allowFractions').checked;
   
   if(isExtraFactor) {
+    // Extra-Faktoren: sehr groß, sehr klein, oder als Bruch/Dezimal
     let choice = Math.random();
     if(choice < 0.4) {
+      // Sehr große Zahl
       let val = rand(100, 9999) * (Math.random() < 0.5 ? 1 : -1);
       return { type: 'integer', value: val };
     } else if(choice < 0.7) {
+      // Bruch
       let num = rand(1, 9) * (Math.random() < 0.5 ? 1 : -1);
       let den = rand(10, 999);
-      return makeFraction(num, den);
+      let [n, d] = simplifyFraction(num, den);
+      return { type: 'fraction', num: n, den: d };
     } else {
+      // Kleine Dezimalzahl
       let val = (Math.random() * 0.99 + 0.01) * (Math.random() < 0.5 ? 1 : -1);
       val = parseFloat(val.toFixed(2));
       return { type: 'decimal', value: val };
@@ -291,7 +278,8 @@ function generateCoeff(isExtraFactor = false) {
     let num = rand(-9, 9);
     if(num === 0) num = 1;
     let den = rand(2, 9);
-    return makeFraction(num, den);
+    let [n, d] = simplifyFraction(num, den);
+    return { type: 'fraction', num: n, den: d };
   } else if(allowDec && Math.random() < 0.3) {
     let val = parseFloat(randDecimal(-9, 9));
     if(val === 0) val = 1;
@@ -307,6 +295,14 @@ function coeffToString(coeff, skipOne = false) {
     if(coeff.num === 0) return '0';
     let absNum = Math.abs(coeff.num);
     let absDen = Math.abs(coeff.den);
+    
+    // Ganzzahliger Bruch (z.B. 3/1 oder 6/2=3)
+    if(absDen === 1) {
+      let val = coeff.num < 0 ? -absNum : absNum;
+      if(skipOne && Math.abs(val) === 1) return val < 0 ? '-' : '';
+      return val.toString();
+    }
+    
     if(skipOne && absNum === absDen) return coeff.num < 0 ? '-' : '';
     let sign = coeff.num < 0 ? '-' : '';
     return `${sign}\\frac{${absNum}}{${absDen}}`;
@@ -333,30 +329,102 @@ function coeffIsNegative(coeff) {
   return coeff.value < 0;
 }
 
-// Multipliziert Koeffizient mit einem Bruch num/den
-function multiplyCoeffFraction(coeff, num, den) {
+function multiplyCoeff(coeff, factor) {
   if(coeff.type === 'fraction') {
-    return makeFraction(coeff.num * num, coeff.den * den);
+    let newNum = coeff.num * factor;
+    let [n, d] = simplifyFraction(newNum, coeff.den);
+    return { type: 'fraction', num: n, den: d };
   } else if(coeff.type === 'decimal') {
-    return { type: 'decimal', value: coeff.value * num / den };
+    return { type: 'decimal', value: coeff.value * factor };
   } else {
-    // integer * num/den
-    return makeFraction(coeff.value * num, den);
+    return { type: 'integer', value: coeff.value * factor };
   }
 }
 
-// ---------------- Polynomial building helper ----------------
-function buildPolyString(coeffs) {
-  // coeffs[i] = coefficient for x^i, iterate from highest to lowest
-  let terms = [];
+// ---------------- Current Expression ----------------
+let currentExpr = '';
+
+function openSteps(){
+  const url = 'https://www.ableitungsrechner.net/#expr=' + encodeURIComponent(currentExpr) + '&showsteps=1';
+  window.open(url, '_blank');
+}
+
+// ---------------- Task Generator ----------------
+function newTask(){
+  // Alle Details-Elemente schließen (auch den neuen Zwischenschritt)
+  document.querySelectorAll('details').forEach(d => d.removeAttribute('open'));
+  
+  let funcType = document.querySelector('input[name="funcType"]:checked').value;
+  let maxDeg = parseInt(document.getElementById('maxDegree').value);
+  let allowFactor = document.getElementById('allowFactor').checked;
+  
+  let coeffs = [];
+  let degree;
+  
+  if(funcType === 'power') {
+    // Nur eine Potenzfunktion: x^n (OHNE Koeffizient)
+    degree = rand(1, maxDeg);
+    for(let i = 0; i <= maxDeg; i++) {
+      if(i === degree) {
+        coeffs.push({ type: 'integer', value: 1 }); // Nur Koeffizient 1
+      } else {
+        coeffs.push({ type: 'integer', value: 0 });
+      }
+    }
+    allowFactor = false; // Kein Faktor bei reinen Potenzfunktionen
+  } else if(funcType === 'powerWithFactor') {
+    // Potenzfunktion mit Faktorregel - a·x^n (OHNE Extra-Faktor in Klammern)
+    degree = rand(1, maxDeg);
+    for(let i = 0; i <= maxDeg; i++) {
+      if(i === degree) {
+        let c;
+        do {
+          c = generateCoeff(false);
+        } while(coeffIsZero(c));
+        coeffs.push(c);
+      } else {
+        coeffs.push({ type: 'integer', value: 0 });
+      }
+    }
+    allowFactor = false; // KEIN Extra-Faktor für Faktorregel
+  } else {
+    // Polynom
+    degree = rand(1, maxDeg);
+    for(let i = 0; i <= degree; i++) {
+      if(i === degree) {
+        // Höchster Koeffizient darf nicht 0 sein
+        let c;
+        do {
+          c = generateCoeff(false);
+        } while(coeffIsZero(c));
+        coeffs.push(c);
+      } else {
+        coeffs.push(generateCoeff(false));
+      }
+    }
+  }
+  
+  // Extra Faktor
+  let factor = null;
+  if(allowFactor && Math.random() < 0.4) {
+    // Nur bei Polynomen möglich
+    factor = generateCoeff(true);
+    while(coeffIsZero(factor)) {
+      factor = generateCoeff(true);
+    }
+  }
+  
+  // Build f(x)
+  let fTerms = [];
   for(let i = coeffs.length - 1; i >= 0; i--) {
     let pow = i;
     let c = coeffs[i];
+    
     if(coeffIsZero(c)) continue;
-
-    let cStr = coeffToString(c, pow > 0);
+    
     let term = '';
-
+    let cStr = coeffToString(c, pow > 0);
+    
     if(pow === 0) {
       term = coeffToString(c, false);
     } else if(pow === 1) {
@@ -368,134 +436,51 @@ function buildPolyString(coeffs) {
       else if(cStr === '-') term = `-x^{${pow}}`;
       else term = cStr + `x^{${pow}}`;
     }
-
-    terms.push({ term, isNegative: coeffIsNegative(c) });
+    
+    fTerms.push({ term, isNegative: coeffIsNegative(c) });
   }
-
-  let result = '';
-  for(let i = 0; i < terms.length; i++) {
+  
+  let f = '';
+  for(let i = 0; i < fTerms.length; i++) {
     if(i === 0) {
-      result += terms[i].term;
+      f += fTerms[i].term;
     } else {
-      if(terms[i].isNegative) {
-        result += terms[i].term;
+      if(fTerms[i].isNegative) {
+        f += fTerms[i].term;
       } else {
-        result += '+' + terms[i].term;
+        f += '+' + fTerms[i].term;
       }
     }
   }
-  return result || '0';
-}
-
-// ---------------- Current Expression ----------------
-let currentExpr = '';
-let currentTaskMode = 'antiderivative'; // resolved mode for this task
-
-function openSteps(){
-  const url = 'https://www.integralrechner.de/#expr=' + encodeURIComponent(currentExpr);
-  window.open(url, '_blank');
-}
-
-// ---------------- Task Generator ----------------
-function newTask(){
-  document.querySelectorAll('details').forEach(d => d.removeAttribute('open'));
-
-  let funcType = document.querySelector('input[name="funcType"]:checked').value;
-  let maxDeg = parseInt(document.getElementById('maxDegree').value);
-  let allowFactor = document.getElementById('allowFactor').checked;
-  let taskModeSetting = document.querySelector('input[name="taskMode"]:checked').value;
-
-  // Resolve random mode
-  if(taskModeSetting === 'random') {
-    currentTaskMode = Math.random() < 0.5 ? 'antiderivative' : 'indefinite';
-  } else {
-    currentTaskMode = taskModeSetting;
-  }
-
-  let coeffs = []; // coeffs[i] = coeff for x^i
-  let degree;
-
-  if(funcType === 'power') {
-    degree = rand(1, maxDeg);
-    for(let i = 0; i <= maxDeg; i++) {
-      if(i === degree) {
-        coeffs.push({ type: 'integer', value: 1 });
-      } else {
-        coeffs.push({ type: 'integer', value: 0 });
-      }
-    }
-    allowFactor = false;
-  } else if(funcType === 'powerWithFactor') {
-    // Potenzfunktion mit Koeffizient: a*x^n (z.B. 3x^5, 0,4x^2, 2/3 x^4)
-    degree = rand(1, maxDeg);
-    for(let i = 0; i <= degree; i++) {
-      if(i === degree) {
-        let c;
-        do {
-          c = generateCoeff(false);
-          // Bei ganzen Zahlen ±1 vermeiden (trivial); bei Brüchen/Dezimal ist ±1 ok
-        } while(coeffIsZero(c) || (c.type === 'integer' && (c.value === 1 || c.value === -1)));
-        coeffs.push(c);
-      } else {
-        coeffs.push({ type: 'integer', value: 0 });
-      }
-    }
-    allowFactor = false; // kein extra äußerer Faktor, der Koeffizient IST der Faktor
-  } else {
-    // Polynom
-    degree = rand(1, maxDeg);
-    for(let i = 0; i <= degree; i++) {
-      if(i === degree) {
-        let c;
-        do { c = generateCoeff(false); } while(coeffIsZero(c));
-        coeffs.push(c);
-      } else {
-        coeffs.push(generateCoeff(false));
-      }
-    }
-  }
-
-  // Extra Faktor (nur bei Polynomen wenn Checkbox aktiv)
-  let factor = null;
-  if(allowFactor && Math.random() < 0.4) {
-    factor = generateCoeff(true);
-    while(coeffIsZero(factor)) { factor = generateCoeff(true); }
-  }
-
-  // Build f(x) string
-  let f = buildPolyString(coeffs);
-
-  // ---- Build intermediate step: show each term as c * x^(n+1) / (n+1) ----
-  // For each term a*x^n, integral is a * x^(n+1)/(n+1)
+  
+  // Fallback falls f leer ist
+  if(f === '') f = 'x';
+  
+  // Build derivative (intermediate step) - Koeffizient · Exponent · x^(n-1)
   let intermediateTerms = [];
   for(let i = coeffs.length - 1; i >= 0; i--) {
     let pow = i;
     let c = coeffs[i];
-    if(coeffIsZero(c)) continue;
-
-    let newPow = pow + 1;
+    
+    if(coeffIsZero(c) || pow === 0) continue;
+    
     let cStr = coeffToString(c, false);
     let term = '';
-
-    if(pow === 0) {
-      // constant a -> a * x / 1 shown as cStr * x
-      if(cStr === '1') term = `x`;
-      else if(cStr === '-1') term = `-x`;
-      else term = `${cStr}\\cdot x`;
-    } else if(pow === 1) {
-      // a*x -> a * x^2 / 2
-      if(cStr === '1') term = `\\frac{x^{2}}{2}`;
-      else if(cStr === '-1') term = `-\\frac{x^{2}}{2}`;
-      else term = `${cStr}\\cdot \\frac{x^{${newPow}}}{${newPow}}`;
+    
+    if(pow === 1) {
+      // Nur der Koeffizient bleibt übrig
+      term = cStr;
+    } else if(pow === 2) {
+      // Koeffizient · 2 · x
+      term = `${cStr}\\cdot ${pow}\\cdot x`;
     } else {
-      if(cStr === '1') term = `\\frac{x^{${newPow}}}{${newPow}}`;
-      else if(cStr === '-1') term = `-\\frac{x^{${newPow}}}{${newPow}}`;
-      else term = `${cStr}\\cdot \\frac{x^{${newPow}}}{${newPow}}`;
+      // Koeffizient · Exponent · x^(n-1)
+      term = `${cStr}\\cdot ${pow}\\cdot x^{${pow-1}}`;
     }
-
+    
     intermediateTerms.push({ term, isNegative: coeffIsNegative(c) });
   }
-
+  
   let intermediate = '';
   for(let i = 0; i < intermediateTerms.length; i++) {
     if(i === 0) {
@@ -508,38 +493,67 @@ function newTask(){
       }
     }
   }
-  if(intermediate === '') intermediate = '0';
-
-  // ---- Build final integrated polynomial coefficients ----
-  // F(x): for term a*x^n -> (a/(n+1)) * x^(n+1)
-  let intCoeffs = []; // intCoeffs[i] = coeff for x^i in F(x)
-  // highest power in result = degree + 1
-  for(let i = 0; i <= coeffs.length; i++) intCoeffs.push({ type: 'integer', value: 0 });
-
-  for(let i = 0; i < coeffs.length; i++) {
+  
+  // Build derivative (final)
+  let dTerms = [];
+  for(let i = coeffs.length - 1; i >= 0; i--) {
     let pow = i;
     let c = coeffs[i];
-    if(coeffIsZero(c)) continue;
-    let newPow = pow + 1;
-    // multiply c by 1/(newPow)
-    let newC = multiplyCoeffFraction(c, 1, newPow);
-    intCoeffs[newPow] = newC;
+    
+    if(coeffIsZero(c) || pow === 0) continue;
+    
+    let newC = multiplyCoeff(c, pow);
+    let newPow = pow - 1;
+    
+    let term = '';
+    let cStr = coeffToString(newC, newPow > 0);
+    
+    if(newPow === 0) {
+      term = coeffToString(newC, false);
+    } else if(newPow === 1) {
+      if(cStr === '') term = 'x';
+      else if(cStr === '-') term = '-x';
+      else term = cStr + 'x';
+    } else {
+      if(cStr === '') term = `x^{${newPow}}`;
+      else if(cStr === '-') term = `-x^{${newPow}}`;
+      else term = cStr + `x^{${newPow}}`;
+    }
+    
+    dTerms.push({ term, isNegative: coeffIsNegative(newC) });
   }
-
-  let d = buildPolyString(intCoeffs);
-  if(d === '0') d = '0';
-
-  // ---- Apply factor ----
+  
+  let d = '';
+  for(let i = 0; i < dTerms.length; i++) {
+    if(i === 0) {
+      d += dTerms[i].term;
+    } else {
+      if(dTerms[i].isNegative) {
+        d += dTerms[i].term;
+      } else {
+        d += '+' + dTerms[i].term;
+      }
+    }
+  }
+  
+  if(d === '') d = '0';
+  if(intermediate === '') intermediate = '0';
+  
+  // Apply factor if present
   let taskStr = '';
   let intermediateStr = '';
   let solutionStr = '';
-  let factorStr = '';
-
+  
   if(factor) {
-    factorStr = coeffToString(factor, false);
+    let factorStr = coeffToString(factor, false);
     taskStr = `${factorStr}\\left(${f}\\right)`;
+    
+    // Zwischenschritt: Faktor bleibt stehen, aber innere Ableitung zeigt Zwischenschritt
     intermediateStr = `${factorStr}\\left(${intermediate}\\right)`;
+    
+    // Lösung: Faktor bleibt stehen, innere Ableitung vereinfacht
     solutionStr = `${factorStr}\\left(${d}\\right)`;
+    
     currentExpr = factorStr.replace('{,}', '.') + '(' + f + ')';
   } else {
     taskStr = f;
@@ -547,30 +561,11 @@ function newTask(){
     solutionStr = d;
     currentExpr = f;
   }
-
-  // ---- Build task display ----
-  let taskInstructionHTML = '';
-  let taskFormulaHTML = '';
-  let intermediateHTML = '';
-  let solutionHTML = '';
-
-  if(currentTaskMode === 'antiderivative') {
-    taskInstructionHTML = `Bestimme eine Stammfunktion \\(F(x)\\) von:`;
-    taskFormulaHTML = `$$f(x)=${taskStr}$$`;
-    intermediateHTML = `$$F(x)=${intermediateStr}$$`;
-    solutionHTML = `$$F(x)=${solutionStr}$$`;
-  } else {
-    taskInstructionHTML = `Berechne das unbestimmte Integral:`;
-    taskFormulaHTML = `$$\\int ${taskStr}\\,dx = \\,?$$`;
-    intermediateHTML = `$$\\int ${taskStr}\\,dx = ${intermediateStr}+C$$`;
-    solutionHTML = `$$\\int ${taskStr}\\,dx = ${solutionStr}+C$$`;
-  }
-
-  document.getElementById('task-instruction').innerHTML = taskInstructionHTML;
-  document.getElementById('task-formula').innerHTML = taskFormulaHTML;
-  document.getElementById('intermediate').innerHTML = intermediateHTML;
-  document.getElementById('solution').innerHTML = solutionHTML;
-
+  
+  document.getElementById('task').innerHTML = `$$f(x)=${taskStr}$$`;
+  document.getElementById('intermediate').innerHTML = `<b>Zwischenschritt:</b><br>$$f'(x)=${intermediateStr}$$`;
+  document.getElementById('solution').innerHTML = `$$f'(x)=${solutionStr}$$`;
+  
   MathJax.typesetPromise();
 }
 
