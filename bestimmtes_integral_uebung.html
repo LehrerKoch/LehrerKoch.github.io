@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<title>Bestimmtes Integral Übung</title>
+<link rel="stylesheet" href="styles.css">
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-5K8WYYXDL2"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-5K8WYYXDL2');
+</script>
+<style>
+#task-instruction { font-size: 1.1em; text-align: left; margin-bottom: 0.2em; }
+#task-formula { font-size: 1.6em; text-align: center; }
+#solution { color:red; font-size:1.3em; text-align:center; }
+#intermediate { color:blue; font-size:1.0em; }
+
+.inner-label.disabled { opacity: 0.4; }
+.slider-container { margin: 10px 0; }
+.slider-container input[type="range"] { width: 200px; }
+
+.solution-container {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 15px;
+}
+
+/* Responsive Skalierung */
+@media (max-width: 900px) { #task-formula, #solution, #intermediate { scale: 90% !important; } }
+@media (max-width: 800px) { #task-formula, #solution, #intermediate { scale: 80% !important; } }
+@media (max-width: 700px) { #task-formula, #solution, #intermediate { scale: 70% !important; } }
+@media (max-width: 600px) { #task-formula, #solution, #intermediate { scale: 60% !important; } }
+@media (max-width: 500px) { #task-formula, #solution, #intermediate { scale: 50% !important; } }
+
+.intermediate-details {
+  display: inline-block;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 3px 5px;
+  margin: 5px auto;
+  min-width: 500px;
+  max-width: 90%;
+  width: auto;
+}
+.intermediate-details summary {
+  cursor: pointer;
+  color: #0066cc;
+  font-weight: bold;
+}
+
+/* ---- Toggle Switch ---- */
+.mode-switch-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 10px 0 6px 0;
+  font-size: 0.95em;
+}
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 52px;
+  height: 26px;
+  flex-shrink: 0;
+}
+.switch input { opacity: 0; width: 0; height: 0; }
+.switch .knob {
+  position: absolute;
+  cursor: pointer;
+  inset: 0;
+  background: #4caf50;
+  border-radius: 26px;
+  transition: background 0.25s;
+}
+.switch .knob::before {
+  content: '';
+  position: absolute;
+  width: 20px; height: 20px;
+  left: 3px; bottom: 3px;
+  background: white;
+  border-radius: 50%;
+  transition: transform 0.25s;
+}
+.switch input:checked + .knob { background: #e07b00; }
+.switch input:checked + .knob::before { transform: translateX(26px); }
+.mode-label-exact  { color: #2a7a2a; font-weight: bold; }
+.mode-label-round  { color: #c05000; font-weight: bold; }
+</style>
+</head>
+
+<body>
+<h1>Bestimmtes Integral Übung</h1>
+
+<details>
+<summary>Einstellungen</summary>
+
+<div class="form-block">
+<b>Funktionstyp</b><br>
+<label><input type="radio" name="funcType" value="power"> Nur Potenzfunktionen</label><br>
+<label><input type="radio" name="funcType" value="powerWithFactor"> Potenzfunktion mit Faktorregel</label><br>
+<label><input type="radio" name="funcType" value="polynomial" checked> Polynome</label><br>
+</div>
+
+<div class="form-block">
+<div class="slider-container">
+<b>Maximaler Grad: <span id="degreeValue">3</span></b><br>
+<input type="range" id="maxDegree" min="1" max="10" value="3">
+</div>
+</div>
+
+<div class="form-block">
+<b>Koeffizienten &amp; Grenzen</b><br>
+<label><input type="checkbox" id="allowDecimals"> Dezimalzahlen erlauben</label><br>
+<label><input type="checkbox" id="allowFractions"> Brüche erlauben</label><br>
+</div>
+
+<div class="form-block">
+<b>Sonderfälle Integralgrenzen</b><br>
+<label><input type="checkbox" id="allowSwapped"> Integralgrenzen vertauscht</label><br>
+<label><input type="checkbox" id="allowEqual"> Integralgrenzen gleich</label><br>
+</div>
+
+</details>
+
+<button onclick="newTask()">Neue Aufgabe</button>
+
+<h2>Aufgabe</h2>
+<div id="task-instruction"></div>
+<div id="task-formula"></div>
+
+<details>
+  <summary>Lösung</summary>
+
+  <!-- Toggle Slider -->
+  <div class="mode-switch-wrap" style="justify-content:center;">
+    <span class="mode-label-exact">Genau (Brüche)</span>
+    <label class="switch">
+      <input type="checkbox" id="roundingToggle">
+      <span class="knob"></span>
+    </label>
+    <span class="mode-label-round">Gerundet (2 Stellen)</span>
+  </div>
+
+  <div style="text-align:center;">
+    <details class="intermediate-details">
+      <summary>Lösungsweg</summary>
+      <div id="intermediate"></div>
+    </details>
+  </div>
+
+  <div class="solution-container">
+    <div id="solution"></div>
+  </div>
+
+  <br>
+  <button id="stepBtn" onclick="openSteps()">Auf integralrechner.de öffnen</button>
+</details>
+
+<script>
+// ================================================================
+// RATIONAL NUMBER ARITHMETIC  (exact fractions: {n, d} with d > 0)
+// ================================================================
+function gcd(a, b) {
+  a = Math.abs(a); b = Math.abs(b);
+  while(b) { let t = b; b = a % b; a = t; }
+  return a || 1;
+}
+// Canonical rational: { n: integer, d: positive integer }
+function rat(n, d = 1) {
+  if(d === 0) throw new Error('division by zero');
+  if(d < 0) { n = -n; d = -d; }
+  let g = gcd(Math.abs(n), d);
+  return { n: n / g, d: d / g };
+}
+function ratAdd(a, b) { return rat(a.n * b.d + b.n * a.d, a.d * b.d); }
+function ratSub(a, b) { return rat(a.n * b.d - b.n * a.d, a.d * b.d); }
+function ratMul(a, b) { return rat(a.n * b.n, a.d * b.d); }
+function ratDiv(a, b) { return rat(a.n * b.d, a.d * b.n); }
+function ratPow(a, exp) {
+  // exp is a non-negative integer
+  if(exp === 0) return rat(1);
+  let r = rat(1);
+  for(let i = 0; i < exp; i++) r = ratMul(r, a);
+  return r;
+}
+function ratToFloat(r) { return r.n / r.d; }
+function ratIsInt(r)   { return r.d === 1; }
+function ratIsZero(r)  { return r.n === 0; }
+function ratIsNeg(r)   { return r.n < 0; }
+
+// Convert a coeff object (type integer/fraction/decimal) to a rational
+function coeffToRat(c) {
+  if(c.type === 'fraction') return rat(c.num, c.den);
+  if(c.type === 'decimal') {
+    // Convert decimal to exact fraction by scaling
+    let s = c.value.toString();
+    let dec = s.indexOf('.');
+    if(dec === -1) return rat(c.value);
+    let places = s.length - dec - 1;
+    let scale = Math.pow(10, places);
+    return rat(Math.round(c.value * scale), scale);
+  }
+  return rat(c.value);
+}
+
+// ================================================================
+// LATEX FORMATTING FOR RATIONALS
+// ================================================================
+
+// Format a rational as LaTeX. skipOne: omit "1" or "-1" in front of variable.
+function ratToLatex(r, skipOne = false) {
+  if(r.d === 1) {
+    if(r.n === 0) return '0';
+    if(skipOne && r.n === 1)  return '';
+    if(skipOne && r.n === -1) return '-';
+    return r.n.toString();
+  }
+  // true fraction
+  let absN = Math.abs(r.n);
+  let sign = r.n < 0 ? '-' : '';
+  if(skipOne && absN === r.d) return r.n < 0 ? '-' : ''; // ±1 after simplification
+  return `${sign}\\frac{${absN}}{${r.d}}`;
+}
+
+// Format a rational as a rounded decimal string (at most 2 decimal places, no trailing zeros)
+function ratToRoundedLatex(r) {
+  let v = ratToFloat(r);
+  if(ratIsInt(r)) return r.n.toString();
+  let rounded = Math.round(v * 100) / 100;
+  // Remove trailing zeros after decimal point
+  let s = rounded.toFixed(2).replace(/0+$/, '').replace(/\.$/, '');
+  return s.replace('.', '{,}');
+}
+
+// Is a rational exactly representable as a 2-decimal-place number?
+function ratIsExactAt2(r) {
+  // r.n/r.d = k/100 for some integer k?  => r.n * 100 % r.d === 0
+  return (r.n * 100) % r.d === 0;
+}
+
+// ================================================================
+// URL SYNC
+// ================================================================
+function updateURL(){
+  let type = document.querySelector('input[name="funcType"]:checked').value;
+  let deg  = document.getElementById('maxDegree').value;
+  let dec  = document.getElementById('allowDecimals').checked ? 1 : 0;
+  let frac = document.getElementById('allowFractions').checked ? 1 : 0;
+  let sw   = document.getElementById('allowSwapped').checked ? 1 : 0;
+  let eq   = document.getElementById('allowEqual').checked ? 1 : 0;
+  let url  = new URL(window.location);
+  url.searchParams.set('type', type);
+  url.searchParams.set('degree', deg);
+  url.searchParams.set('decimals', dec);
+  url.searchParams.set('fractions', frac);
+  url.searchParams.set('swapped', sw);
+  url.searchParams.set('equal', eq);
+  url.searchParams.set('rounded', document.getElementById('roundingToggle').checked ? 1 : 0);
+  history.replaceState({}, '', url);
+}
+function loadURL(){
+  let url = new URL(window.location);
+  if(url.searchParams.has('type'))
+    document.querySelector(`input[name="funcType"][value="${url.searchParams.get('type')}"]`).checked = true;
+  if(url.searchParams.has('degree')){
+    document.getElementById('maxDegree').value = url.searchParams.get('degree');
+    document.getElementById('degreeValue').textContent = url.searchParams.get('degree');
+  }
+  if(url.searchParams.has('decimals'))
+    document.getElementById('allowDecimals').checked = url.searchParams.get('decimals') === '1';
+  if(url.searchParams.has('fractions'))
+    document.getElementById('allowFractions').checked = url.searchParams.get('fractions') === '1';
+  if(url.searchParams.has('swapped'))
+    document.getElementById('allowSwapped').checked = url.searchParams.get('swapped') === '1';
+  if(url.searchParams.has('equal'))
+    document.getElementById('allowEqual').checked = url.searchParams.get('equal') === '1';
+  // Default: unchecked (exact/Brüche), only set to rounded if explicitly '1'
+  if(url.searchParams.has('rounded'))
+    document.getElementById('roundingToggle').checked = url.searchParams.get('rounded') === '1';
+}
+function syncDegreeDisplay(){
+  document.getElementById('degreeValue').textContent = document.getElementById('maxDegree').value;
+}
+loadURL(); syncDegreeDisplay();
+document.querySelectorAll('input').forEach(e => e.addEventListener('change', () => {
+  syncDegreeDisplay(); updateURL();
+}));
+document.getElementById('maxDegree').addEventListener('input', () => {
+  document.getElementById('degreeValue').textContent = document.getElementById('maxDegree').value;
+  updateURL();
+});
+
+// ================================================================
+// RANDOM HELPERS
+// ================================================================
+const rand = (a, b) => Math.floor(Math.random() * (b - a + 1)) + a;
+const randDecimal = (a, b) => parseFloat((Math.random() * (b - a) + a).toFixed(1));
+
+// Returns a coeff object (same format as before, used for LaTeX display of f(x)/F(x))
+function generateCoeff() {
+  let allowDec  = document.getElementById('allowDecimals').checked;
+  let allowFrac = document.getElementById('allowFractions').checked;
+  if(allowFrac && Math.random() < 0.3) {
+    let num = rand(-9, 9); if(num === 0) num = 1;
+    // Use makeFraction helper to simplify
+    return mf(num, rand(2, 9));
+  } else if(allowDec && Math.random() < 0.3) {
+    let val = parseFloat(randDecimal(-9, 9));
+    if(val === 0) val = 1;
+    return { type: 'decimal', value: val };
+  } else {
+    return { type: 'integer', value: rand(-9, 9) };
+  }
+}
+function generateBound() {
+  let allowDec  = document.getElementById('allowDecimals').checked;
+  let allowFrac = document.getElementById('allowFractions').checked;
+  if(allowFrac && Math.random() < 0.3) {
+    let num = rand(-10, 10), den = rand(2, 4);
+    return mf(num, den);
+  } else if(allowDec && Math.random() < 0.3) {
+    return { type: 'decimal', value: parseFloat(randDecimal(-5, 5)) };
+  } else {
+    return { type: 'integer', value: rand(-5, 5) };
+  }
+}
+
+// makeFraction helper (same as before)
+function mf(num, den) {
+  if(den < 0) { num = -num; den = -den; }
+  let g = gcd(Math.abs(num), Math.abs(den));
+  let n = num / g, d = den / g;
+  if(d === 1) return { type: 'integer', value: n };
+  return { type: 'fraction', num: n, den: d };
+}
+
+// ================================================================
+// COEFF OBJECT HELPERS  (for building LaTeX of f(x) / F(x))
+// ================================================================
+function coeffToString(c, skipOne = false) {
+  if(c.type === 'fraction') {
+    if(c.num === 0) return '0';
+    let an = Math.abs(c.num), ad = Math.abs(c.den);
+    if(skipOne && an === ad) return c.num < 0 ? '-' : '';
+    return `${c.num < 0 ? '-' : ''}\\frac{${an}}{${ad}}`;
+  } else if(c.type === 'decimal') {
+    if(c.value === 0) return '0';
+    if(skipOne && c.value ===  1) return '';
+    if(skipOne && c.value === -1) return '-';
+    return c.value.toString().replace('.', '{,}');
+  } else {
+    if(c.value === 0) return '0';
+    if(skipOne && c.value ===  1) return '';
+    if(skipOne && c.value === -1) return '-';
+    return c.value.toString();
+  }
+}
+function coeffToPlain(c) { return c.type === 'fraction' ? c.num / c.den : c.value; }
+function coeffIsZero(c)  { return c.type === 'fraction' ? c.num === 0 : c.value === 0; }
+function coeffIsNeg(c)   { return c.type === 'fraction' ? c.num < 0 : c.value < 0; }
+
+// Multiply coeff by 1/den — returns coeff object
+function multiplyCoeffFraction(c, num, den) {
+  if(c.type === 'fraction') return mf(c.num * num, c.den * den);
+  if(c.type === 'decimal')  return { type: 'decimal', value: c.value * num / den };
+  return mf(c.value * num, den);
+}
+
+// ================================================================
+// POLYNOMIAL LaTeX BUILD
+// ================================================================
+function buildPolyString(coeffs) {
+  let terms = [];
+  for(let i = coeffs.length - 1; i >= 0; i--) {
+    let pow = i, c = coeffs[i];
+    if(coeffIsZero(c)) continue;
+    let cs = coeffToString(c, pow > 0), term = '';
+    if(pow === 0) term = coeffToString(c, false);
+    else if(pow === 1) {
+      if(cs === '') term = 'x'; else if(cs === '-') term = '-x'; else term = cs + 'x';
+    } else {
+      if(cs === '') term = `x^{${pow}}`; else if(cs === '-') term = `-x^{${pow}}`; else term = cs + `x^{${pow}}`;
+    }
+    terms.push({ term, neg: coeffIsNeg(c) });
+  }
+  let r = '';
+  for(let i = 0; i < terms.length; i++) r += (i === 0 ? '' : (terms[i].neg ? '' : '+')) + terms[i].term;
+  return r || '0';
+}
+
+// Build latex string for F(valLatex) — substituting x → (valLatex)
+function substitutePolyString(intCoeffs, valLatex) {
+  let terms = [];
+  for(let i = intCoeffs.length - 1; i >= 0; i--) {
+    let pow = i, c = intCoeffs[i];
+    if(coeffIsZero(c)) continue;
+    let cStr = coeffToString(c, pow > 0);
+    let xPart = pow === 0 ? '' : pow === 1
+      ? `\\left(${valLatex}\\right)`
+      : `\\left(${valLatex}\\right)^{${pow}}`;
+    let term = pow === 0 ? coeffToString(c, false)
+             : cStr === '' ? xPart
+             : cStr === '-' ? `-${xPart}`
+             : `${cStr}\\cdot ${xPart}`;
+    terms.push({ term, isNegative: coeffIsNeg(c) });
+  }
+  let r = '';
+  for(let i = 0; i < terms.length; i++) r += (i === 0 ? '' : (terms[i].neg ? '' : '+')) + terms[i].term;
+  return r || '0';
+}
+
+// ================================================================
+// EXACT EVALUATION  F(x) at a bound using rational arithmetic
+// intCoeffs: array of coeff objects  (index = power)
+// boundRat: a rational {n, d}
+// Returns a rational
+// ================================================================
+function evalPolyExact(intCoeffs, boundRat) {
+  let sum = rat(0);
+  for(let i = 0; i < intCoeffs.length; i++) {
+    let c = intCoeffs[i];
+    if(coeffIsZero(c)) continue;
+    let cRat = coeffToRat(c);
+    let xPow = ratPow(boundRat, i);
+    sum = ratAdd(sum, ratMul(cRat, xPow));
+  }
+  return sum;
+}
+
+// ================================================================
+// DISPLAY FORMAT HELPERS  (exact vs rounded mode)
+// ================================================================
+
+// Format a rational for display.
+// mode 'exact': show as fraction (with decimal hint if non-integer)
+// mode 'round': show rounded to 2 decimal places
+// inSolution: if true and mode=exact and result is non-integer fraction, append ≈ decimal
+function formatRat(r, mode, appendDecimal = false) {
+  if(mode === 'round') {
+    return ratToRoundedLatex(r);
+  }
+  // exact mode
+  let base = ratToLatex(r);
+  if(appendDecimal && !ratIsInt(r)) {
+    // decide sign of approximation
+    let rounded = Math.round(ratToFloat(r) * 100) / 100;
+    let isExactAt2 = ratIsExactAt2(r);
+    let sign = isExactAt2 ? '=' : '\\approx';
+    let decStr = rounded.toFixed(2).replace(/0+$/, '').replace(/\.$/, '').replace('.', '{,}');
+    return `${base} ${sign} ${decStr}`;
+  }
+  return base;
+}
+
+// eq-sign between substitution result and value
+function eqSign(r, mode) {
+  if(mode === 'round') {
+    return ratIsExactAt2(r) ? '=' : '\\approx';
+  }
+  return '='; // exact mode always =
+}
+
+// ================================================================
+// BOUND  to LaTeX (for the integral limits display)
+// ================================================================
+function boundToLatex(c) {
+  if(c.type === 'fraction') return `${c.num < 0 ? '-' : ''}\\frac{${Math.abs(c.num)}}{${c.den}}`;
+  if(c.type === 'decimal')  return c.value.toString().replace('.', '{,}');
+  return c.value.toString();
+}
+
+// ================================================================
+// CURRENT STATE
+// ================================================================
+let currentExpr   = '';
+let currentBounds = { a: null, b: null };
+// Store computed values so toggle can re-render without regenerating
+let _renderData   = null;
+
+function openSteps(){
+  let lo = encodeURIComponent(coeffToPlain(currentBounds.a).toString());
+  let hi = encodeURIComponent(coeffToPlain(currentBounds.b).toString());
+  window.open(`https://www.integralrechner.de/#expr=${encodeURIComponent(currentExpr)}&lbound=${lo}&ubound=${hi}`, '_blank');
+}
+
+// Re-render solution+lösungsweg with current toggle state
+function renderSolution() {
+  if(!_renderData) return;
+  let mode = document.getElementById('roundingToggle').checked ? 'round' : 'exact';
+  let { aLatex, bLatex, F, intermediate, FbRat, FaRat, resultRat,
+        FbSubst, FaSubst, f, useEqual, useSwapped } = _renderData;
+
+  let FbStr     = formatRat(FbRat, mode);
+  let FaStr     = formatRat(FaRat, mode);
+  let resultStr = formatRat(resultRat, mode, /*appendDecimal=*/true);
+
+  // Eq signs in lösungsweg
+  let eqFb = eqSign(FbRat, mode);
+  let eqFa = eqSign(FaRat, mode);
+
+  // In main solution line 2: only wrap F(a) in parens if it is negative
+  let FaIsNeg;
+  if(mode === 'round') {
+    FaIsNeg = ratToFloat(FaRat) < 0;
+  } else {
+    FaIsNeg = ratIsNeg(FaRat);
+  }
+  let FaDisplay = FaIsNeg ? `\\left(${FaStr}\\right)` : FaStr;
+
+  // Final eq sign in main solution
+  let eqFinal;
+  if(mode === 'round') {
+    // approx if any of Fa, Fb was not exactly representable at 2 decimal places
+    eqFinal = (ratIsExactAt2(FaRat) && ratIsExactAt2(FbRat) && ratIsExactAt2(resultRat)) ? '=' : '\\approx';
+  } else {
+    eqFinal = '=';
+  }
+
+  let solutionLatex = `\\begin{aligned}
+\\int\\limits_{${aLatex}}^{${bLatex}} \\left(${f}\\right)\\,dx
+  &= \\left[${F}\\right]_{${aLatex}}^{${bLatex}} \\\\[4pt]
+  &${eqFinal} ${FbStr} - ${FaDisplay} \\\\[4pt]
+  &${eqFinal} \\mathbf{${resultStr}}
+\\end{aligned}`;
+
+  let intermediateHTML = `<div style="color:blue; font-size:0.88em; padding: 3px;">
+<div style="text-align:left;"><b>1. Stammfunktion bestimmen:</b></div>
+$$\\begin{aligned}F(x) &= ${intermediate} \\\\ &= ${F}\\end{aligned}$$
+<div style="text-align:left;"><b>2. Obere Grenze einsetzen \\((x = ${bLatex})\\):</b></div>
+$$\\begin{aligned}F(${bLatex}) &= ${FbSubst}  \\\\ &${eqFb} ${FbStr}\\end{aligned}$$
+<div style="text-align:left;"><b>3. Untere Grenze einsetzen \\((x = ${aLatex})\\):</b></div>
+$$\\begin{aligned}F(${aLatex}) &= ${FaSubst}  \\\\ &${eqFa} ${FaStr}\\end{aligned}$$
+</div>`;
+
+  document.getElementById('intermediate').innerHTML = intermediateHTML;
+  document.getElementById('solution').innerHTML = `$$${solutionLatex}$$`;
+  MathJax.typesetPromise();
+}
+
+// Listen to toggle
+document.getElementById('roundingToggle').addEventListener('change', () => { updateURL(); renderSolution(); });
+
+// ================================================================
+// TASK GENERATOR
+// ================================================================
+function newTask(){
+  document.querySelectorAll('details').forEach(d => d.removeAttribute('open'));
+
+  let funcType     = document.querySelector('input[name="funcType"]:checked').value;
+  let maxDeg       = parseInt(document.getElementById('maxDegree').value);
+  let allowSwapped = document.getElementById('allowSwapped').checked;
+  let allowEqual   = document.getElementById('allowEqual').checked;
+
+  // ---- Build polynomial coefficients ----
+  let coeffs = [], degree;
+  if(funcType === 'power') {
+    degree = rand(1, maxDeg);
+    for(let i = 0; i <= degree; i++)
+      coeffs.push(i === degree ? { type:'integer', value:1 } : { type:'integer', value:0 });
+  } else if(funcType === 'powerWithFactor') {
+    degree = rand(1, maxDeg);
+    for(let i = 0; i <= degree; i++) {
+      if(i === degree) {
+        let c; do { c = generateCoeff(); } while(coeffIsZero(c) || (c.type==='integer' && Math.abs(c.value)===1));
+        coeffs.push(c);
+      } else coeffs.push({ type:'integer', value:0 });
+    }
+  } else {
+    degree = rand(1, maxDeg);
+    for(let i = 0; i <= degree; i++) {
+      if(i === degree) { let c; do { c = generateCoeff(); } while(coeffIsZero(c)); coeffs.push(c); }
+      else coeffs.push(generateCoeff());
+    }
+  }
+
+  // ---- Bounds with special cases ----
+  let r = Math.random();
+  let useEqual   = allowEqual   && r < 0.05;
+  let useSwapped = !useEqual && allowSwapped && r < 0.20;
+
+  let boundA, boundB;
+  if(useEqual) {
+    boundA = generateBound();
+    boundB = { ...boundA };
+  } else {
+    let b1, b2;
+    do { b1 = generateBound(); b2 = generateBound(); }
+    while(coeffToPlain(b1) === coeffToPlain(b2));
+    let lo = coeffToPlain(b1) < coeffToPlain(b2) ? b1 : b2;
+    let hi = coeffToPlain(b1) < coeffToPlain(b2) ? b2 : b1;
+    if(useSwapped) { boundA = hi; boundB = lo; }
+    else           { boundA = lo; boundB = hi; }
+  }
+  currentBounds = { a: boundA, b: boundB };
+
+  // ---- f(x) ----
+  let f = buildPolyString(coeffs);
+  currentExpr = f.replace(/\{,\}/g, '.').replace(/\\frac\{(\d+)\}\{(\d+)\}/g, (_, n, d) => n+'/'+d);
+
+  // ---- Antiderivative coefficients F(x) ----
+  let intCoeffs = Array(coeffs.length + 1).fill(null).map(() => ({ type:'integer', value:0 }));
+  for(let i = 0; i < coeffs.length; i++) {
+    if(coeffIsZero(coeffs[i])) continue;
+    intCoeffs[i+1] = multiplyCoeffFraction(coeffs[i], 1, i+1);
+  }
+  let F = buildPolyString(intCoeffs);
+
+  // ---- Intermediate step: unsimplified form ----
+  let intermediateTerms = [];
+  for(let i = coeffs.length - 1; i >= 0; i--) {
+    let pow = i, c = coeffs[i];
+    if(coeffIsZero(c)) continue;
+    let np = pow + 1, cs = coeffToString(c, false), term = '';
+    if(pow === 0) {
+      term = cs==='1'?`x`:cs==='-1'?`-x`:`${cs}\\cdot x`;
+    } else if(pow === 1) {
+      term = cs==='1'?`\\frac{x^{2}}{2}`:cs==='-1'?`-\\frac{x^{2}}{2}`:`${cs}\\cdot \\frac{x^{2}}{2}`;
+    } else {
+      term = cs==='1'?`\\frac{x^{${np}}}{${np}}`:cs==='-1'?`-\\frac{x^{${np}}}{${np}}`:`${cs}\\cdot \\frac{x^{${np}}}{${np}}`;
+    }
+    intermediateTerms.push({ term, neg: coeffIsNeg(c) });
+  }
+  let intermediate = '';
+  for(let i = 0; i < intermediateTerms.length; i++)
+    intermediate += (i===0?'':(intermediateTerms[i].neg?'':'+')) + intermediateTerms[i].term;
+  if(!intermediate) intermediate = '0';
+
+  // ---- Exact evaluation via rational arithmetic ----
+  let aRat = coeffToRat(boundA), bRat = coeffToRat(boundB);
+  let FaRat = evalPolyExact(intCoeffs, aRat);
+  let FbRat = evalPolyExact(intCoeffs, bRat);
+  let resultRat = ratSub(FbRat, FaRat);
+
+  let aLatex = boundToLatex(boundA), bLatex = boundToLatex(boundB);
+
+  // Substitution display strings (fixed — independent of mode)
+  let FbSubst = substitutePolyString(intCoeffs, bLatex);
+  let FaSubst = substitutePolyString(intCoeffs, aLatex);
+
+  // Store render data
+  _renderData = {
+    aLatex, bLatex, F, intermediate, FbRat, FaRat, resultRat,
+    FbSubst, FaSubst, f, useEqual, useSwapped
+  };
+
+  // Special case note
+  let specialNote = '';
+  // if(useEqual)   specialNote = ' <span style="color:#888;font-size:0.85em">(Integralgrenzen gleich)</span>';
+  // if(useSwapped) specialNote = ' <span style="color:#888;font-size:0.85em">(Integralgrenzen vertauscht: \\(a > b\\))</span>';
+
+  document.getElementById('task-instruction').innerHTML = `Berechne das bestimmte Integral:${specialNote}`;
+  document.getElementById('task-formula').innerHTML = `$$\\int\\limits_{${aLatex}}^{${bLatex}} \\left(${f}\\right)\\,dx = \\,?$$`;
+
+  MathJax.typesetPromise().then(renderSolution);
+}
+
+newTask();
+</script>
+</body>
+</html>
