@@ -2,8 +2,11 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>e-Funktion ableiten und zusammenfassen</title>
 <link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="scale.css">
+<script src="scale.js" defer></script>
 <script>
 MathJax = {
   tex: {
@@ -27,55 +30,13 @@ MathJax = {
 
 <style>
 #task { font-size: 1.6em; }
-#solution { color:red; font-size:1.0em; transform-origin: top left;
-    scale: 100% !important;
-    width: max-content; }
-  
-@media (max-width: 1000px) {
-  #solution {
-    transform-origin: top left;
-    scale: 95% !important;
-    width: max-content;
-  }
-}   
-@media (max-width: 900px) {
-  #solution {
-    transform-origin: top left;
-    scale: 90% !important;
-    width: max-content;
-  }
+#solution { color:red; font-size:1.0em; text-align:center; }
+#solutionPath {
+    margin: 1em;
+    border-width: thin;
 }
- 
-@media (max-width: 800px) {
-  #solution {
-    transform-origin: top left;
-    scale: 85% !important;
-    width: max-content;
-  }
-}
-@media (max-width: 700px) {
-  #solution {
-    transform-origin: top left;
-    scale: 80% !important;
-    width: max-content;
-  }
-}
+#solutionPathContent { font-size:1.0em; }
 
-@media (max-width: 600px) {
-  #solution {
-    transform-origin: top left;
-    scale: 70% !important;
-    width: max-content;
-  }
-}
-
-@media (max-width: 500px) {
-  #solution {
-    transform-origin: top left;
-    scale: 60% !important;
-    width: max-content;
-  }
-}
 input[type="range"] {
   width: 200px;
   margin: 10px 0;
@@ -90,7 +51,6 @@ input[type="range"]:disabled {
   opacity: 0.4;
   cursor: not-allowed;
 }
-
 </style>
 </head>
 
@@ -136,13 +96,23 @@ input[type="range"]:disabled {
 <button onclick="newTask()">Neue Aufgabe</button>
 
 <h2>Aufgabe</h2>
-<div id="task"></div>
+<div class="scale-wrapper">
+  <div id="task" class="scale-el"></div>
+</div>
 
-<details>
+<details id="solutionDetailsContainer">
 <summary>Lösung</summary>
-<div id="solution"></div>
+<div class="scale-wrapper">
+  <div id="solution" class="scale-el"></div>
+</div>
+<details id="solutionPath">
+  <summary>Lösungsweg</summary>
+  <div class="scale-wrapper">
+    <div id="solutionPathContent" class="scale-el"></div>
+  </div>
+</details>
 <br>
-<button id="stepBtn" onclick="openSteps()">Lösungsweg</button>
+<button id="stepBtn" onclick="openSteps()">Auf ableitungsrechner.de öffnen</button>
 </details>
 
 <script>
@@ -407,14 +377,16 @@ function newTask(){
   let stepFinal = `e^{${g.f}}\\cdot\\left( ${colorPoly(polyMapToString(sumPoly))} \\right)`;
 
   // --- Zusammenbau der Rechenkette ---
-  let solutionHTML = '';
   const op1 = `&&\\quad | \\text{ \\(e\\)-Term ausklammern}`;
   const op2 = `&&\\quad | \\text{ innere Klammer ausmult.}`;
   const op3 = `&&\\quad | \\text{ gleichartige Terme zusammenf.}`;
 
+  let finalResult = `e^{${g.f}}\\cdot\\left( ${polyMapToString(sumPoly)} \\right)`;
+
+  let solutionPathHTML = '';
+
   if (!allowIn || g.d === '1') {
-    // Spezialfall: Keine innere Ableitung nötig -> step2 überspringen
-    solutionHTML = `
+    solutionPathHTML = `
     $$
     \\begin{aligned}
     f'(x) &= ${step1} ${op1} \\\\
@@ -423,8 +395,7 @@ function newTask(){
     \\end{aligned}
     $$`;
   } else {
-    // Normalfall: Alle Schritte
-    solutionHTML = `
+    solutionPathHTML = `
     $$
     \\begin{aligned}
     f'(x) &= ${step1} ${op1} \\\\
@@ -435,24 +406,15 @@ function newTask(){
     $$`;
   }
 
-  document.getElementById('solution').innerHTML = solutionHTML;
+  document.getElementById('solution').innerHTML = `$$\\color{red}{f'(x) = ${finalResult}}$$`;
+  document.getElementById('solutionPathContent').innerHTML = `<div style="color:red">${solutionPathHTML}</div>`;
   document.getElementById('task').innerHTML = `$$f(x) = ${f}$$`;
-  MathJax.typesetPromise();
+  MathJax.typesetPromise().then(() => scaleAllElements());
   currentExpr = f;
 }
-// Beim Laden der Seite Parameter prüfen
-window.onload = () => {
-  const params = new URLSearchParams(window.location.search);
-  if (params.has('pDeg')) document.getElementById('polyDeg').value = params.get('pDeg');
-  if (params.has('iDeg')) document.getElementById('innerDeg').value = params.get('iDeg');
-  if (params.has('allow')) document.getElementById('allowInner').checked = params.get('allow') === 'true';
-  if (params.has('order')) {
-    const radio = document.querySelector(`input[name="order"][value="${params.get('order')}"]`);
-    if (radio) radio.checked = true;
-  }
-  updateLabels();
-  newTask();
-};
+document.getElementById('solutionPath')?.addEventListener('toggle', () => {
+  if (window.MathJax) MathJax.typesetPromise().then(() => scaleToFit(document.getElementById('solutionPathContent')));
+});
 
 function updateLabels() {
   document.getElementById('degOut').innerText = document.getElementById('polyDeg').value;
@@ -501,10 +463,8 @@ window.onload = () => {
   
   // WICHTIG: updateParams stellt den Initialzustand der UI (Disabled/Grau) her
   updateParams(); 
-  newTask();
+  MathJax.startup.promise.then(() => newTask());
 };
-
-newTask();
 </script>
 
 </body>

@@ -2,8 +2,11 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Grenzverhalten e-Funktion üben</title>
 <link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="scale.css">
+<script src="scale.js" defer></script>
 <script>
 MathJax = {
   tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] }
@@ -238,7 +241,9 @@ MathJax = {
 
 <button onclick="newTask()">Neue Aufgabe</button>
 
-<div id="task"></div>
+<div class="scale-wrapper">
+  <div id="task" class="scale-el"></div>
+</div>
 <div id="mainContainer">
   <div class="answer-block" id="leftContainer">
     <h3>Für $x \to -\infty$</h3>
@@ -274,7 +279,9 @@ MathJax = {
   </label>
 </div>
 
-<div id="explanation"></div>
+<div class="scale-wrapper">
+  <div id="explanation" class="scale-el"></div>
+</div>
 
 </details>
 <script>
@@ -361,7 +368,7 @@ function newTask(){
     r.disabled = false;
   });
   
-  MathJax.typesetPromise();
+  MathJax.typesetPromise().then(() => scaleAllElements());
 }
 
 function loadURLParameters(){
@@ -516,8 +523,8 @@ function showTestValues(){
         <tr>
           <td style="padding:8px; vertical-align:top; border-right:2px solid black;">
             <div>Testeinsetzung mit \\(x = ${xL}\\)</div>
-            <div style="margin-top:4px;">
-              $$f(${xL}) \\approx ${formatSci(fL)}$$
+            <div class="scale-wrapper" style="margin-top:4px;">
+              <div class="scale-el">$$f(${xL}) \\approx ${formatSci(fL)}$$</div>
             </div>
             <div style="margin-top:4px;">
               ${getDescription(limL, fL)}
@@ -527,8 +534,8 @@ function showTestValues(){
 
           <td style="padding:8px; vertical-align:top;">
             <div>Testeinsetzung mit \\(x = ${xR}\\)</div>
-            <div style="margin-top:4px;">
-              $$f(${xR}) \\approx ${formatSci(fR)}$$
+            <div class="scale-wrapper" style="margin-top:4px;">
+              <div class="scale-el">$$f(${xR}) \\approx ${formatSci(fR)}$$</div>
             </div>
             <div style="margin-top:4px;">
               ${getDescription(limR, fR)}
@@ -541,7 +548,7 @@ function showTestValues(){
   `;
 
   document.getElementById('explanation').innerHTML = html;
-  MathJax.typesetPromise();
+  MathJax.typesetPromise().then(() => scaleAllElements());
 }
 
 function showFactorArgument() {
@@ -577,12 +584,12 @@ function showFactorArgument() {
       <tbody>
         <tr>
           <td style="padding:8px; vertical-align:top; border-right:2px solid black;">
-            <div>
-              $$f(x) = 
+            <div class="scale-wrapper">
+              <div class="scale-el">$$f(x) = 
               \\underbrace{e^{${g.f}}}_{\\displaystyle \\to ${leftExp}} 
               \\cdot 
               \\underbrace{(${p.f})}_{\\displaystyle \\to ${leftPoly}}
-              \\to ${leftLimit}$$
+              \\to ${leftLimit}$$</div>
             </div>
             ${leftIndeterminate ? `
               <div style="margin-top:4px;">
@@ -592,12 +599,12 @@ function showFactorArgument() {
 
           </td>
           <td style="padding:8px; vertical-align:top;">
-            <div>
-              $$f(x) = 
+            <div class="scale-wrapper">
+              <div class="scale-el">$$f(x) = 
               \\underbrace{e^{${g.f}}}_{\\displaystyle \\to ${rightExp}} 
               \\cdot 
               \\underbrace{(${p.f})}_{\\displaystyle \\to ${rightPoly}}
-              \\to ${rightLimit}$$
+              \\to ${rightLimit}$$</div>
             </div>
             ${rightIndeterminate ? `
               <div style="margin-top:4px;">
@@ -611,7 +618,7 @@ function showFactorArgument() {
   `;
 
   document.getElementById('explanation').innerHTML = html;
-  MathJax.typesetPromise();
+  MathJax.typesetPromise().then(() => scaleAllElements());
 }
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -724,12 +731,12 @@ function setupChoices(){
   saveSettingsToURL();
   
   // Nach dem Erstellen der Radio-Buttons MathJax aufrufen
-  MathJax.typesetPromise();
+  MathJax.typesetPromise().then(() => scaleAllElements());
 }
 
 window.onload = () => {
   loadSettingsFromURL(); // Lädt Settings, ruft updateParams + setupChoices
-  newTask();
+  MathJax.startup.promise.then(() => newTask());
 };
 
 </script>

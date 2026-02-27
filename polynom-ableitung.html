@@ -3,8 +3,11 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Polynom Ableitung Übung</title>
 <link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="scale.css">
+<script src="scale.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 
 <!-- Google tag (gtag.js) -->
@@ -19,7 +22,11 @@
 <style>
 #task { font-size: 1.6em; }
 #solution { color:red; font-size:1.3em }
-#intermediate { color:blue; font-size:1.3em }
+#solutionPath {
+    margin: 1em;
+    border-width: thin;
+}
+#solutionPathContent { color:blue; font-size:1.3em }
 
 .inner-label.disabled {
   opacity: 0.4;
@@ -31,77 +38,6 @@
 
 .slider-container input[type="range"] {
   width: 200px;
-}
-
-.solution-container {
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  gap: 15px;
-}
-
-.solution-content {
-  text-align: center;
-}
-
-.intermediate-toggle {
-  background: none;
-  border: none;
-  color: #0066cc;
-  text-decoration: underline;
-  cursor: pointer;
-  font-size: 0.9em;
-  padding: 5px 10px;
-  margin-top: 10px;
-}
-
-.intermediate-toggle:hover {
-  color: #004499;
-}
-
-/* Responsive Skalierung */
-@media (max-width: 900px) {
-  #task, #solution, #intermediate {
-    scale: 90% !important;
-  }
-}
-@media (max-width: 800px) {
-  #task, #solution, #intermediate {
-    scale: 80% !important;
-  }
-}
-@media (max-width: 700px) {
-  #task, #solution, #intermediate {
-    scale: 70% !important;
-  }
-}
-@media (max-width: 600px) {
-  #task, #solution, #intermediate {
-    scale: 60% !important;
-  }
-}
-@media (max-width: 500px) {
-  #task, #solution, #intermediate {
-    scale: 50% !important;
-  }
-}
-
-.intermediate-details {
-    display: inline-block; /* Sorgt dafür, dass der Block nur so breit wie der Inhalt ist */
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    padding: 3px 5px;
-    margin: 5px auto;
-    /* ÄNDERUNGEN HIER: */
-    min-width: 500px;      /* Verhindert, dass der Block bei kurzen Formeln zu mickrig aussieht */
-    max-width: 90%;       /* Erlaubt dem Block, bis zu 90% der verfügbaren Breite zu nutzen */
-    width: auto;
-}
-
-.intermediate-details summary {
-    cursor: pointer;
-    color: #0066cc;
-    font-weight: bold;
 }
 </style>
 
@@ -143,23 +79,23 @@
 <button onclick="newTask()">Neue Aufgabe</button>
 
 <h2>Aufgabe</h2>
-<div id="task"></div>
+<div class="scale-wrapper">
+  <div id="task" class="scale-el"></div>
+</div>
 
-<details>
+<details id="solutionDetailsContainer">
   <summary>Lösung</summary>
-  
-  <div style="text-align: center;"> <details class="intermediate-details">
-      <summary>Zwischenschritt</summary>
-      <div id="intermediate"></div>
-    </details>
+  <div class="scale-wrapper">
+    <div id="solution" class="scale-el"></div>
   </div>
-
-  <div class="solution-container">
-    <div id="solution"></div>
-  </div>
-  
+  <details id="solutionPath">
+    <summary>Lösungsweg</summary>
+    <div class="scale-wrapper">
+      <div id="solutionPathContent" class="scale-el"></div>
+    </div>
+  </details>
   <br>
-  <button id="stepBtn" onclick="openSteps()">Lösungsweg</button>
+  <button id="stepBtn" onclick="openSteps()">Auf ableitungsrechner.de öffnen</button>
 </details>
 
 <script>
@@ -563,13 +499,17 @@ function newTask(){
   }
   
   document.getElementById('task').innerHTML = `$$f(x)=${taskStr}$$`;
-  document.getElementById('intermediate').innerHTML = `<b>Zwischenschritt:</b><br>$$f'(x)=${intermediateStr}$$`;
+  document.getElementById('solutionPathContent').innerHTML = `<b>Zwischenschritt:</b><br>$$f'(x)=${intermediateStr}$$`;
   document.getElementById('solution').innerHTML = `$$f'(x)=${solutionStr}$$`;
   
-  MathJax.typesetPromise();
+  MathJax.typesetPromise().then(() => scaleAllElements());
 }
 
-newTask();
+document.getElementById('solutionPath')?.addEventListener('toggle', () => {
+  if (window.MathJax) MathJax.typesetPromise().then(() => scaleToFit(document.getElementById('solutionPathContent')));
+});
+
+MathJax.startup.promise.then(() => newTask());
 </script>
 
 </body>

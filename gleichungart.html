@@ -3,6 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="scale.css">
+<script src="scale.js" defer></script>
 <title>Lösungsverfahren erkennen</title>
 <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 <link rel="stylesheet" type="text/css" href="styles.css">
@@ -123,56 +125,6 @@ hr {
   font-size: 1.5em;
 }
 
-/* Skalierung für kleinere Bildschirme */
-@media (max-width: 900px) {
-  #formula {
-    transform: scale(0.95);
-  }
-  #solutionsArea {
-    font-size: 1.3em;
-  }
-}
-@media (max-width: 800px) {
-  #formula {
-    transform: scale(0.85);
-  }
-  #solutionsArea {
-    font-size: 1.1em;
-  }
-}
-@media (max-width: 700px) {
-  #formula {
-    transform: scale(0.75);
-  }
-  #solutionsArea {
-    font-size: 1em;
-  }
-}
-@media (max-width: 600px) {
-  #formula {
-    transform: scale(0.6);
-  }
-  #solutionsArea {
-    font-size: 0.8em;
-  }
-}
-@media (max-width: 500px) {
-  #formula {
-    transform: scale(0.5);
-  }
-  #solutionsArea {
-    font-size: 0.7em;
-  }
-}
-@media (max-width: 400px) {
-  #formula {
-    transform: scale(0.4);
-  }
-  #solutionsArea {
-    font-size: 0.65em;
-  }
-}
-
 </style>
 </head>
 <body>
@@ -200,7 +152,9 @@ hr {
 <br>
 <button id="neueGleichungBtn">Neue Gleichung</button>
 
-  <p id="formula"></p>
+<p class="scale-wrapper">
+      <div id="formula" class="scale-el"></p>
+</div>
 <div id="buttonsArea">
 
   <button class="answer-btn" data-type="linear">Gleichung umstellen</button>
@@ -214,7 +168,9 @@ hr {
 </div>
   <hr>
   <button id="showSolutionsBtn">Lösung(-en) anzeigen</button>
-  <div id="solutionsArea"></div>
+
+<div class="scale-wrapper">
+      <div id="solutionsArea" class="scale-el"></div>
 
 <script>
 let currentEqType = null;
@@ -886,7 +842,7 @@ function generateAusklammern() {
     } else {
         generateLinear();      // Lineare Gleichung
     }
-    document.title = `Fall: ${currentFormula}`;
+    // document.title = `Fall: ${currentFormula}`;
 
     // 2. Exponenten erhöhen
     // Alte Koeffizienten: [c0, c1, c2, ..., cn]
@@ -1145,6 +1101,7 @@ function trimTrailingZeros(coeffs) {
 
 // linear: Länge == 2 (nach Entfernen hinterer Nullen)
 function is_solvable_by_linear() {
+    if (currentEqType === 'nullprodukt') return false;
     if (currentEqType === 'linear') return true; // wenn es generiert wurde, ist es linear
     const coeffs = trimTrailingZeros(currentCoeffs || []);
     return coeffs.length === 2;
@@ -1152,6 +1109,7 @@ function is_solvable_by_linear() {
 
 // quadratisch: Länge == 3 (nach Entfernen hinterer Nullen)
 function is_solvable_by_quadratisch() {
+    if (currentEqType === 'nullprodukt') return false;
     if (currentEqType === 'quadratisch') return true; // wenn es generiert wurde, ist es quadratisch
     if (currentEqType === 'biquadratisch') return false;
     const coeffs = trimTrailingZeros(currentCoeffs || []);
@@ -1162,6 +1120,7 @@ function is_solvable_by_quadratisch() {
 // potenz: bis auf Index 0 gibt es nur noch ein Element != 0
 // UND dieses Element muss Index >= 2 haben (nicht Index 1, das wäre linear)
 function is_solvable_by_potenz() {
+    if (currentEqType === 'nullprodukt') return false;
     if (currentEqType === 'potenz') return true; // wenn es generiert wurde, ist es Potenz
     const coeffs = currentCoeffs || [];
     
@@ -1191,6 +1150,7 @@ function is_solvable_by_potenz() {
 // biquadratisch: nur gerade Indizes belegt (d.h. alle ungeraden Indizes sind 0)
 // zusätzlich: höchster belegter Index muss gerade sein und es sollten mind. 2 gerade Indizes != 0 sein (z.B. a x^4 + b x^2 + c)
 function is_solvable_by_biquadratisch() {
+    if (currentEqType === 'nullprodukt') return false;
     if (currentEqType === 'biquadratisch') return true; // wenn es generiert wurde, ist es biquadratisch
     const coeffs = currentCoeffs || [];
     // prüfe, ob alle ungeraden Indizes null sind
@@ -1209,6 +1169,7 @@ function is_solvable_by_biquadratisch() {
 
 // ausklammern: konstantes Glied (Index 0) ist 0
 function is_solvable_by_ausklammern() {
+    if (currentEqType === 'nullprodukt') return false;
     if (currentEqType === 'ausklammern') return true; // wenn es generiert wurde, ist es Ausklammern
     if (!Array.isArray(currentCoeffs) || currentCoeffs.length === 0) return false;
     return isZero(currentCoeffs[0]);
@@ -1221,6 +1182,7 @@ function is_solvable_by_nullprodukt() {
 }
 
 function is_solvable_by_polynom() {
+    if (currentEqType === 'nullprodukt') return false;
     return currentEqType === 'polynom';
 }
 
@@ -1342,7 +1304,8 @@ document.getElementById('showSolutionsBtn').addEventListener('click',()=>{
 });
 
 // Initial
-pickRandomEquation();
+
+MathJax.startup.promise.then(() => pickRandomEquation());
 </script>
 
 </body>
