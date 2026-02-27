@@ -20,6 +20,10 @@
     font-size: .9em;
     transform-origin: top left;
 }
+#solutionPath {
+    margin: 1em;
+    border-width: thin;
+}
 #task {
     font-size: 1.6em
 }
@@ -237,139 +241,120 @@ function generateA(aLevel, aNegativ, valueLevel) {
 function generateParameters(mode, valueLevel, sonderfaelle, a, aLevel, aNegativ) {
     const tolerance = 1e-9;
 
-    // --- NF2SF MODUS: Generiere P und Q (Koeffizienten von x^2+Px+Q) ---
+    // --- NF2SF MODUS: Rückwärts über SF2NF-Logik ---
+    // Wir generieren d und e genauso wie im SF2NF-Modus,
+    // berechnen daraus b und c – die Normalform ist dann die Aufgabe, die SF die Lösung.
     if (mode === "nf2sf") {
-        let P_base, Q_base; 
-        let P_range_max, Q_range_max;
-        
-        // 1. Definiere P/Q-Ranges
-        if(valueLevel === "sehr leicht") {
-            P_range_max = 10; Q_range_max = 20; 
-        } else if(valueLevel === "leicht") {
-            P_range_max = 20; Q_range_max = 50;
-        } else if(valueLevel === "mittel") {
-            P_range_max = 20; Q_range_max = 100;
-        } else { // schwer
-            P_range_max = 40; Q_range_max = 100;
-        }
-
-        const N = getDenominator(Math.abs(a));
-        const isFractionalA = N > 1;
-
-        do {
-            // 2. Generiere Basis P und Q
-            
-            // P muss gerade sein (für sehr leicht und leicht)
-            P_base = randomInt(-P_range_max / 2, P_range_max / 2) * 2;
-            
-            if (valueLevel === "mittel" || valueLevel === "schwer") {
-                P_base = randomInt(-P_range_max, P_range_max);
-            }
-            
-            Q_base = randomInt(-Q_range_max, Q_range_max);
-            
-            // Spezialfall: Q im Modus 'sehr leicht' muss > 0 sein
-            if (valueLevel === "sehr leicht" && Q_base <= 0) Q_base = randomInt(1, Q_range_max);
-
-            // 3. Anwendung der Sonderfälle (Nullwerte in P und Q)
-            let P = P_base;
-            let Q = Q_base;
-
-            if(sonderfaelle) {
-                if(Math.random() < 0.25) P = 0;
-                if(Math.random() < 0.25) Q = 0;
-            } else {
-                 while (P === 0) P = (valueLevel === "sehr leicht" || valueLevel === "leicht") ? randomInt(-P_range_max / 2, P_range_max / 2) * 2 : randomInt(-P_range_max, P_range_max);
-                 while (Q === 0) Q = randomInt(-Q_range_max, Q_range_max);
-            }
-            
-            // 4. Anpassung P und Q, falls a gebrochen ist, um b und c ganzzahlig zu garantieren
-            let P_final = P;
-            let Q_final = Q;
-            
-            if (isFractionalA) {
-                // Multipliziere P und Q mit dem Nenner N, um $b$ und $c$ ganzzahlig zu machen.
-                if (N <= 10) { 
-                    P_final = P * N;
-                    Q_final = Q * N;
-                }
-            }
-
-            // 5. Berechnung von b, c, d und e
-            const b_val = a * P_final; 
-            const c_val = a * Q_final; 
-            const d_val = -P_final / 2; // d ist Scheitelpunkt-x-Wert
-            const e_val = c_val - (a * d_val * d_val); // e ist Scheitelpunkt-y-Wert
-            
-            // 6. Prüfung auf Ganzzahligkeit von b und c (muss IMMER ganzzahlig sein)
-            if (Math.abs(b_val - Math.round(b_val)) > tolerance || Math.abs(c_val - Math.round(c_val)) > tolerance) {
-                 // Sollte nicht passieren, wenn die Anpassung funktioniert, aber zur Sicherheit
-                 continue;
-            }
-            
-            // Rückgabe der Parameter
-            return { 
-                d: d_val, 
-                e: e_val, 
-                b: Math.round(b_val), 
-                c: Math.round(c_val)
-            };
-
-        } while (true);
+        return generateParameters("sf2nf", valueLevel, sonderfaelle, a, aLevel, aNegativ);
     
     // --- SF2NF MODUS: Generiere d und e ---
     } else { 
-        let d_range_max, e_range_max;
-        
-        // 1. Definiere d/e-Ranges
-        if(valueLevel === "sehr leicht") {
-            d_range_max = 5; e_range_max = 10; 
-        } else if(valueLevel === "leicht") {
-            d_range_max = 10; e_range_max = 50;
-        } else if(valueLevel === "mittel") {
-            d_range_max = 10; e_range_max = 100;
+        // Nenner von |a| bestimmen (z.B. a=0.5 -> N=2, a=0.25 -> N=4)
+        const N = getDenominator(Math.abs(a));
+        const isFractionalA = N > 1;
+        // Ganzzahligkeit von b und c nur bei sehr leicht und leicht erzwingen
+        const enforceInteger = (valueLevel === "sehr leicht" || valueLevel === "leicht");
+
+        // 1. Definiere d-Kandidaten und e-Range
+        let d_candidates, e_range_max;
+
+        if (valueLevel === "sehr leicht") {
+            e_range_max = 10;
+            const dMax = sonderfaelle ? 10 : 5;
+            if (enforceInteger && isFractionalA) {
+                // Nur Vielfache von N, damit b und c ganzzahlig bleiben
+                d_candidates = [];
+                for (let v = -dMax; v <= dMax; v += N) if (v !== 0) d_candidates.push(v);
+                if (d_candidates.length === 0) d_candidates = [N, -N];
+            } else {
+                d_candidates = null; // -> randomInt unten
+            }
+        } else if (valueLevel === "leicht") {
+            e_range_max = 20;
+            const dMax = sonderfaelle ? 20 : 10;
+            if (enforceInteger && isFractionalA) {
+                d_candidates = [];
+                for (let v = -dMax; v <= dMax; v += N) if (v !== 0) d_candidates.push(v);
+                if (d_candidates.length === 0) d_candidates = [N, -N];
+            } else {
+                d_candidates = null;
+            }
+        } else if (valueLevel === "mittel") {
+            // d: ganze Zahlen -(20-|a|)..(20-|a|) PLUS die Werte -2,5;-1,5;-0,5;0,5;1,5;2,5
+            // (bei |a|<=1 also -20..+20, bei |a|=6 z.B. -14..+14)
+            // e: 80% ganzzahlig, 20% auf ,5 endend; Range -50..+50
+            e_range_max = null; // separat behandelt
+            const absA = Math.abs(a);
+            const dMaxMittel = Math.max(1, Math.floor(20 - (absA > 1 ? absA : 0)));
+            d_candidates = [];
+            for (let v = -dMaxMittel; v <= dMaxMittel; v++) { if (v !== 0) d_candidates.push(v); }
+            d_candidates.push(-2.5, -1.5, -0.5, 0.5, 1.5, 2.5);
         } else { // schwer
-            d_range_max = 20; e_range_max = 400;
+            e_range_max = 100;
+            d_candidates = [];
+            for (let v = -40; v <= 40; v++) {
+                if (v !== 0) d_candidates.push(v / 2);
+            }
         }
 
         do {
-            // 2. Generiere Basis d und e
-            let d_val = randomInt(-d_range_max, d_range_max);
-            let e_val = randomInt(-e_range_max, e_range_max);
+            // 2. Generiere d
+            let d_val;
+            if (d_candidates) {
+                d_val = pick(d_candidates);
+            } else {
+                const dMax = (valueLevel === "sehr leicht") ? (sonderfaelle ? 10 : 5) : (sonderfaelle ? 20 : 10);
+                do { d_val = randomInt(-dMax, dMax); } while (d_val === 0);
+            }
+            
+            // e generieren
+            let e_val;
+            if (valueLevel === "mittel") {
+                // 80% ganzzahlig zwischen -50 und +50, 20% auf ,5 endend (-49,5 bis +49,5)
+                if (Math.random() < 0.8) {
+                    e_val = randomInt(-50, 50);
+                } else {
+                    // Ungerade Ganzzahl / 2 ergibt ,5-Endung; Bereich: -49,5 bis +49,5
+                    e_val = (randomInt(-49, 49) * 2 + 1) / 2;
+                }
+            } else {
+                e_val = randomInt(-e_range_max, e_range_max);
+            }
             
             // Spezialfall: e im Modus 'sehr leicht' muss > 0 sein
             if (valueLevel === "sehr leicht" && e_val <= 0) e_val = randomInt(1, e_range_max);
 
-            // 3. Anwendung der Sonderfälle (Nullwerte in d und e)
-            if(sonderfaelle) {
-                if(Math.random() < 0.25) d_val = 0;
-                if(Math.random() < 0.25) e_val = 0;
+            // 3. Anwendung der Sonderfälle: d=0 und e=0 nur wenn Checkbox aktiv
+            if (sonderfaelle) {
+                if (Math.random() < 0.25) d_val = 0;
+                if (Math.random() < 0.25) e_val = 0;
             } else {
-                 while (d_val === 0) d_val = randomInt(-d_range_max, d_range_max);
-                 if (valueLevel !== "sehr leicht") {
-                     while (e_val === 0) e_val = randomInt(-e_range_max, e_range_max);
-                 }
+                // d=0 und e=0 nie erlaubt (außer sehr leicht bei e)
+                while (Math.abs(d_val) < 1e-9) d_val = d_candidates ? pick(d_candidates) : (() => { const dMax = (valueLevel === "sehr leicht") ? (sonderfaelle ? 10 : 5) : (sonderfaelle ? 20 : 10); let v; do { v = randomInt(-dMax, dMax); } while (v === 0); return v; })();
+                if (valueLevel !== "sehr leicht") {
+                    if (valueLevel === "mittel") {
+                        while (Math.abs(e_val) < 1e-9) e_val = randomInt(-100, 100) / 2;
+                    } else {
+                        while (e_val === 0) e_val = randomInt(-e_range_max, e_range_max);
+                    }
+                }
             }
             
             // 4. Berechnung von b und c
-            const b_val = a * 2 * d_val; 
+            const b_val = 2 * a * d_val; 
             const c_val = a * d_val * d_val + e_val; 
 
-            // 5. Prüfung auf Ganzzahligkeit von b und c (muss IMMER ganzzahlig sein)
-            if (Math.abs(b_val - Math.round(b_val)) > tolerance || Math.abs(c_val - Math.round(c_val)) > tolerance) {
-                 // Wenn b oder c keine Ganzzahl ist, dann muss a neu generiert werden.
-                 // Rekursiver Aufruf mit neuem, hoffentlich einfacherem a.
-                 const new_a = generateA(aLevel, aNegativ, valueLevel);
-                 // Achtung: Rekursiver Aufruf muss das neue 'a' übergeben
-                 return generateParameters(mode, valueLevel, sonderfaelle, new_a, aLevel, aNegativ); 
+            // 5. Ganzzahligkeitsprüfung nur bei sehr leicht / leicht
+            if (enforceInteger && (Math.abs(b_val - Math.round(b_val)) > tolerance || Math.abs(c_val - Math.round(c_val)) > tolerance)) {
+                continue;
             }
 
             // Rückgabe der Parameter
             return { 
                 d: d_val, 
                 e: e_val, 
-                b: Math.round(b_val), 
-                c: Math.round(c_val)
+                b: b_val, 
+                c: c_val
             };
 
         } while (true);
@@ -600,7 +585,7 @@ function generateTask() {
     const solutionDetailsContainer = document.getElementById("solutionDetailsContainer");
     if(solutionDetailsContainer) solutionDetailsContainer.open = false; 
 
-    document.getElementById("solutionPath").style.display = 'none'; 
+    document.getElementById("solutionPath").open = false;
     document.getElementById("solutionPathContent").innerHTML = ''; 
     
     // Holt den Modus und die Einstellungen
@@ -664,16 +649,7 @@ function generateTask() {
     if(window.MathJax) MathJax.typesetPromise();
 }
 
-function showSolutionPath() {
-    const pathDiv = document.getElementById("solutionPath");
-    // Toggle-Funktion
-    if (pathDiv.style.display === 'none') { 
-        pathDiv.style.display = 'block';
-    } else {
-        pathDiv.style.display = 'none';
-    }
-    if (window.MathJax) MathJax.typesetPromise();
-}
+
 
 
 // ==== Lade Einstellungen aus URL ====
@@ -706,6 +682,9 @@ window.onload = () => {
     document.getElementById("modeSwitchInput")?.addEventListener("change", generateTask);
     document.querySelectorAll('input[name="aLevel"], input[name="valueLevel"], #aNegativ, #sonderfaelle')
         .forEach(el => el.addEventListener("change", generateTask));
+    document.getElementById("solutionPath")?.addEventListener("toggle", () => {
+        if (window.MathJax) MathJax.typesetPromise();
+    });
         
     generateTask();
 };
@@ -758,10 +737,10 @@ window.onload = () => {
 <summary>Lösung anzeigen</summary>
 <div id="solution"></div>
 
-<button onclick="showSolutionPath()">Lösungsweg</button> 
-<div id="solutionPath" style="display:none;">
-    <div id="solutionPathContent"></div>
-</div>
+<details id="solutionPath">
+<summary>Lösungsweg</summary>
+<div id="solutionPathContent"></div>
+</details>
 </details>
 
 </body>
