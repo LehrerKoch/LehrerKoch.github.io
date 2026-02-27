@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <title>Bestimmtes Integral Übung</title>
 <link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="scale.css">
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-5K8WYYXDL2"></script>
@@ -13,45 +14,22 @@
   gtag('js', new Date());
   gtag('config', 'G-5K8WYYXDL2');
 </script>
+<script src="scale.js" defer></script>
 <style>
 #task-instruction { font-size: 1.1em; text-align: left; margin-bottom: 0.2em; }
 #task-formula { font-size: 1.6em; text-align: center; }
 #solution { color:red; font-size:1.3em; text-align:center; }
-#intermediate { color:blue; font-size:1.0em; }
-
-.inner-label.disabled { opacity: 0.4; }
+#solutionPath {
+    margin: 1em;
+    border-width: thin;
+}
+#solutionPathContent { color:blue; font-size:1.0em}
+.solution-path-inner {
+  display: inline-block;
+  text-align: left;
+}
 .slider-container { margin: 10px 0; }
 .slider-container input[type="range"] { width: 200px; }
-
-.solution-container {
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  gap: 15px;
-}
-
-/* Responsive Skalierung */
-@media (max-width: 900px) { #task-formula, #solution, #intermediate { scale: 90% !important; } }
-@media (max-width: 800px) { #task-formula, #solution, #intermediate { scale: 80% !important; } }
-@media (max-width: 700px) { #task-formula, #solution, #intermediate { scale: 70% !important; } }
-@media (max-width: 600px) { #task-formula, #solution, #intermediate { scale: 60% !important; } }
-@media (max-width: 500px) { #task-formula, #solution, #intermediate { scale: 50% !important; } }
-
-.intermediate-details {
-  display: inline-block;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  padding: 3px 5px;
-  margin: 5px auto;
-  min-width: 500px;
-  max-width: 90%;
-  width: auto;
-}
-.intermediate-details summary {
-  cursor: pointer;
-  color: #0066cc;
-  font-weight: bold;
-}
 
 /* ---- Toggle Switch ---- */
 .mode-switch-wrap {
@@ -131,9 +109,11 @@
 
 <h2>Aufgabe</h2>
 <div id="task-instruction"></div>
-<div id="task-formula"></div>
+<div class="scale-wrapper">
+  <div id="task-formula" class="scale-el"></div>
+</div>
 
-<details>
+<details id="solutionDetailsContainer">
   <summary>Lösung</summary>
 
   <!-- Toggle Slider -->
@@ -146,22 +126,48 @@
     <span class="mode-label-round">Gerundet (2 Stellen)</span>
   </div>
 
-  <div style="text-align:center;">
-    <details class="intermediate-details">
-      <summary>Lösungsweg</summary>
-      <div id="intermediate"></div>
-    </details>
+  <div class="scale-wrapper">
+    <div id="solution" class="scale-el"></div>
   </div>
 
-  <div class="solution-container">
-    <div id="solution"></div>
-  </div>
+  <details id="solutionPath">
+    <summary>Lösungsweg</summary>
+    <div class="scale-wrapper">
+      <div id="solutionPathContent" class="scale-el"></div>
+    </div>
+  </details>
 
   <br>
   <button id="stepBtn" onclick="openSteps()">Auf integralrechner.de öffnen</button>
 </details>
 
 <script>
+function scaleToFit(el) {
+    if (!el) return;
+    el.style.transform = 'none';
+    el.style.transformOrigin = 'top left';
+
+    const wrapper = el.parentElement;
+    if (!wrapper) return;
+    wrapper.style.height = 'auto';
+
+    requestAnimationFrame(() => {
+        const available = wrapper.clientWidth;
+        const natural   = el.scrollWidth;
+
+        if (natural > available && available > 0) {
+            const scale = available / natural;
+            el.style.transform = `scale(${scale})`;
+            wrapper.style.height = (el.scrollHeight * scale) + 'px';
+        }
+    });
+}
+
+function scaleAllElements() {
+    document.querySelectorAll('.scale-el').forEach(scaleToFit);
+}
+
+window.addEventListener('resize', scaleAllElements);
 // ================================================================
 // RATIONAL NUMBER ARITHMETIC  (exact fractions: {n, d} with d > 0)
 // ================================================================
@@ -528,22 +534,30 @@ function renderSolution() {
   &${eqFinal} \\mathbf{${resultStr}}
 \\end{aligned}`;
 
-  let intermediateHTML = `<div style="color:blue; font-size:0.88em; padding: 3px;">
-<div style="text-align:left;"><b>1. Stammfunktion bestimmen:</b></div>
-$$\\begin{aligned}F\\left(x\\right) &= ${intermediate} \\\\ &= ${F}\\end{aligned}$$
-<div style="text-align:left;"><b>2. Obere Grenze einsetzen \\((x = ${bLatex})\\):</b></div>
-$$\\begin{aligned}F\\left(${bLatex}\\right) &= ${FbSubst}  \\\\ &${eqFb} ${FbStr}\\end{aligned}$$
-<div style="text-align:left;"><b>3. Untere Grenze einsetzen \\((x = ${aLatex})\\):</b></div>
-$$\\begin{aligned}F\\left(${aLatex}\\right) &= ${FaSubst}  \\\\ &${eqFa} ${FaStr}\\end{aligned}$$
+let intermediateHTML = `<div class="solution-path-inner" style="color:blue; font-size:0.88em; padding: 3px;">
+$$\\begin{aligned}
+&\\textbf{1. Stammfunktion bestimmen:} \\\\
+&\\qquad F\\left(x\\right) = ${intermediate} \\\\
+&\\qquad \\phantom{F\\left(x\\right)} = ${F} \\\\[6pt]
+&\\textbf{2. Obere Grenze einsetzen } (x = ${bLatex}\\text{):} \\\\
+&\\qquad F\\left(${bLatex}\\right) = ${FbSubst} \\\\
+&\\qquad \\phantom{F\\left(${bLatex}\\right)} ${eqFb} ${FbStr} \\\\[6pt]
+&\\textbf{3. Untere Grenze einsetzen } (x = ${aLatex}\\text{):} \\\\
+&\\qquad F\\left(${aLatex}\\right) = ${FaSubst} \\\\
+&\\qquad \\phantom{F\\left(${aLatex}\\right)} ${eqFa} ${FaStr}
+\\end{aligned}$$
 </div>`;
 
-  document.getElementById('intermediate').innerHTML = intermediateHTML;
+  document.getElementById('solutionPathContent').innerHTML = intermediateHTML;
   document.getElementById('solution').innerHTML = `$$${solutionLatex}$$`;
-  MathJax.typesetPromise();
+  MathJax.typesetPromise().then(() => scaleAllElements());
 }
 
 // Listen to toggle
 document.getElementById('roundingToggle').addEventListener('change', () => { updateURL(); renderSolution(); });
+document.getElementById('solutionPath')?.addEventListener('toggle', () => {
+  if (window.MathJax) MathJax.typesetPromise().then(() => scaleToFit(document.getElementById('solutionPathContent')));
+});
 
 // ================================================================
 // TASK GENERATOR
@@ -656,7 +670,11 @@ function newTask(){
   document.getElementById('task-instruction').innerHTML = `Berechne das bestimmte Integral:${specialNote}`;
   document.getElementById('task-formula').innerHTML = `$$\\int\\limits_{${aLatex}}^{${bLatex}} \\left(${f}\\right)\\,\\mathrm{d}x = \\,?$$`;
 
-  MathJax.typesetPromise().then(renderSolution);
+  MathJax.typesetPromise().then(() => {
+    renderSolution();
+    scaleAllElements();
+  });
+
 }
 
 newTask();
