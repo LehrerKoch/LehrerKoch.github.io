@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Seiten im rechtwinkligen Dreieck – Benennung</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+/* radio row */
+.radio-row { display: flex; flex-wrap: wrap; gap: 4px; margin: 4px 0 2px 10px; }
+.radio-row label { display: flex; align-items: center; gap: 4px; padding: 2px 10px; border: 1.5px solid #bbb; border-radius: 20px; cursor: pointer; font-size: 0.93em; }
+.radio-row input[type=radio] { margin: 0; }
+
+/* type-block */
+.type-block { border: 1px solid #c8d8c8; border-radius: 6px; margin: 5px 0; overflow: hidden; }
+.type-block-header { background: #eaf2ea; padding: 5px 10px; border-bottom: 1px solid #c8d8c8; }
+.type-block-header label { display: flex; align-items: center; gap: 7px; font-weight: bold; cursor: pointer; margin: 0; color: #1a4a1a; }
+.type-block-header input[type=checkbox] { margin: 0; }
+
+/* sketch */
+.sketch-outer { display: flex; flex-direction: column; align-items: center; margin: 0; }
+.sketch-note { font-size: 0.78em; font-style: italic; color: #aaa; margin-bottom: 1px; align-self: flex-start; margin-left: 8px; }
+.sketch-svg-wrap { display: flex; justify-content: center; width: 100%; }
+
+/* SVG: max height so it never pushes buttons off screen */
+.sketch-svg-wrap svg { width: 100%; max-width: 460px; max-height: 38vh; height: auto; display: block; margin: 0 auto; }
+
+/* task text */
+#task-text { font-size: 1.2em; margin: 6px 0 4px 0; line-height: 1.5; }
+
+/* answer buttons */
+#answer-area { margin: 6px 0 4px 0; }
+.ans-btn {
+  padding: 8px 22px; border: 1.5px solid #aaa; border-radius: 20px;
+  background: #f7f7f7; cursor: pointer; font-size: 1.05em;
+  font-family: Calibri, sans-serif; transition: background 0.15s, border-color 0.15s;
+  color: #111; font-weight: 500; margin: 4px 6px 4px 0;
+}
+.ans-btn:hover:not(.q-correct):not(.q-wrong) { background: #e8f0e8; border-color: #888; }
+.ans-btn.q-correct { background: #c8f0c8; border-color: #4a9a4a; color: #1a4a1a; }
+.ans-btn.q-wrong   { background: #f8d8d8; border-color: #c04040; color: #6a0000; }
+
+#feedback { font-size: 1.1em; margin: 4px 0 2px 0; min-height: 1.4em; font-weight: bold; }
+#feedback.correct { color: #1a7a1a; }
+#feedback.wrong   { color: #c04040; }
+h1 { margin: 6px 0 4px 0; font-size: 1.5em; }
+h2 { margin: 6px 0 2px 0; font-size: 1.15em; }
+</style>
+</head>
+<body>
+<h1>Seiten im rechtwinkligen Dreieck benennen</h1>
+
+<details id="settingsDetails">
+<summary>Einstellungen</summary>
+
+<div class="form-block">
+  <b>Aufgabenformat</b>
+  <div class="radio-row">
+    <label><input type="radio" name="taskFormat" value="sketch"> Skizze</label>
+    <label><input type="radio" name="taskFormat" value="random" checked> Zufällig</label>
+    <label><input type="radio" name="taskFormat" value="text"> Textform</label>
+  </div>
+</div>
+
+<div class="form-block">
+  <b>Bezeichnungen</b>
+  <div class="radio-row">
+    <label><input type="radio" name="labeling" value="abc" checked> Klassisch – Dreieck ABC (a,b,c)</label>
+    <label><input type="radio" name="labeling" value="rand"> Zufällige Eckenbezeichnung</label>
+  </div>
+</div>
+
+<div class="form-block">
+  <b>Position des rechten Winkels</b>
+  <div class="radio-row">
+    <label><input type="radio" name="raPos" value="random" checked> Zufällig</label>
+    <label><input type="radio" name="raPos" value="gamma"> Oben (bei C / γ)</label>
+    <label><input type="radio" name="raPos" value="alpha"> Links (bei A / α)</label>
+    <label><input type="radio" name="raPos" value="beta"> Rechts (bei B / β)</label>
+  </div>
+</div>
+
+<div class="form-block">
+  <b>Aufgabentyp</b>
+  <div class="type-block">
+    <div class="type-block-header">
+      <label><input type="checkbox" id="useType1" checked> Typ 1: Welche Seite ist die [Ankathete|Gegenkathete|Hypotenuse]?</label>
+    </div>
+  </div>
+  <div class="type-block">
+    <div class="type-block-header">
+      <label><input type="checkbox" id="useType2" checked> Typ 2: Die Seite [a|b|c] ist für den Winkel [α|β] die …?</label>
+    </div>
+  </div>
+</div>
+
+</details>
+
+<button onclick="newTask()">Neue Aufgabe</button>
+
+<h2>Aufgabe</h2>
+
+<div id="sketch-direct-wrap" style="display:none">
+  <div class="sketch-outer">
+    <span class="sketch-note">Skizze nicht maßstabsgerecht</span>
+    <div class="sketch-svg-wrap" id="sketch-direct"></div>
+  </div>
+</div>
+
+<div id="text-task-wrap" style="display:none">
+  <div id="task-text"></div>
+  <details id="sketch-collapsible">
+    <summary>Skizze anzeigen</summary>
+    <div class="sketch-outer">
+      <span class="sketch-note">Skizze nicht maßstabsgerecht</span>
+      <div class="sketch-svg-wrap" id="sketch-inside"></div>
+    </div>
+  </details>
+</div>
+
+<div id="answer-area"></div>
+<div id="feedback"></div>
+
+<script>
+// ================================================================
+// HELPERS
+// ================================================================
+const randInt = (a,b) => Math.floor(Math.random()*(b-a+1))+a;
+const f1 = v => (+v).toFixed(1);
+const pick = arr => arr[randInt(0, arr.length-1)];
+const shuffle = arr => { const a=[...arr]; for(let i=a.length-1;i>0;i--){const j=randInt(0,i);[a[i],a[j]]=[a[j],a[i]];} return a; };
+
+// ================================================================
+// NAMING
+// ================================================================
+function genNaming(labeling) {
+  if (labeling === 'abc') {
+    return { V1:'A', V2:'B', V3:'C',
+             s1:'a', s2:'b', s3:'c',
+             ang1:'α', ang2:'β', ang3:'γ' };
+  }
+  const pool = 'DEFGHIJKLMNPQRSTUVWXYZ'.split('');
+  const picked = [];
+  while (picked.length < 3) picked.push(pool.splice(randInt(0,pool.length-1),1)[0]);
+  const [P,Q,R] = picked;
+  return { V1:P, V2:Q, V3:R,
+           s1:P.toLowerCase(), s2:Q.toLowerCase(), s3:R.toLowerCase(),
+           ang1:`∢${P}`, ang2:`∢${Q}`, ang3:`∢${R}` };
+}
+
+// nm accessors
+function sideName(key, nm) {
+  return {a:nm.s1, b:nm.s2, c:nm.s3}[key];
+}
+function angName(key, nm) {
+  return {alpha:nm.ang1, beta:nm.ang2, gamma:nm.ang3}[key];
+}
+
+// ================================================================
+// TRIANGLE GEOMETRY
+// Given raWinkel, compute roles:
+//   raWinkel='gamma': gamma=90, Hyp='c', active angles: alpha, beta
+//     GK(alpha)='a', AK(alpha)='b'
+//     GK(beta)='b',  AK(beta)='a'
+//   raWinkel='alpha': alpha=90, Hyp='a', active angles: beta, gamma
+//     GK(beta)='b',  AK(beta)='c'
+//     GK(gamma)='c', AK(gamma)='b'
+//   raWinkel='beta': beta=90, Hyp='b', active angles: alpha, gamma
+//     GK(alpha)='a', AK(alpha)='c'
+//     GK(gamma)='c', AK(gamma)='a'
+// ================================================================
+function getRoles(raWinkel) {
+  // Returns { hyp, activeAngles: [{key, GK, AK}] }
+  if (raWinkel === 'gamma') {
+    return { hyp:'c', ra:'gamma',
+             activeAngles: [
+               { key:'alpha', GK:'a', AK:'b' },
+               { key:'beta',  GK:'b', AK:'a' }
+             ]};
+  } else if (raWinkel === 'alpha') {
+    return { hyp:'a', ra:'alpha',
+             activeAngles: [
+               { key:'beta',  GK:'b', AK:'c' },
+               { key:'gamma', GK:'c', AK:'b' }
+             ]};
+  } else { // beta
+    return { hyp:'b', ra:'beta',
+             activeAngles: [
+               { key:'alpha', GK:'a', AK:'c' },
+               { key:'gamma', GK:'c', AK:'a' }
+             ]};
+  }
+}
+
+// ================================================================
+// SVG SKETCH
+// Pythagorean triples for "realistic" fixed shapes:
+//   3,4,5  |  5,12,13  |  20,21,29  | isosceles (1,1,√2)
+// raWinkel determines layout; random rotation ±20°; optional mirror
+// ================================================================
+function buildSVG(raWinkel, nm) {
+  // Pick shape
+  const shapes = [
+    {k1:3,k2:4},   // 3,4,5
+    {k1:5,k2:12},  // 5,12,13
+    {k1:20,k2:21}, // 20,21,29
+    {k1:1,k2:1}    // isosceles
+  ];
+  const sh = pick(shapes);
+  // Normalize to max dim ~1
+  const maxS = Math.max(sh.k1,sh.k2);
+  let k1 = sh.k1/maxS, k2 = sh.k2/maxS;
+
+  const mirror = Math.random() < 0.5;
+  if (mirror) { const tmp=k1; k1=k2; k2=tmp; }
+
+  // Layout: place right angle
+  // We always build with right angle in a canonical position, then rotate
+  const SCALE = 160;
+  const PAD = 60;
+
+  // Right angle at origin, one leg along x, one along y
+  // pR = right angle vertex, pX = along x, pY = along y
+  let pR, pX, pY;
+
+  if (raWinkel === 'gamma') {
+    // Right angle at C (top), A bottom-left, B bottom-right
+    // C at center-ish top, A left, B right
+    // gamma at C: legs go to A and B
+    // We place C at (PAD+k1*SCALE, PAD), A at (PAD, PAD+k2*SCALE), B at (PAD+k1*SCALE+k2*SCALE*..., PAD+...)
+    // Simpler: right angle at C, two legs horizontal from C (left=CA, right=CB)
+    // But C is "top" by convention. Let's do:
+    // place A bottom-left, B bottom-right, C top
+    // gamma=90 at C: CA ⊥ CB
+    // Let CA go up-left, CB go up-right – but for clarity let's just put C at apex
+    // Use the formula: C sits on the circle over AB (Thales)
+    // Simple: k1 horizontal leg (CA along x), k2 vertical leg (CB along y) from C
+    pR = [PAD, PAD];
+    pX = [PAD + k1*SCALE, PAD];   // A direction
+    pY = [PAD, PAD + k2*SCALE];   // B direction
+    // So pA=pX, pB=pY, pC=pR but we need to name them
+    // pA=alpha=V1, pB=beta=V2, pC=gamma=V3=raWinkel
+  } else if (raWinkel === 'alpha') {
+    // Right angle at A (left)
+    pR = [PAD, PAD + k2*SCALE];
+    pX = [PAD + k1*SCALE, PAD + k2*SCALE]; // B direction (horizontal)
+    pY = [PAD, PAD];                         // C direction (vertical)
+  } else {
+    // raWinkel='beta': right angle at B (right)
+    pR = [PAD + k1*SCALE, PAD + k2*SCALE];
+    pX = [PAD, PAD + k2*SCALE];             // A direction (horizontal left)
+    pY = [PAD + k1*SCALE, PAD];             // C direction (vertical up)
+  }
+
+  // Map to triangle vertices pA, pB, pC
+  let pA, pB, pC;
+  if (raWinkel === 'gamma') {
+    // pR=C=gamma, pX=A=alpha, pY=B=beta
+    pC = pR; pA = pX; pB = pY;
+  } else if (raWinkel === 'alpha') {
+    // pR=A=alpha, pX=B=beta, pY=C=gamma
+    pA = pR; pB = pX; pC = pY;
+  } else {
+    // pR=B=beta, pX=A=alpha, pY=C=gamma
+    pB = pR; pA = pX; pC = pY;
+  }
+
+  // SVG bounding box
+  const allX = [pA[0],pB[0],pC[0]];
+  const allY = [pA[1],pB[1],pC[1]];
+  const svgW = Math.max(...allX) + PAD;
+  const svgH = Math.max(...allY) + PAD;
+
+  // Centroid
+  const cx = (pA[0]+pB[0]+pC[0])/3;
+  const cy = (pA[1]+pB[1]+pC[1])/3;
+
+  function n2l(x,y) { const l=Math.sqrt(x*x+y*y)||1; return [x/l,y/l]; }
+  function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  // Random rotation
+  const rotDeg = randInt(-20, 20);
+  const rotCx = svgW/2, rotCy = svgH/2;
+
+  function ln([x1,y1],[x2,y2],col,w) {
+    return `<line x1="${f1(x1)}" y1="${f1(y1)}" x2="${f1(x2)}" y2="${f1(y2)}" stroke="${col}" stroke-width="${w}" stroke-linecap="round"/>`;
+  }
+
+  // Right angle marker: arc + dot (like original file)
+  const COL_RA = '#3a8858';
+  function raMarker([Cx,Cy],[Ax,Ay],[Bx,By]) {
+    const [u1x,u1y]=n2l(Ax-Cx,Ay-Cy), [u2x,u2y]=n2l(Bx-Cx,By-Cy);
+    const r = 18;
+    const a1 = Math.atan2(u1y,u1x), a2 = Math.atan2(u2y,u2x);
+    let d = a2 - a1;
+    while(d > Math.PI) d -= 2*Math.PI;
+    while(d < -Math.PI) d += 2*Math.PI;
+    // Ensure arc sweeps into the triangle interior
+    const midA0 = a1 + d/2;
+    const testX = Cx + r*1.4*Math.cos(midA0), testY = Cy + r*1.4*Math.sin(midA0);
+    if ((cx-Cx)*(testX-Cx)+(cy-Cy)*(testY-Cy) < 0)
+      d = d > 0 ? d - 2*Math.PI : d + 2*Math.PI;
+    const sx = Cx + r*Math.cos(a1), sy = Cy + r*Math.sin(a1);
+    const ex = Cx + r*Math.cos(a1+d), ey = Cy + r*Math.sin(a1+d);
+    const sweep = d > 0 ? 1 : 0;
+    const midA = a1 + d/2;
+    const dotX = Cx + r*0.6*Math.cos(midA), dotY = Cy + r*0.6*Math.sin(midA);
+    return `<path d="M ${f1(sx)} ${f1(sy)} A ${r} ${r} 0 0 ${sweep} ${f1(ex)} ${f1(ey)}" fill="none" stroke="${COL_RA}" stroke-width="1.7"/>`
+         + `<circle cx="${f1(dotX)}" cy="${f1(dotY)}" r="2.5" fill="${COL_RA}"/>`;
+  }
+
+  // Side label
+  function sideLabel([P1x,P1y],[P2x,P2y],text) {
+    const mx=(P1x+P2x)/2, my=(P1y+P2y)/2;
+    const [dx,dy]=n2l(mx-cx, my-cy);
+    return `<text x="${f1(mx+dx*26)}" y="${f1(my+dy*26)}" fill="#222" font-size="15" font-family="Georgia,serif" font-style="italic" text-anchor="middle" dominant-baseline="middle">${esc(text)}</text>`;
+  }
+
+  // Vertex label
+  function vtxLabel([Px,Py],name) {
+    const [dx,dy]=n2l(Px-cx, Py-cy);
+    return `<text x="${f1(Px+dx*24)}" y="${f1(Py+dy*24)}" fill="#333" font-size="16" font-family="Georgia,serif" font-weight="bold" text-anchor="middle" dominant-baseline="middle">${esc(name)}</text>`;
+  }
+
+  // RA label
+  function raLabel([Cx,Cy],[Ax,Ay],[Bx,By],text) {
+    const [u1x,u1y]=n2l(Ax-Cx,Ay-Cy), [u2x,u2y]=n2l(Bx-Cx,By-Cy);
+    const bisX=(u1x+u2x), bisY=(u1y+u2y);
+    const [bx,by]=n2l(bisX,bisY);
+    // Check direction is into triangle
+    const intoX=(cx-Cx)*bx+(cy-Cy)*by;
+    const fx=intoX>=0?bx:-bx, fy=intoX>=0?by:-by;
+    return `<text x="${f1(Cx+fx*36)}" y="${f1(Cy+fy*36)}" fill="${COL_RA}" font-size="14" font-family="Georgia,serif" font-style="italic" text-anchor="middle" dominant-baseline="middle">${esc(text)}</text>`;
+  }
+
+  // Right angle vertex and its two neighbors
+  const raPt = raWinkel==='alpha'?pA : raWinkel==='beta'?pB : pC;
+  const [raOth1, raOth2] = raWinkel==='alpha' ? [pB,pC] : raWinkel==='beta' ? [pA,pC] : [pA,pB];
+
+  const lines = ln(pB,pC,'#444',2) + ln(pA,pC,'#444',2) + ln(pA,pB,'#444',2);
+  const raM = raMarker(raPt, raOth1, raOth2);
+
+  // Side labels: a=B–C, b=A–C, c=A–B
+  const lSa = sideLabel(pB, pC, nm.s1);
+  const lSb = sideLabel(pA, pC, nm.s2);
+  const lSc = sideLabel(pA, pB, nm.s3);
+
+  const vA = vtxLabel(pA, nm.V1);
+  const vB = vtxLabel(pB, nm.V2);
+  const vC = vtxLabel(pC, nm.V3);
+  const raLbl = raLabel(raPt, raOth1, raOth2, angName(raWinkel, nm) + ' = 90°');
+
+  // Extra padding in viewBox so rotated labels aren't clipped
+  const RPAD = 30;
+
+  return `<svg viewBox="${-RPAD} ${-RPAD} ${f1(svgW+2*RPAD)} ${f1(svgH+2*RPAD)}" xmlns="http://www.w3.org/2000/svg">
+  <g transform="rotate(${rotDeg}, ${f1(svgW/2)}, ${f1(svgH/2)})">
+  ${lines}${raM}${lSa}${lSb}${lSc}${vA}${vB}${vC}${raLbl}
+  </g>
+</svg>`;
+}
+
+// ================================================================
+// TASK GENERATION
+// ================================================================
+// taskType 1: "Welche Seite ist die [AK|GK|Hyp] von [winkel]?"
+//   Correct answer: one of the 3 sides (buttons: s1, s2, s3)
+// taskType 2: "Die Seite [x] ist für [winkel] die …?"
+//   Correct answer: AK/GK/Hyp  (buttons: AK von X, GK von X, Hyp)
+
+var _current = null;
+
+function newTask() {
+document.getElementById('settingsDetails').removeAttribute('open');
+  // Settings
+  const labeling = document.querySelector('input[name="labeling"]:checked').value;
+  const raPosVal = document.querySelector('input[name="raPos"]:checked').value;
+  const useType1 = document.getElementById('useType1').checked;
+  const useType2 = document.getElementById('useType2').checked;
+  const fmtMode  = document.querySelector('input[name="taskFormat"]:checked').value;
+
+  if (!useType1 && !useType2) {
+    document.getElementById('answer-area').innerHTML = '<em>Bitte mindestens einen Aufgabentyp auswählen.</em>';
+    document.getElementById('feedback').textContent = '';
+    return;
+  }
+
+  const raWinkel = raPosVal === 'random' ? pick(['alpha','beta','gamma']) : raPosVal;
+  const nm = genNaming(labeling);
+  const roles = getRoles(raWinkel);
+
+  // Pick active angle (one of the non-right angles)
+  const activeAngle = pick(roles.activeAngles);
+
+  // Decide task type
+  let taskType;
+  if (useType1 && useType2) taskType = Math.random() < 0.5 ? 1 : 2;
+  else if (useType1) taskType = 1;
+  else taskType = 2;
+
+  // SVG
+  const svgStr = buildSVG(raWinkel, nm);
+
+  // Format
+  const useSketch = fmtMode==='sketch' || (fmtMode==='random' && Math.random()<0.5);
+
+  if (useSketch) {
+    document.getElementById('sketch-direct-wrap').style.display = '';
+    document.getElementById('text-task-wrap').style.display = 'none';
+    document.getElementById('sketch-direct').innerHTML = svgStr;
+  } else {
+    document.getElementById('sketch-direct-wrap').style.display = 'none';
+    document.getElementById('text-task-wrap').style.display = '';
+    document.getElementById('sketch-inside').innerHTML = svgStr;
+    document.getElementById('sketch-collapsible').removeAttribute('open');
+  }
+
+  // Build question & answers
+  let questionHTML, answers, correctKey;
+
+  const aktAngName = angName(activeAngle.key, nm);
+  const raAngName  = angName(raWinkel, nm);
+
+  if (taskType === 1) {
+    // "Welche Seite ist die [AK|GK|Hyp] zu [aktAngName]?"
+    const roleChoice = pick(['AK','GK','Hyp']);
+    let correctSide;
+    if (roleChoice === 'AK')  correctSide = activeAngle.AK;
+    if (roleChoice === 'GK')  correctSide = activeAngle.GK;
+    if (roleChoice === 'Hyp') correctSide = roles.hyp;
+
+    const roleLabel = roleChoice === 'AK' ? 'Ankathete' : roleChoice === 'GK' ? 'Gegenkathete' : 'Hypotenuse';
+
+    if (useSketch) {
+      questionHTML = `Welche Seite ist die <b>${roleLabel}</b> zum Winkel <b>${aktAngName}</b>?`;
+    } else {
+      questionHTML = `Im Dreieck mit dem rechten Winkel bei <b>${raAngName}</b>:<br>
+        Welche Seite ist die <b>${roleLabel}</b> zum Winkel <b>${aktAngName}</b>?`;
+    }
+
+    correctKey = correctSide;
+    // Buttons: all 3 sides
+    answers = ['a','b','c'].map(k => ({
+      key: k,
+      label: sideName(k, nm),
+      correct: k === correctSide
+    }));
+
+  } else {
+    // "Die Seite [x] ist für den Winkel [aktAngName] die …?"
+    // Pick a random side (one of a,b,c)
+    const sideKey = pick(['a','b','c']);
+    const sName = sideName(sideKey, nm);
+
+    let correctRole;
+    if (sideKey === roles.hyp)          correctRole = 'Hyp';
+    else if (sideKey === activeAngle.GK) correctRole = 'GK';
+    else if (sideKey === activeAngle.AK) correctRole = 'AK';
+    else {
+      // sideKey is not the hyp and not a direct role of activeAngle
+      // This shouldn't happen since all 3 sides are covered, but handle gracefully
+      correctRole = 'Hyp';
+    }
+
+    if (useSketch) {
+      questionHTML = `Die Seite <b>${sName}</b> ist für den Winkel <b>${aktAngName}</b> die …?`;
+    } else {
+      questionHTML = `Im Dreieck mit dem rechten Winkel bei <b>${raAngName}</b>:<br>
+        Die Seite <b>${sName}</b> ist für den Winkel <b>${aktAngName}</b> die …?`;
+    }
+
+    correctKey = correctRole;
+    answers = [
+      { key:'AK',  label:`Ankathete von ${aktAngName}`,  correct: correctRole==='AK'  },
+      { key:'GK',  label:`Gegenkathete von ${aktAngName}`, correct: correctRole==='GK'  },
+      { key:'Hyp', label:'Hypotenuse',                     correct: correctRole==='Hyp' }
+    ];
+  }
+
+  _current = { taskType, correctKey, nm, raWinkel, activeAngle, roles };
+
+  // Render task text
+  const taskDiv = document.getElementById('task-text');
+  if (!useSketch) taskDiv.innerHTML = questionHTML;
+  else taskDiv.innerHTML = '';
+
+  // Render question above answers
+  const answerArea = document.getElementById('answer-area');
+  let html = '';
+  if (useSketch) {
+    html += `<div style="font-size:1.1em;margin:8px 0 10px 0;">${questionHTML}</div>`;
+  }
+  html += '<div>';
+  answers = shuffle(answers);
+  answers.forEach(ans => {
+    html += `<button class="ans-btn" data-key="${ans.key}" data-correct="${ans.correct?'1':'0'}" onclick="checkAnswer(this)">${ans.label}</button>`;
+  });
+  html += '</div>';
+  answerArea.innerHTML = html;
+
+  document.getElementById('feedback').textContent = '';
+  document.getElementById('feedback').className = '';
+}
+
+function checkAnswer(btn) {
+  // Prevent re-clicking after answer given
+  const area = document.getElementById('answer-area');
+  if (area.querySelector('.q-correct')) return;
+
+  const correct = btn.dataset.correct === '1';
+  if (correct) {
+    btn.classList.add('q-correct');
+    // Disable others
+    area.querySelectorAll('.ans-btn').forEach(b => { if(b!==btn) b.disabled=true; });
+    document.getElementById('feedback').textContent = '✓ Richtig!';
+    document.getElementById('feedback').className = 'correct';
+  } else {
+    btn.classList.add('q-wrong');
+    btn.disabled = true;
+    document.getElementById('feedback').textContent = '✗ Leider falsch – versuch es nochmal!';
+    document.getElementById('feedback').className = 'wrong';
+  }
+}
+
+// Start
+loadURL();
+newTask();
+
+// ================================================================
+// URL PERSISTENCE
+// ================================================================
+function updateURL() {
+  const url = new URL(window.location);
+  url.searchParams.set('fmt',  document.querySelector('input[name="taskFormat"]:checked').value);
+  url.searchParams.set('lbl',  document.querySelector('input[name="labeling"]:checked').value);
+  url.searchParams.set('rap',  document.querySelector('input[name="raPos"]:checked').value);
+  url.searchParams.set('t1',   document.getElementById('useType1').checked ? '1' : '0');
+  url.searchParams.set('t2',   document.getElementById('useType2').checked ? '1' : '0');
+  history.replaceState({}, '', url);
+}
+
+function loadURL() {
+  const url = new URL(window.location);
+  const g = (k, d) => url.searchParams.has(k) ? url.searchParams.get(k) : d;
+  const setR = (name, val) => {
+    const el = document.querySelector(`input[name="${name}"][value="${val}"]`);
+    if (el) el.checked = true;
+  };
+  setR('taskFormat', g('fmt', 'random'));
+  setR('labeling',   g('lbl', 'abc'));
+  setR('raPos',      g('rap', 'random'));
+  if (url.searchParams.has('t1')) document.getElementById('useType1').checked = g('t1','1') === '1';
+  if (url.searchParams.has('t2')) document.getElementById('useType2').checked = g('t2','1') === '1';
+}
+
+document.querySelectorAll('input').forEach(el =>
+  el.addEventListener('change', updateURL)
+);
+</script>
+<script src="scale.js"></script>
+</body>
+</html>
