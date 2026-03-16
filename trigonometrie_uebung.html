@@ -59,19 +59,62 @@ input[type="radio"], input[type="checkbox"] { margin-top: 5px; margin-right: 3px
 .radio-row label { display: flex; align-items: center; gap: 4px; padding: 2px 10px; border: 1.5px solid #bbb; border-radius: 20px; cursor: pointer; font-size: 0.93em; }
 .radio-row input[type=radio] { margin: 0; }
 
-/* Slider für Lösungsquiz */
-.switch { position: relative; display: inline-block; width: 120px; height: 34px; cursor: pointer; }
-.switch input { opacity: 0; width: 0; height: 0; }
-.slider { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-color: #ffcccc; transition: .4s; border-radius: 34px; border: 1px solid #c04040; }
-.slider:before { position: absolute; content: ""; height: 26px; width: 26px; left: 4px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
-input:checked + .slider { background-color: #c8f0c8; border-color: #4a9a4a; }
-input:checked + .slider:before { transform: translateX(84px); }
-.labels { position: absolute; top: 8px; left: 0; width: 100%; font-size: 12px; font-weight: bold; pointer-events: none; text-transform: uppercase; }
-.labels span { position: absolute; transition: opacity 0.4s; width: 100%; text-align: center; }
-.labels span:first-child { color: #6a0000; }
-.labels span:last-child { color: #1a4a1a; opacity: 0; }
-input:checked ~ .labels span:first-child { opacity: 0; }
-input:checked ~ .labels span:last-child { opacity: 1; }
+/* ── Slider für Lösungsquiz (klein, rot/grün) ── */
+.switch-quiz { position: relative; display: inline-block; width: 120px; height: 34px; cursor: pointer; }
+.switch-quiz input { opacity: 0; width: 0; height: 0; }
+.switch-quiz .slider-inner { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-color: #ffcccc; transition: .4s; border-radius: 34px; border: 1px solid #c04040; }
+.switch-quiz .slider-inner:before { position: absolute; content: ""; height: 26px; width: 26px; left: 4px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+.switch-quiz input:checked + .slider-inner { background-color: #c8f0c8; border-color: #4a9a4a; }
+.switch-quiz input:checked + .slider-inner:before { transform: translateX(84px); }
+.switch-quiz .labels { position: absolute; top: 8px; left: 0; width: 100%; font-size: 12px; font-weight: bold; pointer-events: none; text-transform: uppercase; }
+.switch-quiz .labels span { position: absolute; transition: opacity 0.4s; width: 100%; text-align: center; }
+.switch-quiz .labels span:first-child { color: #6a0000; }
+.switch-quiz .labels span:last-child { color: #1a4a1a; opacity: 0; }
+.switch-quiz input:checked ~ .labels span:first-child { opacity: 0; }
+.switch-quiz input:checked ~ .labels span:last-child { opacity: 1; }
+
+/* ── Slider für Lösungsweg-Modus (breit, grün/orange) ── */
+.switch-solmode {
+  display: inline-block;
+  position: relative;
+  width: 420px;
+  height: 34px;
+  background: #ccc;
+  border-radius: 17px;
+  cursor: pointer;
+  user-select: none;
+  margin: 3px 0 2px 0;
+}
+.switch-solmode input { display: none; }
+.switch-solmode .solmode-knob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: calc(50% - 2px);
+  height: 30px;
+  background: #4CAF50;
+  border-radius: 15px;
+  transition: left 0.25s, background 0.25s;
+}
+.switch-solmode input:checked + .solmode-knob {
+  left: calc(50%);
+  background: #E07B00;
+}
+.switch-solmode .solmode-labels {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  font-size: 12px;
+  font-weight: bold;
+}
+.switch-solmode .solmode-labels span {
+  flex: 1;
+  text-align: center;
+  line-height: 34px;
+  z-index: 1;
+  color: #222;
+}
 
 /* quiz */
 #quizArea { margin: 8px 0 4px 0; }
@@ -89,13 +132,13 @@ input:checked ~ .labels span:last-child { opacity: 1; }
 .quiz-btn.q-wrong   { background: #f8d8d8; border-color: #c04040; color: #6a0000; }
 
 /* sketch */
-.sketch-outer { display: flex; flex-direction: column; align-items: center; margin: 4px 0 6px 0; }
-.sketch-note { font-size: 0.78em; font-style: italic; color: #aaa; margin-bottom: 2px; align-self: flex-start; margin-left: 8px; }
+.sketch-outer { display: flex; flex-direction: column; align-items: center; margin: 2px 0 4px 0; }
+.sketch-note { font-size: 0.78em; font-style: italic; color: #aaa; margin-bottom: 1px; align-self: flex-start; margin-left: 8px; }
 .sketch-svg-wrap { display: flex; justify-content: center; width: 100%; }
 </style>
 </head>
 <body>
-<h1>Trigonometrie im rechtwinkligen Dreieck</h1>
+<h1 style="margin-bottom:4px;">Trigonometrie im rechtwinkligen Dreieck</h1>
 
 <details id="settingsDetails">
 <summary>Einstellungen</summary>
@@ -188,12 +231,12 @@ input:checked ~ .labels span:last-child { opacity: 1; }
 </div>
 </details>
 
-<button onclick="newTask()">Neue Aufgabe</button>
+<button onclick="newTask()" style="margin-top:5px;">Neue Aufgabe</button>
 
-<h2>Aufgabe</h2>
+<h2 style="margin:4px 0 2px 0;">Aufgabe</h2>
 
 <div id="sketch-direct-wrap" style="display:none">
-  <div class="sketch-outer">
+  <div class="sketch-outer" style="margin:2px 0 3px 0;">
     <span class="sketch-note">Skizze nicht maßstabsgerecht</span>
     <div class="sketch-svg-wrap" id="sketch-direct"></div>
   </div>
@@ -203,7 +246,7 @@ input:checked ~ .labels span:last-child { opacity: 1; }
   <div class="scale-wrapper"><div id="task-formula" class="scale-el"></div></div>
   <details id="sketch-collapsible">
     <summary>Skizze anzeigen</summary>
-    <div class="sketch-outer">
+    <div class="sketch-outer" style="margin:2px 0 3px 0;">
       <span class="sketch-note">Skizze nicht maßstabsgerecht</span>
       <div class="sketch-svg-wrap" id="sketch-inside"></div>
     </div>
@@ -219,9 +262,9 @@ input:checked ~ .labels span:last-child { opacity: 1; }
 
 <div style="margin: 15px 0 10px 0;">
   <div style="font-size:0.95em; margin-bottom: 5px; font-weight: bold;">Quiz als Hilfestellung?</div>
-  <label class="switch">
+  <label class="switch-quiz">
     <input type="checkbox" id="quizMode">
-    <span class="slider"></span>
+    <span class="slider-inner"></span>
     <span class="labels">
       <span>Aus</span>
       <span>An</span>
@@ -231,12 +274,24 @@ input:checked ~ .labels span:last-child { opacity: 1; }
 
 <div id="quizArea" style="display:none"></div>
 
+
+
 <details id="solutionDetailsContainer">
   <summary>Lösung</summary>
-  <div class="scale-wrapper"><div id="solution" class="scale-el"></div></div>
+  <div class="scale-wrapper" style="padding:0.1em 0.5em 0 0.5em;"><div id="solution" class="scale-el"></div></div>
   <details id="solutionPath">
     <summary>Lösungsweg</summary>
-    <div class="scale-wrapper"><div id="solutionPathContent" class="scale-el"></div></div>
+    <div style="margin: 3px 10px 1px 10px;">
+      <label class="switch-solmode">
+        <input type="checkbox" id="solModeSwitch">
+        <span class="solmode-knob"></span>
+        <span class="solmode-labels">
+          <span>Allgemein umstellen, dann einsetzen</span>
+          <span>Zahlen einsetzen, dann umstellen</span>
+        </span>
+      </label>
+    </div>
+    <div class="scale-wrapper" style="padding:0.1em 0.5em;"><div id="solutionPathContent" class="scale-el"></div></div>
   </details>
 </details>
 
@@ -964,12 +1019,6 @@ function quizFormulaClick(btn) {
 // ================================================================
 // SOLUTION
 // ================================================================
-// ================================================================
-// SOLUTION
-// ================================================================
-// ================================================================
-// SOLUTION
-// ================================================================
 function renderSolution(task, tri, nm) {
   var alpha = tri.alpha, beta = tri.beta, gamma = tri.gamma,
       a = tri.a, b = tri.b, c = tri.c, raWinkel = tri.raWinkel;
@@ -1021,81 +1070,213 @@ function renderSolution(task, tri, nm) {
     parts.push('Wir verwenden daher den <b>' + fn + '</b>, ' + why + '.');
     explanation = parts.join(' ');
   } else {
-    var bothSides = (type === 'pyth' && !isAngSk);
     explanation = 'Da kein Winkel bekannt oder gesucht ist, verwenden wir den <b>Satz des Pythagoras</b>. '
       + 'Die Hypotenuse ist hier \\(' + HypL + '\\) \u2013 sie liegt dem rechten Winkel \\(' + raL + '\\) gegen\u00FCber. '
       + 'Es gilt daher: \\(' + GKL + '^2 + ' + AKL + '^2 = ' + HypL + '^2\\).';
   }
 
+  // ── Formatierung eines Trig-Wertes für den "sofort einsetzen"-Modus ──
+  function fmtTrigVal(fnName, angleDeg) {
+    var rad = angleDeg * Math.PI / 180;
+    var raw;
+    if      (fnName === 'sin') raw = Math.sin(rad);
+    else if (fnName === 'cos') raw = Math.cos(rad);
+    else                       raw = Math.tan(rad);
+    var r6 = Math.round(raw * 1000000) / 1000000;
+    var sq3h = Math.sqrt(3)/2, sq2h = Math.sqrt(2)/2,
+        sq3  = Math.sqrt(3),   isq3 = 1/Math.sqrt(3);
+    var niceVals = [0, 0.5, 1, -0.5, -1, sq3h, sq2h, isq3, sq3, -sq3h, -sq2h, -isq3, -sq3];
+    var niceTex  = ['0', '\\frac{1}{2}', '1', '-\\frac{1}{2}', '-1',
+      '\\frac{\\sqrt{3}}{2}', '\\frac{\\sqrt{2}}{2}', '\\frac{1}{\\sqrt{3}}', '\\sqrt{3}',
+      '-\\frac{\\sqrt{3}}{2}', '-\\frac{\\sqrt{2}}{2}', '-\\frac{1}{\\sqrt{3}}', '-\\sqrt{3}'];
+    for (var i = 0; i < niceVals.length; i++) {
+      if (Math.abs(r6 - niceVals[i]) < 0.000001) {
+        return { tex: niceTex[i], isExact: true, val: niceVals[i] };
+      }
+    }
+    var r3str = raw.toFixed(3).replace('.', '{,}');
+    return { tex: r3str, isExact: false, val: raw };
+  }
+
+  // Lösungsweg-Modus: false = allgemein zuerst, true = Zahlen einsetzen
+  var solModeNumFirst = document.getElementById('solModeSwitch').checked;
+
+  // \begin{array}{lll}: Spalte1=LHS, Spalte2==RHS, Spalte3=\quad|\,op
+  // Jede Zeile: lhs & rel\; rhs & \quad|\, op
+  // Leere op-Zeilen bekommen einfach leere dritte Spalte → kein Versatz
   var rows = [];
-  function eq(l, r)  { rows.push(l + ' &= ' + r + ' \\\\[3pt]'); }
-  function apx(l, r) { rows.push(l + ' \\approx ' + r + ' \\\\[3pt]'); }
+  function row(lhs, rel, rhs, op) {
+    var opPart = op ? ('\\quad|\\, ' + op) : '';
+    rows.push(lhs + ' & ' + rel + '\\; ' + rhs + ' & ' + opPart + ' \\\\[4pt]');
+  }
+  function eq(lhs, rhs, op)  { row(lhs, '=',        rhs, op||''); }
+  function apx(lhs, rhs, op) { row(lhs, '\\approx', rhs, op||''); }
 
   if (type === 'sin') {
-    rows.push('\\sin(' + aktL + ') &= \\dfrac{\\text{GK}}{\\text{Hyp.}} = \\dfrac{' + GKL + '}{' + HypL + '} \\\\[8pt]');
-    if (sub === 'geg') {
-      eq(GKL, HypL + ' \\cdot \\sin(' + aktL + ')');
-      eq(GKL, fmtN(Hyp_val) + ' \\cdot \\sin(' + fmtDeg(akt_val) + ')');
-      apx(GKL, '\\mathbf{' + fmtN(GK_val) + '}');
-    } else if (sub === 'hyp') {
-      eq(HypL, '\\dfrac{' + GKL + '}{\\sin(' + aktL + ')}');
-      eq(HypL, '\\dfrac{' + fmtN(GK_val) + '}{\\sin(' + fmtDeg(akt_val) + ')}');
-      apx(HypL, '\\mathbf{' + fmtN(Hyp_val) + '}');
+    // Allgemeine Zeile IMMER zuerst
+    eq('\\sin(' + aktL + ')', '\\dfrac{\\text{GK}}{\\text{Hyp.}} = \\dfrac{' + GKL + '}{' + HypL + '}');
+
+    if (!solModeNumFirst) {
+      if (sub === 'geg') {
+        eq('\\sin(' + aktL + ')', '\\dfrac{' + GKL + '}{' + HypL + '}', '\\cdot ' + HypL);
+        eq(GKL, HypL + ' \\cdot \\sin(' + aktL + ')');
+        eq(GKL, fmtN(Hyp_val) + ' \\cdot \\sin(' + fmtDeg(akt_val) + ')');
+        apx(GKL, '\\mathbf{' + fmtN(GK_val) + '}');
+      } else if (sub === 'hyp') {
+        eq('\\sin(' + aktL + ')', '\\dfrac{' + GKL + '}{' + HypL + '}', '\\cdot ' + HypL);
+        eq(HypL + ' \\cdot \\sin(' + aktL + ')', GKL, ': \\sin(' + aktL + ')');
+        eq(HypL, '\\dfrac{' + GKL + '}{\\sin(' + aktL + ')}');
+        eq(HypL, '\\dfrac{' + fmtN(GK_val) + '}{\\sin(' + fmtDeg(akt_val) + ')}');
+        apx(HypL, '\\mathbf{' + fmtN(Hyp_val) + '}');
+      } else {
+        eq(aktL, invLabel('sin') + '\\!\\left(\\dfrac{' + GKL + '}{' + HypL + '}\\right)');
+        eq(aktL, invLabel('sin') + '\\!\\left(\\dfrac{' + fmtN(GK_val) + '}{' + fmtN(Hyp_val) + '}\\right)');
+        apx(aktL, '\\mathbf{' + fmtDeg(akt_val) + '}');
+      }
     } else {
-      eq(aktL, invLabel('sin') + '\\!\\left(\\dfrac{' + GKL + '}{' + HypL + '}\\right)');
-      eq(aktL, invLabel('sin') + '\\!\\left(\\dfrac{' + fmtN(GK_val) + '}{' + fmtN(Hyp_val) + '}\\right)');
-      apx(aktL, '\\mathbf{' + fmtDeg(akt_val) + '}');
+      var tv = fmtTrigVal('sin', akt_val);
+      var tvTex = tv.tex;
+      var symb = tv.isExact ? '=' : '\\approx';
+      if (sub === 'geg') {
+        eq('\\sin(' + fmtDeg(akt_val) + ')', '\\dfrac{' + GKL + '}{' + fmtN(Hyp_val) + '}');
+        row(tvTex, symb, '\\dfrac{' + GKL + '}{' + fmtN(Hyp_val) + '}', '\\cdot ' + fmtN(Hyp_val));
+        row(GKL, symb, tvTex + ' \\cdot ' + fmtN(Hyp_val));
+        apx(GKL, '\\mathbf{' + fmtN(GK_val) + '}');
+      } else if (sub === 'hyp') {
+        eq('\\sin(' + fmtDeg(akt_val) + ')', '\\dfrac{' + fmtN(GK_val) + '}{' + HypL + '}');
+        row(tvTex, symb, '\\dfrac{' + fmtN(GK_val) + '}{' + HypL + '}', '\\cdot ' + HypL);
+        row(tvTex + ' \\cdot ' + HypL, symb, fmtN(GK_val), ': ' + tvTex);
+        row(HypL, symb, '\\dfrac{' + fmtN(GK_val) + '}{' + tvTex + '}');
+        apx(HypL, '\\mathbf{' + fmtN(Hyp_val) + '}');
+      } else {
+        eq('\\sin(' + aktL + ')', '\\dfrac{' + fmtN(GK_val) + '}{' + fmtN(Hyp_val) + '}');
+        eq(aktL, invLabel('sin') + '\\!\\left(\\dfrac{' + fmtN(GK_val) + '}{' + fmtN(Hyp_val) + '}\\right)');
+        apx(aktL, '\\mathbf{' + fmtDeg(akt_val) + '}');
+      }
     }
+
   } else if (type === 'cos') {
-    rows.push('\\cos(' + aktL + ') &= \\dfrac{\\text{AK}}{\\text{Hyp.}} = \\dfrac{' + AKL + '}{' + HypL + '} \\\\[8pt]');
-    if (sub === 'ank') {
-      eq(AKL, HypL + ' \\cdot \\cos(' + aktL + ')');
-      eq(AKL, fmtN(Hyp_val) + ' \\cdot \\cos(' + fmtDeg(akt_val) + ')');
-      apx(AKL, '\\mathbf{' + fmtN(AK_val) + '}');
-    } else if (sub === 'hyp') {
-      eq(HypL, '\\dfrac{' + AKL + '}{\\cos(' + aktL + ')}');
-      eq(HypL, '\\dfrac{' + fmtN(AK_val) + '}{\\cos(' + fmtDeg(akt_val) + ')}');
-      apx(HypL, '\\mathbf{' + fmtN(Hyp_val) + '}');
+    eq('\\cos(' + aktL + ')', '\\dfrac{\\text{AK}}{\\text{Hyp.}} = \\dfrac{' + AKL + '}{' + HypL + '}');
+
+    if (!solModeNumFirst) {
+      if (sub === 'ank') {
+        eq('\\cos(' + aktL + ')', '\\dfrac{' + AKL + '}{' + HypL + '}', '\\cdot ' + HypL);
+        eq(AKL, HypL + ' \\cdot \\cos(' + aktL + ')');
+        eq(AKL, fmtN(Hyp_val) + ' \\cdot \\cos(' + fmtDeg(akt_val) + ')');
+        apx(AKL, '\\mathbf{' + fmtN(AK_val) + '}');
+      } else if (sub === 'hyp') {
+        eq('\\cos(' + aktL + ')', '\\dfrac{' + AKL + '}{' + HypL + '}', '\\cdot ' + HypL);
+        eq(HypL + ' \\cdot \\cos(' + aktL + ')', AKL, ': \\cos(' + aktL + ')');
+        eq(HypL, '\\dfrac{' + AKL + '}{\\cos(' + aktL + ')}');
+        eq(HypL, '\\dfrac{' + fmtN(AK_val) + '}{\\cos(' + fmtDeg(akt_val) + ')}');
+        apx(HypL, '\\mathbf{' + fmtN(Hyp_val) + '}');
+      } else {
+        eq(aktL, invLabel('cos') + '\\!\\left(\\dfrac{' + AKL + '}{' + HypL + '}\\right)');
+        eq(aktL, invLabel('cos') + '\\!\\left(\\dfrac{' + fmtN(AK_val) + '}{' + fmtN(Hyp_val) + '}\\right)');
+        apx(aktL, '\\mathbf{' + fmtDeg(akt_val) + '}');
+      }
     } else {
-      eq(aktL, invLabel('cos') + '\\!\\left(\\dfrac{' + AKL + '}{' + HypL + '}\\right)');
-      eq(aktL, invLabel('cos') + '\\!\\left(\\dfrac{' + fmtN(AK_val) + '}{' + fmtN(Hyp_val) + '}\\right)');
-      apx(aktL, '\\mathbf{' + fmtDeg(akt_val) + '}');
+      var tv = fmtTrigVal('cos', akt_val);
+      var tvTex = tv.tex;
+      var symb = tv.isExact ? '=' : '\\approx';
+      if (sub === 'ank') {
+        eq('\\cos(' + fmtDeg(akt_val) + ')', '\\dfrac{' + AKL + '}{' + fmtN(Hyp_val) + '}');
+        row(tvTex, symb, '\\dfrac{' + AKL + '}{' + fmtN(Hyp_val) + '}', '\\cdot ' + fmtN(Hyp_val));
+        row(AKL, symb, tvTex + ' \\cdot ' + fmtN(Hyp_val));
+        apx(AKL, '\\mathbf{' + fmtN(AK_val) + '}');
+      } else if (sub === 'hyp') {
+        eq('\\cos(' + fmtDeg(akt_val) + ')', '\\dfrac{' + fmtN(AK_val) + '}{' + HypL + '}');
+        row(tvTex, symb, '\\dfrac{' + fmtN(AK_val) + '}{' + HypL + '}', '\\cdot ' + HypL);
+        row(tvTex + ' \\cdot ' + HypL, symb, fmtN(AK_val), ': ' + tvTex);
+        row(HypL, symb, '\\dfrac{' + fmtN(AK_val) + '}{' + tvTex + '}');
+        apx(HypL, '\\mathbf{' + fmtN(Hyp_val) + '}');
+      } else {
+        eq('\\cos(' + aktL + ')', '\\dfrac{' + fmtN(AK_val) + '}{' + fmtN(Hyp_val) + '}');
+        eq(aktL, invLabel('cos') + '\\!\\left(\\dfrac{' + fmtN(AK_val) + '}{' + fmtN(Hyp_val) + '}\\right)');
+        apx(aktL, '\\mathbf{' + fmtDeg(akt_val) + '}');
+      }
     }
+
   } else if (type === 'tan') {
-    rows.push('\\tan(' + aktL + ') &= \\dfrac{\\text{GK}}{\\text{AK}} = \\dfrac{' + GKL + '}{' + AKL + '} \\\\[8pt]');
-    if (sub === 'geg') {
-      eq(GKL, AKL + ' \\cdot \\tan(' + aktL + ')');
-      eq(GKL, fmtN(AK_val) + ' \\cdot \\tan(' + fmtDeg(akt_val) + ')');
-      apx(GKL, '\\mathbf{' + fmtN(GK_val) + '}');
-    } else if (sub === 'ank') {
-      eq(AKL, '\\dfrac{' + GKL + '}{\\tan(' + aktL + ')}');
-      eq(AKL, '\\dfrac{' + fmtN(GK_val) + '}{\\tan(' + fmtDeg(akt_val) + ')}');
-      apx(AKL, '\\mathbf{' + fmtN(AK_val) + '}');
+    eq('\\tan(' + aktL + ')', '\\dfrac{\\text{GK}}{\\text{AK}} = \\dfrac{' + GKL + '}{' + AKL + '}');
+
+    if (!solModeNumFirst) {
+      if (sub === 'geg') {
+        eq('\\tan(' + aktL + ')', '\\dfrac{' + GKL + '}{' + AKL + '}', '\\cdot ' + AKL);
+        eq(GKL, AKL + ' \\cdot \\tan(' + aktL + ')');
+        eq(GKL, fmtN(AK_val) + ' \\cdot \\tan(' + fmtDeg(akt_val) + ')');
+        apx(GKL, '\\mathbf{' + fmtN(GK_val) + '}');
+      } else if (sub === 'ank') {
+        eq('\\tan(' + aktL + ')', '\\dfrac{' + GKL + '}{' + AKL + '}', '\\cdot ' + AKL);
+        eq(AKL + ' \\cdot \\tan(' + aktL + ')', GKL, ': \\tan(' + aktL + ')');
+        eq(AKL, '\\dfrac{' + GKL + '}{\\tan(' + aktL + ')}');
+        eq(AKL, '\\dfrac{' + fmtN(GK_val) + '}{\\tan(' + fmtDeg(akt_val) + ')}');
+        apx(AKL, '\\mathbf{' + fmtN(AK_val) + '}');
+      } else {
+        eq(aktL, invLabel('tan') + '\\!\\left(\\dfrac{' + GKL + '}{' + AKL + '}\\right)');
+        eq(aktL, invLabel('tan') + '\\!\\left(\\dfrac{' + fmtN(GK_val) + '}{' + fmtN(AK_val) + '}\\right)');
+        apx(aktL, '\\mathbf{' + fmtDeg(akt_val) + '}');
+      }
     } else {
-      eq(aktL, invLabel('tan') + '\\!\\left(\\dfrac{' + GKL + '}{' + AKL + '}\\right)');
-      eq(aktL, invLabel('tan') + '\\!\\left(\\dfrac{' + fmtN(GK_val) + '}{' + fmtN(AK_val) + '}\\right)');
-      apx(aktL, '\\mathbf{' + fmtDeg(akt_val) + '}');
+      var tv = fmtTrigVal('tan', akt_val);
+      var tvTex = tv.tex;
+      var symb = tv.isExact ? '=' : '\\approx';
+      if (sub === 'geg') {
+        eq('\\tan(' + fmtDeg(akt_val) + ')', '\\dfrac{' + GKL + '}{' + fmtN(AK_val) + '}');
+        row(tvTex, symb, '\\dfrac{' + GKL + '}{' + fmtN(AK_val) + '}', '\\cdot ' + fmtN(AK_val));
+        row(GKL, symb, tvTex + ' \\cdot ' + fmtN(AK_val));
+        apx(GKL, '\\mathbf{' + fmtN(GK_val) + '}');
+      } else if (sub === 'ank') {
+        eq('\\tan(' + fmtDeg(akt_val) + ')', '\\dfrac{' + fmtN(GK_val) + '}{' + AKL + '}');
+        row(tvTex, symb, '\\dfrac{' + fmtN(GK_val) + '}{' + AKL + '}', '\\cdot ' + AKL);
+        row(tvTex + ' \\cdot ' + AKL, symb, fmtN(GK_val), ': ' + tvTex);
+        row(AKL, symb, '\\dfrac{' + fmtN(GK_val) + '}{' + tvTex + '}');
+        apx(AKL, '\\mathbf{' + fmtN(AK_val) + '}');
+      } else {
+        eq('\\tan(' + aktL + ')', '\\dfrac{' + fmtN(GK_val) + '}{' + fmtN(AK_val) + '}');
+        eq(aktL, invLabel('tan') + '\\!\\left(\\dfrac{' + fmtN(GK_val) + '}{' + fmtN(AK_val) + '}\\right)');
+        apx(aktL, '\\mathbf{' + fmtDeg(akt_val) + '}');
+      }
     }
+
   } else {
-    rows.push(GKL + '^2 + ' + AKL + '^2 &= ' + HypL + '^2 \\\\[3pt]');
+    // Pythagoras
+    eq(GKL + '^2 + ' + AKL + '^2', HypL + '^2');
     if (sub === 'hyp') {
-      eq(HypL, '\\sqrt{' + GKL + '^2+' + AKL + '^2}');
-      eq(HypL, '\\sqrt{' + fmtN(GK_val) + '^2+' + fmtN(AK_val) + '^2}');
-      eq(HypL, '\\sqrt{' + fmtN(round2(GK_val*GK_val + AK_val*AK_val)) + '}');
-      apx(HypL, '\\mathbf{' + fmtN(Hyp_val) + '}');
+      if (!solModeNumFirst) {
+        eq(HypL + '^2', GKL + '^2 + ' + AKL + '^2', '\\sqrt{\\phantom{X}}');
+        eq(HypL, '\\sqrt{' + GKL + '^2 + ' + AKL + '^2}');
+        eq(HypL, '\\sqrt{' + fmtN(GK_val) + '^2 + ' + fmtN(AK_val) + '^2}');
+        eq(HypL, '\\sqrt{' + fmtN(round2(GK_val*GK_val + AK_val*AK_val)) + '}');
+        apx(HypL, '\\mathbf{' + fmtN(Hyp_val) + '}');
+      } else {
+        eq(fmtN(GK_val) + '^2 + ' + fmtN(AK_val) + '^2', HypL + '^2');
+        eq(fmtN(round2(GK_val*GK_val + AK_val*AK_val)), HypL + '^2', '\\sqrt{\\phantom{X}}');
+        eq(HypL, '\\sqrt{' + fmtN(round2(GK_val*GK_val + AK_val*AK_val)) + '}');
+        apx(HypL, '\\mathbf{' + fmtN(Hyp_val) + '}');
+      }
     } else {
-      eq(GKL, '\\sqrt{' + HypL + '^2-' + AKL + '^2}');
-      eq(GKL, '\\sqrt{' + fmtN(Hyp_val) + '^2-' + fmtN(AK_val) + '^2}');
-      eq(GKL, '\\sqrt{' + fmtN(round2(Hyp_val*Hyp_val - AK_val*AK_val)) + '}');
-      apx(GKL, '\\mathbf{' + fmtN(GK_val) + '}');
+      if (!solModeNumFirst) {
+        eq(GKL + '^2', HypL + '^2 - ' + AKL + '^2', '\\sqrt{\\phantom{X}}');
+        eq(GKL, '\\sqrt{' + HypL + '^2 - ' + AKL + '^2}');
+        eq(GKL, '\\sqrt{' + fmtN(Hyp_val) + '^2 - ' + fmtN(AK_val) + '^2}');
+        eq(GKL, '\\sqrt{' + fmtN(round2(Hyp_val*Hyp_val - AK_val*AK_val)) + '}');
+        apx(GKL, '\\mathbf{' + fmtN(GK_val) + '}');
+      } else {
+        eq(fmtN(Hyp_val) + '^2 - ' + fmtN(AK_val) + '^2', GKL + '^2');
+        eq(fmtN(round2(Hyp_val*Hyp_val - AK_val*AK_val)), GKL + '^2', '\\sqrt{\\phantom{X}}');
+        eq(GKL, '\\sqrt{' + fmtN(round2(Hyp_val*Hyp_val - AK_val*AK_val)) + '}');
+        apx(GKL, '\\mathbf{' + fmtN(GK_val) + '}');
+      }
     }
   }
 
   document.getElementById('solutionPathContent').innerHTML =
     '<div class="solution-path-inner" style="color:blue;font-size:0.92em;padding:4px;">'
     + '<p style="color:#333;margin:4px 0 10px 0;line-height:1.55;">' + explanation + '</p>'
-    + '$$\\begin{aligned}' + rows.join('\n') + '\\end{aligned}$$'
+    + '$$\\begin{array}{rll}' + rows.join('\n') + '\\end{array}$$'
     + '</div>';
+
 }
 
 // ================================================================
@@ -1104,6 +1285,7 @@ function renderSolution(task, tri, nm) {
 function updateURL(){
   const url=new URL(window.location);
   url.searchParams.set('qz',   document.getElementById('quizMode').checked?'1':'0');
+  url.searchParams.set('sol',  document.getElementById('solModeSwitch').checked?'1':'0');
   url.searchParams.set('fmt',  document.querySelector('input[name="taskFormat"]:checked').value);
   url.searchParams.set('rap',  document.querySelector('input[name="raPos"]:checked').value);
   url.searchParams.set('lbl',  document.querySelector('input[name="labeling"]:checked').value);
@@ -1119,6 +1301,7 @@ function loadURL(){
   const g=(k,d)=>url.searchParams.has(k)?url.searchParams.get(k):d;
   const setR=(n,v)=>{const e=document.querySelector(`input[name="${n}"][value="${v}"]`);if(e)e.checked=true;};
   if(g('qz','0')==='1') document.getElementById('quizMode').checked=true;
+  if(g('sol','0')==='1') document.getElementById('solModeSwitch').checked=true;
   setR('taskFormat', g('fmt','random'));
   setR('raPos',      g('rap','random'));
   setR('labeling',   g('lbl','abc'));
@@ -1136,6 +1319,13 @@ document.querySelectorAll('input').forEach(e=>e.addEventListener('change',()=>{s
 document.getElementById('quizMode').addEventListener('change', function() {
   updateURL();
   if (_currentTask) renderQuiz(_currentTask, _currentTri, _currentNm);
+});
+document.getElementById('solModeSwitch').addEventListener('change', function() {
+  updateURL();
+  if (_currentTask && _currentTri && _currentNm) {
+    renderSolution(_currentTask, _currentTri, _currentNm);
+    if (window.MathJax) MathJax.typesetPromise().then(()=>scaleToFit(document.getElementById('solutionPathContent')));
+  }
 });
 document.getElementById('solutionPath').addEventListener('toggle',()=>{
   if(window.MathJax)MathJax.typesetPromise().then(()=>scaleToFit(document.getElementById('solutionPathContent')));
