@@ -4,299 +4,1038 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mathe-Tools</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-5K8WYYXDL2"></script>
     <script>
         window.dataLayer = window.dataLayer || [];
         function gtag(){dataLayer.push(arguments);}
         gtag('js', new Date());
-
         gtag('config', 'G-5K8WYYXDL2');
     </script>
+
     <style>
+        :root {
+            --bg: #f5f7fa;
+            --surface: #ffffff;
+            --surface2: #eef1f6;
+            --border: rgba(0,0,0,0.08);
+            --text: #1a1d2e;
+            --muted: #7a7f9a;
+            /* Aufgabengenerator: Rot */
+            --accent-learn: #c0392b;
+            --accent-learn-bg: rgba(192,57,43,0.08);
+            /* Übungstool: Orange */
+            --accent-uebung: #d97706;
+            --accent-uebung-bg: rgba(217,119,6,0.08);
+            /* Quiz: Lila */
+            --accent-quiz: #7c3aed;
+            --accent-quiz-bg: rgba(124,58,237,0.08);
+            /* GeoGebra: Blau */
+            --accent-geo: #0369a1;
+            --accent-geo-bg: rgba(3,105,161,0.08);
+            /* Flashcards: Grün */
+            --accent-flash: #16a34a;
+            --accent-flash-bg: rgba(22,163,74,0.08);
+            /* Spiel: Gelb */
+            --accent-game: #a9b409;
+            --accent-game-bg: rgba(180,83,9,0.08);
+            --radius: 14px;
+            /* Group header color */
+            --group-header-bg: #dbeafe;
+            --group-header-hover: #bfdbfe;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #f0f4f8;
-            margin: 0;
-            padding: 0;
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        /* ─── HEADER ─────────────────────────────────────────────── */
+        header {
+            padding: 1.6rem 1.5rem 1rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        header::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(13,122,95,0.1), transparent);
+            pointer-events: none;
+        }
+        header h1 {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: clamp(1.6rem, 5vw, 2.4rem);
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            background: linear-gradient(135deg, #1a1d2e 40%, var(--accent-learn));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        header p {
+            color: var(--muted);
+            margin-top: 0.3rem;
+            font-size: 0.9rem;
+        }
+
+        /* ─── STICKY WRAPPER ────────────────────────────────────── */
+        .sticky-top {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: linear-gradient(to bottom, var(--bg) 85%, transparent);
+        }
+
+        /* ─── FILTER BAR ─────────────────────────────────────────── */
+        .filter-bar {
+            display: flex;
+            gap: 0.4rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            padding: 0.7rem 1.5rem 0.5rem;
+        }
+        .filter-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.38rem 0.85rem;
+            border-radius: 999px;
+            border: 1.5px solid var(--border);
+            background: var(--surface);
+            color: var(--muted);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.82rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.18s ease;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .filter-btn:hover { border-color: rgba(0,0,0,0.3); color: var(--text); background: #e8ecf5; }
+        .filter-btn.active-all  { background: var(--text); color: var(--bg); border-color: var(--text); }
+        .filter-btn.active-learn { background: var(--accent-learn-bg); color: var(--accent-learn); border-color: var(--accent-learn); }
+        .filter-btn.active-uebung { background: var(--accent-uebung-bg); color: var(--accent-uebung); border-color: var(--accent-uebung); }
+        .filter-btn.active-geo   { background: var(--accent-geo-bg);   color: var(--accent-geo);   border-color: var(--accent-geo); }
+        .filter-btn.active-game  { background: var(--accent-game-bg);  color: var(--accent-game);  border-color: var(--accent-game); }
+        .filter-btn.active-quiz  { background: var(--accent-quiz-bg);  color: var(--accent-quiz);  border-color: var(--accent-quiz); }
+        .filter-btn.active-flash { background: var(--accent-flash-bg); color: var(--accent-flash); border-color: var(--accent-flash); }
+        .filter-btn .dot { width: 8px; height: 8px; border-radius: 50%; }
+        .dot-learn  { background: var(--accent-learn); }
+        .dot-uebung { background: var(--accent-uebung); }
+        .dot-geo    { background: var(--accent-geo); }
+        .dot-game   { background: var(--accent-game); }
+        .dot-quiz   { background: var(--accent-quiz); }
+        .dot-flash  { background: var(--accent-flash); }
+
+        /* ─── MAIN ───────────────────────────────────────────────── */
+        main { padding: 0 1rem 2.5rem; max-width: 1200px; margin: 0 auto; }
+
+        /* ─── MAIN TOOLBAR ───────────────────────────────────────── */
+        .main-toolbar {
+            display: flex;
+            justify-content: flex-end;
+            padding: 0.2rem 0 0.5rem;
+        }
+        .collapse-all-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            padding: 0.25rem 0.6rem;
+            border-radius: 8px;
+            border: 1.5px solid var(--border);
+            background: rgba(255,255,255,0.92);
+            backdrop-filter: blur(6px);
+            color: var(--muted);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.73rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+        }
+        .collapse-all-btn:hover { background: #e4eaf7; color: var(--text); border-color: rgba(0,0,0,0.2); }
+
+        /* ─── TOPIC GROUP ────────────────────────────────────────── */
+        .topic-group {
+            margin-bottom: 0.5rem;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius);
+            overflow: hidden;
+            transition: opacity 0.25s ease;
+        }
+        .topic-group.hidden-group { display: none; }
+
+        .group-header {
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+            padding: 0.7rem 1.1rem;
+            background: var(--group-header-bg);
+            cursor: pointer;
+            user-select: none;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+            transition: background 0.15s;
+        }
+        .group-header:hover { background: var(--group-header-hover); }
+        .group-icon { font-size: 1.1rem; flex-shrink: 0; }
+        .group-title {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 0.92rem;
+            font-weight: 700;
+            flex: 1;
+            letter-spacing: 0.01em;
+        }
+        .group-meta {
+            font-size: 0.73rem;
+            color: var(--muted);
+            background: var(--surface2);
+            padding: 0.15rem 0.5rem;
+            border-radius: 999px;
+        }
+        .group-chevron {
+            color: var(--muted);
+            font-size: 0.9rem;
+            transition: transform 0.25s ease;
+            flex-shrink: 0;
+        }
+        .topic-group.collapsed .group-chevron { transform: rotate(-90deg); }
+
+        /* ─── CARDS GRID ─────────────────────────────────────────── */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 0;
+            background: var(--bg);
+            overflow: hidden;
+        }
+        .card { border-top: 1px solid #dde3ee; border-right: 1px solid #dde3ee; }
+        .topic-group.collapsed .cards-grid { display: none; }
+
+        /* ─── CARD ───────────────────────────────────────────────── */
+        .card {
+            background: var(--surface);
+            padding: 0.85rem 1rem;
             display: flex;
             flex-direction: column;
-            align-items: center;
+            gap: 0.35rem;
+            transition: background 0.15s;
+            position: relative;
         }
+        .card:hover { background: #e4eaf7; }
+        .card.filtered-out { display: none; }
 
-        header {
-            background-color: #4a90e2;
-            color: white;
-            width: 100%;
-            padding: 2rem 0;
-            text-align: center;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-
-        h1 {
-            margin: 0;
-            font-size: 2.5rem;
-        }
-
-        main {
+        .card-top {
             display: flex;
-            flex-wrap: wrap;
+            align-items: flex-start;
+            gap: 0.5rem;
+        }
+        .type-badge {
+            flex-shrink: 0;
+            width: 28px;
+            height: 28px;
+            border-radius: 7px;
+            display: flex;
+            align-items: center;
             justify-content: center;
-            margin: 2rem 1rem;
-            gap: 2rem;
-        }
-
-        .card {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            padding: 2rem;
-            width: 300px; /* statt max-width */
-            text-align: center;
-            transition: transform 0.2s, box-shadow 0.2s;
-            flex: 0 0 300px; /* sorgt dafür, dass sie gleichmäßig nebeneinander stehen */
-        }
-
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
-        }
-
-        .card h2 {
-            margin-top: 0;
-            color: #333;
-        }
-
-        .card p {
-            color: #666;
-        }
-
-        .card a {
-            display: inline-block;
-            margin-top: 1rem;
-            padding: 0.6rem 1.2rem;
-            background-color: #4a90e2;
-            color: white;
-            text-decoration: none;
-            border-radius: 6px;
-            transition: background-color 0.2s;
-        }
-
-        .card a:hover {
-            background-color: #357ABD;
-        }
-
-        footer {
-            margin-top: auto;
-            padding: 1rem;
-            color: #888;
             font-size: 0.9rem;
+            margin-top: 1px;
+        }
+        .badge-learn  { background: var(--accent-learn-bg); }
+        .badge-uebung { background: var(--accent-uebung-bg); }
+        .badge-geo    { background: var(--accent-geo-bg); }
+        .badge-game   { background: var(--accent-game-bg); }
+        .badge-quiz   { background: var(--accent-quiz-bg); }
+        .badge-flash  { background: var(--accent-flash-bg); }
+
+        .card-title {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 0.86rem;
+            font-weight: 700;
+            line-height: 1.3;
+            color: var(--text);
+        }
+        .card-desc {
+            font-size: 0.75rem;
+            color: var(--muted);
+            line-height: 1.4;
+            padding-left: 2.1rem;
+        }
+        .card-link {
+            align-self: flex-start;
+            margin-left: 2.1rem;
+            margin-top: 0.1rem;
+            padding: 0.28rem 0.7rem;
+            border-radius: 7px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.15s;
+            touch-action: manipulation;
+        }
+        .link-learn {
+            background: var(--accent-learn-bg);
+            color: var(--accent-learn);
+            border: 1px solid rgba(192,57,43,0.25);
+        }
+        .link-learn:hover { background: rgba(192,57,43,0.15); }
+        .link-uebung {
+            background: var(--accent-uebung-bg);
+            color: var(--accent-uebung);
+            border: 1px solid rgba(217,119,6,0.25);
+        }
+        .link-uebung:hover { background: rgba(217,119,6,0.15); }
+        .link-geo {
+            background: var(--accent-geo-bg);
+            color: var(--accent-geo);
+            border: 1px solid rgba(3,105,161,0.25);
+        }
+        .link-geo:hover { background: rgba(3,105,161,0.15); }
+        .link-game {
+            background: var(--accent-game-bg);
+            color: var(--accent-game);
+            border: 1px solid rgba(180,83,9,0.25);
+        }
+        .link-game:hover { background: rgba(180,83,9,0.15); }
+        .link-quiz {
+            background: var(--accent-quiz-bg);
+            color: var(--accent-quiz);
+            border: 1px solid rgba(124,58,237,0.25);
+        }
+        .link-quiz:hover { background: rgba(124,58,237,0.15); }
+        .link-flash {
+            background: var(--accent-flash-bg);
+            color: var(--accent-flash);
+            border: 1px solid rgba(22,163,74,0.25);
+        }
+        .link-flash:hover { background: rgba(22,163,74,0.15); }
+        .link-quiz {
+            background: var(--accent-quiz-bg);
+        /* external icon */
+        .ext-icon { font-size: 0.7rem; opacity: 0.7; margin-left: 0.2rem; }
+
+        /* GeoGebra filter button SVG needs room so pill border doesn't clip it */
+        .filter-btn svg { overflow: visible; display: block; }
+        /* GeoGebra SVG icon sizing inside badge */
+        .badge-geo .geo-svg { width: 16px; height: 16px; display: block; }
+        /* Learn icon */
+        .badge-learn .learn-icon { font-size: 0.95rem; line-height: 1; }
+
+        /* ─── FOOTER ─────────────────────────────────────────────── */
+        footer {
+            text-align: center;
+            padding: 1.25rem;
+            color: var(--muted);
+            font-size: 0.8rem;
+            border-top: 1px solid var(--border);
+        }
+
+        /* ─── NO-RESULTS ─────────────────────────────────────────── */
+        #no-results {
+            display: none;
+            text-align: center;
+            padding: 3rem 1rem;
+            color: var(--muted);
+            font-size: 0.95rem;
+        }
+
+        @media (max-width: 500px) {
+            .cards-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
+        }
+        @media (max-width: 360px) {
+            .cards-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
 
-    <header>
-        <h1>Mathe-Tools</h1>
-    </header>
+<header>
+    <h1>Mathe-Tools</h1>
+    <p>Übungen, Applets &amp; Spiele für den Mathematikunterricht</p>
+</header>
 
-    <main>
-        <div class="card">
-            <h2>Quadratzahlen</h2>
-            <p>Übe die Quadratzahlen</p>
-            <a href="quadratzahlen.html">Zur Quadratzahlen-Seite</a>
+<div class="sticky-top">
+<div class="filter-bar">
+    <button class="filter-btn active-all" data-filter="all" onclick="setFilter('all', this)">
+        Alle anzeigen
+    </button>
+    <button class="filter-btn" data-filter="learn" onclick="setFilter('learn', this)">
+        <span class="dot dot-learn"></span> Aufgabengenerator
+    </button>
+    <button class="filter-btn" data-filter="quiz" onclick="setFilter('quiz', this)">
+        <span class="dot dot-quiz"></span> Quiz
+    </button>
+    <button class="filter-btn" data-filter="uebung" onclick="setFilter('uebung', this)">
+        <span class="dot dot-uebung"></span> Übungstool
+    </button>
+    <button class="filter-btn" data-filter="flash" onclick="setFilter('flash', this)">
+        <span class="dot dot-flash"></span> Flashcards
+    </button>
+    <button class="filter-btn" data-filter="geo" onclick="setFilter('geo', this)">
+        <svg style="width:20px;height:20px;flex-shrink:0" xmlns="http://www.w3.org/2000/svg" viewBox="40 8 470 464"><g stroke-linecap="round" stroke-linejoin="round"><path fill="none" stroke="currentColor" stroke-width="33.34" d="M432.345 250.876c0 87.31-75.98 158.088-169.705 158.088-93.726 0-169.706-70.778-169.706-158.088 0-87.31 75.98-158.09 169.706-158.09 93.725 0 169.705 70.78 169.705 158.09z" transform="matrix(1.0156 .01389 -.20152 .9924 42.924 8.75)"></path><path fill="#99f" stroke="currentColor" stroke-width="20" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -225.59 242.796)"></path><path fill="#99f" stroke="currentColor" stroke-width="20" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -151.12 72.004)"></path><path fill="#99f" stroke="currentColor" stroke-width="20" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -421.29 266.574)"></path><path fill="#99f" stroke="currentColor" stroke-width="20" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -483.632 100.362)"></path><path fill="#99f" stroke="currentColor" stroke-width="20" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -329.052 -23.649)"></path></g></svg> GeoGebra
+    </button>
+    <button class="filter-btn" data-filter="game" onclick="setFilter('game', this)">
+        <span class="dot dot-game"></span> Spiel
+    </button>
+</div>
+<div style="max-width:1200px;margin:0 auto;padding:0 1rem;">
+    <div class="main-toolbar">
+        <button class="collapse-all-btn" id="collapse-all-btn" onclick="toggleAllGroups()">
+            <span id="collapse-all-icon">▾▾</span>
+            <span id="collapse-all-label">Alle einklappen</span>
+        </button>
+    </div>
+</div>
+</div>
+
+<main id="main-content">
+
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- GRUPPE 1: GRUNDLAGEN & ALGEBRA -->
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <div class="topic-group" id="group-grundlagen">
+        <div class="group-header" onclick="toggleGroup('group-grundlagen')">
+            <span class="group-icon">±</span>
+            <span class="group-title">Grundlagen &amp; Algebra</span>
+            <span class="group-meta" id="meta-grundlagen">3 Tools</span>
+            <span class="group-chevron">▾</span>
         </div>
+        <div class="cards-grid">
+
+            <div class="card" data-type="flash">
+                <div class="card-top">
+                    <div class="type-badge badge-flash"><span style="font-size:1.1rem;line-height:1">🃏</span></div>
+                    <div class="card-title">Quadratzahlen</div>
+                </div>
+                <div class="card-desc">Übe die Quadratzahlen von 1 bis 20</div>
+                <a class="card-link link-flash" href="quadratzahlen.html">Zu den Karten</a>
+            </div>
+
+            <div class="card" data-type="quiz">
+                <div class="card-top">
+                    <div class="type-badge badge-quiz"><span style="font-size:1.1rem;line-height:1">❓</span></div>
+                    <div class="card-title">Gleichungsart erkennen</div>
+                </div>
+                <div class="card-desc">Welche Gleichungsart liegt vor und wie löst man sie?</div>
+                <a class="card-link link-quiz" href="gleichungart.html">Zum Quiz</a>
+            </div>
+
+            <div class="card" data-type="learn">
+                <div class="card-top">
+                    <div class="type-badge badge-learn"><span class="learn-icon">📋</span></div>
+                    <div class="card-title">Lineares Gleichungssystem</div>
+                </div>
+                <div class="card-desc">LGS mit 2 oder 3 Gleichungen lösen</div>
+                <a class="card-link link-learn" href="lgs.html">Übungs-Aufgaben</a>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- GRUPPE 2: QUADRATISCHE FUNKTIONEN -->
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <div class="topic-group" id="group-quadratisch">
+        <div class="group-header" onclick="toggleGroup('group-quadratisch')">
+            <span class="group-icon"><svg width="20" height="20" viewBox="0 0 40 30" xmlns="http://www.w3.org/2000/svg"><polyline points="2,28 8,14 14,6 20,3 26,6 32,14 38,28" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            <span class="group-title">Quadratische Funktionen</span>
+            <span class="group-meta" id="meta-quadratisch">4 Tools</span>
+            <span class="group-chevron">▾</span>
+        </div>
+        <div class="cards-grid">
+
+            <div class="card" data-type="learn">
+                <div class="card-top">
+                    <div class="type-badge badge-learn"><span class="learn-icon">📋</span></div>
+                    <div class="card-title">Scheitelpunktform</div>
+                </div>
+                <div class="card-desc">Umwandeln der Scheitelpunktform üben</div>
+                <a class="card-link link-learn" href="scheitelpunktform.html">Übungs-Aufgaben</a>
+            </div>
+
+            <div class="card" data-type="geo">
+                <div class="card-top">
+                    <div class="type-badge badge-geo"><svg class="geo-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><g stroke-linecap="round" stroke-linejoin="round"><path fill="none" stroke="#666" stroke-width="33.34" d="M432.345 250.876c0 87.31-75.98 158.088-169.705 158.088-93.726 0-169.706-70.778-169.706-158.088 0-87.31 75.98-158.09 169.706-158.09 93.725 0 169.705 70.78 169.705 158.09z" transform="matrix(1.0156 .01389 -.20152 .9924 42.924 8.75)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -225.59 242.796)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -151.12 72.004)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -421.29 266.574)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -483.632 100.362)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -329.052 -23.649)"></path></g></svg></div>
+                    <div class="card-title">GeoGebra: Quadratische Funktionen ablesen/einzeichnen</div>
+                </div>
+                <div class="card-desc">Ablesen und Einzeichnen in Scheitelpunktform</div>
+                <a class="card-link link-geo" href="https://t1p.de/geogebraScheitelpunkt" target="_blank">Zum Applet <span class="ext-icon">↗</span></a>
+            </div>
+
+            <div class="card" data-type="learn">
+                <div class="card-top">
+                    <div class="type-badge badge-learn"><span class="learn-icon">📋</span></div>
+                    <div class="card-title">pq-Formel</div>
+                </div>
+                <div class="card-desc">Anwendung der p-q-Formel trainieren</div>
+                <a class="card-link link-learn" href="pq.html">Übungs-Aufgaben</a>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- GRUPPE 3: POLYNOME & POTENZFUNKTIONEN -->
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <div class="topic-group" id="group-polynome">
+        <div class="group-header" onclick="toggleGroup('group-polynome')">
+            <span class="group-icon"><svg width="20" height="20" viewBox="0 0 40 36" xmlns="http://www.w3.org/2000/svg"><path d="M2,32 C6,32 8,20 14,18 C20,16 20,20 26,10 C32,0 34,4 38,4" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            <span class="group-title">Polynome &amp; Potenzfunktionen</span>
+            <span class="group-meta" id="meta-polynome">3 Tools</span>
+            <span class="group-chevron">▾</span>
+        </div>
+        <div class="cards-grid">
+
+            <div class="card" data-type="geo">
+                <div class="card-top">
+                    <div class="type-badge badge-geo"><svg class="geo-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><g stroke-linecap="round" stroke-linejoin="round"><path fill="none" stroke="#666" stroke-width="33.34" d="M432.345 250.876c0 87.31-75.98 158.088-169.705 158.088-93.726 0-169.706-70.778-169.706-158.088 0-87.31 75.98-158.09 169.706-158.09 93.725 0 169.705 70.78 169.705 158.09z" transform="matrix(1.0156 .01389 -.20152 .9924 42.924 8.75)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -225.59 242.796)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -151.12 72.004)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -421.29 266.574)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -483.632 100.362)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -329.052 -23.649)"></path></g></svg></div>
+                    <div class="card-title">GeoGebra: Potenzfunktionen Ablesen/Einzeichnen</div>
+                </div>
+                <div class="card-desc">Ablesen/Einzeichnen lineartransformierter Potenzfunktionen</div>
+                <a class="card-link link-geo" href="https://t1p.de/potparam" target="_blank">Zum Applet <span class="ext-icon">↗</span></a>
+            </div>
+
+            <div class="card" data-type="geo">
+                <div class="card-top">
+                    <div class="type-badge badge-geo"><svg class="geo-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><g stroke-linecap="round" stroke-linejoin="round"><path fill="none" stroke="#666" stroke-width="33.34" d="M432.345 250.876c0 87.31-75.98 158.088-169.705 158.088-93.726 0-169.706-70.778-169.706-158.088 0-87.31 75.98-158.09 169.706-158.09 93.725 0 169.705 70.78 169.705 158.09z" transform="matrix(1.0156 .01389 -.20152 .9924 42.924 8.75)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -225.59 242.796)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -151.12 72.004)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -421.29 266.574)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -483.632 100.362)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -329.052 -23.649)"></path></g></svg></div>
+                    <div class="card-title">GeoGebra: Symmetrie bei Polynomen</div>
+                </div>
+                <div class="card-desc">Symmetrie am Graphen oder der Funktionsgleichung erkennen</div>
+                <a class="card-link link-geo" href="https://t1p.de/koSymm" target="_blank">Zum Applet <span class="ext-icon">↗</span></a>
+            </div>
+
+            <div class="card" data-type="quiz">
+                <div class="card-top">
+                    <div class="type-badge badge-quiz"><span style="font-size:1.1rem;line-height:1">❓</span></div>
+                    <div class="card-title">Grenzverhalten von Polynomen</div>
+                </div>
+                <div class="card-desc">Grenzverhalten von Polynomen und Potenzfunktionen bestimmen</div>
+                <a class="card-link link-quiz" href="grenzverhalten-poly.html">Zum Quiz</a>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- GRUPPE 4: ABLEITUNGEN -->
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <div class="topic-group" id="group-ableitungen">
+        <div class="group-header" onclick="toggleGroup('group-ableitungen')">
+            <span class="group-icon">∂</span>
+            <span class="group-title">Differentialrechnung &amp; Ableitungen</span>
+            <span class="group-meta" id="meta-ableitungen">4 Tools</span>
+            <span class="group-chevron">▾</span>
+        </div>
+        <div class="cards-grid">
+
+            <div class="card" data-type="learn">
+                <div class="card-top">
+                    <div class="type-badge badge-learn"><span class="learn-icon">📋</span></div>
+                    <div class="card-title">Polynome ableiten</div>
+                </div>
+                <div class="card-desc">Ableitungen von Polynomen und Potenzfunktionen</div>
+                <a class="card-link link-learn" href="polynom-ableitung.html">Übungs-Aufgaben</a>
+            </div>
+
+            <div class="card" data-type="flash">
+                <div class="card-top">
+                    <div class="type-badge badge-flash"><span style="font-size:1.1rem;line-height:1">🃏</span></div>
+                    <div class="card-title">Weitere Ableitungen</div>
+                </div>
+                <div class="card-desc">Ableitungen weiterer Standardfunktionen festigen</div>
+                <a class="card-link link-flash" href="ableitungen.html">Zu den Karten</a>
+            </div>
+
+            <div class="card" data-type="learn">
+                <div class="card-top">
+                    <div class="type-badge badge-learn"><span class="learn-icon">📋</span></div>
+                    <div class="card-title">Kettenregel</div>
+                </div>
+                <div class="card-desc">Kettenregel sicher anwenden</div>
+                <a class="card-link link-learn" href="kettenregel.html">Übungs-Aufgaben</a>
+            </div>
+
+            <div class="card" data-type="learn">
+                <div class="card-top">
+                    <div class="type-badge badge-learn"><span class="learn-icon">📋</span></div>
+                    <div class="card-title">Produktregel</div>
+                </div>
+                <div class="card-desc">Produktregel sicher anwenden</div>
+                <a class="card-link link-learn" href="produktregel.html">Übungs-Aufgaben</a>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- GRUPPE 5: e-FUNKTION -->
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <div class="topic-group" id="group-efkt">
+        <div class="group-header" onclick="toggleGroup('group-efkt')">
+            <span class="group-icon">ℯ</span>
+            <span class="group-title">e-Funktion</span>
+            <span class="group-meta" id="meta-efkt">2 Tools</span>
+            <span class="group-chevron">▾</span>
+        </div>
+        <div class="cards-grid">
+
+            <div class="card" data-type="learn">
+                <div class="card-top">
+                    <div class="type-badge badge-learn"><span class="learn-icon">📋</span></div>
+                    <div class="card-title">e-Funktion ableiten &amp; zusammenfassen</div>
+                </div>
+                <div class="card-desc">Ableiten der e-Funktion und Terme zusammenfassen</div>
+                <a class="card-link link-learn" href="e-fkt.html">Übungs-Aufgaben</a>
+            </div>
+
+            <div class="card" data-type="quiz">
+                <div class="card-top">
+                    <div class="type-badge badge-quiz"><span style="font-size:1.1rem;line-height:1">❓</span></div>
+                    <div class="card-title">Grenzverhalten der e-Funktion</div>
+                </div>
+                <div class="card-desc">Grenzverhalten der e-Funktion bestimmen</div>
+                <a class="card-link link-quiz" href="grenzverhalten-e.html">Zum Quiz</a>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- GRUPPE 6: INTEGRALRECHNUNG -->
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <div class="topic-group" id="group-integral">
+        <div class="group-header" onclick="toggleGroup('group-integral')">
+            <span class="group-icon">∫</span>
+            <span class="group-title">Integralrechnung</span>
+            <span class="group-meta" id="meta-integral">3 Tools</span>
+            <span class="group-chevron">▾</span>
+        </div>
+        <div class="cards-grid">
+
+            <div class="card" data-type="learn">
+                <div class="card-top">
+                    <div class="type-badge badge-learn"><span class="learn-icon">📋</span></div>
+                    <div class="card-title">Stammfunktionen von Polynomen</div>
+                </div>
+                <div class="card-desc">Stammfunktionen von Polynomen finden</div>
+                <a class="card-link link-learn" href="integral_uebung.html">Übungs-Aufgaben</a>
+            </div>
+
+            <div class="card" data-type="learn">
+                <div class="card-top">
+                    <div class="type-badge badge-learn"><span class="learn-icon">📋</span></div>
+                    <div class="card-title">Bestimmte Integrale von Polynomen</div>
+                </div>
+                <div class="card-desc">Bestimmte Integrale berechnen</div>
+                <a class="card-link link-learn" href="bestimmtes_integral_uebung.html">Übungs-Aufgaben</a>
+            </div>
+
+            <div class="card" data-type="geo">
+                <div class="card-top">
+                    <div class="type-badge badge-geo"><svg class="geo-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><g stroke-linecap="round" stroke-linejoin="round"><path fill="none" stroke="#666" stroke-width="33.34" d="M432.345 250.876c0 87.31-75.98 158.088-169.705 158.088-93.726 0-169.706-70.778-169.706-158.088 0-87.31 75.98-158.09 169.706-158.09 93.725 0 169.705 70.78 169.705 158.09z" transform="matrix(1.0156 .01389 -.20152 .9924 42.924 8.75)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -225.59 242.796)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -151.12 72.004)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -421.29 266.574)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -483.632 100.362)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -329.052 -23.649)"></path></g></svg></div>
+                    <div class="card-title">GeoGebra: Geometr. Interpret. von Integralen</div>
+                </div>
+                <div class="card-desc">Visualisierung bestimmter Integrale</div>
+                <a class="card-link link-geo" href="https://www.geogebra.org/calculator/ftgpxxzx" target="_blank">Zum Applet <span class="ext-icon">↗</span></a>
+            </div>
+
+        </div>
+    </div>
+
+
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- GRUPPE 7: Vektoren -->
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <div class="topic-group" id="group-vec">
+        <div class="group-header" onclick="toggleGroup('group-vec')">
+            <span class="group-icon">↗</span>
+            <span class="group-title">Vektoren</span>
+            <span class="group-meta" id="meta-vec">2 Tools</span>
+            <span class="group-chevron">▾</span>
+        </div>
+        <div class="cards-grid">
+            
+            <div class="card" data-type="geo">
+                <div class="card-top">
+                    <div class="type-badge badge-geo"><svg class="geo-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><g stroke-linecap="round" stroke-linejoin="round"><path fill="none" stroke="#666" stroke-width="33.34" d="M432.345 250.876c0 87.31-75.98 158.088-169.705 158.088-93.726 0-169.706-70.778-169.706-158.088 0-87.31 75.98-158.09 169.706-158.09 93.725 0 169.705 70.78 169.705 158.09z" transform="matrix(1.0156 .01389 -.20152 .9924 42.924 8.75)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -225.59 242.796)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -151.12 72.004)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -421.29 266.574)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -483.632 100.362)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -329.052 -23.649)"></path></g></svg></div>
+                    <div class="card-title">GeoGebra: 3D-Koordinatensystem einzeichnen</div>
+                </div>
+                <div class="card-desc">Visualisierung des 3-dimensionalen Koordinatensystems</div>
+                <a class="card-link link-geo" href="https://t1p.de/3DKoord" target="_blank">Zum Applet <span class="ext-icon">↗</span></a>
+            </div>
+
+            <div class="card" data-type="geo">
+                <div class="card-top">
+                    <div class="type-badge badge-geo"><svg class="geo-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><g stroke-linecap="round" stroke-linejoin="round"><path fill="none" stroke="#666" stroke-width="33.34" d="M432.345 250.876c0 87.31-75.98 158.088-169.705 158.088-93.726 0-169.706-70.778-169.706-158.088 0-87.31 75.98-158.09 169.706-158.09 93.725 0 169.705 70.78 169.705 158.09z" transform="matrix(1.0156 .01389 -.20152 .9924 42.924 8.75)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -225.59 242.796)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -151.12 72.004)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -421.29 266.574)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -483.632 100.362)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -329.052 -23.649)"></path></g></svg></div>
+                    <div class="card-title">GeoGebra: Basistransformation</div>
+                </div>
+                <div class="card-desc">Visualisierung der Basistransformation</div>
+                <a class="card-link link-geo" href="https://t1p.de/koBasis" target="_blank">Zum Applet <span class="ext-icon">↗</span></a>
+            </div>
+
+        </div>
+    </div>
         
-        <div class="card">
-            <h2>pq-Formel</h2>
-            <p>Übungsaufgaben um Anwendung der p-q-Formel zu trainieren</p>
-            <a href="pq.html">Zur pq-Seite</a>
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- GRUPPE 7: TRIGONOMETRIE & SINUSFUNKTION -->
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <div class="topic-group" id="group-trig">
+        <div class="group-header" onclick="toggleGroup('group-trig')">
+            <span class="group-icon">△</span>
+            <span class="group-title">Trigonometrie</span>
+            <span class="group-meta" id="meta-trig">3 Tools</span>
+            <span class="group-chevron">▾</span>
+        </div>
+        <div class="cards-grid">
+
+            <div class="card" data-type="quiz">
+                <div class="card-top">
+                    <div class="type-badge badge-quiz"><span style="font-size:1.1rem;line-height:1">❓</span></div>
+                    <div class="card-title">Seiten im rechtwinkligen Dreieck benennen</div>
+                </div>
+                <div class="card-desc">Quiz: Ankathete, Gegenkathete, Hypotenuse benennen</div>
+                <a class="card-link link-quiz" href="seiten_benennung.html">Zum Quiz</a>
+            </div>
+
+            <div class="card" data-type="learn">
+                <div class="card-top">
+                    <div class="type-badge badge-learn"><span class="learn-icon">📋</span></div>
+                    <div class="card-title">Trigonometrie im <b>rechtwinkligen</b> Dreieck</div>
+                </div>
+                <div class="card-desc">Sinus, Kosinus, Tangens &amp; Pythagoras anwenden</div>
+                <a class="card-link link-learn" href="trigonometrie_uebung.html">Übungs-Aufgaben</a>
+            </div>
+
+            <div class="card" data-type="learn">
+                <div class="card-top">
+                    <div class="type-badge badge-learn"><span class="learn-icon">📋</span></div>
+                    <div class="card-title">Trigonometrie im <b>beliebigen</b> Dreieck</div>
+                </div>
+                <div class="card-desc">Sinus- und Kosinussatz anwenden</div>
+                <a class="card-link link-learn" href="sinuskosinussatz_uebung.html">Übungs-Aufgaben</a>
+            </div>
+
+        </div>
+    </div>
+
+    
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- GRUPPE 8: Trigonometrische Funktionen -->
+    <!-- ══════════════════════════════════════════════════════════ -->
+   <div class="topic-group" id="group-trigfunc">
+        <div class="group-header" onclick="toggleGroup('group-trigfunc')">
+            <span class="group-icon">∿</span>
+            <span class="group-title">Trigonometrische Funktionen</span>
+            <span class="group-meta" id="meta-trigfunc">5 Tools</span>
+            <span class="group-chevron">▾</span>
         </div>
 
-        <div class="card">
-            <h2>Scheitelpunktform</h2>
-            <p>Übungsaufgaben zum Umwandeln der Scheitelpunktsform</p>
-            <a href="scheitelpunktform.html">Zur Scheitelpunkts-Seite</a>
-        </div>
+        <div class="cards-grid">
+            <div class="card" data-type="geo">
+                <div class="card-top">
+                    <div class="type-badge badge-geo"><svg class="geo-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><g stroke-linecap="round" stroke-linejoin="round"><path fill="none" stroke="#666" stroke-width="33.34" d="M432.345 250.876c0 87.31-75.98 158.088-169.705 158.088-93.726 0-169.706-70.778-169.706-158.088 0-87.31 75.98-158.09 169.706-158.09 93.725 0 169.705 70.78 169.705 158.09z" transform="matrix(1.0156 .01389 -.20152 .9924 42.924 8.75)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -225.59 242.796)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -151.12 72.004)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -421.29 266.574)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -483.632 100.362)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -329.052 -23.649)"></path></g></svg></div>
+                    <div class="card-title">GeoGebra: Herleitung Sinusfunktion</div>
+                </div>
+                <div class="card-desc">Visualisierung der Herleitung der Sinusfunktion</div>
+                <a class="card-link link-geo" href="https://t1p.de/geogebra-herleitung-sinusfunktion" target="_blank">Zum Applet <span class="ext-icon">↗</span></a>
+            </div>
 
-        <div class="card">
-            <h2>GeoGebra:<br>Ablesen/Einzeichnen Quadratische Funktionen</h2>
-            <p>GeoGebra-Applet zum Üben zum Ablesen bzw. Einzeichnen von Quadratischen Funktionen (in Scheitelpunktform)</p>
-            <a href="https://t1p.de/geogebraScheitelpunkt">Zum GeoGebra-Applet</a>
-        </div>
+            <div class="card" data-type="geo">
+                <div class="card-top">
+                    <div class="type-badge badge-geo"><svg class="geo-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><g stroke-linecap="round" stroke-linejoin="round"><path fill="none" stroke="#666" stroke-width="33.34" d="M432.345 250.876c0 87.31-75.98 158.088-169.705 158.088-93.726 0-169.706-70.778-169.706-158.088 0-87.31 75.98-158.09 169.706-158.09 93.725 0 169.705 70.78 169.705 158.09z" transform="matrix(1.0156 .01389 -.20152 .9924 42.924 8.75)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -225.59 242.796)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -151.12 72.004)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -421.29 266.574)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -483.632 100.362)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -329.052 -23.649)"></path></g></svg></div>
+                    <div class="card-title">GeoGebra: Herleitung Arkussinus</div>
+                </div>
+                <div class="card-desc">Visualisierung der Arkussinus-Funktion und ihrer Herleitung</div>
+                <a class="card-link link-geo" href="https://t1p.de/geogebra-arkussinus" target="_blank">Zum Applet <span class="ext-icon">↗</span></a>
+            </div>
 
-        <div class="card">
-            <h2>Graph erkennen</h2>
-            <p>Übung zum Erkennen, der Graph welcher Standard-Funktion dargestellt ist</p>
-            <a href="graphen.html">Zur Graphen-Seite</a>
-        </div>
+            <div class="card" data-type="geo">
+                <div class="card-top">
+                    <div class="type-badge badge-geo"><svg class="geo-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><g stroke-linecap="round" stroke-linejoin="round"><path fill="none" stroke="#666" stroke-width="33.34" d="M432.345 250.876c0 87.31-75.98 158.088-169.705 158.088-93.726 0-169.706-70.778-169.706-158.088 0-87.31 75.98-158.09 169.706-158.09 93.725 0 169.705 70.78 169.705 158.09z" transform="matrix(1.0156 .01389 -.20152 .9924 42.924 8.75)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -225.59 242.796)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -151.12 72.004)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -421.29 266.574)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -483.632 100.362)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -329.052 -23.649)"></path></g></svg></div>
+                    <div class="card-title">GeoGebra: Allgemeine Sinusfunktion ablesen/einzeichnen</div>
+                </div>
+                <div class="card-desc">Parameter der allgemeinen Sinusfunktion üben</div>
+                <a class="card-link link-geo" href="https://t1p.de/geogebra-sinus-parameter-ueben" target="_blank">Zum Applet <span class="ext-icon">↗</span></a>
+            </div>
 
-        <div class="card">
-            <h2>Polynome ableiten</h2>
-            <p>Übung zum Ableiten von Polynomen und Potenzfunktionen</p>
-            <a href="polynom-ableitung.html">Zur Polynom-Ableitungs-Seite</a>
-        </div>
+            <div class="card" data-type="geo">
+                <div class="card-top">
+                    <div class="type-badge badge-geo"><svg class="geo-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><g stroke-linecap="round" stroke-linejoin="round"><path fill="none" stroke="#666" stroke-width="33.34" d="M432.345 250.876c0 87.31-75.98 158.088-169.705 158.088-93.726 0-169.706-70.778-169.706-158.088 0-87.31 75.98-158.09 169.706-158.09 93.725 0 169.705 70.78 169.705 158.09z" transform="matrix(1.0156 .01389 -.20152 .9924 42.924 8.75)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -225.59 242.796)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -151.12 72.004)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -421.29 266.574)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -483.632 100.362)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -329.052 -23.649)"></path></g></svg></div>
+                    <div class="card-title">GeoGebra: Parameter der Sinusfunktion verändern</div>
+                </div>
+                <div class="card-desc">Auswirkungen der Lineartransformations-Parameter verstehen</div>
+                <a class="card-link link-geo" href="https://t1p.de/geogebra-sinus-parameter-veraendern" target="_blank">Zum Applet <span class="ext-icon">↗</span></a>
+            </div>
 
-        <div class="card">
-            <h2>Weitere Ableitungen</h2>
-            <p>Übung zum Festigen der Ableitungen weiterer Standardfunktionen</p>
-            <a href="ableitungen.html">Zur Andere-Ableitungen-Seite</a>
-        </div>
+            <div class="card" data-type="geo">
+                <div class="card-top">
+                    <div class="type-badge badge-geo"><svg class="geo-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><g stroke-linecap="round" stroke-linejoin="round"><path fill="none" stroke="#666" stroke-width="33.34" d="M432.345 250.876c0 87.31-75.98 158.088-169.705 158.088-93.726 0-169.706-70.778-169.706-158.088 0-87.31 75.98-158.09 169.706-158.09 93.725 0 169.705 70.78 169.705 158.09z" transform="matrix(1.0156 .01389 -.20152 .9924 42.924 8.75)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -225.59 242.796)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -151.12 72.004)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -421.29 266.574)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -483.632 100.362)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -329.052 -23.649)"></path></g></svg></div>
+                    <div class="card-title">GeoGebra: Fourierreihe</div>
+                </div>
+                <div class="card-desc">Visualisierung der Fourierreihe</div>
+                <a class="card-link link-geo" href="https://t1p.de/geogebra-fourier" target="_blank">Zum Applet <span class="ext-icon">↗</span></a>
+            </div>
 
-        <div class="card">
-            <h2>Kettenregel</h2>
-            <p>Übung zum Festigen der Kettenregel</p>
-            <a href="kettenregel.html">Zur Kettenregel-Seite</a>
         </div>
+    </div>
 
-        <div class="card">
-            <h2>Produktregel</h2>
-            <p>Übung zum Festigen der Produktregel</p>
-            <a href="produktregel.html">Zur Produktregel-Seite</a>
-        </div>
 
-        <div class="card">
-            <h2>e-Funktion ableiten und zusammenfassen</h2>
-            <p>Übung zum Ableiten der e-Funktion und Zusammenfassen</p>
-            <a href="e-fkt.html">Zur e-Ableitungs-Seite</a>
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- GRUPPE 9: Mathematik-Sonstiges -->
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <div class="topic-group" id="group-mathematik-sonstiges">
+        <div class="group-header" onclick="toggleGroup('group-mathematik-sonstiges')">
+            <span class="group-icon">🔢</span>
+            <span class="group-title">Mathematik-Sonstiges</span>
+            <span class="group-meta" id="meta-mathematik-sonstiges">1 Tool</span>
+            <span class="group-chevron">▾</span>
         </div>
+        <div class="cards-grid">
 
-        <div class="card">
-            <h2>Grenzverhalten von e-Funktion bestimmen</h2>
-            <p>Übung zum Grenzverhalten der e-Funktion</p>
-            <a href="grenzverhalten-e.html">Zur e-Grenzverhalten-Seite</a>
-        </div>
+            <div class="card" data-type="flash">
+                <div class="card-top">
+                    <div class="type-badge badge-flash"><span style="font-size:1.1rem;line-height:1">🃏</span></div>
+                    <div class="card-title">Graph erkennen</div>
+                </div>
+                <div class="card-desc">Welche Standard-Funktion wird dargestellt?</div>
+                <a class="card-link link-flash" href="graphen.html">Zu den Karten</a>
+            </div>
 
-        <div class="card">
-            <h2>Stammfunktionen von Polynomen</h2>
-            <p>Übung zum Finden von Stammfunktionen von Polynomen</p>
-            <a href="integral_uebung.html">Zur Polynom-Stammfunktions-Seite</a>
         </div>
+    </div>
 
-        <div class="card">
-            <h2>Bestimmte Integrale von Polynomen</h2>
-            <p>Übung zum Berechnen von Bestimmten Integralen bei Polynomen</p>
-            <a href="bestimmtes_integral_uebung.html">Zur Bestimmte-Integrale-Seite</a>
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- GRUPPE 9: Informatik -->
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <div class="topic-group" id="group-informatik">
+        <div class="group-header" onclick="toggleGroup('group-informatik')">
+            <span class="group-icon">💻</span>
+            <span class="group-title">Informatik</span>
+            <span class="group-meta" id="meta-informatik">2 Tools</span>
+            <span class="group-chevron">▾</span>
         </div>
+        <div class="cards-grid">
 
-        <div class="card">
-            <h2>GeoGebra:<br>Geometrische Interpretation von Bestimmten Integralen</h2>
-            <p>GeoGebra-Applet zur Visualisierung der geometrischen Interpretation von Bestimmten Integralen</p>
-            <a href="https://www.geogebra.org/calculator/ftgpxxzx">Zum GeoGebra-Applet</a>
-        </div>
+                <div class="card" data-type="uebung">
+                <div class="card-top">
+                    <div class="type-badge badge-uebung"><span style="font-size:1.1rem;line-height:1">🧠</span></div>
+                    <div class="card-title">Binärzahlen</div>
+                </div>
+                <div class="card-desc">Umrechnung zwischen Binär- und Dezimalzahlen üben</div>
+                <a class="card-link link-uebung" href="binary.html">Zum Tool</a>
+            </div>
 
-        <div class="card">
-            <h2>GeoGebra:<br>Ablesen/Einzeichnen Lineartransformationen Potenzfunktionen</h2>
-            <p>GeoGebra-Applet zum Üben zum Ablesen bzw. Einzeichnen von lineartransformierten Potenzfunktionen (rationale Exponenten)</p>
-            <a href="https://t1p.de/potparam">Zum GeoGebra-Applet</a>
-        </div>
+            <div class="card" data-type="uebung">
+                <div class="card-top">
+                    <div class="type-badge badge-uebung"><span style="font-size:1.1rem;line-height:1">🧠</span></div>
+                    <div class="card-title">RSA</div>
+                </div>
+                <div class="card-desc">RSA-Verschlüsselung Schritt für Schritt üben</div>
+                <a class="card-link link-uebung" href="RSA_interaktiv.html">Zum Tool</a>
+            </div>
 
-        <div class="card">
-            <h2>GeoGebra:<br>Übung Symmetrie bei Polynomen</h2>
-            <p>GeoGebra-Applet zum Üben des Erkennens von Symmetrie bei Polynomen an Graphen oder Funktionsgleichung</p>
-            <a href="https://t1p.de/koSymm">Zum GeoGebra-Applet</a>
         </div>
+    </div>
 
-        <div class="card">
-            <h2>GeoGebra:<br>Übung Raten des Grades bei Polynomen</h2>
-            <p>GeoGebra-Applet zum Üben des Erkennens von Grad und Raten bei Polynomen am Graphen</p>
-            <a href="https://t1p.de/koGradRaten">Zum GeoGebra-Applet</a>
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <!-- GRUPPE 9: SPIELE -->
+    <!-- ══════════════════════════════════════════════════════════ -->
+    <div class="topic-group" id="group-spiele">
+        <div class="group-header" onclick="toggleGroup('group-spiele')">
+            <span class="group-icon">🎲</span>
+            <span class="group-title">Spiele</span>
+            <span class="group-meta" id="meta-spiele">1 Tool</span>
+            <span class="group-chevron">▾</span>
         </div>
+        <div class="cards-grid">
 
-        <div class="card">
-            <h2>Gleichungsart erkennen</h2>
-            <p>Übung zum Erkennen, welche Gleichungsart in der Polynomgleichung vorliegt und wie diese zu lösen ist</p>
-            <a href="gleichungart.html">Zur Gleichungs-Art-Seite</a>
-        </div>
+            <div class="card" data-type="game">
+                <div class="card-top">
+                    <div class="type-badge badge-game">🎮</div>
+                    <div class="card-title">TRIO</div>
+                </div>
+                <div class="card-desc">Zufallsgeneriertes Spielfeld für das Mathe-Spiel TRIO</div>
+                <a class="card-link link-game" href="TRIO.html">Zum Spiel</a>
+            </div>
 
-        <div class="card">
-            <h2>Lineares Gleichungssystem</h2>
-            <p>Übungsaufgaben um Lineare Gleichungssysteme (mit 2 oder 3 Gleichungen) zu lösen</p>
-            <a href="lgs.html">Zur LGS-Seite</a>
         </div>
+    </div>
 
-        <div class="card">
-            <h2>GeoGebra:<br>Erklärung Einzeichnen 3-dimensionales Koordinatensystem</h2>
-            <p>GeoGebra-Applet zur Visualisierung des Einzeichnens in ein 3-dimensionales Koordinatensystem</p>
-            <a href="https://t1p.de/3DKoord">Zum GeoGebra-Applet</a>
-        </div>
+    <div id="no-results">Keine Tools für diesen Filter gefunden.</div>
 
-        <div class="card">
-            <h2>GeoGebra:<br>Erklärung Basistransformation</h2>
-            <p>GeoGebra-Applet zur Visualisierung der Basistransformation</p>
-            <a href="https://t1p.de/koBasis">Zum GeoGebra-Applet</a>
-        </div>
-        
-        <div class="card">
-            <h2>Seiten im <b>rechtwinkligen</b> Dreieck benennen</h2>
-            <p>Quiz zum Benennen der Seiten im rechtwinkligen Dreieck (Ankathete, Gegenkathete, Hypotenuse)</p>
-            <a href="seiten_benennung.html">Zur Seiten-Benennungs-Seite</a>
-        </div>
+</main>
 
-        <div class="card">
-            <h2>Trigonometrie im <b>rechtwinkligen</b> Dreieck</h2>
-            <p>Übungsaufgaben zur Anwendung von Trigonometrie in rechtwinkligen Dreiecken (Sinus, Kosinus, Tangens, Satz des Pythagoras)</p>
-            <a href="trigonometrie_uebung.html">Zur Trigonometrie-Seite</a>
-        </div>
+<footer>© 2026 Koch &nbsp;·&nbsp; Mathe-Tools</footer>
 
-        <div class="card">
-            <h2>Trigonometrie im <b>beliebigen</b> Dreieck</h2>
-            <p>Übungsaufgaben zur Anwendung von Trigonometrie in beliebigen Dreiecken (Sinussatz, Kosinussatz)</p>
-            <a href="sinuskosinussatz_uebung.html">Zur Trigonometrie-Seite</a>
-        </div>
+<script>
+    // ── URL STATE ──────────────────────────────────────────────────
+    // Hash format: #filter=geo&collapsed=grundlagen,integral
+    // Both params are optional; omitting = defaults (all / none collapsed)
 
-        <div class="card">
-            <h2>GeoGebra:<br>Herleitung Sinusfunktion</h2>
-            <p>GeoGebra-Applet zur Herleitung der Sinusfunktion</p>
-            <a href="https://t1p.de/geogebra-herleitung-sinusfunktion">Zum GeoGebra-Applet</a>
-        </div>
+    function getHashParams() {
+        const hash = location.hash.replace('#', '');
+        const params = {};
+        hash.split('&').forEach(part => {
+            const [k, v] = part.split('=');
+            if (k) params[k] = v || '';
+        });
+        return params;
+    }
 
-        <div class="card">
-            <h2>GeoGebra:<br>Herleitung Arkussinus-Funktion</h2>
-            <p>GeoGebra-Applet zur Herleitung der Arkussinus-Funktion</p>
-            <a href="https://t1p.de/geogebra-arkussinus">Zum GeoGebra-Applet</a>
-        </div>
+    function buildHash(filter, collapsedIds) {
+        const parts = [];
+        if (filter && filter !== 'all') parts.push('filter=' + filter);
+        if (collapsedIds.length > 0) parts.push('collapsed=' + collapsedIds.join(','));
+        return parts.length ? '#' + parts.join('&') : '#';
+    }
 
-        <div class="card">
-            <h2>GeoGebra:<br>Ablesen/Einzeichnen allgemeine Sinusfunktion</h2>
-            <p>GeoGebra-Applet zum Üben zum Ablesen bzw. Einzeichnen der allgemeinen Sinusfunktion</p>
-            <a href="https://t1p.de/geogebra-sinus-parameter-ueben">Zum GeoGebra-Applet</a>
-        </div>
+    function pushHash(filter, collapsedIds) {
+        const hash = buildHash(filter, collapsedIds);
+        // Use replaceState to avoid clogging browser history on every click
+        history.replaceState(null, '', hash === '#' ? location.pathname : hash);
+    }
 
-        <div class="card">
-            <h2>GeoGebra:<br>Verändern der Parameter der allgemeinen Sinusfunktion</h2>
-            <p>GeoGebra-Applet zum Verständnis der Auswirkungen der einzelnen Lineartransformations-Parameter der allgemeinen Sinusfunktion</p>
-            <a href="https://t1p.de/geogebra-sinus-parameter-veraendern">Zum GeoGebra-Applet</a>
-        </div>
+    function getCollapsedIds() {
+        return Array.from(document.querySelectorAll('.topic-group.collapsed'))
+            .map(g => g.id.replace('group-', ''));
+    }
 
-        <div class="card">
-            <h2>GeoGebra:<br>Visualisierung Fourierreihe</h2>
-            <p>GeoGebra-Applet zur Visualisierung der Fourierreihe</p>
-            <a href="https://t1p.de/geogebra-fourier">Zum GeoGebra-Applet</a>
-        </div>
+    // ── FILTER ────────────────────────────────────────────────────
+    let currentFilter = 'all';
 
-        <div class="card">
-            <h2>Binärzahlen</h2>
-            <p>Übe die Umrechnung zwischen Binär- und Dezimalzahlen</p>
-            <a href="binary.html">Zur Binärzahlen-Seite</a>
-        </div>
+    function setFilter(type, btn, skipHash) {
+        currentFilter = type;
 
-        <div class="card">
-            <h2>TRIO</h2>
-            <p>Zufallsgeneriertes Spielfeld für TRIO</p>
-            <a href="TRIO.html">Zur TRIO-Seite</a>
-        </div>
-    </main>
+        // expand all groups so filtered results are visible
+        document.querySelectorAll('.topic-group').forEach(g => g.classList.remove('collapsed'));
 
-    <footer>
-        © 2026 Koch
-    </footer>
+        // update button styles
+        document.querySelectorAll('.filter-btn').forEach(b => b.className = 'filter-btn');
+        if (!btn) btn = document.querySelector('[data-filter="' + type + '"]');
+        if (btn) {
+            if (type === 'all')    btn.classList.add('active-all');
+            if (type === 'learn')  btn.classList.add('active-learn');
+            if (type === 'uebung') btn.classList.add('active-uebung');
+            if (type === 'geo')    btn.classList.add('active-geo');
+            if (type === 'game')   btn.classList.add('active-game');
+            if (type === 'quiz')   btn.classList.add('active-quiz');
+            if (type === 'flash')  btn.classList.add('active-flash');
+        }
+
+        // show/hide cards and groups
+        const groups = document.querySelectorAll('.topic-group');
+        let anyVisible = false;
+
+        groups.forEach(group => {
+            const cards = group.querySelectorAll('.card');
+            let visibleInGroup = 0;
+            cards.forEach(card => {
+                const match = type === 'all' || card.dataset.type === type;
+                card.classList.toggle('filtered-out', !match);
+                if (match) visibleInGroup++;
+            });
+            group.classList.toggle('hidden-group', visibleInGroup === 0);
+            if (visibleInGroup > 0) anyVisible = true;
+            const metaEl = document.getElementById('meta-' + group.id.replace('group-', ''));
+            if (metaEl) metaEl.textContent = visibleInGroup + (visibleInGroup === 1 ? ' Tool' : ' Tools');
+        });
+
+        document.getElementById('no-results').style.display = anyVisible ? 'none' : 'block';
+
+        updateCollapseAllBtn();
+        if (!skipHash) pushHash(currentFilter, getCollapsedIds());
+    }
+
+    // ── COLLAPSE ALL ──────────────────────────────────────────────
+    function toggleAllGroups() {
+        const groups = Array.from(document.querySelectorAll('.topic-group:not(.hidden-group)'));
+        const allCollapsed = groups.every(g => g.classList.contains('collapsed'));
+        groups.forEach(g => {
+            if (allCollapsed) g.classList.remove('collapsed');
+            else g.classList.add('collapsed');
+        });
+        updateCollapseAllBtn();
+        pushHash(currentFilter, getCollapsedIds());
+    }
+
+    function updateCollapseAllBtn() {
+        const groups = Array.from(document.querySelectorAll('.topic-group:not(.hidden-group)'));
+        const allCollapsed = groups.every(g => g.classList.contains('collapsed'));
+        const btn = document.getElementById('collapse-all-btn');
+        if (!btn) return;
+        document.getElementById('collapse-all-icon').textContent = allCollapsed ? '▸▸' : '▾▾';
+        document.getElementById('collapse-all-label').textContent = allCollapsed ? 'Alle ausklappen' : 'Alle einklappen';
+    }
+
+    // ── COLLAPSE ──────────────────────────────────────────────────
+    function toggleGroup(id) {
+        document.getElementById(id).classList.toggle('collapsed');
+        updateCollapseAllBtn();
+        pushHash(currentFilter, getCollapsedIds());
+    }
+
+    // ── RESTORE FROM URL ──────────────────────────────────────────
+    function restoreFromHash() {
+        const params = getHashParams();
+
+        // restore collapsed groups first (before filter, which expands all)
+        if (params.collapsed) {
+            params.collapsed.split(',').forEach(slug => {
+                const el = document.getElementById('group-' + slug);
+                if (el) el.classList.add('collapsed');
+            });
+        }
+
+        // restore filter (pass skipHash=true so we don't reset collapsed state)
+        const filter = params.filter || 'all';
+        // Apply filter without auto-expanding groups
+        currentFilter = filter;
+        const btn = document.querySelector('[data-filter="' + filter + '"]');
+        document.querySelectorAll('.filter-btn').forEach(b => b.className = 'filter-btn');
+        if (btn) {
+            if (filter === 'all')    btn.classList.add('active-all');
+            if (filter === 'learn')  btn.classList.add('active-learn');
+            if (filter === 'uebung') btn.classList.add('active-uebung');
+            if (filter === 'geo')    btn.classList.add('active-geo');
+            if (filter === 'game')   btn.classList.add('active-game');
+            if (filter === 'quiz')   btn.classList.add('active-quiz');
+            if (filter === 'flash')  btn.classList.add('active-flash');
+        }
+        const groups = document.querySelectorAll('.topic-group');
+        let anyVisible = false;
+        groups.forEach(group => {
+            const cards = group.querySelectorAll('.card');
+            let visibleInGroup = 0;
+            cards.forEach(card => {
+                const match = filter === 'all' || card.dataset.type === filter;
+                card.classList.toggle('filtered-out', !match);
+                if (match) visibleInGroup++;
+            });
+            group.classList.toggle('hidden-group', visibleInGroup === 0);
+            if (visibleInGroup > 0) anyVisible = true;
+            const metaEl = document.getElementById('meta-' + group.id.replace('group-', ''));
+            if (metaEl) metaEl.textContent = visibleInGroup + (visibleInGroup === 1 ? ' Tool' : ' Tools');
+        });
+        document.getElementById('no-results').style.display = anyVisible ? 'none' : 'block';
+        updateCollapseAllBtn();
+    }
+
+    // Run on load
+    restoreFromHash();
+
+    // Also handle browser back/forward
+    window.addEventListener('hashchange', restoreFromHash);
+</script>
 
 </body>
 </html>
-
-
-
-
-
-

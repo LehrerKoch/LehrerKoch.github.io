@@ -1,0 +1,1515 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RSA-Verfahren – Schritt für Schritt</title>
+<script>
+MathJax = {
+  tex: { inlineMath: [['\\(','\\)'],['$','$']], displayMath: [['$$','$$'],['\\[','\\]']] },
+  startup: { typeset: false }
+};
+</script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-5K8WYYXDL2"></script>
+  <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-5K8WYYXDL2');
+  </script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<style>
+html { overflow-y: scroll; }
+body {
+  font-family: Calibri, sans-serif;
+  padding: 0 2% 40px 2%;
+  max-width: 900px; margin: 0 auto;
+  background: #f9fdf9; color: #1a1a1a;
+}
+h1 { font-size: 1.6em; margin-bottom: 4px; color: #1a4a1a; }
+.subtitle { color: #555; font-size: 0.93em; margin-bottom: 18px; }
+
+/* ── Buttons ── */
+button {
+  background-color: #4CAF50; border: none; color: white;
+  padding: 9px 20px; font-size: 13px; margin: 3px 2px;
+  cursor: pointer; border-radius: 5px; transition: background 0.18s; font-family: inherit;
+}
+button:hover { background-color: #388E3C; }
+button:disabled { background-color: #aaa; cursor: not-allowed; }
+.btn-blue { background-color: #1976D2 !important; }
+.btn-blue:hover { background-color: #0d47a1 !important; }
+.btn-red { background-color: #c62828 !important; }
+.btn-red:hover { background-color: #8e0000 !important; }
+
+/* ── Step cards ── */
+.step-card {
+  border: 2px solid #b2d8b2; border-radius: 8px; background: #fff;
+  margin-bottom: 18px; overflow: hidden;
+  box-shadow: 0 2px 6px rgba(76,175,80,0.07);
+}
+.step-header {
+  background: #eaf2ea; padding: 8px 14px;
+  display: flex; align-items: center; gap: 10px;
+  border-bottom: 1px solid #b2d8b2;
+}
+.step-num {
+  background: #4CAF50; color: white; border-radius: 50%;
+  width: 28px; height: 28px; display: flex; align-items: center;
+  justify-content: center; font-weight: bold; font-size: 0.95em; flex-shrink: 0;
+}
+.step-title { font-weight: bold; color: #1a4a1a; font-size: 1.05em; }
+.step-body { padding: 12px 16px; }
+/* collapsed: hide everything except .result-box */
+.step-body.collapsed { padding: 8px 16px; }
+.step-body.collapsed > *:not(.result-box) { display: none !important; }
+/* clickable collapsed header */
+.step-header.collapsed-header { cursor: pointer; }
+.step-header.collapsed-header:hover { background: #d4ecd4; }
+.step-header.collapsed-header .step-title::after { content: ' ✏️'; font-size: 0.8em; opacity: 0.7; }
+
+/* ── 2-way slider ── */
+.switch-solmode {
+  display: inline-block; position: relative;
+  height: 34px; background: #ccc; border-radius: 17px;
+  cursor: pointer; user-select: none; margin: 6px 0 10px 0; min-width: 340px;
+}
+.switch-solmode input { display: none; }
+.solmode-knob {
+  position: absolute; top: 2px; left: 2px;
+  width: calc(50% - 2px); height: 30px;
+  background: #4CAF50; border-radius: 15px; transition: left .25s, background .25s;
+}
+.switch-solmode input:checked + .solmode-knob { left: calc(50%); background: #E07B00; }
+.solmode-labels {
+  position: absolute; width: 100%; height: 100%;
+  display: flex; font-size: 10.5px; font-weight: bold;
+}
+.solmode-labels span { flex: 1; text-align: center; line-height: 34px; z-index: 1; color: #222; }
+
+/* ── 3-way slider ── */
+.sw3 {
+  display: inline-block; position: relative;
+  height: 34px; background: #ccc; border-radius: 17px;
+  user-select: none; margin: 6px 0 10px 0; min-width: 480px;
+}
+.sw3-knob {
+  position: absolute; top: 2px; left: 2px;
+  width: calc(33.333% - 2px); height: 30px;
+  background: #4CAF50; border-radius: 15px; transition: left .25s, background .25s;
+}
+.sw3-labels {
+  position: absolute; width: 100%; height: 100%;
+  display: flex; font-size: 10px; font-weight: bold;
+}
+.sw3-labels span {
+  flex: 1; text-align: center; line-height: 34px; z-index: 1; color: #222; cursor: pointer;
+}
+
+@media(max-width:520px){ .switch-solmode,.sw3{ min-width:98%; display:block; } }
+
+/* ── details/summary ── */
+details { border: 2px solid #000; margin: 8px 0 6px 0; }
+summary { margin: 5px; padding: 0 3px 3px 3px; cursor: pointer; font-weight: bold; display: block; }
+summary::after { margin-left: 1ch; display: inline-block; content: '▶️'; transition: 0.2s; }
+details[open] > summary::after { transform: rotate(90deg); }
+.dc { color: #1a3a8f; font-size: 0.97em; padding: 6px 14px 12px 14px; line-height: 1.7; }
+.dc p { margin: 6px 0; }
+.mb { text-align: center; margin: 10px 0; }
+
+/* ── Inputs ── */
+input[type="number"], input[type="text"] {
+  border: 2px solid #4CAF50; border-radius: 5px;
+  padding: 6px 10px; font-size: 1em; font-family: inherit;
+  width: 160px; margin: 4px 6px 4px 0;
+}
+input:focus { outline: none; border-color: #1a4a1a; }
+input[type="range"] { width: 220px; margin: 0 8px; cursor: pointer; accent-color: #4CAF50; }
+
+/* ── Result box ── */
+.result-box {
+  background: #f0faf0; border: 1.5px solid #81c784;
+  border-radius: 6px; padding: 10px 16px; margin: 10px 0 6px 0;
+  font-size: 1.08em; font-weight: bold; color: #1a4a1a;
+}
+.result-box.hidden { display: none; }
+
+.error-msg { color: #c62828; font-size: 0.93em; margin: 4px 0; min-height: 1.1em; }
+.hint { color: #555; font-size: 0.88em; font-style: italic; }
+.fn { background: #fff9c4; border-left: 4px solid #f9a825; padding: 6px 12px; margin: 8px 0; border-radius: 0 5px 5px 0; }
+
+/* ── Slider for digits ── */
+.slider-row { display: flex; align-items: center; gap: 6px; margin: 6px 0 4px 0; flex-wrap: wrap; }
+.slider-row-main { display: flex; align-items: center; gap: 6px; flex-wrap: nowrap; }
+.slider-val { font-weight: bold; font-size: 1.1em; color: #1a4a1a; min-width: 28px; flex-shrink: 0; }
+.slider-info { color: #555; font-size: 0.85em; }
+
+/* ── Equation steps ── */
+.eq-steps p { margin: 2px 0 2px 12px; font-size: 0.97em; }
+
+/* ── Summary table ── */
+.stbl { border-collapse: collapse; margin: 10px 0; width: 100%; max-width: 560px; }
+.stbl td, .stbl th { border: 1px solid #b2d8b2; padding: 6px 14px; text-align: left; }
+.stbl th { background: #eaf2ea; color: #1a4a1a; }
+.stbl td:first-child { font-weight: bold; color: #1a4a1a; font-family: monospace; font-size: 1.05em; }
+
+/* ── Key badges ── */
+.kb { display: inline-block; border-radius: 20px; padding: 4px 14px; font-weight: bold; font-size: 0.95em; margin: 3px 2px; }
+.pub { background: #e3f2fd; border: 2px solid #1976D2; color: #0d47a1; }
+.priv { background: #fce4ec; border: 2px solid #c62828; color: #8e0000; }
+
+/* ── Progress ── */
+.progress-bar { display: flex; gap: 6px; margin: 10px 0 20px 0; flex-wrap: wrap; }
+.ps { width: 30px; height: 8px; border-radius: 4px; background: #c8e6c9; transition: background .3s; }
+.ps.active { background: #4CAF50; }
+.ps.done { background: #81c784; }
+
+/* ── Alice-Bob ── */
+.alice-bob { background: #f3e5f5; border: 1.5px solid #9c27b0; border-radius: 6px; padding: 10px 14px; margin: 10px 0; font-size: 0.97em; }
+.alice-bob b { color: #6a1b9a; }
+
+/* ── Crypto row ── */
+.crow { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin: 4px 0; }
+.arrow { font-size: 1.4em; color: #4CAF50; }
+
+/* ── Scaling for narrow screens (from trigonometry site) ── */
+.scale-el { transform-origin: top left; display: inline-block; min-width: 100%; }
+.scale-wrapper { overflow: hidden; width: 98%; padding: 0.3em 0.2em; }
+
+/* Force MathJax display blocks inside result-box to be left-aligned */
+.result-box .MathJax_Display, .result-box mjx-container[display="true"] {
+  text-align: left !important;
+  margin: 4px 0 !important;
+}
+/* Left-align any display block explicitly */
+.latexleft mjx-container[display="true"] {
+  text-align: left !important;
+  margin: 4px 0 !important;
+}
+</style>
+</head>
+<body>
+
+<h1>🔐 RSA-Verfahren – Schritt für Schritt</h1>
+<p class="subtitle">Lerne, wie der RSA-Algorithmus funktioniert, und berechne deine eigenen Schlüssel.</p>
+
+<div class="progress-bar">
+  <div class="ps active" id="ps0"></div><div class="ps" id="ps1"></div><div class="ps" id="ps2"></div>
+  <div class="ps" id="ps3"></div><div class="ps" id="ps4"></div><div class="ps" id="ps5"></div>
+  <div class="ps" id="ps6"></div>
+</div>
+
+<!-- ══ SCHRITT 1: Primzahlen ══ -->
+<div class="step-card" id="card0">
+  <div class="step-header" id="hdr0"><div class="step-num">1</div><div class="step-title">Primzahlen p und q wählen</div></div>
+  <div class="step-body" id="body0">
+    <p>Wähle zwei verschiedene Primzahlen <b>p</b> und <b>q</b>.</p>
+
+    <div class="sw3" id="sw3_0">
+      <div class="sw3-knob" id="sw3k0"></div>
+      <div class="sw3-labels">
+        <span onclick="setMode0(0)">🎲 Zufällig</span>
+        <span onclick="setMode0(1)">⭐ Bekannte Paare</span>
+        <span onclick="setMode0(2)">✏️ Manuell</span>
+      </div>
+    </div><br>
+
+    <!-- Zufällig -->
+    <div id="p0a">
+      <div style="margin:4px 0">
+        <label class="switch-solmode" style="min-width:300px">
+          <input type="checkbox" id="togBitDez" onchange="updateStellenLabel(true)">
+          <div class="solmode-knob"></div>
+          <div class="solmode-labels"><span>🔢 Dezimalstellen</span><span>💻 Bit-Länge</span></div>
+        </label>
+      </div>
+      <div class="slider-row">
+        <div class="slider-row-main">
+          <span id="stellenLabel" style="white-space:nowrap">Dezimalstellen:</span>
+          <input type="range" id="stellenSlider" min="1" max="15" value="2" oninput="updateStellenLabel(false)" style="width:180px;flex-shrink:0">
+          <span class="slider-val" id="stellenVal">2</span>
+        </div>
+        <span class="slider-info" id="stellenInfo"></span>
+      </div>
+      <button onclick="generatePrimes()">Primzahlen generieren</button>
+    </div>
+
+    <!-- Bekannte Paare -->
+    <div id="p0b" style="display:none">
+      <p class="hint">Bekannte Primzahlpaare (gut für Rechenbeispiele):</p>
+      <div style="display:flex;flex-wrap:wrap;gap:5px;margin:4px 0">
+        <button class="btn-blue" onclick="setPrimes(3n,11n)">p=3, q=11</button>
+        <button class="btn-blue" onclick="setPrimes(7n,13n)">p=7, q=13</button>
+        <button class="btn-blue" onclick="setPrimes(11n,17n)">p=11, q=17</button>
+        <button class="btn-blue" onclick="setPrimes(17n,19n)">p=17, q=19</button>
+        <button class="btn-blue" onclick="setPrimes(53n,61n)">p=53, q=61</button>
+        <button class="btn-blue" onclick="setPrimes(101n,107n)">p=101, q=107</button>
+        <button class="btn-blue" onclick="setPrimes(251n,257n)">p=251, q=257</button>
+        <button class="btn-blue" onclick="setPrimes(1009n,1013n)">p=1009, q=1013</button>
+      </div>
+    </div>
+
+    <!-- Manuell -->
+    <div id="p0c" style="display:none">
+      <label>p = <input type="number" id="inputP" placeholder="Primzahl" min="2" onfocus="this.select()"></label>
+      <label>q = <input type="number" id="inputQ" placeholder="Primzahl" min="2" onfocus="this.select()"></label>
+      <button onclick="checkManualPrimes()">Überprüfen</button>
+    </div>
+
+    <div class="error-msg" id="err0"></div>
+
+    <div class="result-box hidden" id="res0">
+      <div id="res0content"></div>
+    </div>
+
+    <details id="det0a" style="display:none">
+      <summary>📖 Erklärung: Primzahlen und das Faktorisierungsproblem</summary>
+      <div class="dc">
+        <p>Eine <b>Primzahl</b> ist eine natürliche Zahl &gt; 1, die nur durch 1 und sich selbst teilbar ist (2, 3, 5, 7, 11, …).</p>
+        <p>Die Sicherheit von RSA beruht darauf, dass das Produkt \(N = p \cdot q\) aus zwei großen Primzahlen praktisch nicht in seine Faktoren zerlegbar ist (<b>Faktorisierungsproblem</b>).</p>
+      </div>
+    </details>
+
+    <details id="det0b" style="display:none">
+      <summary>🔒 Sicherheitshinweis: Wie groß sollten p und q sein?</summary>
+      <div class="dc">
+        <p><b>Empfehlungen (BSI 2024/2025):</b> Mindestens <b>3000-Bit-Schlüssel</b> für langfristige Sicherheit, was je ca. 1500-Bit-Primzahlen (≈ 450 Dezimalstellen) entspricht. 2048-Bit-Schlüssel (je ca. 617 Dezimalstellen) sind kurzfristig noch akzeptiert.</p>
+        <p><b>Bedingung an das Verhältnis p/q:</b> Die Primzahlen sollten nicht zu weit auseinanderliegen. Als Faustregel gilt:</p>
+        <div class="mb">$$\bigl|\log p - \log q\bigr| \;<\; \tfrac{1}{3}\log N \;=\; \tfrac{1}{3}\log(pq)$$</div>
+        <p>Bzw. als Verhältnis: \(\dfrac{\max(p,q)}{\min(p,q)} < N^{1/4}\). Ist diese Bedingung verletzt, greift der <b>Fermat-Faktorisierungsangriff</b>.</p>
+        <p>Zudem sollten <b>p−1</b> und <b>q−1</b> je einen großen Primfaktor besitzen (sog. <i>starke Primzahlen</i>), um den Pohlig-Hellman- und Pollard-p-1-Angriff zu verhindern.</p>
+      </div>
+    </details>
+
+    <div id="next0" style="display:none;margin-top:10px">
+      <button onclick="goToStep(1)">Weiter zu Schritt 2 ▶</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SCHRITT 2: N und m ══ -->
+<div class="step-card" id="card1" style="display:none">
+  <div class="step-header" id="hdr1"><div class="step-num">2</div><div class="step-title">N und m = φ(N) berechnen</div></div>
+  <div class="step-body" id="body1">
+    <p>Berechne das RSA-Modul <b>N</b> und den Euler'schen Wert <b>m = φ(N)</b> aus deinen Primzahlen.</p>
+
+    <label class="switch-solmode">
+      <input type="checkbox" id="tog1" onchange="toggleMode1()">
+      <div class="solmode-knob"></div>
+      <div class="solmode-labels"><span>🖩 Automatisch</span><span>✏️ Selbst berechnen</span></div>
+    </label><br>
+
+    <div id="p1a">
+      <button onclick="calcNandM_auto()">N und m berechnen</button>
+    </div>
+    <div id="p1b" style="display:none">
+      <p>Rechne selbst:<br>
+      \(N = p \cdot q\) und \(m = (p-1)\cdot(q-1)\)<br>
+      <span class="hint">mit p = <b id="p1_p">?</b>, q = <b id="p1_q">?</b></span></p>
+      <label>N = <input type="number" id="inputN" placeholder="Dein N" onfocus="this.select()" style="width:200px"></label>
+      <label>m = <input type="number" id="inputM" placeholder="Dein m" onfocus="this.select()" style="width:200px"></label>
+      <button onclick="checkNandM()">Überprüfen</button>
+    </div>
+
+    <div class="error-msg" id="err1"></div>
+
+    <div id="nm_calc" style="display:none;margin:6px 0;"></div>
+
+    <div class="result-box hidden" id="res1">
+      <div id="res1content"></div>
+    </div>
+
+    <details id="detNM" style="display:none">
+      <summary>📖 Erklärung: Was bedeuten N und m?</summary>
+      <div class="dc">
+        <p><b>N = p · q</b> ist das RSA-Modul. Es ist Teil beider Schlüssel; alle Rechnungen finden modulo N statt.</p>
+        <p><b>m = φ(N)</b> (Euler'sche Totientfunktion) zählt die zu N teilerfremden Zahlen von 1 bis N. Für \(N = p \cdot q\) gilt:</p>
+        <div class="mb">$$\varphi(N) = (p-1)(q-1)$$</div>
+        <p>m bleibt <b>streng geheim</b>. Wäre m bekannt, ließe sich d trivial berechnen.</p>
+      </div>
+    </details>
+
+    <div id="next1" style="display:none;margin-top:8px">
+      <button onclick="goToStep(2)">Weiter zu Schritt 3 ▶</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SCHRITT 3: e ══ -->
+<div class="step-card" id="card2" style="display:none">
+  <div class="step-header" id="hdr2"><div class="step-num">3</div><div class="step-title">Öffentlichen Exponenten e wählen</div></div>
+  <div class="step-body" id="body2">
+    <p>Wähle <b>e</b> mit \(1 < e < m\) und \(\text{ggT}(e,\,m) = 1\) (teilerfremd zu m).</p>
+    <p id="eConditionLine" style="display:none" class="hint"></p>
+
+    <div class="sw3" id="sw3_2">
+      <div class="sw3-knob" id="sw3k2"></div>
+      <div class="sw3-labels">
+        <span onclick="setModeE(0)">🎲 Zufällig</span>
+        <span onclick="setModeE(1)">⭐ Häufige Werte</span>
+        <span onclick="setModeE(2)">✏️ Manuell</span>
+      </div>
+    </div><br>
+
+    <div id="pe_a"><button onclick="generateE()">e zufällig bestimmen</button></div>
+
+    <div id="pe_b" style="display:none">
+      <p class="hint">Häufig verwendete e-Werte in der Praxis (werden auf Teilerfremheit zu m geprüft):</p>
+      <div style="display:flex;flex-wrap:wrap;gap:5px;margin:6px 0" id="eStdBtns"></div>
+    </div>
+
+    <div id="pe_c" style="display:none">
+      <label>e = <input type="number" id="inputE" placeholder="z.B. 65537" min="2" onfocus="this.select()"></label>
+      <button onclick="checkManualE()">Überprüfen</button>
+    </div>
+
+    <div class="error-msg" id="err2"></div>
+
+    <div class="result-box hidden" id="res2">
+      <div id="res2content"></div>
+    </div>
+
+    <details id="det2" style="display:none">
+      <summary>📖 ggT-Überprüfung: Euklidischer Algorithmus als Gleichungen</summary>
+      <div class="dc">
+        <p>Wir überprüfen \(\text{ggT}(e,\,m) = 1\) mit dem Euklidischen Algorithmus durch wiederholte Division:</p>
+        <div id="eEuklidEqs" class="eq-steps"></div>
+      </div>
+    </details>
+
+    <div id="next2" style="display:none;margin-top:10px">
+      <button onclick="goToStep(3)">Weiter zu Schritt 4 ▶</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SCHRITT 4: d ══ -->
+<div class="step-card" id="card3" style="display:none">
+  <div class="step-header" id="hdr3"><div class="step-num">4</div><div class="step-title">Privaten Exponenten d berechnen</div></div>
+  <div class="step-body" id="body3">
+    <p>Berechne das modulare Inverse <b>d</b> von e modulo m:</p>
+    <div class="fn" style="text-align:center">$$d \cdot e \;\equiv\; 1 \pmod{m}$$</div>
+
+    <label class="switch-solmode">
+      <input type="checkbox" id="tog3" onchange="toggleMode3()">
+      <div class="solmode-knob"></div>
+      <div class="solmode-labels"><span>🖩 Automatisch berechnen</span><span>✏️ Selbst berechnen</span></div>
+    </label><br>
+
+    <div id="p3a"><button onclick="calcD_auto()">d berechnen</button></div>
+    <div id="p3b" style="display:none">
+      <label>d = <input type="number" id="inputD" placeholder="Dein d" onfocus="this.select()" style="width:200px"></label>
+      <button onclick="checkManualD()">Überprüfen</button>
+    </div>
+
+    <div class="error-msg" id="err3"></div>
+
+    <div class="result-box hidden" id="res3">
+      <div id="res3content"></div>
+    </div>
+
+    <div id="dExplSlider" style="display:none;margin-top:10px">
+      <label class="switch-solmode" style="min-width:380px">
+        <input type="checkbox" id="togDExpl" onchange="switchDExpl()">
+        <div class="solmode-knob"></div>
+        <div class="solmode-labels">
+          <span>📐 Erw. Euklidischer Algorithmus</span>
+          <span>✅ Bedingung d·e≡1 prüfen</span>
+        </div>
+      </label>
+    </div>
+
+    <details id="det3" style="display:none">
+      <summary id="det3sum">📐 Erweiterter Euklidischer Algorithmus</summary>
+      <div class="dc" id="dExplContent"></div>
+    </details>
+
+    <div id="next3" style="display:none;margin-top:10px">
+      <button onclick="goToStep(4)">Weiter zur Zusammenfassung ▶</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SCHRITT 5: Zusammenfassung ══ -->
+<div class="step-card" id="card4" style="display:none">
+  <div class="step-header" id="hdr4"><div class="step-num">5</div><div class="step-title">Zusammenfassung der Schlüssel</div></div>
+  <div class="step-body" id="body4">
+    <div class="scale-wrapper"><div class="scale-el"><table class="stbl">
+      <tr><th>Variable</th><th>Wert</th><th>Beschreibung</th></tr>
+      <tr><td>p</td><td id="sum_p">–</td><td>Primzahl 1 (geheim!)</td></tr>
+      <tr><td>q</td><td id="sum_q">–</td><td>Primzahl 2 (geheim!)</td></tr>
+      <tr><td>N</td><td id="sum_N">–</td><td>RSA-Modul (öffentlich)</td></tr>
+      <tr><td>m = φ(N)</td><td id="sum_m">–</td><td>Euler-Wert (geheim!)</td></tr>
+      <tr><td>e</td><td id="sum_e">–</td><td>Öffentlicher Exponent</td></tr>
+      <tr><td>d</td><td id="sum_d">–</td><td>Privater Exponent (geheim!)</td></tr>
+    </table></div></div>
+    <p>
+      <span class="kb pub">🔑 Öffentlicher Schlüssel: (e, N) = <span id="pubKey">?</span></span>
+    </p>
+    <p>
+      <span class="kb priv">🔒 Privater Schlüssel: (d, N) = <span id="privKey">?</span></span>
+    </p>
+
+    <div class="alice-bob">
+      <p><b>Alice möchte Bob eine geheime Nachricht schicken:</b></p>
+      <p>🧑 <b>Bob</b> generiert seinen Schlüssel und veröffentlicht seinen <b>öffentlichen Schlüssel (e, N)</b>. Seinen privaten Schlüssel (d, N) behält er geheim.</p>
+      <p>👩 <b>Alice</b> kennt (e, N). Sie hat Nachricht T und berechnet: \(V = T^e \bmod N\). Sie schickt V an Bob.</p>
+      <p>🧑 <b>Bob</b> empfängt V und entschlüsselt: \(T = V^d \bmod N\). Nur Bob kann entschlüsseln, weil nur er d kennt!</p>
+      <p>🕵️ <b>Eve</b> (Angreiferin) sieht V und (e, N). Um d zu errechnen, bräuchte sie m = φ(N) – dazu müsste sie N in p·q faktorisieren, was für große N praktisch unmöglich ist.</p>
+    </div>
+
+    <details>
+      <summary>📐 Mathematische Erklärung: Warum funktioniert RSA?</summary>
+      <div class="dc">
+        <p>Das RSA-Verfahren beruht auf dem <b>Satz von Euler</b>: Für jede zu N teilerfremde Zahl T gilt:</p>
+        <div class="mb">$$T^{\varphi(N)} \equiv 1 \pmod{N}$$</div>
+        <p>Da \(d \cdot e \equiv 1 \pmod{m}\), gibt es ein \(k \in \mathbb{Z}\) mit \(d \cdot e = 1 + k \cdot m\). Damit folgt:</p>
+        <div class="mb">$$(T^e)^d = T^{e \cdot d} = T^{1+k \cdot m} = T \cdot \bigl(T^{m}\bigr)^k \overset{\text{Euler}}{\equiv} T \cdot 1^k = T \pmod{N}$$</div>
+        <p>Verschlüsselung (mit e) und Entschlüsselung (mit d) heben sich also auf!</p>
+        <p>Die <b>Sicherheit</b>: Um aus dem öffentlichen (e, N) das geheime d zu berechnen, müsste man m = φ(N) kennen – und dafür die Primfaktoren von N. Das ist das schwere <b>Faktorisierungsproblem</b>.</p>
+      </div>
+    </details>
+
+    <div style="margin-top:12px">
+      <button onclick="goToStep(5)">Weiter zur Verschlüsselung ▶</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SCHRITT 6: Verschlüsseln ══ -->
+<div class="step-card" id="card5" style="display:none">
+  <div class="step-header" id="hdr5"><div class="step-num">6</div><div class="step-title">Nachricht verschlüsseln</div></div>
+  <div class="step-body" id="body5">
+    <p>Verschlüssele eine Zahl T mit dem <span class="kb pub" style="padding:2px 10px">öffentlichen Schlüssel (e=<span id="encE">?</span>, N=<span id="encN">?</span>)</span></p>
+    <div class="fn" style="text-align:center">$$V = T^e \bmod N$$</div>
+
+    <label class="switch-solmode" style="min-width:320px">
+      <input type="checkbox" id="togEnc" onchange="toggleEncMode()">
+      <div class="solmode-knob"></div>
+      <div class="solmode-labels"><span>✏️ Eigene Zahl eingeben</span><span>🖩 Testzahl (automatisch)</span></div>
+    </label><br>
+
+    <div id="enc_a">
+      <label>T = <input type="number" id="inputT" placeholder="Klartextzahl" min="0" onfocus="this.select()"></label>
+      <button onclick="doEncrypt()">Verschlüsseln</button>
+    </div>
+    <div id="enc_b" style="display:none">
+      <button onclick="encryptAuto()">T = <span id="encAutoT">?</span> verschlüsseln</button>
+    </div>
+
+    <div class="error-msg" id="errEnc"></div>
+
+    <div class="result-box hidden" id="resEnc">
+      <div id="resEncContent"></div>
+    </div>
+
+    <details id="detEnc" style="display:none">
+      <summary>📖 Erklärung: Modulares Potenzieren</summary>
+      <div class="dc">
+        <label class="switch-solmode" style="min-width:360px">
+          <input type="checkbox" id="togEncExpl" onchange="switchEncExpl()">
+          <div class="solmode-knob"></div>
+          <div class="solmode-labels"><span>💻 Binäre Square-and-Multiply</span><span>📐 Potenzgesetze (ausführlich)</span></div>
+        </label>
+
+        <div id="enc_expl_bin">
+          <p><b>Das Problem:</b> e kann sehr groß sein (z.B. 65537). T direkt 65537-mal mit sich zu multiplizieren wäre enorm langsam – und die Zwischenergebnisse würden riesige Zahlen ergeben.</p>
+          <p><b>Der Trick:</b> Wir schreiben e in Binär und arbeiten uns Bit für Bit von rechts nach links durch. In jeder Runde wird der aktuelle Wert <b>quadriert</b> (mod N). Ist das aktuelle Bit eine 1, nehmen wir diesen Wert zusätzlich ins Ergebnis auf. Ist es eine 0, überspringen wir diese Runde.</p>
+          <p>Am Ende multiplizieren wir alle aufgenommenen Werte miteinander (mod N) – das ist V.</p>
+          <div id="encBinSteps"></div>
+        </div>
+
+        <div id="enc_expl_pow" style="display:none">
+          <p><b>Ausführliche Methode (analog zum Skript):</b> Wir nutzen die Potenzgesetze \(a^{2k} = (a^2)^k\) und \(a^{2k+1} = a \cdot (a^2)^k\) kombiniert mit modularer Reduktion:</p>
+          <div id="encPowSteps"></div>
+        </div>
+      </div>
+    </details>
+
+    <div style="margin-top:12px">
+      <button onclick="goToStep(6)">Weiter zur Entschlüsselung ▶</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SCHRITT 7: Entschlüsseln ══ -->
+<div class="step-card" id="card6" style="display:none">
+  <div class="step-header" id="hdr6"><div class="step-num">7</div><div class="step-title">Nachricht entschlüsseln</div></div>
+  <div class="step-body" id="body6">
+    <p>Entschlüssele V mit dem <span class="kb priv" style="padding:2px 10px">privaten Schlüssel (d=<span id="decD">?</span>, N=<span id="decN">?</span>)</span></p>
+    <div class="fn" style="text-align:center">$$T = V^d \bmod N$$</div>
+
+    <label class="switch-solmode" style="min-width:320px">
+      <input type="checkbox" id="togDec" onchange="toggleDecMode()">
+      <div class="solmode-knob"></div>
+      <div class="solmode-labels"><span>✏️ Eigene Zahl eingeben</span><span>↩️ Vorheriges V nutzen</span></div>
+    </label><br>
+
+    <div id="dec_a">
+      <label>V = <input type="number" id="inputV" placeholder="Chiffretextzahl" min="0" onfocus="this.select()"></label>
+      <button onclick="doDecrypt()">Entschlüsseln</button>
+    </div>
+    <div id="dec_b" style="display:none">
+      <button onclick="decryptAuto()">V = <span id="decAutoV">?</span> entschlüsseln</button>
+    </div>
+
+    <div class="error-msg" id="errDec"></div>
+
+    <div class="result-box hidden" id="resDec">
+      <div id="resDecContent"></div>
+      <div id="decVerify" style="margin-top:6px;font-size:0.92em;font-weight:normal"></div>
+    </div>
+
+    <details id="detDec" style="display:none">
+      <summary>📖 Erklärung: Warum ergibt sich wieder T?</summary>
+      <div class="dc">
+        <p>Da \(e \cdot d \equiv 1 \pmod{\varphi(N)}\), gilt für jede Klartextzahl T:</p>
+        <div class="mb">$$(T^e)^d = T^{ed} = T^{1+k\varphi(N)} = T \cdot (T^{\varphi(N)})^k \equiv T \cdot 1 = T \pmod{N}$$</div>
+        <p>Nur der Inhaber des privaten Schlüssels d kann entschlüsseln – e und N sind öffentlich, aber ohne Kenntnis von p und q ist d praktisch nicht berechenbar.</p>
+      </div>
+    </details>
+
+    <div style="margin-top:16px;padding-top:12px;border-top:2px solid #b2d8b2">
+      <button onclick="resetAll()" class="btn-red">🔄 Neu starten</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════
+const S = { p:0n, q:0n, N:0n, m:0n, e:0n, d:0n };
+let lastV = null, lastT = null;
+let mode0 = 0, modeE = 0;
+let encBinHTML = '', encPowHTML = '';
+
+// ═══════════════════════════════════════════════════
+// MATH
+// ═══════════════════════════════════════════════════
+function isPrime(n) {
+  if (n < 2n) return false;
+  if (n < 4n) return true;
+  if (n % 2n === 0n || n % 3n === 0n) return false;
+  for (let i = 5n; i * i <= n; i += 6n)
+    if (n % i === 0n || n % (i+2n) === 0n) return false;
+  return true;
+}
+
+function rndBig(lo, hi) {
+  const range = hi - lo + 1n;
+  const bytes = Math.ceil(range.toString(16).length / 2) + 4;
+  const arr = new Uint8Array(bytes);
+  crypto.getRandomValues(arr);
+  let v = 0n;
+  for (const b of arr) v = (v << 8n) | BigInt(b);
+  return lo + v % range;
+}
+
+function rndPrimeDez(d) {
+  const lo = 10n ** BigInt(d - 1), hi = 10n ** BigInt(d) - 1n;
+  let p; do { p = rndBig(lo, hi); } while (!isPrime(p));
+  return p;
+}
+
+function rndPrimeBit(b) {
+  const lo = 1n << BigInt(b - 1), hi = (1n << BigInt(b)) - 1n;
+  let p; do { p = rndBig(lo, hi); } while (!isPrime(p));
+  return p;
+}
+
+function gcd(a, b) { while (b) [a, b] = [b, a % b]; return a; }
+
+function gcdSteps(a, b) {
+  const steps = [];
+  let [x, y] = a >= b ? [a, b] : [b, a];
+  while (y) { const q = x/y, r = x%y; steps.push({a:x,b:y,q,r}); [x,y]=[y,r]; }
+  return { g: x, steps };
+}
+
+function extGcd(a, b) {
+  if (!b) return [a, 1n, 0n];
+  const [g, u, v] = extGcd(b, a % b);
+  return [g, v, u - a/b * v];
+}
+
+function modInv(a, n) {
+  const [g, u] = extGcd(BigInt(a), BigInt(n));
+  if (g !== 1n) return null;
+  return ((u % BigInt(n)) + BigInt(n)) % BigInt(n);
+}
+
+function modPow(base, exp, mod) {
+  base = BigInt(base) % BigInt(mod); exp = BigInt(exp); mod = BigInt(mod);
+  let r = 1n;
+  while (exp > 0n) {
+    if (exp & 1n) r = r * base % mod;
+    exp >>= 1n; base = base * base % mod;
+  }
+  return r;
+}
+
+// ═══════════════════════════════════════════════════
+// PROGRESS & STEP NAVIGATION
+// ═══════════════════════════════════════════════════
+function updateProgress(step) {
+  for (let i = 0; i < 7; i++) {
+    const el = document.getElementById('ps' + i);
+    el.className = 'ps' + (i < step ? ' done' : i === step ? ' active' : '');
+  }
+}
+
+function collapseStep(i) {
+  const body = document.getElementById('body' + i);
+  const hdr  = document.getElementById('hdr'  + i);
+  if (body) body.classList.add('collapsed');
+  if (hdr)  {
+    hdr.classList.add('collapsed-header');
+    hdr.onclick = () => reactivateStep(i);
+  }
+}
+
+function uncollapseStep(i) {
+  const body = document.getElementById('body' + i);
+  const hdr  = document.getElementById('hdr'  + i);
+  if (body) body.classList.remove('collapsed');
+  if (hdr)  { hdr.classList.remove('collapsed-header'); hdr.onclick = null; }
+}
+
+function closeAllDetails() {
+  document.querySelectorAll('details[open]').forEach(d => d.removeAttribute('open'));
+}
+
+// When user clicks a collapsed step header: re-expand it, hide all later steps
+function reactivateStep(i) {
+  closeAllDetails();
+  uncollapseStep(i);
+  // Hide all steps after i
+  for (let j = i + 1; j <= 6; j++) {
+    const card = document.getElementById('card' + j);
+    if (card) card.style.display = 'none';
+    uncollapseStep(j);
+  }
+  updateProgress(i);
+  document.getElementById('card' + i).scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function goToStep(step) {
+  collapseStep(step - 1);
+  const card = document.getElementById('card' + step);
+  card.style.display = '';
+  updateProgress(step);
+  if (step === 1) { document.getElementById('p1_p').textContent = S.p; document.getElementById('p1_q').textContent = S.q; }
+  if (step === 2) populateStepE();
+  if (step === 4) populateSummary();
+  if (step === 5) populateEncStep();
+  if (step === 6) populateDecStep();
+  card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  typeset(card);
+}
+
+function typeset(el) {
+  if (window.MathJax && MathJax.typesetPromise) {
+    MathJax.typesetPromise([el]).then(() => {
+      el.querySelectorAll('.scale-el').forEach(scaleToFit);
+    });
+  }
+}
+
+// ═══════════════════════════════════════════════════
+// STEP 1: PRIMZAHLEN
+// ═══════════════════════════════════════════════════
+function setMode0(m) {
+  mode0 = m;
+  const k = document.getElementById('sw3k0');
+  k.style.left = ['2px','calc(33.333%)','calc(66.666%)'][m];
+  k.style.background = ['#4CAF50','#1976D2','#E07B00'][m];
+  ['p0a','p0b','p0c'].forEach((id,i) =>
+    document.getElementById(id).style.display = i === m ? '' : 'none');
+  document.getElementById('err0').textContent = '';
+}
+
+// Remember last value for each mode separately
+const stellenDefaults = { dez: 2, bit: 5 };
+let lastStellenDez = 2, lastStellenBit = 5;
+
+function updateStellenLabel(fromToggle) {
+  const isBit = document.getElementById('togBitDez').checked;
+  const slider = document.getElementById('stellenSlider');
+  if (fromToggle) {
+    // Save current value for the mode we're leaving, restore for the mode we're entering
+    if (isBit) {
+      lastStellenDez = parseInt(slider.value);
+      slider.min = 4; slider.max = 52;
+      slider.value = lastStellenBit;
+    } else {
+      lastStellenBit = parseInt(slider.value);
+      slider.min = 1; slider.max = 15;
+      slider.value = lastStellenDez;
+    }
+  } else {
+    if (isBit) { slider.min = 4; slider.max = 52; }
+    else        { slider.min = 1; slider.max = 15; }
+  }
+  const val = parseInt(slider.value);
+  document.getElementById('stellenLabel').textContent = isBit ? 'Bit-Länge:' : 'Dezimalstellen:';
+  document.getElementById('stellenVal').textContent = val;
+  if (isBit) {
+    document.getElementById('stellenInfo').textContent = `(ca. ${Math.ceil(val * Math.log10(2))} Dezimalstellen)`;
+  } else {
+    document.getElementById('stellenInfo').textContent = `(ca. ${Math.pow(10,val-1).toFixed(0)}–${(Math.pow(10,val)-1).toFixed(0)})`;
+  }
+}
+
+function generatePrimes() {
+  const isBit = document.getElementById('togBitDez').checked;
+  const val = parseInt(document.getElementById('stellenSlider').value);
+  try {
+    let p, q;
+    if (isBit) { p = rndPrimeBit(val); do { q = rndPrimeBit(val); } while (q === p); }
+    else { p = rndPrimeDez(val); do { q = rndPrimeDez(val); } while (q === p); }
+    if (p > q) [p, q] = [q, p];
+    setPrimes(p, q);
+  } catch { document.getElementById('err0').textContent = 'Fehler. Probiere eine kleinere Zahl.'; }
+}
+
+function checkManualPrimes() {
+  const pv = document.getElementById('inputP').value.trim();
+  const qv = document.getElementById('inputQ').value.trim();
+  const err = document.getElementById('err0');
+  if (!pv || !qv) { err.textContent = 'Bitte beide Werte eingeben.'; return; }
+  let p, q;
+  try { p = BigInt(pv); q = BigInt(qv); } catch { err.textContent = 'Ungültige Zahlen.'; return; }
+  if (!isPrime(p)) { err.textContent = `${p} ist keine Primzahl.`; return; }
+  if (!isPrime(q)) { err.textContent = `${q} ist keine Primzahl.`; return; }
+  if (p === q) { err.textContent = 'p und q müssen verschieden sein.'; return; }
+  if (p > q) [p, q] = [q, p];
+  err.textContent = '';
+  setPrimes(p, q);
+}
+
+function setPrimes(p, q) {
+  closeAllDetails();
+  S.p = p; S.q = q;
+  document.getElementById('err0').textContent = '';
+  document.getElementById('res0content').innerHTML =
+    `<div class="scale-wrapper"><div class="scale-el">$$\\begin{array}{ll} p &= ${p} \\\\ q &= ${q} \\end{array}$$</div></div>`;
+  document.getElementById('res0').classList.remove('hidden');
+  document.getElementById('det0a').style.display = '';
+  document.getElementById('det0b').style.display = '';
+  document.getElementById('next0').style.display = '';
+  typeset(document.getElementById('card0'));
+}
+
+// ═══════════════════════════════════════════════════
+// STEP 2: N und m
+// ═══════════════════════════════════════════════════
+function toggleMode1() {
+  const man = document.getElementById('tog1').checked;
+  document.getElementById('p1a').style.display = man ? 'none' : '';
+  document.getElementById('p1b').style.display = man ? '' : 'none';
+  document.getElementById('err1').textContent = '';
+  document.getElementById('nm_calc').style.display = 'none';
+  document.getElementById('res1').classList.add('hidden');
+  document.getElementById('detNM').style.display = 'none';
+  document.getElementById('next1').style.display = 'none';
+}
+
+function setNandM(N, m) {
+  closeAllDetails();
+  S.N = N; S.m = m;
+  // Full calculation shown before the result box, in a normal paragraph area
+  document.getElementById('nm_calc').innerHTML =
+    `<div class="latexleft"><div class="scale-wrapper"><div class="scale-el">`
+    + `$$\\begin{array}{lll}`
+    + `N &= p \\cdot q &= ${S.p} \\cdot ${S.q} = ${N} \\\\[4pt]`
+    + `m &= (p-1)\\cdot(q-1) &= (${S.p}-1)\\cdot(${S.q}-1) = ${S.p-1n}\\cdot${S.q-1n} = ${m}`
+    + `\\end{array}$$`
+    + `</div></div></div>`;
+  document.getElementById('nm_calc').style.display = '';
+  // Result box: only the final values
+  document.getElementById('res1content').innerHTML =
+    `<div class="scale-wrapper"><div class="scale-el">$$\\begin{array}{ll} N &= ${N} \\\\[2pt] m &= ${m} \\end{array}$$</div></div>`;
+  document.getElementById('res1').classList.remove('hidden');
+  document.getElementById('detNM').style.display = '';
+  document.getElementById('next1').style.display = '';
+  typeset(document.getElementById('card1'));
+}
+
+function calcNandM_auto() { setNandM(S.p * S.q, (S.p-1n)*(S.q-1n)); }
+
+function checkNandM() {
+  const nv = document.getElementById('inputN').value.trim();
+  const mv = document.getElementById('inputM').value.trim();
+  const err = document.getElementById('err1');
+  if (!nv || !mv) { err.textContent = 'Bitte beide Werte eingeben.'; return; }
+  let N, m;
+  try { N = BigInt(nv); m = BigInt(mv); } catch { err.textContent = 'Ungültige Zahlen.'; return; }
+  const Nc = S.p * S.q, mc = (S.p-1n)*(S.q-1n);
+  if (N !== Nc || m !== mc) {
+    err.textContent = (N!==Nc ? `N falsch (richtig: ${Nc}). ` : '') + (m!==mc ? `m falsch (richtig: ${mc}).` : '');
+    return;
+  }
+  err.textContent = '';
+  setNandM(Nc, mc);
+}
+
+// ═══════════════════════════════════════════════════
+// STEP 3: e
+// ═══════════════════════════════════════════════════
+function setModeE(m) {
+  modeE = m;
+  const k = document.getElementById('sw3k2');
+  k.style.left = ['2px','calc(33.333%)','calc(66.666%)'][m];
+  k.style.background = ['#4CAF50','#1976D2','#E07B00'][m];
+  ['pe_a','pe_b','pe_c'].forEach((id,i) =>
+    document.getElementById(id).style.display = i === m ? '' : 'none');
+  document.getElementById('err2').textContent = '';
+}
+
+function populateStepE() {
+  // Show concrete condition for current m
+  const condLine = document.getElementById('eConditionLine');
+  condLine.innerHTML = `Konkret für dieses m: Wähle e mit \\(1 < e < ${S.m}\\) und \\(\\text{ggT}(e,\\,${S.m}) = 1\\).`;
+  condLine.style.display = '';
+  typeset(condLine);
+  const common = [3n,5n,17n,257n,65537n];
+  const labels = ['3 (klassisch)','5','17','257','65537 (Fermat-Primzahl, Standard)'];
+  const c = document.getElementById('eStdBtns');
+  c.innerHTML = '';
+  common.forEach((ev, i) => {
+    const btn = document.createElement('button');
+    if (ev >= S.m) {
+      btn.textContent = `e = ${common[i]} ✗ (zu groß für dieses m)`;
+      btn.disabled = true;
+    } else if (gcd(ev, S.m) !== 1n) {
+      btn.textContent = `e = ${common[i]} ✗ (nicht teilerfremd zu m)`;
+      btn.disabled = true;
+    } else {
+      btn.className = 'btn-blue';
+      btn.textContent = labels[i];
+      btn.onclick = () => setE(ev);
+    }
+    c.appendChild(btn);
+  });
+}
+
+function generateE() {
+  let e, t = 0;
+  do { e = rndBig(2n, S.m-1n); t++; if(t>50000) break; } while (gcd(e, S.m) !== 1n);
+  setE(e);
+}
+
+function checkManualE() {
+  const ev = document.getElementById('inputE').value.trim();
+  const err = document.getElementById('err2');
+  if (!ev) { err.textContent = 'Bitte einen Wert eingeben.'; return; }
+  let e;
+  try { e = BigInt(ev); } catch { err.textContent = 'Ungültige Zahl.'; return; }
+  if (e < 2n || e >= S.m) { err.textContent = `e muss zwischen 2 und m−1 = ${S.m-1n} liegen.`; return; }
+  if (gcd(e, S.m) !== 1n) { err.textContent = `ggT(${e}, ${S.m}) ≠ 1. Nicht teilerfremd!`; return; }
+  err.textContent = '';
+  setE(e);
+}
+
+function buildGcdEqs(a, b) {
+  const { g, steps } = gcdSteps(a, b);
+  if (!steps.length) return `<div class="scale-wrapper"><div class="scale-el">$$\\text{ggT}(${a},${b}) = ${g}$$</div></div>`;
+  let rows = '';
+  steps.forEach(s => {
+    rows += `${s.a}\\! &\\!=\\!& \\!${s.q} \\!\\!\\! &\\!\\! \\cdot\\!\\! & \\!\\! ${s.b}\\! &\\!\\!+\\!\\!& \\!${s.r} \\\\`;
+  });
+  rows = rows.replace(/\\\\\s*$/, '');
+  return `<div class="scale-wrapper"><div class="scale-el">`
+       + `$$\\begin{array}{r@{\\!}r@{\\!}r@{\\!}r@{\\!}r@{\\!}r@{\\!}r}${rows}\\end{array}$$`
+       + `</div></div>`
+       + `<p>Der letzte Rest ungleich 0 ist der ggT: \\(\\Rightarrow \\text{ggT}(${a},\\,${b}) = ${g}\\)</p>`;
+}
+
+function setE(e) {
+  closeAllDetails();
+  S.e = e;
+  document.getElementById('err2').textContent = '';
+  document.getElementById('res2content').innerHTML =
+    `<div class="scale-wrapper"><div class="scale-el">$$e = ${e}$$</div></div>`;
+  document.getElementById('res2').classList.remove('hidden');
+  document.getElementById('eEuklidEqs').innerHTML =
+    `<div class="latexleft">${buildGcdEqs(e, S.m)}</div>`;
+  document.getElementById('det2').style.display = '';
+  document.getElementById('next2').style.display = '';
+  typeset(document.getElementById('card2'));
+}
+
+// ═══════════════════════════════════════════════════
+// STEP 4: d
+// ═══════════════════════════════════════════════════
+function toggleMode3() {
+  const man = document.getElementById('tog3').checked;
+  document.getElementById('p3a').style.display = man ? 'none' : '';
+  document.getElementById('p3b').style.display = man ? '' : 'none';
+  document.getElementById('err3').textContent = '';
+  document.getElementById('res3').classList.add('hidden');
+  document.getElementById('next3').style.display = 'none';
+  document.getElementById('det3').style.display = 'none';
+  document.getElementById('dExplSlider').style.display = 'none';
+}
+
+function buildExtEuklidEqs(a, b) {
+  // a = e, b = m  (called as buildExtEuklidEqs(S.e, S.m))
+  // gcdSteps internally uses max first, so if a < b it effectively computes steps for (b, a).
+  // We need to know whether a swap happened to correctly attribute final coefficients.
+  const swapped = BigInt(a) < BigInt(b);
+  const { g, steps } = gcdSteps(a, b);
+  // steps[0].a = max(a,b), steps[0].b = min(a,b)
+  // After full back-sub:  g = cu * steps[0].a  +  cv * steps[0].b
+  // If swapped: steps[0].a = b (=m), steps[0].b = a (=e)  →  coeff of e = cv
+  // If not swapped: steps[0].a = a (=e), steps[0].b = b (=m)  →  coeff of e = cu
+
+  if (!steps.length) return `<p>Trivialfall: \\(\\text{ggT} = ${g}\\)</p>`;
+
+  // ── Step 1: forward display with 7-column alignment ──────
+  let fwdRows = '';
+  steps.forEach(s => {
+    fwdRows += `${s.a}\\! &\\!=\\!& \\!${s.q} \\!\\!\\! &\\!\\! \\cdot\\!\\! & \\!\\! ${s.b}\\! &\\!\\!+\\!\\!& \\!${s.r} \\\\`;
+  });
+  fwdRows = fwdRows.replace(/\\\\\s*$/, '');
+  let html = `<p><b>Schritt 1 – Euklidischer Algorithmus:</b></p>`
+           + `<div class="latexleft"><div class="scale-wrapper"><div class="scale-el">`
+           + `$$\\begin{array}{r@{\\!}r@{\\!}r@{\\!}r@{\\!}r@{\\!}r@{\\!}r}${fwdRows}\\end{array}$$`
+           + `</div></div>`
+           + `<p>Der letzte Rest ungleich 0 ist der ggT: \\(\\Rightarrow \\text{ggT}(${a},\\,${b}) = ${g}\\)</p></div>`;
+
+  html += `<p><b>Schritt 2 – Rückwärtseinsetzen:</b><br>
+  Wir stellen jede Gleichung so um, dass der Rest auf der linken Seite steht, und setzen dann von unten nach oben ein.</p>`;
+
+  const n = steps.length;
+
+  // Sign helpers with double \! for tight spacing
+  const absStr = (c) => `${c < 0n ? -c : c}`;
+  const signOf = (c) => c < 0n ? `\\!\\!-\\!\\!` : `\\!\\!+\\!\\!`;
+  const cdot = `\\cdot`;
+
+  if (n === 1) {
+    const s = steps[0];
+    const cu_f = 1n, cv_f = -BigInt(s.q);
+    // single line: g = 1·s.a - s.q·s.b
+    // columns: g & = & 1 & \cdot & s.a & - & s.q & \cdot & s.b
+    const row1 = `${g} &\\!\\!=\\!\\!& 1 &\\cdot& ${s.a} &\\!\\!-\\!\\!& ${-cv_f} &\\cdot& ${s.b}`;
+    html += `<div class="latexleft"><div class="scale-wrapper"><div class="scale-el">`
+          + `$$\\begin{array}{rrrrrrrrr}${row1}\\end{array}$$`
+          + `</div></div></div>`;
+    const coeff_e = swapped ? cv_f : cu_f;
+    const d_candidate = ((coeff_e % BigInt(b)) + BigInt(b)) % BigInt(b);
+    const sc_e = coeff_e < 0n ? -coeff_e : coeff_e;
+    const sc_m = (swapped ? cu_f : cv_f); const sc_mAbs = sc_m < 0n ? -sc_m : sc_m;
+    html += `<p>Somit: \\(${g} = ${coeff_e}\\cdot${a} ${sc_m < 0n ? '-' : '+'} ${sc_mAbs}\\cdot${b}\\)</p>`;
+    html += `<p>Der Koeffizient vor \\(e = ${a}\\) ist \\(${coeff_e}\\). Das ist unser Kandidat für d.</p>`;
+    if (coeff_e < 0n) {
+      html += `<p>Da \\(${coeff_e} < 0\\), addieren wir m: \\(d = ${coeff_e} + ${b} = ${d_candidate}\\)</p>`;
+    } else {
+      html += `<p>\\(${coeff_e} > 0\\), also direkt \\(d = ${d_candidate}\\).</p>`;
+    }
+    return html;
+  }
+
+  // ── Multi-step back-substitution ─────────────────────────
+  // Each row: { c1, v1, op, c2, v2, sc1, sv1, sop, sc2, sv2 }
+  // Left side:  g = c1·v1 op |c2|·v2   (interExpr, v2 may be a compound like "(x - q·y)")
+  // Right side: g = sc1·sv1 sop |sc2|·sv2  (simpExpr, null for first row)
+  // Columns (9): g | = | c1 | \cdot | v1 | op | |c2| | \cdot | v2
+  // For right side, we add: || = | sc1 | \cdot | sv1 | sop | |sc2| | \cdot | sv2
+  // That's 9 + 1 (=) + 8 = 18 cols. Too many. 
+  // Instead: build two aligned blocks as separate arrays placed side by side in a single array
+  // Schema: r @{} l @{\;} r r r @{} l @{} r r r
+  // Simpler: just 5-col for each side: coeff1, \cdot, var1, op, coeff2·var2
+  // and align in an array with = separating left and right blocks
+  // 
+  // Final chosen layout (11 cols): 
+  //   g & = & c1 & · & v1 & ±|c2|·(…) &   [right col empty for first row]
+  //   g & = & c1 & · & v1 & ±|c2|·(…) & = & sc1 & · & sv1 & ±|sc2|·sv2
+  //
+  // For simplicity and correctness, use 3 distinct col groups split by "&":
+  //   col1=g  col2==+interLeft  col3=interRight(sign+coeff2+v2)  col4==+simpLeft  col5=simpRight
+  // But that still doesn't align + within each side.
+  //
+  // Most practical: build each side as two sub-cols: [c1·v1] [sign] [|c2|·v2]
+  // 7 col format per side: g & = & c1·v1 & sign & |c2|·v2
+  // Combined with right side: 11 col: g &=& c1·v1 &sign& |c2|·v2 &=& sc1·sv1 &sop& |sc2|·sv2
+  // Array spec: r l r l l l r l l
+
+  let cu = 1n;
+  let cv = -BigInt(steps[n-2].q);
+  let cur_top = steps[n-2].a;
+  let cur_bot = steps[n-2].b;
+
+  // Row data: { lc1, lv1, lsign, lc2, lv2, rc1, rv1, rsign, rc2, rv2 }
+  // left side = g = lc1·lv1 lsign lc2·lv2  (interExpr)
+  // right side = g = rc1·rv1 rsign rc2·rv2  (simpExpr, null if no right side)
+  const rows = [];
+  rows.push({
+    lc1: cu < 0n ? -cu : cu, lv1: cur_top,
+    lsign: cv < 0n ? `\\!\\!-\\!\\!` : `\\!\\!+\\!\\!`,
+    lc2: cv < 0n ? -cv : cv, lv2: cur_bot,
+    right: null
+  });
+
+  for (let i = n - 3; i >= 0; i--) {
+    const sub_top = steps[i].a;
+    const sub_bot = steps[i].b;
+    const sub_q   = BigInt(steps[i].q);
+    const newCu = cv;
+    const newCv = cu - cv * sub_q;
+    const lv2compound = `\\left(${sub_top}\\!\\!-\\!\\!${sub_q}${cdot}${sub_bot}\\right)`;
+    rows.push({
+      lc1: cu < 0n ? -cu : cu, lv1: cur_top,
+      lsign: cv < 0n ? `\\!\\!-\\!\\!` : `\\!\\!+\\!\\!`,
+      lc2: cv < 0n ? -cv : cv, lv2: lv2compound,
+      right: {
+        rc1: newCu < 0n ? -newCu : newCu, rv1: sub_top,
+        rsign: newCv < 0n ? `\\!\\!-\\!\\!` : `\\!\\!+\\!\\!`,
+        rc2: newCv < 0n ? -newCv : newCv, rv2: sub_bot
+      }
+    });
+    cu = newCu; cv = newCv; cur_top = sub_top; cur_bot = sub_bot;
+  }
+
+  const coeff_e = swapped ? cv : cu;
+  const coeff_m = swapped ? cu : cv;
+
+  // Build array: 11 columns r l r l l | l r l l l
+  // col: g &=& lc1·lv1 &lsign& lc2·lv2 &=& rc1·rv1 &rsign& rc2·rv2
+  // specs: r, l, rl (number \cdot var merged), l, rl, l, rl, l, rl
+  // Simplest: merge c1·v1 as one cell, sign as one cell, c2·v2 as one cell
+  // Array {r l l l l l l l l}: g & = & c1\!\cdot\!v1 & sign & c2\!\cdot\!v2 & = & c1\!\cdot\!v1 & sign & c2\!\cdot\!v2
+  let bwdRows = '';
+  rows.forEach(r => {
+    const lpart = `${r.lc1}${cdot}${r.lv1} & ${r.lsign} & ${r.lc2}${cdot}${r.lv2}`;
+    if (r.right === null) {
+      bwdRows += `${g} &\\!\\!=\\!\\!& ${lpart} & & & \\\\`;
+    } else {
+      const rpart = `${r.right.rc1}${cdot}${r.right.rv1} & ${r.right.rsign} & ${r.right.rc2}${cdot}${r.right.rv2}`;
+      bwdRows += `${g} &\\!\\!=\\!\\!& ${lpart} &\\!\\!=\\!\\!& ${rpart} \\\\`;
+    }
+  });
+  bwdRows = bwdRows.replace(/\\\\\s*$/, '');
+  // 9 columns: r l rl l rl l rl l rl
+  html += `<div class="latexleft"><div class="scale-wrapper"><div class="scale-el">$$\\begin{array}{rlllllllll}${bwdRows}\\end{array}$$</div></div></div>`;
+
+  // Final summary: write g = coeff_e * e + coeff_m * m
+  const signFinal = coeff_m < 0n ? `- ${-coeff_m}\\cdot${b}` : `+ ${coeff_m}\\cdot${b}`;
+  const coeff_e_disp = coeff_e < 0n ? coeff_e : coeff_e;
+  html += `<p>Somit: \\(${g} = ${coeff_e}\\cdot${a} ${signFinal}\\)</p>`;
+  html += `<p>Der Koeffizient vor \\(e = ${a}\\) ist \\(${coeff_e}\\). Das ist unser Kandidat für d.</p>`;
+  const d_candidate = ((coeff_e % BigInt(b)) + BigInt(b)) % BigInt(b);
+  if (coeff_e < 0n) {
+    html += `<p>Da \\(${coeff_e} < 0\\), addieren wir m: \\(\\;d = ${coeff_e} + ${b} = ${d_candidate}\\)</p>`;
+  } else {
+    html += `<p>\\(${coeff_e} > 0\\), also gilt direkt \\(d = ${d_candidate}\\).</p>`;
+  }
+  return html;
+}
+
+function buildDVerifyHtml(d, e, m) {
+  const prod = d * e;
+  const rem  = prod % m;
+  const k    = (prod - 1n) / m;
+  return `$$\\begin{array}{rl}
+    d \\cdot e &= ${d} \\cdot ${e} \\\\
+              &= ${prod} \\\\
+              &= ${k} \\cdot ${m} + 1 \\\\
+    d \\cdot e \\bmod m &= ${rem} \\quad \\checkmark
+  \\end{array}$$`;
+}
+
+function setD(d) {
+  closeAllDetails();
+  S.d = d;
+  document.getElementById('err3').textContent = '';
+  document.getElementById('res3content').innerHTML =
+    `<div class="scale-wrapper"><div class="scale-el">$$d = ${d}$$</div></div>`;
+  document.getElementById('res3').classList.remove('hidden');
+  document.getElementById('dExplSlider').style.display = '';
+  document.getElementById('togDExpl').checked = false;
+  showDExplEuklid();
+  document.getElementById('det3').style.display = '';
+  document.getElementById('next3').style.display = '';
+  typeset(document.getElementById('card3'));
+}
+
+function showDExplEuklid() {
+  document.getElementById('det3sum').textContent = '📐 Erweiterter Euklidischer Algorithmus';
+  document.getElementById('dExplContent').innerHTML = buildExtEuklidEqs(S.e, S.m);
+  typeset(document.getElementById('det3'));
+}
+
+function showDExplVerify() {
+  document.getElementById('det3sum').textContent = '✅ Bedingung d · e ≡ 1 (mod m) prüfen';
+  document.getElementById('dExplContent').innerHTML =
+    `<div class="latexleft"><div class="scale-wrapper"><div class="scale-el">${buildDVerifyHtml(S.d, S.e, S.m)}</div></div></div>`;
+  typeset(document.getElementById('det3'));
+}
+
+function switchDExpl() {
+  document.getElementById('togDExpl').checked ? showDExplVerify() : showDExplEuklid();
+}
+
+function calcD_auto() {
+  const d = modInv(S.e, S.m);
+  if (!d) { document.getElementById('err3').textContent = 'Fehler: kein Inverses (e und m nicht teilerfremd?).'; return; }
+  setD(d);
+}
+
+function checkManualD() {
+  const dv = document.getElementById('inputD').value.trim();
+  const err = document.getElementById('err3');
+  if (!dv) { err.textContent = 'Bitte einen Wert eingeben.'; return; }
+  let d;
+  try { d = BigInt(dv); } catch { err.textContent = 'Ungültige Zahl.'; return; }
+  if (d <= 0n || d >= S.m) { err.textContent = `d muss zwischen 1 und m−1 = ${S.m-1n} liegen.`; return; }
+  if ((d * S.e) % S.m !== 1n) { err.textContent = `d·e mod m = ${(d*S.e)%S.m} ≠ 1. Falsch!`; return; }
+  err.textContent = '';
+  setD(d);
+}
+
+// ═══════════════════════════════════════════════════
+// STEP 5: SUMMARY
+// ═══════════════════════════════════════════════════
+function populateSummary() {
+  ['p','q','N','m','e','d'].forEach(k =>
+    document.getElementById('sum_' + k).textContent = S[k].toString());
+  document.getElementById('pubKey').innerHTML = `\\((${S.e},\\; ${S.N})\\)`;
+  document.getElementById('privKey').innerHTML = `\\((${S.d},\\; ${S.N})\\)`;
+  typeset(document.getElementById('card4'));
+}
+
+// ═══════════════════════════════════════════════════
+// STEP 6: ENCRYPT
+// ═══════════════════════════════════════════════════
+function populateEncStep() {
+  document.getElementById('encE').innerHTML = `\\(${S.e}\\)`;
+  document.getElementById('encN').innerHTML = `\\(${S.N}\\)`;
+  const tv = S.N > 100n ? 42n : 2n;
+  lastT = tv;
+  document.getElementById('encAutoT').textContent = tv.toString();
+  typeset(document.getElementById('card5'));
+}
+
+function toggleEncMode() {
+  const auto = document.getElementById('togEnc').checked;
+  document.getElementById('enc_a').style.display = auto ? 'none' : '';
+  document.getElementById('enc_b').style.display = auto ? '' : 'none';
+  document.getElementById('errEnc').textContent = '';
+}
+
+function doEncrypt() {
+  const tv = document.getElementById('inputT').value.trim();
+  const err = document.getElementById('errEnc');
+  if (!tv) { err.textContent = 'Bitte eine Zahl eingeben.'; return; }
+  let T;
+  try { T = BigInt(tv); } catch { err.textContent = 'Ungültige Zahl.'; return; }
+  if (T < 0n || T >= S.N) { err.textContent = `T muss zwischen 0 und N−1 = ${S.N-1n} liegen.`; return; }
+  runEncrypt(T);
+}
+
+function encryptAuto() { runEncrypt(lastT !== null ? lastT : 2n); }
+
+function buildBinSteps(base, exp, mod) {
+  const T = BigInt(base), e = BigInt(exp), N = BigInt(mod);
+  const binStr = e.toString(2);
+
+  // Collect rows
+  let b = T % N, ex = e;
+  let k = 0;
+  const rows = [];
+  while (ex > 0n) {
+    const bit = ex & 1n;
+    rows.push({ k, bit, val: b });
+    b = b * b % N; ex >>= 1n; k++;
+  }
+
+  // Build table
+  let tbl = `<table style="border-collapse:collapse;font-size:0.91em;margin:8px 0">
+    <tr style="background:#e8f5e9">
+      <th style="padding:4px 12px;border:1px solid #c8e6c9">Runde k</th>
+      <th style="padding:4px 12px;border:1px solid #c8e6c9">Bit b<sub>k</sub> von e</th>
+      <th style="padding:4px 12px;border:1px solid #c8e6c9">Aktueller Wert w<sub>k</sub></th>
+      <th style="padding:4px 12px;border:1px solid #c8e6c9">Ins Ergebnis multiplizieren?</th>
+    </tr>`;
+  rows.forEach(r => {
+    tbl += `<tr>
+      <td style="padding:4px 12px;border:1px solid #c8e6c9;text-align:center">${r.k}</td>
+      <td style="padding:4px 12px;border:1px solid #c8e6c9;text-align:center">${r.bit}</td>
+      <td style="padding:4px 12px;border:1px solid #c8e6c9;text-align:center">${r.val}</td>
+      <td style="padding:4px 12px;border:1px solid #c8e6c9;text-align:center">${r.bit === 1n ? '✓ ja' : '—'}</td>
+    </tr>`;
+  });
+  tbl += '</table>';
+
+  // Collect the "yes" values
+  const yesVals = rows.filter(r => r.bit === 1n).map(r => r.val);
+  const V = modPow(base, exp, mod);
+
+  let html = `
+  <p><b>Binärdarstellung von e:</b> ${e} = (${binStr})<sub>2</sub></p>
+  <p>Wir lesen e von rechts nach links, Bit für Bit.</p>
+  <p><b>Was passiert in jeder Runde?</b></p>
+  <ul style="margin:4px 0 8px 16px;line-height:1.7">
+    <li>In Runde 0 startet der <i>aktuelle Wert</i> w<sub>0</sub> mit T mod N = <b>${T % N}</b>.</li>
+    <li>In jeder folgenden Runde wird der aktuelle Wert <b>quadriert</b> und modulo N reduziert:
+        w<sub>k+1</sub> = w<sub>k</sub>² mod N.</li>
+    <li>Ist das zugehörige Bit = 1, wird w<sub>k</sub> ins Ergebnis <b>multipliziert</b>.</li>
+    <li>Ist das Bit = 0, wird diese Runde übersprungen.</li>
+  </ul>
+  ${tbl}
+  <p><b>Ergebnis:</b> Alle mit ✓ markierten Werte werden miteinander multipliziert (jeweils mod N):</p>
+  <p style="margin-left:12px">V = ${yesVals.join(' · ')} mod ${N} = <b>${V}</b></p>`;
+  return html;
+}
+
+function buildPowSteps(a, b, n) {
+  let fa = BigInt(a) % BigInt(n), fb = BigInt(b), fn = BigInt(n), ff = 1n;
+
+  // Each line: { lhs (only first), rhsA (before inner =), rhsB (after inner =, may be '') }
+  // Rendered as:  lhs &\equiv rhsA &= rhsB  \pmod{fn}
+  const lines = [];
+  lines.push({ lhs: `${a}^{${b}}`, rhsA: `${ff} \\cdot ${fa}^{${fb}}`, rhsB: '' });
+
+  let iter = 0;
+  while (fb > 0n && iter < 40) {
+    iter++;
+
+    // Early exit: if base is 1, result is just ff * 1 = ff
+    if (fa === 1n) {
+      lines.push({ lhs: '', rhsA: `${ff} \\cdot 1^{${fb}}`, rhsB: `${ff} \\cdot 1` });
+      ff = ff % fn;
+      lines.push({ lhs: '', rhsA: `${ff} \\bmod ${fn}`, rhsB: `${ff % fn}` });
+      fa = 1n; fb = 0n;
+      break;
+    }
+
+    // Reduce base mod n if needed
+    if (fa >= fn) {
+      const old = fa; fa = fa % fn;
+      lines.push({ lhs: '', rhsA: `${ff} \\cdot (${old} \\bmod ${fn})^{${fb}}`, rhsB: `${ff} \\cdot ${fa}^{${fb}}` });
+      continue;
+    }
+
+    if (fb === 1n) break; // will be handled by final step below
+
+    if (fb % 2n === 0n) {
+      const nb = fa * fa;
+      lines.push({ lhs: '', rhsA: `${ff} \\cdot (${fa}^2)^{${fb/2n}}`, rhsB: `${ff} \\cdot ${nb}^{${fb/2n}}` });
+      fb = fb / 2n;
+      const nbRed = nb % fn;
+      if (nbRed !== nb) {
+        lines.push({ lhs: '', rhsA: `${ff} \\cdot (${nb} \\bmod ${fn})^{${fb}}`, rhsB: `${ff} \\cdot ${nbRed}^{${fb}}` });
+      }
+      fa = nbRed;
+    } else {
+      const newff = ff * fa;
+      lines.push({ lhs: '', rhsA: `(${ff} \\cdot ${fa}) \\cdot ${fa}^{${fb-1n}}`, rhsB: `${newff} \\cdot ${fa}^{${fb-1n}}` });
+      fb = fb - 1n;
+      const newffRed = newff % fn;
+      if (newffRed !== newff) {
+        lines.push({ lhs: '', rhsA: `(${newff} \\bmod ${fn}) \\cdot ${fa}^{${fb}}`, rhsB: `${newffRed} \\cdot ${fa}^{${fb}}` });
+      }
+      ff = newffRed;
+    }
+
+    if (iter === 35) { lines.push({ lhs: '', rhsA: `\\ldots \\text{(weitere Schritte gekürzt)}`, rhsB: '' }); break; }
+  }
+
+  // Final step: ff * fa^1 → ff * fa → result
+  if (fb === 1n) {
+    if (fa >= fn) {
+      const old = fa; fa = fa % fn;
+      lines.push({ lhs: '', rhsA: `${ff} \\cdot (${old} \\bmod ${fn})^{1}`, rhsB: `${ff} \\cdot ${fa}^{1}` });
+    }
+    lines.push({ lhs: '', rhsA: `${ff} \\cdot ${fa}`, rhsB: `${ff * fa}` });
+  }
+
+  // Final result: separate line with bold value
+  const V = (ff * fa) % fn;
+  lines.push({ lhs: '', rhsA: `${ff * fa} \\bmod ${fn}`, rhsB: '', finalResult: V });
+  lines.push({ lhs: '', rhsA: '', rhsB: '', finalOnly: true, finalResult: V });
+
+  // Build array rows
+  // Middle lines (not first, not last two): 6 cols  lhs & \equiv & rhsA & = & rhsB & \pmod{fn}
+  // First line: lhs \equiv rhsA = rhsB \pmod{fn}  (pmod inline, no separate col)
+  // Last two lines (bmod and bold): no pmod col, just inline
+  const totalLines = lines.length;
+  let rows = '';
+  lines.forEach((l, i) => {
+    const isFirst = i === 0;
+    const isLastTwo = i >= totalLines - 2;
+    const lhs = l.lhs ? `${l.lhs}` : ``;
+
+    if (l.finalOnly) {
+      // Bold result alone, aligned under = column of middle rows
+      rows += ` & & & \\!\\!= & \\mathbf{${l.finalResult}} & \\\\`;
+    } else if (isFirst || isLastTwo) {
+      // Inline: no separate \pmod column, just append it to rhsB or rhsA
+      const rhsB_part = l.rhsB ? ` = ${l.rhsB}` : '';
+      const pmod_part = (!l.finalOnly && !isLastTwo) ? ` \\pmod{${fn}}` : (i === totalLines - 2 ? `` : ``);
+      if (isFirst) {
+        rows += `${lhs} &\\!\\!\\equiv\\!\\!& ${l.rhsA}${rhsB_part ? ` \\!\\!=\\!\\! ${l.rhsB}` : ''} \\pmod{${fn}} & & & \\\\`;
+      } else {
+        // second-to-last: the bmod line — just append inline, no pmod col
+        const rhsB_col = l.rhsB ? ` \\!\\!=\\!\\! ${l.rhsB}` : '';
+        rows += ` &\\!\\!\\equiv\\!\\!& ${l.rhsA}${rhsB_col} & & & \\\\`;
+      }
+    } else {
+      // Middle lines: pmod in its own column
+      const rhsB_col = l.rhsB ? ` & \\!\\!=\\!\\! & ${l.rhsB}` : ` & & `;
+      rows += ` &\\!\\!\\equiv\\!\\!& ${l.rhsA}${rhsB_col} & \\pmod{${fn}} \\\\`;
+    }
+  });
+  rows = rows.replace(/\\\\\s*$/, '');
+  return `$$\\begin{array}{llllll}${rows}\\end{array}$$`;
+}
+
+function runEncrypt(T) {
+  closeAllDetails();
+  document.getElementById('errEnc').textContent = '';
+  const V = modPow(T, S.e, S.N);
+  lastV = V; lastT = T;
+  document.getElementById('resEncContent').innerHTML =
+    `<div class="scale-wrapper"><div class="scale-el">$$\\begin{array}{ll} T &= ${T} \\\\ V = T^e \\bmod N &= ${V} \\end{array}$$</div></div>`;
+  document.getElementById('resEnc').classList.remove('hidden');
+  encBinHTML = buildBinSteps(T, S.e, S.N);
+  encPowHTML = buildPowSteps(T, S.e, S.N);
+  document.getElementById('encBinSteps').innerHTML =
+    `<div class="scale-wrapper"><div class="scale-el">${encBinHTML}</div></div>`;
+  document.getElementById('encPowSteps').innerHTML =
+    `<div class="latexleft"><div class="scale-wrapper"><div class="scale-el">${encPowHTML}</div></div></div>`;
+  document.getElementById('detEnc').style.display = '';
+  typeset(document.getElementById('card5'));
+}
+
+function switchEncExpl() {
+  const pow = document.getElementById('togEncExpl').checked;
+  document.getElementById('enc_expl_bin').style.display = pow ? 'none' : '';
+  document.getElementById('enc_expl_pow').style.display = pow ? '' : 'none';
+  typeset(document.getElementById('detEnc'));
+}
+
+// ═══════════════════════════════════════════════════
+// STEP 7: DECRYPT
+// ═══════════════════════════════════════════════════
+function populateDecStep() {
+  document.getElementById('decD').innerHTML = `\\(${S.d}\\)`;
+  document.getElementById('decN').innerHTML = `\\(${S.N}\\)`;
+  if (lastV !== null) document.getElementById('decAutoV').textContent = lastV.toString();
+  typeset(document.getElementById('card6'));
+}
+
+function toggleDecMode() {
+  const auto = document.getElementById('togDec').checked;
+  document.getElementById('dec_a').style.display = auto ? 'none' : '';
+  document.getElementById('dec_b').style.display = auto ? '' : 'none';
+  document.getElementById('errDec').textContent = '';
+}
+
+function doDecrypt() {
+  const vv = document.getElementById('inputV').value.trim();
+  const err = document.getElementById('errDec');
+  if (!vv) { err.textContent = 'Bitte eine Zahl eingeben.'; return; }
+  let V;
+  try { V = BigInt(vv); } catch { err.textContent = 'Ungültige Zahl.'; return; }
+  if (V < 0n || V >= S.N) { err.textContent = `V muss zwischen 0 und N−1 = ${S.N-1n} liegen.`; return; }
+  runDecrypt(V);
+}
+
+function decryptAuto() {
+  if (lastV === null) { document.getElementById('errDec').textContent = 'Kein V vorhanden.'; return; }
+  runDecrypt(lastV);
+}
+
+function runDecrypt(V) {
+  closeAllDetails();
+  document.getElementById('errDec').textContent = '';
+  const T = modPow(V, S.d, S.N);
+  document.getElementById('resDecContent').innerHTML =
+    `<div class="scale-wrapper"><div class="scale-el">$$\\begin{array}{ll} V &= ${V} \\\\ T = V^d \\bmod N &= ${T} \\end{array}$$</div></div>`;
+  const reenc = modPow(T, S.e, S.N);
+  document.getElementById('decVerify').innerHTML = reenc === V
+    ? `<span style="color:#1a4a1a">✓ Probe: \\(${T}^{${S.e}} \\bmod ${S.N} = ${reenc} = V\\) ✓</span>`
+    : `<span style="color:#c62828">Hinweis: V wurde nicht mit diesem öffentlichen Schlüssel verschlüsselt.</span>`;
+  document.getElementById('resDec').classList.remove('hidden');
+  document.getElementById('detDec').style.display = '';
+  typeset(document.getElementById('card6'));
+}
+
+// ═══════════════════════════════════════════════════
+// RESET
+// ═══════════════════════════════════════════════════
+function resetAll() {
+  Object.assign(S, {p:0n,q:0n,N:0n,m:0n,e:0n,d:0n});
+  lastV = null; lastT = null;
+  updateProgress(0);
+  for (let i = 1; i <= 6; i++) {
+    const c = document.getElementById('card'+i);
+    if (c) c.style.display='none';
+    uncollapseStep(i);
+  }
+  uncollapseStep(0);
+  document.querySelectorAll('.result-box').forEach(el => el.classList.add('hidden'));
+  ['err0','err1','err2','err3','errEnc','errDec'].forEach(id => {
+    const el = document.getElementById(id); if(el) el.textContent='';
+  });
+  ['next0','next1','next2','next3','det0a','det0b','det2','det3','dExplSlider','detEnc','detDec','nm_calc','eConditionLine','detNM'].forEach(id => {
+    const el = document.getElementById(id); if(el) el.style.display='none';
+  });
+  ['tog1','tog3','togEnc','togDec','togDExpl','togEncExpl'].forEach(id => {
+    const el = document.getElementById(id); if(el) el.checked=false;
+  });
+  toggleMode1(); toggleMode3();
+  document.getElementById('enc_expl_bin').style.display='';
+  document.getElementById('enc_expl_pow').style.display='none';
+  setMode0(0); setModeE(0);
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// ═══════════════════════════════════════════════════
+// SCALING (narrow screens)
+// ═══════════════════════════════════════════════════
+function scaleToFit(el) {
+  if (!el) return;
+  el.style.transform = 'none';
+  el.style.transformOrigin = 'top left';
+  const wrapper = el.parentElement;
+  if (!wrapper) return;
+  wrapper.style.height = 'auto';
+  requestAnimationFrame(() => {
+    const avail = wrapper.clientWidth
+      - parseFloat(getComputedStyle(wrapper).paddingLeft)
+      - parseFloat(getComputedStyle(wrapper).paddingRight);
+    const nat = el.scrollWidth;
+    if (nat > avail && avail > 0) {
+      const sc = avail / nat;
+      el.style.transform = `scale(${sc})`;
+      wrapper.style.height = (el.scrollHeight * sc
+        + parseFloat(getComputedStyle(wrapper).paddingTop)
+        + parseFloat(getComputedStyle(wrapper).paddingBottom)) + 'px';
+    }
+  });
+}
+function scaleAllElements() { document.querySelectorAll('.scale-el').forEach(scaleToFit); }
+window.addEventListener('resize', scaleAllElements);
+
+// Wrap typeset so it scales afterwards
+function typesetAndScale(el) {
+  if (window.MathJax && MathJax.typesetPromise) {
+    MathJax.typesetPromise([el]).then(() => {
+      el.querySelectorAll('.scale-el').forEach(scaleToFit);
+    });
+  }
+}
+
+// INIT
+updateProgress(0);
+updateStellenLabel(false);
+</script>
+</body>
+</html>

@@ -198,6 +198,68 @@ MathJax = {
     line-height: 34px;
     z-index: 1;
 }
+
+.radio-option {
+  display: none; /* wird nicht mehr verwendet */
+}
+
+/* Segmentierte Radio-Buttons im Stil der Seite */
+.radio-group {
+  display: inline-flex;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 2px solid #4CAF50;
+  margin: 6px 0 12px 0;
+}
+.radio-group label {
+  display: flex;
+  align-items: center;
+  padding: 5px 11px;
+  font-weight: normal;
+  font-size: 0.85em;
+  cursor: pointer;
+  background: #fff;
+  border-right: 1px solid #4CAF50;
+  transition: background 0.15s;
+  line-height: 1.3;
+  user-select: none;
+}
+.radio-group label:last-child {
+  border-right: none;
+}
+.radio-group label:hover {
+  background: #f1fbf1;
+}
+.radio-group input[type="radio"] {
+  display: none;
+}
+.radio-group label:has(input:checked) {
+  background: #4CAF50;
+  color: #fff;
+  font-weight: bold;
+}
+
+/* Slider + Labels zusammen */
+.slider-wrap {
+  display: inline-block;
+  width: 100%;
+  max-width: 300px;
+}
+.slider-wrap input[type="range"] {
+  width: 100%;
+  display: block;
+}
+.slider-tick-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.78em;
+  color: #666;
+  margin-top: 1px;
+  padding: 0 6px 0 8px;
+}
+.radio-label {
+  line-height: 1.3;
+}
 </style>
 </head>
 <body>
@@ -208,20 +270,38 @@ MathJax = {
 <summary>Einstellungen</summary>
 
 <div class="form-block">
-  <b>Maximaler Grad des äußeren Polynoms: <span id="degOut">2</span></b><br>
-  <input type="range" id="polyDeg" min="1" max="3" value="2" step="1" list="tickmarks" oninput="updateParams()">
-</div>
-
-<div class="form-block">
-  <label>
-    <input type="checkbox" id="allowInner" checked oninput="updateParams()">
-    Innere Funktion verwenden?
-  </label>
+  <b>Maximaler Grad des Faktorpolynoms: <span id="degOut">2</span></b><br>
+  <div class="slider-wrap">
+    <input type="range" id="polyDeg" min="0" max="3" value="2" step="1" list="tickmarks2" oninput="updateParams()">
+    <div class="slider-tick-labels">
+      <span>0</span><span>1</span><span>2</span><span>3</span>
+    </div>
+  </div>
 </div>
 
 <div class="form-block" id="innerBlock">
-  <b>Grad der inneren Funktion: <span id="degIn">1</span></b><br>
-  <input type="range" id="innerDeg" min="1" max="3" value="1" step="1" list="tickmarks" oninput="updateParams()">
+  <b>Exponent:</b><br>
+  <div class="radio-group">
+    <label>
+      <input type="radio" name="innerMode" id="innerModeOnly" value="only" oninput="updateParams()">
+      nur $~e^x~$
+    </label>
+    <label>
+      <input type="radio" name="innerMode" id="innerModeMirror" value="mirror" oninput="updateParams()">
+      auch $~e^{-x}~$ (horizontal gespiegelt)
+    </label>
+    <label>
+      <input type="radio" name="innerMode" id="innerModePoly" value="poly" checked oninput="updateParams()">
+      inneres Polynom
+    </label>
+  </div><br>
+  <b>Maximaler Grad der inneren Polynomfunktion im Exponenten: <span id="degIn">1</span></b><br>
+  <div class="slider-wrap">
+    <input type="range" id="innerDeg" min="1" max="3" value="1" step="1" list="tickmarks" oninput="updateParams()">
+    <div class="slider-tick-labels">
+      <span>1</span><span>2</span><span>3</span>
+    </div>
+  </div>
 </div>
 
 <div class="form-block">
@@ -232,6 +312,13 @@ MathJax = {
 </div>
 
 <datalist id="tickmarks">
+  <option value="1" label="1"></option>
+  <option value="2" label="2"></option>
+  <option value="3" label="3"></option>
+</datalist>
+
+<datalist id="tickmarks2">
+  <option value="0" label="0"></option>
   <option value="1" label="1"></option>
   <option value="2" label="2"></option>
   <option value="3" label="3"></option>
@@ -283,19 +370,34 @@ MathJax = {
   <div id="explanation" class="scale-el"></div>
 </div>
 
+<details id="sketchDetails" style="margin: 6px;">
+  <summary>Skizze</summary>
+  <div style="text-align:center; padding:8px 0;">
+    <img id="sketchImg" src="" alt="Skizze des Grenzverhaltens"
+         style="max-width:min(100%, 400px); height:auto; display:block; margin:0 auto;">
+  </div>
+</details>
+
 </details>
 <script>
 // ---------------- Hilfsfunktionen ----------------
 const rand = (a,b)=>Math.floor(Math.random()*(b-a+1))+a;
 
 function makePoly(maxDeg){
-  let deg = rand(1, maxDeg);
+  let deg = rand(0, maxDeg);
+  // Mindestens Grad 0, aber wenn maxDeg>=1 soll mindestens 1 möglich sein,
+  // also bleibt deg wie gezogen (0..maxDeg zufällig)
   let coeffs = [];
-  for(let i=deg;i>=0;i--){
+  {
     let c;
-    if(i === deg){ do { c = rand(-5,5); } while(c === 0); }
-    else { c = rand(-5,5); }
+    do { c = rand(-5,5); } while(c === 0);
     coeffs.push(c);
+    // Für Grad>0 noch weitere Koeffizienten
+    for(let i=deg-1;i>=0;i--){
+      coeffs.push(rand(-5,5));
+    }
+    // Grad 0: coeffs = [c] (Konstante)
+    // Aber für deg=0 stimmt die obige Schleife: coeffs.push(c) → [c], Schleife von -1 bis 0 läuft nicht
   }
   function polyToString(coeffs){
     let s=''; let deg = coeffs.length-1;
@@ -348,20 +450,59 @@ function newTask(){
   document.getElementById('explanationDetails').open = false;
 
   const maxDeg   = +document.getElementById('polyDeg').value;
-  const allowIn  = document.getElementById('allowInner').checked;
+  const innerMode = document.querySelector('input[name="innerMode"]:checked').value;
   const innerDeg = +document.getElementById('innerDeg').value;
 
-  let p = makePoly(maxDeg);
-  let g = { f:'x', deg:1, lead:1 };
-  if(allowIn){ g = makePoly(innerDeg); }
+  // Faktorpolynom: bei maxDeg=0 ist p eine Konstante
+  let p;
+  if(maxDeg === 0){
+    // Konstante: nur Grad 0
+    let c; do { c = rand(-5,5); } while(c === 0);
+    p = { f: ''+c, deg: 0, lead: c };
+  } else {
+    p = makePoly(maxDeg);
+  }
 
-  // f(x) = e^{g(x)} * p(x)
-  const fLatex = `f(x) = e^{${g.f}}\\cdot\\left(${p.f}\\right)`;
+  let g;
+  if(innerMode === 'only'){
+    g = { f:'x', deg:1, lead:1 };
+  } else if(innerMode === 'mirror'){
+    // 50% e^x, 50% e^{-x}
+    if(Math.random() < 0.5){
+      g = { f:'x', deg:1, lead:1 };
+    } else {
+      g = { f:'-x', deg:1, lead:-1 };
+    }
+  } else {
+    // poly: inneres Polynom, mindestens Grad 1
+    let innerMaxDeg = Math.max(1, innerDeg);
+    let tries = 0;
+    do {
+      g = makePoly(innerMaxDeg);
+      tries++;
+    } while(g.deg === 0 && tries < 20);
+    // Sicherstellen Grad >= 1
+    if(g.deg === 0){ g = { f:'x', deg:1, lead:1 }; }
+  }
+
+  // Darstellung: wenn p Grad 0 ist → C·e^{...}
+  let fLatex;
+  if(p.deg === 0){
+    const C = p.lead;
+    let prefactor;
+    if(C === 1) prefactor = '';
+    else if(C === -1) prefactor = '-';
+    else prefactor = C + '\\,';
+    fLatex = `f(x) = ${prefactor}e^{${g.f}}`;
+  } else {
+    fLatex = `f(x) = e^{${g.f}}\\cdot\\left(${p.f}\\right)`;
+  }
 
   currentTask = { p, g };
 
   document.getElementById('task').innerHTML = `$$${fLatex}$$`;
   setupChoices();
+  updateSketch();
   
   // Reaktiviere alle Radio-Buttons
   document.querySelectorAll('input[type="radio"]').forEach(r => {
@@ -406,7 +547,13 @@ function computeLimit(side){
   else expBeh = '0';
 
   // Verhalten von p(x)
-  const pBeh = polyBehavior(p, s); // +infty oder -infty
+  // Bei Grad 0: p ist Konstante, Vorzeichen entscheidet
+  let pBeh;
+  if(p.deg === 0){
+    pBeh = p.lead > 0 ? '+infty' : '-infty';
+  } else {
+    pBeh = polyBehavior(p, s); // +infty oder -infty
+  }
 
   if(expBeh === '+infty'){
     return pBeh === '+infty' ? '+\\infty' : '-\\infty';
@@ -554,21 +701,61 @@ function showTestValues(){
 function showFactorArgument() {
   const { p, g } = currentTask;
 
-  // Erst die Polynomverhalten berechnen
-  const leftPoly  = polyBehavior(p,-1)==='+infty' ? '+\\infty' : '-\\infty';
-  const rightPoly = polyBehavior(p,1)==='+infty'  ? '+\\infty' : '-\\infty';
+  const isConstant = p.deg === 0;
+
+  // Erst die Polynomverhalten berechnen (nur nötig wenn nicht Konstante)
+  let leftPoly, rightPoly;
+  if(!isConstant){
+    leftPoly  = polyBehavior(p,-1)==='+infty' ? '+\\infty' : '-\\infty';
+    rightPoly = polyBehavior(p,1)==='+infty'  ? '+\\infty' : '-\\infty';
+  }
 
   // Dann die Exponentialverhalten
   const leftExp  = computeLimit('left').startsWith('0') ? '0' : '+\\infty';
   const rightExp = computeLimit('right').startsWith('0') ? '0' : '+\\infty';
 
-  // Jetzt können die Indeterminate-Checks durchgeführt werden
-  const leftIndeterminate  = leftExp === '0' && (leftPoly === '+\\infty' || leftPoly === '-\\infty');
-  const rightIndeterminate = rightExp === '0' && (rightPoly === '+\\infty' || rightPoly === '-\\infty');
+  // Indeterminate nur bei Polynom-Faktor relevant
+  const leftIndeterminate  = !isConstant && leftExp === '0' && (leftPoly === '+\\infty' || leftPoly === '-\\infty');
+  const rightIndeterminate = !isConstant && rightExp === '0' && (rightPoly === '+\\infty' || rightPoly === '-\\infty');
 
-  // Die tatsächlichen Grenzwerte (mit Unterscheidung 0+/0- falls aktiviert)
+  // Die tatsächlichen Grenzwerte
   const leftLimit = computeLimit('left');
   const rightLimit = computeLimit('right');
+
+  // Hilfsfunktion: Underbrace-Label für Konstante
+  function constantLabel(c){
+    return c > 0 ? '{>0}' : '{<0}';
+  }
+
+  // Darstellung der Terme je nach Typ
+  function buildFormula(side, expBeh, polyBeh, limit){
+    const C = p.lead;
+    if(isConstant){
+      // Darstellung: \underbrace{C}_{>0/<0} \cdot \underbrace{e^{...}}_{\to ...} \to limit
+      const cSign = C > 0 ? '{>0}' : '{<0}';
+      let cStr;
+      if(C === 1) cStr = '1';
+      else if(C === -1) cStr = '-1';
+      else cStr = String(C);
+      return `f(x) = \\underbrace{${cStr}}_{\\displaystyle ${cSign}} \\cdot \\underbrace{e^{${g.f}}}_{\\displaystyle \\to ${expBeh}} \\to ${limit}`;
+    } else {
+      return `f(x) = 
+              \\underbrace{e^{${g.f}}}_{\\displaystyle \\to ${expBeh}} 
+              \\cdot 
+              \\underbrace{(${p.f})}_{\\displaystyle \\to ${polyBeh}}
+              \\to ${limit}`;
+    }
+  }
+
+  // Einleitungssatz: Grenzwert des Exponenten
+  function expIntroSentence(side, expBeh){
+    const arrow = side === 'left' ? '-\\infty' : '+\\infty';
+    const expResult = expBeh === '0' ? '-\\infty' : '+\\infty';
+    const consequence = expBeh === '0'
+      ? 'd.h. der gesamte \\(e\\)-Term gegen \\(0\\).'
+      : 'd.h. der gesamte \\(e\\)-Term gegen \\(+\\infty\\).';
+    return `Der Exponent \\(${g.f}\\) verläuft für \\(x\\to${arrow}\\) gegen \\(${expResult}\\), ${consequence}`;
+  }
 
   const html = `
     <table style="width:100%; border-collapse: collapse; table-layout: fixed;">
@@ -584,27 +771,21 @@ function showFactorArgument() {
       <tbody>
         <tr>
           <td style="padding:8px; vertical-align:top; border-right:2px solid black;">
+            <div style="margin-bottom:6px;">${expIntroSentence('left', leftExp)}</div>
             <div class="scale-wrapper">
-              <div class="scale-el">$$f(x) = 
-              \\underbrace{e^{${g.f}}}_{\\displaystyle \\to ${leftExp}} 
-              \\cdot 
-              \\underbrace{(${p.f})}_{\\displaystyle \\to ${leftPoly}}
-              \\to ${leftLimit}$$</div>
+              <div class="scale-el">$$${buildFormula('left', leftExp, leftPoly, leftLimit)}$$</div>
             </div>
+            ${isConstant ? `` : ``}
             ${leftIndeterminate ? `
               <div style="margin-top:4px;">
                 Unbestimmter Ausdruck \\(0 \\cdot \\pm\\infty\\): Die $e$-Funktion dominiert das Polynom, daher \\(f(x) \\to ${leftLimit}\\)
               </div>
             ` : ``}
-
           </td>
           <td style="padding:8px; vertical-align:top;">
+            <div style="margin-bottom:6px;">${expIntroSentence('right', rightExp)}</div>
             <div class="scale-wrapper">
-              <div class="scale-el">$$f(x) = 
-              \\underbrace{e^{${g.f}}}_{\\displaystyle \\to ${rightExp}} 
-              \\cdot 
-              \\underbrace{(${p.f})}_{\\displaystyle \\to ${rightPoly}}
-              \\to ${rightLimit}$$</div>
+              <div class="scale-el">$$${buildFormula('right', rightExp, rightPoly, rightLimit)}$$</div>
             </div>
             ${rightIndeterminate ? `
               <div style="margin-top:4px;">
@@ -632,23 +813,50 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 });
 
+// ---------------- Skizze ----------------
+function computeLimitForSketch(side){
+  // Wie computeLimit, aber unterscheidet immer zwischen 0+ und 0-
+  const { p, g } = currentTask;
+  const s = side === 'right' ? 1 : -1;
+  const gBeh = polyBehavior(g, s);
+  const expBeh = gBeh === '+infty' ? '+infty' : '0';
+  let pBeh;
+  if(p.deg === 0){
+    pBeh = p.lead > 0 ? '+infty' : '-infty';
+  } else {
+    pBeh = polyBehavior(p, s);
+  }
+  if(expBeh === '+infty'){
+    return pBeh === '+infty' ? 'p' : 'n';
+  } else {
+    return pBeh === '+infty' ? '0p' : '0n';
+  }
+}
+
+function updateSketch(){
+  if(!currentTask) return;
+  const left  = computeLimitForSketch('left');
+  const right = computeLimitForSketch('right');
+  document.getElementById('sketchImg').src = `GrenzwertSkizzen/${left}${right}_limit.png`;
+  document.getElementById('sketchDetails').open = false;
+}
+
 // URL-Parameter speichern
 function saveSettingsToURL(){
   const url = new URL(window.location);
 
   const polyDeg = document.getElementById('polyDeg').value;
-  const allowInner = document.getElementById('allowInner').checked;
+  const innerMode = document.querySelector('input[name="innerMode"]:checked')?.value ?? 'poly';
   const innerDeg = document.getElementById('innerDeg').value;
   const distinguishZero = document.getElementById('distinguishZero').checked;
   const explanationMode = document.getElementById('explanationModeSwitch').checked ? 'test' : 'argument';
 
   url.searchParams.set('polyDeg', polyDeg);
-  url.searchParams.set('allowInner', allowInner);
+  url.searchParams.set('innerMode', innerMode);
   url.searchParams.set('distinguishZero', distinguishZero);
   url.searchParams.set('explanationMode', explanationMode);
 
-  // innerDeg nur speichern, wenn allowInner aktiv ist
-  if(allowInner){
+  if(innerMode === 'poly'){
     url.searchParams.set('innerDeg', innerDeg);
   } else {
     url.searchParams.delete('innerDeg');
@@ -667,10 +875,11 @@ function loadSettingsFromURL(){
     document.getElementById('polyDeg').value = polyDeg;
   }
   
-  // AllowInner
-  const allowInner = url.searchParams.get('allowInner');
-  if(allowInner !== null){
-    document.getElementById('allowInner').checked = allowInner === 'true';
+  // InnerMode
+  const innerMode = url.searchParams.get('innerMode');
+  if(innerMode !== null){
+    const radio = document.querySelector(`input[name="innerMode"][value="${innerMode}"]`);
+    if(radio) radio.checked = true;
   }
   
   // InnerDeg
@@ -700,15 +909,18 @@ function loadSettingsFromURL(){
 function updateParams(){
   const polyDeg = document.getElementById('polyDeg');
   const innerDeg = document.getElementById('innerDeg');
-  const allowInner = document.getElementById('allowInner');
-  const innerBlock = document.getElementById('innerBlock');
+  const innerMode = document.querySelector('input[name="innerMode"]:checked')?.value ?? 'poly';
 
-  if(!allowInner.checked){
+  // Slider deaktivieren wenn nicht "poly"
+  const sliderWrap = innerDeg.closest('.slider-wrap');
+  if(innerMode !== 'poly'){
     innerDeg.disabled = true;
-    innerBlock.classList.add('disabled-text');
+    if(sliderWrap) sliderWrap.style.opacity = '0.4';
+    document.getElementById('degIn').style.opacity = '0.4';
   } else {
     innerDeg.disabled = false;
-    innerBlock.classList.remove('disabled-text');
+    if(sliderWrap) sliderWrap.style.opacity = '';
+    document.getElementById('degIn').style.opacity = '';
   }
 
   document.getElementById('degOut').innerText = polyDeg.value;

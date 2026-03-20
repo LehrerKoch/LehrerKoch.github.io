@@ -66,8 +66,8 @@ input[type="radio"], input[type="checkbox"] { margin-top: 5px; margin-right: 3px
 .switch-quiz .slider-inner:before { position: absolute; content: ""; height: 26px; width: 26px; left: 4px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
 .switch-quiz input:checked + .slider-inner { background-color: #c8f0c8; border-color: #4a9a4a; }
 .switch-quiz input:checked + .slider-inner:before { transform: translateX(84px); }
-.switch-quiz .labels { position: absolute; top: 8px; left: 0; width: 100%; font-size: 12px; font-weight: bold; pointer-events: none; text-transform: uppercase; }
-.switch-quiz .labels span { position: absolute; transition: opacity 0.4s; width: 100%; text-align: center; }
+.switch-quiz .labels { position: absolute; top: 8px; left: 0; right: 0; width: 100%; font-size: 12px; font-weight: bold; pointer-events: none; text-transform: uppercase; }
+.switch-quiz .labels span { position: absolute; left: 0; right: 0; transition: opacity 0.4s; width: 100%; text-align: center; }
 .switch-quiz .labels span:first-child { color: #6a0000; }
 .switch-quiz .labels span:last-child { color: #1a4a1a; opacity: 0; }
 .switch-quiz input:checked ~ .labels span:first-child { opacity: 0; }
@@ -105,7 +105,7 @@ input[type="radio"], input[type="checkbox"] { margin-top: 5px; margin-right: 3px
   width: 100%;
   height: 100%;
   display: flex;
-  font-size: 12px;
+  font-size: 10.5px;
   font-weight: bold;
 }
 .switch-solmode .solmode-labels span {
@@ -117,10 +117,10 @@ input[type="radio"], input[type="checkbox"] { margin-top: 5px; margin-right: 3px
 }
 
 /* quiz */
-#quizArea { margin: 8px 0 4px 0; }
-.quiz-section { margin: 6px 0; }
-.quiz-label { font-size: 0.88em; color: #555; margin-bottom: 4px; }
-.quiz-btns { display: flex; flex-wrap: wrap; gap: 6px; }
+#quizArea { margin: 8px 0 4px 0; display: flex; flex-direction: column; align-items: center; text-align: center; }
+.quiz-section { margin: 6px 0; width: 100%; display: flex; flex-direction: column; align-items: center; }
+.quiz-label { font-size: 0.88em; color: #555; margin-bottom: 4px; text-align: center; }
+.quiz-btns { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
 .quiz-btn {
   padding: 6px 14px; border: 1.5px solid #aaa; border-radius: 20px;
   background: #f7f7f7; cursor: pointer; font-size: 1em;
@@ -131,6 +131,38 @@ input[type="radio"], input[type="checkbox"] { margin-top: 5px; margin-right: 3px
 .quiz-btn.q-correct { background: #c8f0c8; border-color: #4a9a4a; color: #1a4a1a; }
 .quiz-btn.q-wrong   { background: #f8d8d8; border-color: #c04040; color: #6a0000; }
 
+/* Formel-Quiz: max 3 Spalten für sin/cos/tan, untereinander für Pythagoras */
+.quiz-btns-trig-grid {
+  display: grid;
+  grid-template-columns: repeat(3, auto);
+  gap: 6px;
+  justify-content: center;
+  width: 100%;
+}
+@media (max-width: 600px) {
+  .quiz-btns-trig-grid { grid-template-columns: repeat(2, auto); }
+}
+@media (max-width: 380px) {
+  .quiz-btns-trig-grid { grid-template-columns: auto; }
+}
+.quiz-btns-pyth-col {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: center;
+  width: 100%;
+}
+
+/* sketch mode toggle */
+.switch-sketch { display:inline-block; position:relative; width:300px; height:28px; background:#ccc; border-radius:14px; cursor:pointer; user-select:none; margin:2px 0; flex-shrink:0; }
+.switch-sketch input { display:none; }
+.switch-sketch .sk-knob { position:absolute; top:2px; left:2px; width:calc(50% - 2px); height:24px; background:#4CAF50; border-radius:12px; transition:left .25s,background .25s; }
+.switch-sketch input:checked + .sk-knob { left:calc(50%); background:#E07B00; }
+.switch-sketch .sk-labels { position:absolute; width:100%; height:100%; display:flex; font-size:10px; font-weight:bold; }
+.switch-sketch .sk-labels span { flex:1; text-align:center; line-height:28px; z-index:1; color:#222; }
+.sketch-toggle-wrap { display:flex; align-items:center; gap:8px; margin-bottom:2px; align-self:flex-start; margin-left:8px; }
+.sketch-not-to-scale { font-size:0.78em; font-style:italic; color:#aaa; }
+
 /* sketch */
 .sketch-outer { display: flex; flex-direction: column; align-items: center; margin: 2px 0 4px 0; }
 .sketch-note { font-size: 0.78em; font-style: italic; color: #aaa; margin-bottom: 1px; align-self: flex-start; margin-left: 8px; }
@@ -138,7 +170,7 @@ input[type="radio"], input[type="checkbox"] { margin-top: 5px; margin-right: 3px
 </style>
 </head>
 <body>
-<h1 style="margin-bottom:4px;">Trigonometrie im rechtwinkligen Dreieck</h1>
+<h1 style="margin-bottom:4px;">Trigonometrie im rechtwinkligen Dreieck – Sinus/Kosinus/Tangens</h1>
 
 <details id="settingsDetails">
 <summary>Einstellungen</summary>
@@ -157,6 +189,19 @@ input[type="radio"], input[type="checkbox"] { margin-top: 5px; margin-right: 3px
   <div class="radio-row">
     <label><input type="radio" name="labeling" value="abc" checked> Klassisch – Dreieck ABC (a,b,c)</label>
     <label><input type="radio" name="labeling" value="rand"> Zufällige Eckenbezeichnung</label>
+  </div>
+</div>
+
+<div class="form-block" id="randNamingOptions" style="display:none;">
+  <b>Seitenbezeichnung</b> <span style="font-size:0.85em;color:#555;">(bei zufälliger Eckenbezeichnung)</span>
+  <div class="radio-row">
+    <label><input type="radio" name="sideNotation" value="lower" checked> Kleinbuchstabe der Gegenecke (z.B. <i>e</i>)</label>
+    <label><input type="radio" name="sideNotation" value="segment"> Strecke (z.B. \(\overline{FD}\))</label>
+  </div>
+  <b style="margin-top:6px;display:block;">Winkelbezeichnung</b>
+  <div class="radio-row">
+    <label><input type="radio" name="angleNotation" value="simple" checked> ∢E (einfach)</label>
+    <label><input type="radio" name="angleNotation" value="formal"> ∢DEF (formal, mit Orientierung)</label>
   </div>
 </div>
 
@@ -237,9 +282,20 @@ input[type="radio"], input[type="checkbox"] { margin-top: 5px; margin-right: 3px
 
 <div id="sketch-direct-wrap" style="display:none">
   <div class="sketch-outer" style="margin:2px 0 3px 0;">
-    <span class="sketch-note">Skizze nicht maßstabsgerecht</span>
+    <div class="sketch-toggle-wrap">
+      <label class="switch-sketch">
+        <input type="checkbox" id="realisticSketch" onchange="syncSketchToggle(this); rerenderCurrentSVG()">
+        <span class="sk-knob"></span>
+        <span class="sk-labels"><span>Exakte Skizze</span><span>Allgemeine Skizze</span></span>
+      </label>
+      <span class="sketch-not-to-scale" id="sketch-note-direct">Skizze nicht maßstabsgerecht</span>
+    </div>
     <div class="sketch-svg-wrap" id="sketch-direct"></div>
   </div>
+  <details id="text-collapsible">
+    <summary>Angaben in Textform</summary>
+    <div class="scale-wrapper" style="padding:0.3em 0.5em;"><div id="task-formula-sketch" class="scale-el" style="font-size:1.3em; text-align:left;"></div></div>
+  </details>
 </div>
 
 <div id="text-task-wrap">
@@ -247,7 +303,14 @@ input[type="radio"], input[type="checkbox"] { margin-top: 5px; margin-right: 3px
   <details id="sketch-collapsible">
     <summary>Skizze anzeigen</summary>
     <div class="sketch-outer" style="margin:2px 0 3px 0;">
-      <span class="sketch-note">Skizze nicht maßstabsgerecht</span>
+      <div class="sketch-toggle-wrap">
+        <label class="switch-sketch">
+          <input type="checkbox" id="realisticSketchInside" onchange="syncSketchToggle(this); rerenderCurrentSVG()">
+          <span class="sk-knob"></span>
+          <span class="sk-labels"><span>Exakte Skizze</span><span>Allgemeine Skizze</span></span>
+        </label>
+        <span class="sketch-not-to-scale" id="sketch-note-inside">Skizze nicht maßstabsgerecht</span>
+      </div>
       <div class="sketch-svg-wrap" id="sketch-inside"></div>
     </div>
   </details>
@@ -260,7 +323,7 @@ input[type="radio"], input[type="checkbox"] { margin-top: 5px; margin-right: 3px
   </label>
 </div> -->
 
-<div style="margin: 15px 0 10px 0;">
+<div style="margin: 15px 0 10px 0; display: flex; flex-direction: column; align-items: center; text-align: center;">
   <div style="font-size:0.95em; margin-bottom: 5px; font-weight: bold;">Quiz als Hilfestellung?</div>
   <label class="switch-quiz">
     <input type="checkbox" id="quizMode">
@@ -281,7 +344,7 @@ input[type="radio"], input[type="checkbox"] { margin-top: 5px; margin-right: 3px
   <div class="scale-wrapper" style="padding:0.1em 0.5em 0 0.5em;"><div id="solution" class="scale-el"></div></div>
   <details id="solutionPath">
     <summary>Lösungsweg</summary>
-    <div style="margin: 3px 10px 1px 10px;">
+    <div style="margin: 3px 10px 1px 10px; display: flex; justify-content: center;">
       <label class="switch-solmode">
         <input type="checkbox" id="solModeSwitch">
         <span class="solmode-knob"></span>
@@ -347,6 +410,9 @@ function syncSubChecks() {
       el.closest('label').classList.toggle('disabled', !on);
     });
   });
+  // Zufällige Eckenbezeichnung: Zusatzoptionen ein-/ausblenden
+  const isRand = document.querySelector('input[name="labeling"]:checked').value === 'rand';
+  document.getElementById('randNamingOptions').style.display = isRand ? '' : 'none';
 }
 
 // ================================================================
@@ -387,6 +453,7 @@ function genNaming(labeling) {
   if (labeling === 'abc') {
     return { V1:'A', V2:'B', V3:'C',
              s1:'a', s2:'b', s3:'c',
+             s1p:'a', s2p:'b', s3p:'c',
              ang1:'\\alpha', ang2:'\\beta', ang3:'\\gamma',
              ang1p:'α', ang2p:'β', ang3p:'γ' };
   }
@@ -394,16 +461,61 @@ function genNaming(labeling) {
   const picked = [];
   while (picked.length < 3) picked.push(pool.splice(randInt(0,pool.length-1),1)[0]);
   const [P,Q,R] = picked;
-  return { V1:P, V2:Q, V3:R,
-           s1:P.toLowerCase(), s2:Q.toLowerCase(), s3:R.toLowerCase(),
-           ang1:`\\measuredangle ${P}`, ang2:`\\measuredangle ${Q}`, ang3:`\\measuredangle ${R}`,
-           ang1p:`∢${P}`, ang2p:`∢${Q}`, ang3p:`∢${R}` };
+
+  // Seitenbezeichnung
+  const sideMode = (document.querySelector('input[name="sideNotation"]:checked')||{value:'lower'}).value;
+  let s1, s2, s3;
+  if (sideMode === 'segment') {
+    // a=Q-R (gegenüber P=V1), b=P-R (gegenüber Q=V2), c=P-Q (gegenüber R=V3)
+    s1 = `\\overline{${Q}${R}}`;
+    s2 = `\\overline{${P}${R}}`;
+    s3 = `\\overline{${P}${Q}}`;
+  } else {
+    s1 = P.toLowerCase(); s2 = Q.toLowerCase(); s3 = R.toLowerCase();
+  }
+
+  // Winkelbezeichnung
+  const angMode = (document.querySelector('input[name="angleNotation"]:checked')||{value:'simple'}).value;
+  // Für formale Bezeichnung: ∢KEF = Strahl von E nach K, Scheitelpunkt E, Strahl nach F
+  // alpha=Winkel bei V1=P: Schenkel zu V2=Q und V3=R → ∢QPR
+  // beta=Winkel bei V2=Q: Schenkel zu V1=P und V3=R → ∢RQP
+  // gamma=Winkel bei V3=R: Schenkel zu V1=P und V2=Q → ∢PRQ
+  let ang1, ang2, ang3, ang1p, ang2p, ang3p;
+  if (angMode === 'formal') {
+    ang1 = `\\measuredangle ${Q}${P}${R}`;
+    ang2 = `\\measuredangle ${R}${Q}${P}`;
+    ang3 = `\\measuredangle ${P}${R}${Q}`;
+    ang1p = `∢${Q}${P}${R}`;
+    ang2p = `∢${R}${Q}${P}`;
+    ang3p = `∢${P}${R}${Q}`;
+  } else {
+    ang1 = `\\measuredangle ${P}`;
+    ang2 = `\\measuredangle ${Q}`;
+    ang3 = `\\measuredangle ${R}`;
+    ang1p = `∢${P}`;
+    ang2p = `∢${Q}`;
+    ang3p = `∢${R}`;
+  }
+
+  // Plain-Text Varianten für SVG
+  let s1p, s2p, s3p;
+  if (sideMode === 'segment') {
+    s1p = `${Q}${R}\u0305`; // Unicode combining overline – nur ein Näherung
+    s2p = `${P}${R}\u0305`;
+    s3p = `${P}${Q}\u0305`;
+    // Besser: einfach "QR" ohne overline im SVG, overline nur in LaTeX
+    s1p = `${Q}${R}`; s2p = `${P}${R}`; s3p = `${P}${Q}`;
+  } else {
+    s1p = P.toLowerCase(); s2p = Q.toLowerCase(); s3p = R.toLowerCase();
+  }
+
+  return { V1:P, V2:Q, V3:R, s1, s2, s3, s1p, s2p, s3p, ang1, ang2, ang3, ang1p, ang2p, ang3p };
 }
 function nmTex(key, nm) {
   return {a:nm.s1, b:nm.s2, c:nm.s3, alpha:nm.ang1, beta:nm.ang2, gamma:nm.ang3}[key];
 }
 function nmSvg(key, nm) {
-  return {a:nm.s1, b:nm.s2, c:nm.s3, alpha:nm.ang1p, beta:nm.ang2p, gamma:nm.ang3p}[key];
+  return {a:nm.s1p, b:nm.s2p, c:nm.s3p, alpha:nm.ang1p, beta:nm.ang2p, gamma:nm.ang3p}[key];
 }
 
 // ================================================================
@@ -630,44 +742,51 @@ function buildSVG(tri, task, nm) {
 
   // sketchMode deterministisch aus raWinkel
   const sketchMode = raWinkel==='alpha' ? 0 : raWinkel==='beta' ? 1 : 2;
+  const realistic = !document.getElementById('realisticSketch').checked;
 
   const PAD = 62;
-  const L = 176, S = 120;
+  const TARGET = 200; // max dimension for realistic scaling
+
+  // Scale factor for realistic mode: fit longest side into TARGET
+  const maxSide = Math.max(a, b, c);
+  const scale = realistic ? TARGET / maxSide : 1;
+  const rL = (v) => v * scale; // realistic length
+  const L = 176, S = 120;       // schematic lengths
 
   let pA, pB, pC, svgW, svgH;
-  // pA=V1(A,alpha), pB=V2(B,beta), pC=V3(C,gamma)
-  // Seiten: a=B–C, b=A–C, c=A–B
 
   if (sketchMode === 0) {
-    // Rechter Winkel bei A: alpha=90°, a=Hyp, b⊥c bei A
-    // b=A–C senkrecht, c=A–B waagerecht, a=B–C schräg
-    // Längenvergleich: c (horiz Kathete) vs b (vert Kathete)
-    const horiz = c >= b ? L : S;
-    const vert  = c >= b ? S : L;
-    pA = [PAD,          PAD + vert];
-    pB = [PAD + horiz,  PAD + vert];
-    pC = [PAD,          PAD];
+    // Rechter Winkel bei A: b⊥c bei A
+    const horiz = realistic ? rL(c) : (c >= b ? L : S);
+    const vert  = realistic ? rL(b) : (c >= b ? S : L);
+    pA = [PAD, PAD + vert]; pB = [PAD + horiz, PAD + vert]; pC = [PAD, PAD];
     svgW = horiz + 2*PAD; svgH = vert + 2*PAD;
   } else if (sketchMode === 1) {
-    // Rechter Winkel bei B: beta=90°, b=Hyp, a⊥c bei B
-    // a=B–C senkrecht, c=A–B waagerecht, b=A–C schräg
-    // Längenvergleich: c (horiz Kathete) vs a (vert Kathete)
-    const horiz = c >= a ? L : S;
-    const vert  = c >= a ? S : L;
-    pA = [PAD,          PAD + vert];
-    pB = [PAD + horiz,  PAD + vert];
-    pC = [PAD + horiz,  PAD];
+    // Rechter Winkel bei B: a⊥c bei B
+    const horiz = realistic ? rL(c) : (c >= a ? L : S);
+    const vert  = realistic ? rL(a) : (c >= a ? S : L);
+    pA = [PAD, PAD + vert]; pB = [PAD + horiz, PAD + vert]; pC = [PAD + horiz, PAD];
     svgW = horiz + 2*PAD; svgH = vert + 2*PAD;
   } else {
-    // Rechter Winkel bei C: gamma=90°, c=Hyp, Thales-Position
-    // alpha<=45 → a<=b → C eher nahe B (rechts); alpha>45 → C eher nahe A (links)
-    const skAlpha = alpha <= 45 ? 30 : 60;
-    const ar = skAlpha * Math.PI / 180;
-    const totalW = L + S;
-    const cx = PAD + totalW * Math.cos(ar) * Math.cos(ar);
-    const ch = totalW * Math.sin(ar) * Math.cos(ar);
-    pA = [PAD, PAD + ch]; pB = [PAD + totalW, PAD + ch]; pC = [cx, PAD];
-    svgW = totalW + 2*PAD; svgH = ch + 2*PAD;
+    // Rechter Winkel bei C: gamma=90°
+    if (realistic) {
+      // Place A at bottom-left, B at bottom-right, C above via actual angles
+      const baseLen = rL(c);
+      const cx = PAD + baseLen * Math.cos(alpha * Math.PI / 180) * Math.cos(alpha * Math.PI / 180) * 2;
+      // C is at foot of altitude from C to AB: cx = a²/c from A, height = b*sin(alpha)
+      const cxPos = PAD + rL(b) * Math.cos(alpha * Math.PI / 180);
+      const ch    = rL(b) * Math.sin(alpha * Math.PI / 180);
+      pA = [PAD, PAD + ch]; pB = [PAD + baseLen, PAD + ch]; pC = [cxPos, PAD];
+      svgW = baseLen + 2*PAD; svgH = ch + 2*PAD;
+    } else {
+      const skAlpha = alpha <= 45 ? 30 : 60;
+      const ar = skAlpha * Math.PI / 180;
+      const totalW = L + S;
+      const cx = PAD + totalW * Math.cos(ar) * Math.cos(ar);
+      const ch = totalW * Math.sin(ar) * Math.cos(ar);
+      pA = [PAD, PAD + ch]; pB = [PAD + totalW, PAD + ch]; pC = [cx, PAD];
+      svgW = totalW + 2*PAD; svgH = ch + 2*PAD;
+    }
   }
 
   // Welcher Pixel-Punkt hat den rechten Winkel?
@@ -814,6 +933,17 @@ function newTask() {
     document.getElementById('sketch-direct-wrap').style.display = '';
     document.getElementById('text-task-wrap').style.display = 'none';
     document.getElementById('sketch-direct').innerHTML = svgStr;
+    // Gegeben-Text fuer Skizzen-Aufgabe befuellen
+    const isAngS = k => ['alpha','beta','gamma'].includes(k);
+    const givenAllS = [[tri.raWinkel, 90], ...task.givenPairs];
+    const gStrS = givenAllS.map(([k,v]) =>
+      `${nmTex(k,nm)} = ${isAngS(k)?fmtDeg(v):fmtN(v)}`).join('; \\quad ');
+    const gesStrS = nmTex(task.searchedKey, nm);
+    document.getElementById('task-formula-sketch').innerHTML =
+      `<div>\\(\\text{geg}\\colon\\quad ${gStrS}\\)</div>`
+      + `<div>\\(\\text{ges}\\colon\\quad ${gesStrS}\\)</div>`;
+    const tc = document.getElementById('text-collapsible');
+    if (tc) tc.removeAttribute('open');
   } else {
     document.getElementById('sketch-direct-wrap').style.display = 'none';
     document.getElementById('text-task-wrap').style.display = '';
@@ -822,8 +952,8 @@ function newTask() {
     // Aufgabentext: linksbündig, "geg:\qquad ...; ...; ..." / "ges:\qquad ..."
     // Punkt 1: geg/ges ohne Doppelpunkt, linksbündig
     const isAng = k => ['alpha','beta','gamma'].includes(k);
-    // Alle 3 Werte: gegeben + rechter Winkel (raWinkel=90°)
-    const givenAll = [...task.givenPairs, [tri.raWinkel, 90]];
+    // Alle 3 Werte: rechter Winkel zuerst, dann gegeben
+    const givenAll = [[tri.raWinkel, 90], ...task.givenPairs];
     const gStr = givenAll.map(([k,v]) =>
       `${nmTex(k,nm)} = ${isAng(k)?fmtDeg(v):fmtN(v)}`).join('; \\quad ');
     const gesStr = nmTex(task.searchedKey, nm);
@@ -913,16 +1043,17 @@ function renderQuiz(task, tri, nm) {
 
 // In renderQuiz (ca. Zeile 508): Ersetze die Funktion buildFormulaButtons
   function buildFormulaButtons() {
+    var btnsClass = type === 'pyth' ? 'quiz-btns-pyth-col' : 'quiz-btns-trig-grid';
     var html = '<div class="quiz-section" id="quiz-step2">';
     html += '<div class="quiz-label">Welche Formel ist richtig?</div>';
-    html += '<div class="quiz-btns">';
+    html += '<div class="' + btnsClass + '">';
     
     if (type === 'pyth') {
       // Drei Varianten des Pythagoras
       var pythOpts = [
-        { tex: GKL + '^2 + ' + AKL + '^2 = ' + HypL + '^2', corr: true },
-        { tex: GKL + '^2 + ' + HypL + '^2 = ' + AKL + '^2', corr: false },
-        { tex: AKL + '^2 + ' + HypL + '^2 = ' + GKL + '^2', corr: false }
+        { tex: HypL + '^2 = ' + GKL + '^2 + ' + AKL + '^2', corr: true },
+        { tex: AKL + '^2 = ' + GKL + '^2 + ' + HypL + '^2', corr: false },
+        { tex: GKL + '^2 = ' + AKL + '^2 + ' + HypL + '^2', corr: false }
       ];
       // Mischen
       pythOpts.sort(() => Math.random() - 0.5);
@@ -1072,7 +1203,7 @@ function renderSolution(task, tri, nm) {
   } else {
     explanation = 'Da kein Winkel bekannt oder gesucht ist, verwenden wir den <b>Satz des Pythagoras</b>. '
       + 'Die Hypotenuse ist hier \\(' + HypL + '\\) \u2013 sie liegt dem rechten Winkel \\(' + raL + '\\) gegen\u00FCber. '
-      + 'Es gilt daher: \\(' + GKL + '^2 + ' + AKL + '^2 = ' + HypL + '^2\\).';
+      + 'Es gilt daher: \\(' + HypL + '^2 = ' + GKL + '^2 + ' + AKL + '^2\\).';
   }
 
   // ── Formatierung eines Trig-Wertes für den "sofort einsetzen"-Modus ──
@@ -1114,7 +1245,7 @@ function renderSolution(task, tri, nm) {
 
   if (type === 'sin') {
     // Allgemeine Zeile IMMER zuerst
-    eq('\\sin(' + aktL + ')', '\\dfrac{\\text{GK}}{\\text{Hyp.}} = \\dfrac{' + GKL + '}{' + HypL + '}');
+    eq('\\sin(' + aktL + ')', '\\dfrac{\\text{GK}}{\\text{Hyp.}}');
 
     if (!solModeNumFirst) {
       if (sub === 'geg') {
@@ -1129,6 +1260,7 @@ function renderSolution(task, tri, nm) {
         eq(HypL, '\\dfrac{' + fmtN(GK_val) + '}{\\sin(' + fmtDeg(akt_val) + ')}');
         apx(HypL, '\\mathbf{' + fmtN(Hyp_val) + '}');
       } else {
+        eq('\\sin(' + aktL + ')', '\\dfrac{' + GKL + '}{' + HypL + '}', invLabel('sin') + '(\\ldots)');
         eq(aktL, invLabel('sin') + '\\!\\left(\\dfrac{' + GKL + '}{' + HypL + '}\\right)');
         eq(aktL, invLabel('sin') + '\\!\\left(\\dfrac{' + fmtN(GK_val) + '}{' + fmtN(Hyp_val) + '}\\right)');
         apx(aktL, '\\mathbf{' + fmtDeg(akt_val) + '}');
@@ -1149,14 +1281,20 @@ function renderSolution(task, tri, nm) {
         row(HypL, symb, '\\dfrac{' + fmtN(GK_val) + '}{' + tvTex + '}');
         apx(HypL, '\\mathbf{' + fmtN(Hyp_val) + '}');
       } else {
+        var quotSinRaw = GK_val / Hyp_val;
+        var quotSinTex = quotSinRaw.toFixed(3).replace(/\.?0+$/, '').replace('.', '{,}');
+        var quotSinIsExact = Math.abs(quotSinRaw - Math.round(quotSinRaw * 1000) / 1000) < 1e-9;
+        var quotSinSymb = quotSinIsExact ? '=' : '\\approx';
+        eq('\\sin(' + aktL + ')', '\\dfrac{' + GKL + '}{' + HypL + '}');
         eq('\\sin(' + aktL + ')', '\\dfrac{' + fmtN(GK_val) + '}{' + fmtN(Hyp_val) + '}');
-        eq(aktL, invLabel('sin') + '\\!\\left(\\dfrac{' + fmtN(GK_val) + '}{' + fmtN(Hyp_val) + '}\\right)');
+        row('\\sin(' + aktL + ')', quotSinSymb, quotSinTex, invLabel('sin') + '(\\ldots)');
+        row(aktL, quotSinSymb, invLabel('sin') + '\\!\\left(' + quotSinTex + '\\right)');
         apx(aktL, '\\mathbf{' + fmtDeg(akt_val) + '}');
       }
     }
 
   } else if (type === 'cos') {
-    eq('\\cos(' + aktL + ')', '\\dfrac{\\text{AK}}{\\text{Hyp.}} = \\dfrac{' + AKL + '}{' + HypL + '}');
+    eq('\\cos(' + aktL + ')', '\\dfrac{\\text{AK}}{\\text{Hyp.}}');
 
     if (!solModeNumFirst) {
       if (sub === 'ank') {
@@ -1171,6 +1309,7 @@ function renderSolution(task, tri, nm) {
         eq(HypL, '\\dfrac{' + fmtN(AK_val) + '}{\\cos(' + fmtDeg(akt_val) + ')}');
         apx(HypL, '\\mathbf{' + fmtN(Hyp_val) + '}');
       } else {
+        eq('\\cos(' + aktL + ')', '\\dfrac{' + AKL + '}{' + HypL + '}', invLabel('cos') + '(\\ldots)');
         eq(aktL, invLabel('cos') + '\\!\\left(\\dfrac{' + AKL + '}{' + HypL + '}\\right)');
         eq(aktL, invLabel('cos') + '\\!\\left(\\dfrac{' + fmtN(AK_val) + '}{' + fmtN(Hyp_val) + '}\\right)');
         apx(aktL, '\\mathbf{' + fmtDeg(akt_val) + '}');
@@ -1191,14 +1330,20 @@ function renderSolution(task, tri, nm) {
         row(HypL, symb, '\\dfrac{' + fmtN(AK_val) + '}{' + tvTex + '}');
         apx(HypL, '\\mathbf{' + fmtN(Hyp_val) + '}');
       } else {
+        var quotCosRaw = AK_val / Hyp_val;
+        var quotCosTex = quotCosRaw.toFixed(3).replace(/\.?0+$/, '').replace('.', '{,}');
+        var quotCosIsExact = Math.abs(quotCosRaw - Math.round(quotCosRaw * 1000) / 1000) < 1e-9;
+        var quotCosSymb = quotCosIsExact ? '=' : '\\approx';
+        eq('\\cos(' + aktL + ')', '\\dfrac{' + AKL + '}{' + HypL + '}');
         eq('\\cos(' + aktL + ')', '\\dfrac{' + fmtN(AK_val) + '}{' + fmtN(Hyp_val) + '}');
-        eq(aktL, invLabel('cos') + '\\!\\left(\\dfrac{' + fmtN(AK_val) + '}{' + fmtN(Hyp_val) + '}\\right)');
+        row('\\cos(' + aktL + ')', quotCosSymb, quotCosTex, invLabel('cos') + '(\\ldots)');
+        row(aktL, quotCosSymb, invLabel('cos') + '\\!\\left(' + quotCosTex + '\\right)');
         apx(aktL, '\\mathbf{' + fmtDeg(akt_val) + '}');
       }
     }
 
   } else if (type === 'tan') {
-    eq('\\tan(' + aktL + ')', '\\dfrac{\\text{GK}}{\\text{AK}} = \\dfrac{' + GKL + '}{' + AKL + '}');
+    eq('\\tan(' + aktL + ')', '\\dfrac{\\text{GK}}{\\text{AK}}');
 
     if (!solModeNumFirst) {
       if (sub === 'geg') {
@@ -1213,6 +1358,7 @@ function renderSolution(task, tri, nm) {
         eq(AKL, '\\dfrac{' + fmtN(GK_val) + '}{\\tan(' + fmtDeg(akt_val) + ')}');
         apx(AKL, '\\mathbf{' + fmtN(AK_val) + '}');
       } else {
+        eq('\\tan(' + aktL + ')', '\\dfrac{' + GKL + '}{' + AKL + '}', invLabel('tan') + '(\\ldots)');
         eq(aktL, invLabel('tan') + '\\!\\left(\\dfrac{' + GKL + '}{' + AKL + '}\\right)');
         eq(aktL, invLabel('tan') + '\\!\\left(\\dfrac{' + fmtN(GK_val) + '}{' + fmtN(AK_val) + '}\\right)');
         apx(aktL, '\\mathbf{' + fmtDeg(akt_val) + '}');
@@ -1233,38 +1379,44 @@ function renderSolution(task, tri, nm) {
         row(AKL, symb, '\\dfrac{' + fmtN(GK_val) + '}{' + tvTex + '}');
         apx(AKL, '\\mathbf{' + fmtN(AK_val) + '}');
       } else {
+        var quotTanRaw = GK_val / AK_val;
+        var quotTanTex = quotTanRaw.toFixed(3).replace(/\.?0+$/, '').replace('.', '{,}');
+        var quotTanIsExact = Math.abs(quotTanRaw - Math.round(quotTanRaw * 1000) / 1000) < 1e-9;
+        var quotTanSymb = quotTanIsExact ? '=' : '\\approx';
+        eq('\\tan(' + aktL + ')', '\\dfrac{' + GKL + '}{' + AKL + '}');
         eq('\\tan(' + aktL + ')', '\\dfrac{' + fmtN(GK_val) + '}{' + fmtN(AK_val) + '}');
-        eq(aktL, invLabel('tan') + '\\!\\left(\\dfrac{' + fmtN(GK_val) + '}{' + fmtN(AK_val) + '}\\right)');
+        row('\\tan(' + aktL + ')', quotTanSymb, quotTanTex, invLabel('tan') + '(\\ldots)');
+        row(aktL, quotTanSymb, invLabel('tan') + '\\!\\left(' + quotTanTex + '\\right)');
         apx(aktL, '\\mathbf{' + fmtDeg(akt_val) + '}');
       }
     }
 
   } else {
     // Pythagoras
-    eq(GKL + '^2 + ' + AKL + '^2', HypL + '^2');
     if (sub === 'hyp') {
       if (!solModeNumFirst) {
         eq(HypL + '^2', GKL + '^2 + ' + AKL + '^2', '\\sqrt{\\phantom{X}}');
         eq(HypL, '\\sqrt{' + GKL + '^2 + ' + AKL + '^2}');
         eq(HypL, '\\sqrt{' + fmtN(GK_val) + '^2 + ' + fmtN(AK_val) + '^2}');
-        eq(HypL, '\\sqrt{' + fmtN(round2(GK_val*GK_val + AK_val*AK_val)) + '}');
         apx(HypL, '\\mathbf{' + fmtN(Hyp_val) + '}');
       } else {
-        eq(fmtN(GK_val) + '^2 + ' + fmtN(AK_val) + '^2', HypL + '^2');
-        eq(fmtN(round2(GK_val*GK_val + AK_val*AK_val)), HypL + '^2', '\\sqrt{\\phantom{X}}');
+        eq(HypL + '^2', fmtN(GK_val) + '^2 + ' + fmtN(AK_val) + '^2');
+        eq(HypL + '^2', fmtN(round2(GK_val*GK_val + AK_val*AK_val)), '\\sqrt{\\phantom{X}}');
         eq(HypL, '\\sqrt{' + fmtN(round2(GK_val*GK_val + AK_val*AK_val)) + '}');
         apx(HypL, '\\mathbf{' + fmtN(Hyp_val) + '}');
       }
     } else {
       if (!solModeNumFirst) {
+        eq(HypL + '^2', GKL + '^2 + ' + AKL + '^2', '- ' + AKL + '^2');
         eq(GKL + '^2', HypL + '^2 - ' + AKL + '^2', '\\sqrt{\\phantom{X}}');
         eq(GKL, '\\sqrt{' + HypL + '^2 - ' + AKL + '^2}');
         eq(GKL, '\\sqrt{' + fmtN(Hyp_val) + '^2 - ' + fmtN(AK_val) + '^2}');
-        eq(GKL, '\\sqrt{' + fmtN(round2(Hyp_val*Hyp_val - AK_val*AK_val)) + '}');
         apx(GKL, '\\mathbf{' + fmtN(GK_val) + '}');
       } else {
-        eq(fmtN(Hyp_val) + '^2 - ' + fmtN(AK_val) + '^2', GKL + '^2');
-        eq(fmtN(round2(Hyp_val*Hyp_val - AK_val*AK_val)), GKL + '^2', '\\sqrt{\\phantom{X}}');
+        eq(fmtN(Hyp_val) + '^2', GKL + '^2 + ' + fmtN(AK_val) + '^2');
+        eq(fmtN(round2(Hyp_val*Hyp_val)), GKL + '^2 + ' + fmtN(round2(AK_val*AK_val)), '- ' + fmtN(round2(AK_val*AK_val)));
+        eq(GKL + '^2', fmtN(round2(Hyp_val*Hyp_val)) + ' - ' + fmtN(round2(AK_val*AK_val)), '\\sqrt{\\phantom{X}}');
+        eq(GKL + '^2', fmtN(round2(Hyp_val*Hyp_val - AK_val*AK_val)));
         eq(GKL, '\\sqrt{' + fmtN(round2(Hyp_val*Hyp_val - AK_val*AK_val)) + '}');
         apx(GKL, '\\mathbf{' + fmtN(GK_val) + '}');
       }
@@ -1274,7 +1426,7 @@ function renderSolution(task, tri, nm) {
   document.getElementById('solutionPathContent').innerHTML =
     '<div class="solution-path-inner" style="color:blue;font-size:0.92em;padding:4px;">'
     + '<p style="color:#333;margin:4px 0 10px 0;line-height:1.55;">' + explanation + '</p>'
-    + '$$\\begin{array}{rll}' + rows.join('\n') + '\\end{array}$$'
+    + '<span style="font-size:1.08em;">$$\\begin{array}{rll}' + rows.join('\n') + '\\end{array}$$</span>'
     + '</div>';
 
 }
@@ -1291,6 +1443,8 @@ function updateURL(){
   url.searchParams.set('lbl',  document.querySelector('input[name="labeling"]:checked').value);
   url.searchParams.set('diff', document.querySelector('input[name="difficulty"]:checked').value);
   url.searchParams.set('inv',  document.querySelector('input[name="invFunc"]:checked').value);
+  url.searchParams.set('sno',  document.querySelector('input[name="sideNotation"]:checked').value);
+  url.searchParams.set('ano',  document.querySelector('input[name="angleNotation"]:checked').value);
   ['useSin','sinGeg','sinHyp','sinWin','useCos','cosAnk','cosHyp','cosWin',
    'useTan','tanGeg','tanAnk','tanWin','usePyth','pythKath','pythHyp']
     .forEach(id=>url.searchParams.set(id,document.getElementById(id).checked?'1':'0'));
@@ -1307,6 +1461,8 @@ function loadURL(){
   setR('labeling',   g('lbl','abc'));
   setR('difficulty', g('diff','medium'));
   setR('invFunc',    g('inv','arc'));
+  setR('sideNotation',  g('sno','lower'));
+  setR('angleNotation', g('ano','simple'));
   ['useSin','sinGeg','sinHyp','sinWin','useCos','cosAnk','cosHyp','cosWin',
    'useTan','tanGeg','tanAnk','tanWin','usePyth','pythKath','pythHyp'].forEach(id=>{
     if(url.searchParams.has(id))document.getElementById(id).checked=url.searchParams.get(id)==='1';
@@ -1316,6 +1472,31 @@ function loadURL(){
 loadURL();
 syncSubChecks();
 document.querySelectorAll('input').forEach(e=>e.addEventListener('change',()=>{syncSubChecks();updateURL();}));
+
+function syncSketchToggle(src) {
+  const other = src.id === 'realisticSketch' ? 'realisticSketchInside' : 'realisticSketch';
+  const el = document.getElementById(other);
+  if (el) el.checked = src.checked;
+  const showNote = src.checked; // checked = allgemein = show note
+  ['sketch-note-direct','sketch-note-inside'].forEach(id => {
+    const n = document.getElementById(id);
+    if (n) n.style.display = showNote ? '' : 'none';
+  });
+}
+
+function rerenderCurrentSVG() {
+  if (!_currentTask || !_currentTri || !_currentNm) return;
+  const svgStr = buildSVG(_currentTri, _currentTask, _currentNm);
+  const d = document.getElementById('sketch-direct');
+  const i = document.getElementById('sketch-inside');
+  if (d) d.innerHTML = svgStr;
+  if (i) i.innerHTML = svgStr;
+}
+
+// Init note visibility (allgemein = checked by default → show note)
+['sketch-note-direct','sketch-note-inside'].forEach(id => {
+  const n = document.getElementById(id); if (n) n.style.display = '';
+});
 document.getElementById('quizMode').addEventListener('change', function() {
   updateURL();
   if (_currentTask) renderQuiz(_currentTask, _currentTri, _currentNm);
