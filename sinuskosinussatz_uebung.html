@@ -82,7 +82,7 @@ input:checked ~ .labels span:last-child { opacity: 1; }
   display: inline-block;
   position: relative;
   width: 420px;
-  height: 34px;
+  height: 50px;
   background: #ccc;
   border-radius: 17px;
   cursor: pointer;
@@ -95,7 +95,7 @@ input:checked ~ .labels span:last-child { opacity: 1; }
   top: 2px;
   left: 2px;
   width: calc(50% - 2px);
-  height: 30px;
+  height: 46px;
   background: #4CAF50;
   border-radius: 15px;
   transition: left 0.25s, background 0.25s;
@@ -115,9 +115,15 @@ input:checked ~ .labels span:last-child { opacity: 1; }
 .switch-solmode .solmode-labels span {
   flex: 1;
   text-align: center;
-  line-height: 34px;
+  line-height: 1.2;
   z-index: 1;
   color: #222;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 4px;
+  white-space: normal;
+  text-align: center;
 }
 
 /* quiz */
@@ -204,7 +210,7 @@ input:checked ~ .labels span:last-child { opacity: 1; }
   z-index: 1;
   color: #222;
 }
-.sketch-toggle-wrap { display: flex; align-items: center; gap: 8px; margin-bottom: 2px; align-self: flex-start; margin-left: 8px; }
+.sketch-toggle-wrap { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; margin-bottom: 2px; align-self: flex-start; margin-left: 8px; }
 .sketch-not-to-scale { font-size: 0.78em; font-style: italic; color: #aaa; }
 
 /* sketch */
@@ -388,6 +394,8 @@ label.switch[style*="width:44px"] input:checked + .slider:before {
 
 <div id="quizArea" style="display:none"></div>
 
+<div id="ambig-note-display" style="display:none; margin:6px 0;"><div class="ambig-note" style="text-align:center; font-size:0.95em;">⚠️ Prüfe: Gibt es eine oder zwei mögliche Lösungen?</div></div>
+
 <details id="solutionDetailsContainer">
   <summary>Lösung</summary>
   <div class="scale-wrapper"><div id="solution" class="scale-el"></div></div>
@@ -398,8 +406,8 @@ label.switch[style*="width:44px"] input:checked + .slider:before {
         <input type="checkbox" id="solModeSwitch">
         <span class="solmode-knob"></span>
         <span class="solmode-labels">
-          <span>Allgemein umstellen, dann einsetzen</span>
-          <span>Zahlen einsetzen, dann umstellen</span>
+          <span>Allgemein umstellen,<br>dann einsetzen</span>
+          <span>Zahlen einsetzen,<br>dann umstellen</span>
         </span>
       </label>
     </div>
@@ -1178,14 +1186,9 @@ function newTask() {
     const gStrS = task.givenPairs.map(([k,v]) =>
       `${nmTex(k,nm)} = ${isAngS(k)?fmtDeg(v):fmtN(v)}`).join('; \\quad ');
     const gesStrS = nmTex(task.searchedKey, nm);
-    let ambigNoteS = '';
-    if (choice.sub === 'Amb') {
-      ambigNoteS = `<div class="ambig-note">⚠️ Prüfe, ob es zwei Lösungen gibt!</div>`;
-    }
     document.getElementById('task-formula-sketch').innerHTML =
       `<div>\\(\\text{geg}\\colon\\quad ${gStrS}\\)</div>`
-      + `<div>\\(\\text{ges}\\colon\\quad ${gesStrS}\\)</div>`
-      + ambigNoteS;
+      + `<div>\\(\\text{ges}\\colon\\quad ${gesStrS}\\)</div>`;
     const tc = document.getElementById('text-collapsible');
     if (tc) tc.removeAttribute('open');
   } else {
@@ -1198,17 +1201,14 @@ function newTask() {
     const gStr = givenAll.map(([k,v]) =>
       `${nmTex(k,nm)} = ${isAng(k)?fmtDeg(v):fmtN(v)}`).join('; \\quad ');
     const gesStr = nmTex(task.searchedKey, nm);
-
-    let ambigNote = '';
-    if (choice.sub === 'Amb') {
-      ambigNote = `<div class="ambig-note">⚠️ Prüfe, ob es zwei Lösungen gibt!</div>`;
-    }
-
     document.getElementById('task-formula').innerHTML =
       `<div>\\(\\text{geg}\\colon\\quad ${gStr}\\)</div>`
-      + `<div>\\(\\text{ges}\\colon\\quad ${gesStr}\\)</div>`
-      + ambigNote;
+      + `<div>\\(\\text{ges}\\colon\\quad ${gesStr}\\)</div>`;
   }
+
+  // Show ambig note before solution for SsW and Amb
+  document.getElementById('ambig-note-display').style.display =
+    (choice.sub === 'SsW' || choice.sub === 'Amb') ? '' : 'none';
 
   _currentTask = task; _currentTri = tri; _currentNm = nm;
   renderSolution(task, tri, nm);
@@ -1703,8 +1703,14 @@ function renderSolution(task, tri, nm) {
   const isAng = k => ['alpha','beta','gamma'].includes(k);
   const skVal = isAng(searchedKey) ? fmtDeg(ansVal) : fmtN(ansVal);
 
-  document.getElementById('solution').innerHTML =
-    '$$' + lbl(searchedKey) + ' \\approx ' + skVal + '$$';
+  if (sub === 'Amb') {
+    const skA = taskVars.searchedAngle;
+    document.getElementById('solution').innerHTML =
+      '$$' + lbl(skA) + ' \\approx ' + fmtDeg(ansVal) + ' \\quad\\text{oder}\\quad ' + lbl(skA) + ' \\approx ' + fmtDeg(taskVars.beta2) + '$$';
+  } else {
+    document.getElementById('solution').innerHTML =
+      '$$' + lbl(searchedKey) + ' \\approx ' + skVal + '$$';
+  }
 
   const numFirst = document.getElementById('solModeSwitch').checked;
   const round3 = v => Math.round(v * 1000) / 1000;
@@ -1730,9 +1736,18 @@ function renderSolution(task, tri, nm) {
     } else if (sub === 'WSW') {
       explanation = `Gegeben sind zwei Winkel und eine eingeschlossene Seite (WSW). Der dritte Winkel ergibt sich aus der Winkelsumme im Dreieck, dann kann der <b>Sinussatz</b> angewendet werden.`;
     } else if (sub === 'SsW') {
-      explanation = `Bekannt sind zwei Seiten und ein der einen Seite gegenüberliegender Winkel (SsW). Der <b>Sinussatz</b> liefert den gesuchten Winkel (eindeutiger Fall).`;
+      const _oppSideE = {alpha:'a',beta:'b',gamma:'c'}[taskVars.givenAngleOpp];
+      const _othSideE = taskVars.givenSide2;
+      const _oppValE = tri[_oppSideE], _othValE = tri[_othSideE];
+      const ME = s => '\\(' + s + '\\)';
+      const _reason = 'Der gegebene Winkel ' + ME(lbl(taskVars.givenAngleOpp)) + ' liegt der l\u00e4ngeren der beiden gegebenen Seiten (' + ME(lbl(_oppSideE) + ' = ' + fmtN(_oppValE)) + ') gegen\u00fcber \u2013 <b>eindeutiger Fall (SsW)</b>, eine L\u00f6sung.';
+      explanation = 'Bekannt sind zwei Seiten und ein der einen Seite gegen\u00fcberliegender Winkel. ' + _reason + ' Wir wenden den <b>Sinussatz</b> an.';
     } else if (sub === 'Amb') {
-      explanation = `Bekannt sind zwei Seiten und ein Winkel (SsW, uneindeutiger Fall). Der <b>Sinussatz</b> liefert zwei mögliche Lösungen, da \\(\\sin\\) für Nebenwinkel denselben Wert annimmt.`;
+      const _oppSideA = {alpha:'a',beta:'b',gamma:'c'}[taskVars.givenAngleOpp];
+      const _othSideA = taskVars.givenSide1;
+      const _oppValA = tri[_oppSideA], _othValA = tri[_othSideA];
+      const MA = s => '\\(' + s + '\\)';
+      explanation = 'Bekannt sind zwei Seiten und ein der einen Seite gegen\u00fcberliegender Winkel. Der gegebene Winkel ' + MA(lbl(taskVars.givenAngleOpp)) + ' liegt der k\u00fcrzeren der beiden gegebenen Seiten (' + MA(lbl(_oppSideA) + ' = ' + fmtN(_oppValA)) + ') gegen\u00fcber \u2013 <b>uneindeutiger Fall</b>, da Nebenwinkel denselben Sinuswert haben, gibt es zwei m\u00f6gliche L\u00f6sungen. Wir wenden den <b>Sinussatz</b> an.';
     }
 
     if (sub === 'WSW') {
@@ -1755,9 +1770,13 @@ function renderSolution(task, tri, nm) {
       const ankAng  = taskVars.givenAngleOpp;
       const finalAnkSide = {alpha:'a', beta:'b', gamma:'c'}[ankAng];
       const sk = taskVars.searchedAngle;
+      const thirdAng = ['alpha','beta','gamma'].find(k => k !== ankAng && k !== sk);
+      const beta2  = taskVars.beta2;
+      const gamma2 = taskVars.gamma2;
+      // First solution
       buildSinRuleRows(rows, nm, tri, ankAng, tri[ankAng], finalAnkSide, tri[finalAnkSide], sk);
-      rows.push('\\\\[-2pt]');
-      rows.push(`\\text{Oder: } ${lbl(sk)} &= 180^\\circ - ${fmtDeg(tri[sk])} \\approx ${fmtDeg(taskVars.beta2)} & \\\\[4pt]`);
+      // Second solution marker — rendered outside the array
+      rows.push('__SECOND_SOLUTION__' + lbl(sk) + '__' + fmtDeg(tri[sk]) + '__' + fmtDeg(beta2));
 
     } else if (sub === 'SWW') {
       const ankAng = taskVars.givenAngleOpp;
@@ -1846,10 +1865,24 @@ function renderSolution(task, tri, nm) {
     }
   }
 
+  // Split rows at second solution marker if present
+  const markerIdx = rows.findIndex(r => r.startsWith('__SECOND_SOLUTION__'));
+  let mainRows = rows, secondHtml = '';
+  if (markerIdx >= 0) {
+    const marker = rows[markerIdx];
+    const parts = marker.split('__').filter(Boolean);
+    // parts: ['SECOND_SOLUTION', skLabel, beta1deg, beta2deg]
+    const skL2 = parts[1], b1 = parts[2], b2 = parts[3];
+    mainRows = rows.slice(0, markerIdx);
+    secondHtml = '<p style="color:#333;margin:6px 0 2px 0;">Die zweite mögliche Lösung ist der zugehörige Nebenwinkel:</p>'
+      + `<span style="font-size:1.08em;">$$${skL2} \\approx 180^{\\circ} - ${b1} = ${b2}$$</span>`;
+  }
+
   document.getElementById('solutionPathContent').innerHTML =
     '<div class="solution-path-inner" style="color:blue;font-size:0.92em;padding:4px;">'
     + '<p style="color:#333;margin:4px 0 10px 0;line-height:1.55;">' + explanation + '</p>'
-    + '<span style="font-size:1.08em;">$$\\begin{array}{rll}' + rows.join('\n') + '\\end{array}$$</span>'
+    + '<span style="font-size:1.08em;">$$\\begin{array}{rll}' + mainRows.join('\n') + '\\end{array}$$</span>'
+    + secondHtml
     + '</div>';
 }
 // ================================================================
