@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Studienwahl Mathematik</title>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+    <script src="last-update.js" defer></script>
+    <style>
+        :root {
+            --primary: #2980b9;
+            --secondary: #2c3e50;
+            --accent: #e74c3c;
+            --light: #f8f9fa;
+            --text: #333;
+            --success: #27ae60;
+        }
+        body { font-family: 'Helvetica Neue', Arial, sans-serif; line-height: 1.7; color: var(--text); margin: 0; background: #f0f2f5; }
+        
+        header { background: var(--secondary); color: white; padding: 4rem 2rem; text-align: center; border-bottom: 5px solid var(--primary); }
+        header h1 { margin: 0; font-size: 3.5rem; letter-spacing: 1px; color: #ffffff !important; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
+        header p { font-size: 1.3rem; opacity: 0.9; margin-top: 10px; color: #ecf0f1; }
+        
+        nav {
+            background: #ffffff;
+            padding: 1rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+        }
+        nav a { color: var(--secondary); margin: 0 10px; text-decoration: none; font-weight: 600; font-size: 0.8rem; text-transform: uppercase; display: inline-block; padding: 4px 0; border-bottom: 2px solid transparent; transition: color 0.2s, border-color 0.2s; }
+        nav a:hover { color: var(--primary); }
+        nav a.active { color: var(--primary); border-bottom: 2px solid var(--primary); }
+
+        .container { max-width: 1200px; margin: 30px auto; padding: 0 20px; }
+        
+        .course-section { background: white; border-radius: 12px; padding: 40px; margin-bottom: 40px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border-top: 6px solid var(--primary); scroll-margin-top: var(--nav-height, 70px); }
+        h2 { color: var(--secondary); font-size: 2.2rem; margin-top: 0; }
+        h3 { color: var(--primary); margin-top: 25px; border-bottom: 1px solid #eee; padding-bottom: 10px; font-size: 1.4rem; }
+        
+        /* --- Einheitliche Info-Boxen mit Label-Streifen oben --- */
+        .info-box {
+            margin: 20px 0;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid #ddd;
+            font-size: 0.95rem;
+        }
+        .info-box-label {
+            display: block;
+            font-size: 0.68rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            padding: 5px 14px;
+            color: #fff;
+        }
+        .info-box-body {
+            padding: 12px 16px;
+            margin: 0;
+            line-height: 1.6;
+        }
+        .info-box.box-colloquial { border-color: #bdc7cf; }
+        .info-box.box-colloquial .info-box-label { background: var(--secondary); }
+        .info-box.box-colloquial .info-box-body { background: #f5f7f9; color: #444; }
+
+        .info-box.box-definition { border-color: #c5cdd5; }
+        .info-box.box-definition .info-box-label { background: #4a6278; }
+        .info-box.box-definition .info-box-body { background: #fdfdfd; color: #555; font-style: italic; }
+
+        .info-box.box-example { border-color: #a8cfe8; }
+        .info-box.box-example .info-box-label { background: var(--primary); }
+        .info-box.box-example .info-box-body { background: #e8f4fd; color: #333; }
+
+        /* --- Grid: nur 1 oder 2 Spalten, nie 3 --- */
+        .module-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        @media (min-width: 600px) {
+            .module-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .module-item { background: var(--light); padding: 15px; border-radius: 8px; font-size: 0.85rem; border: 1px solid #eee; }
+        .module-item strong { color: var(--secondary); display: block; margin-bottom: 5px; }
+        .module-item em { display: block; font-style: italic; color: #777; font-size: 0.82rem; margin-bottom: 6px; }
+        
+        .job-container { margin-top: 25px; }
+        .job-title { font-weight: bold; margin-bottom: 10px; display: block; color: var(--success); }
+
+        /* --- Job-Tags: nur 1 oder 2 Spalten --- */
+        .job-list {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+        }
+        @media (min-width: 600px) {
+            .job-list {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        .job-tag { background: #eafaf1; color: #27ae60; padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; border: 1px solid #27ae60; text-align: center; display: flex; align-items: center; justify-content: center; }
+        
+        .sidebar-info { background: var(--secondary); color: white; padding: 40px; border-radius: 12px; margin-bottom: 40px; }
+        .sidebar-info h2 { color: white; border-bottom: 2px solid var(--primary); padding-bottom: 10px; }
+        .sidebar-info ul { column-count: 2; list-style-type: square; }
+        @media (max-width: 768px) { .sidebar-info ul { column-count: 1; } }
+
+        /* footer { text-align: center; padding: 40px; color: #95a5a6; border-top: 1px solid #ddd; } */
+        .site-footer {
+            width: 100%;
+            /* Sorgt dafür, dass Padding die 100% nicht vergrößert: */
+            box-sizing: border-box; 
+            
+            /* Dein gewünschter Abstand zu den Rändern: */
+            padding: 15px 40px; 
+            border-top: 1px solid #ccc;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            font-family: sans-serif;
+            font-size: 0.7em;
+            color: #333333d8;
+            }
+
+            .footer-content {
+            display: flex;
+            /* Verteilt Links, Mitte, Rechts wie \hfill */
+            justify-content: space-between; 
+            align-items: center;
+            /* Optional: Verhindert, dass der Text am Rand klebt, falls das Fenster sehr klein ist */
+            max-width: 1200px; 
+            margin: 0 auto;
+            }
+
+            /* Für sehr schmale Bildschirme (Handys) */
+            @media (max-width: 600px) {
+            .footer-content {
+                flex-direction: column;
+                text-align: center;
+                gap: 10px;
+            }
+            }
+        /* --- Header-Zitat --- */
+        .header-quote {
+            margin: 2rem auto 0;
+            max-width: 680px;
+            border-top: 1px solid rgba(255,255,255,0.25);
+            padding-top: 1.5rem;
+        }
+        .header-quote blockquote {
+            margin: 0;
+            font-size: 1.15rem;
+            font-style: italic;
+            color: rgba(255,255,255,0.88);
+            line-height: 1.6;
+            quotes: "\201E" "\201C";
+        }
+        .header-quote blockquote::before {
+            content: open-quote;
+            font-size: 2.5rem;
+            line-height: 0;
+            vertical-align: -0.55rem;
+            margin-right: 4px;
+            color: var(--primary);
+            font-style: normal;
+        }
+        .header-quote blockquote::after {
+            content: close-quote;
+            font-size: 2.5rem;
+            line-height: 0;
+            vertical-align: -0.25rem;
+            margin-left: 4px;
+            color: var(--primary);
+            font-style: normal;
+        }
+        .header-quote cite {
+            display: block;
+            margin-top: 0.6rem;
+            font-size: 0.85rem;
+            font-style: normal;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.5);
+        }
+        .header-quote cite::before { content: "— "; }
+
+        /* --- Inline-Zitate im Fließtext (.pullquote) --- */
+        .pullquote {
+            text-align: center; 
+            margin: 28px 0;
+            padding: 18px 24px 18px 20px;
+            border-left: 4px solid var(--primary);
+            border-right: 4px solid var(--primary);
+            background: #f0f7fd;
+            border-radius: 6px 6px 6px 6px;
+            font-style: italic;
+            color: #2c3e50;
+            font-size: 1rem;
+            line-height: 1.65;
+            quotes: "\201E" "\201C";
+        }
+        .pullquote p {
+            margin: 0;
+            display: inline;
+        }
+        .pullquote p::before {
+            content: open-quote;
+            font-size: 2rem;
+            line-height: 0;
+            vertical-align: -0.3rem;
+            margin-right: 4px;
+            color: var(--primary);
+            font-style: normal;
+        }
+        .pullquote p::after {
+            content: close-quote;
+            font-size: 2rem;
+            line-height: 0;
+            vertical-align: -0.3rem;
+            margin-left: 4px;
+            color: var(--primary);
+            font-style: normal;
+        }
+        .pullquote cite {
+            display: block;
+            margin-top: 8px;
+            font-size: 0.8rem;
+            font-style: normal;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            color: #7f8c8d;
+        }
+        .pullquote cite::before { content: "— "; }
+        .pullquote cite::after { content: " —"; }
+
+        .related-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+            margin-top: 20px;
+        }
+        @media (min-width: 600px) {
+            .related-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        .related-item {
+            background: rgba(255,255,255,0.07);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 8px;
+            padding: 14px 16px;
+        }
+        .related-item strong {
+            display: block;
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 5px;
+            letter-spacing: 0.01em;
+        }
+        .related-item span {
+            font-size: 0.85rem;
+            color: rgba(255,255,255,0.7);
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Studienwahl Mathematik</h1>
+    <p>Orientierungshilfe für das Studium der Königin der Wissenschaften</p>
+    <div class="header-quote">
+        <blockquote>Die Mathematik ist die Sprache, in der Gott das Universum geschrieben hat.</blockquote>
+        <cite>Galileo Galilei</cite>
+    </div>
+</header>
+
+<nav>
+    <a href="#reine">Reine Mathematik</a>
+    <a href="#angewandt">Angewandte Mathematik</a>
+    <a href="#techno">Techno/Computer</a>
+    <a href="#wirtschaft">Wirtschaft</a>
+    <a href="#finanz">Finanz</a>
+    <a href="#statistik">Statistik</a>
+    <a href="#ki">KI</a>
+    <a href="#biomathe">Biomathematik</a>
+    <a href="#lehramt">Lehramt</a>
+    <a href="#verwandte">Nahestehende Studiengänge</a>
+</nav>
+
+<div class="container">
+
+    <section id="reine" class="course-section">
+        <h2>Reine Mathematik</h2>
+        <blockquote class="pullquote">
+            <p>Wenn ich nach einem tausendjährigen Schlaf aufwachen würde, wäre meine erste Frage: »Wurde die Riemann-Hypothese bewiesen?«</p>
+            <cite>David Hilbert, Mathematiker</cite>
+        </blockquote>
+        <div class="info-box box-colloquial">
+            <span class="info-box-label">Umgangssprachlich</span>
+            <p class="info-box-body">Du liebst das abstrakte Rätselraten. Es geht nicht um Zahlen, sondern um logische Zusammenhänge und Beweise, die für immer Bestand haben.</p>
+        </div>
+        <div class="info-box box-definition">
+            <span class="info-box-label">Klassische Definition</span>
+            <p class="info-box-body">Die Erforschung abstrakter Strukturen und deren Beziehungen zueinander unter Verwendung strenger logischer Axiome und Beweise.</p>
+        </div>
+        <div class="info-box box-example">
+            <span class="info-box-label">Beispiel</span>
+            <p class="info-box-body">Andrew Wiles bewies 1995 den Großen Fermat'schen Satz, dass \(a^n + b^n \neq c^n\) für natürliche Zahlen und Exponenten \(n > 2\) – eine Vermutung, die 358 Jahre ungelöst blieb. Kein direkter Nutzen für die Industrie, aber ein Triumph der reinen Vernunft.</p>
+        </div>
+        <h3>Wichtige Module</h3>
+        <div class="module-grid">
+            <div class="module-item">
+                <strong>Analysis I, II und III</strong>
+                <em>„Wie verhalten sich Dinge, wenn man sie unendlich klein macht?"</em>
+                Grenzwerte, Differenzial- und Integralrechnung, Folgen und Reihen – das Handwerkszeug für alles, was sich stetig verändert.
+            </div>
+            <div class="module-item">
+                <strong>Lineare Algebra I und II</strong>
+                <em>„Wie beschreibe ich Räume und Transformationen präzise?"</em>
+                Vektoren, Matrizen, lineare Abbildungen und Eigenwerte – die Sprache hinter Grafik, Physik und KI.
+            </div>
+            <div class="module-item">
+                <strong>Algebra</strong>
+                <em>„Was haben eine Uhr und eine Primzahl gemeinsam?"</em>
+                Gruppen, Ringe und Körper – abstrakte Strukturen, die u. a. die Grundlage moderner Kryptographie bilden.
+            </div>
+            <div class="module-item">
+                <strong>Topologie</strong>
+                <em>„Wann ist eine Kaffeetasse dasselbe wie ein Donut?"</em>
+                Stetigkeitsbegriff, offene Mengen, Kompaktheit – Mathematik von Form und Nähe, losgelöst von Abstandsmaßen.
+            </div>
+        </div>
+        <div class="job-container">
+            <span class="job-title">Karrieremöglichkeiten:</span>
+            <div class="job-list">
+                <span class="job-tag">Akademische Laufbahnen</span>
+                <span class="job-tag">Finanzen + Versicherungen</span>
+                <span class="job-tag">Unternehmensberatung</span>
+                <span class="job-tag">Jegliche Bereiche, in denen Logik und Problemlösung eine Rolle spielen</span>
+            </div>
+        </div>
+    </section>
+
+    <section id="angewandt" class="course-section">
+        <h2>Angewandte Mathematik</h2>
+        <blockquote class="pullquote">
+            <p>Reine Mathematik ist in gewisser Weise die Poesie der Logik. Angewandte Mathematik ist ihre Prosa – und Prosa bewegt die Welt.</p>
+            <cite>frei nach Freeman Dyson, Mathematiker und Physiker</cite>
+        </blockquote>
+        <div class="info-box box-colloquial">
+            <span class="info-box-label">Umgangssprachlich</span>
+            <p class="info-box-body">Du bist die Brücke zwischen Theorie und Wirklichkeit. Du nimmst die abstrakten Werkzeuge der reinen Mathematik und setzt sie auf echte Probleme an – von Klimamodellen bis Quantencomputing.</p>
+        </div>
+        <div class="info-box box-definition">
+            <span class="info-box-label">Klassische Definition</span>
+            <p class="info-box-body">Einsatz mathematischer Methoden und Modelle zur Lösung konkreter Fragestellungen aus Naturwissenschaften, Ingenieurwesen und Gesellschaft – mit dem Anspruch mathematischer Strenge.</p>
+        </div>
+        <div class="info-box box-example">
+            <span class="info-box-label">Beispiel</span>
+            <p class="info-box-body">Die Wettervorhersage für morgen früh basiert auf einem System von Millionen gekoppelter Differentialgleichungen – angewandte Mathematiker*innen entwickeln die numerischen Verfahren, die es überhaupt lösbar machen.</p>
+        </div>
+        <h3>Wichtige Module</h3>
+        <div class="module-grid">
+            <div class="module-item">
+                <strong>Gewöhnliche Differentialgleichungen (DGL)</strong>
+                <em>„Wie beschreibt man, wie sich etwas im Laufe der Zeit verändert?"</em>
+                Lösungsverfahren, Anfangs- und Randwertprobleme, Phasenraumanalyse – Grundsprache für Physik, Chemie und Ingenieurwesen.
+            </div>
+            <div class="module-item">
+                <strong>Funktionalanalysis</strong>
+                <em>„Was passiert, wenn der Raum selbst unendlichdimensional ist?"</em>
+                Banach- und Hilberträume, lineare Operatoren, Spektraltheorie – mathematische Basis für Quantenmechanik und partielle DGLen.
+            </div>
+            <div class="module-item">
+                <strong>Mathematische Modellierung</strong>
+                <em>„Wie übersetzt man ein reales Problem in eine Formel – und zurück?"</em>
+                Modellbildung, Dimensionsanalyse, Sensitivitätsanalyse und Validierung an realen Datensätzen.
+            </div>
+            <div class="module-item">
+                <strong>Numerische Methoden für DGLen</strong>
+                <em>„Wie löst man am Computer, was analytisch unlösbar ist?"</em>
+                Finite-Differenzen- und Finite-Elemente-Methoden, Stabilität und Konvergenz numerischer Schemata.
+            </div>
+        </div>
+        <div class="job-container">
+            <span class="job-title">Karrieremöglichkeiten:</span>
+            <div class="job-list">
+                <span class="job-tag">Klimaforschung</span>
+                <span class="job-tag">Energietechnik</span>
+                <span class="job-tag">Quantencomputing</span>
+                <span class="job-tag">Forschung & Entwicklung</span>
+            </div>
+        </div>
+    </section>
+
+    <section id="techno" class="course-section">
+        <h2>Techno- und Computermathematik</h2>
+        <!-- <blockquote class="pullquote">
+            <p>Dass die niedrigste aller Geistestätigkeiten die arithmetische sei, wird dadurch belegt, dass sie die einzige ist, welche auch durch eine Maschine ausgeführt werden kann.</p>
+            <cite>Arthur Schopenhauer, Philosoph</cite>
+        </blockquote> -->
+        <blockquote class="pullquote">
+            <p>Es ist unwürdig, die Zeit von hervorragenden Leuten mit knechtischen Rechenarbeiten zu verschwenden, weil bei Einsatz einer Maschine auch der  Einfältigste die Ergebnisse sicher hinschreiben kann.</p>
+            <cite>Gottfried Wilhelm Leibniz, Philosoph und Mathematiker</cite>
+        </blockquote>
+        <div class="info-box box-colloquial">
+            <span class="info-box-label">Umgangssprachlich</span>
+            <p class="info-box-body">Du nimmst das Chaos der Natur, zähmst es mit Formeln und schaffst einen digitalen Spiegelraum, in dem jedes Experiment ohne Risiko lebendig wird.</p>
+        </div>
+        <div class="info-box box-definition">
+            <span class="info-box-label">Klassische Definition</span>
+            <p class="info-box-body">Verbindung von mathematischer Modellierung mit ingenieurwissenschaftlichen Fragestellungen und deren computergestützter Umsetzung.</p>
+        </div>
+        <div class="info-box box-example">
+            <span class="info-box-label">Beispiel</span>
+            <p class="info-box-body">Der neue Airbus A380 wurde tausende Male virtuell zum Absturz gebracht, bevor je ein Prototyp gebaut wurde – Strömung, Hitze und Materialermüdung rein per Formel.</p>
+        </div>
+        <h3>Wichtige Module</h3>
+        <div class="module-grid">
+            <div class="module-item">
+                <strong>Numerische Mathematik</strong>
+                <em>„Was tun, wenn eine Gleichung keine exakte Lösung hat?"</em>
+                Algorithmen zur Näherungslösung – von Newton-Verfahren bis zu iterativen Gleichungssystemen.
+            </div>
+            <div class="module-item">
+                <strong>Partielle Differentialgleichungen</strong>
+                <em>„Wie breitet sich Wärme in einem Metallstab aus?"</em>
+                Modellierung räumlich-zeitlicher Felder – Grundlage für Strömungssimulation, Elektromagnetismus und Quantenmechanik.
+            </div>
+            <div class="module-item">
+                <strong>Wissenschaftliches Rechnen</strong>
+                <em>„Wie löse ich in 10 Sekunden, wofür ein Mensch 10 Jahre braucht?"</em>
+                Programmierung effizienter Algorithmen auf Hochleistungsrechnern, oft mit C++, Python oder MATLAB.
+            </div>
+            <div class="module-item">
+                <strong>Optimierung</strong>
+                <em>„Wie findet man das Beste aus tausend Möglichkeiten?"</em>
+                Lineare und nichtlineare Optimierungsverfahren, Gradientenabstieg, Anwendungen im Ingenieurdesign.
+            </div>
+        </div>
+        <div class="job-container">
+            <span class="job-title">Karrieremöglichkeiten:</span>
+            <div class="job-list">
+                <span class="job-tag">Automobilentwicklung</span>
+                <span class="job-tag">Luft- und Raumfahrt</span>
+                <span class="job-tag">Statik</span>
+                <span class="job-tag">Roboterprogrammierung</span>
+            </div>
+        </div>
+    </section>
+
+    <section id="wirtschaft" class="course-section">
+        <h2>Wirtschaftsmathematik</h2>
+        <blockquote class="pullquote">
+            <p>Die besten Ergebnisse erzielt man, wenn jeder in der Gruppe das tut, was für ihn selbst und für die Gruppe am besten ist.</p>
+            <cite>John Nash, Begründer der Spieltheorie</cite>
+        </blockquote>
+        <div class="info-box box-colloquial">
+            <span class="info-box-label">Umgangssprachlich</span>
+            <p class="info-box-body">Du optimierst die Welt der Wirtschaft. Du fragst: Wo müssen Lagerhallen stehen, damit die Wege am kürzesten sind – und was kostet jede Fehlentscheidung?</p>
+        </div>
+        <div class="info-box box-definition">
+            <span class="info-box-label">Klassische Definition</span>
+            <p class="info-box-body">Die Anwendung mathematischer Theorien auf betriebswirtschaftliche und volkswirtschaftliche Probleme zur Effizienzsteigerung.</p>
+        </div>
+        <div class="info-box box-example">
+            <span class="info-box-label">Beispiel</span>
+            <p class="info-box-body">Amazon berechnet täglich neu, welcher Artikel in welchem Lager vorrätig sein muss – denn ein Bestseller am falschen Standort kostet bei jedem Klick Geld.</p>
+        </div>
+        <h3>Wichtige Module</h3>
+        <div class="module-grid">
+            <div class="module-item">
+                <strong>Operations Research</strong>
+                <em>„Wie plant man 500 Lieferungen mit möglichst wenig Fahrten?"</em>
+                Lineare Programmierung, Netzwerkflüsse, Graphentheorie – mathematische Entscheidungshilfe für Logistik und Planung.
+            </div>
+            <div class="module-item">
+                <strong>Spieltheorie</strong>
+                <em>„Was tut ein rationaler Gegner – und was sollte ich deshalb tun?"</em>
+                Nash-Gleichgewichte, strategische Entscheidungen, Anwendungen in Auktionen, Verhandlungen und Marktdesign.
+            </div>
+            <div class="module-item">
+                <strong>Stochastik & Zeitreihen</strong>
+                <em>„Wie plane ich bei ungewissen Nachfragen?"</em>
+                Wahrscheinlichkeitsmodelle für Märkte, Lagerhaltung und Prognosen – Grundlage für Risiko und Demand Forecasting.
+            </div>
+            <div class="module-item">
+                <strong>BWL/VWL-Grundlagen</strong>
+                <em>„Wofür baue ich eigentlich all diese Modelle?"</em>
+                Kosten- und Erlösrechnung, Marktmodelle, Mikroökonomik – ohne dieses Kontextwissen bleibt die Mathematik blind.
+            </div>
+        </div>
+        <div class="job-container">
+            <span class="job-title">Karrieremöglichkeiten:</span>
+            <div class="job-list">
+                <span class="job-tag">Unternehmensberatung</span>
+                <span class="job-tag">Logistikplanung</span>
+                <span class="job-tag">Supply Chain Management</span>
+                <span class="job-tag">Controlling</span>
+            </div>
+        </div>
+    </section>
+
+    <section id="finanz" class="course-section">
+        <h2>Finanzmathematik</h2>
+        <blockquote class="pullquote">
+            <p>Risiko bedeutet nicht zu wissen, was man tut. Wenn man es weiß, ist es kein Risiko mehr.</p>
+            <cite>Warren Buffett, amerikanischer Investor</cite>
+        </blockquote>
+        <div class="info-box box-colloquial">
+            <span class="info-box-label">Umgangssprachlich</span>
+            <p class="info-box-body">Du übersetzt Marktschwankungen in mathematische Sicherheit und baust stabile Modelle für eine Welt voller Zufälle.</p>
+        </div>
+        <div class="info-box box-definition">
+            <span class="info-box-label">Klassische Definition</span>
+            <p class="info-box-body">Spezialgebiet der Mathematik, das sich mit der Modellierung von Finanzmärkten und der Bewertung komplexer Finanzprodukte befasst.</p>
+        </div>
+        <div class="info-box box-example">
+            <span class="info-box-label">Beispiel</span>
+            <p class="info-box-body">Eine Fluggesellschaft kauft heute das Recht, in 6 Monaten Kerosin zu einem festen Preis zu kaufen. Was ist dieses Recht wert?</p>
+        </div>
+        <h3>Wichtige Module</h3>
+        <div class="module-grid">
+            <div class="module-item">
+                <strong>Stochastische Analysis</strong>
+                <em>„Wie beschreibt man Aktienkurse, die zufällig schwanken?"</em>
+                Brownsche Bewegung, Itō-Kalkül, stochastische Differentialgleichungen – die Sprache zufälliger Prozesse in der Zeit.
+            </div>
+            <div class="module-item">
+                <strong>Risikomanagement</strong>
+                <em>„Wie viel kann ich im schlimmsten Fall verlieren?"</em>
+                Value at Risk, Stresstests, Risikomaße – Methoden, die Banken und Versicherungen zur Pflicht haben.
+            </div>
+            <div class="module-item">
+                <strong>Bewertung von Derivaten</strong>
+                <em>„Was ist ein Recht auf einen zukünftigen Kauf heute wert?"</em>
+                Optionspreistheorie, risikoneutrale Maße, Binomialbaum- und Monte-Carlo-Methoden.
+            </div>
+            <div class="module-item">
+                <strong>Versicherungsmathematik / Aktuarwesen</strong>
+                <em>„Wie kalkuliert man, dass eine Lebensversicherung nicht bankrott geht?"</em>
+                Sterbetafeln, Beitragsberechnungen, Rückstellungsmodelle – Grundlage für den Aktuarberuf.
+            </div>
+        </div>
+        <div class="job-container">
+            <span class="job-title">Karrieremöglichkeiten:</span>
+            <div class="job-list">
+                <span class="job-tag">Investmentbanking</span>
+                <span class="job-tag">Aktuar (Versicherungen)</span>
+                <span class="job-tag">Hedgefonds-Analyse</span>
+                <span class="job-tag">Asset Management</span>
+            </div>
+        </div>
+    </section>
+
+    <section id="statistik" class="course-section">
+        <h2>Statistik</h2>
+        <blockquote class="pullquote">
+            <p>Die Statistik ist die einzige Technik, die es uns erlaubt, aus dem Besonderen auf das Allgemeine zu schließen.</p>
+            <cite>Ronald Fisher, Begründer der modernen Statistik</cite>
+        </blockquote>
+        <div class="info-box box-colloquial">
+            <span class="info-box-label">Umgangssprachlich</span>
+            <p class="info-box-body">Du bist der Lügendetektor der Wissenschaft. Du entscheidest, ob ein Ergebnis echt ist oder nur Zufall war.</p>
+        </div>
+        <div class="info-box box-definition">
+            <span class="info-box-label">Klassische Definition</span>
+            <p class="info-box-body">Die Lehre von der Erhebung, Auswertung und Interpretation von Daten unter Berücksichtigung von Unsicherheiten.</p>
+        </div>
+        <div class="info-box box-example">
+            <span class="info-box-label">Beispiel</span>
+            <p class="info-box-body">Pfizer testet einen neuen Impfstoff an 40.000 Menschen. Statistiker entscheiden: Ist die Schutzrate von 95 % eine echte Verbesserung – oder könnte das auch bei einem wirkungsschwächeren Mittel zufällig passieren?</p>
+        </div>
+        <h3>Wichtige Module</h3>
+        <div class="module-grid">
+            <div class="module-item">
+                <strong>Wahrscheinlichkeitstheorie</strong>
+                <em>„Wie beschreibe ich Zufall mathematisch präzise?"</em>
+                Maßtheoretische Grundlagen, Zufallsvariablen, Verteilungen und Grenzwertsätze wie der Zentrale Grenzwertsatz.
+            </div>
+            <div class="module-item">
+                <strong>Schätz- und Testtheorie</strong>
+                <em>„Wie beweise ich aus Daten, dass meine Theorie stimmt?"</em>
+                Maximum-Likelihood, Konfidenzintervalle, Hypothesentests – Kerninstrumente für jede empirische Wissenschaft.
+            </div>
+            <div class="module-item">
+                <strong>Regressionsmodelle</strong>
+                <em>„Wie stark beeinflusst Variable A eigentlich Variable B?"</em>
+                Lineare und verallgemeinerte lineare Modelle, Residualanalyse, Modellselektion.
+            </div>
+            <div class="module-item">
+                <strong>Bayes-Statistik</strong>
+                <em>„Wie ändert sich meine Einschätzung, wenn neue Daten reinkommen?"</em>
+                A-priori-Verteilungen, Posterior-Inferenz, Markov-Chain-Monte-Carlo – Alternative zur klassischen Frequentistik.
+            </div>
+        </div>
+        <div class="job-container">
+            <span class="job-title">Karrieremöglichkeiten:</span>
+            <div class="job-list">
+                <span class="job-tag">Medizinische Statistik</span>
+                <span class="job-tag">Marktforschung</span>
+                <span class="job-tag">Qualitätssicherung</span>
+                <span class="job-tag">Wahlforschung</span>
+            </div>
+        </div>
+    </section>
+
+    <section id="ki" class="course-section">
+        <h2>Künstliche Intelligenz</h2>
+        <blockquote class="pullquote">
+            <p>KI ist kein Zauber, sondern viel Mathe und Statistik</p>
+            <cite>Prof. Dr. Dennis Klinkhammer, Empirischer Sozialforscher</cite>
+        </blockquote>
+        <div class="info-box box-colloquial">
+            <span class="info-box-label">Umgangssprachlich</span>
+            <p class="info-box-body">Du baust nicht einfach nur Chatbots – du verstehst, warum sie lernen. Du erforschst das Gehirn der KI aus Formeln.</p>
+        </div>
+        <div class="info-box box-definition">
+            <span class="info-box-label">Klassische Definition</span>
+            <p class="info-box-body">Untersuchung der mathematischen Prinzipien (Optimierung, Approximation, Statistik), die dem maschinellen Lernen zugrunde liegen.</p>
+        </div>
+        <div class="info-box box-example">
+            <span class="info-box-label">Beispiel</span>
+            <p class="info-box-body">GPT-4 wurde mit Billionen von Wörtern trainiert – aber warum lernt es überhaupt etwas Sinnvolles statt Zufalls-Rauschen? Diese Frage beantworten Mathematiker*innen mit Optimierungs- und Approximationstheorie.</p>
+        </div>
+        <h3>Wichtige Module</h3>
+        <div class="module-grid">
+            <div class="module-item">
+                <strong>Lineare Algebra für ML</strong>
+                <em>„Warum ist ein neuronales Netz eigentlich eine riesige Matrixmultiplikation?"</em>
+                Eigenwertzerlegung, Singulärwertzerlegung, Tensoroperationen – das mathematische Gerüst hinter jedem Modell.
+            </div>
+            <div class="module-item">
+                <strong>Konvexe Optimierung</strong>
+                <em>„Wie findet ein Modell die besten Parameter – und warum klappt das überhaupt?"</em>
+                Gradientenabstieg, Lagrange-Multiplikatoren, Konvexität, Sattelpunkte – Herz jedes Trainingsverfahrens.
+            </div>
+            <div class="module-item">
+                <strong>Approximations- & Lerntheorie</strong>
+                <em>„Wie gut kann ein Netz eine beliebige Funktion annähern – und wann findet Überanpassung statt?"</em>
+                Universelle Approximationssätze, Bias-Varianz-Tradeoff, PAC-Lernen und Generalisierungsschranken.
+            </div>
+            <div class="module-item">
+                <strong>Informationstheorie</strong>
+                <em>„Was genau bedeutet es, dass ein Modell ‚etwas gelernt' hat?"</em>
+                Entropie, KL-Divergenz, Mutual Information – mathematische Grundlage für Loss-Funktionen und Datenkompression.
+            </div>
+        </div>
+        <div class="job-container">
+            <span class="job-title">Karrieremöglichkeiten:</span>
+            <div class="job-list">
+                <span class="job-tag">KI-Forscher</span>
+                <span class="job-tag">Machine Learning Engineer</span>
+                <span class="job-tag">Data Scientist</span>
+                <span class="job-tag">Autonomes Fahren</span>
+            </div>
+        </div>
+    </section>
+
+    <section id="biomathe" class="course-section">
+        <h2>Biomathematik</h2>
+        <blockquote class="pullquote">
+            <p>Wie kann es sein, dass die Mathematik, die schließlich ein von der Existenz unabhängiges Produkt des menschlichen Denkens ist, so bewundernswert an die wirklichen Dinge angepasst ist?</p>
+            <cite>Albert Einstein, Physiker</cite>
+        </blockquote>
+        <div class="info-box box-colloquial">
+            <span class="info-box-label">Umgangssprachlich</span>
+            <p class="info-box-body">Du entschlüsselst den Code des Lebens. Du berechnest, wie Bakterien wachsen, Gene interagieren oder sich eine Seuche ausbreitet.</p>
+        </div>
+        <div class="info-box box-definition">
+            <span class="info-box-label">Klassische Definition</span>
+            <p class="info-box-body">Modellierung biologischer und medizinischer Prozesse mittels mathematischer Werkzeuge wie Differentialgleichungen und Stochastik.</p>
+        </div>
+        <div class="info-box box-example">
+            <span class="info-box-label">Beispiel</span>
+            <p class="info-box-body">Im März 2020 sagten Biomathematiker*innen vorher, dass COVID-19 Deutschland in 6 Wochen überfluten würde – auf Basis von R₀, Inkubationszeit und Kontaktmatrizen. Die Regierung handelte.</p>
+        </div>
+        <h3>Wichtige Module</h3>
+        <div class="module-grid">
+            <div class="module-item">
+                <strong>Dynamische Systeme & Populationsdynamik</strong>
+                <em>„Warum schwanken Räuber- und Beutepopulationen zyklisch?"</em>
+                Gewöhnliche Differentialgleichungen, Lotka-Volterra-Modelle, Fixpunktanalyse und Stabilitätstheorie.
+            </div>
+            <div class="module-item">
+                <strong>Mathematische Epidemiologie</strong>
+                <em>„Ab wie vielen Geimpften bricht eine Epidemie zusammen?"</em>
+                SIR/SEIR-Kompartimentmodelle, Basisreproduktionszahl R₀, Herdenimmunität und Ausbruchsszenarien.
+            </div>
+            <div class="module-item">
+                <strong>Bioinformatik & Sequenzanalyse</strong>
+                <em>„Wie findet man in 3 Milliarden DNA-Basenpaaren ein Gen?"</em>
+                Alignment-Algorithmen, Hidden-Markov-Modelle, phylogenetische Bäume und Genomdatenanalyse.
+            </div>
+            <div class="module-item">
+                <strong>Stochastische Prozesse in der Biologie</strong>
+                <em>„Wann stirbt eine kleine Population zufällig aus – obwohl das Modell Überleben vorhersagt?"</em>
+                Geburts-Tod-Prozesse, Markov-Ketten, stochastische Simulation biologischer Reaktionsnetzwerke.
+            </div>
+        </div>
+        <div class="job-container">
+            <span class="job-title">Karrieremöglichkeiten:</span>
+            <div class="job-list">
+                <span class="job-tag">Pharmaindustrie</span>
+                <span class="job-tag">Epidemiologie</span>
+                <span class="job-tag">Krebsforschung</span>
+                <span class="job-tag">Agrartechnologie</span>
+            </div>
+        </div>
+    </section>
+
+    <section id="lehramt" class="course-section">
+        <h2>Lehramt Mathematik</h2>
+        <blockquote class="pullquote">
+            <p>Das Leben ist nur zu zwei Dingen gut: um Mathematik zu machen und sie zu lehren.</p>
+            <cite>Siméon Denis Poisson, Französischer Physiker und Mathematiker</cite>
+        </blockquote>
+        <div class="info-box box-colloquial">
+            <span class="info-box-label">Umgangssprachlich</span>
+            <p class="info-box-body">Du übersetzt die Mathematik mit einfachsten Worten. Du sorgst dafür, dass die nächste Generation keine Angst vor Formeln hat – und verstehst selbst die Fächer tief genug, um jede Frage zu beantworten.</p>
+        </div>
+        <div class="info-box box-definition">
+            <span class="info-box-label">Klassische Definition</span>
+            <p class="info-box-body">Verbindung fachwissenschaftlicher Mathematik mit didaktischen und pädagogischen Theorien zur Wissensvermittlung.</p>
+        </div>
+        <h3>Wichtige Module</h3>
+        <div class="module-grid">
+            <div class="module-item">
+                <strong>Elementargeometrie & Anschauung</strong>
+                <em>„Wie erkläre ich einem 13-Jährigen Kind, was ein Beweis ist?"</em>
+                Klassische Euklidische Geometrie, Konstruktionsaufgaben, Axiomensysteme verständlich gemacht.
+            </div>
+            <div class="module-item">
+                <strong>Fachdidaktik Mathematik</strong>
+                <em>„Warum rechnen Schüler immer denselben Fehler?"</em>
+                Typische Fehlvorstellungen, kognitive Aktivierung, Aufgabendesign und diagnostisches Unterrichten.
+            </div>
+            <div class="module-item">
+                <strong>Zahlentheorie & Algebra für Lehramt</strong>
+                <em>„Was steckt hinter dem kleinen Einmaleins, mathematisch gesehen?"</em>
+                Teilbarkeit, Primzahlen, modulare Arithmetik – tiefes Schulstoffverständnis jenseits des Auswendiglernens.
+            </div>
+            <div class="module-item">
+                <strong>Allgemeine Pädagogik</strong>
+                <em>„Was macht guten Unterricht eigentlich aus – jenseits von Bauchgefühl?"</em>
+                Erziehungstheorien, Unterrichtsplanung, Klassenführung und institutionelle Bildungssysteme im historischen und internationalen Vergleich.
+            </div>
+        </div>
+        <div class="job-container">
+            <span class="job-title">Karrieremöglichkeiten:</span>
+            <div class="job-list">
+                <span class="job-tag">Lehrkraft</span>
+                <span class="job-tag">Bildungsmanagement</span>
+                <span class="job-tag">Lehrbuchautor*in</span>
+                <span class="job-tag">Dozent*in in der Erwachsenenbildung</span>
+            </div>
+        </div>
+    </section>
+
+<section id="verwandte" class="sidebar-info" style="scroll-margin-top: var(--nav-height, 70px)">
+    <h2>Nahestehende Studiengänge</h2>
+    <p>Hier steht Mathematik nicht im Titel, ist aber das Herzstück des Studiums:</p>
+    <div class="related-grid">
+        <div class="related-item">
+            <strong>Physik</strong>
+            <span>Die Natur in der Sprache der Mathematik, vor allem bei der Theoretischen Physik (Fokus auf Analysis & Feldtheorie).</span>
+        </div>
+        <div class="related-item">
+            <strong>Informatik</strong>
+            <span>Fokus auf Diskrete Mathematik, Logik und Komplexitätsberechnungen.</span>
+        </div>
+        <div class="related-item">
+            <strong>Data Science</strong>
+            <span>Die moderne Brücke zwischen Statistik, Informatik und Big Data Analyse.</span>
+        </div>
+        <div class="related-item">
+            <strong>Meteorologie</strong>
+            <span>Mathematische Modelle für Wettervorhersage und Klimaforschung (Fourier-Analysis, Vektoranalysis, Differentialgleichungen).</span>
+        </div>
+        <div class="related-item">
+            <strong>Systems Engineering</strong>
+            <span>Mathematische Steuerung und Regelung von hochkomplexen technischen Anlagen.</span>
+        </div>
+        <div class="related-item">
+            <strong>Wirtschaftswissenschaften (Quantitativ)</strong>
+            <span>Fokus auf mathematische Modelle in der VWL (Ökonometrie).</span>
+        </div>
+    </div>
+</section>
+
+</div>
+
+
+<footer class="site-footer">
+  <div class="footer-content">
+    <a href="./index.html" class="footer-home">Home</a>
+    <span class="footer-topic">Wegweiser Mathematikstudium</span>
+    <span class="footer-update">Zuletzt aktualisiert: <span id="last-update">...</span></span>
+  </div>
+</footer>
+
+<script>
+    const nav = document.querySelector('nav');
+
+    function updateNavHeight() {
+        document.documentElement.style.setProperty('--nav-height', nav.offsetHeight + 'px');
+    }
+    updateNavHeight();
+    window.addEventListener('resize', updateNavHeight);
+
+    const sections = document.querySelectorAll('.course-section, .sidebar-info');
+    const navLinks = document.querySelectorAll('nav a');
+
+    const observer = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                navLinks.forEach(link => link.classList.remove('active'));
+                const id = entry.target.getAttribute('id');
+                const active = document.querySelector(`nav a[href="#${id}"]`);
+                if (active) active.classList.add('active');
+            }
+        });
+    }, {
+        rootMargin: '-20% 0px -70% 0px'  // aktiviert, wenn Abschnitt im oberen Drittel ist
+    });
+
+    sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>
