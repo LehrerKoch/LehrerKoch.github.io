@@ -21,7 +21,7 @@
   </script>
   <title>Standardableitungen</title>
   <link rel="stylesheet" type="text/css" href="styles.css">
-  <link rel="stylesheet" type="text/css" href="scale.css">
+  <!-- <link rel="stylesheet" type="text/css" href="scale.css"> -->
   <style>
     .site-footer {
       width: 100%; box-sizing: border-box; padding: 12px 40px;
@@ -85,6 +85,20 @@
     .card-sub { font-size: 0.8em; color: #888; margin-top: 6px; }
 
     #showSolutionBtn { width: 100%; margin-top: 15px; padding: 10px; cursor: pointer; }
+
+    .scale-wrapper {
+      overflow: hidden;
+      width: 95%;
+      padding: 0.3em 0.5em;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .scale-el {
+      display: inline-block;
+      transform-origin: center center;
+      white-space: nowrap;
+    }
   </style>
 </head>
 <body>
@@ -128,6 +142,40 @@ const funktionen = [
   {funktion: "\\(f(x)=\\sin(x)\\)",   ableitung: "\\(f'(x)=\\cos(x)\\)"},
   {funktion: "\\(f(x)=\\cos(x)\\)",   ableitung: "\\(f'(x)=-\\sin(x)\\)"},
 ];
+
+function scaleToFit(el) {
+    if (!el) return;
+    el.style.transform = 'none';
+    const wrapper = el.parentElement;
+    if (!wrapper) return;
+
+    // Kurz warten, damit der Browser Layout berechnet
+    requestAnimationFrame(() => {
+        const available = wrapper.clientWidth
+            - parseFloat(getComputedStyle(wrapper).paddingLeft)
+            - parseFloat(getComputedStyle(wrapper).paddingRight);
+        const natural = el.scrollWidth;
+
+        if (natural > available && available > 0) {
+            const scale = available / natural;
+            el.style.transform = `scale(${scale})`;
+            // Wrapper-Höhe anpassen, damit nichts überlappt
+            wrapper.style.height = (el.scrollHeight * scale) + 'px';
+        } else {
+            wrapper.style.height = '';
+        }
+    });
+}
+
+async function scaleAllElements() {
+    // Warten bis MathJax fertig ist, dann skalieren
+    if (window.MathJax && MathJax.typesetPromise) {
+        await MathJax.typesetPromise();
+    }
+    document.querySelectorAll('.scale-el').forEach(scaleToFit);
+}
+
+window.addEventListener('resize', scaleAllElements);
 
 let taskPool = [...funktionen];
 let currentTask = null, correctCount = 0, totalCount = 0, lastTask = null;
@@ -179,15 +227,14 @@ function generateTask() {
   card.removeAttribute('style');
   faces.forEach(f => f.style.backgroundColor = 'white');
   
-  if (window.MathJax) MathJax.typeset();
-  setTimeout(scaleAllElements, 50);
+  if (window.MathJax) MathJax.typesetPromise().then(scaleAllElements);
+
 
   // Rückseite erst befüllen, wenn sie NICHT sichtbar ist (nach 600ms)
   setTimeout(() => {
     document.getElementById('taskTextBack').innerHTML = sel.funktion; // Der obere Part
     document.getElementById('loesung').innerHTML = ''; // Lösungstext leeren für neue Aufgabe
-    if (window.MathJax) MathJax.typeset();
-    setTimeout(scaleAllElements, 50);
+    if (window.MathJax) MathJax.typesetPromise().then(scaleAllElements);
   }, 600);
 }
 
@@ -195,7 +242,7 @@ function showSolution() {
   if (!window.currentSolution) return;
   document.getElementById('loesung').innerHTML = window.currentSolution;
   card.classList.add('flipped');
-  if (window.MathJax) MathJax.typeset();
+  if (window.MathJax) MathJax.typesetPromise().then(scaleAllElements);
 }
 
 function markAnswer(correct) {
