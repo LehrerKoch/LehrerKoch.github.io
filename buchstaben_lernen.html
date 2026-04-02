@@ -57,6 +57,14 @@
             color: var(--muted);
             font-size: 0.95rem;
         }
+
+    #toast {
+      position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+      background: #333; color: #fff; padding: 12px 24px; border-radius: 10px;
+      font-size: 0.95em; opacity: 0; pointer-events: none;
+      transition: opacity 0.4s; z-index: 999; white-space: nowrap;
+    }
+    #toast.show { opacity: 1; }
     body { 
       font-family: sans-serif; 
       -webkit-user-select: none;
@@ -228,6 +236,7 @@
 </head>
 <body>
   <div id="flashOverlay"></div>
+  <div id="toast"></div>
   <div style="position:relative; z-index:1;">
   <h1>Buchstaben anderer Sprachen lernen</h1>
 
@@ -271,6 +280,13 @@
 
       <div class="form-block">
         <div id="letterSettings"></div>
+      </div>
+
+      <div class="form-block" style="margin-top:10px;">
+        <b>Animationen:</b><br>
+        <label style="font-size: 0.9em; cursor: pointer;">
+          <input type="checkbox" id="skipAnimations" onchange="updateURL()"> Flip-Animation überspringen
+        </label>
       </div>
     </form>
   </details>
@@ -324,7 +340,8 @@ function updateURL() {
     bases: [...document.querySelectorAll('input[name=letterBase]')].map(cb => cb.checked ? 1 : 0),
     letters: [...document.querySelectorAll('input[name=letter]')].map(cb => cb.checked ? 1 : 0),
     cCount: document.getElementById('choiceCountSlider').value,
-    fChoice: document.getElementById('forceChoices').checked
+    fChoice: document.getElementById('forceChoices').checked,
+    skipAnim: document.getElementById('skipAnimations').checked
   };
   window.history.replaceState(null, '', '#' + btoa(JSON.stringify(settings)));
 }
@@ -339,6 +356,7 @@ function loadFromURL() {
     if (modeRadio) modeRadio.checked = true;
     if (settings.cCount) { document.getElementById('choiceCountSlider').value = settings.cCount; document.getElementById('choiceCountDisplay').textContent = settings.cCount; }
     if (settings.fChoice) document.getElementById('forceChoices').checked = true;
+    if (settings.skipAnim) document.getElementById('skipAnimations').checked = true;
     renderLetterSettings(); 
     const baseCbs = document.querySelectorAll('input[name=letterBase]');
     settings.bases.forEach((val, i) => { if(baseCbs[i]) { baseCbs[i].checked = !!val; document.getElementById(`row-${i}`).classList.toggle('row-disabled', !val); const btn = document.getElementById(`btn-toggle-${i}`); btn.textContent = val ? "AN" : "AUS"; btn.className = val ? "btn-toggle btn-on" : "btn-toggle btn-off"; } });
@@ -427,10 +445,18 @@ function toggleAllRows() {
   updateURL(); resetAndNewTask();
 }
 
+function showToast(msg, duration = 1800) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), duration);
+}
+
 function generateTask() {
   if (taskPool.length === 0) {
     refillPool();
     if (taskPool.length === 0) { document.getElementById('taskLabel').textContent = "Bitte Buchstaben wählen"; return; }
+    showToast('🎉 Alle Karten geschafft! Stapel wird neu gemischt…');
   }
   let taskIdx;
   do { taskIdx = Math.floor(Math.random() * taskPool.length); } while (taskPool.length > 1 && taskPool[taskIdx].id === lastTaskID);
@@ -448,8 +474,12 @@ function generateTask() {
   generateChoices();
 
   const card = document.getElementById('taskCard');
+  if (document.getElementById('skipAnimations').checked) {
+    card.style.transition = 'none';
+  } else {
+    card.removeAttribute('style');
+  }
   card.classList.remove('flipped');
-  card.removeAttribute('style');
   setTimeout(() => {
     document.getElementById('loesung').innerHTML = '';
     document.querySelectorAll('.card-face').forEach(f => { f.style.backgroundColor = 'white'; });
@@ -514,13 +544,11 @@ function handleChoice(btn, isCorrect) {
             taskPool.splice(currentTask.poolIdx, 1);
         }
         document.getElementById('counter').textContent = `Richtig: ${correctCount} / ${totalCount}`;
-        flashResult("#ccffcc");
         setTimeout(generateTask, 1200);
     } else {
         btn.classList.add('wrong');
         if (!choiceState.answeredWrong) { totalCount++; choiceState.answeredWrong = true; }
         document.getElementById('counter').textContent = `Richtig: ${correctCount} / ${totalCount}`;
-        flashResult("#ffcccc");
     }
 }
 
@@ -536,7 +564,13 @@ function showSolution() {
   if (document.getElementById('helpDetails').open) return;
   if (window.currentSolution) {
     document.getElementById('loesung').innerHTML = window.currentSolution;
-    document.getElementById('taskCard').classList.add('flipped');
+    const card = document.getElementById('taskCard');
+    if (document.getElementById('skipAnimations').checked) {
+      card.style.transition = 'none';
+      card.classList.add('flipped');
+    } else {
+      card.classList.add('flipped');
+    }
     if(window.MathJax) MathJax.typeset();
     setTimeout(scaleAllElements, 50);
   }
@@ -567,11 +601,16 @@ card.onmouseup = (e) => {
   if (document.getElementById('helpDetails').open) return;
   if (ignoreMouseUp) { ignoreMouseUp = false; return; }
   const duration = Date.now() - startTime;
-  if (duration < 250 && Math.abs(currentX) < 20) { 
-    // Transition für Klick-Animation sicherstellen
-    card.style.transition = 'transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
-    showSolution(); 
-    startX = null; currentX = 0; 
+  if (duration < 250 && Math.abs(currentX) < 20) {
+    startX = null; currentX = 0;
+    if (document.getElementById('skipAnimations').checked) {
+      showSolution();
+    } else {
+      requestAnimationFrame(() => {
+        card.style.transition = 'transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
+        requestAnimationFrame(() => { showSolution(); });
+      });
+    }
     return; 
   }
   handleEnd();
@@ -581,11 +620,16 @@ card.ontouchend = (e) => {
   if (document.getElementById('helpDetails').open) return;
   ignoreMouseUp = true;
   const duration = Date.now() - startTime;
-  if (duration < 250 && Math.abs(currentX) < 20) { 
-    // Transition für Tap-Animation sicherstellen
-    card.style.transition = 'transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
-    showSolution(); 
-    startX = null; currentX = 0; 
+  if (duration < 250 && Math.abs(currentX) < 20) {
+    startX = null; currentX = 0;
+    if (document.getElementById('skipAnimations').checked) {
+      showSolution();
+    } else {
+      requestAnimationFrame(() => {
+        card.style.transition = 'transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
+        requestAnimationFrame(() => { showSolution(); });
+      });
+    }
     return; 
   }
   handleEnd(); 
@@ -620,17 +664,18 @@ const handleEnd = () => {
 
   faces.forEach(f => f.style.backgroundColor = 'white');
   
-  card.style.transition = 'transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
+  const skipAnim = document.getElementById('skipAnimations').checked;
+  if (!skipAnim) card.style.transition = 'transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
   
   if (triggered) {
     markAnswer(wasCorrect);
     requestAnimationFrame(() => {
         card.style.transform = `translate(-50%, -50%) rotateY(${card.classList.contains('flipped') ? 180 : 0}deg)`;
-        setTimeout(() => { card.removeAttribute('style'); }, 600);
+        setTimeout(() => { card.removeAttribute('style'); }, skipAnim ? 0 : 600);
     });
   } else {
     card.style.transform = `translate(-50%, -50%) rotateY(${card.classList.contains('flipped') ? 180 : 0}deg)`;
-    setTimeout(() => { if(startX === null) card.removeAttribute('style'); }, 600);
+    setTimeout(() => { if(startX === null) card.removeAttribute('style'); }, skipAnim ? 0 : 600);
   }
 
   startX = null; 
