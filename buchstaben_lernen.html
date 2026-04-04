@@ -117,7 +117,7 @@
       align-items: center; justify-content: center;
       border: 2px solid #ddd; border-radius: 15px; background: white;
       transition: background-color 0.2s ease;
-      z-index: 2;
+      z-index: 2; box-sizing: border-box;
     }
 
     .card-back { transform: rotateY(180deg); background-color: #fcfcfc; }
@@ -336,6 +336,7 @@ let fullTaskPool = [];
 let lastTaskID = null;
 let choiceState = { answeredWrong: false };
 let pendingTaskTimer = null; // track setTimeout for generateTask to cancel stale calls
+let _taskGen = 0; // incremented each generateTask call, so stale MathJax promises don't touch new cards
 
 // Debounced MathJax: batches all typeset requests within one animation frame into one call,
 // and targets only the elements that actually contain math to avoid full-document rescans.
@@ -520,6 +521,7 @@ function generateTask() {
   const card = document.getElementById('taskCard');
   if (document.getElementById('skipAnimations').checked) {
     card.style.transition = 'none';
+    card.style.transform = 'translate(-50%, -50%) rotateY(0deg)';
   } else {
     card.removeAttribute('style');
   }
@@ -533,10 +535,21 @@ function generateTask() {
     scheduleScale();
   }, 600);
 
+  const faceFront = document.getElementById('faceFront');
+  const gen = ++_taskGen;
+  faceFront.style.opacity = '0';
   if (mode === 'recognize') { document.getElementById('taskLabel').textContent = "Was ist das?"; document.getElementById('taskText').innerHTML = selected.val; document.getElementById('taskSub').textContent = ""; }
   else { document.getElementById('taskLabel').textContent = "Schreibe:"; document.getElementById('taskText').innerHTML = selected.base; document.getElementById('taskSub').textContent = `(${selected.type})`; }
-  typesetMath(document.getElementById('faceFront'));
-  scheduleScale();
+  if (window.MathJax && MathJax.typesetPromise) {
+    if (MathJax.typesetClear) MathJax.typesetClear([faceFront]);
+    MathJax.typesetPromise([faceFront]).then(() => {
+      if (gen !== _taskGen) return; // stale — a newer task already took over
+      if (typeof scaleAllElements === 'function') scaleAllElements();
+      requestAnimationFrame(() => { if (gen === _taskGen) faceFront.style.opacity = ''; });
+    }).catch(() => { if (gen === _taskGen) faceFront.style.opacity = ''; });
+  } else {
+    faceFront.style.opacity = '';
+  }
 }
 
 function generateChoices() {
@@ -625,8 +638,11 @@ function handleChoice(btn, isCorrect) {
 
 function updateLockState() {
     const isLocked = document.getElementById('helpDetails').open;
-    const targets = [document.getElementById('taskWrap'), document.getElementById('wrongBtn'), document.getElementById('correctBtn')];
+    const targets = [document.getElementById('wrongBtn'), document.getElementById('correctBtn')];
     targets.forEach(t => t.classList.toggle('locked', isLocked));
+    // Disable card swiping without greying it out visually
+    const taskWrap = document.getElementById('taskWrap');
+    taskWrap.classList.toggle('swipe-disabled', isLocked);
 }
 
 document.getElementById('helpDetails').ontoggle = updateLockState;
@@ -635,13 +651,39 @@ function flipToSolution() {
   if (window.currentSolution) {
     const card = document.getElementById('taskCard');
     if (card.classList.contains('flipped')) return; // already showing — don't re-render
+    const faceBack = document.getElementById('faceBack');
     document.getElementById('loesung').innerHTML = window.currentSolution;
-    if (document.getElementById('skipAnimations').checked) {
-      card.style.transition = 'none';
+
+    const skipAnim = document.getElementById('skipAnimations').checked;
+    const doFlip = () => {
+      if (skipAnim) {
+        card.style.transition = 'none';
+        card.style.transform = 'translate(-50%, -50%) rotateY(180deg)';
+      }
+      card.classList.add('flipped');
+    };
+
+    if (skipAnim) {
+      // Hide, render, scale, then instantly show — no animation to rely on
+      faceBack.style.opacity = '0';
+      if (window.MathJax && MathJax.typesetPromise) {
+        if (MathJax.typesetClear) MathJax.typesetClear([faceBack]);
+        MathJax.typesetPromise([faceBack]).then(() => {
+          if (typeof scaleAllElements === 'function') scaleAllElements();
+          doFlip();
+          requestAnimationFrame(() => { faceBack.style.opacity = ''; });
+        }).catch(() => { doFlip(); faceBack.style.opacity = ''; });
+      } else {
+        doFlip();
+        faceBack.style.opacity = '';
+      }
+    } else {
+      // Animated flip: backface-visibility hides faceBack during rotation,
+      // so render can happen in parallel without any visible flash.
+      doFlip();
+      typesetMath(faceBack);
+      scheduleScale();
     }
-    card.classList.add('flipped');
-    typesetMath(document.getElementById('faceBack'));
-    scheduleScale();
   }
 }
 
@@ -661,12 +703,9 @@ function showSolution() {
     choiceState.answeredWrong = true;
     document.getElementById('counter').textContent = `Richtig: ${correctCount} / ${totalCount}`;
     if (pendingTaskTimer) clearTimeout(pendingTaskTimer);
-    if (document.getElementById('skipAnimations').checked) {
-      pendingTaskTimer = setTimeout(generateTask, 0);
-    } else {
-      flipToSolution();
-      pendingTaskTimer = setTimeout(generateTask, 1200);
-    }
+    // Always flip and wait normally — skip-animation does not affect this path
+    flipToSolution();
+    pendingTaskTimer = setTimeout(generateTask, 1200);
     return;
   }
   flipToSolution();
@@ -682,11 +721,14 @@ function markAnswer(correct) {
   }
   document.getElementById('counter').textContent = `Richtig: ${correctCount} / ${totalCount}`;
   
-  showSolution(); 
-  
   currentTask = null;
   if (pendingTaskTimer) clearTimeout(pendingTaskTimer);
-  pendingTaskTimer = setTimeout(generateTask, 1200);
+  if (document.getElementById('skipAnimations').checked) {
+    pendingTaskTimer = setTimeout(generateTask, 0);
+  } else {
+    showSolution();
+    pendingTaskTimer = setTimeout(generateTask, 1200);
+  }
 }
 
 const card = document.getElementById('taskCard');
