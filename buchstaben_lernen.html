@@ -126,7 +126,8 @@
     .sub-info { font-size: 0.8em; color: #666; margin-top: 8px; min-height: 1em; }
 
     #showSolutionBtn { width:100%; margin-top: 15px; padding: 10px; cursor: pointer; }
-    #loesung { text-align:center; font-weight: bold; margin-top: 10px; border-top: 1px dashed #ccc; padding-top: 5px; width: 80%; }
+    #loesung { text-align:center; font-weight: bold; border-top: 1px dashed #ccc; padding-top: 8px; margin-top: 8px; width: 80%; }
+    #loesung .loesung-type { font-size: 0.72em; color: #555; font-weight: normal; display: block; margin-top: 2px; }
 
     /* Sperr-Zustand Optik */
     .locked { opacity: 0.4; pointer-events: none; filter: grayscale(0.5); cursor: not-allowed !important; }
@@ -336,16 +337,39 @@ let lastTaskID = null;
 let choiceState = { answeredWrong: false };
 let pendingTaskTimer = null; // track setTimeout for generateTask to cancel stale calls
 
-// Debounced MathJax: batches all typeset requests within one animation frame into one call
+// Debounced MathJax: batches all typeset requests within one animation frame into one call,
+// and targets only the elements that actually contain math to avoid full-document rescans.
+// Crucially, clears MathJax's internal cache for those elements first to prevent memory buildup.
 let _mjPending = false;
-function typesetMath() {
+let _mjElements = new Set();
+function typesetMath(el) {
   if (!window.MathJax) return;
+  if (el) _mjElements.add(el);
   if (_mjPending) return;
   _mjPending = true;
   requestAnimationFrame(() => {
     _mjPending = false;
-    MathJax.typesetPromise && MathJax.typesetPromise().catch(() => {});
+    const targets = _mjElements.size > 0 ? [..._mjElements] : null;
+    _mjElements = new Set();
+    if (!MathJax.typesetPromise) return;
+    // Clear MathJax's internal jax cache for the target elements before re-typesetting.
+    // Without this, every call adds to MathJax's internal document map, growing unboundedly.
+    if (targets && MathJax.typesetClear) {
+      MathJax.typesetClear(targets);
+    }
+    MathJax.typesetPromise(targets).catch(() => {});
   });
+}
+
+// Debounced scaleAllElements: collapses multiple rapid calls into one
+let _scalePending = false;
+function scheduleScale() {
+  if (_scalePending) return;
+  _scalePending = true;
+  setTimeout(() => {
+    _scalePending = false;
+    if (typeof scaleAllElements === 'function') scaleAllElements();
+  }, 50);
 }
 
 function updateURL() {
@@ -429,6 +453,8 @@ function renderLetterSettings() {
     html += `</tr>`;
   });
   box.innerHTML = html + `</tbody></table>`;
+  // Typeset the settings table once after building it (symbols don't change after render)
+  typesetMath(box);
 }
 
 function resetAndNewTask() {
@@ -501,23 +527,26 @@ function generateTask() {
   setTimeout(() => {
     document.getElementById('loesung').innerHTML = '';
     document.querySelectorAll('.card-face').forEach(f => { f.style.backgroundColor = 'white'; });
-    if (mode === 'recognize') { document.getElementById('taskTextBack').innerHTML = selected.val; window.currentSolution = `${selected.base}<br>(${selected.type})`; }
+    if (mode === 'recognize') { document.getElementById('taskTextBack').innerHTML = selected.val; window.currentSolution = `${selected.base}<span class="loesung-type">(${selected.type})</span>`; }
     else { document.getElementById('taskTextBack').innerHTML = selected.base; window.currentSolution = `${selected.val}`; }
-    typesetMath();
-    setTimeout(scaleAllElements, 50);
+    typesetMath(document.getElementById('faceBack'));
+    scheduleScale();
   }, 600);
 
   if (mode === 'recognize') { document.getElementById('taskLabel').textContent = "Was ist das?"; document.getElementById('taskText').innerHTML = selected.val; document.getElementById('taskSub').textContent = ""; }
   else { document.getElementById('taskLabel').textContent = "Schreibe:"; document.getElementById('taskText').innerHTML = selected.base; document.getElementById('taskSub').textContent = `(${selected.type})`; }
-  typesetMath();
-  setTimeout(scaleAllElements, 50);
+  typesetMath(document.getElementById('faceFront'));
+  scheduleScale();
 }
 
 function generateChoices() {
     const container = document.getElementById('choiceContainer');
-    // Replace container with a fresh clone to force CSS animation restart and clear all button states
-    const newContainer = container.cloneNode(false);
-    container.parentNode.replaceChild(newContainer, container);
+    // Clear content (don't replace node - that leaks the old node's closure references in some engines)
+    container.innerHTML = '';
+    // Force CSS animation restart by removing and re-adding the element
+    container.style.animation = 'none';
+    container.offsetHeight; // reflow trigger
+    container.style.animation = '';
 
     const count = parseInt(document.getElementById('choiceCountSlider').value);
     const isRec = currentTask.mode === 'recognize';
@@ -564,10 +593,10 @@ function generateChoices() {
         btn.onclick = () => handleChoice(btn, c === correctVal);
         (idx < count/2 ? row1 : row2).appendChild(btn);
     });
-    newContainer.appendChild(row1); newContainer.appendChild(row2);
+    container.appendChild(row1); container.appendChild(row2);
 
-    typesetMath();
-    setTimeout(scaleAllElements, 50);
+    typesetMath(container);
+    scheduleScale();
 }
 
 function handleChoice(btn, isCorrect) {
@@ -579,10 +608,13 @@ function handleChoice(btn, isCorrect) {
             taskPool.splice(currentTask.poolIdx, 1);
         }
         document.getElementById('counter').textContent = `Richtig: ${correctCount} / ${totalCount}`;
-        flipToSolution();
         if (pendingTaskTimer) clearTimeout(pendingTaskTimer);
-        const flipDelay = document.getElementById('skipAnimations').checked ? 0 : 600;
-        pendingTaskTimer = setTimeout(generateTask, flipDelay + 600);
+        if (document.getElementById('skipAnimations').checked) {
+            pendingTaskTimer = setTimeout(generateTask, 0);
+        } else {
+            flipToSolution();
+            pendingTaskTimer = setTimeout(generateTask, 1200); // 600ms flip + 600ms pause
+        }
     } else {
         btn.classList.add('wrong');
         totalCount++;
@@ -601,41 +633,40 @@ document.getElementById('helpDetails').ontoggle = updateLockState;
 
 function flipToSolution() {
   if (window.currentSolution) {
-    document.getElementById('loesung').innerHTML = window.currentSolution;
     const card = document.getElementById('taskCard');
+    if (card.classList.contains('flipped')) return; // already showing — don't re-render
+    document.getElementById('loesung').innerHTML = window.currentSolution;
     if (document.getElementById('skipAnimations').checked) {
       card.style.transition = 'none';
     }
     card.classList.add('flipped');
-    typesetMath();
-    setTimeout(scaleAllElements, 50);
+    typesetMath(document.getElementById('faceBack'));
+    scheduleScale();
   }
 }
 
 function showSolution() {
   if (document.getElementById('helpDetails').open) {
-    // Buttons are visible: mark correct answer, count as wrong, flip, then next task
     if (!currentTask || choiceState.solutionRevealed) return;
     choiceState.solutionRevealed = true;
-    // Find and highlight the correct button
     const isRec = currentTask.mode === 'recognize';
     const correctVal = isRec ? currentTask.data.base : currentTask.data.val;
     document.querySelectorAll('.choice-btn').forEach(btn => {
-      const btnVal = btn.querySelector('.scale-el')?.textContent?.trim();
-      // compare rendered text — for MathJax rendered content compare innerHTML source stored on btn
       if (btn.dataset.choiceVal === correctVal) {
         if (!btn.classList.contains('correct')) btn.classList.add('revealed');
         btn.classList.add('no-click');
       }
     });
-    // Count as wrong (no correct point, but increment total)
     totalCount++;
     choiceState.answeredWrong = true;
     document.getElementById('counter').textContent = `Richtig: ${correctCount} / ${totalCount}`;
-    flipToSolution();
     if (pendingTaskTimer) clearTimeout(pendingTaskTimer);
-    const flipDelay = document.getElementById('skipAnimations').checked ? 0 : 600;
-    pendingTaskTimer = setTimeout(generateTask, flipDelay + 600);
+    if (document.getElementById('skipAnimations').checked) {
+      pendingTaskTimer = setTimeout(generateTask, 0);
+    } else {
+      flipToSolution();
+      pendingTaskTimer = setTimeout(generateTask, 1200);
+    }
     return;
   }
   flipToSolution();
@@ -668,6 +699,7 @@ card.onmouseup = (e) => {
   const duration = Date.now() - startTime;
   if (duration < 250 && Math.abs(currentX) < 20) {
     startX = null; currentX = 0;
+    if (card.classList.contains('flipped')) return; // already showing solution, ignore
     if (document.getElementById('skipAnimations').checked) {
       showSolution();
     } else {
@@ -687,6 +719,7 @@ card.ontouchend = (e) => {
   const duration = Date.now() - startTime;
   if (duration < 250 && Math.abs(currentX) < 20) {
     startX = null; currentX = 0;
+    if (card.classList.contains('flipped')) return; // already showing solution, ignore
     if (document.getElementById('skipAnimations').checked) {
       showSolution();
     } else {
