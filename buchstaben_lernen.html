@@ -790,6 +790,7 @@ document.getElementById('languageSelect').onchange = (e) => { currentLanguage = 
 const handleStart = (e) => { startX = e.clientX || (e.touches && e.touches[0].clientX); card.style.transition = 'none'; };
 const handleMove = (e) => {
   if (startX === null || document.getElementById('helpDetails').open) return;
+  if (e.cancelable) e.preventDefault(); // iOS: verhindert "scroll-recovery"-Zustand nach Swipe
   currentX = (e.clientX || (e.touches && e.touches[0].clientX)) - startX;
   const rot = card.classList.contains('flipped') ? 180 : 0;
   card.style.transform = `translate(calc(-50% + ${currentX}px), -50%) rotateY(${rot}deg)`;
@@ -821,7 +822,9 @@ const handleEnd = () => {
   startX = null; 
   currentX = 0;
 };
-document.onmousemove = handleMove; card.ontouchmove = handleMove;
+document.onmousemove = handleMove;
+card.removeEventListener('touchmove', handleMove); // Sicherheitshalber
+card.addEventListener('touchmove', handleMove, { passive: false }); // non-passive für preventDefault auf iOS
 document.onmouseup = () => { if (startX !== null) handleEnd(); };
 
 window.onload = () => { 
