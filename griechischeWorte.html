@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Griechisch Lern-App</title>
+    <style>
+        :root {
+            --primary: #0056b3;
+            --bg: #f4f7f6;
+            --surface: #ffffff;
+            --border: #dee2e6;
+            --sidebar-width: 140px; /* Etwas breiter für die größere Schrift */
+        }
+
+        * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+
+        body { 
+            margin: 0; background: var(--bg); display: flex; height: 100vh; overflow: hidden; 
+            /* Verhindert Pull-to-refresh und ähnliches auf Touch-Geräten */
+            overscroll-behavior: none; 
+        }
+
+        /* --- Sidebar --- */
+        .sidebar {
+            width: var(--sidebar-width);
+            flex-shrink: 0;
+            background: var(--surface);
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            margin-left: calc(-1 * var(--sidebar-width));
+            transition: margin-left 0.3s ease;
+            z-index: 10;
+        }
+        .sidebar.open { margin-left: 0; }
+        
+        .sidebar-header {
+            padding: 12px 6px; font-weight: bold; border-bottom: 1px solid var(--border);
+            display: flex; justify-content: space-between; align-items: center; color: var(--primary);
+            font-size: 1.1rem;
+        }
+        
+        .sidebar-content { overflow-y: auto; padding: 2px 0; flex: 1; }
+        
+        /* Optimierte, platzsparende, aber höhere Listen-Einträge */
+        .alpha-row {
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 2px;
+            border-bottom: 1px solid #f0f0f0;
+            font-size:.8rem; /* Größer, nutzt Höhe besser aus */
+            white-space: nowrap;
+line-height: 1.0;
+        }
+        .alpha-row b { color: var(--primary); width: 28px; display: inline-block; flex-shrink: 0; }
+        .alpha-row span { font-size: 0.8rem; color: #444; }
+
+        /* --- Main Content --- */
+        .main { 
+            flex-grow: 1; display: flex; flex-direction: column; 
+            overflow-y: auto; scroll-behavior: smooth;
+            transition: width 0.3s ease;
+        }
+        
+        header { 
+            padding: 10px 15px; background: var(--surface); 
+            display: flex; align-items: center; border-bottom: 1px solid var(--border);
+            position: sticky; top: 0; z-index: 5;
+        }
+
+        .menu-btn { font-size: 1.4rem; margin-right: 15px; background:none; border:none; cursor:pointer; color: var(--primary); }
+
+        .container { padding: 15px; max-width: 700px; margin: 0 auto; width: 100%; }
+        
+        .card { 
+            background: var(--surface); padding: 15px; border-radius: 12px; 
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05); margin-bottom: 15px;
+        }
+
+        .controls-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+        .control-group { display: flex; flex-direction: column; gap: 5px; }
+        .control-group label { font-size: 0.85rem; font-weight: 600; color: #555; }
+
+        input, textarea, select, button.btn {
+            width: 100%; padding: 10px; border: 1px solid var(--border);
+            border-radius: 8px; font-size: 1rem; outline: none; background: #fff;
+        }
+        select:focus, input:focus, textarea:focus { border-color: var(--primary); }
+
+        button.primary { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; padding: 12px; border-radius: 8px; }
+        button.primary:hover { background: #004494; }
+
+        .play-word { font-size: 1.8rem; font-weight: bold; text-align: center; color: var(--primary); margin: 15px 0; }
+        
+        .output-box {
+            background: #e9ecef; min-height: 60px; padding: 12px;
+            border-radius: 8px; font-size: 1.3rem; font-weight: bold; color: var(--primary);
+            white-space: pre-wrap; border: 1px dashed #adb5bd;
+        }
+
+        .feedback { text-align: center; margin-top: 10px; font-weight: bold; min-height: 20px;}
+
+        /* --- Keyboard --- */
+        .keyboard { 
+            display: none; flex-direction: column; gap: 5px; 
+            background: #d1d5db; padding: 8px; border-radius: 12px;
+            user-select: none;
+        }
+        .keyboard.active { display: flex; }
+        .kb-row { display: flex; justify-content: center; gap: 4px; }
+        
+        .key { 
+            background: white; border: none; padding: 14px 2px; flex: 1;
+            border-radius: 6px; font-size: 1.15rem; cursor: pointer;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+            touch-action: manipulation; /* Verbessert Touch-Reaktion */
+            transition: background 0.1s;
+        }
+        
+        .key.special { background: #94a3b8; color: white; font-size: 0.95rem; font-weight: bold; }
+        .key.primary-key { background: var(--primary); color: white; font-weight: bold; }
+        
+        /* Visuelles Feedback beim Drücken und "Long-Press" */
+        .key.active-key { background: #e2e8f0; transform: translateY(1px); }
+        .key.special.active-key { background: #64748b; }
+        .key.primary-key.active-key { background: #004494; }
+        .key.long-active-key { background: #3b82f6; color: white; transform: translateY(2px); }
+
+        @media (max-width: 500px) {
+            :root { --sidebar-width: 120px; }
+            .alpha-row { font-size: 0.95rem; padding: 7px 8px; }
+            .alpha-row b { width: 42px; }
+            .key { padding: 12px 1px; font-size: 1.05rem; }
+            .key.special { font-size: 0.85rem; }
+        }
+    </style>
+</head>
+<body>
+
+<aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        Alphabet 
+        <button onclick="toggleMenu()" style="border:none; background:none; cursor:pointer; font-size: 1.4rem; color:var(--primary);">&times;</button>
+    </div>
+    <div class="sidebar-content" id="alphaList"></div>
+</aside>
+
+<div class="main" id="mainScroll">
+    <header>
+        <button class="menu-btn" onclick="toggleMenu()">☰</button>
+        <h2 style="margin:0; font-size: 1.1rem; color: #333;">Griechisch Trainer</h2>
+    </header>
+
+    <div class="container">
+        <div class="card controls-grid">
+            <div class="control-group">
+                <label>Modus:</label>
+                <select id="mode">
+                    <option value="free">Freitext</option>
+                    <option value="play">Spielmodus</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label>Richtung:</label>
+                <select id="dir">
+                    <option value="de-gr">Deutsch -> Griechisch</option>
+                    <option value="gr-de">Griechisch -> Deutsch</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label>Casing:</label>
+                <select id="case">
+                    <option value="normal">Normal</option>
+                    <option value="lower">Nur Klein</option>
+                    <option value="upper">Nur Groß</option>
+                </select>
+            </div>
+            <div class="control-group" id="toleranceGroup" style="display:none;">
+                <label>Spiel-Toleranz:</label>
+                <select id="tolerance">
+                    <option value="strict">Exakt (Laute)</option>
+                    <option value="lenient">Tolerant (Buchstaben)</option>
+                </select>
+            </div>
+        </div>
+
+        <div id="freeSection" class="card">
+            <label style="font-size: 0.85rem; font-weight: bold; color: #555;">Eingabe:</label>
+            <textarea id="freeIn" placeholder="Tippe hier..." rows="3"></textarea>
+            <label style="font-size: 0.85rem; font-weight: bold; color: #555; display:block; margin-top:10px;">Übersetzung:</label>
+            <div class="output-box" id="freeOut"></div>
+        </div>
+
+        <div id="playSection" class="card" style="display:none;">
+            <div style="text-align: center; font-size: 0.9rem; color: #666;">Übersetze folgendes Wort:</div>
+            <div class="play-word" id="targetWord">WORT</div>
+            <input type="text" id="playIn" placeholder="Deine Übersetzung...">
+            <div style="display: flex; gap: 10px; margin-top: 15px;">
+                <button class="primary" onclick="checkAnswer()" style="flex: 2;">Prüfen</button>
+                <button class="btn" onclick="nextWord()" style="flex: 1;">Neu</button>
+            </div>
+            <div id="feedback" class="feedback"></div>
+        </div>
+
+        <div class="keyboard" id="kb">
+            <div class="kb-row" id="r1"></div>
+            <div class="kb-row" id="r2"></div>
+            <div class="kb-row" id="r3"></div>
+            <div class="kb-row" id="r4"></div>
+        </div>
+        
+        <div style="height: 60px;"></div>
+    </div>
+</div>
+
+<script>
+    // --- Data ---
+    const alphabet = [
+        {u:'Α', l:'α', n:'Alpha'}, {u:'Β', l:'β', n:'Beta'}, {u:'Γ', l:'γ', n:'Gamma'},
+        {u:'Δ', l:'δ', n:'Delta'}, {u:'Ε', l:'ε', n:'Epsilon'}, {u:'Ζ', l:'ζ', n:'Zeta'},
+        {u:'Η', l:'η', n:'Eta'}, {u:'Θ', l:'θ', n:'Theta'}, {u:'Ι', l:'ι', n:'Iota'},
+        {u:'Κ', l:'κ', n:'Kappa'}, {u:'Λ', l:'λ', n:'Lambda'}, {u:'Μ', l:'μ', n:'My'},
+        {u:'Ν', l:'ν', n:'Ny'}, {u:'Ξ', l:'ξ', n:'Xi'}, {u:'Ο', l:'ο', n:'Omikron'},
+        {u:'Π', l:'π', n:'Pi'}, {u:'Ρ', l:'ρ', n:'Rho'}, {u:'Σ', l:'σ, ς', n:'Sigma'},
+        {u:'Τ', l:'τ', n:'Tau'}, {u:'Υ', l:'υ', n:'Ypsilon'}, {u:'Φ', l:'φ', n:'Phi'},
+        {u:'Χ', l:'χ', n:'Chi'}, {u:'Ψ', l:'ψ', n:'Psi'}, {u:'Ω', l:'ω', n:'Omega'}
+    ];
+
+    const words = [
+        "Pythagoras", "Thales", "Kathete", "Hypotenuse", "Geometrie", "Mathematik", "Arithmetik", 
+        "Symmetrie", "Parabel", "Hyperbel", "Prisma", "Zylinder", "Polygon", "Physik", "Biologie",
+        "Geographie", "Astronomie", "Logik", "Analyse", "Synthese", "Hypothese", "Atom", "Elektron",
+        "Bibliothek", "Stadion", "Theater", "Museum", "Demokratie", "Politik", "Philosophie", 
+        "Kosmos", "Chaos", "Chronos", "Epoche", "Mythologie", "Olymp", "Akropolis", "Sparta", "Athen",
+        "Europa", "Dialog", "Monolog", "Rhetorik", "Alphabet", "Feta", "Gyros", "Ouzo", "Tzatziki", 
+        "Pita", "Taverne", "Olive", "Kreta", "Mykonos", "Rhodos", "Aroma", "Basis", "Charisma", "Dosis", 
+        "Echo", "Hymne", "Klima", "Koma", "Melodie", "Metrum", "Optik", "Orchester", "Pause", "Phase", 
+        "Schema", "System", "Technik", "Thema", "Trauma", "Zentrum"
+    ];
+
+    // Layout (Zeile 3 wurde gemäss Wunsch mit SHIFT und BS an den Rändern ausgestattet)
+    const layouts = {
+        low: [["ς","ε","ρ","τ","υ","θ","ι","ο","π"], ["α","σ","δ","φ","γ","η","ξ","κ","λ"], ["SHIFT","ζ","χ","ψ","ω","β","ν","μ","BS"]],
+        up:  [["Σ","Ε","Ρ","Τ","Υ","Θ","Ι","Ο","Π"], ["Α","Σ","Δ","Φ","Γ","Η","Ξ","Κ","Λ"], ["SHIFT","Ζ","Χ","Ψ","Ω","Β","Ν","Μ","BS"]]
+    };
+
+    let shift = false, curWordDe = "", focused = null;
+
+    // --- Core UI & Logic ---
+    const aList = document.getElementById('alphaList');
+    alphabet.forEach(a => {
+        aList.innerHTML += `<div class="alpha-row"><b>${a.u} ${a.l}</b> <span>${a.n}</span></div>`;
+    });
+
+    function toggleMenu() { 
+        document.getElementById('sidebar').classList.toggle('open'); 
+        scrollToBottom();
+    }
+
+    function scrollToBottom() {
+        setTimeout(() => {
+            const main = document.getElementById('mainScroll');
+            main.scrollTop = main.scrollHeight;
+        }, 150);
+    }
+
+    function applyCase(text, casing) {
+        if(casing === 'lower') return text.toLowerCase();
+        if(casing === 'upper') return text.toUpperCase();
+        return text;
+    }
+
+    function toGr(text) {
+        let r = text.toLowerCase();
+        const phMap = {
+            'sch': 'σχ', 'sh': 'σ', 'th': 'θ', 'ph': 'φ', 'ch': 'χ', 'ps': 'ψ', 'ks': 'ξ',
+            'oh': 'ω', 'oo': 'ω', 'eh': 'η', 'ee': 'η', 'äh': 'η', 'ä': 'η', 
+            'ö': 'οι', 'ü': 'υ', 'y': 'υ', 'eu': 'ευ', 'au': 'αυ', 'ei': 'ει'
+        };
+        for (const [de, gr] of Object.entries(phMap)) r = r.split(de).join(gr);
+
+        const singleMap = {
+            'a':'α', 'b':'β', 'c':'κ', 'd':'δ', 'e':'ε', 'f':'φ', 'g':'γ', 'h':'χ',
+            'i':'ι', 'j':'ι', 'k':'κ', 'l':'λ', 'm':'μ', 'n':'ν', 'o':'ο', 'p':'π',
+            'q':'κ', 'r':'ρ', 's':'σ', 't':'τ', 'u':'υ', 'v':'β', 'w':'ω', 'x':'ξ', 'z':'ζ'
+        };
+
+        let finalRes = "";
+        for (let i = 0; i < r.length; i++) {
+            let char = r[i];
+            let mapped = singleMap[char] || char;
+            if (mapped === 'σ') {
+                let nextChar = r[i+1];
+                if (!nextChar || /[\s.,!?\n]/.test(nextChar)) mapped = 'ς';
+            }
+            finalRes += mapped;
+        }
+
+        let casedRes = "";
+        for (let i = 0; i < finalRes.length; i++) {
+            if (i < text.length && text[i] && text[i] === text[i].toUpperCase() && text[i].match(/[A-ZÄÖÜ]/)) {
+                casedRes += (finalRes[i] === 'ς' ? 'Σ' : finalRes[i].toUpperCase());
+            } else {
+                casedRes += finalRes[i];
+            }
+        }
+        return applyCase(casedRes || finalRes, document.getElementById('case').value);
+    }
+
+    function toDe(text) {
+    const map = {
+        'α':'a', 'β':'b', 'γ':'g', 'δ':'d', 'ε':'e', 'ζ':'z', 'η':'e', 'θ':'th',
+        'ι':'i', 'κ':'k', 'λ':'l', 'μ':'m', 'ν':'n', 'ξ':'x', 'ο':'o', 'π':'p',
+        'ρ':'r', 'σ':'s', 'ς':'s', 'τ':'t', 'υ':'u', 'φ':'ph', 'χ':'ch', 'ψ':'ps', 'ω':'o'
+    };
+    
+    // Wir arbeiten nicht mehr mit .toLowerCase() auf dem gesamten String, 
+    // sondern prüfen jedes Zeichen einzeln.
+    let result = "";
+    for (let i = 0; i < text.length; i++) {
+        let char = text[i];
+        let lowerChar = char.toLowerCase();
+        let mapped = map[lowerChar] || char;
+
+        // Wenn das Originalzeichen ein Großbuchstabe war, 
+        // wandle das Ergebnis der Map ebenfalls in Großbuchstaben um.
+        if (char === char.toUpperCase() && char !== char.toLowerCase()) {
+            mapped = mapped.toUpperCase();
+        }
+        result += mapped;
+    }
+
+    return applyCase(result, document.getElementById('case').value);
+}
+
+
+    // --- Keyboard Engine (inkl. Long Press) ---
+    function createKeyBtn(text, type, defaultVal) {
+        const btn = document.createElement('button');
+        btn.className = 'key';
+        btn.innerText = text;
+
+        if (type === 'shift' || type === 'bs' || type === 'hilfe') btn.classList.add('special');
+        if (type === 'enter') btn.classList.add('primary-key');
+
+        let longPressTimer;
+        let isLongFired = false;
+
+        const start = (e) => {
+            e.preventDefault(); 
+            isLongFired = false;
+            btn.classList.add('active-key');
+            
+            // Long Press Logik greift nur bei Buchstaben und Backspace
+            if (type === 'char' || type === 'bs') {
+                longPressTimer = setTimeout(() => {
+                    isLongFired = true;
+                    btn.classList.remove('active-key');
+                    btn.classList.add('long-active-key'); 
+                    
+                    if (type === 'char') typeKey(defaultVal.toUpperCase(), true); // true = erzwinge Groß
+                    if (type === 'bs') deleteWord();
+                }, 400); // Nach 0.4s auslösen
+            }
+        };
+
+        const end = (e) => {
+            e.preventDefault();
+            clearTimeout(longPressTimer);
+            btn.classList.remove('active-key', 'long-active-key');
+            
+            if (!isLongFired) {
+                // Short Press Logik
+                if (type === 'char') typeKey(defaultVal);
+                if (type === 'bs') typeBS();
+                if (type === 'space') typeKey(' ');
+                if (type === 'shift') { toggleShift(); }
+                if (type === 'hilfe') { toggleMenu(); }
+                if (type === 'enter') { handleEnter(); }
+            }
+        };
+
+        const cancel = () => {
+            clearTimeout(longPressTimer);
+            btn.classList.remove('active-key', 'long-active-key');
+        };
+
+        // Unified Events für Touch und Maus
+        btn.addEventListener('touchstart', start, {passive: false});
+        btn.addEventListener('touchend', end, {passive: false});
+        btn.addEventListener('touchcancel', cancel);
+        btn.addEventListener('mousedown', (e) => { if(e.button === 0) start(e); });
+        btn.addEventListener('mouseup', end);
+        btn.addEventListener('mouseleave', cancel);
+
+        return btn;
+    }
+
+    function renderKb() {
+        const l = shift ? layouts.up : layouts.low;
+        
+        // Zeilen 1-3
+        [1,2,3].forEach(i => {
+            const row = document.getElementById('r'+i);
+            row.innerHTML = '';
+            l[i-1].forEach(k => {
+                if (k === 'SHIFT') row.appendChild(createKeyBtn(shift ? '⇩' : '⇧', 'shift'));
+                else if (k === 'BS') row.appendChild(createKeyBtn('⌫', 'bs'));
+                else row.appendChild(createKeyBtn(k, 'char', k));
+            });
+        });
+
+        // Zeile 4 (Hilfe, Leer, Enter)
+        const r4 = document.getElementById('r4');
+        r4.innerHTML = '';
+        r4.appendChild(createKeyBtn('? Hilfe', 'hilfe'));
+        let spaceBtn = createKeyBtn('Leertaste', 'space');
+        spaceBtn.style.flex = "2.5";
+        r4.appendChild(spaceBtn);
+        r4.appendChild(createKeyBtn('✓ OK', 'enter'));
+    }
+
+    // --- Typing Actions ---
+    function typeKey(k, bypassCase = false) {
+        if(!focused) return;
+        
+        if (!bypassCase) {
+            const cSetting = document.getElementById('case').value;
+            if(cSetting === 'lower') k = k.toLowerCase();
+            if(cSetting === 'upper') k = k.toUpperCase();
+        }
+
+        const s = focused.selectionStart;
+        focused.value = focused.value.slice(0,s) + k + focused.value.slice(focused.selectionEnd);
+        focused.selectionStart = focused.selectionEnd = s + k.length;
+        
+        if(shift) toggleShift();
+        if(focused.id === 'freeIn') updateFree();
+        focused.focus();
+    }
+
+    function typeBS() {
+        if(!focused) return;
+        const s = focused.selectionStart;
+        if(s > 0) {
+            focused.value = focused.value.slice(0,s-1) + focused.value.slice(focused.selectionEnd);
+            focused.selectionStart = focused.selectionEnd = s-1;
+        }
+        if(focused.id === 'freeIn') updateFree();
+        focused.focus();
+    }
+
+    function deleteWord() {
+        if(!focused) return;
+        const s = focused.selectionStart;
+        if(s === 0) return;
+        
+        let before = focused.value.substring(0, s);
+        let after = focused.value.substring(focused.selectionEnd);
+        
+        // Löscht das letzte Wort und eventuelle Leerzeichen davor
+        before = before.replace(/\S*\s*$/, '');
+        
+        focused.value = before + after;
+        focused.selectionStart = focused.selectionEnd = before.length;
+        
+        if(focused.id === 'freeIn') updateFree();
+        focused.focus();
+    }
+
+    function handleEnter() {
+        if(document.getElementById('mode').value === 'play') {
+            checkAnswer();
+        } else {
+            typeKey('\n');
+        }
+    }
+
+    function toggleShift() { shift = !shift; renderKb(); }
+
+    // --- App Flow ---
+    function updateFree() {
+        const val = document.getElementById('freeIn').value;
+        const dir = document.getElementById('dir').value;
+        document.getElementById('freeOut').innerText = dir === 'de-gr' ? toGr(val) : toDe(val);
+    }
+
+    function nextWord() {
+        curWordDe = words[Math.floor(Math.random()*words.length)];
+        const dir = document.getElementById('dir').value;
+        const casedWord = applyCase(curWordDe, document.getElementById('case').value);
+        
+        document.getElementById('targetWord').innerText = dir === 'de-gr' ? casedWord : toGr(casedWord);
+        document.getElementById('playIn').value = "";
+        document.getElementById('feedback').innerText = "";
+    }
+
+    function checkAnswer() {
+        const dir = document.getElementById('dir').value;
+        const ans = document.getElementById('playIn').value.trim().toLowerCase();
+        const tol = document.getElementById('tolerance').value;
+        
+        let correct = dir === 'de-gr' ? toGr(curWordDe).toLowerCase() : curWordDe.toLowerCase();
+        let isRight = false;
+
+        if(tol === 'lenient' && dir === 'de-gr') {
+            const normalize = s => s.replace(/η/g,'ε').replace(/ω/g,'ο').replace(/ς/g,'σ').replace(/θ/g,'τ');
+            isRight = normalize(ans) === normalize(correct);
+        } else {
+            isRight = ans === correct;
+        }
+
+        const f = document.getElementById('feedback');
+        if(isRight) { 
+            f.innerText = "Richtig! 🎉"; f.style.color = "green"; 
+            setTimeout(nextWord, 1200); 
+        } else { 
+            f.innerText = "Falsch! Lösung: " + applyCase(correct, document.getElementById('case').value); 
+            f.style.color = "red"; 
+        }
+    }
+
+    function updateVis() {
+        const mode = document.getElementById('mode').value;
+        const dir = document.getElementById('dir').value;
+        
+        document.getElementById('freeSection').style.display = mode === 'free' ? 'block' : 'none';
+        document.getElementById('playSection').style.display = mode === 'play' ? 'block' : 'none';
+        document.getElementById('toleranceGroup').style.display = mode === 'play' ? 'flex' : 'none';
+
+        const needsGr = (mode === 'free' && dir === 'gr-de') || (mode === 'play' && dir === 'de-gr');
+        document.getElementById('kb').classList.toggle('active', needsGr);
+        
+        document.getElementById('freeIn').setAttribute('inputmode', needsGr ? 'none' : 'text');
+        document.getElementById('playIn').setAttribute('inputmode', needsGr ? 'none' : 'text');
+
+        if(mode === 'free') updateFree();
+        else if(!curWordDe) nextWord();
+    }
+
+    // --- Init & Listeners ---
+    document.getElementById('mode').onchange = updateVis;
+    document.getElementById('dir').onchange = () => { updateVis(); if(document.getElementById('mode').value==='play') nextWord(); };
+    document.getElementById('case').onchange = () => { updateVis(); if(document.getElementById('mode').value==='play') nextWord(); };
+    
+    document.getElementById('freeIn').oninput = updateFree;
+    document.getElementById('freeIn').onfocus = () => { focused = document.getElementById('freeIn'); scrollToBottom(); };
+    document.getElementById('playIn').onfocus = () => { focused = document.getElementById('playIn'); scrollToBottom(); };
+    document.getElementById('playIn').onkeypress = (e) => { if(e.key === 'Enter') checkAnswer(); };
+
+    renderKb();
+    updateVis();
+</script>
+</body>
+</html>
