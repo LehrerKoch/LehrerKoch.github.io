@@ -1,0 +1,1290 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script>
+    window.MathJax = { tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] } };
+  </script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-5K8WYYXDL2');
+  </script>
+  
+    <script src="last-update.js" defer></script>
+  <title>Buchstaben-Trainer</title>
+  <link rel="stylesheet" type="text/css" href="styles.css">
+  <link rel="stylesheet" type="text/css" href="scale.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&family=EB+Garamond:ital,wght@1,400&family=Noto+Sans+Hebrew:wght@400;700&family=Noto+Rashi+Hebrew&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playpen+Sans+Hebrew:wght@100..800&display=swap" rel="stylesheet">
+  <style>
+
+/* Griechische lokale Font */
+@font-face {
+    font-family: 'AC-HighSchool';
+    src: url('AC-HighSchool.ttf') format('truetype'),
+         url('AC-HighSchool.otf') format('opentype');
+}
+
+    .site-footer {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 12px 40px;
+    border-top: 1px solid #ccc;
+    margin-top: 20px;
+    margin-bottom: 10px;
+    font-family: sans-serif;
+    font-size: 0.6em;
+    color: #333333d8;
+}
+.site-footer a { color: inherit; }
+
+.footer-content {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1.5rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    flex-wrap: wrap;
+    text-align: center;
+}
+
+@media (max-width: 600px) {
+    .footer-content {
+        flex-direction: column;
+        gap: 6px;
+    }
+}
+
+/* ─── NO-RESULTS ─────────────────────────────────────────── */
+#no-results {
+    display: none;
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--muted);
+    font-size: 0.95rem;
+}
+
+    #toast {
+      position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+      background: #333; color: #fff; padding: 12px 24px; border-radius: 10px;
+      font-size: 0.95em; opacity: 0; pointer-events: none;
+      transition: opacity 0.4s; z-index: 999; white-space: nowrap;
+    }
+    #toast.show { opacity: 1; }
+    body { 
+      font-family: sans-serif; 
+      -webkit-user-select: none;
+      user-select: none;
+      overflow-x: clip; /* clip statt hidden – sonst bricht position:sticky */
+      max-width: 1200px; margin: 0 auto; 
+    }
+    #flashOverlay {
+      position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      opacity: 0; transition: opacity 1s;
+    }
+    *:focus { outline: none; }
+    #showSolutionBtn:focus { outline: 2px solid black; }
+
+    h1 { margin-bottom: 10px; }
+    
+    #letterSettings { padding: 16px; overflow-x: auto; }
+    table.letter-table { width: auto; border-collapse: collapse; font-size: 0.85em; white-space: nowrap; }
+    table.letter-table td, table.letter-table th { border: 1px solid #383838; padding: 1px 4px; vertical-align: middle; line-height: 1.1; }
+    .col-active { width: 75px; text-align: center; }
+
+    .th-btn { width: 100%; border: none; background: #444; color: white; cursor: pointer; font-weight: bold; padding: 6px 4px; border-radius: 4px; font-size: 0.9em; transition: background 0.2s; }
+    .th-btn:hover { background: #000; }
+
+    .row-disabled { background-color: #f2f2f2 !important; color: #aaa; }
+    .btn-toggle { cursor: pointer; border: none; border-radius: 4px; padding: 2px 5px; color: white; font-weight: bold; width: 55px; font-size: 0.75em; }
+    .btn-on { background-color: #28a745; }
+    .btn-off { background-color: #dc3545; }
+
+    #taskWrap { position: relative; width: 100%; height: 160px; margin-top: 20px; border: 1px solid #eee; border-radius: 10px; perspective: 1000px; z-index: 1; }
+    #wrongBtn, #correctBtn { position: absolute; top: 0; bottom: 0; width: 100px; border: none; font-size: 0.9em; z-index: 1; cursor: pointer; }
+    #wrongBtn { left: 0; background-color:#f8d7da; color:#721c24; }
+    #correctBtn { right: 0; background-color:#d4edda; color:#155724; }
+
+    #taskCard {
+      position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+      text-align: center; border-radius: 15px; cursor: grab;
+      width: calc(100% - 280px); max-width: 320px; height: 90%;
+      z-index: 2; box-sizing: border-box; 
+      transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+      transform-style: preserve-3d;
+    }
+
+    #taskCard.flipped { transform: translate(-50%, -50%) rotateY(180deg); }
+
+    .card-face {
+      position: absolute; width: 100%; height: 100%;
+      backface-visibility: hidden; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      border: 2px solid #ddd; border-radius: 15px; background: white;
+      transition: background-color 0.2s ease;
+      z-index: 2; box-sizing: border-box;
+    }
+
+    .card-back { transform: rotateY(180deg); background-color: #fcfcfc; }
+
+    .big-char { font-size: 2.8em; font-weight: bold; margin: 0; line-height: 1; }
+    .sub-info { font-size: 0.8em; color: #666; margin-top: 8px; min-height: 1em; }
+
+    #showSolutionBtn { width:100%; margin-top: 15px; padding: 10px; cursor: pointer; border: 2px solid #1f6b24; border-radius: 8px; font-size: 1em; transition: border-color 0.15s, filter 0.15s; }
+    #showSolutionBtn:hover { filter: brightness(0.93); border-color: #0e4511; }
+    #loesung { text-align:center; font-weight: bold; border-top: 1px dashed #ccc; padding-top: 8px; margin-top: 8px; width: 80%; }
+    #loesung .loesung-type { font-size: 0.72em; color: #555; font-weight: normal; display: block; margin-top: 2px; }
+
+    /* Sperr-Zustand Optik */
+    .locked { opacity: 0.4; pointer-events: none; filter: grayscale(0.5); cursor: not-allowed !important; }
+
+    /* Multiple Choice Styles */
+    #choiceContainer { display: grid; grid-template-rows: 1fr 1fr; gap: 10px; margin-top: 10px; }
+    .choice-row { display: flex; gap: 10px; justify-content: center; }
+    .choice-btn { 
+      flex: 1; 
+      padding: 0 5px;   /* Vertikales Padding auf 0, da wir über Flexbox zentrieren */
+      min-height: 60px; /* Etwas mehr Höhe für bessere Klickbarkeit und Zentrierung */
+      display: flex;
+      align-items: center;      /* Vertikale Zentrierung */
+      justify-content: center;   /* Horizontale Zentrierung */
+      font-size: 1.1em; 
+      border: 1px solid #ccc; 
+      border-radius: 8px; 
+      background-color: #ffffff;
+      color: #000000;
+      cursor: pointer; 
+      transition: all 0.2s;
+      overflow: hidden;
+    }
+    /* Wichtig für MathJax und Skalierung innerhalb des Buttons */
+    .choice-btn .scale-wrapper {
+      width: 100%;
+      height: 100%;     /* Nutzt die volle Höhe des Buttons zur Zentrierung */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .choice-btn mjx-container {
+      color: #000000 !important;
+    }
+    .choice-btn:hover { background: #f0f0f0; }
+    .choice-btn.wrong { background-color: #ffcccc; border-color: #ff0000; color: #a00; }
+    .choice-btn.correct { background-color: #ccffcc; border-color: #00aa00; }
+    .choice-btn.revealed { background-color: #fff3cd; border-color: #e0a800; color: #7a5800; border-width: 2px; border-style: dashed; }
+    .choice-btn.no-click { pointer-events: none; }
+
+    .radio-group { display: inline-flex; border-radius: 6px; overflow: hidden; border: 2px solid #6a9cc5; margin: 6px 0 12px 0; }
+    .radio-group label { display: flex; align-items: center; padding: 5px 11px; font-weight: normal; font-size: 0.85em; cursor: pointer; background: #fff; border-right: 1px solid #6a9cc5; transition: background 0.15s; line-height: 1.3; user-select: none; }
+    .radio-group label:last-child { border-right: none; }
+    .radio-group label:hover { background: #edf1f7; }
+    .radio-group input[type="radio"] { display: none; }
+    .radio-group label:has(input:checked) { background: #6a9cc5; color: #fff; }
+
+    /* .slider-wrap { width: 100%; padding: 10px 0; } */
+    /* .slider-wrap input { width: 100%; cursor: pointer; } */
+    
+    /* Slider + Labels zusammen */
+    .slider-wrap {
+      display: inline-block;
+      width: 100%;
+      max-width: 300px;
+    }
+    .slider-wrap input[type="range"] {
+      width: 100%;
+      display: block;
+    }
+    .slider-tick-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.78em;
+      color: #666;
+      margin-top: 1px;
+      padding: 0 6px 0 8px;
+    }
+
+     
+    /* Den Standard-Pfeil dezenter machen oder verstecken */
+#helpSummary::-webkit-details-marker { display: none; }
+
+#helpDetails { transition: all 0.3s ease; background: #fff; }
+#helpDetails[open] { border-color: #ddd; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+
+/* helpSummary: Pin links absolut, Text bleibt zentriert */
+#helpSummary {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  user-select: none;
+}
+#helpSummary:hover { color: #333; background: #f5f5f5; }
+
+/* Wieso klappt das nicht? */
+#helpDetails[open] > #taskCard { 
+  cursor: not-allowed !important;
+} 
+
+#pinChoicesBtn {
+  position: absolute; right: 10px;
+  background: none; border: none; cursor: pointer;
+  font-size: 1em; padding: 0; opacity: 0.25;
+  transition: opacity 0.2s; line-height: 1;
+  /* transform: scaleX(-1); horizontal gespiegelt */
+}
+#pinChoicesBtn:hover { opacity: 0.6; }
+#pinChoicesBtn.active { opacity: 1; }
+
+#settingsDetails {
+  border-radius: 8px;
+  overflow: visible;
+}
+
+/* ─── Settings-Leiste: nur die Summary-Zeile klebt oben ─── */
+#settingsDetails > summary {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+}
+
+/* Settings – ganzer Bereich wenn offen: sehr helles Blau/Grau */
+#settingsDetails[open] {
+  background-color: #edf1f7;
+}
+
+#settingssummary {
+  margin: 0;                  /* überschreibt styles.css summary{margin:5px} → Farbe geht bis zum Rand */
+  padding: 7px 10px;
+  background-color: #ccd8ea;  /* Blau/Grau */
+  border-radius: 8px 8px 0 0;
+  transition: background-color 0.2s, box-shadow 0.2s;
+}
+
+/* Summary wenn geschlossen: voller Radius, da details-Box geschlossen */
+details:not([open]) > #settingssummary {
+  border-radius: 8px;
+}
+
+details[open] > #settingssummary {
+  background-color: #b9c8df;  /* offen: etwas satter */
+  border-bottom: 2px solid #8fa8c4;
+  padding-bottom: 9px;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.13);
+  border-radius: 8px 8px 0 0;
+}
+
+summary::before {
+    margin-right: 1ch;
+    display: inline-block;
+    content: '▶️';
+    transition: 0.2s;
+}
+
+summary::after{
+    content: '';
+    padding: 0;
+}
+
+details[open] > summary::before {
+    transform: rotate(90deg);
+}
+#settingsDetails > summary .settings-spacer { flex: 1; min-width: 0; }
+#settingsDetails > summary label.lang-label {
+  font-size: 0.9em; font-weight: normal; white-space: nowrap; cursor: default;
+  padding-right: 4px;
+}
+
+/* Share-Icon: minimales Icon direkt nach "Settings" */
+#shareBtn {
+  background: none; border: none; padding: 0 4px; cursor: pointer;
+  color: #888888; display: inline-flex; align-items: center;
+  vertical-align: middle; line-height: 1; flex-shrink: 0;
+  transition: color 0.15s; margin-left: 2px;
+}
+#shareBtn:hover { color: #333; }
+
+/* ─── Hebräisch Normalschrift: Noto Sans Hebrew (deckt auch Nikud-Kreise ab) ─── */
+body.lang-hebrew .big-char,
+body.lang-hebrew #loesung,
+body.lang-hebrew .char-display,
+body.lang-hebrew table.letter-table { font-family: 'Noto Sans Hebrew', sans-serif; }
+
+/* ─── Kursivschrift: NUR auf Zeichen (.char-display), nicht auf Namen ─── */
+/* Karte Vorderseite (recognize) und Rückseite (write) */
+body.cursive-mode.lang-hebrew  .big-char.char-display { font-family: 'Noto Rashi Hebrew', serif !important; font-style: normal !important; font-weight: normal !important; }
+/* body.cursive-mode.lang-greek   .big-char.char-display { font-family: 'EB Garamond', serif !important; font-style: italic !important; font-weight: normal !important; } */
+body.cursive-mode.lang-cyrillic .big-char.char-display { font-family: 'Caveat', cursive !important; font-weight: normal !important; }
+/* Loesung auf Rückseite (write mode) */
+body.cursive-mode.lang-hebrew  #loesung.char-display { font-family: 'Noto Rashi Hebrew', serif !important; font-style: normal !important; font-weight: normal !important; }
+/* body.cursive-mode.lang-greek   #loesung.char-display { font-family: 'EB Garamond', serif !important; font-style: italic !important; font-weight: normal !important; } */
+body.cursive-mode.lang-cyrillic #loesung.char-display { font-family: 'Caveat', cursive !important; font-weight: normal !important; }
+/* Antwortbuttons – NUR wenn Zeichen drin sind (write mode → choices-are-chars) */
+body.cursive-mode.lang-hebrew  #choiceContainer.choices-are-chars .choice-btn .scale-el { font-family: 'Noto Rashi Hebrew', serif !important; font-style: normal !important; font-weight: normal !important; }
+/* body.cursive-mode.lang-greek   #choiceContainer.choices-are-chars .choice-btn .scale-el { font-family: 'EB Garamond', serif !important; font-style: italic !important; font-weight: normal !important; } */
+body.cursive-mode.lang-cyrillic #choiceContainer.choices-are-chars .choice-btn .scale-el { font-family: 'Caveat', cursive !important; font-weight: normal !important; }
+/* Buchstaben-Tabelle in Kursivmodus: gleiche Schrift wie auf den Karten */
+body.cursive-mode.lang-hebrew  table.letter-table { font-family: 'Noto Rashi Hebrew', serif !important; font-style: normal !important; }
+/* body.cursive-mode.lang-greek   table.letter-table { font-family: 'EB Garamond', serif !important; font-style: italic !important; } */
+html body.cursive-mode.lang-cyrillic table.letter-table td:not(:nth-child(2)) { font-family: 'Caveat', cursive !important; }
+
+/* ─── Hebräisch Normalschrift: Noto Sans Hebrew ─── */
+/* Wir erzwingen die Schrift für alle relevanten Anzeige-Elemente im Hebräisch-Modus */
+body.lang-hebrew .big-char,
+body.lang-hebrew #loesung,
+body.lang-hebrew .char-display,
+body.lang-hebrew .choice-btn .scale-el, /* Multiple Choice Buttons */
+body.cursive-mode.lang-hebrew table.letter-table td:not(:nth-child(2)) { 
+    font-family: 'Noto Sans Hebrew', sans-serif !important; 
+}
+
+/* HEBRÄISCH KURSIV: Playpen Sans Hebrew nutzen */
+html body.cursive-mode.lang-hebrew .big-char.char-display,
+html body.cursive-mode.lang-hebrew #loesung.char-display,
+html body.cursive-mode.lang-hebrew #choiceContainer.choices-are-chars .choice-btn .scale-el,
+html body.cursive-mode.lang-hebrew table.letter-table td:not(:nth-child(2)) { 
+    font-family: "Playpen Sans Hebrew", cursive !important;
+    font-optical-sizing: auto;
+    font-weight: 400 !important; /* Nutzt ein schönes, kräftiges Schriftbild */
+    font-style: normal;
+}
+
+/* GRIECHISCH KURSIV: AC-HighSchool in Fett */
+html body.cursive-mode.lang-greek .big-char.char-display,
+html body.cursive-mode.lang-greek #loesung.char-display,
+html body.cursive-mode.lang-greek #choiceContainer.choices-are-chars .choice-btn .scale-el,
+html body.cursive-mode.lang-greek table.letter-table td:not(:nth-child(2)) { 
+    font-family: 'AC-HighSchool', serif !important; 
+    font-weight: bold !important;
+}
+
+table.letter-table td:nth-child(2) {
+    font-family: sans-serif !important;
+    font-weight: 400 !important;
+    font-style: bold !important;
+}
+table.letter-table th:nth-child(2){
+    font-family: sans-serif !important;
+    font-weight: 700 !important;
+    font-style: bold !important;
+}
+
+#choiceContainer {
+  display: grid;
+  grid-template-rows: 1fr 1fr;
+  gap: 8px;
+  /* Sanftes Einblenden der Buttons */
+  animation: fadeIn 0.4s ease forwards;
+  max-width: 500px; /* Begrenzt die Breite der Button-Sektion */
+  margin: 0 auto;   /* Zentriert den gesamten Block horizontal */
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+  </style>
+</head>
+<body>
+  <div id="flashOverlay"></div>
+  <div id="toast"></div>
+  <div style="position:relative; z-index:1;">
+  <h1>Buchstaben-Trainer</h1>
+
+  <details id="settingsDetails">
+    <summary id ='settingssummary'><summarytext>Settings</summarytext><button id="shareBtn" type="button" onclick="shareSettings(event)" title="Einstellungen als Link kopieren" tabindex="-1"><svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></button><span class="settings-spacer"></span><label class="lang-label" onclick="event.stopPropagation()">Sprache:&nbsp;<select id="languageSelect" style="padding:3px 7px; font-size:1em; border-radius:8px;">
+      <option value="greek">🇬🇷 Griechisch</option>
+      <option value="hebrew">🇮🇱 Hebräisch</option>
+      <option value="cyrillic">🇷🇺 Kyrillisch</option>
+    </select></label></summary>
+    <form id="settingsForm">
+      <div class="form-block" style="margin-top:15px;">
+        <b>Aufgabenarten:</b><br>
+        <div class="radio-group" id="taskModeGroup">
+          <label><input type="radio" name="taskMode" value="recognize" checked oninput="updateURL(); resetAndNewTask();">Buchstaben erkennen</label>
+          <label><input type="radio" name="taskMode" value="random" oninput="updateURL(); resetAndNewTask();">Zufällig</label>
+          <label><input type="radio" name="taskMode" value="write" oninput="updateURL(); resetAndNewTask();">Buchstaben zeichnen</label>
+        </div>
+      </div>
+
+      <div class="form-block" style="margin-top:10px;">
+        <b>Multiple Choice Einstellungen:</b>
+        <div id="degreeBlock" style="margin-top:6px;">
+          <b>Antwortanzahl: <span id="choiceCountDisplay">4</span></b><br>
+          <div class="slider-wrap">
+            <input type="range" id="choiceCountSlider" min="2" max="8" value="4" step="2" oninput="document.getElementById('choiceCountDisplay').textContent=this.value; updateURL(); resetAndNewTask();">
+            <div class="slider-tick-labels" id="choiceTickLabels">
+              <span>2</span><span>4</span><span>6</span><span>8</span>
+            </div>
+          </div>
+        </div>
+        <label style="font-size: 0.9em; cursor: pointer;">
+          <input type="checkbox" id="forceChoices" onchange="onForceChoicesChange();"> Antwortmöglichkeiten dauerhaft einblenden
+        </label>
+      </div>
+
+<div class="form-block" style="display: flex; flex-direction: column; align-items: flex-start;">
+  
+    
+  <b>Schriftstil:</b>
+  <div style="display: flex; flex-direction: column; align-items: center;">
+    <div class="radio-group" id="fontStyleGroup" style="display: flex; justify-content: center; margin-bottom: 0px;">
+      <label style="display: flex; align-items: center; gap: 5px;">
+        <input type="radio" name="fontStyle" value="standard" checked oninput="document.getElementById('cursiveMode').checked=false; onCursiveModeChange();">
+        Druckschrift
+      </label>
+      <label style="display: flex; align-items: center; gap: 5px;">
+        <input type="radio" name="fontStyle" value="cursive" oninput="document.getElementById('cursiveMode').checked=true; onCursiveModeChange();">
+        Kursivschrift
+      </label>
+    </div>
+
+    <div id="letterSettings"></div>
+    
+  </div>
+
+  <input type="checkbox" id="cursiveMode" style="display:none">
+</div>
+
+      <div class="form-block" style="margin-top:10px;">
+        <b>Darstellung:</b><br>
+        <label style="font-size: 0.9em; cursor: pointer;">
+          <input type="checkbox" id="skipAnimations" onchange="updateURL()"> Flip-Animation überspringen
+        </label>
+      </div>
+    </form>
+  </details>
+
+  <p id="taskLabel" style="text-align: center; margin-top: 20px; font-weight: bold;">Initialisiere...</p>
+  <p style="text-align: center; display: flex; align-items: center; justify-content: center; gap: 8px;">
+    <button id="resetScoreBtn" title="Punktzahl & Stapel zurücksetzen" style="background:none;border:1px solid #ccc;border-radius:6px;cursor:pointer;font-size:0.85em;padding:2px 6px;color:#666;line-height:1.4;" onclick="resetAndNewTask()">↺</button>
+    <span id="counter">Richtig: 0 / 0</span>
+    <button id="undoBtn" title="Rückgängig (Strg+Z)" disabled style="background:none;border:1px solid #ccc;border-radius:6px;font-size:0.9em;padding:2px 6px;color:#999;cursor:default;opacity:0.35;transition:opacity 0.2s,color 0.2s,border-color 0.2s;">↶</button>
+  </p>
+
+  <div id="taskWrap">
+    <button id="wrongBtn">Noch unsicher</button>
+    <div id="taskCard">
+        <div class="card-face" id="faceFront">
+            <div class="scale-wrapper"><div id="taskText" class="big-char scale-el"></div></div>
+            <div id="taskSub" class="sub-info"></div>
+        </div>
+        <div class="card-face card-back" id="faceBack">
+            <div class="scale-wrapper"><div id="taskTextBack" class="big-char scale-el" style="font-size: 1.2em; opacity: 0.3;"></div></div>
+            <div class="scale-wrapper"><div id="loesung" class="scale-el"></div></div>
+        </div>
+    </div>
+    <button id="correctBtn">Kann ich sicher</button>
+  </div>
+
+  <details id="helpDetails" style="margin-top: 25px; border: 1px solid #eee; border-radius: 8px;">
+  <summary id="helpSummary" style="cursor: pointer; padding: 8px 12px; color: #666; font-size: 0.9em; background: #fafafa; border-radius: 8px; list-style: none;">
+    <button id="pinChoicesBtn" onclick="pinChoices(event)" title="Antwortmöglichkeiten dauerhaft einblenden">📌</button>
+    <span style="border-bottom: 1px dashed #ccc;">Hilfestellung: Antwortmöglichkeiten</span>
+  </summary>
+  <div id="choiceContainer" style="padding: 15px 10px 10px 10px;"></div>
+</details>
+
+  <button id="showSolutionBtn" class="btn">Lösung anzeigen</button>
+
+  </div>
+
+<script>
+const alphabets = {
+  greek: [{base:'Alpha', lower:'$\\alpha$', upper:'$A$', variants:[]},{base:'Beta', lower:'$\\beta$', upper:'$B$', variants:[]},{base:'Gamma', lower:'$\\gamma$', upper:'$\\Gamma$', variants:[]},{base:'Delta', lower:'$\\delta$', upper:'$\\Delta$', variants:[]},{base:'Epsilon', lower:'$\\epsilon$', upper:'$E$', variants:['$\\varepsilon$']},{base:'Zeta', lower:'$\\zeta$', upper:'$Z$', variants:[]},{base:'Eta', lower:'$\\eta$', upper:'$H$', variants:[]},{base:'Theta', lower:'$\\theta$', upper:'$\\Theta$', variants:['$\\vartheta$']},{base:'Iota', lower:'$\\iota$', upper:'$I$', variants:[]},{base:'Kappa', lower:'$\\kappa$', upper:'$K$', variants:['$\\varkappa$']},{base:'Lambda', lower:'$\\lambda$', upper:'$\\Lambda$', variants:[]},{base:'Mu', lower:'$\\mu$', upper:'$M$', variants:[]},{base:'Nu', lower:'$\\nu$', upper:'$N$', variants:[]},{base:'Xi', lower:'$\\xi$', upper:'$\\Xi$', variants:[]},{base:'Omicron', lower:'$o$', upper:'$O$', variants:[]},{base:'Pi', lower:'$\\pi$', upper:'$\\Pi$', variants:['$\\varpi$']},{base:'Rho', lower:'$\\rho$', upper:'$P$', variants:['$\\varrho$']},{base:'Sigma', lower:'$\\sigma$', upper:'$\\Sigma$','variants':['$\\varsigma$']},{base:'Tau', lower:'$\\tau$', upper:'$T$', variants:[]},{base:'Upsilon', lower:'$\\upsilon$', upper:'$\\Upsilon$', variants:[]},{base:'Phi', lower:'$\\phi$', upper:'$\\Phi$', variants:['$\\varphi$']},{base:'Chi', lower:'$\\chi$', upper:'$X$', variants:[]},{base:'Psi', lower:'$\\psi$', upper:'$\\Psi$', variants:[]},{base:'Omega', lower:'$\\omega$', upper:'$\\Omega$', variants:[]}],
+  hebrew: [
+    {base:'Aleph', lower:'א', upper:'', variants:[]},
+    {base:'Beth', lower:'ב', upper:'', variants:['בּ']},
+    {base:'Gimel', lower:'ג', upper:'', variants:[]},
+    {base:'Daleth', lower:'ד', upper:'', variants:[]},
+    {base:'He', lower:'ה', upper:'', variants:[]},
+    {base:'Vav', lower:'ו', upper:'', variants:[]},
+    {base:'Zayin', lower:'ז', upper:'', variants:[]},
+    {base:'Het', lower:'ח', upper:'', variants:[]},
+    {base:'Tet', lower:'ט', upper:'', variants:[]},
+    {base:'Yod', lower:'י', upper:'', variants:[]},
+    {base:'Kaf', lower:'כ', upper:'', variants:['ך']},
+    {base:'Lamed', lower:'ל', upper:'', variants:[]},
+    {base:'Mem', lower:'מ', upper:'', variants:['ם']},
+    {base:'Nun', lower:'נ', upper:'', variants:['ן']},
+    {base:'Samekh', lower:'ס', upper:'', variants:[]},
+    {base:'Ayin', lower:'ע', upper:'', variants:[]},
+    {base:'Pe', lower:'פ', upper:'', variants:['ף']},
+    {base:'Tsade', lower:'צ', upper:'', variants:['ץ']},
+    {base:'Qof', lower:'ק', upper:'', variants:[]},
+    {base:'Resh', lower:'ר', upper:'', variants:[]},
+    {base:'Shin', lower:'ש', upper:'', variants:['שׁ','שׂ']},
+    {base:'Tav', lower:'ת', upper:'', variants:[]},
+    {base:'Patach', lower:'', upper:'', variants:[], nikud:['◌ַ']},
+    {base:'Kamatz', lower:'', upper:'', variants:[], nikud:['◌ָ','◌ׇ']},
+    {base:'Segol', lower:'', upper:'', variants:[], nikud:['◌ֶ']},
+    {base:'Tsere', lower:'', upper:'', variants:[], nikud:['◌ֵ','◌ֵי']},
+    {base:'Hiriq', lower:'', upper:'', variants:[], nikud:['◌ִ','◌ִי']},
+    {base:'Holam', lower:'', upper:'', variants:[], nikud:['◌ֹ','וֹ']},
+    {base:'Qubuts', lower:'', upper:'', variants:[], nikud:['◌ֻ']},
+    {base:'Shuruk', lower:'', upper:'', variants:[], nikud:['וּ']},
+    {base:'Shva', lower:'', upper:'', variants:[], nikud:['◌ְ']},
+    {base:'Chataf Patach', lower:'', upper:'', variants:[], nikud:['◌ֲ']},
+    {base:'Chataf Segol', lower:'', upper:'', variants:[], nikud:['◌ֱ']},
+    {base:'Chataf Kamatz', lower:'', upper:'', variants:[], nikud:['◌ֳ']}
+  ],
+  cyrillic: [{base:'A', lower:'а', upper:'А', variants:[]},{base:'Be', lower:'б', upper:'Б', variants:[]},{base:'Ve', lower:'в', upper:'В', variants:[]},{base:'Ge', lower:'г', upper:'Г', variants:[]},{base:'De', lower:'д', upper:'Д', variants:[]},{base:'Ye', lower:'е', upper:'Е', variants:[]},{base:'Yo', lower:'ё', upper:'Ё', variants:[]},{base:'Zh', lower:'ж', upper:'Ж', variants:[]},{base:'Ze', lower:'з', upper:'З', variants:[]},{base:'I', lower:'и', upper:'И', variants:[]},{base:'Short I', lower:'й', upper:'Й', variants:[]},{base:'Ka', lower:'к', upper:'К', variants:[]},{base:'El', lower:'л', upper:'Л', variants:[]},{base:'Em', lower:'м', upper:'М', variants:[]},{base:'En', lower:'н', upper:'Н', variants:[]},{base:'O', lower:'о', upper:'О', variants:[]},{base:'Pe', lower:'п', upper:'П', variants:[]},{base:'Er', lower:'р', upper:'Р', variants:[]},{base:'Es', lower:'с', upper:'С', variants:[]},{base:'Te', lower:'т', upper:'Т', variants:[]},{base:'U', lower:'у', upper:'У', variants:[]},{base:'Ef', lower:'ф', upper:'Ф', variants:[]},{base:'Ha', lower:'х', upper:'Х', variants:[]},{base:'Tse', lower:'ц', upper:'Ц', variants:[]},{base:'Che', lower:'ч', upper:'CH', variants:[]},{base:'Sha', lower:'ш', upper:'SH', variants:[]},{base:'Shcha', lower:'щ', upper:'SHCH', variants:[]},{base:'Hard Sign', lower:'ъ', upper:'"', variants:[]},{base:'Yeru', lower:'ы', upper:'y', variants:[]},{base:'Soft Sign', lower:'ь', upper:'\'', variants:[]},{base:'E', lower:'э', upper:'E', variants:[]},{base:'Yu', lower:'ю', upper:'YU', variants:[]},{base:'Ya', lower:'я', upper:'YA', variants:[]}]
+};
+
+let currentLanguage = 'greek', currentTask = null, correctCount = 0, totalCount = 0, startX = null, currentX = 0, isDragging = false, startTime = 0, ignoreMouseUp = false;
+let taskPool = [];
+let fullTaskPool = [];
+let lastTaskID = null;
+let choiceState = { answeredWrong: false };
+let pendingTaskTimer = null; // track setTimeout for generateTask to cancel stale calls
+let _taskGen = 0; // incremented each generateTask call, so stale MathJax promises don't touch new cards
+let lastAction = null; // for undo: {task, wasCorrect, correctCount, totalCount, taskPool}
+
+// Debounced MathJax: batches all typeset requests within one animation frame into one call,
+// and targets only the elements that actually contain math to avoid full-document rescans.
+// Crucially, clears MathJax's internal cache for those elements first to prevent memory buildup.
+let _mjPending = false;
+let _mjElements = new Set();
+function typesetMath(el) {
+  if (!window.MathJax) return;
+  if (el) _mjElements.add(el);
+  if (_mjPending) return;
+  _mjPending = true;
+  requestAnimationFrame(() => {
+    _mjPending = false;
+    const targets = _mjElements.size > 0 ? [..._mjElements] : null;
+    _mjElements = new Set();
+    if (!MathJax.typesetPromise) return;
+    // Clear MathJax's internal jax cache for the target elements before re-typesetting.
+    // Without this, every call adds to MathJax's internal document map, growing unboundedly.
+    if (targets && MathJax.typesetClear) {
+      MathJax.typesetClear(targets);
+    }
+    MathJax.typesetPromise(targets).catch(() => {});
+  });
+}
+
+// Debounced scaleAllElements: collapses multiple rapid calls into one
+let _scalePending = false;
+function scheduleScale() {
+  if (_scalePending) return;
+  _scalePending = true;
+  setTimeout(() => {
+    _scalePending = false;
+    if (typeof scaleAllElements === 'function') scaleAllElements();
+  }, 50);
+}
+
+// ─── Greek LaTeX → Unicode (for cursive mode) ─────────────────────────────
+const latexToUnicode = {
+  '$\\alpha$':'α','$\\beta$':'β','$\\gamma$':'γ','$\\delta$':'δ',
+  '$\\epsilon$':'ε','$\\varepsilon$':'ϵ','$\\zeta$':'ζ','$\\eta$':'η',
+  '$\\theta$':'θ','$\\vartheta$':'ϑ','$\\iota$':'ι','$\\kappa$':'κ',
+  '$\\varkappa$':'ϰ','$\\lambda$':'λ','$\\mu$':'μ','$\\nu$':'ν',
+  '$\\xi$':'ξ','$o$':'ο','$\\pi$':'π','$\\varpi$':'ϖ',
+  '$\\rho$':'ρ','$\\varrho$':'ϱ','$\\sigma$':'σ','$\\varsigma$':'ς',
+  '$\\tau$':'τ','$\\upsilon$':'υ','$\\phi$':'φ','$\\varphi$':'ϕ',
+  '$\\chi$':'χ','$\\psi$':'ψ','$\\omega$':'ω',
+  '$A$':'Α','$B$':'Β','$\\Gamma$':'Γ','$\\Delta$':'Δ',
+  '$E$':'Ε','$Z$':'Ζ','$H$':'Η','$\\Theta$':'Θ',
+  '$I$':'Ι','$K$':'Κ','$\\Lambda$':'Λ','$M$':'Μ',
+  '$N$':'Ν','$\\Xi$':'Ξ','$O$':'Ο','$\\Pi$':'Π',
+  '$P$':'Ρ','$\\Sigma$':'Σ','$T$':'Τ','$\\Upsilon$':'Υ',
+  '$\\Phi$':'Φ','$X$':'Χ','$\\Psi$':'Ψ','$\\Omega$':'Ω'
+};
+
+function displayVal(str) {
+  if (!document.getElementById('cursiveMode')?.checked || currentLanguage !== 'greek') return str;
+  return latexToUnicode[str] || str;
+}
+
+function displayTableVal(str) {
+  const val = displayVal(str);
+  const unsupported = new Set(['ϑ','ϰ','ϖ','ϱ','ϕ','ϵ']);
+  return unsupported.has(val) ? '' : val;
+}
+
+function isMathContent(str) {
+  if (!str) return false;
+  if (document.getElementById('cursiveMode')?.checked && currentLanguage === 'greek') return false;
+  return str.includes('$');
+}
+
+function updateBodyClass() {
+  document.body.classList.toggle('cursive-mode', !!document.getElementById('cursiveMode')?.checked);
+  document.body.className = document.body.className
+    .replace(/\blang-\w+\b/g, '').trim();
+  document.body.classList.add('lang-' + currentLanguage);
+}
+
+function onForceChoicesChange() {
+  updateURL();
+  resetAndNewTask();
+  updatePinBtn();
+}
+
+function onCursiveModeChange() {
+  // Zustände VOR dem Re-Render sichern
+  const basesState = Object.fromEntries([...document.querySelectorAll('input[name=letterBase]')].map(cb => [cb.id, cb.checked]));
+const lettersState = Object.fromEntries([...document.querySelectorAll('input[name=letter]')].map(cb => [cb.id, cb.checked]));
+
+  updateBodyClass();
+  renderLetterSettings();   // baut Tabelle neu auf (alle Checkboxen initial auf checked)
+
+  // Zustände wiederherstellen
+  const baseCbs = document.querySelectorAll('input[name=letterBase]');
+  Object.entries(basesState).forEach(([id, val]) => {
+    const i = id.replace('cb-','');
+    if (!baseCbs[i]) return;
+    baseCbs[i].checked = val;
+    const row = document.getElementById(`row-${i}`);
+    const btn = document.getElementById(`btn-toggle-${i}`);
+    if (row) row.classList.toggle('row-disabled', !val);
+    if (btn) { btn.textContent = val ? 'AN' : 'AUS'; btn.className = val ? 'btn-toggle btn-on' : 'btn-toggle btn-off'; }
+  });
+  const letterCbs = document.querySelectorAll('input[name=letter]');
+  Object.entries(lettersState).forEach(([id, val]) => {
+  const cb = document.getElementById(id);
+  if (cb) cb.checked = val;
+});
+
+  updateURL();
+  resetAndNewTask();
+}
+
+function updatePinBtn() {
+  const btn = document.getElementById('pinChoicesBtn');
+  if (!btn) return;
+  const pinned = document.getElementById('forceChoices').checked;
+  btn.classList.toggle('active', pinned);
+  btn.title = pinned ? 'Antwortmöglichkeiten dauerhaft einblenden: AN' : 'Antwortmöglichkeiten dauerhaft einblenden: AUS';
+}
+
+function pinChoices(e) {
+  e.stopPropagation();
+  const cb = document.getElementById('forceChoices');
+  cb.checked = !cb.checked;
+  updatePinBtn();
+  updateURL();
+  
+  const help = document.getElementById('helpDetails');
+  help.open = cb.checked;
+  updateLockState();
+
+  // ÄNDERUNG: Nur generieren, wenn der Container noch leer ist
+  const container = document.getElementById('choiceContainer');
+  if (cb.checked && currentTask && container.innerHTML === '') {
+    generateChoices();
+  }
+}
+
+function shareSettings(e) {
+  e.stopPropagation();
+  const url = location.href;
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(url).then(() => showToast('🔗 Link kopiert!'));
+  } else {
+    const ta = document.createElement('textarea');
+    ta.value = url; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); document.body.removeChild(ta);
+    showToast('🔗 Link kopiert!');
+  }
+}
+
+function updateURL() {
+  const settings = {
+    lang: currentLanguage,
+    mode: document.querySelector('input[name="taskMode"]:checked').value,
+    bases: [...document.querySelectorAll('input[name=letterBase]')].map(cb => cb.checked ? 1 : 0),
+    letters: [...document.querySelectorAll('input[name=letter]')].map(cb => cb.checked ? 1 : 0),
+    cCount: document.getElementById('choiceCountSlider').value,
+    fChoice: document.getElementById('forceChoices').checked,
+    skipAnim: document.getElementById('skipAnimations').checked,
+    cursive: document.getElementById('cursiveMode').checked
+  };
+  window.history.replaceState(null, '', '#' + btoa(JSON.stringify(settings)));
+}
+
+function loadFromURL() {
+  if (!window.location.hash) return false;
+  try {
+    const settings = JSON.parse(atob(window.location.hash.substring(1)));
+    currentLanguage = settings.lang;
+    document.getElementById('languageSelect').value = currentLanguage;
+    const modeRadio = document.querySelector(`input[name="taskMode"][value="${settings.mode || 'random'}"]`);
+    if (modeRadio) modeRadio.checked = true;
+    if (settings.cCount) { document.getElementById('choiceCountSlider').value = settings.cCount; document.getElementById('choiceCountDisplay').textContent = settings.cCount; }
+    if (settings.fChoice) document.getElementById('forceChoices').checked = true;
+    if (settings.skipAnim) document.getElementById('skipAnimations').checked = true;
+    if (settings.cursive) document.getElementById('cursiveMode').checked = true;
+    document.querySelector(`input[name="fontStyle"][value="${settings.cursive ? 'cursive' : 'standard'}"]`).checked = true;
+    updateBodyClass();
+    updatePinBtn();
+    renderLetterSettings(); 
+    const baseCbs = document.querySelectorAll('input[name=letterBase]');
+    settings.bases.forEach((val, i) => { if(baseCbs[i]) { baseCbs[i].checked = !!val; document.getElementById(`row-${i}`).classList.toggle('row-disabled', !val); const btn = document.getElementById(`btn-toggle-${i}`); btn.textContent = val ? "AN" : "AUS"; btn.className = val ? "btn-toggle btn-on" : "btn-toggle btn-off"; } });
+    const letterCbs = document.querySelectorAll('input[name=letter]');
+    settings.letters.forEach((val, i) => { if(letterCbs[i]) letterCbs[i].checked = !!val; });
+    return true;
+  } catch(e) { return false; }
+}
+
+function flashResult(color) {
+  const overlay = document.getElementById('flashOverlay');
+  overlay.style.transition = 'none';
+  overlay.style.backgroundColor = color;
+  overlay.style.opacity = '1';
+  setTimeout(() => { overlay.style.transition = 'opacity 1s'; overlay.style.opacity = '0'; }, 50);
+}
+
+function refillPool() {
+  taskPool = []; fullTaskPool = [];
+  const alphabet = alphabets[currentLanguage];
+  const baseCbs = document.querySelectorAll('input[name=letterBase]');
+  alphabet.forEach((entry, idx) => {
+    const active = baseCbs[idx]?.checked;
+    const addItem = (val, type, typeLabel) => {
+      if (!val) return;
+      const item = { id: `lcb_${idx}_${type}`, base: entry.base, val, type: typeLabel };
+      fullTaskPool.push(item);
+      if (active) {
+        const cb = document.getElementById(item.id);
+        if (cb && cb.checked) taskPool.push(item);
+      }
+    };
+    if (entry.lower) addItem(entry.lower, 'lower', 'klein');
+    if (entry.upper) addItem(entry.upper, 'upper', 'groß');
+    (entry.variants || []).forEach((v, j) => addItem(v, `var_${j}`, 'Variante'));
+    (entry.nikud || []).forEach((v, j) => addItem(v, `nikud_${j}`, 'Nikud'));
+  });
+}
+
+function renderLetterSettings() {
+  const box = document.getElementById('letterSettings'), alphabet = alphabets[currentLanguage];
+  const hasUpper = alphabet.some(l => l.upper !== ''), hasVariants = alphabet.some(l => l.variants.length > 0);
+  const hasNikud = alphabet.some(l => l.nikud && l.nikud.length > 0);
+  let html = `<table class="letter-table"><thead><tr><th class="col-active"><button type="button" class="th-btn" onclick="toggleAllRows()">Aktiv</button></th><th>Name</th><th><button type="button" class="th-btn" onclick="toggleColumn('klein')">Klein</button></th>`;
+  if (hasUpper) html += `<th><button type="button" class="th-btn" onclick="toggleColumn('groß')">Groß</button></th>`;
+  if (hasVariants) html += `<th><button type="button" class="th-btn" onclick="toggleColumn('Variante')">Var.</button></th>`;
+  if (hasNikud) html += `<th><button type="button" class="th-btn" onclick="toggleColumn('Nikud')">Nikud</button></th>`;
+  html += `</tr></thead><tbody>`;
+  alphabet.forEach((l, idx) => {
+    const isNikudOnly = !l.lower && !l.upper && !(l.variants && l.variants.length) && (l.nikud && l.nikud.length > 0);
+    const dv = (v) => displayTableVal(v);
+    if (isNikudOnly) {
+      html += `<tr id="row-${idx}"><td class="col-active"><button type="button" id="btn-toggle-${idx}" class="btn-toggle btn-on" onclick="toggleRow(${idx})">AN</button><input type="checkbox" id="cb-${idx}" name="letterBase" value="${idx}" checked style="display:none"></td><td>${l.base}</td><td></td>`;
+      if (hasUpper) html += `<td></td>`;
+      if (hasVariants) html += `<td></td>`;
+      if (hasNikud) html += `<td>${(l.nikud||[]).map((v,j)=>`<label><input type="checkbox" name="letter" id="lcb_${idx}_nikud_${j}" value="${idx}_nikud_${j}" checked data-type="Nikud" onchange="updateURL(); resetAndNewTask();"> ${dv(v)}</label>`).join('<br>')}</td>`;
+      html += `</tr>`;
+    } else {
+      html += `<tr id="row-${idx}"><td class="col-active"><button type="button" id="btn-toggle-${idx}" class="btn-toggle btn-on" onclick="toggleRow(${idx})">AN</button><input type="checkbox" id="cb-${idx}" name="letterBase" value="${idx}" checked style="display:none"></td><td>${l.base}</td><td>${l.lower && dv(l.lower) ? `<label><input type="checkbox" name="letter" id="lcb_${idx}_lower" value="${idx}_lower" checked data-type="klein" onchange="updateURL(); resetAndNewTask();"> ${dv(l.lower)}</label>` : ''}</td>`;
+      if (hasUpper) html += `<td>${l.upper && dv(l.upper) ? `<label><input type="checkbox" name="letter" id="lcb_${idx}_upper" value="${idx}_upper" checked data-type="groß" onchange="updateURL(); resetAndNewTask();"> ${dv(l.upper)}</label>` : ''}</td>`;
+      if (hasVariants) html += `<td>${l.variants.map((v,j)=>dv(v) ? `<label><input type="checkbox" name="letter" id="lcb_${idx}_var_${j}" value="${idx}_var_${j}" checked data-type="Variante" onchange="updateURL(); resetAndNewTask();"> ${dv(v)}</label>` : '').filter(Boolean).join('<br>')}</td>`;
+      if (hasNikud) html += `<td>${(l.nikud||[]).map((v,j)=>`<label><input type="checkbox" name="letter" id="lcb_${idx}_nikud_${j}" value="${idx}_nikud_${j}" checked data-type="Nikud" onchange="updateURL(); resetAndNewTask();"> ${dv(v)}</label>`).join('<br>')}</td>`;
+      html += `</tr>`;
+    }
+  });
+  box.innerHTML = html + `</tbody></table>`;
+  if (currentLanguage === 'greek' && !document.getElementById('cursiveMode')?.checked) typesetMath(box);
+}
+
+function resetAndNewTask() {
+  if (pendingTaskTimer) { clearTimeout(pendingTaskTimer); pendingTaskTimer = null; }
+  refillPool(); correctCount = 0; totalCount = 0;
+  lastAction = null;
+  const undoBtn = document.getElementById('undoBtn');
+  if (undoBtn) { undoBtn.disabled = true; undoBtn.style.opacity = '0.35'; undoBtn.style.color = '#999'; undoBtn.style.borderColor = '#ccc'; undoBtn.style.cursor = 'default'; }
+  const counter = document.getElementById('counter');
+  if (counter) counter.textContent = `Richtig: 0 / 0`;
+  generateTask();
+}
+
+function toggleRow(idx, forceState = null, skipReset = false) {
+  const mainCb = document.getElementById(`cb-${idx}`), row = document.getElementById(`row-${idx}`), btn = document.getElementById(`btn-toggle-${idx}`);
+  if (!mainCb) return;
+  mainCb.checked = forceState !== null ? forceState : !mainCb.checked;
+  row.classList.toggle('row-disabled', !mainCb.checked);
+  if (btn) { btn.textContent = mainCb.checked ? "AN" : "AUS"; btn.className = mainCb.checked ? "btn-toggle btn-on" : "btn-toggle btn-off"; }
+  if (!skipReset) { updateURL(); resetAndNewTask(); }
+}
+
+function toggleColumn(type) {
+  const cbs = Array.from(document.querySelectorAll(`input[data-type="${type}"]`));
+  const targetState = cbs.filter(cb => cb.checked).length < cbs.length;
+  cbs.forEach(cb => { if(!cb.disabled) cb.checked = targetState; });
+  updateURL(); resetAndNewTask();
+}
+
+function toggleAllRows() {
+  const cbs = Array.from(document.querySelectorAll('input[name="letterBase"]'));
+  const targetState = cbs.filter(cb => cb.checked).length < cbs.length;
+  cbs.forEach((_, idx) => toggleRow(idx, targetState, true));
+  updateURL(); resetAndNewTask();
+}
+
+function showToast(msg, duration = 1800) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), duration);
+}
+
+function generateTask() {
+  pendingTaskTimer = null;
+  if (taskPool.length === 0) {
+    refillPool();
+    if (taskPool.length === 0) { document.getElementById('taskLabel').textContent = "Bitte Buchstaben wählen"; return; }
+    showToast('🎉 Alle Karten geschafft! Stapel wird neu gemischt…');
+  }
+  let taskIdx;
+  do { taskIdx = Math.floor(Math.random() * taskPool.length); } while (taskPool.length > 1 && taskPool[taskIdx].id === lastTaskID);
+  const selected = taskPool[taskIdx]; lastTaskID = selected.id;
+  const sMode = document.querySelector('input[name="taskMode"]:checked')?.value || 'random';
+  const mode = sMode === 'random' ? (Math.random() < 0.5 ? 'recognize' : 'write') : sMode;
+  currentTask = { poolIdx: taskIdx, data: selected, mode: mode };
+  choiceState = { answeredWrong: false };
+
+  const help = document.getElementById('helpDetails');
+  if (document.getElementById('forceChoices').checked) help.open = true;
+  else help.open = false;
+  
+  updateLockState();
+  generateChoices();
+
+  const card = document.getElementById('taskCard');
+  if (document.getElementById('skipAnimations').checked) {
+    card.style.transition = 'none';
+    card.style.transform = 'translate(-50%, -50%) rotateY(0deg)';
+  } else {
+    card.removeAttribute('style');
+  }
+  card.classList.remove('flipped');
+  setTimeout(() => {
+    document.getElementById('loesung').innerHTML = '';
+    document.querySelectorAll('.card-face').forEach(f => { f.style.backgroundColor = 'white'; });
+    const taskTextBack = document.getElementById('taskTextBack');
+    if (mode === 'recognize') {
+      taskTextBack.innerHTML = displayVal(selected.val);
+      taskTextBack.classList.add('char-display');    // Ghost = Zeichen → kursiv
+      window.currentSolution = `${selected.base}<span class="loesung-type">(${selected.type})</span>`;
+    } else {
+      taskTextBack.innerHTML = selected.base;
+      taskTextBack.classList.remove('char-display'); // Ghost = Name → nicht kursiv
+      window.currentSolution = `${displayVal(selected.val)}`;
+    }
+    if (isMathContent(mode === 'recognize' ? selected.val : selected.base)) typesetMath(document.getElementById('faceBack'));
+    scheduleScale();
+  }, 600);
+
+  const faceFront = document.getElementById('faceFront');
+  const gen = ++_taskGen;
+  faceFront.style.opacity = '0';
+  const frontVal = mode === 'recognize' ? displayVal(selected.val) : selected.base;
+  const taskTextEl = document.getElementById('taskText');
+  taskTextEl.classList.toggle('char-display', mode === 'recognize'); // front shows char when recognizing
+  if (mode === 'recognize') { document.getElementById('taskLabel').textContent = "Wie nennt man diesen Buchstaben?"; taskTextEl.innerHTML = frontVal; document.getElementById('taskSub').textContent = ""; }
+  else { document.getElementById('taskLabel').textContent = "Wie wird dieser Buchstabe geschrieben?"; taskTextEl.innerHTML = frontVal; document.getElementById('taskSub').textContent = `(${selected.type})`; }
+  if (isMathContent(mode === 'recognize' ? selected.val : selected.base) && window.MathJax && MathJax.typesetPromise) {
+    if (MathJax.typesetClear) MathJax.typesetClear([faceFront]);
+    MathJax.typesetPromise([faceFront]).then(() => {
+      if (gen !== _taskGen) return; // stale — a newer task already took over
+      if (typeof scaleAllElements === 'function') scaleAllElements();
+      requestAnimationFrame(() => { if (gen === _taskGen) faceFront.style.opacity = ''; });
+    }).catch(() => { if (gen === _taskGen) faceFront.style.opacity = ''; });
+  } else {
+    if (typeof scaleAllElements === 'function') scaleAllElements();
+    faceFront.style.opacity = '';
+  }
+}
+
+function generateChoices() {
+    const container = document.getElementById('choiceContainer');
+    // Clear content (don't replace node - that leaks the old node's closure references in some engines)
+    container.innerHTML = '';
+    // Force CSS animation restart by removing and re-adding the element
+    container.style.animation = 'none';
+    container.offsetHeight; // reflow trigger
+    container.style.animation = '';
+
+    const count = parseInt(document.getElementById('choiceCountSlider').value);
+    const isRec = currentTask.mode === 'recognize';
+    // write mode → buttons show characters; recognize mode → buttons show names
+    container.classList.toggle('choices-are-chars', !isRec);
+    const correctVal = isRec ? currentTask.data.base : currentTask.data.val;
+    const correctType = currentTask.data.type; // 'klein', 'groß', 'Variante'
+
+    // Pool: same category (type), exclude correct answer
+    let sameTypePool = fullTaskPool.filter(item => {
+        if (item.type !== correctType) return false;
+        return isRec ? (item.base !== correctVal) : (item.val !== correctVal);
+    });
+
+    // "Active" = row is enabled (cb-{idx}) AND the specific letter checkbox is checked
+    let activeAlts   = sameTypePool.filter(item => {
+        const cb = document.getElementById(item.id);
+        if (!cb || !cb.checked) return false;
+        const rowIdx = item.id.split('_')[1]; // lcb_{idx}_{type}
+        const rowCb = document.getElementById(`cb-${rowIdx}`);
+        return rowCb && rowCb.checked;
+    }).sort(() => 0.5 - Math.random());
+    let inactiveAlts = sameTypePool.filter(item => {
+        const cb = document.getElementById(item.id);
+        const rowIdx = item.id.split('_')[1];
+        const rowCb = document.getElementById(`cb-${rowIdx}`);
+        const isActive = cb && cb.checked && rowCb && rowCb.checked;
+        return !isActive;
+    }).sort(() => 0.5 - Math.random());
+
+    let choices = [correctVal];
+    for (let s of [...activeAlts, ...inactiveAlts]) {
+        let val = isRec ? s.base : s.val;
+        if (!choices.includes(val)) choices.push(val);
+        if (choices.length >= count) break;
+    }
+    choices.sort(() => 0.5 - Math.random());
+
+    const row1 = document.createElement('div'); row1.className = 'choice-row';
+    const row2 = document.createElement('div'); row2.className = 'choice-row';
+    choices.forEach((c, idx) => {
+        const btn = document.createElement('button');
+        btn.className = 'choice-btn';
+        btn.dataset.choiceVal = c;
+        btn.innerHTML = `<div class="scale-wrapper"><div class="scale-el">${displayVal(c)}</div></div>`;
+        btn.onclick = () => handleChoice(btn, c === correctVal);
+        (idx < count/2 ? row1 : row2).appendChild(btn);
+    });
+    container.appendChild(row1); container.appendChild(row2);
+
+    if (currentLanguage === 'greek' && !document.getElementById('cursiveMode')?.checked) typesetMath(container);
+    scheduleScale();
+}
+
+function handleChoice(btn, isCorrect) {
+    if (btn.classList.contains('wrong') || btn.classList.contains('correct') || btn.classList.contains('revealed')) return;
+    if (isCorrect) {
+        btn.classList.add('correct');
+        if (!choiceState.answeredWrong) {
+            totalCount++; correctCount++;
+            taskPool.splice(currentTask.poolIdx, 1);
+        }
+        document.getElementById('counter').textContent = `Richtig: ${correctCount} / ${totalCount}`;
+        if (pendingTaskTimer) clearTimeout(pendingTaskTimer);
+        if (document.getElementById('skipAnimations').checked) {
+            pendingTaskTimer = setTimeout(generateTask, 0);
+        } else {
+            flipToSolution();
+            pendingTaskTimer = setTimeout(generateTask, 1200); // 600ms flip + 600ms pause
+        }
+    } else {
+        btn.classList.add('wrong');
+        totalCount++;
+        if (!choiceState.answeredWrong) choiceState.answeredWrong = true;
+        document.getElementById('counter').textContent = `Richtig: ${correctCount} / ${totalCount}`;
+    }
+}
+
+function updateLockState() {
+    const isLocked = document.getElementById('helpDetails').open;
+    const targets = [document.getElementById('wrongBtn'), document.getElementById('correctBtn')];
+    targets.forEach(t => t.classList.toggle('locked', isLocked));
+    // Disable card swiping without greying it out visually
+    const taskWrap = document.getElementById('taskWrap');
+    taskWrap.classList.toggle('swipe-disabled', isLocked);
+}
+
+document.getElementById('helpDetails').ontoggle = updateLockState;
+
+function flipToSolution() {
+  if (window.currentSolution) {
+    const card = document.getElementById('taskCard');
+    if (card.classList.contains('flipped')) return; // already showing — don't re-render
+    const faceBack = document.getElementById('faceBack');
+    const loesungEl = document.getElementById('loesung');
+    loesungEl.innerHTML = window.currentSolution;
+    // write mode: loesung zeigt das Zeichen → kursiv; recognize: zeigt Namen → nicht kursiv
+    if (currentTask) loesungEl.classList.toggle('char-display', currentTask.mode === 'write');
+
+    const skipAnim = document.getElementById('skipAnimations').checked;
+    const doFlip = () => {
+      if (skipAnim) {
+        card.style.transition = 'none';
+        card.style.transform = 'translate(-50%, -50%) rotateY(180deg)';
+      }
+      card.classList.add('flipped');
+    };
+
+    if (skipAnim) {
+      // Hide, render, scale, then instantly show — no animation to rely on
+      faceBack.style.opacity = '0';
+      if (window.MathJax && MathJax.typesetPromise) {
+        if (MathJax.typesetClear) MathJax.typesetClear([faceBack]);
+        MathJax.typesetPromise([faceBack]).then(() => {
+          if (typeof scaleAllElements === 'function') scaleAllElements();
+          doFlip();
+          requestAnimationFrame(() => { faceBack.style.opacity = ''; });
+        }).catch(() => { doFlip(); faceBack.style.opacity = ''; });
+      } else {
+        doFlip();
+        faceBack.style.opacity = '';
+      }
+    } else {
+      // Animated flip: backface-visibility hides faceBack during rotation,
+      // so render can happen in parallel without any visible flash.
+      doFlip();
+      typesetMath(faceBack);
+      scheduleScale();
+    }
+  }
+}
+
+function showSolution() {
+  if (document.getElementById('helpDetails').open) {
+    if (!currentTask || choiceState.solutionRevealed) return;
+    choiceState.solutionRevealed = true;
+    const isRec = currentTask.mode === 'recognize';
+    const correctVal = isRec ? currentTask.data.base : currentTask.data.val;
+    document.querySelectorAll('.choice-btn').forEach(btn => {
+      if (btn.dataset.choiceVal === correctVal) {
+        if (!btn.classList.contains('correct')) btn.classList.add('revealed');
+        btn.classList.add('no-click');
+      }
+    });
+    totalCount++;
+    choiceState.answeredWrong = true;
+    document.getElementById('counter').textContent = `Richtig: ${correctCount} / ${totalCount}`;
+    if (pendingTaskTimer) clearTimeout(pendingTaskTimer);
+    // Always flip and wait normally — skip-animation does not affect this path
+    flipToSolution();
+    pendingTaskTimer = setTimeout(generateTask, 1200);
+    return;
+  }
+  flipToSolution();
+}
+
+function markAnswer(correct) {
+  if (!currentTask || document.getElementById('helpDetails').open) return;
+  // Save state for undo before modifying anything
+  lastAction = {
+    task: currentTask,
+    wasCorrect: correct,
+    correctCountBefore: correctCount,
+    totalCountBefore: totalCount,
+    taskPoolSnapshot: [...taskPool]
+  };
+  document.getElementById('undoBtn').disabled = false;
+  document.getElementById('undoBtn').style.opacity = '1';
+  document.getElementById('undoBtn').style.color = '#7a5800';
+  document.getElementById('undoBtn').style.borderColor = '#e0a800';
+  document.getElementById('undoBtn').style.cursor = 'pointer';
+
+  flashResult(correct ? "#d4edda" : "#f8d7da");
+  totalCount++; 
+  if (correct) { 
+    correctCount++; 
+    taskPool.splice(currentTask.poolIdx, 1); 
+  }
+  document.getElementById('counter').textContent = `Richtig: ${correctCount} / ${totalCount}`;
+  
+  currentTask = null;
+  if (pendingTaskTimer) clearTimeout(pendingTaskTimer);
+  if (document.getElementById('skipAnimations').checked) {
+    pendingTaskTimer = setTimeout(generateTask, 0);
+  } else {
+    showSolution();
+    pendingTaskTimer = setTimeout(generateTask, 1200);
+  }
+}
+
+const card = document.getElementById('taskCard');
+const faces = document.querySelectorAll('.card-face');
+
+card.onmousedown = (e) => { if(document.getElementById('helpDetails').open) return; startTime = Date.now(); handleStart(e); };
+card.onmouseup = (e) => {
+  if (document.getElementById('helpDetails').open) return;
+  if (ignoreMouseUp) { ignoreMouseUp = false; return; }
+  const duration = Date.now() - startTime;
+  if (duration < 250 && Math.abs(currentX) < 20) {
+    startX = null; currentX = 0;
+    if (card.classList.contains('flipped')) return; // already showing solution, ignore
+    if (document.getElementById('skipAnimations').checked) {
+      showSolution();
+    } else {
+      requestAnimationFrame(() => {
+        card.style.transition = 'transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
+        requestAnimationFrame(() => { showSolution(); });
+      });
+    }
+    return; 
+  }
+  handleEnd();
+};
+card.ontouchstart = (e) => { if(document.getElementById('helpDetails').open) return; startTime = Date.now(); handleStart(e); };
+card.ontouchend = (e) => { 
+  if (document.getElementById('helpDetails').open) return;
+  ignoreMouseUp = true;
+  const duration = Date.now() - startTime;
+  if (duration < 250 && Math.abs(currentX) < 20) {
+    startX = null; currentX = 0;
+    if (card.classList.contains('flipped')) return; // already showing solution, ignore
+    if (document.getElementById('skipAnimations').checked) {
+      showSolution();
+    } else {
+      requestAnimationFrame(() => {
+        card.style.transition = 'transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
+        requestAnimationFrame(() => { showSolution(); });
+      });
+    }
+    return; 
+  }
+  handleEnd(); 
+};
+
+function undoLastAction() {
+  if (!lastAction) return;
+  // Cancel any pending next task
+  if (pendingTaskTimer) { clearTimeout(pendingTaskTimer); pendingTaskTimer = null; }
+  // Restore pool and counters
+  taskPool = lastAction.taskPoolSnapshot;
+  correctCount = lastAction.correctCountBefore;
+  totalCount = lastAction.totalCountBefore;
+  document.getElementById('counter').textContent = `Richtig: ${correctCount} / ${totalCount}`;
+  // Restore the task that was played and re-show it
+  currentTask = lastAction.task;
+  choiceState = { answeredWrong: false };
+  lastAction = null;
+  const undoBtn2 = document.getElementById('undoBtn');
+  undoBtn2.disabled = true; undoBtn2.style.opacity = '0.35'; undoBtn2.style.color = '#999'; undoBtn2.style.borderColor = '#ccc'; undoBtn2.style.cursor = 'default';
+  // Re-generate to show the same card again fresh
+  const saved = currentTask;
+  currentTask = null;
+  // Directly re-display the saved task
+  const card = document.getElementById('taskCard');
+  if (document.getElementById('skipAnimations').checked) {
+    card.style.transition = 'none';
+    card.style.transform = 'translate(-50%, -50%) rotateY(0deg)';
+  } else {
+    card.removeAttribute('style');
+  }
+  card.classList.remove('flipped');
+  currentTask = saved;
+  const mode = saved.mode, selected = saved.data;
+  const help = document.getElementById('helpDetails');
+  if (document.getElementById('forceChoices').checked) help.open = true;
+  else help.open = false;
+  updateLockState();
+  generateChoices();
+  setTimeout(() => {
+    document.getElementById('loesung').innerHTML = '';
+    document.querySelectorAll('.card-face').forEach(f => { f.style.backgroundColor = 'white'; });
+    const taskTextBackU = document.getElementById('taskTextBack');
+    if (mode === 'recognize') { taskTextBackU.innerHTML = displayVal(selected.val); taskTextBackU.classList.add('char-display'); window.currentSolution = `${selected.base}<span class="loesung-type">(${selected.type})</span>`; }
+    else { taskTextBackU.innerHTML = selected.base; taskTextBackU.classList.remove('char-display'); window.currentSolution = `${displayVal(selected.val)}`; }
+    if (isMathContent(mode === 'recognize' ? selected.val : selected.base)) typesetMath(document.getElementById('faceBack'));
+    scheduleScale();
+  }, 600);
+  const faceFront = document.getElementById('faceFront');
+  const gen = ++_taskGen;
+  faceFront.style.opacity = '0';
+  const frontValUndo = mode === 'recognize' ? displayVal(selected.val) : selected.base;
+  const taskTextElU = document.getElementById('taskText');
+  taskTextElU.classList.toggle('char-display', mode === 'recognize');
+  document.getElementById('taskLabel').textContent = mode === 'recognize' ? "Was ist das?" : "Schreibe:";
+  taskTextElU.innerHTML = frontValUndo;
+  document.getElementById('taskSub').textContent = mode === 'recognize' ? "" : `(${selected.type})`;
+  if (isMathContent(mode === 'recognize' ? selected.val : selected.base) && window.MathJax && MathJax.typesetPromise) {
+    if (MathJax.typesetClear) MathJax.typesetClear([faceFront]);
+    MathJax.typesetPromise([faceFront]).then(() => {
+      if (gen !== _taskGen) return;
+      if (typeof scaleAllElements === 'function') scaleAllElements();
+      requestAnimationFrame(() => { if (gen === _taskGen) faceFront.style.opacity = ''; });
+    }).catch(() => { if (gen === _taskGen) faceFront.style.opacity = ''; });
+  } else {
+    if (typeof scaleAllElements === 'function') scaleAllElements();
+    faceFront.style.opacity = '';
+  }
+  showToast('↶ Rückgängig gemacht');
+}
+
+document.onkeydown = (e) => {
+  if (document.getElementById('helpDetails').open) return;
+  if (e.code === 'Space') { e.preventDefault(); showSolution(); }
+  if (e.code === 'ArrowLeft') markAnswer(false);
+  if (e.code === 'ArrowRight') markAnswer(true);
+  if ((e.ctrlKey || e.metaKey) && e.code === 'KeyZ') { e.preventDefault(); undoLastAction(); }
+};
+
+document.getElementById('showSolutionBtn').onclick = showSolution;
+document.getElementById('wrongBtn').onclick = () => markAnswer(false);
+document.getElementById('correctBtn').onclick = () => markAnswer(true);
+document.getElementById('undoBtn').onclick = undoLastAction;
+document.getElementById('languageSelect').onchange = (e) => { currentLanguage = e.target.value; updateBodyClass(); renderLetterSettings(); updateURL(); resetAndNewTask(); };
+
+const handleStart = (e) => { startX = e.clientX || (e.touches && e.touches[0].clientX); card.style.transition = 'none'; };
+const handleMove = (e) => {
+  if (startX === null || document.getElementById('helpDetails').open) return;
+  if (e.cancelable) e.preventDefault(); // iOS: verhindert "scroll-recovery"-Zustand nach Swipe
+  currentX = (e.clientX || (e.touches && e.touches[0].clientX)) - startX;
+  const rot = card.classList.contains('flipped') ? 180 : 0;
+  card.style.transform = `translate(calc(-50% + ${currentX}px), -50%) rotateY(${rot}deg)`;
+  const intensity = Math.min(Math.abs(currentX)/(card.parentElement.offsetWidth * 0.25), 0.8);
+  faces.forEach(f => f.style.backgroundColor = currentX > 0 ? `rgba(212,237,218,${intensity})` : `rgba(248,215,218,${intensity})`);
+};
+const handleEnd = () => {
+  if (startX === null) return;
+  const threshold = card.parentElement.offsetWidth * 0.25;
+  const triggered = currentX > threshold || currentX < -threshold;
+  const wasCorrect = currentX > 0;
+
+  faces.forEach(f => f.style.backgroundColor = 'white');
+  
+  const skipAnim = document.getElementById('skipAnimations').checked;
+  if (!skipAnim) card.style.transition = 'transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
+  
+  if (triggered) {
+    markAnswer(wasCorrect);
+    requestAnimationFrame(() => {
+        card.style.transform = `translate(-50%, -50%) rotateY(${card.classList.contains('flipped') ? 180 : 0}deg)`;
+        setTimeout(() => { card.removeAttribute('style'); }, skipAnim ? 0 : 600);
+    });
+  } else {
+    card.style.transform = `translate(-50%, -50%) rotateY(${card.classList.contains('flipped') ? 180 : 0}deg)`;
+    setTimeout(() => { if(startX === null) card.removeAttribute('style'); }, skipAnim ? 0 : 600);
+  }
+
+  startX = null; 
+  currentX = 0;
+};
+document.onmousemove = handleMove;
+card.removeEventListener('touchmove', handleMove); // Sicherheitshalber
+card.addEventListener('touchmove', handleMove, { passive: false }); // non-passive für preventDefault auf iOS
+document.onmouseup = () => { if (startX !== null) handleEnd(); };
+
+window.onload = () => { 
+  if (!loadFromURL()) { renderLetterSettings(); updateBodyClass(); }
+  updatePinBtn();
+  resetAndNewTask();
+};
+</script>
+<script src="scale.js"></script>
+<footer class="site-footer">
+  <div class="footer-content">
+    M.&nbsp;Koch
+    <span class="footer-topic"><a href="./index.html">Mathe-Tools</a></span>
+    <span class="footer-update">Zuletzt aktualisiert:&nbsp;<span id="last-update">...</span></span>
+  </div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,2201 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>Schrift-Trainer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Hebrew:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&family=Playpen+Sans+Hebrew:wght@100..800&display=swap" rel="stylesheet">
+<script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-5K8WYYXDL2');
+  </script>
+<style>
+:root{--primary:#0056b3;--lighterprimary:#6497f4;--bg:#f4f7f6;--surface:#fff;--border:#dee2e6;--sw:185px;}
+*{box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;}
+.heb{font-family:'Noto Sans Hebrew','Arial Hebrew','David',Arial,sans-serif;}
+body{margin:0;background:var(--bg);display:flex;height:100vh;overflow:hidden;overscroll-behavior:none;}
+.sidebar{width:var(--sw);flex-shrink:0;background:var(--surface);box-shadow:2px 0 5px rgba(0,0,0,.1);display:flex;flex-direction:column;margin-left:calc(-1*var(--sw));transition:margin-left .3s;z-index:10;overflow:hidden;}
+.sidebar.open{margin-left:0;}
+.sb-hdr{padding:9px 8px;font-weight:bold;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;color:var(--primary);font-size:1rem;flex-shrink:0;}
+.sb-body{overflow-y:auto;padding:0;flex:1;min-height:0;}
+.alpha-row{display:flex;align-items:center;gap:4px;padding:2px 6px;border-bottom:1px solid #f0f0f0;white-space:nowrap;line-height:1.1;}
+.alpha-row b{color:var(--primary);width:50px;flex-shrink:0;font-size:.95rem;}
+.alpha-row .aname{color:#444;flex:1;overflow:hidden;text-overflow:ellipsis;font-size:.8rem;}
+.alpha-row .asound{color:#777;font-size:.73rem;font-style:italic;flex-shrink:0;cursor:pointer;position:relative;padding:1px 3px;}
+.asound .tip{display:none;position:fixed;z-index:300;background:#333;color:#fff;font-size:.76rem;font-style:normal;padding:5px 9px;border-radius:6px;white-space:nowrap;pointer-events:none;min-width:140px;box-shadow:0 2px 10px rgba(0,0,0,.4);}
+/* Desktop: show tip on hover only */
+@media(hover:hover){.asound:hover .tip{display:block;}}
+/* Touch: show tip when .tip-open */
+.asound.tip-open .tip{display:block;}
+.nikud-section-hdr{padding:4px 6px 2px;font-size:.75rem;font-weight:700;color:var(--primary);background:#f0f4ff;border-bottom:1px solid var(--border);border-top:2px solid var(--primary);}
+.nikud-section-end{height:3px;background:var(--primary);opacity:.4;margin-bottom:3px;}
+.alpha-row.nikud-row{padding:1px 6px;}
+.alpha-row.nikud-row b{font-size:1.25rem;font-family:'Noto Sans Hebrew','Arial Hebrew','David',Arial,sans-serif;cursor:pointer;line-height:1.15;font-weight:bold;}
+.alpha-row.nikud-row .aname{font-size:.68rem;}
+.alpha-row.nikud-row .asound{font-size:.68rem;}
+.nikud-preview{position:fixed;z-index:400;background:#fff;border:1px solid var(--border);border-radius:12px;padding:14px 20px;text-align:center;box-shadow:0 4px 20px rgba(0,0,0,.25);pointer-events:none;}
+.nikud-preview .np-char{font-family:'Noto Sans Hebrew','Arial Hebrew','David',Arial,sans-serif;font-size:3.5rem;direction:rtl;display:block;line-height:1.2;color:var(--primary);}
+.nikud-preview .np-name{font-size:.8rem;color:#555;margin-top:4px;}
+.lang-flag{font-family:'Noto Color Emoji','Apple Color Emoji','Segoe UI Emoji',sans-serif;}
+/* Cyrillic scaling */
+.sb-body.cy .alpha-row{padding-top:clamp(1px,.28vh,3px);padding-bottom:clamp(1px,.28vh,3px);font-size:clamp(.58rem,1.1vh,.8rem);}
+.sb-body.cy .alpha-row b{font-size:clamp(.68rem,1.3vh,.95rem);}
+.sb-body.cy .alpha-row .aname{font-size:clamp(.58rem,1.1vh,.8rem);}
+.sb-body.gr .alpha-row b{font-size:1.05rem;}
+header{padding:7px 11px;background:var(--surface);display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:5;flex-wrap:nowrap;white-space:nowrap;}
+.menu-btn{font-size:1.4rem;background:none;border:none;cursor:pointer;color:var(--primary);flex-shrink:0;}
+.hdr-title{margin:0;font-size:1rem;color:#333;flex-shrink:0;}
+#langSelect{padding:4px 6px;border:1px solid var(--border);border-radius:6px;font-size:.88rem;outline:none;background:#fff;cursor:pointer;margin-left:auto;}
+.main{flex-grow:1;display:flex;flex-direction:column;overflow-y:auto;scrollbar-gutter:stable;scroll-behavior:smooth;}
+.container{padding:12px;max-width:700px;margin:0 auto;width:100%;}
+.card{background:var(--surface);padding:12px;border-radius:12px;box-shadow:0 2px 6px rgba(0,0,0,.05);margin-bottom:12px;}
+.controls-wrap{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-start;}
+.tg{display:flex;flex-direction:column;gap:3px;}
+.tg .lbl{font-size:.8rem;font-weight:600;color:#555;}
+.tsw{display:flex;border:1px solid var(--border);border-radius:7px;overflow:hidden;}
+.tsw input[type=radio]{display:none;}
+.tsw label{flex:1;text-align:center;padding:7px 5px;font-size:.78rem;font-weight:600;cursor:pointer;color:#555;background:#fff;border-right:1px solid var(--border);transition:background .12s,color .12s;line-height:1.2;user-select:none;}
+.tsw label:last-of-type{border-right:none;}
+.tsw input:checked+label{background:var(--primary);color:#fff;}
+input[type=text],textarea,button.btn{width:100%;padding:9px;border:1px solid var(--border);border-radius:8px;font-size:1.1rem;outline:none;background:#fff;}
+input[type=text],textarea{font-size:1.5rem;}
+input:focus,textarea:focus{border-color:var(--primary);}
+/* Hebrew font for inputs when Hebrew mode is active */
+.heb-input{font-family:'Noto Sans Hebrew','Arial Hebrew','David',Arial,sans-serif !important;font-size:1.5rem;}
+button.primary{background:var(--primary);color:#fff;border:none;font-weight:bold;cursor:pointer;padding:11px;border-radius:8px;width:100%;}
+button.primary:hover{background:#004494;}
+.play-word{font-size:1.7rem;font-weight:bold;text-align:center;color:var(--primary);margin:12px 0;}
+.out-box{background:#e9ecef;min-height:54px;padding:10px;border-radius:8px;font-size:1.2rem;font-weight:bold;color:var(--primary);white-space:pre-wrap;border:1px dashed #adb5bd;}
+.feedback{text-align:center;margin-top:8px;min-height:76px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding-top:3px;gap:1px;}
+.fb-status{font-weight:bold;font-size:1rem;min-height:1.5em;line-height:1.5;}
+.fb-line{font-weight:bold;font-size:1rem;min-height:1.5em;line-height:1.5;visibility:hidden;white-space:pre;}
+.fb-line.vis{visibility:visible;}
+/* Details / Infobox */
+.info-details{margin-bottom:10px;border-radius:10px;border:1px solid var(--border);background:var(--surface);overflow:hidden;}
+.info-details summary{padding:9px 13px;font-size:.88rem;font-weight:600;color:var(--primary);cursor:pointer;user-select:none;list-style:none;display:flex;align-items:center;gap:6px;}
+.info-details summary::-webkit-details-marker{display:none;}
+.info-details summary::before{content:'▸';font-size:.78rem;flex-shrink:0;display:inline-block;width:1em;text-align:center;}
+.info-details[open] summary::before{content:'▾';}
+.info-body{padding:10px 14px 13px;font-size:.82rem;line-height:1.55;color:#333;border-top:1px solid var(--border);}
+.info-body p{margin:0 0 7px;}
+.info-body p:last-child{margin:0;}
+.info-body strong{color:var(--primary);}
+/* .info-mail{color:var(--primary);cursor:pointer;text-decoration:underline;background:none;border:none;font-size:inherit;font-family:inherit;padding:0;} */
+.info-mail{color:var(--primary);cursor:pointer;background:none;border:none;font-size:inherit;font-family:inherit;padding:0;}
+.keyboard{display:none;flex-direction:column;gap:5px;background:#d1d5db;padding:8px;border-radius:12px;user-select:none;}
+.keyboard.active{display:flex;}
+.kb-row{display:flex;justify-content:center;gap:4px;}
+.key{background:white;border:none;padding:13px 2px;flex:1;border-radius:6px;font-size:1.1rem;cursor:pointer;box-shadow:0 1px 2px rgba(0,0,0,.2);touch-action:manipulation;transition:background .1s;position:relative;overflow:visible;}
+.kb-heb .key{font-family:'Noto Sans Hebrew','Arial Hebrew','David',Arial,sans-serif;}
+.key.sp{background:#94a3b8;color:white;font-size:.9rem;font-weight:bold;}
+.key.pk{background:var(--primary);color:white;font-weight:bold;}
+.key.sh1{background:#3b82f6!important;color:white!important;}
+.key.sh2{background:#f59e0b!important;color:white!important;}
+.key.akt{background:#e2e8f0;transform:translateY(1px);}
+.key.sp.akt{background:#64748b;}.key.pk.akt{background:#004494;}
+.lpp{position:fixed;background:#1e293b;border-radius:10px;display:flex;flex-wrap:wrap;justify-content:center;gap:3px;padding:6px;z-index:600;box-shadow:0 4px 16px rgba(0,0,0,.4);max-width:88vw;pointer-events:all;}
+.lpo{background:white;border:none;border-radius:6px;padding:9px 11px;font-size:1.15rem;cursor:pointer;min-width:40px;text-align:center;color:#333;font-family:'Noto Sans Hebrew','Arial Hebrew','David',Arial,sans-serif;}
+.lpo.lph{background:var(--primary);color:white;}
+.shuf-wrap{display:flex;justify-content:flex-end;margin-bottom:2px;}
+.shuf-btn{background:none;border:1px solid var(--border);border-radius:6px;font-size:.75rem;padding:2px 7px;cursor:pointer;color:#555;}
+.shuf-btn:hover{background:#f0f0f0;}
+/* Share button */
+.share-btn{background:none;border:none;cursor:pointer;color:var(--lighterprimary);flex-shrink:0;padding:3px 4px;display:flex;align-items:center;position:relative;}
+.share-btn svg{width:18px;height:18px;display:block;}
+.share-tip{position:absolute;top:calc(100% + 5px);left:50%;transform:translateX(-50%);background:#1e293b;color:#fff;font-size:.72rem;padding:4px 8px;border-radius:6px;white-space:nowrap;pointer-events:none;display:none;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.3);}
+.share-btn:hover .share-tip{display:block;}
+.share-btn:hover{
+  color:var(--primary)
+}
+/* Toast */
+.share-toast{position:fixed;bottom:70px;left:50%;transform:translateX(-50%) translateY(10px);background:#1e293b;color:#fff;font-size:.82rem;padding:8px 18px;border-radius:20px;box-shadow:0 3px 12px rgba(0,0,0,.3);z-index:500;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;}
+.share-toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+/* Footer */
+.site-footer{width:100%;box-sizing:border-box;padding:10px 20px;border-top:1px solid #ccc;margin-top:6px;margin-bottom:8px;font-family:sans-serif;font-size:0.6em;color:#333333d8;}
+.footer-content{display:flex;justify-content:center;align-items:center;gap:1.2rem;max-width:1200px;margin:0 auto;flex-wrap:wrap;text-align:center;}
+.footer-topic a{color:inherit;text-decoration:underline;}
+.footer-author{color:inherit;background:none;border:none;font:inherit;padding:0;}
+/* .footer-author:hover{opacity:.75;} */
+@media(max-width:500px){
+  :root{--sw:150px;}
+  .alpha-row{font-size:.72rem;padding:2px 6px 2px 2px;}
+  .alpha-row.nikud-row{padding:1px 6px 1px 2px;}
+  .alpha-row b{font-size:.82rem;width:42px;}
+  .alpha-row.nikud-row b{font-size:.95rem;width:42px;min-width:42px;}
+  .key{padding:11px 1px;font-size:1rem;}
+  .key.sp{font-size:.82rem;}
+  .tsw label{font-size:.72rem;padding:6px 3px;}
+  .hob{font-size:.60rem;padding:2px 3px;}
+  .hob-chk{font-size:.60rem;padding:2px 4px;}
+  .gear-btn{width:34px;height:34px;font-size:1.1rem;bottom:10px;right:10px;}
+  .site-footer{padding:8px 10px;}
+  .footer-content{gap:.8rem;}
+}
+textarea#freeIn{max-width:100%;resize:none;}
+.nikud-strip{display:none;flex-wrap:wrap;justify-content:center;gap:3px;padding:5px 8px;background:#d1d5db;border-radius:8px 8px 0 0;margin-bottom:-4px;}
+.nikud-strip.active{display:flex;}
+.nk-btn{background:white;border:none;padding:5px 7px;border-radius:5px;font-family:'Noto Sans Hebrew','Arial Hebrew','David',Arial,sans-serif;font-size:1.45rem;line-height:1;cursor:pointer;box-shadow:0 1px 2px rgba(0,0,0,.2);direction:rtl;touch-action:manipulation;min-width:34px;text-align:center;}
+.nk-btn:active{background:#e2e8f0;}
+.nk-tip{position:fixed;z-index:700;background:#1e293b;color:#fff;font-size:.76rem;padding:4px 8px;border-radius:6px;pointer-events:none;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.4);}
+.key.heb-empty{background:#e2e8f0;color:#aaa;cursor:default;pointer-events:none;}
+.nikud-picker{position:fixed;z-index:600;background:#1e293b;border-radius:10px;display:flex;flex-wrap:wrap;justify-content:center;gap:3px;padding:6px;box-shadow:0 4px 16px rgba(0,0,0,.4);max-width:calc(100vw - 8px);pointer-events:all;}
+.nikud-picker::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:6px solid transparent;border-top-color:#1e293b;}
+.nikud-picker .lpo{font-size:1.45rem;padding:7px 9px;}
+/* Gear button + menu */
+.gear-btn{position:fixed;bottom:14px;right:14px;width:42px;height:42px;border-radius:50%;background:rgba(255,255,255,.92);color:var(--primary);border:1px solid var(--border);font-size:1.35rem;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.15);z-index:25;touch-action:manipulation;display:flex;align-items:center;justify-content:center;padding:0;line-height:1;}
+.gear-menu{position:fixed;bottom:64px;right:14px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px;box-shadow:0 4px 20px rgba(0,0,0,.18);z-index:25;display:none;flex-direction:column;gap:10px;min-width:195px;}
+.gear-menu.open{display:flex;}
+.gtip-el{position:fixed;z-index:900;background:#1e293b;color:#fff;font-size:.76rem;padding:6px 10px;border-radius:8px;pointer-events:none;white-space:pre-line;max-width:220px;line-height:1.4;box-shadow:0 2px 10px rgba(0,0,0,.4);display:none;}
+/* Hebrew keyboard option row */
+.heb-opts-wrap{display:flex;justify-content:space-between;align-items:center;gap:4px;margin-bottom:2px;}
+.hob-grp{display:flex;border:1px solid var(--border);border-radius:6px;overflow:hidden;}
+.hob{background:rgba(255,255,255,.55);border:none;border-right:1px solid var(--border);padding:3px 7px;font-size:.73rem;font-weight:600;cursor:pointer;color:#444;transition:background .12s,color .12s;white-space:nowrap;touch-action:manipulation;line-height:1.5;}
+.hob:last-child{border-right:none;}
+.hob.hob-on{background:var(--primary);color:#fff;}
+.hob-chk{display:flex;align-items:center;gap:4px;background:rgba(255,255,255,.55);border:1px solid var(--border);border-radius:6px;padding:3px 8px;font-size:.73rem;font-weight:600;cursor:pointer;color:#444;user-select:none;white-space:nowrap;touch-action:manipulation;line-height:1.5;}
+.hob-chk input[type=checkbox]{accent-color:var(--primary);width:13px;height:13px;cursor:pointer;flex-shrink:0;}
+/* Nikud key: center + wrap */
+.key.nik{background:#818cf8;color:white;font-family:'Noto Sans Hebrew','Arial Hebrew','David',Arial,sans-serif;font-size:1.3rem;white-space:normal;text-align:center;word-break:break-all;flex:none;width:auto;padding:6px 10px;}
+.key.nik.akt{background:#6366f1;}
+.report-icon {
+  display: inline-block;
+  margin-left: 8px;
+  cursor: pointer;
+  opacity: 0.4;
+  transition: opacity 0.2s;
+  vertical-align: middle;
+  font-size: 0.9em;
+  text-decoration: none;
+}
+.report-icon:hover {
+  opacity: 1;
+}
+.out-wrap{
+  position:relative;
+}
+.feedback-wrap{
+  position:relative;
+}
+
+.feedback-wrap{
+  position:relative;
+  /* display:inline-block; */
+  margin-top:10px;
+  padding-right:24px;
+  max-width:100%;
+}
+
+.report-btn-inline{
+  position:absolute;
+  top:50%;
+  right:8px;
+  transform:translateY(-50%);
+  background:none;
+  border:none;
+  cursor:pointer;
+  font-size:1rem;
+  opacity:0.45;
+  transition:opacity .2s;
+  padding:2px;
+  line-height:1;
+}
+
+.feedback-wrap .report-btn-inline{
+  position:absolute;
+  top:50%;
+  right:8px;
+  transform:translateY(-50%);
+  background:none;
+  border:none;
+  cursor:pointer;
+  font-size:1rem;
+  opacity:0.45;
+  transition:opacity .2s;
+  padding:2px;
+  line-height:1;
+}
+
+.feedback-wrap, .report-btn-inline:hover{
+  opacity:1;
+}
+/* .feedback-wrap.show-report{
+  display:block;
+} */
+
+/* .feedback-wrap .report-btn-inline{
+  display:none;
+} */
+
+/* ─── AC-HighSchool (Griechische Kursivschrift, lokal) ─── */
+@font-face {
+  font-family: 'AC-HighSchool';
+  src: url('AC-HighSchool.ttf') format('truetype'),
+       url('AC-HighSchool.otf') format('opentype');
+}
+/* ─── Kursivmodus: Seitenleiste (Buchstabenspalte) ─────── */
+body.cursive-mode.lang-hebrew  .alpha-row b,
+body.cursive-mode.lang-hebrew  .alpha-row.nikud-row b {
+  font-family: 'Playpen Sans Hebrew', cursive !important;
+  font-optical-sizing: auto; font-weight: 400 !important; font-style: normal;
+}
+body.cursive-mode.lang-greek   .alpha-row b {
+  font-family: 'AC-HighSchool', serif !important;
+  font-weight: bold !important;
+}
+body.cursive-mode.lang-cyrillic .alpha-row b {
+  font-family: 'Caveat', cursive !important;
+  font-weight: normal !important;
+}
+/* ─── Kursivmodus: Placeholder bleibt immer Normal-Schrift ─ */
+#freeIn::placeholder, #playIn::placeholder {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-weight: normal;
+  font-style: italic;
+}
+/* ─── Kursivmodus: Eingabefelder Griechisch fett ────────── */
+body.cursive-mode.lang-greek #freeIn,
+body.cursive-mode.lang-greek #playIn,
+body.cursive-mode.lang-greek .out-box {
+  font-weight: bold;
+}
+/* ─── Kursivmodus: Tastatur (Zeichen-Tasten) ───────────── */
+body.cursive-mode.lang-hebrew  #kb-hebrew .key {
+  font-family: 'Playpen Sans Hebrew', cursive !important;
+  font-optical-sizing: auto; font-weight: 400 !important; font-style: normal;
+}
+body.cursive-mode.lang-greek   #kb-greek .key {
+  font-family: 'AC-HighSchool', serif !important;
+  font-weight: bold !important;
+}
+body.cursive-mode.lang-cyrillic #kb-cyrillic .key {
+  font-family: 'Caveat', cursive !important;
+  font-weight: normal !important;
+}
+/* ─── Kursivmodus: Longpress-Popup ─────────────────────── */
+body.cursive-mode.lang-hebrew  .lpp .lpo,
+body.cursive-mode.lang-hebrew  .nikud-picker .lpo {
+  font-family: 'Playpen Sans Hebrew', cursive !important;
+  font-weight: 400 !important;
+}
+
+</style>
+</head>
+<body>
+<aside class="sidebar" id="sidebar">
+  <div class="sb-hdr">
+    <button onclick="toggleMenu()" style="border:none;background:none;cursor:pointer;font-size:1.2rem;color:var(--primary);padding:0 5px 0 0;flex-shrink:0;">&#9776;</button>
+    <span>Alphabet</span>
+    <button onclick="toggleMenu()" style="border:none;background:none;cursor:pointer;font-size:1.4rem;color:var(--primary);">&times;</button>
+  </div>
+  <div class="sb-body" id="alphaList"></div>
+</aside>
+<div class="main" id="mainScroll">
+  <header>
+    <button class="menu-btn" onclick="toggleMenu()">&#9776;</button>
+    <h2 class="hdr-title">Schrift-Trainer</h2>
+    <button class="share-btn" id="shareBtn" aria-label="Link kopieren">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+      </svg>
+      <span class="share-tip">Link kopieren</span>
+    </button>
+    <select id="langSelect" onchange="changeLang()">
+      <option value="greek">&#127468;&#127479; Griechisch</option>
+      <option value="hebrew">&#127470;&#127473; Hebr&#228;isch</option>
+      <option value="cyrillic">&#127479;&#127482; Kyrillisch</option>
+    </select>
+  </header>
+  <div class="container">
+    <details class="info-details" id="infoDetails">
+      <summary>Worum geht es hier?</summary>
+      <div class="info-body">
+        <p>Diese App hilft dir, <strong>fremde Schriftsysteme kennenzulernen</strong> – kein Vokabel-Training, sondern Schrift-Training.</p>
+        <p>Wörter werden nach festen, einfachen Laut- und Buchstabenregeln in das jeweilige Schriftsystem übertragen als sogenannte <strong>Pseudoübersetzungen</strong>, keine echten Wörterbuch-Einträge. Du lernst, wie sich deutsche Laute in griechischen, hebräischen oder kyrillischen Zeichen darstellen lassen.</p>
+        <p>Die Übertragungen wurden laienhaft nach festen Regeln erstellt und können daher Fehler enthalten. Wer Fehler in den tatsächlichen Wörterbuch-Einträgen findet, oder welche die Funktion unmöglich machen, darf sich gerne melden: <button class="info-mail" id="infoMailBtn" onclick="sendMail(event)" title="Fehler per Mail melden">💬</button></p>
+      </div>
+    </details>
+    <div class="card controls-wrap">
+      <div class="tg"><span class="lbl">Modus</span>
+        <div class="tsw">
+          <input type="radio" name="mode" id="m-free" value="free" checked onchange="onModeChange()"><label for="m-free">Freitext</label>
+          <input type="radio" name="mode" id="m-play" value="play" onchange="onModeChange()"><label for="m-play">Quiz</label>
+        </div>
+      </div>
+      <div style="flex:1"></div>
+      <div class="tg"><span class="lbl">Richtung</span>
+        <div class="tsw">
+          <input type="radio" name="dir" id="d-de" value="de-gr" checked onchange="onDirChange()"><label for="d-de">DE&#8594;Ziel</label>
+          <input type="radio" name="dir" id="d-gr" value="gr-de" onchange="onDirChange()"><label for="d-gr">Ziel&#8594;DE</label>
+        </div>
+      </div>
+      <div style="display:none">
+        <input type="radio" name="nikud" id="n-off" value="off" checked onchange="onNikudChange()">
+        <input type="radio" name="nikud" id="n-on" value="on" onchange="onNikudChange()">
+        <input type="radio" name="hebkb" id="hk-std" value="standard" checked onchange="onHebKbChange()">
+        <input type="radio" name="hebkb" id="hk-qw" value="phonetic" onchange="onHebKbChange()">
+        <input type="radio" name="nikinput" id="ni-lp" value="longpress" checked onchange="onNikudInputChange()">
+        <input type="radio" name="nikinput" id="ni-btn" value="button" onchange="onNikudInputChange()">
+        <input type="radio" name="nikinput" id="ni-strip" value="strip" onchange="onNikudInputChange()">
+      </div>
+    </div>
+    <div id="freeSec" class="card">
+      <div style="display:flex;align-items:center;margin-bottom:4px;"><label style="font-size:.82rem;font-weight:bold;color:#555;">Eingabe:</label><span style="flex:1;"></span><span id="nikud-slot-free-in"></span></div>
+      <textarea id="freeIn" rows="3" placeholder="Tippe hier..." inputmode="none"></textarea>
+      <div style="display:flex;align-items:center;margin-top:9px;margin-bottom:4px;"><label style="font-size:.82rem;font-weight:bold;color:#555;">&#220;bersetzung:</label><span style="flex:1;"></span><span id="nikud-slot-free-out"></span></div>
+      <div class="out-wrap">
+      <div class="out-box" id="freeOut"></div>
+      <button class="report-btn-inline" onclick="sendMail(event)" title="Fehler per Mail melden">
+        ⚠️
+      </button>
+</div>
+    </div>
+    <div id="playSec" class="card" style="display:none;">
+      <div style="display:flex;align-items:center;"><div style="text-align:center;font-size:.88rem;color:#666;flex:1;">&#220;bersetze folgendes Wort:</div><span id="nikud-slot-play-tgt"></span></div>
+      <div class="play-word" id="tgtWord" style="cursor:pointer;">WORT</div>
+      <div id="play-heb-in-row" style="display:none;align-items:center;margin-bottom:4px;"><label style="font-size:.82rem;font-weight:bold;color:#555;">Eingabe:</label><span style="flex:1;"></span><span id="nikud-slot-play-in"></span></div>
+      <input type="text" id="playIn" placeholder="Deine &#220;bersetzung..." inputmode="none">
+      <div style="display:flex;gap:10px;margin-top:12px;">
+        <button class="primary" onclick="checkAnswer()" style="flex:2;">Pr&#252;fen</button>
+        <button class="btn" onclick="nextWord()" style="flex:1;">Neu</button>
+      </div>
+      <div id="feedback" class="feedback-wrap">
+        <div class="feedback">
+          <div id="fb-status" class="fb-status"></div>
+          <div id="fb-line1" class="fb-line"></div>
+          <div id="fb-line2" class="fb-line"></div>
+        </div>
+        <button class="report-btn-inline" onclick="sendMail(event)" title="Fehler per Mail melden">
+        ⚠️
+        </button>
+      </div>
+    </div>
+    <div class="keyboard" id="kb-greek">
+      <div class="shuf-wrap"><button class="shuf-btn" id="shufBtn" onclick="toggleShuffle()">&#128256; Zuf&#228;llig: <span id="shufLbl">Aus</span></button></div>
+      <div class="kb-row" id="gr-r1"></div><div class="kb-row" id="gr-r2"></div>
+      <div class="kb-row" id="gr-r3"></div><div class="kb-row" id="gr-r4"></div>
+    </div>
+    <div class="keyboard" id="kb-german">
+      <div class="kb-row" id="de-r1"></div><div class="kb-row" id="de-r2"></div>
+      <div class="kb-row" id="de-r3"></div><div class="kb-row" id="de-r4"></div>
+    </div>
+    <div class="keyboard kb-heb" id="kb-hebrew">
+      <div class="heb-opts-wrap" id="heb-opts-wrap" style="display:none;"></div>
+      <div class="nikud-strip" id="nikud-strip"></div>
+      <div class="kb-row" id="he-r1"></div><div class="kb-row" id="he-r2"></div>
+      <div class="kb-row" id="he-r3"></div><div class="kb-row" id="he-r4"></div>
+    </div>
+    <div class="keyboard" id="kb-cyrillic">
+      <div class="kb-row" id="cy-r1"></div><div class="kb-row" id="cy-r2"></div>
+      <div class="kb-row" id="cy-r3"></div><div class="kb-row" id="cy-r4"></div>
+    </div>
+    <div style="height:20px;"></div>
+  </div>
+  <footer class="site-footer">
+    <div class="footer-content">
+      <button class="footer-author">M.&nbsp;Koch</button>
+      <span class="footer-topic"><a href="./index.html">Mathe-Tools</a></span>
+      <span class="footer-update">Zuletzt aktualisiert:&nbsp;<span id="last-update">...</span></span>
+    </div>
+  </footer>
+</div>
+<button class="gear-btn" id="gearBtn" title="Einstellungen">⚙️</button>
+<div class="gear-menu" id="gearMenu">
+  <div class="tg" data-gtip="Groß-/Kleinschreibung des Aufgabenworts"><span class="lbl">Casing</span>
+    <div class="tsw">
+      <input type="radio" name="case" id="c-n" value="normal" checked onchange="onCaseChange()"><label for="c-n">Normal</label>
+      <input type="radio" name="case" id="c-l" value="lower" onchange="onCaseChange()"><label for="c-l">Klein</label>
+      <input type="radio" name="case" id="c-u" value="upper" onchange="onCaseChange()"><label for="c-u">Groß</label>
+    </div>
+  </div>
+  <div class="tg" id="tolGrp" style="display:none;" data-gtip="Exakt: nur korrekte Schreibweise&#10;Tolerant: Akzente &amp; Buchstabenvarianten erlaubt"><span class="lbl">Toleranz</span>
+    <div class="tsw">
+      <input type="radio" name="tol" id="t-l" value="lenient" checked onchange="updateURL()"><label for="t-l">Tolerant</label>
+      <input type="radio" name="tol" id="t-s" value="strict" onchange="updateURL()"><label for="t-s">Exakt</label>
+    </div>
+  </div>
+  <div class="tg" data-gtip="Schriftbild der Buchstaben in Seitenleiste und Tastatur"><span class="lbl">Schrift</span>
+    <div class="tsw">
+      <input type="radio" name="script" id="sc-p" value="print" checked onchange="onScriptChange()"><label for="sc-p">Druck</label>
+      <input type="radio" name="script" id="sc-k" value="cursive" onchange="onScriptChange()"><label for="sc-k">Kursiv</label>
+    </div>
+  </div>
+</div>
+<div class="gtip-el" id="gtip-el"></div>
+<script>
+// Strip Hebrew nikud combining marks (U+05B0..U+05C7) from a string
+function stripNikud(s){
+  var out='';
+  for(var i=0;i<s.length;i++){var c=s[i];if(c<'\u05B0'||c>'\u05C7')out+=c;}
+  return out;
+}
+
+var L={
+greek:{name:'Griechisch',rtl:false,kbId:'kb-greek',
+ alph:[
+  {u:'\u0391',l:'\u03B1',n:'Alpha',  s:'a',    ex:'kurzes a \u2013 wie in "Apfel"'},
+  {u:'\u0392',l:'\u03B2',n:'Beta',   s:'b/v',  ex:'altgr. "Ball" / neugr. "Wasser"'},
+  {u:'\u0393',l:'\u03B3',n:'Gamma',  s:'g/\u0263',ex:'altgr. g wie in "Garten" / neugr. weiches g'},
+  {u:'\u0394',l:'\u03B4',n:'Delta',  s:'d/\u00F0',ex:'neugr. "Dach" / altgr. wie engl. "the"'},
+  {u:'\u0395',l:'\u03B5',n:'Epsilon',s:'e',    ex:'kurzes e \u2013 wie in "Bett"'},
+  {u:'\u0396',l:'\u03B6',n:'Zeta',   s:'z',    ex:'wie in "Zahl"'},
+  {u:'\u0397',l:'\u03B7',n:'Eta',    s:'i\u02D0/e\u02D0',ex:'neugr. langes i / altgr. langes e'},
+  {u:'\u0398',l:'\u03B8',n:'Theta',  s:'\u03B8',ex:'wie engl. "think" \u2013 kein dt. \u00C4quiv.'},
+  {u:'\u0399',l:'\u03B9',n:'Iota',   s:'i',    ex:'kurzes i \u2013 wie in "Bitte"'},
+  {u:'\u039A',l:'\u03BA',n:'Kappa',  s:'k',    ex:'wie in "Katze"'},
+  {u:'\u039B',l:'\u03BB',n:'Lambda', s:'l',    ex:'wie in "Lampe"'},
+  {u:'\u039C',l:'\u03BC',n:'My',     s:'m',    ex:'wie in "Maus"'},
+  {u:'\u039D',l:'\u03BD',n:'Ny',     s:'n',    ex:'wie in "Nase"'},
+  {u:'\u039E',l:'\u03BE',n:'Xi',     s:'ks',   ex:'wie in "Fuchs"'},
+  {u:'\u039F',l:'\u03BF',n:'Omikron',s:'o',    ex:'kurzes o \u2013 wie in "Post"'},
+  {u:'\u03A0',l:'\u03C0',n:'Pi',     s:'p',    ex:'wie in "Papa"'},
+  {u:'\u03A1',l:'\u03C1',n:'Rho',    s:'r',    ex:'gerolltes r \u2013 wie in "Radio"'},
+  {u:'\u03A3',l:'\u03C3,\u03C2',n:'Sigma',s:'s',ex:'"Sonne" am Anfang / "Haus" am Ende'},
+  {u:'\u03A4',l:'\u03C4',n:'Tau',    s:'t',    ex:'wie in "Tisch"'},
+  {u:'\u03A5',l:'\u03C5',n:'Ypsilon',s:'i/y',  ex:'neugr. i wie "Bitte" / altgr. y wie "\u00FCber"'},
+  {u:'\u03A6',l:'\u03C6',n:'Phi',    s:'f',    ex:'wie in "Feuer"'},
+  {u:'\u03A7',l:'\u03C7',n:'Chi',    s:'x/\u00E7',ex:'"Bach" (hinten) / "ich" (vorne)'},
+  {u:'\u03A8',l:'\u03C8',n:'Psi',    s:'ps',   ex:'wie in "Gips"'},
+  {u:'\u03A9',l:'\u03C9',n:'Omega',  s:'o\u02D0',ex:'langes o \u2013 wie in "Boot"'},
+ ],
+ alts:{
+  '\u03B5':['\u0395'],'\u03C1':['\u03A1'],'\u03C4':['\u03A4'],'\u03C5':['\u03A5'],
+  '\u03B8':['\u03B7','\u0398'],'\u03B9':['\u03B7','\u0399'],'\u03BF':['\u03C9','\u039F'],
+  '\u03B1':['\u0391'],'\u03C3':['\u03C2','\u03A3'],'\u03B4':['\u0394'],'\u03C6':['\u03A6'],
+  '\u03B3':['\u0393'],'\u03B7':['\u0397'],'\u03BE':['\u039E'],'\u03BA':['\u039A'],
+  '\u03BB':['\u039B'],'\u03B6':['\u0396'],'\u03C7':['\u03A7'],'\u03C8':['\u03A8'],
+  '\u03C9':['\u03A9'],'\u03B2':['\u0392'],'\u03BD':['\u039D'],'\u03BC':['\u039C'],
+  '\u03C0':['\u03A0'],'\u03C2':['\u03C3','\u03A3'],
+ },
+ lay:{
+  lo:[
+   ['\u03C2','\u03B5','\u03C1','\u03C4','\u03C5','\u03B8','\u03B9','\u03BF','\u03C0'],
+   ['\u03B1','\u03C3','\u03B4','\u03C6','\u03B3','\u03B7','\u03BE','\u03BA','\u03BB'],
+   ['SHIFT','\u03B6','\u03C7','\u03C8','\u03C9','\u03B2','\u03BD','\u03BC','BS']
+  ],
+  up:[
+   ['\u03A3','\u0395','\u03A1','\u03A4','\u03A5','\u0398','\u0399','\u039F','\u03A0'],
+   ['\u0391','\u03A3','\u0394','\u03A6','\u0393','\u0397','\u039E','\u039A','\u039B'],
+   ['SHIFT','\u0396','\u03A7','\u03A8','\u03A9','\u0392','\u039D','\u039C','BS']
+  ]
+ },
+ words:['Pythagoras','Thales','Kathete','Hypotenuse','Geometrie','Mathematik','Arithmetik','Symmetrie','Parabel','Hyperbel','Prisma','Zylinder','Polygon','Physik','Biologie','Geographie','Astronomie','Logik','Analyse','Synthese','Hypothese','Atom','Elektron','Bibliothek','Stadion','Theater','Museum','Demokratie','Politik','Philosophie','Kosmos','Chaos','Chronos','Epoche','Mythologie','Olymp','Akropolis','Sparta','Athen','Europa','Dialog','Monolog','Rhetorik','Alphabet','Feta','Gyros','Ouzo','Tzatziki','Pita','Taverne','Olive','Kreta','Mykonos','Rhodos','Aroma','Basis','Charisma','Dosis','Echo','Hymne','Klima','Koma','Melodie','Metrum','Optik','Orchester','Pause','Phase','Schema','System','Technik','Thema','Trauma','Zentrum'],
+ wordsDict:{
+  'Thales':'\u0398\u03B1\u03BB\u03AE\u03C2','Kathete':'\u039A\u03AC\u03B8\u03B5\u03C4\u03B7',
+  'Hypotenuse':'\u03A5\u03C0\u03BF\u03C4\u03B5\u03AF\u03BD\u03BF\u03C5\u03C3\u03B1',
+  'Geometrie':'\u0393\u03B5\u03C9\u03BC\u03B5\u03C4\u03C1\u03AF\u03B1',
+  'Mathematik':'\u039C\u03B1\u03B8\u03B7\u03BC\u03B1\u03C4\u03B9\u03BA\u03AE',
+  'Arithmetik':'\u0391\u03C1\u03B9\u03B8\u03BC\u03B7\u03C4\u03B9\u03BA\u03AE',
+  'Symmetrie':'\u03A3\u03C5\u03BC\u03BC\u03B5\u03C4\u03C1\u03AF\u03B1',
+  'Parabel':'\u03A0\u03B1\u03C1\u03B1\u03B2\u03BF\u03BB\u03AE',
+  'Hyperbel':'\u03A5\u03C0\u03B5\u03C1\u03B2\u03BF\u03BB\u03AE',
+  'Prisma':'\u03A0\u03C1\u03AF\u03C3\u03BC\u03B1',
+  'Zylinder':'\u039A\u03CD\u03BB\u03B9\u03BD\u03B4\u03C1\u03BF\u03C2',
+  'Polygon':'\u03A0\u03BF\u03BB\u03CD\u03B3\u03C9\u03BD\u03BF',
+  'Physik':'\u03A6\u03C5\u03C3\u03B9\u03BA\u03AE',
+  'Biologie':'\u0392\u03B9\u03BF\u03BB\u03BF\u03B3\u03AF\u03B1',
+  'Geographie':'\u0393\u03B5\u03C9\u03B3\u03C1\u03B1\u03C6\u03AF\u03B1',
+  'Astronomie':'\u0391\u03C3\u03C4\u03C1\u03BF\u03BD\u03BF\u03BC\u03AF\u03B1',
+  'Logik':'\u039B\u03BF\u03B3\u03B9\u03BA\u03AE',
+  'Analyse':'\u0391\u03BD\u03AC\u03BB\u03C5\u03C3\u03B7',
+  'Synthese':'\u03A3\u03CD\u03BD\u03B8\u03B5\u03C3\u03B7',
+  'Hypothese':'\u03A5\u03C0\u03CC\u03B8\u03B5\u03C3\u03B7',
+  'Atom':'\u0386\u03C4\u03BF\u03BC\u03BF',
+  'Elektron':'\u0397\u03BB\u03B5\u03BA\u03C4\u03C1\u03CC\u03BD\u03B9\u03BF',
+  'Bibliothek':'\u0392\u03B9\u03B2\u03BB\u03B9\u03BF\u03B8\u03AE\u03BA\u03B7',
+  'Stadion':'\u03A3\u03C4\u03AC\u03B4\u03B9\u03BF',
+  'Theater':'\u0398\u03AD\u03B1\u03C4\u03C1\u03BF',
+  'Museum':'\u039C\u03BF\u03C5\u03C3\u03B5\u03AF\u03BF',
+  'Demokratie':'\u0394\u03B7\u03BC\u03BF\u03BA\u03C1\u03B1\u03C4\u03AF\u03B1',
+  'Politik':'\u03A0\u03BF\u03BB\u03B9\u03C4\u03B9\u03BA\u03AE',
+  'Philosophie':'\u03A6\u03B9\u03BB\u03BF\u03C3\u03BF\u03C6\u03AF\u03B1',
+  'Epoche':'\u0395\u03C0\u03BF\u03C7\u03AE',
+  'Mythologie':'\u039C\u03C5\u03B8\u03BF\u03BB\u03BF\u03B3\u03AF\u03B1',
+  'Olymp':'\u038C\u03BB\u03C5\u03BC\u03C0\u03BF\u03C2',
+  'Akropolis':'\u0391\u03BA\u03C1\u03CC\u03C0\u03BF\u03BB\u03B7',
+  'Sparta':'\u03A3\u03C0\u03AC\u03C1\u03C4\u03B7',
+  'Athen':'\u0391\u03B8\u03AE\u03BD\u03B1',
+  'Europa':'\u0395\u03C5\u03C1\u03CE\u03C0\u03B7',
+  'Dialog':'\u0394\u03B9\u03AC\u03BB\u03BF\u03B3\u03BF\u03C2',
+  'Monolog':'\u039C\u03BF\u03BD\u03CC\u03BB\u03BF\u03B3\u03BF\u03C2',
+  'Rhetorik':'\u03A1\u03B7\u03C4\u03BF\u03C1\u03B9\u03BA\u03AE',
+  'Alphabet':'\u0391\u03BB\u03C6\u03AC\u03B2\u03B7\u03C4\u03BF',
+  'Taverne':'\u03A4\u03B1\u03B2\u03AD\u03C1\u03BD\u03B1',
+  'Olive':'\u0395\u03BB\u03B9\u03AC',
+  'Kreta':'\u039A\u03C1\u03AE\u03C4\u03B7',
+  'Rhodos':'\u03A1\u03CC\u03B4\u03BF\u03C2',
+  'Aroma':'\u0386\u03C1\u03C9\u03BC\u03B1',
+  'Basis':'\u0392\u03AC\u03C3\u03B7',
+  'Dosis':'\u0394\u03CC\u03C3\u03B7',
+  'Echo':'\u0397\u03C7\u03CE',
+  'Hymne':'\u038E\u03BC\u03BD\u03BF\u03C2',
+  'Melodie':'\u039C\u03B5\u03BB\u03C9\u03B4\u03AF\u03B1',
+  'Metrum':'\u039C\u03AD\u03C4\u03C1\u03BF',
+  'Optik':'\u039F\u03C0\u03C4\u03B9\u03BA\u03AE',
+  'Orchester':'\u039F\u03C1\u03C7\u03AE\u03C3\u03C4\u03C1\u03B1',
+  'Pause':'\u03A0\u03B1\u03CD\u03C3\u03B7',
+  'Phase':'\u03A6\u03AC\u03C3\u03B7',
+  'Schema':'\u03A3\u03C7\u03AE\u03BC\u03B1',
+  'System':'\u03A3\u03CD\u03C3\u03C4\u03B7\u03BC\u03B1',
+  'Technik':'\u03A4\u03B5\u03C7\u03BD\u03B9\u03BA\u03AE',
+  'Zentrum':'\u039A\u03AD\u03BD\u03C4\u03C1\u03BF',
+ }
+},
+
+hebrew:{name:'Hebr\u00E4isch',rtl:true,kbId:'kb-hebrew',
+ alph:[
+  {u:'',              l:'\u05D0',                     n:'Aleph',    s:'\u02C0',            ex:'Knacklaut \u2013 wie in "be|obachten"'},
+  {u:'',              l:'\u05D1/\u05D1\u05BC',        n:'Beth/Veth',s:'b/v',               ex:'"Ball" / "Vater"'},
+  {u:'',              l:'\u05D2',                     n:'Gimel',    s:'g',                 ex:'wie in "Garten"'},
+  {u:'',              l:'\u05D3',                     n:'Daleth',   s:'d',                 ex:'wie in "Dach"'},
+  {u:'',              l:'\u05D4',                     n:'He',       s:'h',                 ex:'wie in "Haus"'},
+  {u:'',              l:'\u05D5',                     n:'Vav',      s:'v/o\u02D0/u\u02D0', ex:'"Vater" / "Boot" / "Ruhm"'},
+  {u:'',              l:'\u05D6',                     n:'Zayin',    s:'z',                 ex:'wie in "Zahl"'},
+  {u:'',              l:'\u05D7',                     n:'Chet',     s:'\u03C7',            ex:'wie in "Bach" (velar)'},
+  {u:'',              l:'\u05D8',                     n:'Tet',      s:'t',                 ex:'wie in "Tisch"'},
+  {u:'',              l:'\u05D9',                     n:'Yod',      s:'j/i',               ex:'"J\u00E4ger" / "Bitte"'},
+  {u:'\u05DB\u05BC',  l:'\u05DA/\u05DB',              n:'Kaf',      s:'k/x',               ex:'"Katze" / "Bach"'},
+  {u:'',              l:'\u05DC',                     n:'Lamed',    s:'l',                 ex:'wie in "Lampe"'},
+  {u:'',              l:'\u05DD/\u05DE',              n:'Mem',      s:'m',                 ex:'wie in "Maus"'},
+  {u:'',              l:'\u05DF/\u05E0',              n:'Nun',      s:'n',                 ex:'wie in "Nase"'},
+  {u:'',              l:'\u05E1',                     n:'Samekh',   s:'s',                 ex:'wie in "Sonne"'},
+  {u:'',              l:'\u05E2',                     n:'Ayin',     s:'\u02BF',            ex:'tiefer Kehlkopflaut \u2013 kein dt. \u00C4quiv.'},
+  {u:'\u05E4\u05BC',  l:'\u05E3/\u05E4',              n:'Pe/Fe',    s:'p/f',               ex:'"Papa" / "Feuer"'},
+  {u:'',              l:'\u05E5/\u05E6',              n:'Tsade',    s:'ts',                ex:'wie in "Zahl" (ts-Laut)'},
+  {u:'',              l:'\u05E7',                     n:'Qof',      s:'k',                 ex:'wie in "Katze"'},
+  {u:'',              l:'\u05E8',                     n:'Resh',     s:'\u0281',            ex:'Rachen-R \u2013 wie in "Rad"'},
+  {u:'',              l:'\u05E9\u05B9/\u05E9\u05C1',  n:'Shin/Sin', s:'\u0283/s',          ex:'"Schule" / "Sonne"'},
+  {u:'',              l:'\u05EA\u05BC/\u05EA',        n:'Tav',      s:'t',                 ex:'wie in "Tisch"'},
+ ],
+ nikud:[
+  {sym:'\u05B7',name:'Patach',      val:'a',          ex:'kurzes a \u2013 wie in "Apfel"'},
+  {sym:'\u05B8',name:'Kamaz',       val:'a\u02D0',     ex:'langes a \u2013 wie in "Vater"'},
+  {sym:'\u05B6',name:'Segol',       val:'e',           ex:'kurzes e \u2013 wie in "Bett"'},
+  {sym:'\u05B5',name:'Tsere',       val:'e\u02D0',     ex:'langes e \u2013 wie in "Weg"'},
+  {sym:'\u05B4',name:'Chirik',      val:'i',           ex:'kurzes i \u2013 wie in "Bitte"'},
+  {sym:'\u05B9',name:'Cholam',      val:'o\u02D0',     ex:'langes o \u2013 wie in "Boot"'},
+  {sym:'\u05BB',name:'Kubuz',       val:'u',           ex:'wie in "Mutter"'},
+  {sym:'\u05BC',name:'Dagesh',      val:'\u00B7',      ex:'Verstärkungs-/Verdopplungspunkt'},
+  {sym:'\u05B0',name:'Schwa',       val:'e/\u2013',    ex:'sehr kurzes e oder stumm'},
+  {sym:'\u05B1',name:'Chataf-Segol',val:'\u0115',      ex:'ultra-kurzes e (nach Kehllauten)'},
+  {sym:'\u05B2',name:'Chataf-Patach',val:'\u0103',     ex:'ultra-kurzes a (nach Kehllauten)'},
+  {sym:'\u05B3',name:'Chataf-Kamaz',val:'\u014F',      ex:'ultra-kurzes o (nach Kehllauten)'},
+ ],
+ alts:{
+  // Non-nikud variants (sofit forms, dagesh/sin-shin variants) – always shown
+  // Nikud appended when longpress+nikud mode active (all 14 nikud for any letter)
+  // Format: non-nikud variants listed first, nikud appended programmatically
+  '\u05DB':['\u05DA','\u05DB\u05BC'],'\u05DA':['\u05DB'],
+  '\u05DE':['\u05DD'],'\u05DD':['\u05DE'],
+  '\u05E0':['\u05DF'],'\u05DF':['\u05E0'],
+  '\u05E4':['\u05E3','\u05E4\u05BC'],'\u05E3':['\u05E4'],
+  '\u05E6':['\u05E5'],'\u05E5':['\u05E6'],
+  '\u05D1':['\u05D1\u05BC'],
+  '\u05E9':['\u05E9\u05C1','\u05E9\u05C2'],
+  '\u05D5':['\u05D5\u05BC'],
+ },
+ lay:{
+  lo:[
+   ['\u05E7','\u05E8','\u05D0','\u05D8','\u05D5','\u05DF','\u05DE','\u05E4'],
+   ['\u05E9','\u05D3','\u05D2','\u05DB','\u05E2','\u05D9','\u05D7','\u05DC','\u05DA','\u05E3'],
+   ['\u05D6','\u05E1','\u05D1','\u05D4','\u05E0','\u05E6','\u05EA','\u05E5','BS']
+  ],
+  // Shift layer: sofit↔regular swaps, ב→בּ, ו→וּ, ש→שׂ; '' = empty (does nothing)
+  up:[
+   ['','','','','\u05D5\u05BC','\u05E0','',''],
+   ['\u05E9\u05C2','','','','','','','','\u05DB','\u05E4'],
+   ['','','\u05D1\u05BC','','\u05DF','','' ,'\u05E6','BS']
+  ]
+ },
+ // Phonetic layout as specified by user:
+ // Row1: Qof Schin Ayin Resch Tav Tet Vav Yod Vav Pe
+ // Row2: Aleph Samekh Dalet Pe Gimel He Chet Kaf Lamed
+ // Row3: Zayin Chet Tsadi Vav Beth Nun Mem BS
+ layPhonetic:{
+  lo:[
+   ['\u05E7','\u05E9','\u05E2','\u05E8','\u05EA','\u05D8','\u05D5','\u05D9','\u05D5','\u05E4'],
+   ['\u05D0','\u05E1','\u05D3','\u05E4','\u05D2','\u05D4','\u05D7','\u05DB','\u05DC'],
+   ['\u05D6','\u05D7','\u05E6','\u05D5','\u05D1','\u05E0','\u05DE','BS']
+  ],
+  up:[
+   ['','\u05E9\u05C2','','','','','\u05D5\u05BC','','','\u05E4\u05BC'],
+   ['','','','','','','','\u05DB\u05BC',''],
+   ['','','\u05E5','','\u05D1\u05BC','\u05DF','\u05DD','BS']
+  ]
+ },
+ // Correct Hebrew spellings where algorithm phonetic output differs
+ wordsDict:{
+  'Schabbat':'\u05E9\u05D1\u05EA','Pessach':'\u05E4\u05E1\u05D7','Chanukka':'\u05D7\u05E0\u05D5\u05DB\u05D4',
+  'Rosch haSchana':'\u05E8\u05D0\u05E9 \u05D4\u05E9\u05E0\u05D4','Schawuot':'\u05E9\u05D1\u05D5\u05E2\u05D5\u05EA',
+  'Tischa beAw':'\u05EA\u05E9\u05E2\u05D4 \u05D1\u05D0\u05D1','Simchat Tora':'\u05E9\u05DE\u05D7\u05EA \u05EA\u05D5\u05E8\u05D4',
+  'Lag baOmer':'\u05DC\u05D2 \u05D1\u05E2\u05D5\u05DE\u05E8','Tu biSchwat':'\u05D8\u05D5 \u05D1\u05E9\u05D1\u05D8',
+  'Synagoge':'\u05D1\u05D9\u05EA \u05DB\u05E0\u05E1\u05EA','Rabbi':'\u05E8\u05D1\u05D9','Torah':'\u05EA\u05D5\u05E8\u05D4',
+  'Talmud':'\u05EA\u05DC\u05DE\u05D5\u05D3','Machsor':'\u05DE\u05D7\u05D6\u05D5\u05E8',
+  'Minjan':'\u05DE\u05E0\u05D9\u05D9\u05DF','Kiddusch':'\u05E7\u05D9\u05D3\u05D5\u05E9',
+  'Hawdala':'\u05D4\u05D1\u05D3\u05DC\u05D4','Birkat haMazon':'\u05D1\u05E8\u05DB\u05EA \u05D4\u05DE\u05D6\u05D5\u05DF',
+  'Schacharit':'\u05E9\u05D7\u05E8\u05D9\u05EA','Mincha':'\u05DE\u05E0\u05D7\u05D4','Maariv':'\u05DE\u05E2\u05E8\u05D9\u05D1',
+  'Haggada':'\u05D4\u05D2\u05D3\u05D4','Matzot':'\u05DE\u05E6\u05D5\u05EA','Matze':'\u05DE\u05E6\u05D4',
+  'Afikoman':'\u05D0\u05E4\u05D9\u05E7\u05D5\u05DE\u05DF','Menora':'\u05DE\u05E0\u05D5\u05E8\u05D4',
+  'Chanukkia':'\u05D7\u05E0\u05D5\u05DB\u05D9\u05D9\u05D4','Dreidel':'\u05D3\u05E8\u05D9\u05D9\u05D3\u05DC',
+  'Lulav':'\u05DC\u05D5\u05DC\u05D1','Schofar':'\u05E9\u05D5\u05E4\u05E8','Sukka':'\u05E1\u05D5\u05DB\u05D4',
+  'Mischloach Manot':'\u05DE\u05E9\u05DC\u05D5\u05D7 \u05DE\u05E0\u05D5\u05EA',
+  'Purimspiel':'\u05E4\u05D5\u05E8\u05D9\u05DD \u05E9\u05E4\u05D9\u05DC',
+  'Kipa':'\u05DB\u05D9\u05E4\u05D4','Tallit':'\u05D8\u05DC\u05D9\u05EA','Mezuza':'\u05DE\u05D6\u05D5\u05D6\u05D4',
+  'Torarolle':'\u05E1\u05E4\u05E8 \u05EA\u05D5\u05E8\u05D4','Chuppa':'\u05D7\u05D5\u05E4\u05D4',
+  'Ketuba':'\u05DB\u05EA\u05D5\u05D1\u05D4','Kidduschbecher':'\u05DB\u05D5\u05E1 \u05E7\u05D9\u05D3\u05D5\u05E9',
+  'Leuchter':'\u05DC\u05D5\u05D9\u05DB\u05D8\u05E8','Siebenarmiger Leuchter':'\u05DE\u05E0\u05D5\u05E8\u05D4',
+  'Davidstern':'\u05DE\u05D2\u05DF \u05D3\u05D5\u05D3','Hamsa':'\u05D7\u05DE\u05E1\u05D4',
+  'Challah':'\u05D7\u05DC\u05D4','Gefilte Fisch':'\u05D2\u05E4\u05D9\u05DC\u05D8\u05E2 \u05E4\u05D9\u05E9',
+  'Latke':'\u05DC\u05D0\u05D8\u05E7\u05E2','Sufganija':'\u05E1\u05D5\u05E4\u05D2\u05E0\u05D9\u05D4',
+  'Hamantasche':'\u05D4\u05DE\u05E0\u05D8\u05D0\u05E9','Tzimmes':'\u05E6\u05D9\u05DE\u05E2\u05E1',
+  'Bagel':'\u05D1\u05D9\u05D9\u05D2\u05DC','Hummus':'\u05D7\u05D5\u05DE\u05D5\u05E1',
+  'Falafel':'\u05E4\u05DC\u05D0\u05E4\u05DC','Tahini':'\u05D8\u05D7\u05D9\u05E0\u05D4',
+  'Schawarma':'\u05E9\u05D5\u05D5\u05D0\u05E8\u05DE\u05D4','Haloumi':'\u05D7\u05DC\u05D5\u05DE\u05D9',
+  'Shalom':'\u05E9\u05DC\u05D5\u05DD','Schalom':'\u05E9\u05DC\u05D5\u05DD',
+  'Masel tov':'\u05DE\u05D6\u05DC \u05D8\u05D5\u05D1','Lehajim':'\u05DC\u05D7\u05D9\u05D9\u05DD',
+  'Halleluja':'\u05D4\u05DC\u05DC\u05D5\u05D9\u05D4','Baruch':'\u05D1\u05E8\u05D5\u05DA',
+  'Todah':'\u05EA\u05D5\u05D3\u05D4','Schana towa':'\u05E9\u05E0\u05D4 \u05D8\u05D5\u05D1\u05D4',
+  'Gmar chatima towa':'\u05D2\u05DE\u05E8 \u05D7\u05EA\u05D9\u05DE\u05D4 \u05D8\u05D5\u05D1\u05D4',
+  'Chag sameach':'\u05D7\u05D2 \u05E9\u05DE\u05D7',
+  'Jerusalem':'\u05D9\u05E8\u05D5\u05E9\u05DC\u05D9\u05DD','Haifa':'\u05D7\u05D9\u05E4\u05D4',
+  'Tiberias':'\u05D8\u05D1\u05E8\u05D9\u05D4','Nazareth':'\u05E0\u05E6\u05E8\u05EA',
+  'Masada':'\u05DE\u05E6\u05D3\u05D4','Kibbutz':'\u05E7\u05D9\u05D1\u05D5\u05E5',
+  'Moshav':'\u05DE\u05D5\u05E9\u05D1','Gali\u00E4a':'\u05D2\u05DC\u05D9\u05DC',
+  'Totes Meer':'\u05D9\u05DD \u05D4\u05DE\u05DC\u05D7','Jordan':'\u05D9\u05E8\u05D3\u05DF',
+  'Messias':'\u05DE\u05E9\u05D9\u05D7','Cherub':'\u05DB\u05E8\u05D5\u05D1',
+  'Eden':'\u05E2\u05D3\u05DF','Dybbuk':'\u05D3\u05D9\u05D1\u05D5\u05E7',
+  'Kabbalah':'\u05E7\u05D1\u05DC\u05D4','Jeschibah':'\u05D9\u05E9\u05D9\u05D1\u05D4',
+  'Sanhedrin':'\u05E1\u05E0\u05D4\u05D3\u05E8\u05D9\u05DF','Psalm':'\u05DE\u05D6\u05DE\u05D5\u05E8',
+  'Exodus':'\u05E9\u05DE\u05D5\u05EA','Genesis':'\u05D1\u05E8\u05D0\u05E9\u05D9\u05EA',
+  'Levitikus':'\u05D5\u05D9\u05E7\u05E8\u05D0','Numeri':'\u05D1\u05DE\u05D3\u05D1\u05E8',
+  'Deuteronomium':'\u05D3\u05D1\u05E8\u05D9\u05DD','Kantor':'\u05D7\u05D6\u05DF',
+ },
+ // Hebrew words WITH nikud for nikud mode
+ wordsNikud:[
+  'שַבָּת',
+  'שַלוֹם',
+  'תּוֹרָה',
+  'מְנוֹרָה',
+  'מַצָּה',
+  'סֵדֶר',
+  'אָמֵן',
+  'קִבּוּץ',
+  'אֱלֹהִים',
+  'בְרֵאשִׁית',
+  'חֲנֻכָּה',
+  'פֶּסַח',
+  'שׁוֹפָר',
+  'לִוּלָב',
+  'כִּפָּה',
+  'טַלִּית',
+  'מְזוּזָה',
+  'חַלָּה',
+  'סֻכָּה',
+  'הַגָּדָה',
+ ],
+ words:[
+  // Feiertage
+  'Schabbat','Pessach','Chanukka','Sukkot','Purim','Rosch haSchana','Jom Kippur',
+  'Schawuot','Tischa beAw','Simchat Tora','Lag baOmer','Tu biSchwat',
+  // Synagoge & Gebet
+  'Synagoge','Rabbi','Kantor','Torah','Talmud','Siddur','Machsor','Minjan',
+  'Schabbat','Kiddusch','Hawdala','Birkat haMazon','Schacharit','Mincha','Maariv',
+  // Feste & Bräuche
+  'Seder','Haggada','Matzot','Afikoman','Menora','Chanukkia','Dreidel','Grogger',
+  'Lulav','Etrog','Schofar','Sukka','Mischloach Manot','Purimspiel',
+  // Gegenstände
+  'Kipa','Tallit','Tfilin','Mezuza','Torarolle','Chuppa','Ketuba','Kidduschbecher',
+  'Leuchter','Siebenarmiger Leuchter','Davidstern','Hamsa',
+  // Essen
+  'Matze','Challah','Gefilte Fisch','Latke','Sufganija','Hamantasche','Tzimmes',
+  'Bagel','Hummus','Falafel','Tahini','Schawarma','Haloumi',
+  // Grüße & Begriffe
+  'Shalom','Schalom','Masel tov','Lehajim','Amen','Halleluja','Baruch','Todah',
+  'Schana towa','Gmar chatima towa','Chag sameach',
+  // Orte & Geschichte
+  'Jerusalem','Tel Aviv','Haifa','Tiberias','Nazareth','Jericho','Masada','Knesset',
+  'Kibbutz','Moshav','Negev','Galiläa','Totes Meer','Jordan',
+  // Allgemein
+  'Messias','Cherub','Eden','Golem','Dybbuk','Kabbalah','Jeschibah','Sanhedrin',
+  'Psalm','Exodus','Genesis','Levitikus','Numeri',
+ ],
+},
+
+cyrillic:{name:'Kyrillisch',rtl:false,kbId:'kb-cyrillic',
+ alph:[
+  {u:'\u0410',l:'\u0430',n:'A',        s:'a',  ex:'kurzes a \u2013 wie in "Apfel"'},
+  {u:'\u0411',l:'\u0431',n:'Be',       s:'b',  ex:'wie in "Ball"'},
+  {u:'\u0412',l:'\u0432',n:'We',       s:'v',  ex:'wie in "Wasser"'},
+  {u:'\u0413',l:'\u0433',n:'Ge',       s:'g',  ex:'wie in "Garten"'},
+  {u:'\u0414',l:'\u0434',n:'De',       s:'d',  ex:'wie in "Dach"'},
+  {u:'\u0415',l:'\u0435',n:'Je',       s:'je', ex:'wie in "Jetzt"'},
+  {u:'\u0401',l:'\u0451',n:'Jo',       s:'jo', ex:'wie in "Joch"'},
+  {u:'\u0416',l:'\u0436',n:'Zhe',      s:'\u0292',ex:'wie in "Garage" (frz.)'},
+  {u:'\u0417',l:'\u0437',n:'Se',       s:'z',  ex:'wie in "Zahl"'},
+  {u:'\u0418',l:'\u0438',n:'I',        s:'i',  ex:'kurzes i \u2013 wie in "Bitte"'},
+  {u:'\u0419',l:'\u0439',n:'Kratk.',   s:'j',  ex:'kurzes j \u2013 wie in "Mai"'},
+  {u:'\u041A',l:'\u043A',n:'Ka',       s:'k',  ex:'wie in "Katze"'},
+  {u:'\u041B',l:'\u043B',n:'El',       s:'l',  ex:'wie in "Lampe"'},
+  {u:'\u041C',l:'\u043C',n:'Em',       s:'m',  ex:'wie in "Maus"'},
+  {u:'\u041D',l:'\u043D',n:'En',       s:'n',  ex:'wie in "Nase"'},
+  {u:'\u041E',l:'\u043E',n:'O',        s:'o',  ex:'kurzes o \u2013 wie in "Post"'},
+  {u:'\u041F',l:'\u043F',n:'Pe',       s:'p',  ex:'wie in "Papa"'},
+  {u:'\u0420',l:'\u0440',n:'Er',       s:'r',  ex:'gerolltes r \u2013 wie in "Radio"'},
+  {u:'\u0421',l:'\u0441',n:'Es',       s:'s',  ex:'wie in "Sonne"'},
+  {u:'\u0422',l:'\u0442',n:'Te',       s:'t',  ex:'wie in "Tisch"'},
+  {u:'\u0423',l:'\u0443',n:'U',        s:'u',  ex:'wie in "Mutter"'},
+  {u:'\u0424',l:'\u0444',n:'Ef',       s:'f',  ex:'wie in "Feuer"'},
+  {u:'\u0425',l:'\u0445',n:'Cha',      s:'x',  ex:'wie in "Bach"'},
+  {u:'\u0426',l:'\u0446',n:'Ze',       s:'ts', ex:'wie in "Zahl" (ts)'},
+  {u:'\u0427',l:'\u0447',n:'Tschi',    s:'t\u0255',ex:'weiches tsch \u2013 wie in "T\u00FCte"'},
+  {u:'\u0428',l:'\u0448',n:'Scha',     s:'\u0283',ex:'wie in "Schule"'},
+  {u:'\u0429',l:'\u0449',n:'Schtsch.', s:'\u0255\u0255',ex:'langes weiches sch (kein dt. \u00C4quiv.)'},
+  {u:'\u042A',l:'\u044A',n:'Hart-Z.',  s:'\u02BA',ex:'hartes Trennzeichen (kein Laut)'},
+  {u:'\u042B',l:'\u044B',n:'Y',        s:'\u0268',ex:'dunkles i \u2013 \u00E4hnl. in "Rhythmus"'},
+  {u:'\u042C',l:'\u044C',n:'Weich-Z.', s:'\u02B2',ex:'Erweichung des Vorg\u00E4ngerlauts'},
+  {u:'\u042D',l:'\u044D',n:'E',        s:'\u025B',ex:'offenes e \u2013 wie in "Bett"'},
+  {u:'\u042E',l:'\u044E',n:'Ju',       s:'ju', ex:'wie in "Junge"'},
+  {u:'\u042F',l:'\u044F',n:'Ja',       s:'ja', ex:'wie in "Jahr"'},
+ ],
+ alts:{'\u0435':['\u0451'],'\u0437':['\u0436'],'\u0438':['\u0439','\u044B'],'\u0441':['\u0448','\u0449'],'\u0442':['\u0447']},
+ lay:{
+  lo:[
+   ['\u0439','\u0446','\u0443','\u043A','\u0435','\u043D','\u0433','\u0448','\u0449','\u0437'],
+   ['\u0444','\u044B','\u0432','\u0430','\u043F','\u0440','\u043E','\u043B','\u0434','\u0436'],
+   ['SHIFT','\u044D','\u044F','\u0447','\u0441','\u043C','\u0438','\u0442','\u044C','\u044A','\u044E','BS']
+  ],
+  up:[
+   ['\u0419','\u0426','\u0423','\u041A','\u0415','\u041D','\u0413','\u0428','\u0429','\u0417'],
+   ['\u0424','\u042B','\u0412','\u0410','\u041F','\u0420','\u041E','\u041B','\u0414','\u0416'],
+   ['SHIFT','\u042D','\u042F','\u0427','\u0421','\u041C','\u0418','\u0422','\u042C','\u042A','\u042E','BS']
+  ]
+ },
+ words:['Sputnik','Kosmos','Wodka','Samowar','Taiga','Tundra','Steppe','Balalaika','Matroschka','Kaviar','Zar','Kasatschok','Borscht','Piroschki','Moskau','Sibirien','Kreml','Bolschoi','Glasnost','Perestrojka','Sowjet','Kopeke','Rubel','Pelz','Mammut','Kobalt','Quarz','Nickel','Duma','Gulag','Kolchos','Wolga','Ural','Kaukasus','Kosmonaut','Baikal'],
+ wordsDict:{
+  'Taiga':'\u0422\u0430\u0439\u0433\u0430','Steppe':'\u0421\u0442\u0435\u043F\u044C',
+  'Balalaika':'\u0411\u0430\u043B\u0430\u043B\u0430\u0439\u043A\u0430',
+  'Matroschka':'\u041C\u0430\u0442\u0440\u0451\u0448\u043A\u0430',
+  'Kaviar':'\u041A\u0430\u0432\u044C\u044F\u0440','Zar':'\u0426\u0430\u0440\u044C',
+  'Kasatschok':'\u041A\u0430\u0437\u0430\u0447\u043E\u043A',
+  'Borscht':'\u0411\u043E\u0440\u0449',
+  'Piroschki':'\u041F\u0438\u0440\u043E\u0436\u043A\u0438',
+  'Moskau':'\u041C\u043E\u0441\u043A\u0432\u0430',
+  'Sibirien':'\u0421\u0438\u0431\u0438\u0440\u044C',
+  'Kreml':'\u041A\u0440\u0435\u043C\u043B\u044C',
+  'Bolschoi':'\u0411\u043E\u043B\u044C\u0448\u043E\u0439',
+  'Glasnost':'\u0413\u043B\u0430\u0441\u043D\u043E\u0441\u0442\u044C',
+  'Sowjet':'\u0421\u043E\u0432\u0435\u0442',
+  'Kopeke':'\u041A\u043E\u043F\u0435\u0439\u043A\u0430',
+  'Rubel':'\u0420\u0443\u0431\u043B\u044C',
+  'Pelz':'\u041C\u0435\u0445','Mammut':'\u041C\u0430\u043C\u043E\u043D\u0442',
+  'Kobalt':'\u041A\u043E\u0431\u0430\u043B\u044C\u0442',
+  'Quarz':'\u041A\u0432\u0430\u0440\u0446',
+  'Nickel':'\u041D\u0438\u043A\u0435\u043B\u044C',
+  'Kolchos':'\u041A\u043E\u043B\u0445\u043E\u0437',
+  'Kaukasus':'\u041A\u0430\u0432\u043A\u0430\u0437',
+  'Kosmonaut':'\u041A\u043E\u0441\u043C\u043E\u043D\u0430\u0432\u0442',
+  'Baikal':'\u0411\u0430\u0439\u043A\u0430\u043B',
+ }
+}
+};
+
+var QWERTZ={
+ lo:[['q','w','e','r','t','z','u','i','o','p'],['a','s','d','f','g','h','j','k','l'],['SHIFT','y','x','c','v','b','n','m','BS']],
+ up:[['Q','W','E','R','T','Z','U','I','O','P'],['A','S','D','F','G','H','J','K','L'],['SHIFT','Y','X','C','V','B','N','M','BS']]};
+// DE_ALT: long-press alternates – only show the umlaut/special form, case matched separately
+var DE_ALT={a:['ä'],o:['ö'],u:['ü'],s:['ß'],A:['Ä'],O:['Ö'],U:['Ü']};
+
+// Greek long-press: word-final variant only (σ↔ς); strict mode also accented forms (case-matched)
+var GR_FINALS={'\u03C3':'\u03C2','\u03C2':'\u03C3'};
+var GR_ACC={
+  '\u03B1':['\u03AC'],'\u03B5':['\u03AD'],'\u03B7':['\u03AE'],
+  '\u03B9':['\u03AF','\u03CA'],'\u03BF':['\u03CC'],
+  '\u03C5':['\u03CD','\u03CB'],'\u03C9':['\u03CE'],
+};
+// All Hebrew nikud marks (for full longpress list) – shin-dot (05C1) and sin-dot (05C2) excluded;
+// they appear as full Shin/Sin variants in Shin's own longpress alts instead
+var ALL_NIKUD_MARKS=['\u05B7','\u05B8','\u05B6','\u05B5','\u05B4','\u05B9','\u05BB','\u05BC','\u05B0','\u05B1','\u05B2','\u05B3'];
+// ── STATE ─────────────────────────────────────────────────────
+var SM=0,DSM=0,HSM=0; // 0=lower,1=single-shift,2=caps; HSM=0/1 Hebrew shift
+var curWord='',focused=null,lang='greek',shuffled=false,shuffLay=null,lpp=null;
+
+function gMode(){return (document.querySelector('input[name=mode]:checked')||{value:'free'}).value;}
+function gDir() {return (document.querySelector('input[name=dir]:checked')||{value:'de-gr'}).value;}
+function gCase(){return (document.querySelector('input[name=case]:checked')||{value:'normal'}).value;}
+function gTol() {return (document.querySelector('input[name=tol]:checked')||{value:'strict'}).value;}
+function gNik() {return (document.querySelector('input[name=nikud]:checked')||{value:'off'}).value==='on';}
+function gHebKb(){return (document.querySelector('input[name=hebkb]:checked')||{value:'standard'}).value;}
+function gNikudInput(){return (document.querySelector('input[name=nikinput]:checked')||{value:'longpress'}).value;}
+function gScript(){return(document.querySelector('input[name="script"]:checked')||{value:'print'}).value;}
+
+function updateBodyClass(){
+  var cursive=gScript()==='cursive';
+  document.body.classList.toggle('cursive-mode',cursive);
+  ['greek','hebrew','cyrillic'].forEach(function(l){
+    document.body.classList.toggle('lang-'+l,l===lang);
+  });
+}
+function onScriptChange(){
+  updateBodyClass();
+  buildSidebar();reKbs();applyScriptFont();updateURL();
+}
+
+// ── SIDEBAR ───────────────────────────────────────────────────
+function buildSidebar(){
+  var ld=L[lang], show=(lang==='hebrew'&&gNik());
+  var sb=document.getElementById('alphaList');
+  sb.className='sb-body '+(lang==='cyrillic'?'cy':lang==='greek'?'gr':'he');
+  var isHeb=(lang==='hebrew');
+  var h='';
+  if(show&&ld.nikud){
+    h+='<div class="nikud-section-hdr">Vokalzeichen (Nikud)</div>';
+    ld.nikud.forEach(function(v,i){
+      var sample='\u25CC'+v.sym;
+      var previewData=encodeURIComponent(JSON.stringify({ch:sample,name:v.name+' = ['+v.val+']',font:'heb'}));
+      h+='<div class="alpha-row nikud-row">'
+        +'<b class="heb" style="direction:rtl;cursor:pointer" data-lp="'+previewData+'">'+sample+'</b>'
+        +'<span class="aname">'+v.name+'</span>'
+        +'<span class="asound" data-tip="'+v.ex.replace(/"/g,'&quot;')+'">['+v.val+']</span>'
+        +'</div>';
+    });
+    h+='<div class="nikud-section-end"></div>';
+  }
+  ld.alph.forEach(function(a,i){
+    var lt=ld.rtl?(a.l+'\u00A0'+a.u):(a.u+'\u00A0'+a.l);
+    var bCls=isHeb?' class="heb"':'';
+    var font=isHeb?'heb':'';
+    // For RTL scripts show uppercase on right (=first visually) and lowercase on left
+    var previewCh=ld.rtl?(a.l+'\u200F '+a.u):(a.u+' '+a.l);
+    var previewData=encodeURIComponent(JSON.stringify({ch:previewCh,name:a.n,font:font,rtl:ld.rtl?1:0}));
+    h+='<div class="alpha-row">'
+      +'<b'+bCls+' style="direction:'+(ld.rtl?'rtl':'ltr')+';cursor:pointer" data-lp="'+previewData+'">'+lt+'</b>'
+      +'<span class="aname">'+a.n+'</span>'
+      +'<span class="asound" data-tip="'+a.ex.replace(/"/g,'&quot;')+'">['+a.s+']</span>'
+      +'</div>';
+  });
+  sb.innerHTML=h;
+}
+
+// ── SIDEBAR LETTER-PREVIEW DELEGATION ─────────────────────────
+(function(){
+  var al=document.getElementById('alphaList');
+  var _lastLpTouch=0;
+  function _handleLpBtn(btn){
+    if(letterPreviewBtn===btn||_wasJustDismissedBy(btn)){dismissLetterPreview();_previewDismissedEl=null;return;}
+    dismissLetterPreview();
+    showLetterPreview(btn,btn.dataset.lp);
+  }
+  al.addEventListener('touchend',function(e){
+    var btn=e.target.closest('[data-lp]');if(!btn)return;
+    e.preventDefault();e.stopPropagation();
+    _lastLpTouch=Date.now();
+    _handleLpBtn(btn);
+  },{passive:false});
+  al.addEventListener('click',function(e){
+    if(Date.now()-_lastLpTouch<600)return;
+    var btn=e.target.closest('[data-lp]');if(!btn)return;
+    _handleLpBtn(btn);
+  });
+})();
+var isTouchDevice=false;
+document.addEventListener('touchstart',function(){isTouchDevice=true;},{once:true,passive:true});
+
+function positionTip(tipEl,anchorEl){
+  var r=anchorEl.getBoundingClientRect();
+  tipEl.style.top=(r.bottom+4)+'px';
+  tipEl.style.right=Math.max(4,window.innerWidth-r.right-4)+'px';
+  tipEl.style.left='auto';
+}
+
+// Delegated handler for asound clicks (touch mode)
+document.addEventListener('click',function(e){
+  var asound=e.target.closest('.asound');
+  if(!asound)return;
+  // Only handle clicks on touch devices (desktop uses CSS hover)
+  if(!isTouchDevice)return;
+  var tipEl=asound.querySelector('.tip');
+  if(!tipEl){
+    tipEl=document.createElement('span');
+    tipEl.className='tip';
+    tipEl.textContent=asound.dataset.tip||'';
+    asound.appendChild(tipEl);
+  }
+  var wasOpen=asound.classList.contains('tip-open');
+  // Close all others
+  document.querySelectorAll('.asound.tip-open').forEach(function(el){el.classList.remove('tip-open');});
+  if(!wasOpen){
+    asound.classList.add('tip-open');
+    positionTip(tipEl,asound);
+  }
+});
+// Desktop: position tip on mousemove so it follows layout correctly
+document.addEventListener('mouseover',function(e){
+  var asound=e.target.closest('.asound');
+  if(!asound||isTouchDevice)return;
+  var tipEl=asound.querySelector('.tip');
+  if(!tipEl){
+    tipEl=document.createElement('span');
+    tipEl.className='tip';
+    tipEl.textContent=asound.dataset.tip||'';
+    asound.appendChild(tipEl);
+  }
+  positionTip(tipEl,asound);
+});
+
+// Close touch tips on outside tap
+document.addEventListener('touchstart',function(e){
+  if(!e.target.closest('.asound')&&!e.target.closest('.nikud-preview')){
+    document.querySelectorAll('.asound.tip-open').forEach(function(el){el.classList.remove('tip-open');});
+  }
+  // Also close nikud preview on tap outside
+  if(!e.target.closest('[data-nikud-idx]')&&!e.target.closest('.nikud-preview')&&!e.target.closest('.ans-preview')&&!e.target.closest('[data-lp]')){
+    dismissNikudPreview();
+  }
+},{passive:true});
+document.addEventListener('mousedown',function(e){
+  if(!e.target.closest('[data-nikud-idx]')&&!e.target.closest('.nikud-preview')){
+    dismissNikudPreview();
+  }
+});
+
+// Unified letter/nikud large preview popup
+var letterPreviewEl=null;
+var letterPreviewBtn=null;
+// Track last dismissed opener to prevent same-click re-open
+var _previewDismissedEl=null,_previewDismissedAt=0;
+
+function _openPreview(anchor,html){
+  var pop=document.createElement('div');pop.className='nikud-preview';pop.style.visibility='hidden';
+  pop.innerHTML=html;document.body.appendChild(pop);letterPreviewEl=pop;letterPreviewBtn=anchor;
+  pop.style.pointerEvents='all';pop.style.cursor='pointer';
+  pop.addEventListener('touchend',function(e){e.preventDefault();e.stopPropagation();dismissLetterPreview();},{passive:false});
+  pop.addEventListener('click',function(e){e.stopPropagation();dismissLetterPreview();});
+  requestAnimationFrame(function(){
+    var r=anchor.getBoundingClientRect();
+    var pw=pop.offsetWidth,ph=pop.offsetHeight;
+    var cx=r.left+r.width/2;
+    var top=r.bottom+6;
+    var left=cx-pw/2;
+    if(left+pw>window.innerWidth-4)left=window.innerWidth-pw-4;
+    if(left<4)left=4;
+    if(top+ph>window.innerHeight)top=r.top-ph-6;
+    if(top<4)top=4;
+    pop.style.top=top+'px';pop.style.left=left+'px';pop.style.visibility='visible';
+  });
+}
+function _wasJustDismissedBy(el){return _previewDismissedEl===el&&Date.now()-_previewDismissedAt<400;}
+function _cursiveFont(){
+  if(gScript()!=='cursive')return null;
+  if(lang==='hebrew') return "'Playpen Sans Hebrew', cursive";
+  if(lang==='greek')  return "'AC-HighSchool', serif";
+  if(lang==='cyrillic')return "'Caveat', cursive";
+  return null;
+}
+function _langFont(){
+  var cf=_cursiveFont();
+  if(cf)return cf;
+  if(lang==='hebrew')return "'Noto Sans Hebrew','Arial Hebrew',Arial,sans-serif";
+  return null;
+}
+function showLetterPreview(btn,encodedData){
+  if(_wasJustDismissedBy(btn)){_previewDismissedEl=null;return;}
+  dismissLetterPreview();
+  var data=JSON.parse(decodeURIComponent(encodedData));
+  var ff=_langFont();
+  var fontStyle=ff?'font-family:'+ff+';':'';
+  var dirStyle=data.rtl?'direction:rtl;':'';
+  _openPreview(btn,'<span class="np-char" style="'+fontStyle+dirStyle+'">'+data.ch+'</span><span class="np-name">'+data.name+'</span>');
+}
+function showWordPreview(el){
+  if(_wasJustDismissedBy(el)){_previewDismissedEl=null;return;}
+  dismissLetterPreview();
+  // tgtWord shows target language only in gr-de direction; de-gr shows German prompt
+  var showsTarget=(gDir()==='gr-de');
+  var ff=showsTarget?_langFont():null;
+  var fs=ff?'font-family:'+ff+';':'';
+  var fw=(showsTarget&&lang==='greek'&&gScript()==='cursive')?'font-weight:bold;':'';
+  var ds=(lang==='hebrew'&&showsTarget)?'direction:rtl;':'';
+  _openPreview(el,'<span class="np-char" style="font-size:2.8rem;'+fs+fw+ds+'">'+el.textContent+'</span>');
+}
+function showAnswerPreview(txt,anchorEl){
+  if(_wasJustDismissedBy(anchorEl)){_previewDismissedEl=null;return;}
+  dismissLetterPreview();
+  var ff=_langFont();
+  var fs=ff?'font-family:'+ff+';':'';
+  var ds=(lang==='hebrew')?'direction:rtl;':'';
+  _openPreview(anchorEl,'<span class="np-char" style="font-size:2.4rem;'+fs+ds+'">'+txt+'</span>');
+}
+function dismissLetterPreview(){
+  _previewDismissedEl=letterPreviewBtn;_previewDismissedAt=Date.now();
+  if(letterPreviewEl){letterPreviewEl.remove();letterPreviewEl=null;}
+  letterPreviewBtn=null;
+}
+// Always dismiss on outside mousedown/touchstart; showX checks if same button caused dismiss
+document.addEventListener('mousedown',function(e){
+  if(lpp&&!lpp.contains(e.target))dismissLpp();
+  if(letterPreviewEl&&!e.target.closest('.nikud-preview')&&!e.target.closest('.ans-preview')&&!e.target.closest('[data-lp]')&&e.target.id!=='tgtWord')dismissLetterPreview();
+});
+document.addEventListener('touchstart',function(e){
+  if(letterPreviewEl&&!e.target.closest('.nikud-preview')&&!e.target.closest('.ans-preview')&&!e.target.closest('[data-lp]')&&e.target.id!=='tgtWord')dismissLetterPreview();
+},{passive:true});
+
+// Legacy stubs
+function showNikudPreview(){}
+function dismissNikudPreview(){dismissLetterPreview();}
+
+// ── NIKUD HOVER TOOLTIP ──────────────────────────────────────
+var _nkTipEl=null;
+function _getNikudName(sym){
+  var nd=L.hebrew&&L.hebrew.nikud;if(!nd)return sym;
+  for(var i=0;i<nd.length;i++)if(nd[i].sym===sym)return nd[i].name+' ['+nd[i].val+']';
+  return sym;
+}
+function _showNkTip(txt,x,y){
+  if(!_nkTipEl){_nkTipEl=document.createElement('div');_nkTipEl.className='nk-tip';document.body.appendChild(_nkTipEl);}
+  _nkTipEl.textContent=txt;_nkTipEl.style.display='block';
+  var tw=_nkTipEl.offsetWidth;
+  var left=x-tw/2;if(left<4)left=4;if(left+tw>window.innerWidth-4)left=window.innerWidth-tw-4;
+  _nkTipEl.style.left=left+'px';_nkTipEl.style.top=(y-28)+'px';
+}
+function _hideNkTip(){if(_nkTipEl)_nkTipEl.style.display='none';}
+// Delegated: any element with data-nktip gets a tooltip on hover
+document.addEventListener('mouseover',function(e){
+  var el=e.target.closest('[data-nktip]');if(!el)return;
+  var r=el.getBoundingClientRect();
+  _showNkTip(el.dataset.nktip,r.left+r.width/2,r.top);
+});
+document.addEventListener('mouseout',function(e){
+  var el=e.target.closest('[data-nktip]');if(!el)return;
+  _hideNkTip();
+});
+// Touch: show nktip while dragging over elements with data-nktip
+document.addEventListener('touchmove',function(e){
+  var t=e.touches[0];
+  var el=document.elementFromPoint(t.clientX,t.clientY);
+  if(el)el=el.closest('[data-nktip]');
+  if(el){_showNkTip(el.dataset.nktip,t.clientX,t.clientY-30);}
+  else{_hideNkTip();}
+},{passive:true});
+document.addEventListener('touchend',_hideNkTip,{passive:true});
+document.addEventListener('touchcancel',_hideNkTip,{passive:true});
+
+// Apply correct font to input/output areas depending on language, direction, and script mode
+function applyScriptFont(){
+  var cf=_cursiveFont();       // cursive font string, or null in print mode
+  var isHeb=(lang==='hebrew');
+  var dir=gDir();
+  var baseTgt=isHeb?"'Noto Sans Hebrew','Arial Hebrew','David',Arial,sans-serif":null;
+  // Greek cursive (AC-HighSchool) needs bold weight
+  var needBold=(cf&&lang==='greek');
+
+  function applyTo(id,isTarget){
+    var el=document.getElementById(id);if(!el)return;
+    // heb-input class controls RTL direction + font size for all Hebrew fields
+    if(isHeb)el.classList.add('heb-input');else el.classList.remove('heb-input');
+    // Inline font-family overrides class !important via setProperty
+    var font=isTarget?(cf||baseTgt):null;
+    if(font)el.style.setProperty('font-family',font,'important');
+    else el.style.removeProperty('font-family');
+    // font-weight: bold for AC-HighSchool on target fields
+    if(isTarget&&needBold)el.style.setProperty('font-weight','bold','important');
+    else el.style.removeProperty('font-weight');
+  }
+
+  // de-gr: freeIn=German, freeOut=target language
+  // gr-de: freeIn=target language, freeOut=German
+  applyTo('freeOut', dir==='de-gr');
+  applyTo('freeIn',  dir==='gr-de');
+  // de-gr: tgtWord=German prompt, playIn=target typed
+  // gr-de: tgtWord=target prompt, playIn=German typed
+  applyTo('tgtWord', dir==='gr-de');
+  applyTo('playIn',  dir==='de-gr');
+  // feedback lines: the ans-preview spans inside already carry correct font via fstyle;
+  // do NOT apply cursive to the whole line (would make "Lösung:" label cursive too)
+  ['fb-line1','fb-line2','fb-status'].forEach(function(id){
+    var el=document.getElementById(id);if(!el)return;
+    el.style.removeProperty('font-family');
+    el.style.removeProperty('font-weight');
+    el.classList.remove('heb-input');
+  });
+}
+// Legacy alias kept for any remaining internal calls
+function applyHebFont(){applyScriptFont();}
+
+// ── MENU ─────────────────────────────────────────────────────
+var LFLAGS={greek:'\uD83C\uDDEC\uD83C\uDDF7',hebrew:'\uD83C\uDDEE\uD83C\uDDF1',cyrillic:'\uD83C\uDDF7\uD83C\uDDFA'};
+var LNAMES={greek:'\uD83C\uDDEC\uD83C\uDDF7 Griechisch',hebrew:'\uD83C\uDDEE\uD83C\uDDF1 Hebr\u00E4isch',cyrillic:'\uD83C\uDDF7\uD83C\uDDFA Kyrillisch'};
+function toggleMenu(){
+  var sb=document.getElementById('sidebar');
+  var open=sb.classList.toggle('open');
+  document.body.classList.toggle('sidebar-open',open);
+  var sel=document.getElementById('langSelect');
+  Array.from(sel.options).forEach(function(o){o.text=open?LFLAGS[o.value]:LNAMES[o.value];});
+  scrollBot();
+}
+function scrollBot(){setTimeout(function(){var m=document.getElementById('mainScroll');m.scrollTop=m.scrollHeight;},150);}
+function focusIn(){var id=gMode()==='play'?'playIn':'freeIn';var el=document.getElementById(id);if(el){focused=el;el.focus();}}
+
+// ── SHIFT ─────────────────────────────────────────────────────
+function setSMfromCase(){var c=gCase();SM=c==='upper'?2:0;DSM=c==='upper'?2:0;reKbs();}
+function reKbs(){reGr();reDe();reHe();reCy();}
+function cycSM(){SM=(SM+1)%3;reGr();reCy();}
+function cycDSM(){DSM=(DSM+1)%3;reDe();}
+function cycHSM(){HSM=(HSM+1)%2;reHe();}
+
+// ── SHUFFLE (FIXED: separate loop counters for lo and up) ──────
+function mkShuffle(ld){
+  var spec=['SHIFT','BS'], res={lo:[],up:[]};
+  for(var ri=0;ri<3;ri++){
+    var lr=ld.lay.lo[ri], ur=ld.lay.up[ri];
+    // Build pairs of (lower, upper) for non-special keys
+    var pairs=[];
+    for(var i=0;i<lr.length;i++){
+      if(spec.indexOf(lr[i])===-1) pairs.push([lr[i],ur[i]]);
+    }
+    // Fisher-Yates shuffle
+    for(var j=pairs.length-1;j>0;j--){
+      var k=Math.floor(Math.random()*(j+1));
+      var tmp=pairs[j];pairs[j]=pairs[k];pairs[k]=tmp;
+    }
+    // Build lo row with its OWN counter
+    var pi=0;
+    var newLo=lr.map(function(k){return spec.indexOf(k)!==-1?k:pairs[pi++][0];});
+    // Build up row with its OWN counter (reset to 0)
+    pi=0;
+    var newUp=ur.map(function(k){return spec.indexOf(k)!==-1?k:pairs[pi++][1];});
+    res.lo.push(newLo);
+    res.up.push(newUp);
+  }
+  return res;
+}
+
+// ── KEYBOARD ENGINE ───────────────────────────────────────────
+function dismissLpp(){if(lpp){lpp.remove();lpp=null;}_hideNkTip();}
+
+function makeKey(txt,type,val,ctx){
+  var btn=document.createElement('button');
+  btn.className='key';btn.textContent=txt;
+  if(type==='shift'||type==='bs'||type==='hilfe')btn.classList.add('sp');
+  if(type==='enter')btn.classList.add('pk');
+  var timer,isLong=false,hov=null;
+
+  function alts(){
+    if(type!=='char')return null;
+    if(ctx==='german')return DE_ALT[val]||null;
+    if(ctx==='greek'){
+      var isUpper=val!==val.toLowerCase()&&val===val.toUpperCase();
+      var base=val.toLowerCase();
+      var res=[];
+      // Word-final variant (only σ↔ς)
+      var fin=GR_FINALS[base];
+      if(fin){
+        res.push(isUpper?fin.toUpperCase():fin);
+      }
+      // Strict mode: also accented forms (same case as pressed key)
+      if(gTol()==='strict'){
+        var acc=GR_ACC[base];
+        if(acc){
+          if(!Array.isArray(acc))acc=[acc];
+          acc.forEach(function(a){
+            var av=isUpper?a.toUpperCase():a;
+            if(res.indexOf(av)<0)res.push(av);
+          });
+        }
+      }
+      return res.length?res:null;
+    }
+    if(ctx==='hebrew'){
+      var ld=L[lang];
+      var base2=ld.alts&&(ld.alts[val]||ld.alts[val.toLowerCase()]);
+      // Keep only entries that contain at least one Hebrew consonant (U+05D0–U+05EA);
+      // this preserves multi-char variants like שׁ/שׂ while discarding bare combining marks.
+      var nonNik=base2?base2.filter(function(c){return /[\u05D0-\u05EA]/.test(c);}):[];
+      if(gNik()&&gNikudInput()==='longpress'){
+        var withNik=nonNik.concat(ALL_NIKUD_MARKS.map(function(n){return '\u25CC'+n;}));
+        return withNik.length?withNik:null;
+      }
+      return nonNik.length?nonNik:null;
+    }
+    return null;
+  }
+
+  function showPop(a){
+    dismissLpp();
+    var pop=document.createElement('div');
+    pop.className='lpp';
+    pop.style.visibility='hidden'; // hide until positioned
+    hov=null;
+    a.forEach(function(c){
+      var o=document.createElement('button');o.className='lpo';
+      var realVal=(c.charAt(0)==='\u25CC')?c.slice(1):c;
+      o.textContent=c;o.dataset.v=realVal;
+      if(realVal.length===1&&realVal>='\u05B0'&&realVal<='\u05C7')o.dataset.nktip=_getNikudName(realVal);
+      pop.appendChild(o);
+    });
+    document.body.appendChild(pop);lpp=pop;
+    // Position after layout; clamp inside viewport, respect sidebar
+    requestAnimationFrame(function(){
+      var kr=btn.getBoundingClientRect();
+      var pw=pop.offsetWidth,ph=pop.offsetHeight;
+      var sbW=document.getElementById('sidebar').classList.contains('open')
+        ?(parseInt(getComputedStyle(document.documentElement).getPropertyValue('--sw'))||185):0;
+      var left=kr.left+kr.width/2-pw/2;
+      left=Math.max(sbW+4,Math.min(left,window.innerWidth-pw-4));
+      var top=kr.top-ph-10;
+      if(top<4)top=kr.bottom+6;
+      pop.style.left=left+'px';pop.style.top=top+'px';
+      pop.style.visibility='visible';
+    });
+    pop.addEventListener('mousedown',function(e){e.stopPropagation();e.preventDefault();});
+    pop.addEventListener('mouseup',function(e){
+      e.stopPropagation();
+      var t=e.target.closest('.lpo');
+      if(t){
+        var v=t.dataset.v;dismissLpp();hov=null;
+        var isNikudMark=ctx==='hebrew'&&v.length===1&&v>='\u05B0'&&v<='\u05C7';
+        if(isNikudMark)typeK(val);
+        typeK(v,true);
+      }
+    });
+    function upH(x,y){
+      pop.querySelectorAll('.lpo').forEach(function(o){o.classList.remove('lph');});
+      var t=document.elementFromPoint(x,y);
+      if(t)t=t.closest('.lpo');
+      if(t&&pop.contains(t)){t.classList.add('lph');hov=t.dataset.v;}else hov=null;
+    }
+    pop.addEventListener('mousemove',function(e){upH(e.clientX,e.clientY);});
+    btn.addEventListener('touchmove',function(e){e.preventDefault();var t=e.touches[0];upH(t.clientX,t.clientY);},{passive:false});
+  }
+
+  function start(e){
+    e.preventDefault();isLong=false;hov=null;btn.classList.add('akt');
+    if(type==='char')timer=setTimeout(function(){isLong=true;btn.classList.remove('akt');var a=alts();if(a&&a.length)showPop(a);},380);
+    else if(type==='bs')timer=setTimeout(function(){isLong=true;btn.classList.remove('akt');deleteWord();},380);
+  }
+  function end(e){
+    e.preventDefault();clearTimeout(timer);btn.classList.remove('akt');
+    if(isLong){
+      var v=hov;dismissLpp();
+      if(v){
+        // For Hebrew longpress: if selected value is a nikud mark (U+05B0–U+05C7),
+        // first type the key's letter, then the nikud
+        var isNikudMark=ctx==='hebrew'&&v.length===1&&v>='\u05B0'&&v<='\u05C7';
+        if(isNikudMark)typeK(val);
+        typeK(v,true);
+      }else if(type==='char'){
+        // Check if touch/mouse released over the original button
+        var onBtn=false;
+        if(e.type==='touchend'&&e.changedTouches&&e.changedTouches.length){
+          var t=e.changedTouches[0];var r=btn.getBoundingClientRect();
+          onBtn=(t.clientX>=r.left&&t.clientX<=r.right&&t.clientY>=r.top&&t.clientY<=r.bottom);
+        }else if(e.type==='mouseup'){onBtn=true;}
+        if(onBtn)typeK(val);
+      }
+    }else{
+      dismissLpp();
+      if(type==='char')typeK(val);
+      if(type==='bs')typeBS();
+      if(type==='space')typeK(' ');
+      if(type==='shift'){if(ctx==='german')cycDSM();else if(ctx==='hebrew')cycHSM();else cycSM();}
+      if(type==='hilfe')toggleMenu();
+      if(type==='enter')handleEnter();
+    }
+  }
+  function cancel(){clearTimeout(timer);btn.classList.remove('akt');}
+  btn.addEventListener('touchstart',start,{passive:false});
+  btn.addEventListener('touchend',end,{passive:false});
+  btn.addEventListener('touchcancel',cancel);
+  btn.addEventListener('mousedown',function(e){if(e.button===0)start(e);});
+  btn.addEventListener('mouseup',end);
+  btn.addEventListener('mouseleave',function(e){if(!e.relatedTarget||!e.relatedTarget.closest||!e.relatedTarget.closest('.lpp'))cancel();});
+  return btn;
+}
+
+function renderKb(pfx,lay,sm,ctx){
+  var up=sm>0;var rows=up?lay.up:lay.lo;
+  [1,2,3].forEach(function(i){
+    var row=document.getElementById(pfx+'-r'+i);if(!row)return;row.innerHTML='';
+    rows[i-1].forEach(function(k){
+      if(k==='SHIFT'){
+        var b=makeKey(sm===2?'\u21EA':'\u21E7','shift',null,ctx);
+        b.classList.add('sp');if(sm===1)b.classList.add('sh1');if(sm===2)b.classList.add('sh2');row.appendChild(b);
+      }else if(k==='BS')row.appendChild(makeKey('\u232B','bs',null,ctx));
+      else if(k===''){
+        // Empty shift-layer placeholder
+        var empty=document.createElement('button');
+        empty.className='key heb-empty';empty.textContent='';
+        empty.disabled=true;row.appendChild(empty);
+      }
+      else row.appendChild(makeKey(k,'char',k,ctx));
+    });
+  });
+  var r4=document.getElementById(pfx+'-r4');if(!r4)return;r4.innerHTML='';
+  r4.appendChild(makeKey('? Hilfe','hilfe',null,ctx));
+  var sp=makeKey('Leertaste','space',null,ctx);sp.style.flex='2.5';r4.appendChild(sp);
+  r4.appendChild(makeKey('\u2713 OK','enter',null,ctx));
+}
+
+function reGr(){var lay=shuffled?(shuffLay||(shuffLay=mkShuffle(L.greek))):L.greek.lay;renderKb('gr',lay,SM,'greek');}
+function reDe(){renderKb('de',QWERTZ,DSM,'german');}
+function reHe(){
+  var layout=(gHebKb()==='phonetic')?L.hebrew.layPhonetic:L.hebrew.lay;
+  // Hebrew shift: render lo or up layer; add SHIFT key to row 3
+  var rows=HSM>0?layout.up:layout.lo;
+  var layWithShift={lo:layout.lo,up:layout.up};
+  // Inject SHIFT at start of row 3 before rendering
+  var r3lo=layout.lo[2].slice();var r3up=layout.up[2].slice();
+  if(r3lo[0]!=='SHIFT'){r3lo.unshift('SHIFT');r3up.unshift('SHIFT');}
+  var layS={lo:[layout.lo[0],layout.lo[1],r3lo],up:[layout.up[0],layout.up[1],r3up]};
+  renderKb('he',layS,HSM,'hebrew');
+  // Add nikud button to row 4 in 'button' mode
+  if(gNik()&&gNikudInput()==='button'){
+    var r4=document.getElementById('he-r4');
+    if(r4){
+      var nikBtn=document.createElement('button');
+      nikBtn.className='key nik';nikBtn.textContent='\u25CC\u05B7\u25CC\u05B4\u25CC\u05BC';
+      nikBtn.title='Nikud';
+      nikBtn.addEventListener('mousedown',function(e){e.preventDefault();});
+      nikBtn.addEventListener('click',function(e){e.stopPropagation();showNikudPicker(nikBtn);});
+      nikBtn.addEventListener('touchend',function(e){e.preventDefault();e.stopPropagation();showNikudPicker(nikBtn);},{passive:false});
+      r4.insertBefore(nikBtn,r4.children[1]);
+    }
+  }
+  buildNikudStrip();
+  updateHebOpts();
+  // Reset shift after letter was typed
+}
+var ALL_NIKUD=['\u05B7','\u05B8','\u05B6','\u05B5','\u05B4','\u05B9','\u05BB','\u05BC','\u05B0','\u05B1','\u05B2','\u05B3'];
+var nikudPickerEl=null;
+function dismissNikudPickerEl(){if(nikudPickerEl){nikudPickerEl.remove();nikudPickerEl=null;}}
+function showNikudPicker(anchor){
+  // Toggle: click same button again closes
+  if(nikudPickerEl){dismissNikudPickerEl();return;}
+  var pop=document.createElement('div');pop.className='nikud-picker';
+  ALL_NIKUD.forEach(function(n){
+    var o=document.createElement('button');o.className='lpo';
+    o.textContent='\u25CC'+n;o.dataset.v=n;
+    o.dataset.nktip=_getNikudName(n);
+    pop.appendChild(o);
+  });
+  document.body.appendChild(pop);nikudPickerEl=pop;
+  // Position above anchor, clamped to viewport and away from sidebar
+  var ar=anchor.getBoundingClientRect();
+  var sbW=document.getElementById('sidebar').classList.contains('open')
+    ?parseInt(getComputedStyle(document.documentElement).getPropertyValue('--sw'))||185:0;
+  requestAnimationFrame(function(){
+    var pw=pop.offsetWidth,ph=pop.offsetHeight;
+    var left=ar.left+ar.width/2-pw/2;
+    left=Math.max(sbW+4,Math.min(left,window.innerWidth-pw-4));
+    var top=ar.top-ph-10;
+    if(top<4)top=ar.bottom+6;
+    pop.style.left=left+'px';pop.style.top=top+'px';
+  });
+  // Pointer capture: keeps all pointer events on popup until release → key below never gets mouseup
+  pop.addEventListener('pointerdown',function(e){
+    var tgt=e.target.closest('.lpo');
+    e.preventDefault();e.stopPropagation();
+    try{pop.setPointerCapture(e.pointerId);}catch(ex){}
+    pop.querySelectorAll('.lpo').forEach(function(o){o.classList.remove('lph');});
+    if(tgt)tgt.classList.add('lph');
+  });
+  pop.addEventListener('pointerup',function(e){
+    e.preventDefault();e.stopPropagation();
+    var tgt=e.target.closest('.lpo');
+    if(!tgt){// finger may have moved; find element at pointer position
+      var el2=document.elementFromPoint(e.clientX,e.clientY);
+      if(el2)tgt=el2.closest('.lpo');
+    }
+    if(tgt&&pop.contains(tgt)){var v=tgt.dataset.v;dismissNikudPickerEl();typeK(v,true);}
+  });
+  pop.addEventListener('mousemove',function(e){
+    pop.querySelectorAll('.lpo').forEach(function(o){o.classList.remove('lph');});
+    var tgt=e.target.closest('.lpo');if(tgt)tgt.classList.add('lph');
+  });
+  // Close on outside click
+  setTimeout(function(){
+    function outsideHandler(e){
+      if(!pop.contains(e.target)&&e.target!==anchor){dismissNikudPickerEl();document.removeEventListener('mousedown',outsideHandler,true);document.removeEventListener('touchstart',outsideHandler,true);}
+    }
+    document.addEventListener('mousedown',outsideHandler,true);
+    document.addEventListener('touchstart',outsideHandler,{capture:true,passive:true});
+  },10);
+}
+function buildNikudStrip(){
+  var strip=document.getElementById('nikud-strip');if(!strip)return;
+  strip.innerHTML='';
+  if(lang==='hebrew'&&gNik()&&gNikudInput()==='strip'){
+    ALL_NIKUD.forEach(function(n){
+      var btn=document.createElement('button');
+      btn.className='nk-btn';btn.textContent='\u25CC'+n;btn.dataset.v=n;
+      btn.dataset.nktip=_getNikudName(n);
+      btn.addEventListener('click',function(){typeK(n,true);});
+      btn.addEventListener('touchend',function(e){e.preventDefault();typeK(n,true);},{passive:false});
+      strip.appendChild(btn);
+    });
+    strip.classList.add('active');
+  }else{
+    strip.classList.remove('active');
+  }
+}
+function reCy(){renderKb('cy',L.cyrillic.lay,SM,'cyrillic');}
+
+// ── TYPING ────────────────────────────────────────────────────
+function applyCase(t,c){if(!c)c=gCase();return c==='lower'?t.toLowerCase():c==='upper'?t.toUpperCase():t;}
+function effSM(){return document.getElementById('kb-german').classList.contains('active')?DSM:SM;}
+
+function typeK(k,bypass){
+  if(!focused)return;
+  if(!bypass){
+    var c=gCase();
+    if(c==='lower')k=k.toLowerCase();
+    else if(c==='upper')k=k.toUpperCase();
+    else k=effSM()>0?k.toUpperCase():k.toLowerCase();
+  }
+  var s=focused.selectionStart;
+  focused.value=focused.value.slice(0,s)+k+focused.value.slice(focused.selectionEnd);
+  focused.selectionStart=focused.selectionEnd=s+k.length;
+  if(SM===1){SM=0;reGr();reCy();}
+  if(DSM===1){DSM=0;reDe();}
+  if(HSM===1){HSM=0;reHe();}
+  if(focused.id==='freeIn')updFree();
+  focused.focus();
+  checkEmpty();
+}
+
+function typeBS(){
+  if(!focused)return;
+  var s=focused.selectionStart;
+  if(s>0){
+    var text=focused.value;
+    // Count how many chars to delete (handle nikud combining sequences)
+    var del=1;
+    // Walk backwards over any combining marks (U+05B0..U+05C7)
+    while(s-del>0 && text[s-del]>='\u05B0' && text[s-del]<='\u05C7') del++;
+    focused.value=text.slice(0,s-del)+text.slice(s);
+    focused.selectionStart=focused.selectionEnd=s-del;
+  }
+  if(focused.id==='freeIn')updFree();
+  focused.focus();
+  checkEmpty();
+}
+
+function deleteWord(){
+  if(!focused)return;
+  var s=focused.selectionStart;if(s===0)return;
+  var b=focused.value.substring(0,s).replace(/\S*\s*$/,'');
+  focused.value=b+focused.value.substring(focused.selectionEnd);
+  focused.selectionStart=focused.selectionEnd=b.length;
+  if(focused.id==='freeIn')updFree();
+  focused.focus();
+  checkEmpty();
+}
+
+function checkEmpty(){
+  if(!focused||focused.value!=='')return;
+  var c=gCase();
+  if(c==='normal'){SM=1;DSM=1;}else if(c==='upper'){SM=2;DSM=2;}else{SM=0;DSM=0;}
+  reGr();reCy();reDe();
+}
+
+function handleEnter(){if(gMode()==='play')checkAnswer();else typeK('\n');}
+function toggleShuffle(){shuffled=!shuffled;shuffLay=null;document.getElementById('shufLbl').textContent=shuffled?'An':'Aus';reGr();}
+
+// ── TRANSLITERATION ───────────────────────────────────────────
+function toTarget(t){if(lang==='greek')return toGr(t);if(lang==='cyrillic')return toCyr(t);if(lang==='hebrew')return toHe(t);return t;}
+function fromTarget(t){if(lang==='greek')return fromGr(t);if(lang==='cyrillic')return fromCyr(t);if(lang==='hebrew')return fromHe(t);return t;}
+
+function toGr(text){
+  var r=text.toLowerCase();
+  var ph={'sch':'\u03C3\u03C7','sh':'\u03C3','th':'\u03B8','ph':'\u03C6','ch':'\u03C7','ps':'\u03C8','ks':'\u03BE','oh':'\u03C9','oo':'\u03C9','eh':'\u03B7','ee':'\u03B7','\u00E4h':'\u03B7','\u00E4':'\u03B7','\u00F6':'\u03BF\u03B9','\u00FC':'\u03C5','y':'\u03C5','eu':'\u03B5\u03C5','au':'\u03B1\u03C5','ei':'\u03B5\u03B9'};
+  for(var d in ph)r=r.split(d).join(ph[d]);
+  var sm={a:'\u03B1',b:'\u03B2',c:'\u03BA',d:'\u03B4',e:'\u03B5',f:'\u03C6',g:'\u03B3',h:'\u03C7',i:'\u03B9',j:'\u03B9',k:'\u03BA',l:'\u03BB',m:'\u03BC',n:'\u03BD',o:'\u03BF',p:'\u03C0',q:'\u03BA',r:'\u03C1',s:'\u03C3',t:'\u03C4',u:'\u03C5',v:'\u03B2',w:'\u03B2',x:'\u03BE',z:'\u03B6'};
+  var fin='';
+  for(var i=0;i<r.length;i++){var c=sm[r[i]]||r[i];if(c==='\u03C3'&&(!r[i+1]||/[\s.,!?\n]/.test(r[i+1])))c='\u03C2';fin+=c;}
+  var out='';
+  for(var i=0;i<fin.length;i++){if(i<text.length&&text[i]===text[i].toUpperCase()&&text[i].match(/[A-Z\u00C4\u00D6\u00DC]/))out+=fin[i]==='\u03C2'?'\u03A3':fin[i].toUpperCase();else out+=fin[i];}
+  return applyCase(out||fin,gCase());
+}
+function fromGr(text){
+  var m={'\u03B1':'a','\u03B2':'b','\u03B3':'g','\u03B4':'d','\u03B5':'e','\u03B6':'z','\u03B7':'e','\u03B8':'th','\u03B9':'i','\u03BA':'k','\u03BB':'l','\u03BC':'m','\u03BD':'n','\u03BE':'x','\u03BF':'o','\u03C0':'p','\u03C1':'r','\u03C3':'s','\u03C2':'s','\u03C4':'t','\u03C5':'u','\u03C6':'ph','\u03C7':'ch','\u03C8':'ps','\u03C9':'o'};
+  var out='';
+  for(var i=0;i<text.length;i++){var c=text[i];var lc=c.toLowerCase();var mp=m[lc]||c;if(c!==lc&&c===c.toUpperCase())mp=mp[0].toUpperCase()+mp.slice(1);out+=mp;}
+  return applyCase(out,gCase());
+}
+function toCyr(text){
+  var ph=[['sch','\u0449'],['sh','\u0448'],['tsch','\u0447'],['ch','\u0445'],['zh','\u0436'],['ju','\u044E'],['ja','\u044F'],['jo','\u0451'],['je','\u0435'],['ts','\u0446'],['th','\u0442'],['ph','\u0444'],['\u00E4','\u044D'],['\u00F6','\u0451'],['\u00FC','\u044E'],['oo','\u0443'],['ee','\u0438']];
+  var r=text.toLowerCase();
+  for(var i=0;i<ph.length;i++)r=r.split(ph[i][0]).join(ph[i][1]);
+  var sm={a:'\u0430',b:'\u0431',v:'\u0432',w:'\u0432',g:'\u0433',d:'\u0434',e:'\u0435',f:'\u0444',i:'\u0438',j:'\u0439',k:'\u043A',l:'\u043B',m:'\u043C',n:'\u043D',o:'\u043E',p:'\u043F',r:'\u0440',s:'\u0441',t:'\u0442',u:'\u0443',x:'\u043A\u0441',y:'\u044B',z:'\u0437'};
+  var res='';for(var i=0;i<r.length;i++)res+=sm[r[i]]||r[i];
+  var out='';
+  for(var i=0;i<res.length;i++){if(i<text.length&&text[i]&&text[i]===text[i].toUpperCase()&&text[i].match(/[A-Z\u00C4\u00D6\u00DC]/))out+=res[i].toUpperCase();else out+=res[i];}
+  if(res.length>text.length)out+=res.slice(text.length);
+  return applyCase(out||res,gCase());
+}
+function fromCyr(text){
+  var m={'\u0430':'a','\u0431':'b','\u0432':'w','\u0433':'g','\u0434':'d','\u0435':'je','\u0451':'jo','\u0436':'sch','\u0437':'s','\u0438':'i','\u0439':'j','\u043A':'k','\u043B':'l','\u043C':'m','\u043D':'n','\u043E':'o','\u043F':'p','\u0440':'r','\u0441':'s','\u0442':'t','\u0443':'u','\u0444':'f','\u0445':'ch','\u0446':'z','\u0447':'tsch','\u0448':'sch','\u0449':'schtsch','\u044A':'','\u044B':'y','\u044C':'','\u044D':'e','\u044E':'ju','\u044F':'ja'};
+  var out='';
+  for(var i=0;i<text.length;i++){var c=text[i];var lc=c.toLowerCase();var mp = lc in m ? m[lc] : c;if(c!==lc&&mp.length>0)mp=mp.split('').map(function(ch,ci){return ci===0?ch.toUpperCase():ch;}).join('');out+=mp;}
+  return applyCase(out,gCase());
+}
+// Hebrew final letter forms: apply to last consonant in each whitespace-delimited word
+function applyFinalForms(text){
+  var finals={'\u05DE':'\u05DD','\u05E0':'\u05DF','\u05DB':'\u05DA','\u05E4':'\u05E3','\u05E6':'\u05E5'};
+  var parts=text.split(/(\s+)/);
+  return parts.map(function(w){
+    if(!w||/^\s+$/.test(w))return w;
+    for(var i=w.length-1;i>=0;i--){
+      var code=w.charCodeAt(i);
+      if(code>=0x05B0&&code<=0x05C7)continue; // nikud mark, skip
+      if(code>=0x05D0&&code<=0x05EA){
+        if(finals[w[i]])w=w.slice(0,i)+finals[w[i]]+w.slice(i+1);
+        break;
+      }
+      break;
+    }
+    return w;
+  }).join('');
+}
+
+// German → Hebrew phonetic transliteration.
+// Nikud ON: vowels appear as diacritics on consonants (patach, segol, chirik…) or as matres lectionis (yod, vav).
+// Nikud OFF: consonant skeleton + matres lectionis (yod, vav) for i/o/u; alef for a; e dropped unless word-initial.
+function toHe(text){
+  var nik=gNik();
+  var r=text.toLowerCase();
+  // ── Multi-char pattern substitutions (longer patterns first) ──────────────
+  var pats=nik?[
+    ['tsch','\u05D8\u05E9\u05C1'],['sch','\u05E9\u05C1'],['sh','\u05E9\u05C1'],
+    ['ch','\u05D7'],['kh','\u05D7'],['ck','\u05DB\u05BC'],
+    ['ng','\u05E0\u05D2'],['nk','\u05E0\u05E7'],['qu','\u05E7\u05D5'],
+    ['th','\u05EA'],['ph','\u05E4'],['tz','\u05E6'],['ts','\u05E6'],
+    ['bb','\u05D1\u05BC'],['dd','\u05D3\u05BC'],['ff','\u05E4\u05BC'],
+    ['gg','\u05D2\u05BC'],['kk','\u05DB\u05BC'],['ll','\u05DC\u05BC'],
+    ['mm','\u05DE\u05BC'],['nn','\u05E0\u05BC'],['pp','\u05E4\u05BC'],
+    ['rr','\u05E8'],['tt','\u05EA\u05BC'],['ss','\u05E1'],['\u00DF','\u05E1'],
+    ['ei','\u05D9\u05B5'],['ie','\u05D9\u05B5'],
+    ['au','\u05D0\u05B7\u05D5'],['eu','\u05D0\u05B9\u05D9'],['\u00E4u','\u05D0\u05B9\u05D9'],
+    ['aa','\u05D0\u05B8'],['ee','\u05D0\u05B5'],['oo','\u05D5\u05BC'],
+    ['\u00E4','\u05D0\u05B6'],['\u00F6','\u05D0\u05B5'],['\u00FC','\u05D9\u05B4']
+  ]:[
+    ['tsch','\u05D8\u05E9'],['sch','\u05E9'],['sh','\u05E9'],
+    ['ch','\u05D7'],['kh','\u05D7'],['ck','\u05DB'],
+    ['ng','\u05E0\u05D2'],['nk','\u05E0\u05E7'],['qu','\u05E7\u05D5'],
+    ['th','\u05EA'],['ph','\u05E4'],['tz','\u05E6'],['ts','\u05E6'],
+    ['bb','\u05D1'],['dd','\u05D3'],['ff','\u05E4'],
+    ['gg','\u05D2'],['kk','\u05DB'],['ll','\u05DC'],
+    ['mm','\u05DE'],['nn','\u05E0'],['pp','\u05E4'],
+    ['rr','\u05E8'],['tt','\u05EA'],['ss','\u05E1'],['\u00DF','\u05E1'],
+    ['ei','\u05D9'],['ie','\u05D9'],
+    ['au','\u05D0\u05D5'],['eu','\u05D0\u05D5\u05D9'],['\u00E4u','\u05D0\u05D5\u05D9'],
+    ['aa','\u05D0'],['ee','\u05D9'],['oo','\u05D5'],
+    ['\u00E4','\u05D0'],['\u00F6','\u05D5'],['\u00FC','\u05D9']
+  ];
+  for(var p=0;p<pats.length;p++)r=r.split(pats[p][0]).join(pats[p][1]);
+  // ── Single-char maps ──────────────────────────────────────────────────────
+  // Nikud ON: a/e become diacritics (attach to preceding consonant); i/o/u become matres lectionis + diacritic
+  var smN={
+    a:'\u05B7',e:'\u05B6',                         // patach, segol (diacritics)
+    i:'\u05D9\u05B4',o:'\u05D5\u05B9',u:'\u05D5\u05BC', // yod+chirik, vav+cholam, vav+shuruk
+    b:'\u05D1\u05BC',c:'\u05DB',d:'\u05D3',f:'\u05E4',g:'\u05D2',h:'\u05D4',
+    j:'\u05D9',k:'\u05DB\u05BC',l:'\u05DC',m:'\u05DE',n:'\u05E0',
+    p:'\u05E4\u05BC',q:'\u05E7',r:'\u05E8',s:'\u05E1',t:'\u05EA',
+    v:'\u05D1',w:'\u05D5',x:'\u05DB\u05E1',y:'\u05D9',z:'\u05D6'
+  };
+  // Nikud OFF: a→alef, e→'' (dropped unless word-initial), i→yod, o/u→vav
+  var smP={
+    a:'\u05D0',e:'',i:'\u05D9',o:'\u05D5',u:'\u05D5',
+    b:'\u05D1',c:'\u05DB',d:'\u05D3',f:'\u05E4',g:'\u05D2',h:'\u05D4',
+    j:'\u05D9',k:'\u05DB',l:'\u05DC',m:'\u05DE',n:'\u05E0',
+    p:'\u05E4',q:'\u05E7',r:'\u05E8',s:'\u05E1',t:'\u05EA',
+    v:'\u05D1',w:'\u05D5',x:'\u05DB\u05E1',y:'\u05D9',z:'\u05D6'
+  };
+  var sm=nik?smN:smP;
+  // ── Character-by-character rendering ─────────────────────────────────────
+  var out='',hasCons=false;
+  for(var i=0;i<r.length;i++){
+    var ch=r[i],code=ch.charCodeAt(0);
+    // Word boundary → apply final forms to accumulated output, reset consonant tracker
+    if(ch===' '||ch==='-'||ch==='\n'){out=applyFinalForms(out);out+=ch;hasCons=false;continue;}
+    // Already a Hebrew character (consonant or nikud from multi-char substitution): pass through
+    if((code>=0x05B0&&code<=0x05C7)||(code>=0x05D0&&code<=0x05EA)){
+      if(code>=0x05D0)hasCons=true;
+      out+=ch;continue;
+    }
+    var mapped=sm[ch];
+    if(mapped===undefined){out+=ch;continue;}
+    if(nik&&(ch==='a'||ch==='e')){
+      // Diacritics need a consonant host; add silent alef at word start
+      if(!hasCons){out+='\u05D0';hasCons=true;}
+      out+=mapped;
+    }else if(!nik&&ch==='e'&&!hasCons){
+      // Word-initial 'e' without nikud: use alef as carrier
+      out+='\u05D0';hasCons=true;
+    }else{
+      out+=mapped;
+      if('aeiou'.indexOf(ch)<0)hasCons=true;
+    }
+  }
+  return applyFinalForms(out);
+}
+function fromHe(text){
+  // Nikud combining marks → vowel sound
+  var NV={'\u05B7':'a','\u05B8':'a','\u05B4':'i','\u05B5':'e','\u05B6':'e',
+          '\u05B9':'o','\u05BB':'u','\u05BC':'','\u05B0':'',
+          '\u05B1':'e','\u05B2':'a','\u05B3':'o',
+          '\u05C1':'','\u05C2':''};
+  // Consonant map (aleph/he = silent = empty string when nikud follows)
+  var CM={'\u05D0':'a','\u05D1':'b','\u05D2':'g','\u05D3':'d','\u05D4':'h',
+          '\u05D5':'w','\u05D6':'z','\u05D7':'ch','\u05D8':'t','\u05D9':'j',
+          '\u05DB':'k','\u05DA':'k','\u05DC':'l','\u05DE':'m','\u05DD':'m',
+          '\u05E0':'n','\u05DF':'n','\u05E1':'s','\u05E2':'\'','\u05E4':'p',
+          '\u05E3':'p','\u05E6':'z','\u05E5':'z','\u05E7':'k','\u05E8':'r',
+          '\u05E9':'sch','\u05EA':'t'};
+  var SILENT={'\u05D0':1,'\u05D4':1}; // aleph, he: silent consonants
+  var hasNikud=false;
+  for(var ci=0;ci<text.length;ci++){if(NV.hasOwnProperty(text[ci])){hasNikud=true;break;}}
+  if(!hasNikud){
+    // Plain Hebrew without nikud: original simple map
+    var out='';
+    for(var i=0;i<text.length;i++)out+=CM[text[i]]||(text[i]);
+    return out;
+  }
+  // With nikud: consonant+following-nikud → syllable
+  var result='';
+  var i=0;
+  while(i<text.length){
+    var c=text[i];
+    if(NV.hasOwnProperty(c)){result+=NV[c];i++;continue;}
+    if(CM.hasOwnProperty(c)){
+      var cons=CM[c];
+      // Collect following nikud marks
+      var j=i+1,vowel='';
+      while(j<text.length&&NV.hasOwnProperty(text[j])){vowel+=NV[text[j]];j++;}
+      if(vowel){
+        result+=SILENT[c]?vowel:(cons+vowel);
+        i=j;
+      }else{result+=cons;i++;}
+    }else{result+=c;i++;}
+  }
+  return result;
+}
+
+// ── APP FLOW ──────────────────────────────────────────────────
+function updFree(){
+  var v=document.getElementById('freeIn').value;
+  document.getElementById('freeOut').textContent=gDir()==='de-gr'?toTarget(v):fromTarget(v);
+}
+function onNikudChange(){
+  buildSidebar();reKbs();
+  updateHebOpts();
+  if(gMode()==='free'){updFree();}
+  else if(lang==='hebrew'&&curWord){
+    var cased=applyCase(curWord,gCase());
+    document.getElementById('tgtWord').textContent=gDir()==='de-gr'?cased:toTarget(cased);
+  }
+  updateURL();
+}
+
+function resetShiftForNew(){
+  var c=gCase();
+  if(c==='normal'){SM=1;DSM=1;}
+  else if(c==='upper'){SM=2;DSM=2;}
+  else{SM=0;DSM=0;}
+  reKbs();
+}
+
+function nextWord(){
+  var ld=L[lang];
+  var dir=gDir();
+  curWord=ld.words[Math.floor(Math.random()*ld.words.length)];
+  var cased=applyCase(curWord,gCase());
+  document.getElementById('tgtWord').textContent=dir==='de-gr'?cased:toTarget(cased);
+  document.getElementById('playIn').value='';
+  clearFeedback();
+  resetShiftForNew();
+  setTimeout(focusIn,50);
+}
+
+// ── FEEDBACK HELPER ───────────────────────────────────────────
+function setFeedback(status,color,line1,line2){
+  // var wrap=document.getElementById('feedback');
+  var fs=document.getElementById('fb-status');
+  var f1=document.getElementById('fb-line1');
+  var f2=document.getElementById('fb-line2');
+  // if(wrap) wrap.classList.add('show-report');
+  if(!fs)return;
+  fs.innerHTML=status||'';fs.style.color=color||'';
+  if(f1){if(line1){f1.innerHTML=line1;f1.style.color=color||'';f1.classList.add('vis');}else{f1.innerHTML='';f1.classList.remove('vis');}}
+  if(f2){if(line2){f2.innerHTML=line2;f2.style.color=color||'';f2.classList.add('vis');}else{f2.innerHTML='';f2.classList.remove('vis');}}
+}
+function clearFeedback(){
+  // var wrap=document.getElementById('feedback');
+  // if(wrap) wrap.classList.remove('show-report');
+
+  setFeedback('','',null,null);
+}
+
+function checkAnswer(){
+  var dir=gDir();
+  var ans=document.getElementById('playIn').value.trim();
+  var f=document.getElementById('feedback');
+  if(dir==='gr-de'){
+    var correct=curWord.toLowerCase();
+    var ok=(ans.toLowerCase()===correct);
+    if(ok){
+      var ld=L[lang];
+      var dictAns2=(ld.wordsDict&&ld.wordsDict[curWord])||null;
+      var hint=dictAns2&&(lang==='hebrew'?normHeBasic(dictAns2)!==normHeBasic(toTarget(curWord)):dictAns2.toLowerCase()!==toTarget(curWord).toLowerCase());
+      setFeedback('Richtig! \uD83C\uDF89','green',hint?'W\u00F6rterbuch:\t'+dictAns2:null,null);
+    }else{
+      setFeedback('Falsch!','red','L\u00F6sung:\t'+curWord,null);
+    }
+    return;
+  }
+  var ld=L[lang];
+  var algoAns=toTarget(curWord);
+  var dictAns=(ld.wordsDict&&ld.wordsDict[curWord])||null;
+
+  function normHeBasic(s){
+    s=stripNikud(s).toLowerCase();
+    s=s.replace(/\u05E9\u05C1/g,'\u05E9').replace(/\u05E9\u05C2/g,'\u05E9');
+    return s;
+  }
+  function normHe(s){return normHeBasic(s);}
+  function normHeLenient(s){
+    s=normHe(s);
+    s=s.replace(/\u05D8/g,'\u05EA');
+    s=s.replace(/\u05E7/g,'\u05DB');
+    s=s.replace(/\u05DA/g,'\u05DB').replace(/\u05DD/g,'\u05DE')
+       .replace(/\u05DF/g,'\u05E0').replace(/\u05E3/g,'\u05E4')
+       .replace(/\u05E5/g,'\u05E6');
+    s=s.replace(/\u05D4$/,'').replace(/\u05D0$/,'');
+    return s;
+  }
+  function normGr(s){
+    return s.toLowerCase()
+      .replace(/\u03B7/g,'\u03B9').replace(/\u03C5/g,'\u03B9')
+      .replace(/\u03C9/g,'\u03BF').replace(/\u03C2/g,'\u03C3')
+      .replace(/\u03B8/g,'\u03C4')
+      .replace(/[\u0300-\u036f]/g,'').normalize('NFC');
+  }
+
+  var ok=false;
+  var lenient=gTol()==='lenient';
+
+  if(lang==='hebrew'){
+    var ansN=normHe(ans),algoN=normHe(algoAns),dictN=dictAns?normHe(dictAns):null;
+    if(lenient){
+      var ansL=normHeLenient(ans),algoL=normHeLenient(algoAns),dictL=dictAns?normHeLenient(dictAns):null;
+      ok=(ansL===algoL)||(dictL&&ansL===dictL)||(ansN===algoN)||(dictN&&ansN===dictN);
+    }else{ok=ansN===(dictN||algoN);}
+  }else if(lang==='greek'){
+    var ansN=ans.toLowerCase(),algoN=algoAns.toLowerCase(),dictN=dictAns?dictAns.toLowerCase():null;
+    if(lenient){ok=normGr(ansN)===normGr(algoN)||(dictN&&normGr(ansN)===normGr(dictN));}
+    else{ok=ansN===(dictN||algoN);}
+  }else{
+    var ansN=ans.toLowerCase(),algoN=algoAns.toLowerCase(),dictN=dictAns?dictAns.toLowerCase():null;
+    ok=lenient?((ansN===algoN)||(dictN&&ansN===dictN)):(ansN===(dictN||algoN));
+  }
+
+  if(ok){
+    var algoNormV=lang==='hebrew'?normHeBasic(algoAns):algoAns.toLowerCase();
+    var dictNormV=dictAns?(lang==='hebrew'?normHeBasic(dictAns):dictAns.toLowerCase()):null;
+    var hasDiff=dictAns&&dictNormV!==algoNormV;
+    var ff=_langFont();var fw=(lang==='greek'&&gScript()==='cursive')?'font-weight:bold;':'';
+    var fstyle=ff?'font-family:'+ff+';'+fw:'';
+    setFeedback('Richtig! \uD83C\uDF89','green',
+      hasDiff?'W\u00F6rterbuch:\t<span class="ans-preview" style="cursor:pointer;'+fstyle+'">'+dictAns+'</span>':null,
+      null);
+  }else{
+    var algoNormV2=lang==='hebrew'?normHeBasic(algoAns):algoAns.toLowerCase();
+    var dictNormV2=dictAns?(lang==='hebrew'?normHeBasic(dictAns):dictAns.toLowerCase()):null;
+    var hasDiff2=dictAns&&dictNormV2!==algoNormV2;
+    var ff=_langFont();var fw=(lang==='greek'&&gScript()==='cursive')?'font-weight:bold;':'';
+    var fstyle=ff?'font-family:'+ff+';'+fw:'';
+    var algoSpan='<span class="ans-preview" style="cursor:pointer;'+fstyle+'">'+algoAns+'</span>';
+    var dictSpan=hasDiff2?'<span class="ans-preview" style="cursor:pointer;'+fstyle+'">'+dictAns+'</span>':null;
+    setFeedback('Falsch!','red',
+      'L\u00F6sung:\t'+algoSpan,
+      hasDiff2?'W\u00F6rterbuch:\t'+dictSpan:null);
+  }
+}
+
+function updateVis(){
+  var mode=gMode(),dir=gDir(),ld=L[lang];
+  var isHeb=(lang==='hebrew');
+  var needTgt=(mode==='free'&&dir==='gr-de')||(mode==='play'&&dir==='de-gr');
+  var needDe =(mode==='free'&&dir==='de-gr')||(mode==='play'&&dir==='gr-de');
+  var hebKbActive=isHeb&&needTgt;
+  document.getElementById('freeSec').style.display=mode==='free'?'block':'none';
+  document.getElementById('playSec').style.display=mode==='play'?'block':'none';
+  document.getElementById('tolGrp').style.display=mode==='play'?'flex':'none';
+  ['kb-greek','kb-german','kb-hebrew','kb-cyrillic'].forEach(function(id){document.getElementById(id).classList.remove('active');});
+  document.getElementById('shufBtn').style.display=lang==='greek'?'':'none';
+  if(needTgt)document.getElementById(ld.kbId).classList.add('active');
+  else if(needDe)document.getElementById('kb-german').classList.add('active');
+  ['freeIn','playIn'].forEach(function(id){document.getElementById(id).setAttribute('inputmode','none');});
+  var rtl=ld.rtl&&needTgt;
+  ['freeIn','playIn'].forEach(function(id){document.getElementById(id).style.direction=rtl?'rtl':'ltr';});
+  applyHebFont();
+  updateHebOpts();
+  if(mode==='free')updFree();
+  else if(!curWord)nextWord();
+  setTimeout(focusIn,80);
+}
+
+function onModeChange(){
+  closeInfoDetails();
+  document.getElementById('playIn').value='';document.getElementById('freeIn').value='';
+  clearFeedback();updFree();
+  updateVis();if(gMode()==='play')nextWord();updateURL();
+}
+function onDirChange(){closeInfoDetails();clearInputs();updateVis();if(gMode()==='play')nextWord();updateURL();}
+function onCaseChange(){
+  closeInfoDetails();
+  setSMfromCase();updateVis();updateURL();
+  if(curWord&&gMode()==='play'){
+    var cased=applyCase(curWord,gCase());
+    document.getElementById('tgtWord').textContent=gDir()==='de-gr'?cased:toTarget(cased);
+  }
+}
+function onHebKbChange(){reKbs();updateHebOpts();updateURL();}
+function onNikudInputChange(){
+  reKbs();updateHebOpts();updateURL();
+}
+function clearInputs(){
+  document.getElementById('freeIn').value='';
+  document.getElementById('playIn').value='';
+  document.getElementById('freeOut').textContent='';
+  clearFeedback();
+}
+function changeLang(){
+  closeInfoDetails();
+  lang=document.getElementById('langSelect').value;
+  updateBodyClass();
+  curWord='';SM=0;DSM=0;shuffLay=null;
+  clearInputs();
+  buildSidebar();reKbs();updateVis();nextWord();updateURL();
+}
+
+// ── URL PERSISTENCE ───────────────────────────────────────────
+function updateURL(){
+  try{
+    var p=new URLSearchParams();
+    p.set('lang',lang);
+    p.set('mode',gMode());
+    p.set('dir',gDir());
+    p.set('case',gCase());
+    p.set('tol',gTol());
+    p.set('script',gScript());
+    if(lang==='hebrew'){
+      p.set('nikud',gNik()?'on':'off');
+      p.set('hebkb',gHebKb());
+      p.set('nikinput',gNikudInput());
+    }
+    var url=window.location.pathname+'?'+p.toString();
+    window.history.replaceState(null,'',url);
+  }catch(e){}
+}
+function setRadio(name,val){
+  var el=document.querySelector('input[name="'+name+'"][value="'+val+'"]');
+  if(el){el.checked=true;}
+}
+function loadFromURL(){
+  try{
+    var p=new URLSearchParams(window.location.search);
+    if(p.get('lang'))lang=p.get('lang');
+    var sel=document.getElementById('langSelect');
+    if(sel)sel.value=lang;
+    if(p.get('mode'))setRadio('mode',p.get('mode'));
+    if(p.get('dir'))setRadio('dir',p.get('dir'));
+    if(p.get('case'))setRadio('case',p.get('case'));
+    if(p.get('tol'))setRadio('tol',p.get('tol'));
+    if(p.get('nikud'))setRadio('nikud',p.get('nikud'));
+    if(p.get('hebkb'))setRadio('hebkb',p.get('hebkb'));
+    if(p.get('nikinput'))setRadio('nikinput',p.get('nikinput'));
+    if(p.get('script'))setRadio('script',p.get('script'));
+    updateBodyClass();
+  }catch(e){}
+}
+
+// ── ANS-PREVIEW DELEGATION ─────────────────────────────────
+(function(){
+  var fb=document.getElementById('feedback');
+  var _lastAnsTouch=0;
+  function _handleAnsSpan(span){
+    if(letterPreviewBtn===span||_wasJustDismissedBy(span)){dismissLetterPreview();_previewDismissedEl=null;return;}
+    dismissLetterPreview();
+    var txt=span.textContent;
+    var ff=_langFont();
+    var fs=ff?'font-family:'+ff+';':'';
+    var ds=(lang==='hebrew')?'direction:rtl;':'';
+    _openPreview(span,'<span class="np-char" style="font-size:2.4rem;'+fs+ds+'">'+txt+'</span>');
+  }
+  fb.addEventListener('touchend',function(e){
+    var span=e.target.closest('.ans-preview');if(!span)return;
+    e.preventDefault();e.stopPropagation();
+    _lastAnsTouch=Date.now();
+    _handleAnsSpan(span);
+  },{passive:false});
+  fb.addEventListener('click',function(e){
+    if(Date.now()-_lastAnsTouch<600)return;
+    var span=e.target.closest('.ans-preview');if(!span)return;
+    _handleAnsSpan(span);
+  });
+})();
+// ── HEB KEYBOARD OPTIONS ─────────────────────────────────────
+function gRadio(name){return(document.querySelector('input[name="'+name+'"]:checked')||{value:''}).value;}
+function buildHebOpts(){
+  var wrap=document.getElementById('heb-opts-wrap');if(!wrap)return;
+  wrap.innerHTML=
+    '<div class="hob-grp" id="hob-kb">'
+    +'<button class="hob" data-hob="hebkb" data-val="standard">Default</button>'
+    +'<button class="hob" data-hob="hebkb" data-val="phonetic">Phon.</button>'
+    +'</div>'
+    +'<div class="hob-grp" id="hob-nkinp" style="display:none;">'
+    +'<button class="hob" data-hob="nikinput" data-val="longpress">Lang</button>'
+    +'<button class="hob" data-hob="nikinput" data-val="button">Taste</button>'
+    +'<button class="hob" data-hob="nikinput" data-val="strip">Oben</button>'
+    +'</div>';
+  var _lastHobTouch=0;
+  wrap.addEventListener('touchend',function(e){
+    var btn=e.target.closest('.hob');if(!btn)return;
+    e.preventDefault();e.stopPropagation();_lastHobTouch=Date.now();
+    if(btn.closest('#hob-kb')){
+      var cur=gRadio('hebkb');var nv=cur==='standard'?'phonetic':'standard';
+      var r=document.querySelector('input[name="hebkb"][value="'+nv+'"]');
+      if(r){r.checked=true;r.dispatchEvent(new Event('change'));}updateHebOpts();
+    }else{hobClick(btn);}
+  },{passive:false});
+  wrap.addEventListener('click',function(e){
+    if(Date.now()-_lastHobTouch<600)return;
+    var btn=e.target.closest('.hob');if(!btn)return;
+    if(btn.closest('#hob-kb')){
+      var cur=gRadio('hebkb');var nv=cur==='standard'?'phonetic':'standard';
+      var r=document.querySelector('input[name="hebkb"][value="'+nv+'"]');
+      if(r){r.checked=true;r.dispatchEvent(new Event('change'));}updateHebOpts();
+    }else{hobClick(btn);}
+  });
+  updateHebOpts();
+}
+function onNikudChkChange(cb){
+  var radio=document.querySelector('input[name="nikud"][value="'+(cb.checked?'on':'off')+'"]');
+  if(radio){radio.checked=true;radio.dispatchEvent(new Event('change'));}
+}
+function hobClick(btn){
+  var name=btn.dataset.hob,val=btn.dataset.val;
+  var radio=document.querySelector('input[name="'+name+'"][value="'+val+'"]');
+  if(radio){radio.checked=true;radio.dispatchEvent(new Event('change'));}
+}
+var _nikudChkWidget=null;
+function _getNikudChkWidget(){
+  if(!_nikudChkWidget){
+    var lbl=document.createElement('label');
+    lbl.id='nikud-chk-widget';lbl.className='hob-chk';
+    var cb=document.createElement('input');
+    cb.type='checkbox';cb.id='hob-nik-in';
+    cb.addEventListener('change',function(){onNikudChkChange(this);});
+    lbl.appendChild(cb);lbl.appendChild(document.createTextNode(' Nikud'));
+    _nikudChkWidget=lbl;
+  }
+  return _nikudChkWidget;
+}
+function updateHebOpts(){
+  var wrap=document.getElementById('heb-opts-wrap');if(!wrap)return;
+  var isHeb=(lang==='hebrew');
+  var needTgt=(gMode()==='free'&&gDir()==='gr-de')||(gMode()==='play'&&gDir()==='de-gr');
+  var hebKbActive=isHeb&&needTgt;
+  wrap.style.display=hebKbActive?'flex':'none';
+  ['hebkb','nikinput'].forEach(function(name){
+    var cur=gRadio(name);
+    wrap.querySelectorAll('[data-hob="'+name+'"]').forEach(function(b){b.classList.toggle('hob-on',b.dataset.val===cur);});
+  });
+  var nkInpGrp=document.getElementById('hob-nkinp');
+  if(nkInpGrp)nkInpGrp.style.display=(hebKbActive&&gNik())?'flex':'none';
+  // Nikud checkbox: create widget and route to correct slot
+  var widget=_getNikudChkWidget();
+  var nikCb=widget.querySelector('input[type=checkbox]');
+  if(nikCb)nikCb.checked=gNik();
+  var slotId=null;
+  if(isHeb){
+    if(gMode()==='free'){slotId=gDir()==='gr-de'?'nikud-slot-free-in':'nikud-slot-free-out';}
+    else{slotId=gDir()==='de-gr'?'nikud-slot-play-in':'nikud-slot-play-tgt';}
+  }
+  var playHebRow=document.getElementById('play-heb-in-row');
+  if(playHebRow)playHebRow.style.display=(isHeb&&gMode()==='play'&&gDir()==='de-gr')?'flex':'none';
+  ['nikud-slot-free-in','nikud-slot-free-out','nikud-slot-play-in','nikud-slot-play-tgt'].forEach(function(id){
+    var sl=document.getElementById(id);if(sl&&sl.contains(widget))sl.removeChild(widget);
+  });
+  if(slotId){var targetSlot=document.getElementById(slotId);if(targetSlot)targetSlot.appendChild(widget);}
+}
+// ── GEAR MENU ─────────────────────────────────────────────────
+(function(){
+  var gearBtn=document.getElementById('gearBtn');
+  var gearMenu=document.getElementById('gearMenu');
+  var _lastGearTouch=0;
+  function _toggleGear(){gearMenu.classList.toggle('open');}
+  gearBtn.addEventListener('touchend',function(e){e.preventDefault();_lastGearTouch=Date.now();_toggleGear();},{passive:false});
+  gearBtn.addEventListener('click',function(){if(Date.now()-_lastGearTouch<600)return;_toggleGear();});
+  document.addEventListener('mousedown',function(e){
+    if(gearMenu.classList.contains('open')&&!gearMenu.contains(e.target)&&e.target.id!=='gearBtn')
+      gearMenu.classList.remove('open');
+  });
+  document.addEventListener('touchstart',function(e){
+    if(gearMenu.classList.contains('open')&&!gearMenu.contains(e.target)&&e.target.id!=='gearBtn')
+      gearMenu.classList.remove('open');
+  },{passive:true});
+  // ── Gear tooltip ─────────────────────────────────────────────
+  var gtip=document.getElementById('gtip-el');
+  function _showGtip(tg,x,y){
+    var txt=tg.dataset.gtip;if(!txt)return;
+    gtip.textContent=txt;gtip.style.display='block';
+    var w=gtip.offsetWidth,h=gtip.offsetHeight;
+    var left=x-w/2;if(left<6)left=6;if(left+w>window.innerWidth-6)left=window.innerWidth-w-6;
+    var top=y-h-8;if(top<6)top=y+16;
+    gtip.style.left=left+'px';gtip.style.top=top+'px';
+  }
+  gearMenu.addEventListener('mouseover',function(e){
+    var tg=e.target.closest('.tg[data-gtip]');if(!tg)return;
+    var r=tg.getBoundingClientRect();
+    _showGtip(tg,r.left+r.width/2,r.top);
+  });
+  gearMenu.addEventListener('mouseout',function(e){
+    if(!e.target.closest('.tg[data-gtip]'))return;
+    gtip.style.display='none';
+  });
+  var _gtipOpen=null;
+  gearMenu.addEventListener('touchend',function(e){
+    var lbl=e.target.closest('.lbl');if(!lbl)return;
+    var tg=lbl.closest('.tg[data-gtip]');if(!tg)return;
+    e.preventDefault();
+    if(_gtipOpen===tg){gtip.style.display='none';_gtipOpen=null;return;}
+    var r=lbl.getBoundingClientRect();
+    _showGtip(tg,r.left+r.width/2,r.top);
+    _gtipOpen=tg;
+  },{passive:false});
+  document.addEventListener('touchstart',function(e){
+    if(_gtipOpen&&!gearMenu.contains(e.target)){gtip.style.display='none';_gtipOpen=null;}
+  },{passive:true});
+})();
+// ── TGTWORD PREVIEW ───────────────────────────────────────────
+(function(){
+  var tw=document.getElementById('tgtWord');
+  var _lastTwTouch=0;
+  function _handleTw(){
+    if(letterPreviewBtn===tw||_wasJustDismissedBy(tw)){dismissLetterPreview();_previewDismissedEl=null;return;}
+    dismissLetterPreview();showWordPreview(tw);
+  }
+  tw.addEventListener('touchend',function(e){
+    e.preventDefault();e.stopPropagation();_lastTwTouch=Date.now();_handleTw();
+  },{passive:false});
+  tw.addEventListener('click',function(){if(Date.now()-_lastTwTouch<600)return;_handleTw();});
+})();
+// ── EVENTS ────────────────────────────────────────────────────
+document.getElementById('freeIn').oninput=updFree;
+// ── SHARE BUTTON + MAIL COPY ──────────────────────────────────
+var _toastTimer=null;
+function _showToast(msg,nearEl){
+  var t=document.getElementById('copyToast');if(!t)return;
+  t.textContent=msg||'Kopiert ✓';
+  t.removeAttribute('style');
+  if(nearEl){
+    var r=nearEl.getBoundingClientRect();
+    var cx=r.left+r.width/2;
+    var tw=Math.min(200,window.innerWidth-16);
+    var left=Math.max(8,Math.min(cx-tw/2,window.innerWidth-tw-8));
+    var top=Math.max(8,r.top-46);
+    t.style.cssText='position:fixed;bottom:auto;left:'+left+'px;top:'+top+'px;transform:none;width:'+tw+'px;text-align:center;';
+  }
+  if(_toastTimer)clearTimeout(_toastTimer);
+  t.classList.add('show');
+  _toastTimer=setTimeout(function(){t.classList.remove('show');},2200);
+}
+(function(){
+  var btn=document.getElementById('shareBtn');
+  var _lastShareTouch=0;
+  btn.addEventListener('touchend',function(e){
+    e.preventDefault();e.stopPropagation();_lastShareTouch=Date.now();
+    navigator.clipboard.writeText(window.location.href).then(function(){_showToast('Link kopiert ✓',btn);}).catch(function(){});
+  },{passive:false});
+  btn.addEventListener('click',function(){
+    if(Date.now()-_lastShareTouch<600)return;
+    navigator.clipboard.writeText(window.location.href).then(function(){_showToast('Link kopiert ✓',btn);}).catch(function(){});
+  });
+})();
+// E-Mail obfuskiert (base64) – Zum Kodieren: btoa('ihre@email.de') im Browser
+var _EM=atob('bGVocmVya29jaDkwQGdtYWlsLmNvbQ=='); /* TODO: ggf. anpassen */
+function copyMail(e){
+  if(e)e.preventDefault();
+  var nearEl=e&&e.currentTarget?e.currentTarget:(e&&e.target?e.target:null);
+  navigator.clipboard.writeText(_EM).then(function(){_showToast('E-Mail kopiert ✓',nearEl);}).catch(function(){});
+}
+function sendMail(e){
+  if(e) e.preventDefault();
+  
+  var aktuellerLink = window.location.href;
+  var aktuellesWort = "";
+  var aktuellesWortUebersetzung = "";
+  var aktuelleEingabe = "";
+  var aktuelleUebersetzung = "";
+
+    if (gMode() === 'play') {
+        aktuelleUebersetzung = document.getElementById('feedback').innerText.replace('⚠️','').trim();
+    } else {
+        aktuelleUebersetzung = document.getElementById('freeOut').innerText.replace('⚠️','').trim();
+    }
+  if (gMode() === 'play') {
+    if (gDir() === 'de-gr') {
+      aktuellesWort = curWord;
+      aktuellesWortUebersetzung = toTarget(curWord);
+    }
+    else {
+      aktuellesWort = toTarget(curWord);
+      aktuellesWortUebersetzung = curWord;
+    }
+  } 
+  if (gMode() === 'play') {
+      aktuelleEingabe = document.getElementById('playIn').value;
+  }
+  else {
+      aktuelleEingabe = document.getElementById('freeIn').value;
+  }
+  
+  var subject = encodeURIComponent("Fehlerbericht Schrifttrainer");
+  var bodyText = "Hallo,\n\nich habe einen Fehler gefunden:\n\n";
+
+  if(aktuellesWort) {
+    bodyText += "Aktuelles Wort: " + aktuellesWort + "\n";
+    bodyText += "Aktuelle Übersetzung: " + aktuellesWortUebersetzung + "\n";
+  }
+  bodyText += "Aktuelle Eingabe: " + aktuelleEingabe + "\n";
+  if(aktuelleUebersetzung) {
+      bodyText += "Lösung/Ausgabe: " + aktuelleUebersetzung + "\n";
+  }
+  
+  bodyText += "\nLink zum Nachstellen:\n" + aktuellerLink + "\n\n";
+  bodyText += "Anmerkung von mir:\n";
+  
+  var body = encodeURIComponent(bodyText);
+  window.location.href = "mailto:" + _EM + "?subject=" + subject + "&body=" + body;
+}
+// ── AUTO-CLOSE INFO DETAILS ON INTERACTION ────────────────────
+function closeInfoDetails(){
+  var d=document.getElementById('infoDetails');if(d)d.removeAttribute('open');
+}
+document.getElementById('freeIn').onfocus=function(){focused=document.getElementById('freeIn');scrollBot();closeInfoDetails();};
+document.getElementById('playIn').onfocus=function(){focused=document.getElementById('playIn');scrollBot();closeInfoDetails();};
+document.getElementById('playIn').onkeypress=function(e){if(e.key==='Enter')checkAnswer();};
+// ── INIT ─────────────────────────────────────────────────────
+loadFromURL();
+buildSidebar();reKbs();buildHebOpts();updateBodyClass();updateVis();nextWord();
+</script>
+<div class="share-toast" id="copyToast"></div>
+<script src="last-update.js" defer></script>
+</body>
+</html>

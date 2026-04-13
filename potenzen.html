@@ -1,0 +1,1958 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script>
+    window.MathJax = { tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] } };
+  </script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <title>Potenzen Übungsaufgaben</title>
+  <link rel="stylesheet" type="text/css" href="styles.css">
+  <style>
+    .site-footer {
+      width: 100%; box-sizing: border-box; padding: 12px 40px;
+      border-top: 1px solid #ccc; margin-top: 20px; margin-bottom: 10px;
+      font-family: sans-serif; font-size: 0.6em; color: #333333d8;
+    }
+    .footer-content {
+      display: flex; justify-content: center; align-items: center;
+      gap: 1.5rem; max-width: 1200px; margin: 0 auto; flex-wrap: wrap; text-align: center;
+    }
+    @media (max-width: 600px) { .footer-content { flex-direction: column; gap: 6px; } }
+
+    body { font-family: sans-serif; -webkit-user-select: none; user-select: none; overflow-x: hidden; }
+    *:focus { outline: none; }
+    #showSolutionBtn:focus { outline: 2px solid black; }
+
+    #flashOverlay {
+      position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      opacity: 0; transition: opacity 1s;
+    }
+    #toast {
+      position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+      background: #333; color: #fff; padding: 12px 24px; border-radius: 10px;
+      font-size: 0.95em; opacity: 0; pointer-events: none;
+      transition: opacity 0.4s; z-index: 999; white-space: nowrap;
+    }
+    #toast.show { opacity: 1; }
+
+    /* Card area */
+    #taskWrap {
+      position: relative; width: 100%; height: 210px; margin-top: 20px;
+      border: 1px solid #eee; border-radius: 10px; perspective: 1000px; z-index: 1;
+    }
+    #wrongBtn, #correctBtn {
+      position: absolute; top: 0; bottom: 0; width: 80px;
+      border: none; font-size: 0.9em; z-index: 1; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; text-align: center;
+    }
+    #wrongBtn  { left: 0;  background-color: #f8d7da; color: #721c24; border-radius: 10px 0 0 10px; }
+    #correctBtn{ right: 0; background-color: #d4edda; color: #155724; border-radius: 0 10px 10px 0; }
+
+    #taskCard {
+      position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+      text-align: center; border-radius: 15px; cursor: grab;
+      width: calc(100% - 180px); max-width: 360px; height: 90%;
+      z-index: 2; box-sizing: border-box;
+      transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+      transform-style: preserve-3d;
+    }
+    #taskCard.flipped { transform: translate(-50%, -50%) rotateY(180deg); }
+
+    .card-face {
+      position: absolute; width: 100%; height: 100%;
+      backface-visibility: hidden; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      border: 2px solid #ddd; border-radius: 15px; background: white;
+      transition: background-color 0.2s ease;
+      overflow: hidden;
+      box-sizing: border-box;
+    }
+    .card-back { transform: rotateY(180deg); background-color: #fcfcfc; }
+
+    .card-sub { font-size: 0.75em; color: #888; margin-top: 4px; flex-shrink: 0; }
+
+    /* Scale wrapper — pointer-events:none on wrapper so clicks reach the card */
+    .scale-wrapper {
+      overflow: visible;
+      width: 90%;
+      padding: 0.3em 0.5em;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-shrink: 0;
+      pointer-events: none;
+    }
+    .scale-el {
+      display: inline-block;
+      transform-origin: center center;
+      white-space: nowrap;
+      font-size: 1.6em;
+      pointer-events: none;
+    }
+    .scale-el-solution {
+      display: inline-block;
+      transform-origin: center center;
+      white-space: nowrap;
+      font-size: 1.4em;
+      pointer-events: none;
+    }
+
+    #showSolutionBtn { width: 100%; margin-top: 15px; padding: 10px; cursor: pointer; }
+    body.eingabe-modus #showSolutionBtn { margin-top: 32px; }
+
+    /* Settings — radio group identical to quadratzahlen.html */
+    .radio-group { display: inline-flex; border-radius: 6px; overflow: hidden; border: 2px solid #4CAF50; margin: 6px 0 12px 0; }
+    .radio-group label { display: flex; align-items: center; padding: 5px 9px; font-weight: normal; font-size: 0.78em; cursor: pointer; background: #fff; border-right: 1px solid #4CAF50; transition: background 0.15s; line-height: 1.3; user-select: none; }
+    .radio-group label:last-child { border-right: none; }
+    .radio-group label:hover { background: #f1fbf1; }
+    .radio-group input[type="radio"] { display: none; }
+    .radio-group label:has(input:checked) { background: #4CAF50; color: #fff; }
+
+    /* Checkbox grid for number selection */
+    .cb-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 2px 4px;
+      margin: 4px 0 8px 0;
+    }
+    .cb-item {
+      display: flex;
+      align-items: center;
+      width: 52px;
+      gap: 3px;
+      font-size: 0.85em;
+    }
+    .cb-item input[type="checkbox"] {
+      flex-shrink: 0;
+      width: 14px;
+      height: 14px;
+      margin: 0;
+      cursor: pointer;
+    }
+    .cb-item label {
+      cursor: pointer;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    /* Locked state for input mode */
+    .locked { opacity: 0.4; pointer-events: none; filter: grayscale(0.5); cursor: not-allowed !important; }
+
+    /* Section toggle-all button */
+    .section-toggle-btn {
+      font-size: 0.72em; padding: 1px 7px; margin-left: 7px;
+      border: 1px solid #aaa; border-radius: 4px; background: #f5f5f5;
+      cursor: pointer; vertical-align: middle; color: #333;
+      transition: background 0.12s;
+    }
+    .section-toggle-btn:hover { background: #e0e0e0; }
+
+    /* Input mode answer area */
+    #inputArea {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      margin: 10px 0 0 0;
+      width: 100%;
+    }
+    #inputArea.active { display: flex; }
+    #answerInput {
+      width: min(320px, 90vw); padding: 8px 12px; font-size: 1.1em;
+      border: 2px solid #ccc; border-radius: 8px; text-align: center;
+      outline: none; transition: border-color 0.2s, background 0.2s;
+    }
+    #answerInput:focus { border-color: #4CAF50; }
+    #answerInput.correct { border-color: #28a745; background: #d4edda; color: #155724; }
+    #answerInput.wrong   { border-color: #dc3545; background: #f8d7da; color: #721c24; }
+    #answerInput.reveal  { border-color: #e0a800; background: #fff3cd; color: #7a5800; }
+    #checkBtn {
+      padding: 9px 24px; font-size: 1em; border-radius: 8px;
+      border: 2px solid #4CAF50; background: #e8f5e9; color: #1b5e20;
+      cursor: pointer; font-weight: bold; transition: background 0.15s, border-color 0.15s;
+      letter-spacing: 0.02em;
+    }
+    #checkBtn:hover { background: #c8e6c9; border-color: #388e3c; }
+    #answerHint {
+      font-size: 0.82em; color: #7a5800; background: #fff3cd;
+      border: 1px solid #e0a800; border-radius: 6px;
+      padding: 5px 10px; text-align: center;
+      display: none; max-width: min(320px, 90vw);
+    }
+    #answerHint.visible { display: block; }
+  </style>
+</head>
+<body>
+  <div id="flashOverlay"></div>
+  <div id="toast"></div>
+  <div style="position:relative; z-index:1;">
+
+  <h1>Potenzen Übungsaufgaben</h1>
+
+  <details>
+    <summary>Settings</summary>
+    <form id="settingsForm">
+      <div class="form-block">
+        <b>Zahlenbereiche:</b><br>
+        <button type="button" onclick="toggleGroup('sq1_10')">Quadratzahlen 1–10</button><br>
+        <div id="sq1_10" class="cb-grid"></div>
+        <button type="button" onclick="toggleGroup('sq11_20')">Quadratzahlen 11–20</button><br>
+        <div id="sq11_20" class="cb-grid"></div>
+        <button type="button" onclick="toggleGroup('sq21_25')">Quadratzahlen 21–25</button><br>
+        <div id="sq21_25" class="cb-grid"></div>
+        <button type="button" onclick="toggleGroup('pow2')">Zweierpotenzen (2&#x2070;&#x2013;2&#x00B9;&#x2070;)</button><br>
+        <div id="pow2" class="cb-grid"></div>
+        <button type="button" onclick="toggleGroup('powExtra')">Weitere wichtige Potenzen</button><br>
+        <div id="powExtra" class="cb-grid"></div>
+        <button type="button" onclick="toggleGroup('custom')">Eigene Potenzen</button><br>
+        <div id="custom" class="cb-grid"></div>
+        <div style="display:flex;gap:4px;align-items:center;margin:2px 0 8px 0;font-size:0.82em;">
+          <span>Basis:</span>
+          <input type="number" id="customBase" min="1" max="9999" style="width:50px;padding:2px 4px;font-size:1em;" placeholder="3">
+          <span>Exponent:</span>
+          <input type="number" id="customExp" min="-20" max="20" style="width:40px;padding:2px 4px;font-size:1em;" placeholder="6">
+          <button type="button" id="addCustomBtn" style="padding:2px 8px;">+</button>
+        </div>
+      </div>
+
+      <div class="form-block">
+        <b>Optionen:</b><button type="button" class="section-toggle-btn" onclick="toggleSection(['multifactor','fractional','fractions','fracPow'])">alle</button><br>
+        <label style="font-size:0.82em;cursor:pointer;display:inline-block;margin:1px 0"><input type="checkbox" id="multifactor"> Auch 10-, 100-, 1000-fach
+          <span style="font-family:monospace">z.B. 300<sup>2</sup></span></label><br>
+        <label style="font-size:0.82em;cursor:pointer;display:inline-block;margin:1px 0"><input type="checkbox" id="fractional"> Auch Zehntel, Hundertstel, Tausendstel
+          <span style="font-family:monospace">z.B. 0,03<sup>2</sup></span></label><br>
+        <label style="font-size:0.82em;cursor:pointer;display:inline-block;margin:1px 0"><input type="checkbox" id="fractions"> Auch Br&uuml;che
+          <span style="font-family:monospace">z.B. (3/5)<sup>2</sup></span></label><br>
+        <label style="font-size:0.82em;cursor:pointer;display:inline-block;margin:1px 0"><input type="checkbox" id="fracPow"> Auch Br&uuml;che von Potenzen
+          <span style="font-family:monospace">z.B. 66<sup>2</sup>/42<sup>2</sup></span></label><br>
+      </div>
+
+      <div class="form-block">
+        <b>Vorzeichen der Basis:</b><button type="button" class="section-toggle-btn" onclick="toggleSection(['negBase','negBaseNoParens'])">alle</button><br>
+        <label style="font-size:0.82em;cursor:pointer;display:inline-block;margin:1px 0"><input type="checkbox" id="negBase"> Auch negative Basen
+          <span style="font-family:monospace">z.B. (-3)<sup>4</sup></span></label><br>
+        <label style="font-size:0.82em;cursor:pointer;display:inline-block;margin:1px 0"><input type="checkbox" id="negBaseNoParens"> Auch negative Potenzen (ohne Klammer)
+          <span style="font-family:monospace">z.B. &minus;3<sup>4</sup></span></label><br>
+      </div>
+
+      <div class="form-block">
+        <b>Besondere Exponenten:</b><button type="button" class="section-toggle-btn" onclick="toggleSection(['negExp','expZero','expOne'])">alle</button><br>
+        <label style="font-size:0.82em;cursor:pointer;display:inline-block;margin:1px 0"><input type="checkbox" id="negExp"> Auch negative Exponenten
+          <span style="font-family:monospace">z.B. 3<sup>&minus;4</sup></span></label><br>
+        <label style="font-size:0.82em;cursor:pointer;display:inline-block;margin:1px 0"><input type="checkbox" id="expZero"> Auch Exponent 0
+          <span style="font-family:monospace">z.B. 3<sup>0</sup> = 1</span></label><br>
+        <label style="font-size:0.82em;cursor:pointer;display:inline-block;margin:1px 0"><input type="checkbox" id="expOne"> Auch Exponent 1
+          <span style="font-family:monospace">z.B. 3<sup>1</sup> = 3</span></label><br>
+      </div>
+
+      <div class="form-block">
+        <b>Aufgabentyp:</b><br>
+        <div class="radio-group">
+          <label><input type="radio" name="wurzelmode" value="none" checked> Keine Wurzelaufgaben</label>
+          <label><input type="radio" name="wurzelmode" value="both"> Auch Wurzelaufgaben</label>
+          <label><input type="radio" name="wurzelmode" value="only"> Nur Wurzelaufgaben</label>
+        </div>
+      </div>
+      <div class="form-block">
+        <b>Animationen:</b><br>
+        <label style="font-size:0.82em;cursor:pointer;display:inline-block;margin:1px 0"><input type="checkbox" id="skipAnimations"> Keine Animationen</label><br>
+        <label style="font-size:0.82em;cursor:pointer;display:inline-block;margin:1px 0"><input type="checkbox" id="showHints" checked> Lösungshinweise bei falschen eingegebenen Ergebnissen</label>
+      </div>
+    </form>
+  </details>
+
+  <div style="margin-top:16px;text-align:center;">
+    <div class="radio-group" style="display:inline-flex;">
+      <label><input type="radio" name="spielmodus" value="flashcard" checked> Flash-Cards</label>
+      <label><input type="radio" name="spielmodus" value="eingabe"> L&ouml;sungen eingeben</label>
+    </div>
+  </div>
+
+  <p id="taskLabel" style="text-align:center; margin-top:12px; font-weight:bold;">W&auml;hle Zahlen und starte&hellip;</p>
+  <p id="counter"   style="text-align:center; font-weight:bold;">Richtig: 0 / 0</p>
+
+  <div id="taskWrap">
+    <button id="wrongBtn">Noch unsicher</button>
+    <div id="taskCard">
+      <div class="card-face" id="faceFront">
+        <div class="scale-wrapper"><div id="taskText" class="scale-el"></div></div>
+        <div class="card-sub" id="taskSub"></div>
+      </div>
+      <div class="card-face card-back" id="faceBack">
+        <div style="flex:1;display:flex;align-items:center;justify-content:center;width:100%;min-height:0;">
+          <div class="scale-wrapper" style="width:90%"><div id="loesung" class="scale-el-solution"></div></div>
+        </div>
+        <div id="loesungHinweis" style="font-size:0.72em;color:#666;padding:0 8px 8px;text-align:center;flex-shrink:0;"></div>
+      </div>
+    </div>
+    <button id="correctBtn">Kann ich sicher</button>
+  </div>
+
+  <div id="inputArea">
+    <input type="text" id="answerInput" inputmode="decimal" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Zahl oder Bruch (z.B. 3/5)">
+    <div id="answerHint"></div>
+    <button id="checkBtn">L&ouml;sung &uuml;berpr&uuml;fen</button>
+  </div>
+
+  <button id="showSolutionBtn" class="btn">L&ouml;sung anzeigen</button>
+
+  </div>
+
+<script>
+/* ── MathJax / Scaling ───────────────────────────── */
+// Debounced MathJax: batches requests in one rAF, targets specific elements, clears cache first
+let _mjPending = false, _mjElements = new Set();
+function typesetMath(el) {
+  if (!window.MathJax) return;
+  if (el) _mjElements.add(el);
+  if (_mjPending) return;
+  _mjPending = true;
+  requestAnimationFrame(() => {
+    _mjPending = false;
+    const targets = _mjElements.size > 0 ? [..._mjElements] : null;
+    _mjElements = new Set();
+    if (!MathJax.typesetPromise) return;
+    if (targets && MathJax.typesetClear) MathJax.typesetClear(targets);
+    MathJax.typesetPromise(targets).catch(() => {});
+  });
+}
+
+// Debounced scale: collapses rapid calls into one, runs 50ms later
+let _scalePending = false;
+function scheduleScale() {
+  if (_scalePending) return;
+  _scalePending = true;
+  setTimeout(() => { _scalePending = false; scaleAllElements(); }, 50);
+}
+
+function scaleToFit(el) {
+  if (!el) return;
+  el.style.transform = 'none';
+  const wrapper = el.parentElement;
+  if (!wrapper) return;
+  requestAnimationFrame(() => {
+    const available = wrapper.clientWidth
+      - parseFloat(getComputedStyle(wrapper).paddingLeft)
+      - parseFloat(getComputedStyle(wrapper).paddingRight);
+    const natural = el.scrollWidth;
+    if (natural > available && available > 0) {
+      const scale = available / natural;
+      el.style.transform = `scale(${scale})`;
+      wrapper.style.height = (el.scrollHeight * scale) + 'px';
+    } else {
+      wrapper.style.height = '';
+    }
+  });
+}
+
+function scaleAllElements() {
+  document.querySelectorAll('.scale-el, .scale-el-solution').forEach(scaleToFit);
+}
+
+window.addEventListener('resize', scaleAllElements);
+
+/* ── Helpers ─────────────────────────────────────── */
+function roundNumber(x, d = 10) { return Number.parseFloat(x.toFixed(d)); }
+function randomChoice(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+function gcd(a, b) { a = Math.abs(a); b = Math.abs(b); return b === 0 ? a : gcd(b, a % b); }
+
+function showToast(msg, duration = 1800) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), duration);
+}
+
+function flashResult(color) {
+  const ov = document.getElementById('flashOverlay');
+  ov.style.transition = 'none';
+  ov.style.backgroundColor = color;
+  ov.style.opacity = '1';
+  setTimeout(() => { ov.style.transition = 'opacity 1s'; ov.style.opacity = '0'; }, 50);
+}
+
+/* ── Task definitions ────────────────────────────── */
+const GROUPS = {
+  sq1_10:   Array.from({length:10}, (_,i) => ({base: i+1,  exp: 2})),
+  sq11_20:  Array.from({length:10}, (_,i) => ({base: i+11, exp: 2})),
+  sq21_25:  Array.from({length:5},  (_,i) => ({base: i+21, exp: 2})),
+  pow2:     Array.from({length:11}, (_,i) => ({base: 2,    exp: i})),
+  powExtra: [
+    {base:3,exp:3},{base:3,exp:4},{base:3,exp:5},
+    {base:4,exp:3},{base:4,exp:4},{base:4,exp:5},
+    {base:5,exp:3},{base:5,exp:4},{base:5,exp:5},
+    {base:6,exp:3},{base:8,exp:3}
+  ]
+};
+
+// Unique key — includes groupId so the same base^exp in different groups is independent
+function taskKey(t) { return `${t.groupId}_${t.base}_${t.exp}`; }
+
+/* ── Custom powers ───────────────────────────────── */
+const CUSTOM_TASKS = {}; // key → {base, exp, groupId:'custom'}
+
+function addCustomPower(base, exp, checked = true) {
+  if (!Number.isInteger(base) || !Number.isInteger(exp) || base < 1) return false;
+  const t = { base, exp, groupId: 'custom' };
+  const key = taskKey(t);
+  if (CUSTOM_TASKS[key]) return false; // already exists
+  CUSTOM_TASKS[key] = t;
+  ALL_TASKS[key] = t;
+
+  const container = document.getElementById('custom');
+  const item = document.createElement('div');
+  item.className = 'cb-item';
+  item.id = 'cbitem_' + key;
+
+  const cb = document.createElement('input');
+  cb.type = 'checkbox'; cb.name = 'task'; cb.value = key; cb.id = 'cb_' + key;
+  cb.checked = checked;
+  cb.addEventListener('change', () => { updateURLParams(); onSettingsChange(); });
+
+  const lbl = document.createElement('label');
+  lbl.htmlFor = 'cb_' + key;
+  lbl.textContent = String(base);
+  const sup = document.createElement('sup');
+  sup.textContent = String(exp);
+  lbl.appendChild(sup);
+
+  item.appendChild(cb);
+  item.appendChild(lbl);
+  container.appendChild(item);
+  return true;
+}
+
+/* ── Number formatting ───────────────────────────── */
+// Apply thousands-dot to integer string and thin-space groups to decimal string
+function applyTexGrouping(intStr, decStr, negative) {
+  const intGrouped = intStr.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  let result;
+  if (decStr) {
+    const decGrouped = decStr.replace(/(\d{3})(?=\d)/g, '$1{\\,}');
+    result = intGrouped + '{,}' + decGrouped;
+  } else {
+    result = intGrouped;
+  }
+  return negative ? '-' + result : result;
+}
+
+// Format a plain number (integer or moderate float) — used for bases and integers
+function formatNumberTex(val) {
+  if (!isFinite(val)) return String(val);
+  const negative = val < 0;
+  const abs = Math.abs(val);
+  // Use integer string if it is one
+  if (Number.isInteger(abs)) {
+    return applyTexGrouping(String(abs), '', negative);
+  }
+  // Use toFixed(15) and trim — fine for base values, not used for large powers
+  const s = abs.toFixed(15).replace(/\.?0+$/, '');
+  const [intPart, decPart] = s.split('.');
+  return applyTexGrouping(intPart || '0', decPart || '', negative);
+}
+
+// Raise an integer (given as string) to a positive integer power, return string
+function bigIntPow(baseStr, exp) {
+  // Use BigInt for exact integer arithmetic
+  return (BigInt(baseStr) ** BigInt(exp)).toString();
+}
+
+// Format base*mult as a LaTeX string, string-based for decimal multipliers
+function formatBase(base, mult) {
+  if (mult === 1) return String(base);
+  if (mult > 1) {
+    // Integer multiple: just concatenate zeros
+    const zeros = Math.round(Math.log10(mult));
+    return applyTexGrouping(String(base) + '0'.repeat(zeros), '', false);
+  }
+  // Decimal: e.g. base=2, mult=0.001 → "0{,}002"
+  const decPlaces = Math.round(-Math.log10(mult));
+  const s = String(base);
+  // Insert decimal point decPlaces digits from the right (pad with leading zeros)
+  const digits = s.padStart(decPlaces + 1, '0');
+  const intPart = digits.slice(0, digits.length - decPlaces) || '0';
+  const decPart = digits.slice(digits.length - decPlaces);
+  return applyTexGrouping(intPart, decPart, false);
+}
+
+// Format (base * mult)^exp as a LaTeX string, fully string-based
+function formatResult(base, exp, mult) {
+  if (mult === 1) {
+    // Integer base, integer exponent — exact via BigInt
+    const result = bigIntPow(String(base), exp);
+    return applyTexGrouping(result, '', false);
+  }
+  if (mult > 1) {
+    // (base * 10^k)^exp = base^exp * 10^(k*exp) — append zeros to base^exp
+    const k = Math.round(Math.log10(mult));
+    const baseResult = bigIntPow(String(base), exp);
+    const totalZeros = k * exp;
+    return applyTexGrouping(baseResult + '0'.repeat(totalZeros), '', false);
+  }
+  // Decimal: (base * 10^(-k))^exp = base^exp * 10^(-k*exp)
+  // → shift decimal point left by k*exp in the string of base^exp
+  const k = Math.round(-Math.log10(mult));
+  const baseResult = bigIntPow(String(base), exp);  // e.g. "256" for 2^8
+  const totalDecPlaces = k * exp;                   // e.g. 3*8 = 24 for 0.001^8
+  // Pad with leading zeros so we have enough digits
+  const padded = baseResult.padStart(totalDecPlaces + 1, '0');
+  const intPart = padded.slice(0, padded.length - totalDecPlaces) || '0';
+  const decPart = padded.slice(padded.length - totalDecPlaces);
+  // Trim trailing zeros from decPart
+  const trimmed = decPart.replace(/0+$/, '');
+  return applyTexGrouping(intPart, trimmed, false);
+}
+
+/* ── Settings / Checkboxes ───────────────────────── */
+function makeCheckboxes(groupId) {
+  const container = document.getElementById(groupId);
+  GROUPS[groupId].forEach(task => {
+    const t = {...task, groupId};
+    const key = taskKey(t);
+    const item = document.createElement('div');
+    item.className = 'cb-item';
+
+    const cb = document.createElement('input');
+    cb.type = 'checkbox'; cb.name = 'task'; cb.value = key; cb.id = 'cb_' + key;
+    cb.addEventListener('change', () => { updateURLParams(); onSettingsChange(); });
+
+    const lbl = document.createElement('label');
+    lbl.htmlFor = 'cb_' + key;
+    lbl.textContent = String(task.base);
+    const sup = document.createElement('sup');
+    sup.textContent = String(task.exp);
+    lbl.appendChild(sup);
+
+    item.appendChild(cb);
+    item.appendChild(lbl);
+    container.appendChild(item);
+  });
+}
+
+const BOOL_PARAMS = ['multifactor','fractional','fractions','fracPow','negBase','negBaseNoParens','negExp','expZero','expOne','showHints'];
+
+function getParams() {
+  const p = new URLSearchParams(window.location.search);
+  const result = {
+    selectedKeys: p.has('tasks') ? p.get('tasks').split(',') : [],
+    customTasks:  p.has('custom') ? p.get('custom').split(',').map(s => {
+      const [b, e] = s.split('_').map(Number);
+      return (Number.isInteger(b) && Number.isInteger(e)) ? {base:b, exp:e} : null;
+    }).filter(Boolean) : [],
+    wurzelmode: p.has('wurzelmode') ? p.get('wurzelmode') : 'none',
+    spielmodus: p.has('spielmodus') ? p.get('spielmodus') : 'flashcard'
+  };
+  BOOL_PARAMS.forEach(id => { result[id] = p.has(id) ? p.get(id) === '1' : (id === 'showHints'); });
+  return result;
+}
+
+function updateURLParams() {
+  const q = new URLSearchParams();
+  const sel = [];
+  document.querySelectorAll('input[name=task]:checked').forEach(cb => sel.push(cb.value));
+  if (sel.length) q.set('tasks', sel.join(','));
+  const customKeys = Object.keys(CUSTOM_TASKS);
+  if (customKeys.length) q.set('custom', customKeys.map(k => {
+    const t = CUSTOM_TASKS[k]; return `${t.base}_${t.exp}`;
+  }).join(','));
+  BOOL_PARAMS.forEach(id => q.set(id, document.getElementById(id).checked ? '1' : '0'));
+  q.set('wurzelmode', document.querySelector('input[name="wurzelmode"]:checked').value);
+  q.set('spielmodus', document.querySelector('input[name="spielmodus"]:checked').value);
+  history.replaceState({}, '', window.location.pathname + '?' + q.toString());
+}
+
+function toggleGroup(groupId) {
+  const keys = groupId === 'custom'
+    ? Object.keys(CUSTOM_TASKS)
+    : GROUPS[groupId].map(t => `${groupId}_${t.base}_${t.exp}`);
+  const cbs = keys.map(k => document.getElementById('cb_' + k)).filter(Boolean);
+  if (cbs.length === 0) return;
+  const allOn = cbs.every(cb => cb.checked);
+  cbs.forEach(cb => { cb.checked = !allOn; });
+  updateURLParams(); onSettingsChange();
+}
+
+function toggleSection(ids) {
+  const cbs = ids.map(id => document.getElementById(id)).filter(Boolean);
+  if (cbs.length === 0) return;
+  const allOn = cbs.every(cb => cb.checked);
+  cbs.forEach(cb => { cb.checked = !allOn; });
+  updateURLParams(); onSettingsChange();
+}
+
+function onSettingsChange() {
+  refillPool();
+  window.currentTask = null;
+  _suppressFocus = true;
+  korrekteAntworten = 0;
+  anzahlAufgaben = 0;
+  updateCounterDisplay();
+  // document.getElementById('taskLabel').textContent = '';
+  document.getElementById('taskText').innerHTML = '';
+  document.getElementById('loesung').innerHTML = '';
+  faces.forEach(f => f.style.backgroundColor = 'white');
+  card.removeAttribute('style');
+  card.classList.remove('flipped');
+  setTimeout(generateTask, 100);
+}
+
+/* ── Pool ────────────────────────────────────────── */
+let taskPool = [];
+let korrekteAntworten = 0, anzahlAufgaben = 0;
+let _taskGen = 0; // incremented each call; stale MathJax promises check against this
+let _suppressFocus = true; // true until first user-triggered task transition
+
+const ALL_TASKS = {};
+Object.entries(GROUPS).forEach(([groupId, tasks]) => {
+  tasks.forEach(t => { ALL_TASKS[`${groupId}_${t.base}_${t.exp}`] = {...t, groupId}; });
+});
+
+function refillPool() {
+  const baseItems = Array.from(document.querySelectorAll('input[name=task]:checked'))
+    .map(cb => ALL_TASKS[cb.value]).filter(Boolean);
+
+  const useMult    = document.getElementById('multifactor').checked;
+  const useFracDec = document.getElementById('fractional').checked;
+  const useFracts  = document.getElementById('fractions').checked;
+  const useFracPow = document.getElementById('fracPow').checked;
+  const useNegBase = document.getElementById('negBase').checked;
+  const useNegNoP  = document.getElementById('negBaseNoParens').checked;
+  const useNegExp  = document.getElementById('negExp').checked;
+  const useExp0    = document.getElementById('expZero').checked;
+  const useExp1    = document.getElementById('expOne').checked;
+  const wurzelMode = document.querySelector('input[name="wurzelmode"]:checked').value;
+
+  const entries = [];
+
+  // Multiplier list for normal/negBase/negNoParens
+  const multList = [1];
+  if (useMult)    multList.push(10, 100, 1000);
+  if (useFracDec) multList.push(0.1, 0.01, 0.001);
+
+  // exp0 / exp1 special tasks: limit to combined 10% of pool.
+  // Collect them separately, then splice in a capped count after dedup.
+  const exp0Entries = [];
+  const exp1Entries = [];
+
+  baseItems.forEach(t => {
+    const { base, exp, groupId } = t;
+
+    multList.forEach(mult => {
+      entries.push({ type: 'normal',     base, exp, mult, groupId });
+      if (useNegBase) entries.push({ type: 'negBase',     base, exp, mult, groupId });
+      if (useNegNoP)  entries.push({ type: 'negNoParens', base, exp, mult, groupId });
+    });
+
+    if (useNegExp && exp > 0) entries.push({ type: 'negExp', base, exp,  mult: 1, groupId });
+    if (useExp0)              exp0Entries.push({ type: 'exp0',   base, exp: 0, mult: 1, groupId });
+    if (useExp1)              exp1Entries.push({ type: 'exp1',   base, exp: 1, mult: 1, groupId });
+  });
+
+  // Fraction tasks — build on-the-fly at generation time (stored as sentinel)
+  if (useFracts && baseItems.length >= 1) {
+    // Build a map: exp → [bases that are enabled for this exp]
+    const expToBases = {};
+    baseItems.forEach(t => {
+      if (!expToBases[t.exp]) expToBases[t.exp] = [];
+      if (!expToBases[t.exp].includes(t.base)) expToBases[t.exp].push(t.base);
+    });
+
+    // For each valid exp, add fraction entries using only bases available for that exp
+    Object.entries(expToBases).forEach(([expStr, bases]) => {
+      const exp = parseInt(expStr);
+      // Need at least 2 different bases for a fraction
+      if (bases.length < 2 && !(bases.length === 1)) {
+        // Only 1 base available for this exp: use 1 as numerator or denominator
+      }
+      // All unordered pairs (num, den) with gcd=1
+      const allNums = bases.slice();
+      // Also allow 1 as numerator when den is in bases
+      allNums.push(1);
+      allNums.forEach(num => {
+        bases.forEach(den => {
+          if (num !== den && gcd(num, den) === 1) {
+            entries.push({ type: 'fraction', base: num, den, exp, mult: 1, groupId: 'frac' });
+          }
+        });
+      });
+
+      // Negative exponent on fractions
+      if (useNegExp && exp > 0) {
+        const allNums2 = bases.slice(); allNums2.push(1);
+        allNums2.forEach(num => {
+          bases.forEach(den => {
+            if (num !== den && gcd(num, den) === 1) {
+              entries.push({ type: 'fracNegExp', base: num, den, exp, mult: 1, groupId: 'frac' });
+            }
+          });
+        });
+      }
+      // Exponent 0 on fractions
+      if (useExp0) {
+        if (bases.length >= 1) {
+          entries.push({ type: 'fracExp0', base: bases[0], den: bases.length > 1 ? bases[1] : 2, exp: 0, mult: 1, groupId: 'frac' });
+        }
+      }
+      // Exponent 1 on fractions
+      if (useExp1) {
+        const allNums3 = bases.slice(); allNums3.push(1);
+        allNums3.forEach(num => {
+          bases.forEach(den => {
+            if (num !== den && gcd(num, den) === 1) {
+              entries.push({ type: 'fracExp1', base: num, den, exp: 1, mult: 1, groupId: 'frac' });
+            }
+          });
+        });
+      }
+      // Negative base fractions
+      if (useNegBase && exp > 1) {
+        const allNums4 = bases.slice(); allNums4.push(1);
+        allNums4.forEach(num => {
+          bases.forEach(den => {
+            if (num !== den && gcd(num, den) === 1) {
+              entries.push({ type: 'fracNegBase', base: num, den, exp, mult: 1, groupId: 'frac' });
+            }
+          });
+        });
+      }
+    });
+
+    // Give exp=2 fraction entries 3x weight by tripling them
+    const fracExp2 = entries.filter(e => e.type.startsWith('frac') && e.exp === 2);
+    entries.push(...fracExp2, ...fracExp2); // add 2 extra copies → 3x total
+  }
+
+  // Brüche von Potenzen: (a*k)^exp / (b*k)^exp where a/b is coprime, k is a factor such that max(a,b)*k > 25
+  if (useFracPow && baseItems.length >= 1) {
+    const EXPAND_FACTORS = [2,3,4,5,6,7,8,9,11,12,15];
+    // Use exp=2 and the enabled bases
+    const exp2bases = baseItems.filter(t => t.exp === 2).map(t => t.base);
+    if (exp2bases.length >= 2) {
+      const exp = 2;
+      exp2bases.forEach(num => {
+        exp2bases.forEach(den => {
+          if (num !== den && gcd(num, den) === 1) {
+            // Valid factors: max(num,den)*k > 25
+            const bigger = Math.max(num, den);
+            const validFactors = EXPAND_FACTORS.filter(k => bigger * k > 25);
+            if (validFactors.length === 0) return;
+            // Store pair without factor; factor is chosen randomly at task generation
+            entries.push({ type: 'fracPow', base: num, den, exp, validFactors, groupId: 'frac' });
+          }
+        });
+      });
+      // Give fracPow entries 2x weight
+      const fracPowEntries = entries.filter(e => e.type === 'fracPow');
+      entries.push(...fracPowEntries);
+    }
+  }
+
+  // For "only Wurzel" mode: keep only types that can produce a root task
+  // (normal, negBase for even exp, fraction for even exp). Remove exp0/exp1/negExp/negNoParens.
+  let pool = entries;
+  if (wurzelMode === 'only') {
+    pool = entries.filter(e =>
+      e.type === 'normal' ||
+      (e.type === 'negBase' && e.exp >= 2 && e.exp % 2 === 0) ||
+      (e.type === 'fraction' && e.exp >= 2) ||
+      (e.type === 'fracNegBase' && e.exp >= 2 && e.exp % 2 === 0)
+    );
+  }
+
+  // Deduplicate
+  const seen = new Set();
+  pool = pool.filter(e => {
+    const k = JSON.stringify(e);
+    if (seen.has(k)) return false;
+    seen.add(k); return true;
+  });
+
+  // Cap exp0+exp1 to combined 10% of pool (equal split between the two types).
+  // We pick at most one representative per type, randomly chosen from the available entries,
+  // and repeat them just enough times to hit the 10% target.
+  if (exp0Entries.length > 0 || exp1Entries.length > 0) {
+    const baseCount = pool.length; // pool without exp0/exp1
+    // Target: (exp0count + exp1count) / total = 0.10  →  total = baseCount / 0.90
+    // → exp0count + exp1count = baseCount * 0.10 / 0.90 ≈ baseCount / 9
+    const totalSpecial = Math.max(1, Math.round(baseCount / 9));
+    const halfSpecial  = Math.floor(totalSpecial / 2);
+
+    // Deduplicate exp0/exp1 separately
+    const dedup = arr => {
+      const s = new Set(); return arr.filter(e => { const k = JSON.stringify(e); if (s.has(k)) return false; s.add(k); return true; });
+    };
+    const uniq0 = dedup(exp0Entries);
+    const uniq1 = dedup(exp1Entries);
+
+    // Fill up to halfSpecial entries each, cycling through unique entries
+    const fill = (uniq, count) => {
+      if (uniq.length === 0 || count === 0) return [];
+      const out = [];
+      for (let i = 0; i < count; i++) out.push(uniq[i % uniq.length]);
+      return out;
+    };
+
+    let e0count = exp0Entries.length > 0 ? halfSpecial : 0;
+    let e1count = exp1Entries.length > 0 ? (totalSpecial - e0count) : 0;
+    if (exp0Entries.length === 0) { e0count = 0; e1count = Math.min(totalSpecial, uniq1.length > 0 ? totalSpecial : 0); }
+    if (exp1Entries.length === 0) { e1count = 0; }
+
+    pool.push(...fill(uniq0, e0count), ...fill(uniq1, e1count));
+  }
+
+  // Fisher-Yates shuffle
+  for (let i = pool.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [pool[i], pool[j]] = [pool[j], pool[i]];
+  }
+  taskPool = pool;
+}
+
+// Shuffle taskPool so that the entry matching avoidId is not at index 0.
+// Used after a wrong answer to avoid immediately repeating the same task.
+function reshuffleAvoid(avoidId) {
+  if (taskPool.length <= 1) return;
+  // Fisher-Yates, then fix index 0 if needed
+  for (let i = taskPool.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [taskPool[i], taskPool[j]] = [taskPool[j], taskPool[i]];
+  }
+  // If the avoided entry still ended up at 0, swap with a random other index
+  if (JSON.stringify(taskPool[0]) === avoidId) {
+    const j = Math.floor(Math.random() * (taskPool.length - 1)) + 1;
+    [taskPool[0], taskPool[j]] = [taskPool[j], taskPool[0]];
+  }
+}
+
+function updateCounterDisplay() {
+  document.getElementById('counter').textContent = `Richtig: ${korrekteAntworten} / ${anzahlAufgaben}`;
+}
+
+/* ── Flip Card references ────────────────────────── */
+const card  = document.getElementById('taskCard');
+const faces = document.querySelectorAll('.card-face');
+
+/* ── LaTeX generation ────────────────────────────── */
+function multHintText(mult, exp) {
+  if (!mult || mult === 1) return '';
+  const isDecimal = mult < 1;
+  const word  = isDecimal ? 'Nachkommastelle' : 'Null';
+  const words = isDecimal ? 'Nachkommastellen' : 'Nullen';
+  const perFactor = isDecimal ? Math.round(-Math.log10(mult)) : Math.round(Math.log10(mult));
+  const total = perFactor * exp;
+  const perStr = perFactor === 1 ? `1 ${word}` : `${perFactor} ${words}`;
+  return `${perStr} in jedem der ${exp} Faktoren\n→ insgesamt ${total} ${words}`;
+}
+function buildTaskAndSolution(entry) {
+  const { type, base, exp, mult, den } = entry;
+  const wurzelMode = document.querySelector('input[name="wurzelmode"]:checked').value;
+  const canInverse = ['normal','negBase','fraction','fracNegBase'].includes(type);
+  const isInverse  = canInverse && ((wurzelMode === 'only') || (wurzelMode === 'both' && Math.random() < 0.5));
+
+  let aufgabeTex, loesungTex, hinweisText = '';
+  // isInverse is needed by computeAnswerHint — expose it via return value
+
+  if (type === 'exp0') {
+    // base^0 = 1
+    const baseStr = formatBase(base, mult || 1);
+    aufgabeTex = `${baseStr}^{0} = \\,?`;
+    loesungTex = `${baseStr}^{0} = 1`;
+    hinweisText = 'Jede Zahl hoch 0 ergibt 1.';
+
+  } else if (type === 'exp1') {
+    // base^1 = base
+    const baseStr = formatBase(base, mult || 1);
+    aufgabeTex = `${baseStr}^{1} = \\,?`;
+    loesungTex = `${baseStr}^{1} = ${baseStr}`;
+    hinweisText = 'Jede Zahl hoch 1 ergibt die Basis selbst.';
+
+  } else if (type === 'negExp') {
+    // base^(-exp) = 1/base^exp = 1/result
+    const resultDen = applyTexGrouping(bigIntPow(String(base), exp), '', false);
+    aufgabeTex = `${base}^{-${exp}} = \\,?`;
+    loesungTex = `\\begin{aligned}${base}^{-${exp}} &= \\dfrac{1}{${base}^{${exp}}} \\\\[4pt] &= \\dfrac{1}{${resultDen}}\\end{aligned}`;
+
+  } else if (type === 'negBase') {
+    // (-base*mult)^exp
+    const m = mult || 1;
+    const baseStr = formatBase(base, m);
+    // Special cases: exp=0 → 1, exp=1 → -base
+    if (exp === 0) {
+      aufgabeTex = `\\left(-${baseStr}\\right)^{0} = \\,?`;
+      loesungTex = `\\left(-${baseStr}\\right)^{0} = 1`;
+      hinweisText = 'Jede Zahl hoch 0 ergibt 1.';
+    } else if (exp === 1) {
+      aufgabeTex = `\\left(-${baseStr}\\right)^{1} = \\,?`;
+      loesungTex = `\\left(-${baseStr}\\right)^{1} = -${baseStr}`;
+      hinweisText = 'Jede Zahl hoch 1 ergibt die Basis selbst.';
+    } else {
+      const posResult = formatResult(base, exp, m);
+      const resultStr = exp % 2 === 0 ? `+${posResult}` : `-${posResult}`;
+      if (!isInverse) {
+        aufgabeTex = `\\left(-${baseStr}\\right)^{${exp}} = \\,?`;
+        loesungTex = `\\left(-${baseStr}\\right)^{${exp}} = ${resultStr}`;
+        const mh = multHintText(m, exp);
+        hinweisText = mh ? `Das Minus wird mitpotenziert.\n${mh}` : 'Das Minus wird mitpotenziert.';
+      } else {
+        const posResult2 = formatResult(base, exp, m);
+        aufgabeTex = exp === 2
+          ? `\\sqrt{${posResult2}} = \\,?`
+          : `\\sqrt[${exp}]{${posResult2}} = \\,?`;
+        loesungTex = exp === 2
+          ? `\\sqrt{${posResult2}} = ${baseStr}`
+          : `\\sqrt[${exp}]{${posResult2}} = ${baseStr}`;
+      }
+    }
+
+  } else if (type === 'negNoParens') {
+    // -base^exp = -(base^exp)
+    const m = mult || 1;
+    const baseStr = formatBase(base, m);
+    if (exp === 0) {
+      // -base^0 = -(base^0) = -1
+      aufgabeTex = `-${baseStr}^{0} = \\,?`;
+      loesungTex = `-${baseStr}^{0} = -\\left(${baseStr}^{0}\\right) = -1`;
+      hinweisText = 'Das Minus wird nicht mitpotenziert.';
+    } else if (exp === 1) {
+      aufgabeTex = `-${baseStr}^{1} = \\,?`;
+      loesungTex = `-${baseStr}^{1} = -${baseStr}`;
+      hinweisText = 'Das Minus wird nicht mitpotenziert.';
+    } else {
+      const posResult = formatResult(base, exp, m);
+      aufgabeTex  = `-${baseStr}^{${exp}} = \\,?`;
+      loesungTex  = `\\begin{aligned}-${baseStr}^{${exp}} &= -\\left(${baseStr}^{${exp}}\\right) \\\\[4pt] &= -${posResult}\\end{aligned}`;
+      const mhNP = multHintText(m, exp);
+      hinweisText = mhNP ? `Das Minus wird nicht mitpotenziert.\n${mhNP}` : 'Das Minus wird nicht mitpotenziert.';
+    }
+
+  } else if (type === 'fracNegExp') {
+    // (num/den)^(-exp) = (den/num)^exp
+    const numStr   = String(base);
+    const denStr   = String(den);
+    const flippedN = applyTexGrouping(bigIntPow(denStr, exp), '', false);
+    const flippedD = applyTexGrouping(bigIntPow(numStr, exp), '', false);
+    aufgabeTex = `\\left(\\dfrac{${numStr}}{${denStr}}\\right)^{-${exp}} = \\,?`;
+    loesungTex = `\\begin{aligned}\\left(\\dfrac{${numStr}}{${denStr}}\\right)^{-${exp}} &= \\left(\\dfrac{${denStr}}{${numStr}}\\right)^{${exp}} \\\\[4pt] &= \\dfrac{${flippedN}}{${flippedD}}\\end{aligned}`;
+
+  } else if (type === 'fracExp0') {
+    const numStr = String(base);
+    const denStr = String(den);
+    aufgabeTex = `\\left(\\dfrac{${numStr}}{${denStr}}\\right)^{0} = \\,?`;
+    loesungTex = `\\left(\\dfrac{${numStr}}{${denStr}}\\right)^{0} = 1`;
+    hinweisText = 'Jede Zahl hoch 0 ergibt 1.';
+
+  } else if (type === 'fracExp1') {
+    const numStr = String(base);
+    const denStr = String(den);
+    aufgabeTex = `\\left(\\dfrac{${numStr}}{${denStr}}\\right)^{1} = \\,?`;
+    loesungTex = `\\left(\\dfrac{${numStr}}{${denStr}}\\right)^{1} = \\dfrac{${numStr}}{${denStr}}`;
+    hinweisText = 'Jede Zahl hoch 1 ergibt die Basis selbst.';
+
+  } else if (type === 'fracNegBase') {
+    // (-num/den)^exp
+    const numStr   = String(base);
+    const denStr   = String(den);
+    const numPow   = applyTexGrouping(bigIntPow(numStr, exp), '', false);
+    const denPow   = applyTexGrouping(bigIntPow(denStr, exp), '', false);
+    const sign     = exp % 2 === 0 ? '+' : '-';
+    if (!isInverse) {
+      aufgabeTex = `\\left(-\\dfrac{${numStr}}{${denStr}}\\right)^{${exp}} = \\,?`;
+      loesungTex = `\\begin{aligned}\\left(-\\dfrac{${numStr}}{${denStr}}\\right)^{${exp}} &= ${sign}\\dfrac{${numStr}^{${exp}}}{${denStr}^{${exp}}} \\\\[4pt] &= ${sign}\\dfrac{${numPow}}{${denPow}}\\end{aligned}`;
+      hinweisText = 'Das Minus wird mitpotenziert.';
+    } else {
+      aufgabeTex = exp === 2
+        ? `\\sqrt{\\dfrac{${numPow}}{${denPow}}} = \\,?`
+        : `\\sqrt[${exp}]{\\dfrac{${numPow}}{${denPow}}} = \\,?`;
+      loesungTex = exp === 2
+        ? `\\sqrt{\\dfrac{${numPow}}{${denPow}}} = \\dfrac{\\sqrt{${numPow}}}{\\sqrt{${denPow}}} = \\dfrac{${numStr}}{${denStr}}`
+        : `\\sqrt[${exp}]{\\dfrac{${numPow}}{${denPow}}} = \\dfrac{\\sqrt[${exp}]{${numPow}}}{\\sqrt[${exp}]{${denPow}}} = \\dfrac{${numStr}}{${denStr}}`;
+    }
+
+  } else if (type === 'fraction') {
+    // (num/den)^exp — with intermediate step showing exponent on each part
+    const numStr = String(base);
+    const denStr = String(den);
+    const numPow = applyTexGrouping(bigIntPow(numStr, exp), '', false);
+    const denPow = applyTexGrouping(bigIntPow(denStr, exp), '', false);
+    if (!isInverse) {
+      aufgabeTex = `\\left(\\dfrac{${numStr}}{${denStr}}\\right)^{${exp}} = \\,?`;
+      loesungTex = `\\begin{aligned}\\left(\\dfrac{${numStr}}{${denStr}}\\right)^{${exp}} &= \\dfrac{${numStr}^{${exp}}}{${denStr}^{${exp}}} \\\\[4pt] &= \\dfrac{${numPow}}{${denPow}}\\end{aligned}`;
+    } else {
+      aufgabeTex = exp === 2
+        ? `\\sqrt{\\dfrac{${numPow}}{${denPow}}} = \\,?`
+        : `\\sqrt[${exp}]{\\dfrac{${numPow}}{${denPow}}} = \\,?`;
+      loesungTex = exp === 2
+        ? `\\sqrt{\\dfrac{${numPow}}{${denPow}}} = \\dfrac{\\sqrt{${numPow}}}{\\sqrt{${denPow}}} = \\dfrac{${numStr}}{${denStr}}`
+        : `\\sqrt[${exp}]{\\dfrac{${numPow}}{${denPow}}} = \\dfrac{\\sqrt[${exp}]{${numPow}}}{\\sqrt[${exp}]{${denPow}}} = \\dfrac{${numStr}}{${denStr}}`;
+    }
+
+  } else if (type === 'fracPow') {
+    // (base*k)^exp / (den*k)^exp  →  show as expanded, solution shows reduction
+    const validFactors = entry.validFactors || [3];
+    const k = randomChoice(validFactors);
+    const numExp = base * k; // e.g. 11*6 = 66
+    const denExp = den * k;  // e.g. 7*6  = 42
+    const numStr = String(numExp);
+    const denStr = String(denExp);
+    const numPow = applyTexGrouping(bigIntPow(String(base), exp), '', false);
+    const denPow = applyTexGrouping(bigIntPow(String(den), exp), '', false);
+    aufgabeTex = `\\dfrac{${numStr}^{${exp}}}{${denStr}^{${exp}}} = \\,?`;
+    // Solution: a^n/b^n = (a/b)^n ÷k = (base/den)^n = numPow/denPow
+    loesungTex = `\\begin{aligned}\\!\\dfrac{${numStr}^{${exp}}}{${denStr}^{${exp}}} &= \\left(\\dfrac{${numStr}}{${denStr}}\\right)^{\\!${exp}} \\overset{:${k}}{~=~} \\left(\\dfrac{${base}}{${den}}\\right)^{\\!${exp}} \\!\\\\[4pt] &= \\dfrac{${numPow}}{${denPow}}\\end{aligned}`;
+    hinweisText = `Brüche von Potenzen: a^n / b^n = (a/b)^n.<br>Kürze zuerst den Bruch ${numStr}/${denStr} ÷ ${k} = ${base}/${den}.`;
+
+  } else {
+    const m = mult || 1;
+    const baseStr   = formatBase(base, m);
+    const resultStr = formatResult(base, exp, m);
+    if (!isInverse) {
+      aufgabeTex = `${baseStr}^{${exp}} = \\,?`;
+      loesungTex = `${baseStr}^{${exp}} = ${resultStr}`;
+    } else {
+      aufgabeTex = exp === 2
+        ? `\\sqrt{${resultStr}} = \\,?`
+        : `\\sqrt[${exp}]{${resultStr}} = \\,?`;
+      loesungTex = exp === 2
+        ? `\\sqrt{${resultStr}} = ${baseStr}`
+        : `\\sqrt[${exp}]{${resultStr}} = ${baseStr}`;
+    }
+    // Hinweis: only mult hint for normal exp, but exp=0/exp=1 take priority
+    if (exp === 0)    hinweisText = 'Jede Zahl hoch 0 ergibt 1.';
+    else if (exp === 1) hinweisText = 'Jede Zahl hoch 1 ergibt die Basis selbst.';
+    else if (m !== 1)   hinweisText = multHintText(m, exp);
+  }
+
+  return { aufgabeTex, loesungTex, hinweisText, isInverse };
+}
+
+/* ── Spielmodus helpers ──────────────────────────── */
+function isEingabeModus() {
+  return document.querySelector('input[name="spielmodus"]:checked')?.value === 'eingabe';
+}
+
+function skipAnim() {
+  return document.getElementById('skipAnimations').checked;
+}
+
+/* ── Scroll so that taskWrap + inputArea + showSolutionBtn are visible ── */
+function scrollToInputArea() {
+  const input = document.getElementById('answerInput');
+  if (!input) return;
+
+  // Erst Browser-eigenes Scrollen zum Input
+  input.scrollIntoView({
+    behavior: 'smooth',
+    block: 'center',
+    inline: 'nearest'
+  });
+
+  // Danach zusätzliche Korrektur für virtuelle Tastatur
+  setTimeout(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+
+    const rect = input.getBoundingClientRect();
+    const safeBottom = vv.height - 80; // Platz für Button + Keyboard-Rand
+
+    if (rect.bottom > safeBottom) {
+      window.scrollBy({
+        top: rect.bottom - safeBottom,
+        behavior: 'smooth'
+      });
+    }
+  }, 300);
+}
+
+// On mobile the virtual keyboard shrinks visualViewport AFTER the focus event.
+// Listen globally so we always react when the keyboard appears or resizes.
+if (window.visualViewport) {
+  ['resize', 'scroll'].forEach(event => {
+  window.visualViewport.addEventListener(event, () => {
+        if (document.activeElement === document.getElementById('answerInput')) {
+      setTimeout(scrollToInputArea, 50);
+    }
+  });
+});
+}
+
+function updateSpielmodusUI(focusOnSwitch = false) {
+  const eingabe = isEingabeModus();
+  const inputArea = document.getElementById('inputArea');
+  const wrongBtn  = document.getElementById('wrongBtn');
+  const correctBtn= document.getElementById('correctBtn');
+  inputArea.classList.toggle('active', eingabe);
+  wrongBtn.classList.toggle('locked', eingabe);
+  correctBtn.classList.toggle('locked', eingabe);
+  document.body.classList.toggle('eingabe-modus', eingabe);
+  if (eingabe && focusOnSwitch) {
+    const input = document.getElementById('answerInput');
+    input.focus({ preventScroll: false });
+  }
+}
+
+/* ── Task generation ─────────────────────────────── */
+function generateTask() {
+  if (taskPool.length === 0) {
+    const anyChecked = document.querySelectorAll('input[name=task]:checked').length > 0;
+    if (!anyChecked) {
+      document.getElementById('taskLabel').textContent = 'Bitte Zahlen im Settings-Bereich auswählen.';
+      document.getElementById('taskText').innerHTML = '';
+      return;
+    }
+    refillPool(); // already shuffles
+    showToast('🎉 Alle Aufgaben geschafft! Stapel wird neu gemischt…');
+  }
+
+  const entry = taskPool[0];
+  window.currentTask = entry;
+
+  const { aufgabeTex, loesungTex, hinweisText, isInverse } = buildTaskAndSolution(entry);
+  window.currentTask = { ...entry, isInverse };
+  window.currentSolution = `$$${loesungTex}$$`;
+  window.currentHinweis  = hinweisText || '';
+  // Store plain-text answer for input mode checking
+  window.currentAnswerRaw = entry; // we'll resolve at check time
+
+  document.getElementById('taskLabel').textContent = 'Berechne:';
+  document.getElementById('taskSub').textContent = '';
+  faces.forEach(f => f.style.backgroundColor = 'white');
+
+  const sa = skipAnim();
+  if (sa) {
+    card.style.transition = 'none';
+    card.style.transform = 'translate(-50%, -50%) rotateY(0deg)';
+  } else {
+    card.removeAttribute('style');
+  }
+  card.classList.remove('flipped');
+
+  // Clear back face after card is hidden (600ms or 0ms if skip)
+  setTimeout(() => {
+    document.getElementById('loesung').innerHTML = '';
+    document.getElementById('loesungHinweis').innerHTML = '';
+    window.currentSolution = `$$${loesungTex}$$`;
+    window.currentHinweis  = hinweisText || '';
+    typesetMath(document.getElementById('faceBack'));
+    scheduleScale();
+  }, sa ? 0 : 600);
+
+  // Front face: fade-in after MathJax renders to avoid flash
+  const gen = ++_taskGen;
+  const faceFront = document.getElementById('faceFront');
+  faceFront.style.opacity = '0';
+  document.getElementById('taskText').innerHTML = `$$${aufgabeTex}$$`;
+  if (window.MathJax && MathJax.typesetPromise) {
+    if (MathJax.typesetClear) MathJax.typesetClear([faceFront]);
+    MathJax.typesetPromise([faceFront]).then(() => {
+      if (gen !== _taskGen) return; // stale
+      scaleAllElements();
+      requestAnimationFrame(() => { if (gen === _taskGen) faceFront.style.opacity = ''; });
+    }).catch(() => { if (gen === _taskGen) faceFront.style.opacity = ''; });
+  } else {
+    faceFront.style.opacity = '';
+  }
+
+  updateCounterDisplay();
+
+  // Input mode: reset input field; only focus after user-triggered transitions
+  if (isEingabeModus()) {
+    const inp = document.getElementById('answerInput');
+    inp.value = '';
+    inp.className = '';
+    setAnswerHint(null);
+    if (!_suppressFocus) {
+      setTimeout(() => {
+        inp.focus();
+        setTimeout(scrollToInputArea, 250);
+      }, sa ? 50 : 700);
+    }
+    _suppressFocus = false; // after first task, allow auto-focus going forward
+  }
+}
+
+/* ── Solution / answer ───────────────────────────── */
+function flipToSolution() {
+  if (card.classList.contains('flipped')) return;
+  const faceBack = document.getElementById('faceBack');
+  document.getElementById('loesung').innerHTML = window.currentSolution || '';
+  document.getElementById('loesungHinweis').innerHTML = (window.currentHinweis || '').replace(/\n/g, '<br>');
+
+  const sa = skipAnim();
+  if (sa) {
+    faceBack.style.opacity = '0';
+    if (window.MathJax && MathJax.typesetPromise) {
+      if (MathJax.typesetClear) MathJax.typesetClear([faceBack]);
+      MathJax.typesetPromise([faceBack]).then(() => {
+        scaleAllElements();
+        card.style.transition = 'none';
+        card.style.transform = 'translate(-50%, -50%) rotateY(180deg)';
+        card.classList.add('flipped');
+        requestAnimationFrame(() => { faceBack.style.opacity = ''; });
+      }).catch(() => { card.classList.add('flipped'); faceBack.style.opacity = ''; });
+    } else {
+      card.classList.add('flipped');
+      faceBack.style.opacity = '';
+    }
+  } else {
+    card.classList.add('flipped');
+    typesetMath(faceBack);
+    scheduleScale();
+  }
+}
+
+function showSolution() {
+  if (!window.currentSolution) return;
+  flipToSolution();
+}
+
+// Parse an answer string into a { num, den } rational (exact) or null
+// Accepts: integers, decimals with . or , and fractions p/q
+function parseAnswerRational(s) {
+  s = s.trim().replace(/,/g, '.');
+  if (s.includes('/')) {
+    const parts = s.split('/');
+    if (parts.length !== 2) return null;
+    // Each side may itself be a decimal
+    const a = parseAnswerRational(parts[0].trim());
+    const b = parseAnswerRational(parts[1].trim());
+    if (!a || !b || b.num === 0n) return null;
+    return { num: a.num * b.den, den: a.den * b.num };
+  }
+  // Parse decimal string exactly: "0.0000002" → 2/10000000
+  const neg = s.startsWith('-');
+  const abs = neg ? s.slice(1) : s;
+  const dotIdx = abs.indexOf('.');
+  let num, den;
+  if (dotIdx === -1) {
+    num = BigInt(abs);
+    den = 1n;
+  } else {
+    const intPart = abs.slice(0, dotIdx) || '0';
+    const decPart = abs.slice(dotIdx + 1);
+    den = 10n ** BigInt(decPart.length);
+    num = BigInt(intPart) * den + BigInt(decPart || '0');
+  }
+  return { num: neg ? -num : num, den };
+}
+
+// Compute expected value as exact rational { num, den } using BigInt
+// If entry.isInverse is true, the task shows the result and asks for the base (root task),
+// so the expected answer is the base (times mult), not base^exp.
+function computeExpectedRational(entry) {
+  const { type, base, exp, mult, den, isInverse } = entry;
+  const m = mult || 1;
+
+  // For inverse (root) tasks the displayed number is base^exp and the answer is base*mult.
+  // Only normal/negBase/fraction/fracNegBase support isInverse.
+  if (isInverse) {
+    if (type === 'normal') {
+      // answer = base * mult
+      function multRatInv(mult) {
+        if (mult === 1) return { num: 1n, den: 1n };
+        if (mult > 1)  return { num: BigInt(Math.round(mult)), den: 1n };
+        const k = Math.round(-Math.log10(mult));
+        return { num: 1n, den: 10n ** BigInt(k) };
+      }
+      const mr = multRatInv(m);
+      return { num: BigInt(base) * mr.num, den: mr.den };
+    }
+    if (type === 'negBase') {
+      // answer = base (positive, since √ always returns positive root)
+      return { num: BigInt(base), den: 1n };
+    }
+    if (type === 'fraction' || type === 'fracNegBase') {
+      // answer = base/den
+      return { num: BigInt(base), den: BigInt(den) };
+    }
+  }
+
+  // Convert a decimal multiplier to an exact rational
+  // m=1 → {1,1}, m=10 → {10,1}, m=0.1 → {1,10}
+  function multRat(mult) {
+    if (mult === 1) return { num: 1n, den: 1n };
+    if (mult > 1)  return { num: BigInt(Math.round(mult)), den: 1n };
+    const k = Math.round(-Math.log10(mult));
+    return { num: 1n, den: 10n ** BigInt(k) };
+  }
+
+  // (base * mNum/mDen)^exp
+  function baseMult_pow(base, mNum, mDen, exp) {
+    return {
+      num: (BigInt(base) * mNum) ** BigInt(exp),
+      den: mDen ** BigInt(exp)
+    };
+  }
+
+  const mr = multRat(m);
+
+  if (type === 'exp0' || type === 'fracExp0') return { num: 1n, den: 1n };
+
+  if (type === 'exp1') {
+    // base * mult
+    return { num: BigInt(base) * mr.num, den: mr.den };
+  }
+  if (type === 'fracExp1') return { num: BigInt(base), den: BigInt(den) };
+  if (type === 'negExp')   return { num: 1n, den: BigInt(base) ** BigInt(exp) };
+  if (type === 'fracNegExp') {
+    return { num: BigInt(den) ** BigInt(exp), den: BigInt(base) ** BigInt(exp) };
+  }
+  if (type === 'fracNegBase') {
+    const r = { num: BigInt(base) ** BigInt(exp), den: BigInt(den) ** BigInt(exp) };
+    return exp % 2 === 0 ? r : { num: -r.num, den: r.den };
+  }
+  if (type === 'fraction') {
+    return { num: BigInt(base) ** BigInt(exp), den: BigInt(den) ** BigInt(exp) };
+  }
+
+  if (type === 'fracPow') {
+    // answer = (num/den)^exp = num^exp / den^exp
+    return { num: BigInt(base) ** BigInt(exp), den: BigInt(den) ** BigInt(exp) };
+  }
+
+  // normal, negBase, negNoParens
+  if (type === 'negBase' && exp === 0) return { num: 1n, den: 1n };
+  if (type === 'negBase' && exp === 1) return { num: -BigInt(base) * mr.num, den: mr.den };
+  if (type === 'negNoParens' && exp === 0) return { num: -1n, den: 1n };
+  if (type === 'negNoParens' && exp === 1) return { num: -BigInt(base) * mr.num, den: mr.den };
+
+  const r = baseMult_pow(base, mr.num, mr.den, exp);
+  if (type === 'negBase')     return exp % 2 === 0 ? r : { num: -r.num, den: r.den };
+  if (type === 'negNoParens') return { num: -r.num, den: r.den };
+  return r; // normal
+}
+
+/* ── Answer hints for wrong eingabe answers ──────── */
+function computeAnswerHint(task, given) {
+  if (given === null) return null;
+
+  const { type, base, exp, mult, den, isInverse } = task;
+  const m = mult || 1;
+  const expected = computeExpectedRational(task);
+
+  // Helpers
+  const absR    = r => ({ num: r.num < 0n ? -r.num : r.num, den: r.den });
+  const negR    = r => ({ num: -r.num, den: r.den });
+  function bigGcd(a, b) { a = a < 0n ? -a : a; b = b < 0n ? -b : b; return b === 0n ? a : bigGcd(b, a % b); }
+  const reduceR = r => { if (r.den === 0n) return r; const g = bigGcd(r.num < 0n ? -r.num : r.num, r.den); return { num: r.num / g, den: r.den / g }; };
+  function multRat(x) {
+    if (x === 1) return { num: 1n, den: 1n };
+    if (x > 1)  return { num: BigInt(Math.round(x)), den: 1n };
+    const k = Math.round(-Math.log10(x));
+    return { num: 1n, den: 10n ** BigInt(k) };
+  }
+  // Berechne |altBase * m|^altExp als Rational
+  const mr = multRat(m);
+  function scaledPow(altBase, altExp) {
+    if (altExp < 1) return null;
+    return {
+      num: (BigInt(altBase) * mr.num) ** BigInt(altExp),
+      den: mr.den ** BigInt(altExp)
+    };
+  }
+
+  // ── Wurzel-Aufgaben: eigene Logik, direkt returnen ───────────────────────
+  if (isInverse) {
+    const displayedTask = { ...task, isInverse: false };
+    let displayedVal = null;
+    try { displayedVal = computeExpectedRational(displayedTask); } catch(e) {}
+    if (displayedVal && rationalsEqual(given, displayedVal))
+      return 'Hier ist eine Wurzel gefragt – du sollst die Wurzel ziehen, nicht die angezeigte Zahl abschreiben!';
+    if (displayedVal && displayedVal.den === 1n) {
+      const sq = { num: displayedVal.num * displayedVal.num, den: 1n };
+      if (rationalsEqual(given, sq))
+        return 'Du hast die angezeigte Zahl potenziert statt die Wurzel zu ziehen!';
+    }
+    return 'Tipp: Welche Zahl ergibt, mit sich selbst potenziert, die angezeigte Zahl?';
+  }
+
+  // ── 1. Exponent 0 ────────────────────────────────────────────────────────
+  if (exp === 0) {
+    if (rationalsEqual(given, { num: 0n, den: 1n }))
+      return 'Vorsicht: x^0 ergibt nicht 0.<br>Jede Zahl hoch 0 ergibt immer 1.';
+    return 'Jede Zahl hoch 0 ergibt 1 (außer 0^0, das ist nicht definiert).';
+  }
+
+  // ── 2. Exponent 1 ────────────────────────────────────────────────────────
+  if (exp === 1) {
+    return 'Jede Zahl hoch 1 ergibt die Basis selbst.';
+  }
+
+  // ── Ab hier: exp >= 2 oder negativ ──────────────────────────────────────
+
+  // ── 3. Basis aufgeschrieben (ohne zu potenzieren) ────────────────────────
+  // Vergleich absolut – Vorzeichen wird weiter unten behandelt
+  {
+    const absBase = Math.abs(base);
+    // Bruch-Typen: prüfe ob given == base/den (als Bruch)
+    if (type === 'fraction' || type === 'fracNegBase' || type === 'fracNegExp') {
+      const baseFrac = { num: BigInt(base), den: BigInt(den) };
+      if (rationalsEqual(absR(given), absR(baseFrac)))
+        return `Nicht vergessen zu potenzieren! (${base}/${den})^${exp} bedeutet (${base}/${den}) · (${base}/${den})${exp > 2 ? ' · …' : ''}.`;
+    } else {
+      const effVal = m === 1 ? absBase : Math.round(absBase * m);
+      const effBaseRat = { num: BigInt(absBase) * mr.num, den: mr.den };
+      if (rationalsEqual(absR(given), effBaseRat))
+        return `Nicht vergessen zu potenzieren! ${effVal}^${exp} bedeutet ${effVal} · ${effVal}${exp > 2 ? ' · …' : ''}.`;
+    }
+  }
+
+  // ── 4. Basis × Exponent multipliziert statt potenziert ──────────────────
+  // Nur für Nicht-Bruch-Typen; guard: multResult darf nicht gleich expected sein
+  if (type !== 'fraction' && type !== 'fracNegBase' && type !== 'fracNegExp') {
+    const absBase = Math.abs(base);
+    const effVal = m === 1 ? absBase : Math.round(absBase * m);
+    const multResultAbs = { num: BigInt(absBase) * mr.num * BigInt(exp), den: mr.den };
+    if (!rationalsEqual(multResultAbs, absR(expected)) && rationalsEqual(absR(given), multResultAbs)) {
+      const factors = Array(exp).fill(String(effVal)).join(' · ');
+      return `Du hast Basis × Exponent gerechnet. Richtig ist: Multipliziere die Basis ${exp}-mal mit sich selbst:<br>${factors}.`;
+    }
+  }
+
+  // ── 5. Falsches Vorzeichen (negBase / negNoParens / fracNegBase) ──────────
+  if (type === 'negBase' && exp % 2 === 0 && rationalsEqual(given, negR(expected)))
+    return `Das Minus wird mitpotenziert, und hier ist der Exponent eine gerade Zahl.<br>Minus mal Minus = ...`;
+
+  if (type === 'negBase' && exp % 2 !== 0 && rationalsEqual(given, absR(expected)))
+    return `Das Minus wird mitpotenziert, und hier ist der Exponent ungerade.<br>Minus mal Minus mal Minus = ...`;
+
+  if (type === 'negNoParens' && rationalsEqual(given, absR(expected)))
+    return `Hier steht kein Minus in der Klammer – die Potenz selbst ist negativ.`;
+
+  if (type === 'fracNegBase' && exp % 2 === 0 && rationalsEqual(given, negR(expected)))
+    return `Das Minus wird mitpotenziert, und hier ist der Exponent eine gerade Zahl.<br>Minus mal Minus = ...`;
+
+  if (type === 'fracNegBase' && exp % 2 !== 0 && rationalsEqual(given, absR(expected)))
+    return `Das Minus wird mitpotenziert, und hier ist der Exponent ungerade.<br>Minus mal Minus mal Minus = ...`;
+
+  // ── 6. Negativer Exponent ────────────────────────────────────────────────
+  if (type === 'negExp') {
+    const posExp    = { num: BigInt(base) ** BigInt(exp), den: 1n };
+    const negPosExp = { num: -(BigInt(base) ** BigInt(exp)), den: 1n };
+    if (rationalsEqual(given, posExp))
+      return `Achtung: Der Exponent ist negativ!<br>${base}^−${exp} = 1/${base}^${exp}, nicht ${base}^${exp}.`;
+    if (rationalsEqual(given, negPosExp))
+      return `Ein negativer Exponent macht das Ergebnis nicht negativ, sondern bildet den Kehrwert:<br>${base}^−${exp} = 1/${base}^${exp}.`;
+    return `Negativer Exponent bedeutet Kehrwert:<br>${base}^−${exp} = 1 / ${base}^${exp}.`;
+  }
+  if (type === 'fracNegExp') {
+    const posExp = { num: BigInt(base) ** BigInt(exp), den: BigInt(den) ** BigInt(exp) };
+    const onlyNum = { num: BigInt(base) ** BigInt(exp), den: BigInt(den) };
+    const onlyDen = { num: BigInt(base), den: BigInt(den) ** BigInt(exp) };
+    if (rationalsEqual(given, posExp))
+      return `Negativer Exponent kehrt den Bruch um:<br>(${base}/${den})^−${exp} = (${den}/${base})^${exp}.`;
+    if (rationalsEqual(given, onlyNum) || rationalsEqual(given, onlyDen))
+      return `Bei einem Bruch hoch einem Exponenten müssen sowohl Zähler als auch Nenner potenziert werden.<br>Außerdem: Negativer Exponent kehrt den Bruch um:<br>(${base}/${den})^−${exp} = (${den}/${base})^${exp}.`;
+    return `Negativer Exponent kehrt den Bruch um:<br>(${base}/${den})^−${exp} = (${den}/${base})^${exp}.`;
+  }
+
+  // ── Ab hier: kein negExp, kein negNoParens mit falschem Vorzeichen ───────
+
+  // ── Bruch: nur Zähler oder nur Nenner potenziert ─────────────────────────
+  if (type === 'fraction' || type === 'fracNegBase') {
+    const onlyNum = { num: BigInt(base) ** BigInt(exp), den: BigInt(den) };
+    const onlyDen = { num: BigInt(base), den: BigInt(den) ** BigInt(exp) };
+    if (rationalsEqual(absR(given), absR(onlyNum)) || rationalsEqual(absR(given), absR(onlyDen)))
+      return `Bei einem Bruch hoch einem Exponenten müssen sowohl Zähler als auch Nenner potenziert werden:<br>(${base}/${den})^${exp} = ${base}^${exp} / ${den}^${exp}.`;
+  }
+
+  // ── Ab hier nur noch ganzzahlige Ergebnisse mit korrektem Vorzeichen ─────
+  // (Brüche und fracNegBase fallen für die folgenden Checks heraus)
+
+  // ── 7. Nebenliegende Basis (±1) oder Exponent (±1) ───────────────────────
+  // Nur für Nicht-Bruch-Typen
+  if (type !== 'fraction' && type !== 'fracNegBase' && type !== 'fracNegExp') {
+    const absBase = Math.abs(base);
+    const givAbs  = absR(given);
+
+    for (const altBase of [absBase - 1, absBase + 1]) {
+      if (altBase < 1) continue;
+      const r = scaledPow(altBase, exp);
+      if (r && rationalsEqual(givAbs, r)) {
+        const effAlt = m === 1 ? altBase : Math.round(altBase * m);
+        const effCur = m === 1 ? absBase : Math.round(absBase * m);
+        if (exp === 2)
+          return 'Das ist die falsche Quadratzahl – du hast die Quadratzahl der Nachbarzahl berechnet.';
+        return `Du hast ${effAlt}^${exp} berechnet, gefragt war aber ${effCur}^${exp}.`;
+      }
+    }
+    for (const altExp of [exp - 1, exp + 1]) {
+      if (altExp < 1) continue;
+      const r = scaledPow(absBase, altExp);
+      if (r && rationalsEqual(givAbs, r)) {
+        const effCur = m === 1 ? absBase : Math.round(absBase * m);
+        return `Du hast ${effCur}^${altExp} berechnet, gefragt war aber ${effCur}^${exp}.`;
+      }
+    }
+  }
+
+  // ── 8. Andere angekreuzte Basis mit gleichem Exponenten (Basen 2–25) ─────
+  // Nur für Nicht-Bruch-Typen
+  if (type !== 'fraction' && type !== 'fracNegBase' && type !== 'fracNegExp') {
+    const absBase = Math.abs(base);
+    const givAbs  = absR(given);
+    for (let altBase = 2; altBase <= 25; altBase++) {
+      if (altBase === absBase || altBase === absBase - 1 || altBase === absBase + 1) continue;
+      const r = scaledPow(altBase, exp);
+      if (r && rationalsEqual(givAbs, r)) {
+        const effAlt = m === 1 ? altBase : Math.round(altBase * m);
+        const effCur = m === 1 ? absBase : Math.round(absBase * m);
+        return `Du hast ${effAlt}^${exp} = ${Number(r.num / r.den)} berechnet, gefragt war aber ${effCur}^${exp}.`;
+      }
+    }
+  }
+
+  // ── 9. Basis und Exponent vertauscht ─────────────────────────────────────
+  if (type !== 'fraction' && type !== 'fracNegBase' && type !== 'fracNegExp') {
+    const absBase = Math.abs(base);
+    const givAbs  = absR(given);
+    if (exp !== absBase) {
+      const r = scaledPow(exp, absBase);
+      if (r && rationalsEqual(givAbs, r))
+        return `Du hast Basis und Exponent vertauscht: ${exp}^${absBase} statt ${absBase}^${exp}.`;
+    }
+  }
+
+  // ── 10. Einzelne falsche Ziffer ──────────────────────────────────────────
+  if (expected.den === 1n && given.den === 1n) {
+    const expStr = (expected.num < 0n ? -expected.num : expected.num).toString();
+    const givStr = (given.num   < 0n ? -given.num   : given.num  ).toString();
+    if (expStr.length >= 2 && expStr.length === givStr.length && expStr !== givStr) {
+      let diffs = 0;
+      for (let i = 0; i < expStr.length; i++) if (expStr[i] !== givStr[i]) diffs++;
+      if (diffs === 1)
+        return 'Die Antwort ist fast richtig – nur eine Ziffer stimmt nicht.';
+    }
+  }
+
+  // ── 11. Zahlendreher (zwei benachbarte Ziffern vertauscht) ───────────────
+  if (expected.den === 1n && given.den === 1n) {
+    const expStr = (expected.num < 0n ? -expected.num : expected.num).toString();
+    const givStr = (given.num   < 0n ? -given.num   : given.num  ).toString();
+    if (expStr.length >= 2 && expStr.length === givStr.length && expStr !== givStr) {
+      for (let i = 0; i < expStr.length - 1; i++) {
+        if (expStr[i] === givStr[i + 1] && expStr[i + 1] === givStr[i]) {
+          let rest = true;
+          for (let j = 0; j < expStr.length; j++) {
+            if (j !== i && j !== i + 1 && expStr[j] !== givStr[j]) { rest = false; break; }
+          }
+          if (rest)
+            return 'Die Antwort hat einen Zahlendreher – zwei benachbarte Ziffern sind vertauscht.';
+        }
+      }
+    }
+  }
+
+  // ── 12. Falsche Stellenanzahl (Nullen / Nachkommastellen) ────────────────
+  // Sinnvoll wenn m ≠ 1 (Zehnerpotenz-Multiplikator, positiv oder negativ)
+  if (m !== 1) {
+    // Ganze Zahlen: zu viele/wenige Nullen
+    if (expected.den === 1n && given.den === 1n && expected.num !== 0n && given.num !== 0n) {
+      const expStr = (expected.num < 0n ? -expected.num : expected.num).toString();
+      const givStr = (given.num   < 0n ? -given.num   : given.num  ).toString();
+      const stripZ = s => s.replace(/0+$/, '');
+      if (stripZ(expStr) === stripZ(givStr) && expStr !== givStr) {
+        const expZ    = expStr.length - stripZ(expStr).length;
+        const givZ    = givStr.length - stripZ(givStr).length;
+        const effStr  = Math.round(Math.abs(base) * m).toString();
+        const baseZ   = effStr.length - effStr.replace(/0+$/, '').length;
+        const richtung = givZ > expZ ? 'zu viele' : 'zu wenige';
+        const rechenweg = baseZ > 0
+          ? `${baseZ} Null${baseZ > 1 ? 'en' : ''} in jedem der ${exp} Faktoren → insgesamt ${baseZ}·${exp} Nullen`
+          : '';
+        return rechenweg
+          ? `Die Antwort hat die richtige Zahl, aber ${richtung} Nullen.<br>${rechenweg}.`
+          : `Die Antwort hat die richtige Zahl, aber ${richtung} Nullen.`;
+      }
+    }
+    // Dezimalzahlen (m < 1): zu viele/wenige Nachkommastellen
+    // Vergleiche die Ziffernfolge ohne Zehnerpotenzen im Nenner
+    {
+      const er = reduceR(expected);
+      const gr = reduceR(given);
+      // Beide Zähler müssen gleich sein (nach Kürzen), aber Nenner verschieden
+      if (er.num !== 0n && gr.num !== 0n && er.num === gr.num && er.den !== gr.den) {
+        const mStr = m.toString();
+        const mDot = mStr.indexOf('.');
+        const mDec = mDot >= 0 ? mStr.length - mDot - 1 : 0;
+        const expDec = Number(er.den === 1n ? 0 : er.den.toString().length - 1);
+        const givDec = Number(gr.den === 1n ? 0 : gr.den.toString().length - 1);
+        const richtung = givDec > expDec ? 'zu viele' : 'zu wenige';
+        const rechenweg = mDec > 0
+          ? `${mDec} Nachkommastelle${mDec > 1 ? 'n' : ''} in jedem der ${exp} Faktoren → insgesamt ${mDec}·${exp} Nachkommastellen`
+          : '';
+        return rechenweg
+          ? `Die Antwort hat die richtige Zahl, aber ${richtung} Nachkommastellen.<br>${rechenweg}.`
+          : `Die Antwort hat die richtige Zahl, aber ${richtung} Nachkommastellen.`;
+      }
+      // Fallback: Zähler verschieden, aber Ziffernfolge (ohne abschließende Nullen) gleich
+      // z.B. expected=256/100000000, given=256/10000 → nach reduceR: 4/1953125 vs 16/625
+      // Hier: prüfe ob expected und given dieselben signifikanten Ziffern haben
+      if (er.num !== 0n && gr.num !== 0n && er.den !== gr.den) {
+        // Konvertiere zu Dezimalstring und vergleiche signifikante Ziffern
+        function toDecStr(r) {
+          // Gibt Dezimalstring zurück, z.B. {num:256n,den:100000000n} → "0.00000256"
+          const numStr = (r.num < 0n ? -r.num : r.num).toString();
+          const denStr = r.den.toString();
+          if (r.den === 1n) return numStr;
+          // Nur wenn Nenner eine Zehnerpotenz ist
+          const denLog = denStr.length - 1;
+          if (r.den !== 10n ** BigInt(denLog)) return null;
+          const padded = numStr.padStart(denLog + 1, '0');
+          const intPart = padded.slice(0, padded.length - denLog) || '0';
+          const decPart = padded.slice(padded.length - denLog);
+          return intPart + '.' + decPart;
+        }
+        const expDec2 = toDecStr(er);
+        const givDec2 = toDecStr(gr);
+        if (expDec2 && givDec2) {
+          const stripSigE = expDec2.replace('.', '').replace(/^0+/, '').replace(/0+$/, '');
+          const stripSigG = givDec2.replace('.', '').replace(/^0+/, '').replace(/0+$/, '');
+          if (stripSigE === stripSigG && expDec2 !== givDec2) {
+            const mStr = m.toString();
+            const mDot = mStr.indexOf('.');
+            const mDec2 = mDot >= 0 ? mStr.length - mDot - 1 : 0;
+            const expPlaces = (expDec2.includes('.') ? expDec2.split('.')[1].length : 0);
+            const givPlaces = (givDec2.includes('.') ? givDec2.split('.')[1].length : 0);
+            const richtung = givPlaces > expPlaces ? 'zu viele' : 'zu wenige';
+            const rechenweg = mDec2 > 0
+              ? `${mDec2} Nachkommastelle${mDec2 > 1 ? 'n' : ''} in jedem der ${exp} Faktoren → insgesamt ${mDec2}·${exp} Nachkommastellen`
+              : '';
+            return rechenweg
+              ? `Die Antwort hat die richtige Zahl, aber ${richtung} Nachkommastellen.<br>${rechenweg}.`
+              : `Die Antwort hat die richtige Zahl, aber ${richtung} Nachkommastellen.`;
+          }
+        }
+      }
+    }
+  }
+
+  // ── 13. Vorzeichen falsch (kein spezifischer Fall oben gegriffen) ─────────
+  if (rationalsEqual(absR(given), absR(expected)))
+    return 'Achtung: Das Vorzeichen stimmt nicht.';
+
+  // ── fracPow: Bruch von Potenzen ──────────────────────────────────────────
+  if (type === 'fracPow') {
+    const onlyNum = { num: BigInt(base) ** BigInt(exp), den: BigInt(den) };
+    const onlyDen = { num: BigInt(base), den: BigInt(den) ** BigInt(exp) };
+    if (rationalsEqual(absR(given), absR(onlyNum)) || rationalsEqual(absR(given), absR(onlyDen)))
+      return `Kürze den Bruch zuerst und potenziere dann beide Teile: (${base}/${den})^${exp} = ${base}^${exp} / ${den}^${exp}.`;
+    return `Tipp: a^n / b^n = (a/b)^n. Kürze zuerst den Bruch, dann potenziere.`;
+  }
+
+  // ── 14. Kein Fall erkannt ────────────────────────────────────────────────
+  return 'Falsch.';
+}
+
+function setAnswerHint(text) {
+  const el = document.getElementById('answerHint');
+  if (!el) return;
+  if (text && document.getElementById('showHints')?.checked) {
+    el.innerHTML = text;
+    el.classList.add('visible');
+  } else {
+    el.innerHTML = '';
+    el.classList.remove('visible');
+  }
+}
+
+function rationalsEqual(a, b) {
+  // a.num/a.den === b.num/b.den  ↔  a.num * b.den === b.num * a.den
+  return a.num * b.den === b.num * a.den;
+}
+
+// Returns true if this task entry was generated as a special exp0/exp1 variant
+// (i.e. type is exp0/exp1/fracExp0/fracExp1), meaning it should stay in the pool
+// even after a correct answer (shuffle to avoid immediate repetition instead).
+function isSonderfallExp(entry) {
+  return entry.type === 'exp0' || entry.type === 'exp1' ||
+         entry.type === 'fracExp0' || entry.type === 'fracExp1';
+}
+
+function checkAnswer() {
+  if (!window.currentTask) return;
+  const inp = document.getElementById('answerInput');
+  const raw = inp.value.trim();
+  if (!raw) return;
+
+  const expected = computeExpectedRational(window.currentTask);
+  const given    = parseAnswerRational(raw);
+
+  const correct = given !== null && rationalsEqual(expected, given);
+
+  flashResult(correct ? '#d4edda' : '#f8d7da');
+  anzahlAufgaben++;
+  const id = JSON.stringify(window.currentTask);
+  if (correct) {
+    korrekteAntworten++;
+    if (isSonderfallExp(window.currentTask)) {
+      reshuffleAvoid(id); // keep in pool, but don't show immediately again
+    } else {
+      taskPool.shift();
+    }
+  } else {
+    reshuffleAvoid(id);
+  }
+  updateCounterDisplay();
+
+  if (correct) {
+    inp.className = 'correct';
+    setAnswerHint(null);
+    window.currentTask = null;
+    _suppressFocus = false;
+    flipToSolution();
+    setTimeout(generateTask, 1200);
+  } else {
+    inp.className = 'wrong';
+    setAnswerHint(computeAnswerHint(window.currentTask, given));
+    inp.select();
+  }
+}
+
+function revealAnswer() {
+  if (!window.currentSolution) return;
+  if (window.currentTask) {
+    flashResult('#f8d7da');
+    anzahlAufgaben++;
+    reshuffleAvoid(JSON.stringify(window.currentTask));
+    updateCounterDisplay();
+    window.currentTask = null;
+  }
+  const inp = document.getElementById('answerInput');
+  inp.className = 'reveal';
+  inp.value = '';
+  setAnswerHint(null);
+  _suppressFocus = false; // next task should auto-focus
+  flipToSolution();
+  setTimeout(generateTask, 1500);
+}
+
+function markAnswer(correct) {
+  if (!window.currentTask) return;
+  flashResult(correct ? '#d4edda' : '#f8d7da');
+  const id = JSON.stringify(window.currentTask);
+  if (correct) {
+    korrekteAntworten++;
+    if (isSonderfallExp(window.currentTask)) {
+      reshuffleAvoid(id);
+    } else {
+      taskPool.shift();
+    }
+  } else {
+    reshuffleAvoid(id);
+  }
+  anzahlAufgaben++;
+  window.currentTask = null;
+  _suppressFocus = false;
+  const sa = skipAnim();
+  if (sa) {
+    updateCounterDisplay();
+    setTimeout(generateTask, 0);
+  } else {
+    flipToSolution();
+    updateCounterDisplay();
+    setTimeout(generateTask, 1200);
+  }
+}
+
+function toggleSolution() {
+  if (!window.currentSolution) return;
+  if (isEingabeModus()) { revealAnswer(); return; }
+  if (!card.classList.contains('flipped')) flipToSolution();
+}
+
+/* ── Drag / swipe ────────────────────────────────── */
+let startX = null, currentX = 0, startTime = 0, ignoreMouseUp = false;
+
+card.onmousedown = (e) => { startTime = Date.now(); handleStart(e); };
+card.onmouseup   = (e) => {
+  if (ignoreMouseUp) { ignoreMouseUp = false; return; }
+  const duration = Date.now() - startTime;
+  if (duration < 250 && Math.abs(currentX) < 20) {
+    startX = null; currentX = 0;
+    if (card.classList.contains('flipped')) return;
+    if (isEingabeModus()) return; // card tap does nothing in input mode
+    if (skipAnim()) { showSolution(); }
+    else { requestAnimationFrame(() => { card.style.transition = 'transform 0.6s cubic-bezier(0.4,0,0.2,1)'; requestAnimationFrame(() => { showSolution(); }); }); }
+    return;
+  }
+  handleEnd();
+};
+card.ontouchstart = (e) => { startTime = Date.now(); handleStart(e); };
+card.ontouchend   = (e) => {
+  ignoreMouseUp = true;
+  const duration = Date.now() - startTime;
+  if (duration < 250 && Math.abs(currentX) < 20) {
+    startX = null; currentX = 0;
+    if (card.classList.contains('flipped')) return;
+    if (isEingabeModus()) return;
+    if (skipAnim()) { showSolution(); }
+    else { requestAnimationFrame(() => { card.style.transition = 'transform 0.6s cubic-bezier(0.4,0,0.2,1)'; requestAnimationFrame(() => { showSolution(); }); }); }
+    return;
+  }
+  handleEnd();
+};
+
+const handleStart = (e) => {
+  if (isEingabeModus()) return;
+  startX = e.clientX || (e.touches && e.touches[0].clientX);
+  card.style.transition = 'none';
+};
+const handleMove = (e) => {
+  if (startX === null) return;
+  if (e.cancelable) e.preventDefault(); // iOS: prevents scroll-recovery after swipe
+  currentX = (e.clientX || (e.touches && e.touches[0].clientX)) - startX;
+  const rot = card.classList.contains('flipped') ? 180 : 0;
+  card.style.transform = `translate(calc(-50% + ${currentX}px), -50%) rotateY(${rot}deg)`;
+  const intensity = Math.min(Math.abs(currentX) / (card.parentElement.offsetWidth * 0.25), 0.8);
+  faces.forEach(f => f.style.backgroundColor = currentX > 0 ? `rgba(212,237,218,${intensity})` : `rgba(248,215,218,${intensity})`);
+};
+const handleEnd = () => {
+  if (startX === null) return;
+  const threshold = card.parentElement.offsetWidth * 0.25;
+  const triggered = currentX > threshold || currentX < -threshold;
+  const wasCorrect = currentX > 0;
+  faces.forEach(f => f.style.backgroundColor = 'white');
+  const sa = skipAnim();
+  if (!sa) card.style.transition = 'transform 0.6s cubic-bezier(0.4,0,0.2,1)';
+  if (triggered) {
+    markAnswer(wasCorrect);
+    requestAnimationFrame(() => {
+      card.style.transform = `translate(-50%, -50%) rotateY(${card.classList.contains('flipped') ? 180 : 0}deg)`;
+      setTimeout(() => { card.removeAttribute('style'); }, sa ? 0 : 600);
+    });
+  } else {
+    card.style.transform = `translate(-50%, -50%) rotateY(${card.classList.contains('flipped') ? 180 : 0}deg)`;
+    setTimeout(() => { if (startX === null) card.removeAttribute('style'); }, sa ? 0 : 600);
+  }
+  startX = null; currentX = 0;
+};
+document.onmousemove = handleMove;
+card.removeEventListener('touchmove', handleMove);
+card.addEventListener('touchmove', handleMove, { passive: false }); // non-passive for preventDefault on iOS
+document.onmouseup = () => { if (startX !== null) handleEnd(); };
+
+/* ── Keyboard ────────────────────────────────────── */
+document.onkeydown = (e) => {
+  // Don't intercept Space/arrows when the answer input has focus
+  if (document.activeElement === document.getElementById('answerInput')) return;
+  if (e.code === 'Space')     { e.preventDefault(); toggleSolution(); }
+  if (e.code === 'ArrowLeft'  && !isEingabeModus()) markAnswer(false);
+  if (e.code === 'ArrowRight' && !isEingabeModus()) markAnswer(true);
+};
+
+document.getElementById('showSolutionBtn').onclick = toggleSolution;
+document.getElementById('wrongBtn').onclick  = () => markAnswer(false);
+document.getElementById('correctBtn').onclick = () => markAnswer(true);
+
+/* ── Init ────────────────────────────────────────── */
+document.addEventListener('DOMContentLoaded', () => {
+  Object.keys(GROUPS).forEach(makeCheckboxes);
+
+  const params = getParams();
+
+  // Restore custom tasks from URL first (so their checkboxes exist before selectedKeys restore)
+  params.customTasks.forEach(({base, exp}) => addCustomPower(base, exp, false));
+
+  if (params.selectedKeys.length > 0) {
+    params.selectedKeys.forEach(key => {
+      const cb = document.getElementById('cb_' + key);
+      if (cb) cb.checked = true;
+    });
+  } else {
+    GROUPS.sq1_10.forEach(t => {
+      const cb = document.getElementById(`cb_sq1_10_${t.base}_${t.exp}`);
+      if (cb) cb.checked = true;
+    });
+    GROUPS.sq11_20.forEach(t => {
+      const cb = document.getElementById(`cb_sq11_20_${t.base}_${t.exp}`);
+      if (cb) cb.checked = true;
+    });
+    updateURLParams();
+  }
+
+  BOOL_PARAMS.forEach(id => { document.getElementById(id).checked = params[id] || false; });
+
+  const wr = document.querySelector(`input[name="wurzelmode"][value="${params.wurzelmode}"]`);
+  if (wr) wr.checked = true;
+
+  const sm = document.querySelector(`input[name="spielmodus"][value="${params.spielmodus}"]`);
+  if (sm) sm.checked = true;
+
+  // All settings inputs trigger URL update + settings change
+  document.querySelectorAll('#settingsForm input[type=checkbox], #settingsForm input[type=radio]').forEach(input => {
+    input.addEventListener('change', () => {
+      updateURLParams();
+      onSettingsChange();
+    });
+  });
+
+  // Spielmodus is outside settingsForm — attach separately
+  document.querySelectorAll('input[name="spielmodus"]').forEach(input => {
+    input.addEventListener('change', () => {
+      updateURLParams();
+      updateSpielmodusUI(true); // focus input if switching to eingabe
+      onSettingsChange();
+    });
+  });
+
+  // Add custom power button
+  document.getElementById('addCustomBtn').addEventListener('click', () => {
+    const base = parseInt(document.getElementById('customBase').value, 10);
+    const exp  = parseInt(document.getElementById('customExp').value,  10);
+    if (!Number.isInteger(base) || !Number.isInteger(exp) || base < 1) {
+      showToast('Bitte gültige Basis (≥1) und Exponenten eingeben.');
+      return;
+    }
+    const added = addCustomPower(base, exp, true);
+    if (!added) { showToast(`${base}^${exp} ist bereits vorhanden.`); return; }
+    const cb = document.getElementById(`cb_custom_${base}_${exp}`);
+    if (cb) cb.addEventListener('change', () => { updateURLParams(); onSettingsChange(); });
+    document.getElementById('customBase').value = '';
+    document.getElementById('customExp').value  = '';
+    updateURLParams();
+    onSettingsChange();
+  });
+
+  // Enter in custom inputs triggers add
+  ['customBase','customExp'].forEach(id => {
+    document.getElementById(id).addEventListener('keydown', e => {
+      if (e.key === 'Enter') document.getElementById('addCustomBtn').click();
+    });
+  });
+
+  // Input-mode: check button + Enter key in answer field
+  document.getElementById('checkBtn').addEventListener('click', checkAnswer);
+  document.getElementById('answerInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') checkAnswer();
+  });
+  // Scroll into view whenever the input receives focus (manual tap or auto-focus)
+  document.getElementById('answerInput').addEventListener('focus', () => {
+    // Don't scroll when the settings panel is open (would jump past it)
+    const details = document.querySelector('details');
+    if (details && details.open) return;
+    scrollToInputArea();
+  });
+  // Prevent typing non-numeric chars except / and , and . and - (for fractions/decimals/negatives)
+  document.getElementById('answerInput').addEventListener('keypress', e => {
+    if (!/[\d\/\.,\-]/.test(e.key)) e.preventDefault();
+  });
+
+  updateSpielmodusUI();
+  refillPool();
+  updateCounterDisplay();
+  setTimeout(generateTask, 0);
+});
+</script>
+
+<footer class="site-footer">
+  <div class="footer-content">
+    M.&nbsp;Koch
+    <span class="footer-topic">Mathe-Tools</span>
+    <span class="footer-update">Zuletzt aktualisiert:&nbsp;<span id="last-update">...</span></span>
+  </div>
+</footer>
+<script src="last-update.js" defer></script>
+</body>
+</html>
