@@ -415,7 +415,7 @@
         /* Always at least 2 columns, even on narrow phones */
         .cards-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(270px, 2fr));
             gap: 0;
             background: var(--bg);
             overflow: hidden;
@@ -567,7 +567,8 @@
             transition: opacity 0.18s ease;
             z-index: 200;
         }
-        [data-tooltip]:hover::after { opacity: 1; }
+        [data-tooltip]:hover::after,
+        [data-tooltip]:focus-within::after{ opacity: 1; }
 
         /* ─── FOOTER ─────────────────────────────────────────────── */
         .site-footer {
@@ -1028,6 +1029,32 @@ window.addEventListener('pageshow', function(e) {
         document.body.offsetHeight;
         document.body.style.display = '';
     }
+});
+// Alle Filter-Buttons auswählen
+document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('touchstart', function() {
+        // Wir speichern den aktuellen Button
+        const currentBtn = this;
+        
+        // Nach 1 Sekunde (1000ms) den Fokus entziehen
+        setTimeout(() => {
+            currentBtn.blur();
+        }, 1000);
+    }, { passive: true });
+});
+// Fix für "klebende" Tooltips auf Mobilgeräten
+document.querySelectorAll('[data-tooltip]').forEach(el => {
+    el.addEventListener('touchstart', function() {
+        const target = this;
+        // Nach 1 Sekunde den Fokus entfernen, damit der Tooltip verschwindet
+        setTimeout(() => {
+            target.blur();
+            // Falls ein inneres Element den Fokus hat (z.B. ein Button im Container)
+            if (document.activeElement instanceof HTMLElement) {
+                document.activeElement.blur();
+            }
+        }, 1000);
+    }, { passive: true });
 });
 function updateDynamicPaddings() {
     // Top Nav Höhe messen
