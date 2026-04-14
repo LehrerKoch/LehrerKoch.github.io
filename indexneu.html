@@ -1,0 +1,1003 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mathe-Tools</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-5K8WYYXDL2"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-5K8WYYXDL2');
+    </script>
+    <script src="last-update.js" defer></script>
+    <script src="page_types.js"></script>
+    <script src="categories.js"></script>
+    <script src="cards.js"></script>
+
+    <style>
+        
+        :root {
+            --bg: #f5f7fa;
+            --surface: #ffffff;
+            --surface2: #eef1f6;
+            --border: rgba(0,0,0,0.08);
+            --text: #1a1d2e;
+            --muted: #7a7f9a;
+            /* Aufgabengenerator: Rot */
+            --accent-learn: #dc2020;
+            --accent-learn-bg: rgba(220,32,32,0.08);
+            /* Übungstool: Orange */
+            --accent-uebung: #d97706;
+            --accent-uebung-bg: rgba(217,119,6,0.22);
+            /* Quiz: Lila */
+            --accent-quiz: #7c3aed;
+            --accent-quiz-bg: rgba(124,58,237,0.08);
+            /* GeoGebra: Blau */
+            --accent-geo: #0369a1;
+            --accent-geo-bg: rgba(3,105,161,0.08);
+            /* Flashcards: Grün */
+            --accent-flash: #16a34a;
+            --accent-flash-bg: rgba(22,163,74,0.08);
+            /* Spiel: Gelb */
+            --accent-game: #f7bd00;
+            --accent-game-bg: rgba(255,236,0,0.55);
+            --radius: 14px;
+            /* Group header color */
+            --group-header-bg: #dbeafe;
+            --group-header-hover: #bfdbfe;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            scrollbar-gutter: stable;
+            overflow-y: scroll;
+            overflow-x: hidden;
+        }
+
+        /* ─── HEADER ─────────────────────────────────────────────────── */
+        header {
+            padding: 1.6rem 1.5rem 1rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        header::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(13,122,95,0.1), transparent);
+            pointer-events: none;
+        }
+        header h1 {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: clamp(1.6rem, 5vw, 2.4rem);
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            background: linear-gradient(135deg, #1a1d2e 40%, var(--accent-learn));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        header p {
+            color: var(--muted);
+            margin-top: 0.3rem;
+            font-size: 0.9rem;
+        }
+
+        /* ─── STICKY TOP NAV (Abschnitts-Links + Menü-Button) ──── */
+        .sticky-top-nav {
+            position: sticky;
+            top: 0;
+            z-index: 200;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            background: var(--bg);
+            border-bottom: 1px solid var(--border);
+            padding: 0 0.5rem;
+            min-height: 40px;
+        }
+
+        /* ─── HAMBURGER / MENÜ-BUTTON ────────────────────────────── */
+        .menu-btn {
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            border: 1.5px solid var(--border);
+            background: var(--surface);
+            color: var(--text);
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.15s;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .menu-btn:hover { background: #e4eaf7; }
+
+        /* ─── SECTION NAV (Abschnitts-Links) ─────────────────────── */
+        .section-nav {
+            display: flex;
+            align-items: center;
+            gap: 0;
+            flex-wrap: wrap; /* Erlaubt Mehrzeiligkeit */
+            flex: 1;
+            min-width: 0;
+            padding: 0.3rem 0; /* Etwas vertikales Padding für Zeilenabstände */
+            justify-content: center; /* Zentriert die Einträge horizontal */
+            text-align: center; /* Zusätzliche Sicherheit für Inline-Elemente */
+        }
+        .section-nav-link {
+            flex-shrink: 0;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.72rem;
+            font-weight: 500;
+            color: var(--muted);
+            text-decoration: underline dotted;
+            text-underline-offset: 3px;
+            text-decoration-color: var(--muted);
+            padding: 0.3rem 0.35rem; /* Padding leicht angepasst */
+            white-space: nowrap;
+            cursor: pointer;
+            border-radius: 26px;
+            transition: color 0.15s, background 0.15s;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .section-nav::-webkit-scrollbar { display: none; }
+        .section-nav-link:hover {
+            color: var(--text);
+            background: var(--surface2);
+            text-decoration-color: var(--text);
+        }
+
+        /* ─── STICKY BOTTOM FILTERS ──────────────────────────────── */
+        .sticky-bottom-filters {
+            position: sticky;
+            bottom: 0;
+            z-index: 200;
+            background: linear-gradient(to top, var(--bg) 87.5%, transparent);
+            padding-top: 8px;
+        }
+
+        /* ─── FILTER BAR ─────────────────────────────────────────── */
+        .filter-bar {
+            display: flex;
+            gap: 0.4rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            padding: 0.4rem 1rem 0.55rem;
+        }
+
+        /* ─── SIDEBAR OVERLAY ────────────────────────────────────── */
+        .sidebar-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.35);
+            z-index: 400;
+            
+            /* Wichtig für den Fade: */
+            opacity: 0;
+            visibility: hidden; 
+            transition: opacity 0.4s ease, visibility 0.4s;
+        }
+        .sidebar-overlay.open {
+            display: block; /* Beibehalten für JS-Kompatibilität, aber... */
+            visibility: visible;
+            opacity: 1;
+        }
+
+        /* ─── SIDEBAR ─────────────────────────────────────────────── */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 240px;
+            max-width: 85vw;
+            background: var(--surface);
+            border-right: 1.5px solid var(--border);
+            z-index: 500;
+            box-shadow: 4px 0 24px rgba(0,0,0,0.12);
+            transform: translateX(-100%);
+            
+            /* Erhöhte Zeit für das Reinschieben */
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            
+            display: flex;
+            flex-direction: column;
+            padding: 1rem 0 1.5rem;
+        }
+        .sidebar.open { transform: translateX(0); }
+
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 1rem 0.75rem;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 0.5rem;
+        }
+        .sidebar-title {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--text);
+        }
+        .sidebar-close {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            border-radius: 7px;
+            border: 1.5px solid var(--border);
+            background: transparent;
+            color: var(--muted);
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: background 0.15s;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .sidebar-close:hover { background: var(--surface2); color: var(--text); }
+
+        .sidebar-nav {
+            display: flex;
+            flex-direction: column;
+            padding: 0 0.5rem;
+        }
+        .sidebar-nav a {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.88rem;
+            font-weight: 500;
+            color: var(--text);
+            text-decoration: none;
+            padding: 0.65rem 0.75rem;
+            border-radius: 8px;
+            transition: background 0.14s, color 0.14s;
+            touch-action: manipulation;
+        }
+        .sidebar-nav a:hover { background: var(--surface2); color: var(--accent-learn); }
+        .filter-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.1rem;
+            padding: 0.18rem 0.45rem;
+            border-radius: 999px;
+            border: 1.5px solid var(--border);
+            background: var(--surface);
+            color: var(--muted);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.82rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.18s ease;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .filter-btn:hover { border-color: rgba(0,0,0,0.3); color: var(--text); background: #e8ecf5; }
+        .filter-btn.active-all  { background: var(--text); color: var(--bg); border-color: var(--text); }
+        .filter-btn.active-learn { background: var(--accent-learn-bg); color: var(--accent-learn); border-color: var(--accent-learn); }
+        .filter-btn.active-uebung { background: var(--accent-uebung-bg); color: var(--accent-uebung); border-color: var(--accent-uebung); }
+        .filter-btn.active-geo   { background: var(--accent-geo-bg);   color: var(--accent-geo);   border-color: var(--accent-geo); }
+        .filter-btn.active-game  { background: var(--accent-game-bg);  color: var(--accent-game);  border-color: var(--accent-game); }
+        .filter-btn.active-quiz  { background: var(--accent-quiz-bg);  color: var(--accent-quiz);  border-color: var(--accent-quiz); }
+        .filter-btn.active-flash { background: var(--accent-flash-bg); color: var(--accent-flash); border-color: var(--accent-flash); }
+        .filter-btn .dot { width: 8px; height: 8px; border-radius: 50%; }
+        .dot-learn  { background: var(--accent-learn); }
+        .dot-uebung { background: var(--accent-uebung); }
+        .dot-geo    { background: var(--accent-geo); }
+        .dot-game   { background: var(--accent-game); }
+        .dot-quiz   { background: var(--accent-quiz); }
+        .dot-flash  { background: var(--accent-flash); }
+
+        /* ─── MAIN ───────────────────────────────────────────────── */
+        main { padding: 0 1rem 2.5rem; max-width: 1200px; margin: 0 auto; }
+
+        /* ─── MAIN TOOLBAR ───────────────────────────────────────── */
+        .main-toolbar {
+            display: flex;
+            justify-content: flex-end;
+            padding: 0.2rem 0 0.5rem;
+        }
+        .collapse-all-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            padding: 0.25rem 0.6rem;
+            border-radius: 8px;
+            border: 1.5px solid var(--border);
+            background: rgba(255,255,255,0.92);
+            backdrop-filter: blur(6px);
+            color: var(--muted);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.73rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+        }
+        .collapse-all-btn:hover { background: #e4eaf7; color: var(--text); border-color: rgba(0,0,0,0.2); }
+
+        /* ─── TOPIC GROUP ────────────────────────────────────────── */
+        .topic-group {
+            margin-bottom: 0.5rem;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius);
+            overflow: hidden;
+            transition: opacity 0.25s ease;
+        }
+        .topic-group.hidden-group { display: none; }
+
+        .group-header {
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+            padding: 0.7rem 1.1rem;
+            background: var(--group-header-bg);
+            cursor: pointer;
+            user-select: none;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+            transition: background 0.15s;
+        }
+        .group-header:hover { background: var(--group-header-hover); }
+        .group-icon { font-size: 1.1rem; flex-shrink: 0; }
+        .group-title {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 0.92rem;
+            font-weight: 700;
+            flex: 1;
+            letter-spacing: 0.01em;
+        }
+        .group-meta {
+            font-size: 0.73rem;
+            color: var(--muted);
+            background: var(--surface2);
+            padding: 0.15rem 0.5rem;
+            border-radius: 999px;
+        }
+        .group-chevron {
+            color: var(--muted);
+            font-size: 0.9rem;
+            transition: transform 0.25s ease;
+            flex-shrink: 0;
+        }
+        .topic-group.collapsed .group-chevron { transform: rotate(-90deg); }
+
+        /* Always at least 2 columns, even on narrow phones */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+            gap: 0;
+            background: var(--bg);
+            overflow: hidden;
+        }
+        .card { border-top: 1px solid #dde3ee; border-right: 1px solid #dde3ee; }
+        .topic-group.collapsed .cards-grid { display: none; }
+
+        /* ─── CARD ───────────────────────────────────────────────── */
+        .card {
+            background: var(--surface);
+            padding: 0.85rem 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+            transition: background 0.15s;
+            position: relative;
+        }
+        .card:hover { background: #e4eaf7; }
+        @media (hover: none) {
+            .card:hover { background: var(--surface); }
+        }
+        .card.filtered-out { display: none; }
+
+        .card-top {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.5rem;
+        }
+        .type-badge {
+            flex-shrink: 0;
+            width: 28px;
+            height: 28px;
+            border-radius: 7px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            margin-top: 1px;
+        }
+        .badge-learn  { background: var(--accent-learn-bg); }
+        .badge-uebung { background: var(--accent-uebung-bg); }
+        .badge-geo    { background: var(--accent-geo-bg); }
+        .badge-game   { background: var(--accent-game-bg); }
+        .badge-quiz   { background: var(--accent-quiz-bg); }
+        .badge-flash  { background: var(--accent-flash-bg); }
+
+        /* Multi-type badge: kein padding, segments füllen es aus */
+        .badge-multi {
+            padding: 0;
+            overflow: hidden;
+        }
+        .badge-segment {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+        }
+
+        .card-title {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 0.86rem;
+            font-weight: 700;
+            line-height: 1.3;
+            color: var(--text);
+        }
+        .card-desc {
+            font-size: 0.75rem;
+            color: var(--muted);
+            line-height: 1.4;
+            padding-left: 2.1rem;
+        }
+        .card-link {
+            align-self: flex-start;
+            margin-left: 2.1rem;
+            margin-top: 0.1rem;
+            padding: 0.28rem 0.7rem;
+            border-radius: 7px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.15s;
+            touch-action: manipulation;
+        }
+        .link-learn {
+            background: var(--accent-learn-bg);
+            color: var(--accent-learn);
+            border: 1px solid rgba(220,32,32,0.25);
+        }
+        .link-learn:hover { background: rgba(220,32,32,0.15); }
+        .link-uebung {
+            background: var(--accent-uebung-bg);
+            color: var(--accent-uebung);
+            border: 1px solid rgba(217,119,6,0.25);
+        }
+        .link-uebung:hover { background: rgba(217,119,6,0.15); }
+        .link-geo {
+            background: var(--accent-geo-bg);
+            color: var(--accent-geo);
+            border: 1px solid rgba(3,105,161,0.25);
+        }
+        .link-geo:hover { background: rgba(3,105,161,0.15); }
+        .link-game {
+            background: var(--accent-game-bg);
+            color: var(--accent-game);
+            border: 1px solid rgba(184,150,10,0.35);
+        }
+        .link-game:hover { background: rgba(253,224,71,0.55); }
+        .link-quiz {
+            background: var(--accent-quiz-bg);
+            color: var(--accent-quiz);
+            border: 1px solid rgba(124,58,237,0.25);
+        }
+        .link-quiz:hover { background: rgba(124,58,237,0.15); }
+        .link-flash {
+            background: var(--accent-flash-bg);
+            color: var(--accent-flash);
+            border: 1px solid rgba(22,163,74,0.25);
+        }
+        .link-flash:hover { background: rgba(22,163,74,0.15); }
+
+        /* external icon */
+        .ext-icon { font-size: 0.7rem; opacity: 0.7; margin-left: 0.2rem; }
+
+        /* GeoGebra filter button SVG needs room so pill border doesn't clip it */
+        .filter-btn svg { overflow: visible; display: block; }
+
+        /* GeoGebra badge SVG sizing */
+        .badge-geo .geo-svg { width: 16px; height: 16px; display: block; }
+        /* Learn icon */
+        .badge-learn .learn-icon { font-size: 0.95rem; line-height: 1; }
+
+        /* ─── TOOLTIP (Filter-Buttons) ───────────────────────────── */
+        [data-tooltip] { position: relative; }
+        [data-tooltip]::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: calc(100% + 8px);
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1a1d2e;
+            color: #fff;
+            font-size: 0.7rem;
+            font-family: 'DM Sans', sans-serif;
+            padding: 0.3rem 0.65rem;
+            border-radius: 6px;
+            white-space: nowrap;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.18s ease;
+            z-index: 200;
+        }
+        [data-tooltip]:hover::after { opacity: 1; }
+
+        /* ─── FOOTER ─────────────────────────────────────────────── */
+        .site-footer {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 12px 40px;
+            border-top: 1px solid #ccc;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            font-family: sans-serif;
+            font-size: 0.6em;
+            color: #333333d8;
+        }
+        .footer-content {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1.5rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            flex-wrap: wrap;
+            text-align: center;
+        }
+        @media (max-width: 600px) {
+            .footer-content { flex-direction: column; gap: 6px; }
+        }
+
+        /* ─── NO-RESULTS ─────────────────────────────────────────── */
+        #no-results {
+            display: none;
+            text-align: center;
+            padding: 3rem 1rem;
+            color: var(--muted);
+            font-size: 0.95rem;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Sidebar Overlay -->
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
+
+<!-- Sidebar -->
+<aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        <span class="sidebar-title">Mathe-Tools</span>
+        <button class="sidebar-close" onclick="closeSidebar()" aria-label="Menü schließen">✕</button>
+    </div>
+    <nav class="sidebar-nav">
+        <a href="#">Über diese Seite</a>
+        <a href="#">Über mich</a>
+        <a href="#">Support Me</a>
+        <a href="#">Impressum</a>
+        <a href="#">Datenschutz</a>
+        <a href="#">Kontakt</a>
+    </nav>
+</aside>
+
+<!-- Sticky Top: Menü-Button + Abschnitts-Navigation -->
+<div class="sticky-top-nav">
+    <button class="menu-btn" onclick="openSidebar()" aria-label="Menü öffnen">☰</button>
+    <nav class="section-nav" id="section-nav">
+        <!-- wird per JS befüllt -->
+    </nav>
+</div>
+
+<header>
+    <h1>Mathe-Tools</h1>
+    <p>Übungen, Applets &amp; Spiele für den Mathematikunterricht</p>
+</header>
+
+<div style="max-width:1200px;margin:0 auto;padding:0 1rem;">
+    <div class="main-toolbar">
+        <button class="collapse-all-btn" id="collapse-all-btn" onclick="toggleAllGroups()">
+            <span id="collapse-all-icon">▾▾</span>
+            <span id="collapse-all-label">Alle einklappen</span>
+        </button>
+    </div>
+</div>
+
+<main id="main-content">
+    <!-- wird per JS aus categories.json + cards.json befüllt -->
+</main>
+
+<div id="no-results">Keine Tools für diesen Filter gefunden.</div>
+
+<!-- Sticky Bottom: Filter-Leiste -->
+<div class="sticky-bottom-filters">
+    <div class="filter-bar" id="filter-bar">
+        <!-- wird per JS aus page_types.json befüllt -->
+    </div>
+</div>
+
+<footer class="site-footer">
+    <div class="footer-content">
+        M.&nbsp;Koch
+        <span class="footer-topic">Mathe-Tools</span>
+        <span class="footer-update">Zuletzt aktualisiert:&nbsp;<span id="last-update">...</span></span>
+    </div>
+</footer>
+
+<script>
+// ══════════════════════════════════════════════════════════════
+// SIDEBAR
+// ══════════════════════════════════════════════════════════════
+function openSidebar() {
+    document.getElementById('sidebar').classList.add('open');
+    document.getElementById('sidebar-overlay').classList.add('open');
+    // document.body.style.overflow = 'hidden';
+}
+function closeSidebar() {
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('sidebar-overlay').classList.remove('open');
+    document.body.style.overflow = '';
+}
+
+// ══════════════════════════════════════════════════════════════
+// SECTION NAV (obere Abschnitts-Sprunglinks)
+// ══════════════════════════════════════════════════════════════
+function updateSectionNav() {
+    const nav = document.getElementById('section-nav');
+    if (!nav) return;
+    const groups = document.querySelectorAll('.topic-group:not(.hidden-group)');
+    let html = '';
+    groups.forEach(group => {
+        const titleEl = group.querySelector('.group-title');
+        if (titleEl) {
+            const id = group.id;
+            // Strip HTML tags for plain text in nav
+            const title = titleEl.textContent.trim();
+            html += `<a class="section-nav-link" onclick="scrollToGroup('${id}')">${title}</a>`;
+        }
+    });
+    nav.innerHTML = html;
+}
+
+function scrollToGroup(id) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (el.classList.contains('collapsed')) {
+        el.classList.remove('collapsed');
+        updateCollapseAllBtn();
+        pushHash(currentFilter, getCollapsedIds());
+    }
+    const navBar = document.querySelector('.sticky-top-nav');
+    const offset = navBar ? navBar.offsetHeight + 6 : 48;
+    const y = el.getBoundingClientRect().top + window.scrollY - offset;
+    window.scrollTo({ top: y, behavior: 'smooth' });
+}
+
+
+const SVG = {
+    // GeoGebra-Icon für Kachel-Badge (fixe Farben #666/#333)
+    geoBadge: `<svg class="geo-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><g stroke-linecap="round" stroke-linejoin="round"><path fill="none" stroke="#666" stroke-width="33.34" d="M432.345 250.876c0 87.31-75.98 158.088-169.705 158.088-93.726 0-169.706-70.778-169.706-158.088 0-87.31 75.98-158.09 169.706-158.09 93.725 0 169.705 70.78 169.705 158.09z" transform="matrix(1.0156 .01389 -.20152 .9924 42.924 8.75)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -225.59 242.796)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -151.12 72.004)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -421.29 266.574)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -483.632 100.362)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -329.052 -23.649)"></path></g></svg>`,
+
+    // GeoGebra-Icon für Filter-Button (currentColor, passt sich an)
+    geoFilter: `<svg style="width:20px;height:20px;flex-shrink:0" xmlns="http://www.w3.org/2000/svg" viewBox="40 8 470 464"><g stroke-linecap="round" stroke-linejoin="round"><path fill="none" stroke="currentColor" stroke-width="33.34" d="M432.345 250.876c0 87.31-75.98 158.088-169.705 158.088-93.726 0-169.706-70.778-169.706-158.088 0-87.31 75.98-158.09 169.706-158.09 93.725 0 169.705 70.78 169.705 158.09z" transform="matrix(1.0156 .01389 -.20152 .9924 42.924 8.75)"></path><path fill="#99f" stroke="currentColor" stroke-width="20" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -225.59 242.796)"></path><path fill="#99f" stroke="currentColor" stroke-width="20" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -151.12 72.004)"></path><path fill="#99f" stroke="currentColor" stroke-width="20" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -421.29 266.574)"></path><path fill="#99f" stroke="currentColor" stroke-width="20" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -483.632 100.362)"></path><path fill="#99f" stroke="currentColor" stroke-width="20" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -329.052 -23.649)"></path></g></svg>`,
+
+    // Gruppen-Icons (für SVG-basierte Kategorien)
+    parabola:   `<svg width="20" height="20" viewBox="0 0 40 30" xmlns="http://www.w3.org/2000/svg"><polyline points="2,28 8,14 14,6 20,3 26,6 32,14 38,28" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+    polynomial: `<svg width="20" height="20" viewBox="0 0 40 36" xmlns="http://www.w3.org/2000/svg"><path d="M2,32 C6,32 8,20 14,18 C20,16 20,20 26,10 C32,0 34,4 38,4" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>`
+};
+
+// ══════════════════════════════════════════════════════════════
+// DOM-Bau-Funktionen
+// ══════════════════════════════════════════════════════════════
+
+/**
+ * Gibt den inneren HTML-Inhalt für ein Typ-Icon zurück.
+ * small=true für Segments im Multi-Badge (etwas kleiner)
+ */
+function typeIconHtml(typeObj, small = false) {
+    if (typeObj.iconType === 'svg') {
+        if (small) return SVG.geoBadge.replace('class="geo-svg"', 'class="geo-svg" style="width:11px;height:11px"');
+        return SVG.geoBadge;
+    }
+    const fs = small ? '0.72rem' : '1.1rem';
+    return `<span style="font-size:${fs};line-height:1">${typeObj.icon}</span>`;
+}
+
+/**
+ * Baut das Badge-Element für eine Kachel.
+ * Bei einem Typ: einfarbiges Badge.
+ * Bei mehreren Typen: Badge horizontal in gleich große Segmente aufgeteilt.
+ * (Tooltip: title-Attribut, da Badge innerhalb overflow:hidden liegt)
+ */
+function buildBadge(typeIds, typesMap) {
+    const types = typeIds.map(id => typesMap[id]).filter(Boolean);
+    if (!types.length) return '<div class="type-badge"></div>';
+
+    const tooltipLabel = types.map(t => t.label).join(' + ');
+
+    if (types.length === 1) {
+        const t = types[0];
+        return `<div class="type-badge badge-${t.id}" title="${t.label}: ${t.tooltip}">${typeIconHtml(t)}</div>`;
+    }
+
+    // Mehrtypig: gleichmäßige Segmente
+    const w = Math.floor(100 / types.length);
+    const segs = types.map((t, i) => {
+        const isLast = i === types.length - 1;
+        const pct = isLast ? `${100 - w * i}%` : `${w}%`;
+        return `<div class="badge-segment" style="width:${pct};background:${t.colorBg}">${typeIconHtml(t, true)}</div>`;
+    }).join('');
+
+    return `<div class="type-badge badge-multi" title="${tooltipLabel}">${segs}</div>`;
+}
+
+/**
+ * Gruppen-Icon: Emoji/Text direkt, SVG über SVG-Lookup.
+ */
+function buildGroupIcon(cat) {
+    if (cat.iconType === 'svg') {
+        const key = cat.icon.replace('svg:', '');
+        return SVG[key] ?? cat.icon;
+    }
+    return cat.icon;
+}
+
+/**
+ * Baut das HTML für eine einzelne Kachel.
+ */
+function buildCard(card, typesMap) {
+    const primary = typesMap[card.types[0]];
+    const allTypes = card.types.join(' ');
+    const isExt = card.link.startsWith('http');
+    const target = isExt ? ' target="_blank"' : '';
+    const extIcon = isExt ? ' <span class="ext-icon">↗</span>' : '';
+    const lbl = card.linkLabel || (primary ? primary.linkLabel : 'Öffnen');
+
+    return `<div class="card" data-types="${allTypes}">
+            <div class="card-top">
+                ${buildBadge(card.types, typesMap)}
+                <div class="card-title">${card.title}</div>
+            </div>
+            <div class="card-desc">${card.desc}</div>
+            <a class="card-link link-${card.types[0]}" href="${card.link}"${target}>${lbl}${extIcon}</a>
+        </div>`;
+}
+
+/**
+ * Baut das HTML für eine Kategoriegruppe inkl. aller zugehörigen Kacheln.
+ */
+function buildGroup(cat, cardsMap, typesMap) {
+    const cards = cat.cards.map(id => cardsMap[id]).filter(Boolean);
+    const n = cards.length;
+    const cardsHtml = cards.map(c => buildCard(c, typesMap)).join('');
+    const icon = buildGroupIcon(cat);
+
+    return `<div class="topic-group" id="group-${cat.id}">
+        <div class="group-header" onclick="toggleGroup('group-${cat.id}')" title="${cat.tooltip}">
+            <span class="group-icon">${icon}</span>
+            <span class="group-title">${cat.title}</span>
+            <span class="group-meta" id="meta-${cat.id}">${n} ${n === 1 ? 'Tool' : 'Tools'}</span>
+            <span class="group-chevron">▾</span>
+        </div>
+        <div class="cards-grid">${cardsHtml}</div>
+    </div>`;
+}
+
+/**
+ * Befüllt die Filter-Leiste aus page_types.json.
+ * Tooltips via data-tooltip (CSS-Tooltip, kein overflow:hidden-Problem hier).
+ */
+function buildFilterBar(types) {
+    const bar = document.getElementById('filter-bar');
+    let html = `<button class="filter-btn active-all" data-filter="all" onclick="setFilter('all',this)">Alle anzeigen</button>`;
+    for (const t of types) {
+        const icon = t.iconType === 'svg'
+            ? SVG.geoFilter
+            : `<span class="dot dot-${t.id}"></span>`;
+        html += `<button class="filter-btn" data-filter="${t.id}" onclick="setFilter('${t.id}',this)" data-tooltip="${t.tooltip}">${icon} ${t.label}</button>`;
+    }
+    bar.innerHTML = html;
+}
+
+// ══════════════════════════════════════════════════════════════
+// INITIALISIERUNG: JSONs laden, DOM aufbauen
+// ══════════════════════════════════════════════════════════════
+function init() {
+    // Da wir die Daten schon als Variablen haben, entfällt das Warten (await fetch)
+    const typesMap = Object.fromEntries(typesData.map(t => [t.id, t]));
+    const cardsMap = Object.fromEntries(cardsData.map(c => [c.id, c]));
+
+    buildFilterBar(typesData);
+
+    const main = document.getElementById('main-content');
+    main.innerHTML = categoriesData.map(cat => buildGroup(cat, cardsMap, typesMap)).join('');
+
+    restoreFromHash();
+    updateSectionNav();
+}
+
+// ══════════════════════════════════════════════════════════════
+// URL-STATE (Hash: #filter=geo&collapsed=grundlagen,integral)
+// ══════════════════════════════════════════════════════════════
+function getHashParams() {
+    const hash = location.hash.replace('#', '');
+    const params = {};
+    hash.split('&').forEach(part => {
+        const [k, v] = part.split('=');
+        if (k) params[k] = v || '';
+    });
+    return params;
+}
+
+function buildHash(filter, collapsedIds) {
+    const parts = [];
+    if (filter && filter !== 'all') parts.push('filter=' + filter);
+    if (collapsedIds.length > 0) parts.push('collapsed=' + collapsedIds.join(','));
+    return parts.length ? '#' + parts.join('&') : '#';
+}
+
+function pushHash(filter, collapsedIds) {
+    const hash = buildHash(filter, collapsedIds);
+    history.replaceState(null, '', hash === '#' ? location.pathname : hash);
+}
+
+function getCollapsedIds() {
+    return Array.from(document.querySelectorAll('.topic-group.collapsed'))
+        .map(g => g.id.replace('group-', ''));
+}
+
+// ══════════════════════════════════════════════════════════════
+// FILTER
+// Unterstützt jetzt mehrere Typen pro Kachel (data-types="flash quiz")
+// ══════════════════════════════════════════════════════════════
+let currentFilter = 'all';
+
+function setFilter(type, btn, skipHash) {
+    if (type === currentFilter) {
+        type = 'all';
+        btn = document.querySelector('[data-filter="all"]');
+    }
+    currentFilter = type;
+
+    // Beim Filtern alle Gruppen aufklappen
+    document.querySelectorAll('.topic-group').forEach(g => g.classList.remove('collapsed'));
+
+    // Button-Styling aktualisieren
+    document.querySelectorAll('.filter-btn').forEach(b => b.className = 'filter-btn');
+    if (!btn) btn = document.querySelector('[data-filter="' + type + '"]');
+    if (btn) btn.classList.add(type === 'all' ? 'active-all' : 'active-' + type);
+
+    // Kacheln ein-/ausblenden, Gruppen entsprechend
+    const groups = document.querySelectorAll('.topic-group');
+    let anyVisible = false;
+
+    groups.forEach(group => {
+        const cards = group.querySelectorAll('.card');
+        let visibleInGroup = 0;
+        cards.forEach(card => {
+            const cardTypes = (card.dataset.types || '').split(' ');
+            const match = type === 'all' || cardTypes.includes(type);
+            card.classList.toggle('filtered-out', !match);
+            if (match) visibleInGroup++;
+        });
+        group.classList.toggle('hidden-group', visibleInGroup === 0);
+        if (visibleInGroup > 0) anyVisible = true;
+        const metaEl = document.getElementById('meta-' + group.id.replace('group-', ''));
+        if (metaEl) metaEl.textContent = visibleInGroup + (visibleInGroup === 1 ? ' Tool' : ' Tools');
+    });
+
+    document.getElementById('no-results').style.display = anyVisible ? 'none' : 'block';
+    updateCollapseAllBtn();
+    if (!skipHash) pushHash(currentFilter, getCollapsedIds());
+    updateSectionNav();
+}
+
+// ══════════════════════════════════════════════════════════════
+// COLLAPSE ALL
+// ══════════════════════════════════════════════════════════════
+function toggleAllGroups() {
+    const groups = Array.from(document.querySelectorAll('.topic-group:not(.hidden-group)'));
+    const allCollapsed = groups.every(g => g.classList.contains('collapsed'));
+    groups.forEach(g => {
+        if (allCollapsed) g.classList.remove('collapsed');
+        else g.classList.add('collapsed');
+    });
+    updateCollapseAllBtn();
+    pushHash(currentFilter, getCollapsedIds());
+}
+
+function updateCollapseAllBtn() {
+    const groups = Array.from(document.querySelectorAll('.topic-group:not(.hidden-group)'));
+    const allCollapsed = groups.every(g => g.classList.contains('collapsed'));
+    const btn = document.getElementById('collapse-all-btn');
+    if (!btn) return;
+    document.getElementById('collapse-all-icon').textContent = allCollapsed ? '▸▸' : '▾▾';
+    document.getElementById('collapse-all-label').textContent = allCollapsed ? 'Alle ausklappen' : 'Alle einklappen';
+}
+
+// ══════════════════════════════════════════════════════════════
+// EINZELNE GRUPPE EIN-/AUSKLAPPEN
+// ══════════════════════════════════════════════════════════════
+function toggleGroup(id) {
+    document.getElementById(id).classList.toggle('collapsed');
+    updateCollapseAllBtn();
+    pushHash(currentFilter, getCollapsedIds());
+}
+
+// ══════════════════════════════════════════════════════════════
+// ZUSTAND AUS URL WIEDERHERSTELLEN
+// (wird nach init() aufgerufen, wenn DOM bereits gebaut ist)
+// ══════════════════════════════════════════════════════════════
+function restoreFromHash() {
+    const params = getHashParams();
+
+    // Zuerst eingeklappte Gruppen wiederherstellen
+    if (params.collapsed) {
+        params.collapsed.split(',').forEach(slug => {
+            const el = document.getElementById('group-' + slug);
+            if (el) el.classList.add('collapsed');
+        });
+    }
+
+    // Filter anwenden (ohne Gruppen aufzuklappen)
+    const filter = params.filter || 'all';
+    currentFilter = filter;
+    const btn = document.querySelector('[data-filter="' + filter + '"]');
+    document.querySelectorAll('.filter-btn').forEach(b => b.className = 'filter-btn');
+    if (btn) btn.classList.add(filter === 'all' ? 'active-all' : 'active-' + filter);
+
+    const groups = document.querySelectorAll('.topic-group');
+    let anyVisible = false;
+    groups.forEach(group => {
+        const cards = group.querySelectorAll('.card');
+        let visibleInGroup = 0;
+        cards.forEach(card => {
+            const cardTypes = (card.dataset.types || '').split(' ');
+            const match = filter === 'all' || cardTypes.includes(filter);
+            card.classList.toggle('filtered-out', !match);
+            if (match) visibleInGroup++;
+        });
+        group.classList.toggle('hidden-group', visibleInGroup === 0);
+        if (visibleInGroup > 0) anyVisible = true;
+        const metaEl = document.getElementById('meta-' + group.id.replace('group-', ''));
+        if (metaEl) metaEl.textContent = visibleInGroup + (visibleInGroup === 1 ? ' Tool' : ' Tools');
+    });
+    document.getElementById('no-results').style.display = anyVisible ? 'none' : 'block';
+    updateCollapseAllBtn();
+}
+
+// ══════════════════════════════════════════════════════════════
+// START
+// ══════════════════════════════════════════════════════════════
+window.addEventListener('DOMContentLoaded', init);
+
+// Browser Vor/Zurück
+window.addEventListener('hashchange', restoreFromHash);
+
+// bfcache: Hover-Zustände beim Zurücknavigieren zurücksetzen
+window.addEventListener('pageshow', function(e) {
+    if (e.persisted) {
+        document.body.style.display = 'none';
+        // eslint-disable-next-line no-unused-expressions
+        document.body.offsetHeight;
+        document.body.style.display = '';
+    }
+});
+</script>
+
+</body>
+</html>
