@@ -18,9 +18,28 @@
     gtag('config', 'G-5K8WYYXDL2');
 </script>
 <style>
+.site-footer {
+      width: 100%; box-sizing: border-box; padding: 12px 40px;
+      border-top: 1px solid #ccc; margin-top: 20px; margin-bottom: 10px;
+      font-family: sans-serif; font-size: 0.6em; color: #333333d8;
+    }
+    .footer-content {
+      display: flex; justify-content: center; align-items: center;
+      gap: 1.5rem; max-width: 1200px; margin: 0 auto; flex-wrap: wrap; text-align: center;
+    }
+
+h1 {
+    font-size: 1.8em;
+    margin-bottom: 0.2em;
+}
+#solution {
+    font-size: 1.5em; /* Deutlich größere Anzeige der Lösung */
+    /* margin: 10px 0; */
+}
+
 #solutionPathContent {
-    font-size: .9em;
-    transform-origin: top left;
+    font-size: 1.1em; /* Erhöht von .9em auf 1.1em für bessere Lesbarkeit */
+    line-height: 1.5;
 }
 #solutionPath {
     margin: 1em;
@@ -28,6 +47,106 @@
 }
 #task {
     font-size: 1.6em
+}
+
+
+/* Farbe des aktiven Textes anpassen (optional) */
+label.switch input:not(:checked) ~ .labels span:first-child,
+label.switch input:checked ~ .labels span:last-child {
+    color: white;
+}
+
+/* ---- Lösungsweg Tabelle ---- */
+.solution-path-table {
+    border-collapse: collapse;
+    margin: 0.5em 0;
+}
+.solution-path-table td {
+    padding: 2px 4px;
+    vertical-align: middle;
+    white-space: nowrap;
+}
+.sp-eq {
+    text-align: right;
+    padding-right: 6px;
+    white-space: nowrap;
+}
+.sp-result .mjx-math,
+.sp-result {
+    color: inherit;
+    font-weight: bold;
+}
+
+/* ---- ⓘ Info-Icon ---- */
+.step-hint {
+    display: inline-flex;
+    align-items: center;
+    position: relative;
+    cursor: pointer;
+    vertical-align: middle;
+    margin-left: 6px;
+}
+.hint-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.4em;
+    height: 1.4em;
+    border-radius: 50%;
+    border: 1.5px solid #aaa;
+    background: transparent;
+    color: #999;
+    font-size: 0.72em;
+    font-weight: bold;
+    font-style: italic;
+    font-family: Georgia, serif;
+    line-height: 1;
+    user-select: none;
+    flex-shrink: 0;
+    transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+.step-hint:hover .hint-icon,
+.step-hint:focus .hint-icon,
+.step-hint.active .hint-icon {
+    border-color: #4a90d9;
+    color: #4a90d9;
+    background: #eaf3fc;
+}
+/* inline hint-bubbles sind nur Datencontainer, nicht sichtbar */
+.step-hint .hint-bubble { display: none !important; }
+/* Die echte Bubble hängt direkt am body */
+body > .hint-bubble {
+    display: none;
+    position: fixed;
+    background: #1e2a3a;
+    color: #f0f4f8;
+    padding: 7px 13px;
+    border-radius: 7px;
+    font-size: 0.88em;
+    font-style: normal;
+    white-space: normal;
+    pointer-events: none;
+    z-index: 9999;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.28);
+    max-width: min(90vw, 420px);
+}
+body > .hint-bubble.bubble-visible {
+    display: block;
+}
+body > .hint-bubble::before {
+    content: '';
+    position: absolute;
+    border: 6px solid transparent;
+}
+body > .hint-bubble.bubble-above::before {
+    top: 100%;
+    left: 12px;
+    border-top-color: #1e2a3a;
+}
+body > .hint-bubble.bubble-below::before {
+    bottom: 100%;
+    left: 12px;
+    border-bottom-color: #1e2a3a;
 }
 </style>
 <script>
@@ -441,23 +560,10 @@ function generateSolutionPath(a, d, e, b, c, mode) {
         
         final_result_str = finalCleanUp(current_expr);
 
-        // Ausgabe zusammenstellen: Erste Zeile f(x)=, alle anderen &=
-        let final_output = `~~~~f(x) &= ${output_lines_nf2sf[0]} \\\\ \n`;
-        
-        for (let i = 1; i < output_lines_nf2sf.length; i++) {
-            final_output += `&= ${output_lines_nf2sf[i]} \\\\ \n`;
-        }
-        
-        // Letzte Zeile ohne Operation (das Endergebnis)
-        final_output += `&= ${final_result_str}`;
-
         return {
             solution: final_result_str,
-            path: `
-                \\begin{alignat*}{2}
-                ${finalCleanUp(final_output)}
-                \\end{alignat*}
-            `
+            pathLines: output_lines_nf2sf,
+            pathFinal: final_result_str
         };
 
     } else {
@@ -514,23 +620,10 @@ function generateSolutionPath(a, d, e, b, c, mode) {
         
         final_result_str = finalCleanUp(current_expr);
         
-        // Ausgabe zusammenstellen: Erste Zeile f(x)=, alle anderen &=
-        let final_output = `~~~~f(x) &= ${output_lines_sf2nf[0]} \\\\ \n`;
-        
-        for (let i = 1; i < output_lines_sf2nf.length; i++) {
-            final_output += `&= ${output_lines_sf2nf[i]} \\\\ \n`;
-        }
-        
-        // Letzte Zeile ohne Operation (das Endergebnis)
-        final_output += `&= ${final_result_str}`;
-        
         return {
             solution: final_result_str,
-            path: `
-                \\begin{alignat*}{2}
-                ${finalCleanUp(final_output)}
-                \\end{alignat*}
-            `
+            pathLines: output_lines_sf2nf,
+            pathFinal: final_result_str
         };
     }
 }
@@ -543,7 +636,10 @@ function generateTask() {
     if(solutionDetailsContainer) solutionDetailsContainer.open = false; 
 
     document.getElementById("solutionPath").open = false;
-    document.getElementById("solutionPathContent").innerHTML = ''; 
+    document.getElementById("solutionPathContent").innerHTML = '';
+    // Offene Tooltip-Bubble schließen
+    document.querySelectorAll('.hint-bubble.bubble-visible').forEach(b => b.classList.remove('bubble-visible','bubble-above','bubble-below'));
+    document.querySelectorAll('.step-hint.active').forEach(h => h.classList.remove('active')); 
     
     // Holt den Modus und die Einstellungen
     const mode = document.getElementById("modeSwitchInput").checked ? "sf2nf" : "nf2sf";
@@ -595,15 +691,100 @@ function generateTask() {
         taskFormula = scheitelpunktform;
     }
 
-    const { solution: final_solution_str, path: solutionPath } = generateSolutionPath(a, d, e, b, c, mode);
+    const { solution: final_solution_str, pathLines, pathFinal } = generateSolutionPath(a, d, e, b, c, mode);
     
     document.getElementById("task").innerHTML = `$$${finalCleanUp(taskFormula)}$$`;
     // GEÄNDERT: Fängt die finale Lösung mit f(x) = auf
     document.getElementById("solution").innerHTML = `<span class="red-text">$$f(x) = ${final_solution_str}$$</span>`; 
-    document.getElementById("solutionPathContent").innerHTML = `<span class="red-text">$$${solutionPath}$$</span>`;
+
+    // Lösungsweg als HTML mit verschobenen ⓘ-Icons aufbauen
+    function buildSolutionPathHTML(lines, finalExpr) {
+        // Zeile parsen: "expr &\quad |~& note" -> { expr, note }
+        function parseLine(line) {
+            const sep = '&\\quad |~&';
+            const idx = line.indexOf(sep);
+            if (idx === -1) return { expr: line.trim(), note: null };
+            return {
+                expr: line.substring(0, idx).trim(),
+                note: line.substring(idx + sep.length).trim()
+            };
+        }
+
+        // Alle Zeilen parsen
+        const parsed = lines.map(parseLine);
+        // parsed[i].note beschreibt, was von Zeile i -> i+1 passiert ist.
+        // Wir zeigen das Icon in Zeile i+1 (also NACH dem Schritt).
+
+        function makeIcon(note) {
+            if (!note) return '';
+            return `<span class="step-hint" tabindex="0"><span class="hint-icon">i</span><span class="hint-bubble">\\(${note}\\)</span></span>`;
+        }
+
+        let html = '<table class="solution-path-table">';
+
+        // Zeile 0: f(x) = ... [icon falls note[0] existiert, d.h. Ausklammern erklärt diese Zeile]
+        // → Note von Zeile 0 zeigen wir in Zeile 1 (= Ergebnis nach dem Schritt)
+        // Aber erste Zeile hat kein Icon (sie ist der Ausgangspunkt)
+        html += `<tr>
+            <td class="sp-label">\\(f(x)\\)</td>
+            <td class="sp-eq">\\(=\\)</td>
+            <td class="sp-expr">\\(${finalCleanUp(parsed[0].expr)}\\)</td>
+        </tr>`;
+
+        // Zeilen 1..n-1: expr aus parsed[i], icon = note aus parsed[i-1]
+        for (let i = 1; i < parsed.length; i++) {
+            const icon = makeIcon(parsed[i - 1].note);
+            html += `<tr>
+                <td class="sp-label"></td>
+                <td class="sp-eq">\\(=\\)</td>
+                <td class="sp-expr">\\(${finalCleanUp(parsed[i].expr)}\\)${icon}</td>
+            </tr>`;
+        }
+
+        // Letzte Zeile (Ergebnis), icon = note der letzten parsed-Zeile
+        const lastIcon = makeIcon(parsed[parsed.length - 1].note);
+        html += `<tr>
+            <td class="sp-label"></td>
+            <td class="sp-eq">\\(=\\)</td>
+            <td class="sp-expr sp-result">\\(${finalExpr}\\)${lastIcon}</td>
+        </tr>`;
+
+        html += '</table>';
+        return html;
+    }
+
+    document.getElementById("solutionPathContent").innerHTML =
+        `<div class="red-text">${buildSolutionPathHTML(pathLines, pathFinal)}</div>`;
 
 
-    if(window.MathJax) MathJax.typesetPromise();
+    if(window.MathJax) MathJax.typesetPromise([
+        document.getElementById("task"),
+        document.getElementById("solution"),
+        document.getElementById("solutionPathContent")
+    ]).then(() => {
+        // Alle scale-el Elemente mit IntersectionObserver skalieren,
+        // damit die Breite erst gemessen wird wenn das Element sichtbar ist.
+        if (window.scaleToFit) {
+            const observer = new IntersectionObserver((entries, obs) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        scaleToFit(entry.target);
+                        obs.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.01 });
+
+            document.querySelectorAll('.scale-el').forEach(el => {
+                // Sofort skalieren falls bereits sichtbar, sonst beobachten
+                const rect = el.getBoundingClientRect();
+                if (rect.width > 0 && rect.top < window.innerHeight) {
+                    scaleToFit(el);
+                } else {
+                    observer.observe(el);
+                }
+            });
+        }
+    });
 }
 
 
@@ -611,7 +792,7 @@ function generateTask() {
 
 // ==== Lade Einstellungen aus URL ====
 function loadSettingsFromURL() {
-    const aLevel = getURLParam("aLevel", "mittel");
+    const aLevel = getURLParam("aLevel", "leicht+gestaucht");
     const valueLevel = getURLParam("valueLevel", "mittel");
     const aNegativ = getURLParam("aNegativ", "true") === "true";
     const sonderfaelle = getURLParam("sonderfaelle", "false") === "true";
@@ -639,8 +820,101 @@ window.onload = () => {
     document.getElementById("modeSwitchInput")?.addEventListener("change", generateTask);
     document.querySelectorAll('input[name="aLevel"], input[name="valueLevel"], #aNegativ, #sonderfaelle')
         .forEach(el => el.addEventListener("change", generateTask));
-    document.getElementById("solutionPath")?.addEventListener("toggle", () => {
-        if (window.MathJax) MathJax.typesetPromise().then(() => scaleToFit(document.getElementById("solutionPathContent")));
+    document.getElementById("solutionPath")?.addEventListener("toggle", function() {
+        if (this.open && window.MathJax) {
+            MathJax.typesetPromise([document.getElementById("solutionPathContent")]).then(() => {
+                if (window.scaleToFit) {
+                    document.getElementById("solutionPathContent")
+                        ?.querySelectorAll('.scale-el')
+                        .forEach(el => scaleToFit(el));
+                }
+            });
+        }
+    });
+
+    // ⓘ Tooltip: Bubble ans Body hängen damit transform-Eltern keinen fixed-Bug verursachen
+    let activeBubble = null;
+    // Gemeinsame Bubble, die wiederverwendet wird
+    const sharedBubble = document.createElement('div');
+    sharedBubble.className = 'hint-bubble';
+    document.body.appendChild(sharedBubble);
+
+    function positionBubble(icon) {
+        const ir = icon.getBoundingClientRect();
+        const vw = window.innerWidth;
+        const margin = 8;
+
+        // Inhalt setzen und sichtbar machen für Messung
+        sharedBubble.style.visibility = 'hidden';
+        sharedBubble.classList.add('bubble-visible');
+        sharedBubble.classList.remove('bubble-above', 'bubble-below');
+
+        const bw = sharedBubble.offsetWidth;
+        const bh = sharedBubble.offsetHeight;
+
+        let left = ir.left;
+        if (left + bw > vw - margin) left = vw - bw - margin;
+        if (left < margin) left = margin;
+
+        let top;
+        if (ir.top - bh - margin > margin) {
+            top = ir.top - bh - margin;
+            sharedBubble.classList.add('bubble-above');
+        } else {
+            top = ir.bottom + margin;
+            sharedBubble.classList.add('bubble-below');
+        }
+
+        sharedBubble.style.left = left + 'px';
+        sharedBubble.style.top = top + 'px';
+        sharedBubble.style.visibility = '';
+    }
+
+    function closeActiveBubble() {
+        sharedBubble.classList.remove('bubble-visible', 'bubble-above', 'bubble-below');
+        sharedBubble.innerHTML = '';
+        if (activeBubble) {
+            activeBubble.closest('.step-hint')?.classList.remove('active');
+            activeBubble = null;
+        }
+    }
+
+    function openBubble(hint) {
+        const icon = hint.querySelector('.hint-icon');
+        const srcBubble = hint.querySelector('.hint-bubble');
+        if (!srcBubble) return;
+
+        if (activeBubble === srcBubble) { closeActiveBubble(); return; }
+        closeActiveBubble();
+
+        // Inhalt in shared bubble kopieren (MathJax bereits gerendert im src)
+        sharedBubble.innerHTML = srcBubble.innerHTML;
+        activeBubble = srcBubble;
+        hint.classList.add('active');
+
+        // MathJax im shared bubble rendern, dann positionieren
+        if (window.MathJax) {
+            MathJax.typesetPromise([sharedBubble]).then(() => positionBubble(icon));
+        } else {
+            positionBubble(icon);
+        }
+    }
+
+    document.addEventListener('click', (e) => {
+        const hint = e.target.closest('.step-hint');
+        if (hint) { openBubble(hint); e.stopPropagation(); }
+        else closeActiveBubble();
+    });
+
+    document.addEventListener('mouseover', (e) => {
+        if ('ontouchstart' in window) return;
+        const hint = e.target.closest('.step-hint');
+        if (hint && activeBubble !== hint.querySelector('.hint-bubble')) openBubble(hint);
+    });
+    document.addEventListener('mouseout', (e) => {
+        if ('ontouchstart' in window) return;
+        const hint = e.target.closest('.step-hint');
+        if (hint && !hint.contains(e.relatedTarget)) closeActiveBubble();
     });
         
 MathJax.startup.promise.then(() => generateTask());
@@ -689,7 +963,7 @@ MathJax.startup.promise.then(() => generateTask());
 <br>
 <button onclick="generateTask()">Neue Aufgabe</button>
 
-<div id="task"></div>
+<div id="task" class="scale-el"></div>
 
 <details id="solutionDetailsContainer">
 <summary>Lösung anzeigen</summary>
@@ -704,6 +978,13 @@ MathJax.startup.promise.then(() => generateTask());
 </div>
 </details>
 </details>
-
+<footer class="site-footer">
+  <div class="footer-content">
+    M.&nbsp;Koch
+    <span class="footer-topic"><a href="./index.html">Mathe-Tools</a></span>
+    <span class="footer-update">Zuletzt aktualisiert:&nbsp;<span id="last-update">...</span></span>
+  </div>
+</footer>
+<script src="last-update.js" defer></script>
 </body>
 </html>

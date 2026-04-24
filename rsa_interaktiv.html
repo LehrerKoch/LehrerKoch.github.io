@@ -20,6 +20,16 @@ MathJax = {
   </script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 <style>
+  .site-footer {
+    width: 100%; box-sizing: border-box; padding: 12px 40px;
+    border-top: 1px solid #ccc; margin-top: 20px; margin-bottom: 10px;
+    font-family: sans-serif; font-size: 0.6em; color: #333333d8;
+}
+.footer-content {
+    display: flex; justify-content: center; align-items: center;
+    gap: 1.5rem; max-width: 1200px; margin: 0 auto; flex-wrap: wrap; text-align: center;
+}
+.footer-topic a{color:inherit;text-decoration:underline;}
 html { overflow-y: scroll; }
 body {
   font-family: Calibri, sans-serif;
@@ -816,6 +826,7 @@ function checkManualPrimes() {
 
 function setPrimes(p, q) {
   closeAllDetails();
+  resetDownstream(1);
   S.p = p; S.q = q;
   document.getElementById('err0').textContent = '';
   document.getElementById('res0content').innerHTML =
@@ -843,6 +854,7 @@ function toggleMode1() {
 
 function setNandM(N, m) {
   closeAllDetails();
+  resetDownstream(2);
   S.N = N; S.m = m;
   // Full calculation shown before the result box, in a normal paragraph area
   document.getElementById('nm_calc').innerHTML =
@@ -954,6 +966,7 @@ function buildGcdEqs(a, b) {
 
 function setE(e) {
   closeAllDetails();
+  resetDownstream(3);
   S.e = e;
   document.getElementById('err2').textContent = '';
   document.getElementById('res2content').innerHTML =
@@ -1073,6 +1086,7 @@ function buildExtEuklidEqs(a, b) {
   // right side = g = rc1·rv1 rsign rc2·rv2  (simpExpr, null if no right side)
   const rows = [];
   rows.push({
+    lsign0: cu < 0n ? `-` : ``,
     lc1: cu < 0n ? -cu : cu, lv1: cur_top,
     lsign: cv < 0n ? `\\!\\!-\\!\\!` : `\\!\\!+\\!\\!`,
     lc2: cv < 0n ? -cv : cv, lv2: cur_bot,
@@ -1087,10 +1101,12 @@ function buildExtEuklidEqs(a, b) {
     const newCv = cu - cv * sub_q;
     const lv2compound = `\\left(${sub_top}\\!\\!-\\!\\!${sub_q}${cdot}${sub_bot}\\right)`;
     rows.push({
+      lsign0: cu < 0n ? `-` : ``,
       lc1: cu < 0n ? -cu : cu, lv1: cur_top,
       lsign: cv < 0n ? `\\!\\!-\\!\\!` : `\\!\\!+\\!\\!`,
       lc2: cv < 0n ? -cv : cv, lv2: lv2compound,
       right: {
+        rsign0: newCu < 0n ? `-` : ``,
         rc1: newCu < 0n ? -newCu : newCu, rv1: sub_top,
         rsign: newCv < 0n ? `\\!\\!-\\!\\!` : `\\!\\!+\\!\\!`,
         rc2: newCv < 0n ? -newCv : newCv, rv2: sub_bot
@@ -1109,11 +1125,11 @@ function buildExtEuklidEqs(a, b) {
   // Array {r l l l l l l l l}: g & = & c1\!\cdot\!v1 & sign & c2\!\cdot\!v2 & = & c1\!\cdot\!v1 & sign & c2\!\cdot\!v2
   let bwdRows = '';
   rows.forEach(r => {
-    const lpart = `${r.lc1}${cdot}${r.lv1} & ${r.lsign} & ${r.lc2}${cdot}${r.lv2}`;
+    const lpart = `${r.lsign0}${r.lc1}${cdot}${r.lv1} & ${r.lsign} & ${r.lc2}${cdot}${r.lv2}`;
     if (r.right === null) {
       bwdRows += `${g} &\\!\\!=\\!\\!& ${lpart} & & & \\\\`;
     } else {
-      const rpart = `${r.right.rc1}${cdot}${r.right.rv1} & ${r.right.rsign} & ${r.right.rc2}${cdot}${r.right.rv2}`;
+      const rpart = `${r.right.rsign0}${r.right.rc1}${cdot}${r.right.rv1} & ${r.right.rsign} & ${r.right.rc2}${cdot}${r.right.rv2}`;
       bwdRows += `${g} &\\!\\!=\\!\\!& ${lpart} &\\!\\!=\\!\\!& ${rpart} \\\\`;
     }
   });
@@ -1137,18 +1153,19 @@ function buildExtEuklidEqs(a, b) {
 
 function buildDVerifyHtml(d, e, m) {
   const prod = d * e;
-  const rem  = prod % m;
   const k    = (prod - 1n) / m;
-  return `$$\\begin{array}{rl}
-    d \\cdot e &= ${d} \\cdot ${e} \\\\
-              &= ${prod} \\\\
-              &= ${k} \\cdot ${m} + 1 \\\\
-    d \\cdot e \\bmod m &= ${rem} \\quad \\checkmark
-  \\end{array}$$`;
+  return `<div class="latexleft"><div class="scale-wrapper"><div class="scale-el">$$\\begin{array}{rl}
+    d \\cdot e &\\equiv 1 \\pmod{m} \\\\[4pt]
+    ${d} \\cdot ${e} &\\equiv 1 \\pmod{${m}} \\\\[4pt]
+    ${prod} &\\equiv 1 \\pmod{${m}} \\\\[4pt]
+    \\text{denn } ${prod} &= ${k} \\cdot ${m} + 1 \\\\[4pt]
+    ${prod} : ${m} &= ${k} \\quad \\text{Rest: } 1 \\quad\\checkmark
+  \\end{array}$$</div></div></div>`;
 }
 
 function setD(d) {
   closeAllDetails();
+  resetDownstream(6);
   S.d = d;
   document.getElementById('err3').textContent = '';
   document.getElementById('res3content').innerHTML =
@@ -1467,6 +1484,51 @@ function runDecrypt(V) {
 }
 
 // ═══════════════════════════════════════════════════
+// DOWNSTREAM RESET (wenn frühere Werte geändert werden)
+// ═══════════════════════════════════════════════════
+function resetDownstream(fromStep) {
+  // fromStep: erster Schritt (card-Nummer), der zurückgesetzt werden soll
+  if (fromStep <= 1) {
+    S.N = 0n; S.m = 0n;
+    document.getElementById('res1').classList.add('hidden');
+    document.getElementById('nm_calc').style.display = 'none';
+    document.getElementById('detNM').style.display = 'none';
+    document.getElementById('next1').style.display = 'none';
+    document.getElementById('err1').textContent = '';
+    document.getElementById('inputN').value = '';
+    document.getElementById('inputM').value = '';
+  }
+  if (fromStep <= 2) {
+    S.e = 0n;
+    document.getElementById('res2').classList.add('hidden');
+    document.getElementById('det2').style.display = 'none';
+    document.getElementById('next2').style.display = 'none';
+    document.getElementById('err2').textContent = '';
+    document.getElementById('eConditionLine').style.display = 'none';
+  }
+  if (fromStep <= 3) {
+    S.d = 0n;
+    document.getElementById('res3').classList.add('hidden');
+    document.getElementById('det3').style.display = 'none';
+    document.getElementById('dExplSlider').style.display = 'none';
+    document.getElementById('next3').style.display = 'none';
+    document.getElementById('err3').textContent = '';
+    document.getElementById('inputD').value = '';
+  }
+  if (fromStep <= 5) {
+    lastV = null;
+    document.getElementById('resEnc').classList.add('hidden');
+    document.getElementById('detEnc').style.display = 'none';
+    document.getElementById('errEnc').textContent = '';
+  }
+  if (fromStep <= 6) {
+    document.getElementById('resDec').classList.add('hidden');
+    document.getElementById('detDec').style.display = 'none';
+    document.getElementById('errDec').textContent = '';
+  }
+}
+
+// ═══════════════════════════════════════════════════
 // RESET
 // ═══════════════════════════════════════════════════
 function resetAll() {
@@ -1536,5 +1598,13 @@ function typesetAndScale(el) {
 updateProgress(0);
 updateStellenLabel(false);
 </script>
+<footer class="site-footer">
+  <div class="footer-content">
+    M.&nbsp;Koch
+    <span class="footer-topic"><a href="./index.html">Mathe-Tools</a></span>
+    <span class="footer-update">Zuletzt aktualisiert:&nbsp;<span id="last-update">...</span></span>
+  </div>
+</footer>
+<script src="last-update.js" defer></script>
 </body>
 </html>
