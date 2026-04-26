@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Harmonische Visualisierung</title>
+    <script>
+    MathJax = { tex: { inlineMath: [['\\(','\\)']], displayMath: [['\\[','\\]']] }, startup: { typeset: false } };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async id="MathJax-script"></script>
+    <style>
+        .site-footer {
+            width: 100%; box-sizing: border-box; padding: 12px 40px;
+            border-top: 1px solid #ccc; margin-top: 20px; margin-bottom: 10px;
+            font-family: sans-serif; font-size: 0.6em; color: #333333d8;
+        }
+        .footer-content {
+            display: flex; justify-content: center; align-items: center;
+            gap: 1.5rem; max-width: 1200px; margin: 0 auto; flex-wrap: wrap; text-align: center;
+        }
+        .footer-topic a{
+            color:inherit;
+            text-decoration:underline;
+        }
+        :root {
+            --primary: #2c3e50;
+            --accent: #3498db;
+            --white: #ffffff;
+            --black: #1a1a1a;
+            --focus: #f1c40f;
+            --bg: #f0f3f5;
+            --card: #ffffff;
+            --border: #dde3e8;
+            --muted: #7f8c9a;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: var(--bg);
+            color: var(--primary);
+            margin: 0;
+            display: flex; flex-direction: column; align-items: center;
+            overflow-x: hidden; min-height: 100vh;
+        }
+
+        header { padding: 12px; text-align: center; }
+        header h1 { margin: 0; font-size: clamp(1.1rem, 4vw, 1.6rem); font-weight: 700; }
+
+        /* ── Canvas ── */
+        #canvas-container {
+            width: 95%; max-width: 1000px; height: 230px;
+            background: var(--card); border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin-bottom: 10px; position: relative; overflow: hidden;
+        }
+        canvas { width: 100%; height: 100%; display: block; border-radius: 10px; }
+        #legend {
+            position: absolute; top: 10px; left: 10px;
+            background: rgba(255,255,255,0.95); padding: 7px 12px;
+            border-radius: 6px; font-family: 'Consolas', monospace; font-size: 0.72rem;
+            display: none; pointer-events: none; z-index: 10;
+            border: 1px solid var(--border); line-height: 1.8;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08); max-width: 90%;
+        }
+
+        /* ── Controls ── */
+        .controls {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 12px; width: 100%; margin-bottom: 0;
+        }
+
+        /* Controls-Details-Wrapper */
+        #controls-details {
+            width: 95%; max-width: 1000px; margin-bottom: 10px;
+            background: transparent; box-shadow: none; border-radius: 0;
+            overflow: visible;
+        }
+        #controls-details > summary {
+            background: var(--card); border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            margin-bottom: 8px;
+            display: none; /* Desktop: immer offen, Summary ausblenden */
+        }
+        @media (max-width: 600px) {
+            #controls-details > summary { display: flex; }
+            #controls-details:not([open]) .controls { display: none; }
+        }
+        .control-card {
+            background: var(--card); padding: 14px 16px; border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            display: flex; flex-direction: column; gap: 7px;
+        }
+        .control-card h4 {
+            margin: 0 0 3px; font-size: 0.63rem; text-transform: uppercase;
+            letter-spacing: 0.09em; color: var(--muted); font-weight: 600;
+        }
+        .card-divider { border: none; border-top: 1px solid var(--border); margin: 2px 0; }
+
+        /* ── Custom checkbox ── */
+        .cb-label {
+            display: flex; align-items: center; gap: 9px; cursor: pointer;
+            user-select: none; font-size: 0.84rem; padding: 1px 0;
+        }
+        .cb-label input[type="checkbox"], .chord-cb {
+            appearance: none; -webkit-appearance: none;
+            width: 18px; height: 18px; min-width: 18px;
+            border: 2px solid #c0c8d0; border-radius: 4px; background: white;
+            cursor: pointer; position: relative; flex-shrink: 0;
+            transition: background 0.14s, border-color 0.14s, box-shadow 0.14s;
+        }
+        .cb-label input[type="checkbox"]:hover, .chord-cb:hover {
+            border-color: var(--accent); box-shadow: 0 0 0 3px rgba(52,152,219,0.13);
+        }
+        .cb-label input[type="checkbox"]:checked, .chord-cb:checked {
+            background: var(--accent); border-color: var(--accent);
+        }
+        .cb-label input[type="checkbox"]:checked::after, .chord-cb:checked::after {
+            content: ''; position: absolute; left: 3px; top: 0;
+            width: 8px; height: 12px; border: 2px solid white;
+            border-top: none; border-left: none; transform: rotate(45deg);
+        }
+
+        /* ── Toggle Switch ── */
+        .ts-section { display: flex; flex-direction: column; gap: 4px; }
+        .ts-row {
+            display: grid; grid-template-columns: 1fr 40px 1fr;
+            align-items: center; column-gap: 7px; padding: 2px 0; font-size: 0.83rem;
+        }
+        .ts-lbl {
+            color: var(--muted); cursor: pointer; user-select: none;
+            transition: color 0.15s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .ts-lbl.left  { text-align: right; }
+        .ts-lbl.right { text-align: left; }
+        .ts-lbl.ts-on { color: var(--primary); font-weight: 600; }
+        .ts { position: relative; width: 40px; height: 22px; cursor: pointer; }
+        .ts input { display: none; }
+        .ts-track { position: absolute; inset: 0; background: #c5cfd6; border-radius: 11px; transition: background 0.2s; }
+        .ts-thumb { position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; background: white; border-radius: 50%; box-shadow: 0 1px 4px rgba(0,0,0,0.25); transition: transform 0.2s; }
+        .ts input:checked ~ .ts-track { background: var(--accent); }
+        .ts input:checked ~ .ts-track .ts-thumb { transform: translateX(18px); }
+
+        /* ── Speed row ── */
+        .speed-row { display: none; align-items: center; gap: 8px; font-size: 0.77rem; color: var(--muted); }
+        .speed-row.visible { display: flex; }
+        .speed-row input[type="range"] { flex: 1; height: 4px; cursor: pointer; accent-color: var(--accent); }
+        .speed-val { font-weight: 600; color: var(--primary); min-width: 20px; text-align: right; }
+
+        /* ── Chord grid ── */
+        .chord-grid { display: grid; grid-template-columns: 22px auto 1fr; gap: 5px 8px; align-items: center; }
+        .chord-grid label { font-size: 0.82rem; white-space: nowrap; cursor: pointer; }
+        .chord-grid select { width: 100%; }
+        select {
+            padding: 5px 7px; border-radius: 5px; border: 1.5px solid var(--border);
+            font-size: 0.8rem; background: white; cursor: pointer; color: var(--primary);
+            transition: border-color 0.14s;
+        }
+        select:hover { border-color: #a8bcc8; }
+        select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(52,152,219,0.12); }
+
+        /* ── Keyboard — ORIGINAL-Struktur unverändert ── */
+        #keyboard-area-wrapper {
+            width: 100%; display: flex; flex-direction: column; align-items: center;
+            background: #333; padding: 20px 0; margin-bottom: 14px;
+            overflow: hidden;
+        }
+
+        /* Scroll-Wrapper — Scroll-Position per JS gesteuert, kein manuelles Scrollen */
+        #keyboard-scroll {
+            max-width: 100%; overflow: hidden;
+        }
+
+        /* ORIGINAL: position:relative; width:fit-content */
+        #keyboard-area { position: relative; width: fit-content; }
+
+        /* ORIGINAL: display:flex; height:130px; position:relative; padding:0 2px */
+        #keyboard { display: flex; height: 130px; position: relative; padding: 0 2px; }
+
+        /* ORIGINAL-Stile — nur display:none hinzugefügt (per Checkbox steuerbar) */
+        #focus-frame {
+            position: absolute; top: -5px; left: 2px;
+            width: 245px; height: 140px;
+            border: 4px solid var(--focus); border-radius: 4px;
+            pointer-events: none; z-index: 10;
+            box-shadow: 0 0 15px rgba(241, 196, 15, 0.6);
+            transition: transform 0.1s ease-out;
+            display: block;
+        }
+
+        /* ORIGINAL Tasten-Stile */
+        .key {
+            border: 1px solid #ccc; background: white; width: 35px; height: 100%;
+            cursor: pointer; border-radius: 0 0 4px 4px; flex-shrink: 0;
+            display: flex; align-items: flex-end; justify-content: center;
+            padding-bottom: 5px; font-size: 0.6rem; transition: background 0.1s;
+            box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent;
+        }
+        .key.black {
+            background: var(--black); color: white; width: 24px; height: 60%;
+            margin-left: -12px; margin-right: -12px; z-index: 2;
+        }
+        .key.active { background: var(--accent) !important; color: white; }
+        .key:not(.black):not(.active):hover { filter: brightness(0.93); }
+        .key.black:not(.active):hover { filter: brightness(1.5); }
+
+        .hint { font-size: 0.82rem; color: #aaa; margin-top: 14px; text-align: center; font-weight: 500; display: none; }
+
+        /* ── Details ── */
+        details {
+            width: 95%; max-width: 1000px; background: var(--card);
+            border-radius: 10px; margin-bottom: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06); overflow: hidden;
+        }
+        details summary {
+            cursor: pointer; font-weight: 600; font-size: 0.88rem;
+            padding: 13px 16px; user-select: none; list-style: none;
+            display: flex; align-items: center; gap: 8px;
+        }
+        details summary::-webkit-details-marker { display: none; }
+        details summary::before { content: '▶'; font-size: 0.6rem; color: var(--accent); transition: transform 0.2s; display: inline-block; }
+        details[open] summary::before { transform: rotate(90deg); }
+        .details-inner { padding: 0 16px 16px; }
+
+        /* ── Freq table ── */
+        table { width: 100%; border-collapse: collapse; font-size: 0.72rem; margin-top: 4px; }
+        td, th { border: 1px solid var(--border); padding: 5px 4px; text-align: center; }
+        th { background: #f5f7fa; font-weight: 600; font-size: 0.7rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+        td[data-note] { cursor: pointer; transition: background 0.1s; }
+        td[data-note]:hover { background: #eaf4fc; }
+        .cell-active { background: var(--accent) !important; color: white; font-weight: 600; }
+
+        /* ── Math ── */
+        .math-section { line-height: 1.75; font-size: 0.87rem; color: #333; }
+        .math-section h3 { color: var(--primary); margin: 1.3em 0 0.3em; font-size: 0.94rem; font-weight: 700; padding-bottom: 4px; border-bottom: 2px solid var(--bg); }
+        .math-section h3:first-child { margin-top: 0; }
+        .math-section .mbox { background: #f6f9fc; border-left: 3px solid var(--accent); padding: 10px 16px; border-radius: 0 6px 6px 0; margin: 8px 0; overflow-x: auto; }
+        .math-section table { margin: 10px 0; }
+        .math-section th, .math-section td { padding: 6px 10px; font-size: 0.8rem; cursor: default !important; pointer-events: none; }
+        .math-section td:hover { background: none !important; }
+        .math-section ul { padding-left: 1.5em; margin: 5px 0; }
+        .math-section li { margin: 3px 0; }
+        .math-section p { margin: 6px 0; }
+        .tag-dur  { color: #27ae60; font-weight: 600; }
+        .tag-moll { color: #8e44ad; font-weight: 600; }
+
+        @media (max-width: 540px) {
+            .controls { grid-template-columns: 1fr; }
+            #canvas-container { height: 190px; }
+        }
+    </style>
+</head>
+<body>
+
+<header><h1>Harmonische Visualisierung</h1></header>
+
+<div id="canvas-container">
+    <div id="legend"></div>
+    <canvas id="osc-canvas"></canvas>
+</div>
+
+<details id="controls-details" open>
+<summary>Einstellungen</summary>
+<div class="controls">
+
+    <!-- Karte 1: Wiedergabe & Anzeige -->
+    <div class="control-card">
+        <h4>Wiedergabe &amp; Anzeige</h4>
+        <label class="cb-label"><input type="checkbox" id="toggle-sound" checked> Ton abspielen</label>
+        <label class="cb-label"><input type="checkbox" id="toggle-keyboard"> Tastatur-Steuerung</label>
+        <hr class="card-divider">
+        <div class="ts-section">
+            <div class="ts-row">
+                <span class="ts-lbl left ts-on" id="lbl-einst">Einstimmig</span>
+                <label class="ts"><input type="checkbox" id="toggle-multi"><span class="ts-track"><span class="ts-thumb"></span></span></label>
+                <span class="ts-lbl right" id="lbl-multi">Mehrstimmig</span>
+            </div>
+            <div class="ts-row" id="sum-toggle-wrap" style="visibility:hidden">
+                <span class="ts-lbl left ts-on" id="lbl-einzel">Einzelgraphen</span>
+                <label class="ts"><input type="checkbox" id="toggle-sum"><span class="ts-track"><span class="ts-thumb"></span></span></label>
+                <span class="ts-lbl right" id="lbl-summe">Summengraph</span>
+            </div>
+        </div>
+        <hr class="card-divider">
+        <label class="cb-label"><input type="checkbox" id="toggle-graph" checked> Graph anzeigen</label>
+        <div>
+            <label class="cb-label"><input type="checkbox" id="toggle-move"> Graph bewegen</label>
+            <div class="speed-row" id="speed-row">
+                <span>Geschwindigkeit</span>
+                <input type="range" id="speed-slider" min="1" max="200" value="60">
+                <span class="speed-val" id="speed-val">60</span>
+            </div>
+        </div>
+        <label class="cb-label"><input type="checkbox" id="toggle-legend" checked> Funktionsgleichung</label>
+    </div>
+
+    <!-- Karte 2: Akkord & Intervall -->
+    <div class="control-card">
+        <h4>Akkord &amp; Intervall</h4>
+        <div class="chord-grid">
+            <input type="checkbox" id="check-auto-chord" class="chord-cb">
+            <label for="check-auto-chord">Fokus-Akkord:</label>
+            <select id="select-auto-chord"></select>
+
+            <input type="checkbox" id="check-base-chord" class="chord-cb">
+            <label for="check-base-chord">Grundton-Modus:</label>
+            <select id="select-base-chord">
+                <option value="0,4,7">Dur (Dreiklang)</option>
+                <option value="0,3,7">Moll (Dreiklang)</option>
+                <option value="0,4,7,10">Dominantseptakkord</option>
+                <option value="0,3,6">Verminderter Dreiklang</option>
+                <option value="0,4,8">Übermäßiger Dreiklang</option>
+                <option value="0,5,7">Sus4</option>
+            </select>
+
+            <input type="checkbox" id="check-interval" class="chord-cb">
+            <label for="check-interval">Intervall:</label>
+            <select id="select-interval">
+                <option value="1">Kleine Sekunde (+1)</option>
+                <option value="2">Große Sekunde (+2)</option>
+                <option value="3">Kleine Terz (+3)</option>
+                <option value="4">Große Terz (+4)</option>
+                <option value="5">Quarte (+5)</option>
+                <option value="6">Tritonus (+6)</option>
+                <option value="7" selected>Quinte (+7)</option>
+                <option value="8">Kleine Sexte (+8)</option>
+                <option value="9">Große Sexte (+9)</option>
+                <option value="10">Kleine Septime (+10)</option>
+                <option value="11">Große Septime (+11)</option>
+                <option value="12">Oktave (+12)</option>
+            </select>
+        </div>
+    </div>
+
+</div>
+</details>
+
+<!-- KEYBOARD: Struktur 1:1 aus Original, nur #keyboard-scroll für Mobile neu -->
+<div id="keyboard-area-wrapper">
+    <div id="keyboard-scroll">
+        <div id="keyboard-area">
+            <div id="focus-frame"></div>
+            <div id="keyboard"></div>
+        </div>
+    </div>
+    <div class="hint" id="keyboard-hint">Mausrad hier: Rahmen verschieben &nbsp;|&nbsp; A S D F … : Tasten spielen</div>
+</div>
+
+<details>
+    <summary>Frequenztabelle</summary>
+    <div class="details-inner"><table id="freq-table"></table></div>
+</details>
+
+<details id="math-details">
+    <summary>Mathematische Grundlagen (Klasse 10)</summary>
+    <div class="details-inner"><div class="math-section" id="math-content"></div></div>
+</details>
+
+<script>
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const masterGain = audioCtx.createGain();
+    masterGain.connect(audioCtx.destination);
+    const canvas = document.getElementById('osc-canvas');
+    const ctx = canvas.getContext('2d');
+    const keyboard = document.getElementById('keyboard');
+    const focusFrame = document.getElementById('focus-frame');
+
+    let activeNotes = new Map();
+    let offset = 0;
+    let focusStartIdx = 36;  // C4
+
+    const noteNames = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+    const octaves = [1, 2, 3, 4, 5, 6];
+    const keyMap = ["KeyA","KeyS","KeyD","KeyF","KeyG","KeyH","KeyJ","KeyK","KeyL","Semicolon","Quote","Backslash"];
+    const allKeys = [];
+
+    // Modus-State für Fokus-Akkord
+    let chordNotes    = new Set();  // gesperrte Akkord-Töne
+    let extraNotes    = new Set();  // manuell über Akkord hinzugefügte Töne
+    let lastExtraNote = null;       // Einstimmig: die eine extra Taste
+    let chordRootNote = null;       // Grundton-Modus
+    let intervalPairs = new Map();  // Intervall-Modus: root → intervalNote
+
+    // ── Akkord-Daten ──
+    const CHORDS = [
+        {label:'C-Dur',   root:'C',  i:[0,4,7]},   {label:'C#-Dur',  root:'C#', i:[0,4,7]},
+        {label:'D-Dur',   root:'D',  i:[0,4,7]},   {label:'D#-Dur',  root:'D#', i:[0,4,7]},
+        {label:'E-Dur',   root:'E',  i:[0,4,7]},   {label:'F-Dur',   root:'F',  i:[0,4,7]},
+        {label:'F#-Dur',  root:'F#', i:[0,4,7]},   {label:'G-Dur',   root:'G',  i:[0,4,7]},
+        {label:'G#-Dur',  root:'G#', i:[0,4,7]},   {label:'A-Dur',   root:'A',  i:[0,4,7]},
+        {label:'A#-Dur',  root:'A#', i:[0,4,7]},   {label:'B-Dur',   root:'B',  i:[0,4,7]},
+        {label:'C-Moll',  root:'C',  i:[0,3,7]},   {label:'C#-Moll', root:'C#', i:[0,3,7]},
+        {label:'D-Moll',  root:'D',  i:[0,3,7]},   {label:'D#-Moll', root:'D#', i:[0,3,7]},
+        {label:'E-Moll',  root:'E',  i:[0,3,7]},   {label:'F-Moll',  root:'F',  i:[0,3,7]},
+        {label:'F#-Moll', root:'F#', i:[0,3,7]},   {label:'G-Moll',  root:'G',  i:[0,3,7]},
+        {label:'G#-Moll', root:'G#', i:[0,3,7]},   {label:'A-Moll',  root:'A',  i:[0,3,7]},
+        {label:'A#-Moll', root:'A#', i:[0,3,7]},   {label:'B-Moll',  root:'B',  i:[0,3,7]},
+        {label:'C-Dom7',  root:'C',  i:[0,4,7,10]},{label:'G-Dom7',  root:'G',  i:[0,4,7,10]},
+        {label:'D-Dom7',  root:'D',  i:[0,4,7,10]},{label:'A-Dom7',  root:'A',  i:[0,4,7,10]},
+        {label:'C-Dim',   root:'C',  i:[0,3,6]},   {label:'D-Dim',   root:'D',  i:[0,3,6]},
+        {label:'C-Aug',   root:'C',  i:[0,4,8]},   {label:'E-Aug',   root:'E',  i:[0,4,8]},
+        {label:'C-Sus4',  root:'C',  i:[0,5,7]},   {label:'G-Sus4',  root:'G',  i:[0,5,7]},
+    ];
+    const selChord = document.getElementById('select-auto-chord');
+    CHORDS.forEach((c, idx) => {
+        const opt = document.createElement('option');
+        opt.value = idx; opt.textContent = c.label; selChord.appendChild(opt);
+    });
+
+    // ── Frequenztabelle ──
+    const table = document.getElementById('freq-table');
+    let tableHTML = '<tr><th>Note</th>' + octaves.map(o => `<th>Okt. ${o}</th>`).join('') + '</tr>';
+    noteNames.forEach((name, nIdx) => {
+        tableHTML += `<tr><td><strong>${name}</strong></td>`;
+        octaves.forEach(oct => {
+            const label = `${name}${oct}`;
+            const freq  = 440 * Math.pow(2, (nIdx - 9 + (oct - 4) * 12) / 12);
+            tableHTML += `<td id="cell-${label}" data-note="${label}" data-freq="${freq}">${freq.toFixed(1)}</td>`;
+        });
+        tableHTML += '</tr>';
+    });
+    table.innerHTML = tableHTML;
+    table.querySelectorAll('td[data-note]').forEach(cell => {
+        cell.addEventListener('click', () => {
+            const k = document.querySelector(`.key[data-note="${cell.dataset.note}"]`);
+            if (k) handleKeyInput(k, true);
+        });
+    });
+
+    // ── Keyboard erzeugen ──
+    octaves.forEach(oct => {
+        noteNames.forEach((name, nIdx) => {
+            const label = `${name}${oct}`;
+            const freq  = 440 * Math.pow(2, (nIdx - 9 + (oct - 4) * 12) / 12);
+            const key   = document.createElement('div');
+            key.className     = `key ${name.includes('#') ? 'black' : 'white'}`;
+            key.dataset.note  = label;
+            key.dataset.freq  = freq;
+            key.dataset.index = allKeys.length;
+            key.innerText     = label;
+            key.addEventListener('mousedown', e => { e.preventDefault(); handleKeyInput(key, true); });
+            key.addEventListener('touchstart', e => { e.preventDefault(); }, {passive: false});
+            keyboard.appendChild(key);
+            allKeys.push(key);
+        });
+    });
+
+    // ── Audio ──
+    function startNote(note, freq) {
+        if (activeNotes.has(note)) return;
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc  = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(0, audioCtx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.15, audioCtx.currentTime + 0.05);
+        osc.connect(gain);
+        gain.connect(masterGain);
+        osc.start();
+        activeNotes.set(note, { osc, gain, freq });
+    }
+
+    function stopNote(note) {
+        const data = activeNotes.get(note);
+        if (data) {
+            data.gain.gain.cancelScheduledValues(audioCtx.currentTime);
+            data.gain.gain.setValueAtTime(data.gain.gain.value, audioCtx.currentTime);
+            data.gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.1);
+            setTimeout(() => { try { data.osc.stop(); data.osc.disconnect(); } catch(e){} }, 50);
+            activeNotes.delete(note);
+        }
+    }
+
+    function stopAllNotes() {
+        [...activeNotes.keys()].forEach(stopNote);
+        chordNotes.clear(); extraNotes.clear();
+        lastExtraNote = null; chordRootNote = null; intervalPairs.clear();
+    }
+
+    function playByIndex(idx) {
+        if (idx >= 0 && idx < allKeys.length) startNote(allKeys[idx].dataset.note, parseFloat(allKeys[idx].dataset.freq));
+    }
+
+    // ── handleKeyInput ──
+    function handleKeyInput(keyElem, isMouseClick) {
+        if (!keyElem) return;
+        if (document.getElementById('check-auto-chord').checked) {
+            handleExtraNote(keyElem, isMouseClick); return;
+        }
+        const isBase     = document.getElementById('check-base-chord').checked;
+        const isInterval = document.getElementById('check-interval').checked;
+        if      (isBase)     handleBaseChord(keyElem, isMouseClick);
+        else if (isInterval) handleInterval(keyElem);
+        else                 handleNormal(keyElem, isMouseClick);
+        updateUI();
+    }
+
+    function handleNormal(keyElem, isMouseClick) {
+        const note    = keyElem.dataset.note;
+        const isMulti = document.getElementById('toggle-multi').checked;
+        if (isMouseClick) {
+            if (activeNotes.has(note)) { stopNote(note); }
+            else { if (!isMulti) stopAllNotes(); startNote(note, parseFloat(keyElem.dataset.freq)); }
+        } else {
+            if (!isMulti) stopAllNotes(); startNote(note, parseFloat(keyElem.dataset.freq));
+        }
+    }
+
+    function handleBaseChord(keyElem, isMouseClick) {
+        const note = keyElem.dataset.note;
+        const idx  = parseInt(keyElem.dataset.index);
+        if (isMouseClick && chordRootNote === note) { stopAllNotes(); }
+        else {
+            stopAllNotes();
+            document.getElementById('select-base-chord').value.split(',').map(Number).forEach(intv => playByIndex(idx + intv));
+            chordRootNote = note;
+        }
+    }
+
+    function handleInterval(keyElem) {
+        const note     = keyElem.dataset.note;
+        const idx      = parseInt(keyElem.dataset.index);
+        const interval = parseInt(document.getElementById('select-interval').value);
+        const iKey     = allKeys[idx + interval];
+        const iNote    = iKey ? iKey.dataset.note : null;
+        if (intervalPairs.has(note)) {
+            const prevI = intervalPairs.get(note);
+            stopNote(note);
+            if (prevI) {
+                const stillNeeded = [...intervalPairs.entries()].some(([k,v]) => k !== note && (k === prevI || v === prevI));
+                if (!stillNeeded) stopNote(prevI);
+            }
+            intervalPairs.delete(note);
+        } else {
+            startNote(note, parseFloat(keyElem.dataset.freq));
+            if (iKey) startNote(iNote, parseFloat(iKey.dataset.freq));
+            intervalPairs.set(note, iNote);
+        }
+    }
+
+    function handleExtraNote(keyElem, isMouseClick) {
+        const note    = keyElem.dataset.note;
+        const isMulti = document.getElementById('toggle-multi').checked;
+        if (chordNotes.has(note)) return;
+        if (isMouseClick) {
+            if (activeNotes.has(note)) {
+                stopNote(note); extraNotes.delete(note);
+                if (lastExtraNote === note) lastExtraNote = null;
+            } else {
+                if (!isMulti && lastExtraNote !== null) { stopNote(lastExtraNote); extraNotes.delete(lastExtraNote); }
+                startNote(note, parseFloat(keyElem.dataset.freq));
+                extraNotes.add(note); lastExtraNote = note;
+            }
+        } else {
+            if (!isMulti && lastExtraNote !== null) { stopNote(lastExtraNote); extraNotes.delete(lastExtraNote); }
+            startNote(note, parseFloat(keyElem.dataset.freq));
+            extraNotes.add(note); lastExtraNote = note;
+        }
+        updateUI();
+    }
+
+    // ── Fokus-Akkord ──
+    function findRootNearFocus(rootName) {
+        for (let i = focusStartIdx; i < Math.min(focusStartIdx + 12, allKeys.length); i++)
+            if (allKeys[i].dataset.note.replace(/\d+$/, '') === rootName) return i;
+        for (let i = focusStartIdx - 1; i >= Math.max(0, focusStartIdx - 12); i--)
+            if (allKeys[i].dataset.note.replace(/\d+$/, '') === rootName) return i;
+        return focusStartIdx;
+    }
+
+    function updateFocusChord() {
+        if (!document.getElementById('check-auto-chord').checked) return;
+        [...extraNotes].forEach(stopNote); extraNotes.clear(); lastExtraNote = null;
+        [...chordNotes].forEach(stopNote); chordNotes.clear();
+        const chord   = CHORDS[parseInt(selChord.value)];
+        const rootIdx = findRootNearFocus(chord.root);
+        chord.i.forEach(intv => {
+            const k = allKeys[rootIdx + intv];
+            if (k) { startNote(k.dataset.note, parseFloat(k.dataset.freq)); chordNotes.add(k.dataset.note); }
+        });
+        updateUI();
+    }
+
+    // ── Fokus-Rahmen — EXAKT wie Original ──
+    // #focus-frame ist Kind von #keyboard-area (position:relative)
+    // #keyboard ist ebenfalls Kind von #keyboard-area, startet bei x=0
+    // key.offsetLeft ist relativ zu #keyboard (seinem position:relative-Elternteil)
+    // → translateX(firstKey.offsetLeft - 2) + left:2px = firstKey.offsetLeft ✓
+    function updateFocusFrame() {
+        const firstKey = allKeys[focusStartIdx];
+        if (!firstKey) return;
+        focusFrame.style.transform = `translateX(${firstKey.offsetLeft - 2}px)`;
+        // Fokus-Rahmen im Scroll-Container zentrieren
+        const scroll = document.getElementById('keyboard-scroll');
+        const frameCenter = (firstKey.offsetLeft - 2) + 245 / 2;
+        scroll.scrollLeft = frameCenter - scroll.clientWidth / 2;
+    }
+
+    // Mausrad: Fokus verschieben (nur wenn Tastatur-Steuerung aktiv)
+    document.getElementById('keyboard-area-wrapper').addEventListener('wheel', (e) => {
+        e.preventDefault();
+        if (e.deltaY > 0 && focusStartIdx < allKeys.length - 12) focusStartIdx++;
+        if (e.deltaY < 0 && focusStartIdx > 0) focusStartIdx--;
+        updateFocusFrame();
+        // if (document.getElementById('check-auto-chord').checked) updateFocusChord();
+    }, {passive: false});
+
+    // Touch-Drag: Fokus verschieben (mobil)
+    const kbScroll = document.getElementById('keyboard-scroll'); // <--- DIESE ZEILE FEHLT
+    let _touchStartX = null, _touchStartIdx = null, _touchTargetKey = null, _dragDetected = false;
+    kbScroll.addEventListener('touchstart', e => {
+        _touchStartX = e.touches[0].clientX;
+        _touchStartIdx = focusStartIdx;
+        _touchTargetKey = e.target.closest('.key');
+        _dragDetected = false;
+    }, {passive: true});
+    kbScroll.addEventListener('touchmove', e => {
+        if (_touchStartX === null) return;
+        const dx = _touchStartX - e.touches[0].clientX;
+        if (!_dragDetected && Math.abs(dx) >= 10) _dragDetected = true;
+        if (!_dragDetected) return;
+        e.preventDefault();
+        const newIdx = Math.max(0, Math.min(allKeys.length - 12, _touchStartIdx + Math.round(dx / 30)));
+        if (newIdx !== focusStartIdx) {
+            focusStartIdx = newIdx;
+            updateFocusFrame();
+            // if (document.getElementById('check-auto-chord').checked) updateFocusChord();
+        }
+    }, {passive: false});
+    kbScroll.addEventListener('touchend', () => {
+        if (!_dragDetected && _touchTargetKey) handleKeyInput(_touchTargetKey, true);
+        _touchStartX = null; _touchStartIdx = null; _touchTargetKey = null; _dragDetected = false;
+    }, {passive: true});
+
+    // ── Tastatur-Steuerung ──
+    window.addEventListener('keydown', (e) => {
+        if (!document.getElementById('toggle-keyboard').checked) return;
+        if (e.repeat) return;
+        const idx = keyMap.indexOf(e.code);
+        if (idx === -1) return;
+        e.preventDefault();
+        handleKeyInput(allKeys[focusStartIdx + idx], false);
+    });
+
+    window.addEventListener('keyup', (e) => {
+        if (!document.getElementById('toggle-keyboard').checked) return;
+        const idx = keyMap.indexOf(e.code);
+        if (idx === -1) return;
+        const targetKey = allKeys[focusStartIdx + idx];
+        if (!targetKey) return;
+        if (document.getElementById('check-auto-chord').checked) {
+            const note = targetKey.dataset.note;
+            if (extraNotes.has(note)) { stopNote(note); extraNotes.delete(note); if (lastExtraNote === note) lastExtraNote = null; updateUI(); }
+        } else if (document.getElementById('check-base-chord').checked) {
+            stopAllNotes(); updateUI();
+        } else if (document.getElementById('check-interval').checked) {
+            const intv = parseInt(document.getElementById('select-interval').value);
+            stopNote(targetKey.dataset.note);
+            if (allKeys[focusStartIdx + idx + intv]) stopNote(allKeys[focusStartIdx + idx + intv].dataset.note);
+            intervalPairs.delete(targetKey.dataset.note);
+            updateUI();
+        } else {
+            stopNote(targetKey.dataset.note); updateUI();
+        }
+    });
+
+    // ── Checkboxen ──
+    document.getElementById('toggle-sound').addEventListener('change', (e) => {
+        const now = audioCtx.currentTime;
+        masterGain.gain.cancelAndHoldAtTime(now);
+        masterGain.gain.linearRampToValueAtTime(e.target.checked ? 1 : 0.0001, now + 0.05);
+    });
+
+    document.getElementById('toggle-keyboard').addEventListener('change', (e) => {
+        const on = e.target.checked;
+        document.getElementById('keyboard-hint').style.display = on ? '' : 'none';
+        if (on) updateFocusFrame();
+    });
+
+    document.getElementById('toggle-move').addEventListener('change', (e) => {
+        document.getElementById('speed-row').classList.toggle('visible', e.target.checked);
+        if (!e.target.checked) offset = 0;
+    });
+    document.getElementById('speed-slider').addEventListener('input', () => {
+        document.getElementById('speed-val').textContent = document.getElementById('speed-slider').value;
+    });
+
+    document.getElementById('toggle-multi').addEventListener('change', (e) => {
+        const on = e.target.checked;
+        document.getElementById('lbl-einst').classList.toggle('ts-on', !on);
+        document.getElementById('lbl-multi').classList.toggle('ts-on',  on);
+        document.getElementById('sum-toggle-wrap').style.visibility = on ? 'visible' : 'hidden';
+        if (!on) { stopAllNotes(); updateUI(); }
+    });
+
+    document.getElementById('toggle-sum').addEventListener('change', (e) => {
+        const on = e.target.checked;
+        document.getElementById('lbl-einzel').classList.toggle('ts-on', !on);
+        document.getElementById('lbl-summe').classList.toggle('ts-on',   on);
+    });
+
+    document.getElementById('toggle-legend').addEventListener('change', updateLegend);
+
+    document.getElementById('check-auto-chord').addEventListener('change', (e) => {
+        if (e.target.checked) updateFocusChord(); else { stopAllNotes(); updateUI(); }
+    });
+    selChord.addEventListener('change', () => { if (document.getElementById('check-auto-chord').checked) updateFocusChord(); });
+
+    document.getElementById('check-base-chord').addEventListener('change', (e) => {
+        if (!e.target.checked) { stopAllNotes(); updateUI(); }
+        if (e.target.checked)  document.getElementById('check-interval').checked = false;
+    });
+    document.getElementById('select-base-chord').addEventListener('change', () => { stopAllNotes(); updateUI(); });
+
+    document.getElementById('check-interval').addEventListener('change', (e) => {
+        if (!e.target.checked) { stopAllNotes(); updateUI(); }
+        if (e.target.checked)  document.getElementById('check-base-chord').checked = false;
+    });
+    document.getElementById('select-interval').addEventListener('change', () => { stopAllNotes(); updateUI(); });
+
+    // ── UI / Legende ──
+    function updateUI() {
+        document.querySelectorAll('.key').forEach(k => k.classList.remove('active'));
+        document.querySelectorAll('td[data-note]').forEach(c => c.classList.remove('cell-active'));
+        activeNotes.forEach((_, note) => {
+            const key  = document.querySelector(`.key[data-note="${note}"]`);
+            if (key) key.classList.add('active');
+            const cell = document.getElementById(`cell-${note}`);
+            if (cell) cell.classList.add('cell-active');
+        });
+        updateLegend();
+    }
+
+    function updateLegend() {
+        const leg  = document.getElementById('legend');
+        const show = document.getElementById('toggle-legend').checked && activeNotes.size > 0;
+        leg.style.display = show ? 'block' : 'none';
+        if (!show) return;
+        const showSum = document.getElementById('toggle-sum').checked;
+        let html = '', i = 0;
+        activeNotes.forEach((d, note) => {
+            const color = `hsl(${(i * 140) % 360}, 70%, 38%)`;
+            html += `<div style="color:${color}">${note} &ndash; sin(${d.freq.toFixed(1)}&thinsp;x)</div>`;
+            i++;
+        });
+        if (showSum && activeNotes.size > 1)
+            html += `<div style="color:#c0392b; margin-top:2px">&#x2211; Summengraph (normiert)</div>`;
+        leg.innerHTML = html;
+    }
+
+    // ── Zeichnen ──
+    function draw() {
+        if (canvas.width !== canvas.clientWidth || canvas.height !== canvas.clientHeight) {
+            canvas.width = canvas.clientWidth; canvas.height = canvas.clientHeight;
+        }
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        const midX = canvas.width / 2, midY = canvas.height / 2;
+
+        ctx.strokeStyle = '#e8edf0'; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(midX, 0); ctx.lineTo(midX, canvas.height); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(0, midY); ctx.lineTo(canvas.width, midY); ctx.stroke();
+
+        const showGraph  = document.getElementById('toggle-graph').checked;
+        const moveActive = document.getElementById('toggle-move').checked;
+        const showSum    = document.getElementById('toggle-sum').checked;
+
+        if (!moveActive) offset = 0;
+
+        if (showGraph && activeNotes.size > 0) {
+            if (moveActive) offset += parseInt(document.getElementById('speed-slider').value) * 0.0012;
+            const xScale = canvas.width / 14;
+            const amp    = Math.min(canvas.height * 0.40, 86);
+            const LW     = 2;
+
+            if (showSum) {
+                ctx.beginPath(); ctx.strokeStyle = '#e67e22'; ctx.lineWidth = LW;
+                for (let x = 0; x < canvas.width; x++) {
+                    let sumY = 0;
+                    activeNotes.forEach(d => sumY += Math.sin((d.freq / 100) * ((x - midX) / xScale + offset)));
+                    const y = midY - (sumY / activeNotes.size) * amp;
+                    x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+                }
+                ctx.stroke();
+            } else {
+                let i = 0;
+                activeNotes.forEach(d => {
+                    ctx.beginPath(); ctx.strokeStyle = `hsl(${(i++ * 140) % 360}, 75%, 50%)`; ctx.lineWidth = LW;
+                    for (let x = 0; x < canvas.width; x++) {
+                        const y = midY - Math.sin((d.freq / 100) * ((x - midX) / xScale + offset)) * amp;
+                        x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+                    }
+                    ctx.stroke();
+                });
+            }
+        }
+        requestAnimationFrame(draw);
+    }
+
+    // ── Mathematik ──
+    document.getElementById('math-content').innerHTML = `
+<h3>1. Die Sinuswelle als Klangmodell</h3>
+<p>Jeder reine Ton lässt sich vollständig durch eine Sinusfunktion beschreiben:</p>
+<div class="mbox">\\[ y(t) = A \\cdot \\sin(2\\pi f t + \\varphi) \\]</div>
+<p>\\(A\\) = Amplitude &nbsp;|&nbsp; \\(f\\) = Frequenz in Hz &nbsp;|&nbsp; \\(t\\) = Zeit &nbsp;|&nbsp; \\(\\varphi\\) = Startphase. Die Kreisfrequenz \\(\\omega = 2\\pi f\\) gibt an, wie viele Schwingungen pro Sekunde stattfinden.</p>
+
+<h3>2. Frequenzen: Das Raster der Tonleiter</h3>
+<p>In der gleichschwebenden Stimmung teilt man eine Oktave in exakt 12 gleiche Halbtonschritte. Die Frequenz einer Note mit Abstand \\(n\\) Halbtönen von A4 (440 Hz) ist:</p>
+<div class="mbox">\\[ f(n) = 440 \\cdot 2^{\\,n/12} \\text{ Hz} \\]</div>
+<p>Beispiel C4 (\\(n=-9\\)): \\(f = 440 \\cdot 2^{-9/12} \\approx 261{,}6\\text{ Hz}\\). Das ist eine <strong>Exponentialfunktion</strong> der Basis 2, denn \\(\\left(2^{1/12}\\right)^{12} = 2\\) — eine Oktave.</p>
+
+<h3>3. Intervalle als Frequenzverhältnisse</h3>
+<table>
+  <tr><th>Intervall</th><th>Halbtöne \\(n\\)</th><th>Faktor \\(2^{n/12}\\)</th><th>Näherung</th></tr>
+  <tr><td>Kleine Terz</td><td>3</td><td>\\(\\approx 1{,}189\\)</td><td>\\(\\approx 6:5\\)</td></tr>
+  <tr><td>Große Terz</td><td>4</td><td>\\(\\approx 1{,}260\\)</td><td>\\(\\approx 5:4\\)</td></tr>
+  <tr><td>Quarte</td><td>5</td><td>\\(\\approx 1{,}335\\)</td><td>\\(\\approx 4:3\\)</td></tr>
+  <tr><td>Quinte</td><td>7</td><td>\\(\\approx 1{,}498\\)</td><td>\\(\\approx 3:2\\)</td></tr>
+  <tr><td>Oktave</td><td>12</td><td>\\(= 2{,}000\\)</td><td>\\(= 2:1\\)</td></tr>
+</table>
+
+<h3>4. Dur und Moll – Kommutativgesetz der Addition</h3>
+<p>Ein Dreiklang entsteht durch Terzschichtung. Die Quinte ergibt sich als Summe beider Terzen (immer 7 Halbtöne):</p>
+<div class="mbox">\\[ \\underbrace{+4}_{\\text{gr. Terz}} + \\underbrace{+3}_{\\text{kl. Terz}} = 7 \\;\\Rightarrow\\; \\text{Dur} \\qquad \\underbrace{+3}_{\\text{kl. Terz}} + \\underbrace{+4}_{\\text{gr. Terz}} = 7 \\;\\Rightarrow\\; \\text{Moll} \\]</div>
+<p><strong>Kommutativgesetz:</strong> \\(4+3 = 3+4 = 7\\). Die Quinte ist bei Dur und Moll identisch — nur die Reihenfolge der Terzen ändert den Klang.</p>
+<div class="mbox">\\[ f \\cdot 2^{4/12} \\cdot 2^{3/12} = f \\cdot 2^{7/12} = f \\cdot 2^{3/12} \\cdot 2^{4/12} \\]</div>
+<table>
+  <tr><th>Akkord</th><th>Grundton C</th><th>Terz</th><th>Quinte G</th></tr>
+  <tr><td><span class="tag-dur">C-Dur</span></td><td>261,6 Hz</td><td>E4 ≈ 329,6 Hz (gr. Terz ×\\(2^{4/12}\\))</td><td>G4 ≈ 392,0 Hz</td></tr>
+  <tr><td><span class="tag-moll">C-Moll</span></td><td>261,6 Hz</td><td>E♭4 ≈ 311,1 Hz (kl. Terz ×\\(2^{3/12}\\))</td><td>G4 ≈ 392,0 Hz</td></tr>
+</table>
+
+<h3>5. Superposition – Wellen überlagern sich</h3>
+<div class="mbox">\\[ y_{\\text{ges}}(t) = A_1\\sin(2\\pi f_1 t) + A_2\\sin(2\\pi f_2 t) + \\cdots \\]</div>
+<p>Bei ähnlichen Frequenzen entsteht eine <strong>Schwebung</strong> mit Pulsationsfrequenz \\(|f_1-f_2|\\). Probiere A4 (440 Hz) + A#4 (466 Hz) — ca. 26 Hz Pulsieren. Je einfacher das Verhältnis \\(f_1:f_2\\), desto harmonischer klingt die Überlagerung.</p>
+
+<h3>6. Logarithmische Tonhöhenwahrnehmung</h3>
+<p>Das Gehör nimmt Tonhöhen logarithmisch wahr: Jede Frequenzverdopplung klingt als gleich großer Schritt (Oktave):</p>
+<div class="mbox">\\[ n \\text{ Halbtöne} \\;\\Longleftrightarrow\\; \\text{Faktor }2^{n/12} \\qquad \\text{z.B.:} \\quad 2^{12/12}=2, \\quad 2^{24/12}=4 \\]</div>
+<p>In der Frequenztabelle oben: jede Note verdoppelt sich von Oktave zu Oktave (z.B. A: 110 → 220 → 440 → 880 Hz).</p>`;
+
+    document.getElementById('math-details').addEventListener('toggle', function() {
+        if (this.open && window.MathJax) MathJax.typesetPromise([this]);
+    });
+
+    // ── Init ──
+    requestAnimationFrame(updateFocusFrame);
+    draw();
+    // Controls auf schmalen Bildschirmen zugeklappt
+    if (window.innerWidth < 601) {
+        document.getElementById('controls-details').removeAttribute('open');
+    }
+</script>
+<footer class="site-footer">
+  <div class="footer-content">
+    M.&nbsp;Koch
+    <span class="footer-topic"><a href="./index.html">Mathe-Tools</a></span>
+    <span class="footer-update">Zuletzt aktualisiert:&nbsp;<span id="last-update">...</span></span>
+  </div>
+</footer>
+<script src="last-update.js" defer></script>
+</body>
+</html>

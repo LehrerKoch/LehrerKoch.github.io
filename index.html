@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mathe-Tools</title>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,400&display=swap" rel="stylesheet">
 
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-5K8WYYXDL2"></script>
@@ -15,53 +15,263 @@
         gtag('config', 'G-5K8WYYXDL2');
     </script>
     <script src="last-update.js" defer></script>
+    <script src="index/page_types.js"></script>
+    <script src="index/categories.js"></script>
+    <script src="index/cards.js"></script>
 
     <style>
         :root {
-            --bg: #f5f7fa;
+            --bg: #eef1f7;
             --surface: #ffffff;
-            --surface2: #eef1f6;
-            --border: rgba(0,0,0,0.08);
-            --text: #1a1d2e;
-            --muted: #7a7f9a;
-            /* Aufgabengenerator: Rot */
-            --accent-learn: #dc2020;
-            --accent-learn-bg: rgba(220,32,32,0.08);
-            /* Übungstool: Orange */
-            --accent-uebung: #d97706;
-            --accent-uebung-bg: rgba(217,119,6,0.22);
-            /* Quiz: Lila */
-            --accent-quiz: #7c3aed;
-            --accent-quiz-bg: rgba(124,58,237,0.08);
-            /* GeoGebra: Blau */
-            --accent-geo: #0369a1;
-            --accent-geo-bg: rgba(3,105,161,0.08);
-            /* Flashcards: Grün */
-            --accent-flash: #16a34a;
-            --accent-flash-bg: rgba(22,163,74,0.08);
-            /* Spiel: Gelb */
-            --accent-game: #f7bd00;
-            --accent-game-bg: rgba(255,236,0,0.55);
+            --surface2: #e8ecf4;
+            --border: rgba(0,0,0,0.07);
+            --border-strong: rgba(0,0,0,0.13);
+            --text: #14162a;
+            --muted: #6b7190;
+            /* Type accent colors are injected dynamically by injectTypeStyles() */
             --radius: 14px;
-            /* Group header color */
-            --group-header-bg: #dbeafe;
-            --group-header-hover: #bfdbfe;
+            --nav-height: 52px;
+            --filter-height: 72px;
+            --shadow-xs: 0 1px 2px rgba(0,0,0,0.05), 0 1px 6px rgba(0,0,0,0.04);
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 2px 10px rgba(0,0,0,0.05);
+            --shadow-md: 0 4px 14px rgba(0,0,0,0.10), 0 2px 6px rgba(0,0,0,0.06);
+            --hover-bg: #c9d0e2;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        html { scrollbar-gutter: stable; }
 
         body {
             font-family: 'DM Sans', sans-serif;
             background: var(--bg);
             color: var(--text);
             min-height: 100vh;
-            scrollbar-gutter: stable;
-            overflow-y: scroll;
+            overflow-x: hidden;
+            padding-top: var(--nav-height);
         }
 
-        /* ─── HEADER ─────────────────────────────────────────────── */
+        /* ══════════════════════════════════════════════════════
+           STICKY TOP NAV
+        ══════════════════════════════════════════════════════ */
+        .sticky-top-nav {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            z-index: 300;
+            height: var(--nav-height);
+            display: flex;
+            align-items: center;
+            gap: 0;
+            background: rgba(238,241,247,0.93);
+            border-bottom: 1px solid var(--border);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            padding: 0 10px 0 52px;
+        }
+
+        .menu-btn {
+            position: absolute;
+            left: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            border: 1.5px solid var(--border-strong);
+            background: var(--surface);
+            color: var(--text);
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.15s;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+            box-shadow: var(--shadow-xs);
+            flex-shrink: 0;
+        }
+        .menu-btn:hover { background: var(--surface2); }
+
+        /* Section nav: horizontally scrollable, never wraps */
+        .section-nav {
+            display: flex;
+            align-items: center;
+            gap: 0.15rem;
+            overflow-x: auto;
+            overflow-y: hidden;
+            flex: 1;
+            min-width: 0;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            padding: 0.2rem 0;
+        }
+        .section-nav::-webkit-scrollbar { display: none; }
+
+        .section-nav-link {
+            flex-shrink: 0;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.72rem;
+            font-weight: 500;
+            color: var(--muted);
+            padding: 0.25rem 0.55rem;
+            border-radius: 999px;
+            border: 1px solid transparent;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: color 0.15s, background 0.15s, border-color 0.15s, box-shadow 0.15s;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        .section-nav-link:hover {
+            color: var(--text);
+            background: var(--surface);
+            border-color: var(--border);
+        }
+        .section-nav-link.active {
+            color: var(--text) !important;
+            background: var(--surface) !important;
+            border-color: var(--border-strong) !important;
+            font-weight: 700 !important;
+            box-shadow: var(--shadow-xs);
+        }
+
+        /* ══════════════════════════════════════════════════════
+           SIDEBAR
+        ══════════════════════════════════════════════════════ */
+        .sidebar-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.28);
+            z-index: 400;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s;
+            backdrop-filter: blur(2px);
+        }
+        .sidebar-overlay.open { visibility: visible; opacity: 1; }
+
+        .sidebar {
+            position: fixed;
+            top: 0; left: 0;
+            height: 100%;
+            width: 220px;
+            max-width: 85vw;
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            z-index: 500;
+            box-shadow: 4px 0 28px rgba(0,0,0,0.13);
+            transform: translateX(-100%);
+            transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+        }
+        .sidebar.open { transform: translateX(0); }
+
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.9rem 1rem 0.8rem;
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+        .sidebar-title {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 700;
+        }
+        .sidebar-close {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 30px;
+            height: 30px;
+            border-radius: 8px;
+            border: 1.5px solid var(--border);
+            background: transparent;
+            color: var(--muted);
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: background 0.15s;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .sidebar-close:hover { background: var(--surface2); color: var(--text); }
+
+        .sidebar-nav {
+            display: flex;
+            flex-direction: column;
+            padding: 0.6rem 0.65rem;
+            gap: 0.05rem;
+            overflow-y: auto;
+        }
+        .sidebar-nav a {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text);
+            text-decoration: none;
+            padding: 0.65rem 0.75rem;
+            border-radius: 9px;
+            transition: background 0.14s;
+            touch-action: manipulation;
+        }
+        .sidebar-nav a:hover { background: var(--surface2); }
+
+        /* Toast */
+        .share-toast{
+            position:fixed;
+            bottom:70px;
+            left:50%;
+            transform:translateX(-50%) translateY(10px);
+            background:#1e293b;
+            color:#fff;
+            font-size:.82rem;
+            padding:8px 18px;
+            border-radius:20px;
+            box-shadow:0 3px 12px rgba(0,0,0,.3);
+            z-index:500;
+            opacity:0;
+            pointer-events:none;
+            transition:opacity .25s,transform .25s;
+        }
+        .share-toast.show{
+            opacity:1;
+            transform:translateX(-50%) translateY(0);
+        }
+        /* ══════════════════════════════════════════════════════
+           MOBILE TOGGLE
+        ══════════════════════════════════════════════════════ */
+        .mobile-toggle {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.28rem 0.65rem;
+            border-radius: 8px;
+            border: 1.5px solid var(--border-strong);
+            background: var(--surface);
+            color: var(--muted);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.72rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            box-shadow: var(--shadow-xs);
+            margin-right: auto; /* Schiebt den Button nach links */
+            user-select: none;
+        }
+        .mobile-toggle:hover { background: var(--surface2); color: var(--text); }
+        .mobile-toggle.active { background: var(--text); color: var(--bg); border-color: var(--text); box-shadow: none; }
+        .mobile-toggle input { display: none; }
+        .mobile-icon-card { flex-shrink: 0; display: flex; align-items: center; }
+        /* ══════════════════════════════════════════════════════
+           HEADER
+        ══════════════════════════════════════════════════════ */
         header {
-            padding: 1.6rem 1.5rem 1rem;
+            padding: 1.7rem 1.5rem 1.1rem;
             text-align: center;
             position: relative;
             overflow: hidden;
@@ -70,295 +280,367 @@
             content: '';
             position: absolute;
             inset: 0;
-            background: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(13,122,95,0.1), transparent);
+            background: radial-gradient(ellipse 70% 120% at 50% 0%, rgba(13,100,80,0.06), transparent);
             pointer-events: none;
         }
         header h1 {
             font-family: 'Plus Jakarta Sans', sans-serif;
-            font-size: clamp(1.6rem, 5vw, 2.4rem);
+            font-size: clamp(1.55rem, 5vw, 2.3rem);
             font-weight: 800;
-            letter-spacing: -0.02em;
-            background: linear-gradient(135deg, #1a1d2e 40%, var(--accent-learn));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            letter-spacing: -0.03em;
+            color: var(--text);
+            position: relative;
         }
         header p {
             color: var(--muted);
             margin-top: 0.3rem;
-            font-size: 0.9rem;
+            font-size: 0.87rem;
         }
 
-        /* ─── STICKY WRAPPER ────────────────────────────────────── */
-        .sticky-top {
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            background: linear-gradient(to bottom, var(--bg) 85%, transparent);
+        /* ══════════════════════════════════════════════════════
+           MAIN & TOOLBAR
+        ══════════════════════════════════════════════════════ */
+        main {
+            padding: 0 0.65rem 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
         }
 
-        /* ─── FILTER BAR ─────────────────────────────────────────── */
-        .filter-bar {
-            display: flex;
-            gap: 0.4rem;
-            justify-content: center;
-            flex-wrap: wrap;
-            padding: 0.7rem 1.5rem 0.5rem;
-        }
-        .filter-btn {
-            display: flex;
-            align-items: center;
-            gap: 0.4rem;
-            padding: 0.38rem 0.85rem;
-            border-radius: 999px;
-            border: 1.5px solid var(--border);
-            background: var(--surface);
-            color: var(--muted);
-            font-family: 'DM Sans', sans-serif;
-            font-size: 0.82rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.18s ease;
-            touch-action: manipulation;
-            -webkit-tap-highlight-color: transparent;
-        }
-        .filter-btn:hover { border-color: rgba(0,0,0,0.3); color: var(--text); background: #e8ecf5; }
-        .filter-btn.active-all  { background: var(--text); color: var(--bg); border-color: var(--text); }
-        .filter-btn.active-learn { background: var(--accent-learn-bg); color: var(--accent-learn); border-color: var(--accent-learn); }
-        .filter-btn.active-uebung { background: var(--accent-uebung-bg); color: var(--accent-uebung); border-color: var(--accent-uebung); }
-        .filter-btn.active-geo   { background: var(--accent-geo-bg);   color: var(--accent-geo);   border-color: var(--accent-geo); }
-        .filter-btn.active-game  { background: var(--accent-game-bg);  color: var(--accent-game);  border-color: var(--accent-game); }
-        .filter-btn.active-quiz  { background: var(--accent-quiz-bg);  color: var(--accent-quiz);  border-color: var(--accent-quiz); }
-        .filter-btn.active-flash { background: var(--accent-flash-bg); color: var(--accent-flash); border-color: var(--accent-flash); }
-        .filter-btn .dot { width: 8px; height: 8px; border-radius: 50%; }
-        .dot-learn  { background: var(--accent-learn); }
-        .dot-uebung { background: var(--accent-uebung); }
-        .dot-geo    { background: var(--accent-geo); }
-        .dot-game   { background: var(--accent-game); }
-        .dot-quiz   { background: var(--accent-quiz); }
-        .dot-flash  { background: var(--accent-flash); }
-
-        /* ─── MAIN ───────────────────────────────────────────────── */
-        main { padding: 0 1rem 2.5rem; max-width: 1200px; margin: 0 auto; }
-
-        /* ─── MAIN TOOLBAR ───────────────────────────────────────── */
         .main-toolbar {
             display: flex;
             justify-content: flex-end;
-            padding: 0.2rem 0 0.5rem;
+            padding: 0 0.15rem 0.55rem;
         }
         .collapse-all-btn {
             display: flex;
             align-items: center;
             gap: 0.3rem;
-            padding: 0.25rem 0.6rem;
+            padding: 0.28rem 0.65rem;
             border-radius: 8px;
-            border: 1.5px solid var(--border);
-            background: rgba(255,255,255,0.92);
-            backdrop-filter: blur(6px);
+            border: 1.5px solid var(--border-strong);
+            background: var(--surface);
             color: var(--muted);
             font-family: 'DM Sans', sans-serif;
-            font-size: 0.73rem;
+            font-size: 0.72rem;
             font-weight: 500;
             cursor: pointer;
-            transition: all 0.15s ease;
+            transition: background 0.15s, color 0.15s;
             touch-action: manipulation;
             -webkit-tap-highlight-color: transparent;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+            box-shadow: var(--shadow-xs);
         }
-        .collapse-all-btn:hover { background: #e4eaf7; color: var(--text); border-color: rgba(0,0,0,0.2); }
+        .collapse-all-btn:hover { background: var(--surface2); color: var(--text); }
 
-        /* ─── TOPIC GROUP ────────────────────────────────────────── */
+        /* ══════════════════════════════════════════════════════
+           TOPIC GROUP
+        ══════════════════════════════════════════════════════ */
         .topic-group {
-            margin-bottom: 0.5rem;
-            border: 1.5px solid var(--border);
+            margin-bottom: 1.1rem;
             border-radius: var(--radius);
             overflow: hidden;
-            transition: opacity 0.25s ease;
+            border: 1px solid var(--border-strong);
+            box-shadow: var(--shadow-sm);
+            animation: fadeUp 0.28s ease both;
         }
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(8px); }
+            to   { opacity: 1; transform: translateY(0);   }
+        }
+        /* Staggered entrance */
+        .topic-group:nth-child(1)  { animation-delay: 0.02s; }
+        .topic-group:nth-child(2)  { animation-delay: 0.05s; }
+        .topic-group:nth-child(3)  { animation-delay: 0.08s; }
+        .topic-group:nth-child(4)  { animation-delay: 0.11s; }
+        .topic-group:nth-child(5)  { animation-delay: 0.14s; }
+        .topic-group:nth-child(6)  { animation-delay: 0.17s; }
+        .topic-group:nth-child(7)  { animation-delay: 0.20s; }
+        .topic-group:nth-child(8)  { animation-delay: 0.23s; }
+        .topic-group:nth-child(9)  { animation-delay: 0.26s; }
+        .topic-group:nth-child(n+10) { animation-delay: 0.28s; }
+
         .topic-group.hidden-group { display: none; }
 
         .group-header {
             display: flex;
             align-items: center;
             gap: 0.65rem;
-            padding: 0.7rem 1.1rem;
-            background: var(--group-header-bg);
+            padding: 0.55rem 0.9rem;
+            background: var(--surface);
             cursor: pointer;
             user-select: none;
             touch-action: manipulation;
             -webkit-tap-highlight-color: transparent;
             transition: background 0.15s;
+            border-bottom: 1px solid var(--border);
         }
-        .group-header:hover { background: var(--group-header-hover); }
-        .group-icon { font-size: 1.1rem; flex-shrink: 0; }
+        .topic-group.collapsed .group-header { border-bottom-color: transparent; }
+        .group-header:hover { background: var(--hover-bg); }
+
+        .group-icon {
+            font-size: 1rem;
+            flex-shrink: 0;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--surface2);
+            border-radius: 8px;
+            border: 1px solid var(--border-strong);
+            color: var(--text);
+        }
         .group-title {
             font-family: 'Plus Jakarta Sans', sans-serif;
-            font-size: 0.92rem;
+            font-size: 0.9rem;
             font-weight: 700;
             flex: 1;
-            letter-spacing: 0.01em;
+            color: var(--text);
         }
         .group-meta {
-            font-size: 0.73rem;
+            font-size: 0.7rem;
+            font-weight: 500;
             color: var(--muted);
             background: var(--surface2);
-            padding: 0.15rem 0.5rem;
+            padding: 0.17rem 0.5rem;
             border-radius: 999px;
+            border: 1px solid var(--border-strong);
+            flex-shrink: 0;
         }
         .group-chevron {
             color: var(--muted);
-            font-size: 0.9rem;
-            transition: transform 0.25s ease;
+            font-size: 0.8rem;
+            transition: transform 0.22s ease;
             flex-shrink: 0;
         }
         .topic-group.collapsed .group-chevron { transform: rotate(-90deg); }
 
-        /* Always at least 2 columns, even on narrow phones */
+        /* ══════════════════════════════════════════════════════
+           CARDS GRID
+        ══════════════════════════════════════════════════════ */
         .cards-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
-            gap: 0;
-            background: var(--bg);
-            overflow: hidden;
+            grid-template-columns: 1fr;
+            gap: 0.6rem;
+            padding: 0.65rem;
+            background: var(--surface2);
         }
-        .card { border-top: 1px solid #dde3ee; border-right: 1px solid #dde3ee; }
+        @media (min-width: 500px) {
+            .cards-grid { grid-template-columns: 1fr 1fr; }
+        }
+        @media (min-width: 740px) {
+            .cards-grid { grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); }
+        }
         .topic-group.collapsed .cards-grid { display: none; }
 
-        /* ─── CARD ───────────────────────────────────────────────── */
-        .card {
-            background: var(--surface);
-            padding: 0.85rem 1rem;
+        /* ══════════════════════════════════════════════════════
+           CARD  (entire card is an <a> tag)
+        ══════════════════════════════════════════════════════ */
+        a.card {
             display: flex;
             flex-direction: column;
-            gap: 0.35rem;
-            transition: background 0.15s;
+            gap: 0.38rem;
+            background: var(--surface);
+            border-radius: 11px;
+            padding: 0.85rem 0.9rem 0.75rem;
+            border: 1px solid var(--border);
+            border-left: 3px solid var(--card-accent, var(--border));
+            box-shadow: var(--shadow-xs);
+            text-decoration: none;
+            color: inherit;
+            cursor: pointer;
             position: relative;
+            transition: box-shadow 0.16s ease, transform 0.16s ease, background 0.14s;
         }
-        .card:hover { background: #e4eaf7; }
+
+        .mobile-icon-corner {
+            position: absolute;
+            bottom: 8px;
+            right: 10px;
+            opacity: 0.65;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .mobile-icon-corner svg {
+            width: 13px;
+            height: 13px;
+        }
+        a.card:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+            background: var(--surface);
+        }
         @media (hover: none) {
-            .card:hover { background: var(--surface); }
+            a.card:hover { box-shadow: var(--shadow-xs); transform: none; background: var(--surface); }
+            a.card:active { background: var(--surface2); }
         }
-        .card.filtered-out { display: none; }
+        a.card.filtered-out { display: none; }
 
         .card-top {
             display: flex;
             align-items: flex-start;
-            gap: 0.5rem;
+            justify-content: space-between;
+            gap: 0.45rem;
         }
-        .type-badge {
-            flex-shrink: 0;
-            width: 28px;
-            height: 28px;
-            border-radius: 7px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.9rem;
-            margin-top: 1px;
-        }
-        .badge-learn  { background: var(--accent-learn-bg); }
-        .badge-uebung { background: var(--accent-uebung-bg); }
-        .badge-geo    { background: var(--accent-geo-bg); }
-        .badge-game   { background: var(--accent-game-bg); }
-        .badge-quiz   { background: var(--accent-quiz-bg); }
-        .badge-flash  { background: var(--accent-flash-bg); }
-
         .card-title {
             font-family: 'Plus Jakarta Sans', sans-serif;
-            font-size: 0.86rem;
+            font-size: 0.84rem;
             font-weight: 700;
-            line-height: 1.3;
+            line-height: 1.35;
             color: var(--text);
+            flex: 1;
         }
-        .card-desc {
-            font-size: 0.75rem;
-            color: var(--muted);
+
+        /* Type badge: top-right pill with label text */
+        .type-badge {
+            flex-shrink: 1;
+            min-width: 0;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.2rem;
+            padding: 0.16rem 0.45rem;
+            border-radius: 999px;
+            font-size: 0.67rem;
+            font-weight: 600;
+            letter-spacing: 0.01em;
+            border: 1px solid rgba(0,0,0,0.09);
+            white-space: nowrap;
             line-height: 1.4;
-            padding-left: 2.1rem;
+            max-width: min(140px, 48%);
+            overflow: hidden;
         }
-        .card-link {
-            align-self: flex-start;
-            margin-left: 2.1rem;
-            margin-top: 0.1rem;
-            padding: 0.28rem 0.7rem;
-            border-radius: 7px;
-            font-size: 0.75rem;
-            font-weight: 500;
-            text-decoration: none;
-            transition: all 0.15s;
-            touch-action: manipulation;
+        .badge-label {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            min-width: 0;
         }
-        .link-learn {
-            background: var(--accent-learn-bg);
-            color: var(--accent-learn);
-            border: 1px solid rgba(220,32,32,0.25);
-        }
-        .link-learn:hover { background: rgba(220,32,32,0.15); }
-        .link-uebung {
-            background: var(--accent-uebung-bg);
-            color: var(--accent-uebung);
-            border: 1px solid rgba(217,119,6,0.25);
-        }
-        .link-uebung:hover { background: rgba(217,119,6,0.15); }
-        .link-geo {
-            background: var(--accent-geo-bg);
-            color: var(--accent-geo);
-            border: 1px solid rgba(3,105,161,0.25);
-        }
-        .link-geo:hover { background: rgba(3,105,161,0.15); }
-        .link-game {
-            background: var(--accent-game-bg);
-            color: var(--accent-game);
-            border: 1px solid rgba(184,150,10,0.35);
-        }
-        .link-game:hover { background: rgba(253,224,71,0.55); }
-        .link-quiz {
-            background: var(--accent-quiz-bg);
-            color: var(--accent-quiz);
-            border: 1px solid rgba(124,58,237,0.25);
-        }
-        .link-quiz:hover { background: rgba(124,58,237,0.15); }
-        .link-flash {
-            background: var(--accent-flash-bg);
-            color: var(--accent-flash);
-            border: 1px solid rgba(22,163,74,0.25);
-        }
-        .link-flash:hover { background: rgba(22,163,74,0.15); }
-        .link-quiz {
-            background: var(--accent-quiz-bg);
-        /* external icon */
-        .ext-icon { font-size: 0.7rem; opacity: 0.7; margin-left: 0.2rem; }
-
-        /* GeoGebra filter button SVG needs room so pill border doesn't clip it */
-        .filter-btn svg { overflow: visible; display: block; }
-        /* GeoGebra SVG icon sizing inside badge */
-        .badge-geo .geo-svg { width: 16px; height: 16px; display: block; }
-        /* Learn icon */
-        .badge-learn .learn-icon { font-size: 0.95rem; line-height: 1; }
-
-        }    
-        /* ─── FOOTER ─────────────────────────────────────────────── */
-        /* footer {
-            text-align: center;
-            padding: 1.25rem;
+        /* .badge-{type}, .filter-btn.active-{type}, .dot-{type} → injected by injectTypeStyles() */
+        .badge-multi  {
+            background: var(--surface2);
             color: var(--muted);
-            font-size: 0.65rem;
-            border-top: 1px solid var(--border);
-        } */
-        /* footer { text-align: center; padding: 40px; color: #95a5a6; border-top: 1px solid #ddd; } */
+            border-color: var(--border-strong);
+            gap: 0.25rem;
+        }
+        .badge-segment {
+            display: flex;
+            align-items: center;
+        }
+
+        .badge-geo .geo-svg { width: 11px; height: 11px; display: block; }
+
+        .card-desc {
+            font-size: 0.74rem;
+            color: var(--muted);
+            line-height: 1.45;
+        }
+        .card-footer {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            margin-top: 0.05rem;
+        }
+        .card-link-text {
+            font-size: 0.71rem;
+            font-weight: 600;
+            color: var(--card-accent, var(--muted));
+            opacity: 0.8;
+        }
+        .card-arrow {
+            font-size: 0.68rem;
+            color: var(--card-accent, var(--muted));
+            opacity: 0.5;
+            transition: transform 0.15s ease;
+            display: inline-block;
+        }
+        a.card:hover .card-arrow { transform: translateX(2px); }
+
+        /* ══════════════════════════════════════════════════════
+           FILTER BAR (sticky bottom)
+        ══════════════════════════════════════════════════════ */
+        .sticky-bottom-filters {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            width: 100%;
+            z-index: 1000;
+            background: linear-gradient(to top, var(--bg) 68%, transparent);
+            padding: 10px 0 calc(6px + env(safe-area-inset-bottom));
+            display: flex;
+            justify-content: center;
+            pointer-events: none;
+        }
+        .filter-bar {
+            display: flex;
+            gap: 0.28rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            padding: 0 0.75rem;
+            max-width: 750px;
+            width: 100%;
+            pointer-events: all;
+        }
+        .filter-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.22rem;
+            padding: 0.35rem 0.7rem;
+            border-radius: 999px;
+            border: 1.5px solid var(--border-strong);
+            background: var(--surface);
+            color: var(--muted);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.78rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.16s ease;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+            box-shadow: var(--shadow-sm);
+        }
+        .filter-btn:hover { border-color: rgba(0,0,0,0.22); color: var(--text); background: var(--surface2); }
+        .filter-btn.active-all    { background: var(--text); color: var(--bg); border-color: var(--text); box-shadow: none; }
+        /* .filter-btn.active-{type} → injected by injectTypeStyles() */
+        .filter-btn .dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+        /* .dot-{type} → injected by injectTypeStyles() */
+        .filter-btn svg { overflow: visible; display: block; }
+
+        /* ══════════════════════════════════════════════════════
+           TOOLTIP
+        ══════════════════════════════════════════════════════ */
+        [data-tooltip] { position: relative; }
+        [data-tooltip]::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: calc(100% + 8px);
+            left: 50%;
+            transform: translateX(-50%);
+            background: #14162a;
+            color: #fff;
+            font-size: 0.7rem;
+            font-family: 'DM Sans', sans-serif;
+            padding: 0.3rem 0.65rem;
+            border-radius: 6px;
+            white-space: nowrap;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.16s ease;
+            z-index: 200;
+        }
+        [data-tooltip]:hover::after { opacity: 1; }
+
+        /* ══════════════════════════════════════════════════════
+           FOOTER
+        ══════════════════════════════════════════════════════ */
         .site-footer {
             width: 100%;
-            box-sizing: border-box;
-            padding: 12px 40px;
-            border-top: 1px solid #ccc;
-            margin-top: 20px;
-            margin-bottom: 10px;
-            font-family: sans-serif;
-            font-size: 0.6em;
-            color: #333333d8;
+            padding: 12px 1.5rem calc(var(--filter-height) + 4px);
+            border-top: 1px solid var(--border);
+            margin-top: 14px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.68rem;
+            color: var(--muted);
         }
-
         .footer-content {
             display: flex;
             justify-content: center;
@@ -370,14 +652,9 @@
             text-align: center;
         }
 
-        @media (max-width: 600px) {
-            .footer-content {
-                flex-direction: column;
-                gap: 6px;
-            }
-        }
-
-        /* ─── NO-RESULTS ─────────────────────────────────────────── */
+        /* ══════════════════════════════════════════════════════
+           NO RESULTS
+        ══════════════════════════════════════════════════════ */
         #no-results {
             display: none;
             text-align: center;
@@ -389,739 +666,676 @@
 </head>
 <body>
 
+<!-- Sidebar Overlay -->
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
+
+<!-- Sidebar -->
+<aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        <span class="sidebar-title">Mathe-Tools</span>
+        <button class="sidebar-close" onclick="closeSidebar()" aria-label="Menü schließen">✕</button>
+    </div>
+    <nav class="sidebar-nav">
+        <a href="about_this_site.html">Über diese Seite</a>
+        <a href="about_me.html">Über mich</a>
+        <a href="support_me.html">Support Me</a>
+        <a href="impressum.html">Impressum</a>
+        <a href="datenschutz.html">Datenschutz</a>
+        <a style="touch-action: manipulation; cursor: pointer;" onclick="copyMail()" title="Kopiere Mail-Adresse">Kontakt</a>
+    </nav>
+</aside>
+
+<!-- Sticky Top Nav -->
+<div class="sticky-top-nav">
+    <button class="menu-btn" onclick="openSidebar()" aria-label="Menü öffnen">☰</button>
+    <nav class="section-nav" id="section-nav"></nav>
+</div>
+
 <header>
     <h1>Mathe-Tools</h1>
     <p>Übungen, Applets &amp; Spiele für den Mathematikunterricht</p>
 </header>
 
-<div class="sticky-top">
-<div class="filter-bar">
-    <button class="filter-btn active-all" data-filter="all" onclick="setFilter('all', this)">
-        Alle anzeigen
-    </button>
-    <button class="filter-btn" data-filter="learn" onclick="setFilter('learn', this)">
-        <span class="dot dot-learn"></span> Aufgabengenerator
-    </button>
-    <button class="filter-btn" data-filter="quiz" onclick="setFilter('quiz', this)">
-        <span class="dot dot-quiz"></span> Quiz
-    </button>
-    <button class="filter-btn" data-filter="uebung" onclick="setFilter('uebung', this)">
-        <span class="dot dot-uebung"></span> Übungstool
-    </button>
-    <button class="filter-btn" data-filter="flash" onclick="setFilter('flash', this)">
-        <span class="dot dot-flash"></span> Flashcards
-    </button>
-    <button class="filter-btn" data-filter="geo" onclick="setFilter('geo', this)">
-        <svg style="width:20px;height:20px;flex-shrink:0" xmlns="http://www.w3.org/2000/svg" viewBox="40 8 470 464"><g stroke-linecap="round" stroke-linejoin="round"><path fill="none" stroke="currentColor" stroke-width="33.34" d="M432.345 250.876c0 87.31-75.98 158.088-169.705 158.088-93.726 0-169.706-70.778-169.706-158.088 0-87.31 75.98-158.09 169.706-158.09 93.725 0 169.705 70.78 169.705 158.09z" transform="matrix(1.0156 .01389 -.20152 .9924 42.924 8.75)"></path><path fill="#99f" stroke="currentColor" stroke-width="20" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -225.59 242.796)"></path><path fill="#99f" stroke="currentColor" stroke-width="20" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -151.12 72.004)"></path><path fill="#99f" stroke="currentColor" stroke-width="20" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -421.29 266.574)"></path><path fill="#99f" stroke="currentColor" stroke-width="20" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -483.632 100.362)"></path><path fill="#99f" stroke="currentColor" stroke-width="20" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -329.052 -23.649)"></path></g></svg> GeoGebra
-    </button>
-    <button class="filter-btn" data-filter="game" onclick="setFilter('game', this)">
-        <span class="dot dot-game"></span> Spiel
-    </button>
-</div>
-<div style="max-width:1200px;margin:0 auto;padding:0 1rem;">
+<div style="max-width:1200px;margin:0 auto;padding:0 0.65rem;">
     <div class="main-toolbar">
+        <label class="mobile-toggle" id="mobile-toggle-label" title="Nur Tools anzeigen, die am Handy gut funktionieren">
+            <input type="checkbox" id="mobile-cb" onchange="toggleMobileFilter()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><path d="M12 18h.01"></path></svg>
+            Nur Handy-kompatibel
+        </label>
+        
         <button class="collapse-all-btn" id="collapse-all-btn" onclick="toggleAllGroups()">
             <span id="collapse-all-icon">▾▾</span>
             <span id="collapse-all-label">Alle einklappen</span>
         </button>
     </div>
 </div>
+
+<main id="main-content"></main>
+
+<div id="no-results">Keine Tools für diesen Filter gefunden.</div>
+
+<!-- Sticky Bottom Filter Bar -->
+<div class="sticky-bottom-filters">
+    <div class="filter-bar" id="filter-bar"></div>
 </div>
 
-<main id="main-content">
-
-    <!-- ══════════════════════════════════════════════════════════ -->
-    <!-- GRUPPE 1: GRUNDLAGEN & ALGEBRA -->
-    <!-- ══════════════════════════════════════════════════════════ -->
-    <div class="topic-group" id="group-grundlagen">
-        <div class="group-header" onclick="toggleGroup('group-grundlagen')">
-            <span class="group-icon">±</span>
-            <span class="group-title">Grundlagen &amp; Algebra</span>
-            <span class="group-meta" id="meta-grundlagen">3 Tools</span>
-            <span class="group-chevron">▾</span>
-        </div>
-        <div class="cards-grid">
-
-            <div class="card" data-type="flash">
-                <div class="card-top">
-                    <div class="type-badge badge-flash"><span style="font-size:1.1rem;line-height:1">📚</span></div>
-                    <div class="card-title">Quadratzahlen, Potenzen und Wurzeln</div>
-                </div>
-                <div class="card-desc">Übe Quadratzahlen, andere Potenzen und Wurzeln</div>
-                <a class="card-link link-flash" href="potenzen.html">Zu den Karten</a>
-            </div>
-
-            <div class="card" data-type="quiz">
-                <div class="card-top">
-                    <div class="type-badge badge-quiz"><span style="font-size:1.1rem;line-height:1">❓</span></div>
-                    <div class="card-title">Gleichungsart erkennen</div>
-                </div>
-                <div class="card-desc">Welche Gleichungsart liegt vor und wie löst man sie?</div>
-                <a class="card-link link-quiz" href="gleichungart.html">Zum Quiz</a>
-            </div>
-
-            <div class="card" data-type="learn">
-                <div class="card-top">
-                    <div class="type-badge badge-learn"><span class="learn-icon">📝</span></div>
-                    <div class="card-title">Lineares Gleichungssystem</div>
-                </div>
-                <div class="card-desc">LGS mit 2 oder 3 Gleichungen lösen</div>
-                <a class="card-link link-learn" href="lgs.html">Zur Übung</a>
-            </div>
-
-        </div>
-    </div>
-
-    <!-- ══════════════════════════════════════════════════════════ -->
-    <!-- GRUPPE 2: QUADRATISCHE FUNKTIONEN -->
-    <!-- ══════════════════════════════════════════════════════════ -->
-    <div class="topic-group" id="group-quadratisch">
-        <div class="group-header" onclick="toggleGroup('group-quadratisch')">
-            <span class="group-icon"><svg width="20" height="20" viewBox="0 0 40 30" xmlns="http://www.w3.org/2000/svg"><polyline points="2,28 8,14 14,6 20,3 26,6 32,14 38,28" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-            <span class="group-title">Quadratische Funktionen</span>
-            <span class="group-meta" id="meta-quadratisch">4 Tools</span>
-            <span class="group-chevron">▾</span>
-        </div>
-        <div class="cards-grid">
-
-            <div class="card" data-type="learn">
-                <div class="card-top">
-                    <div class="type-badge badge-learn"><span class="learn-icon">📝</span></div>
-                    <div class="card-title">Scheitelpunktform</div>
-                </div>
-                <div class="card-desc">Umwandeln der Scheitelpunktform üben</div>
-                <a class="card-link link-learn" href="scheitelpunktform.html">Zur Übung</a>
-            </div>
-
-            <div class="card" data-type="geo">
-                <div class="card-top">
-                    <div class="type-badge badge-geo"><svg class="geo-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><g stroke-linecap="round" stroke-linejoin="round"><path fill="none" stroke="#666" stroke-width="33.34" d="M432.345 250.876c0 87.31-75.98 158.088-169.705 158.088-93.726 0-169.706-70.778-169.706-158.088 0-87.31 75.98-158.09 169.706-158.09 93.725 0 169.705 70.78 169.705 158.09z" transform="matrix(1.0156 .01389 -.20152 .9924 42.924 8.75)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -225.59 242.796)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -151.12 72.004)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -421.29 266.574)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -483.632 100.362)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -329.052 -23.649)"></path></g></svg></div>
-                    <div class="card-title">GeoGebra: Quadratische Funktionen ablesen/einzeichnen</div>
-                </div>
-                <div class="card-desc">Ablesen und Einzeichnen in Scheitelpunktform</div>
-                <a class="card-link link-geo" href="https://t1p.de/geogebraScheitelpunkt" target="_blank">Zum Applet <span class="ext-icon">↗</span></a>
-            </div>
-
-            <div class="card" data-type="learn">
-                <div class="card-top">
-                    <div class="type-badge badge-learn"><span class="learn-icon">📝</span></div>
-                    <div class="card-title">pq-Formel</div>
-                </div>
-                <div class="card-desc">Anwendung der p-q-Formel trainieren</div>
-                <a class="card-link link-learn" href="pq.html">Zur Übung</a>
-            </div>
-
-        </div>
-    </div>
-
-    <!-- ══════════════════════════════════════════════════════════ -->
-    <!-- GRUPPE 3: POLYNOME & POTENZFUNKTIONEN -->
-    <!-- ══════════════════════════════════════════════════════════ -->
-    <div class="topic-group" id="group-polynome">
-        <div class="group-header" onclick="toggleGroup('group-polynome')">
-            <span class="group-icon"><svg width="20" height="20" viewBox="0 0 40 36" xmlns="http://www.w3.org/2000/svg"><path d="M2,32 C6,32 8,20 14,18 C20,16 20,20 26,10 C32,0 34,4 38,4" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-            <span class="group-title">Polynome &amp; Potenzfunktionen</span>
-            <span class="group-meta" id="meta-polynome">3 Tools</span>
-            <span class="group-chevron">▾</span>
-        </div>
-        <div class="cards-grid">
-
-            <div class="card" data-type="geo">
-                <div class="card-top">
-                    <div class="type-badge badge-geo"><svg class="geo-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><g stroke-linecap="round" stroke-linejoin="round"><path fill="none" stroke="#666" stroke-width="33.34" d="M432.345 250.876c0 87.31-75.98 158.088-169.705 158.088-93.726 0-169.706-70.778-169.706-158.088 0-87.31 75.98-158.09 169.706-158.09 93.725 0 169.705 70.78 169.705 158.09z" transform="matrix(1.0156 .01389 -.20152 .9924 42.924 8.75)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -225.59 242.796)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -151.12 72.004)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -421.29 266.574)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -483.632 100.362)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -329.052 -23.649)"></path></g></svg></div>
-                    <div class="card-title">GeoGebra: Potenzfunktionen Ablesen/Einzeichnen</div>
-                </div>
-                <div class="card-desc">Ablesen/Einzeichnen lineartransformierter Potenzfunktionen</div>
-                <a class="card-link link-geo" href="https://t1p.de/potparam" target="_blank">Zum Applet <span class="ext-icon">↗</span></a>
-            </div>
-
-            <div class="card" data-type="geo">
-                <div class="card-top">
-                    <div class="type-badge badge-geo"><svg class="geo-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><g stroke-linecap="round" stroke-linejoin="round"><path fill="none" stroke="#666" stroke-width="33.34" d="M432.345 250.876c0 87.31-75.98 158.088-169.705 158.088-93.726 0-169.706-70.778-169.706-158.088 0-87.31 75.98-158.09 169.706-158.09 93.725 0 169.705 70.78 169.705 158.09z" transform="matrix(1.0156 .01389 -.20152 .9924 42.924 8.75)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -225.59 242.796)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -151.12 72.004)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -421.29 266.574)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -483.632 100.362)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -329.052 -23.649)"></path></g></svg></div>
-                    <div class="card-title">GeoGebra: Symmetrie bei Polynomen</div>
-                </div>
-                <div class="card-desc">Symmetrie am Graphen oder der Funktionsgleichung erkennen</div>
-                <a class="card-link link-geo" href="https://t1p.de/koSymm" target="_blank">Zum Applet <span class="ext-icon">↗</span></a>
-            </div>
-
-            <div class="card" data-type="quiz">
-                <div class="card-top">
-                    <div class="type-badge badge-quiz"><span style="font-size:1.1rem;line-height:1">❓</span></div>
-                    <div class="card-title">Grenzverhalten von Polynomen</div>
-                </div>
-                <div class="card-desc">Grenzverhalten von Polynomen und Potenzfunktionen bestimmen</div>
-                <a class="card-link link-quiz" href="grenzverhalten-poly.html">Zum Quiz</a>
-            </div>
-
-        </div>
-    </div>
-
-    <!-- ══════════════════════════════════════════════════════════ -->
-    <!-- GRUPPE 4: ABLEITUNGEN -->
-    <!-- ══════════════════════════════════════════════════════════ -->
-    <div class="topic-group" id="group-ableitungen">
-        <div class="group-header" onclick="toggleGroup('group-ableitungen')">
-            <span class="group-icon">∂</span>
-            <span class="group-title">Differentialrechnung &amp; Ableitungen</span>
-            <span class="group-meta" id="meta-ableitungen">4 Tools</span>
-            <span class="group-chevron">▾</span>
-        </div>
-        <div class="cards-grid">
-
-            <div class="card" data-type="learn">
-                <div class="card-top">
-                    <div class="type-badge badge-learn"><span class="learn-icon">📝</span></div>
-                    <div class="card-title">Polynome ableiten</div>
-                </div>
-                <div class="card-desc">Ableitungen von Polynomen und Potenzfunktionen</div>
-                <a class="card-link link-learn" href="polynom-ableitung.html">Zur Übung</a>
-            </div>
-
-            <div class="card" data-type="flash">
-                <div class="card-top">
-                    <div class="type-badge badge-flash"><span style="font-size:1.1rem;line-height:1">📚</span></div>
-                    <div class="card-title">Weitere Ableitungen</div>
-                </div>
-                <div class="card-desc">Ableitungen weiterer Standardfunktionen festigen</div>
-                <a class="card-link link-flash" href="ableitungen.html">Zu den Karten</a>
-            </div>
-
-            <div class="card" data-type="learn">
-                <div class="card-top">
-                    <div class="type-badge badge-learn"><span class="learn-icon">📝</span></div>
-                    <div class="card-title">Kettenregel</div>
-                </div>
-                <div class="card-desc">Kettenregel sicher anwenden</div>
-                <a class="card-link link-learn" href="kettenregel.html">Zur Übung</a>
-            </div>
-
-            <div class="card" data-type="learn">
-                <div class="card-top">
-                    <div class="type-badge badge-learn"><span class="learn-icon">📝</span></div>
-                    <div class="card-title">Produktregel</div>
-                </div>
-                <div class="card-desc">Produktregel sicher anwenden</div>
-                <a class="card-link link-learn" href="produktregel.html">Zur Übung</a>
-            </div>
-
-        </div>
-    </div>
-
-    <!-- ══════════════════════════════════════════════════════════ -->
-    <!-- GRUPPE 5: e-FUNKTION -->
-    <!-- ══════════════════════════════════════════════════════════ -->
-    <div class="topic-group" id="group-efkt">
-        <div class="group-header" onclick="toggleGroup('group-efkt')">
-            <span class="group-icon">ℯ</span>
-            <span class="group-title">e-Funktion</span>
-            <span class="group-meta" id="meta-efkt">2 Tools</span>
-            <span class="group-chevron">▾</span>
-        </div>
-        <div class="cards-grid">
-
-            <div class="card" data-type="learn">
-                <div class="card-top">
-                    <div class="type-badge badge-learn"><span class="learn-icon">📝</span></div>
-                    <div class="card-title">e-Funktion ableiten &amp; zusammenfassen</div>
-                </div>
-                <div class="card-desc">Ableiten der e-Funktion und Terme zusammenfassen</div>
-                <a class="card-link link-learn" href="e-fkt.html">Zur Übung</a>
-            </div>
-
-            <div class="card" data-type="quiz">
-                <div class="card-top">
-                    <div class="type-badge badge-quiz"><span style="font-size:1.1rem;line-height:1">❓</span></div>
-                    <div class="card-title">Grenzverhalten der e-Funktion</div>
-                </div>
-                <div class="card-desc">Grenzverhalten der e-Funktion bestimmen</div>
-                <a class="card-link link-quiz" href="grenzverhalten-e.html">Zum Quiz</a>
-            </div>
-
-        </div>
-    </div>
-
-    <!-- ══════════════════════════════════════════════════════════ -->
-    <!-- GRUPPE 6: INTEGRALRECHNUNG -->
-    <!-- ══════════════════════════════════════════════════════════ -->
-    <div class="topic-group" id="group-integral">
-        <div class="group-header" onclick="toggleGroup('group-integral')">
-            <span class="group-icon">∫</span>
-            <span class="group-title">Integralrechnung</span>
-            <span class="group-meta" id="meta-integral">3 Tools</span>
-            <span class="group-chevron">▾</span>
-        </div>
-        <div class="cards-grid">
-
-            <div class="card" data-type="learn">
-                <div class="card-top">
-                    <div class="type-badge badge-learn"><span class="learn-icon">📝</span></div>
-                    <div class="card-title">Stammfunktionen von Polynomen</div>
-                </div>
-                <div class="card-desc">Stammfunktionen von Polynomen finden</div>
-                <a class="card-link link-learn" href="integral_uebung.html">Zur Übung</a>
-            </div>
-
-            <div class="card" data-type="learn">
-                <div class="card-top">
-                    <div class="type-badge badge-learn"><span class="learn-icon">📝</span></div>
-                    <div class="card-title">Bestimmte Integrale von Polynomen</div>
-                </div>
-                <div class="card-desc">Bestimmte Integrale berechnen</div>
-                <a class="card-link link-learn" href="bestimmtes_integral_uebung.html">Zur Übung</a>
-            </div>
-
-            <div class="card" data-type="geo">
-                <div class="card-top">
-                    <div class="type-badge badge-geo"><svg class="geo-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><g stroke-linecap="round" stroke-linejoin="round"><path fill="none" stroke="#666" stroke-width="33.34" d="M432.345 250.876c0 87.31-75.98 158.088-169.705 158.088-93.726 0-169.706-70.778-169.706-158.088 0-87.31 75.98-158.09 169.706-158.09 93.725 0 169.705 70.78 169.705 158.09z" transform="matrix(1.0156 .01389 -.20152 .9924 42.924 8.75)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -225.59 242.796)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -151.12 72.004)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -421.29 266.574)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -483.632 100.362)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -329.052 -23.649)"></path></g></svg></div>
-                    <div class="card-title">GeoGebra: Geometr. Interpret. von Integralen</div>
-                </div>
-                <div class="card-desc">Visualisierung bestimmter Integrale</div>
-                <a class="card-link link-geo" href="https://www.geogebra.org/calculator/ftgpxxzx" target="_blank">Zum Applet <span class="ext-icon">↗</span></a>
-            </div>
-
-        </div>
-    </div>
-
-
-    <!-- ══════════════════════════════════════════════════════════ -->
-    <!-- GRUPPE 7: Vektoren -->
-    <!-- ══════════════════════════════════════════════════════════ -->
-    <div class="topic-group" id="group-vec">
-        <div class="group-header" onclick="toggleGroup('group-vec')">
-            <span class="group-icon">↗</span>
-            <span class="group-title">Vektoren</span>
-            <span class="group-meta" id="meta-vec">2 Tools</span>
-            <span class="group-chevron">▾</span>
-        </div>
-        <div class="cards-grid">
-            
-            <div class="card" data-type="geo">
-                <div class="card-top">
-                    <div class="type-badge badge-geo"><svg class="geo-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><g stroke-linecap="round" stroke-linejoin="round"><path fill="none" stroke="#666" stroke-width="33.34" d="M432.345 250.876c0 87.31-75.98 158.088-169.705 158.088-93.726 0-169.706-70.778-169.706-158.088 0-87.31 75.98-158.09 169.706-158.09 93.725 0 169.705 70.78 169.705 158.09z" transform="matrix(1.0156 .01389 -.20152 .9924 42.924 8.75)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -225.59 242.796)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -151.12 72.004)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -421.29 266.574)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -483.632 100.362)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -329.052 -23.649)"></path></g></svg></div>
-                    <div class="card-title">GeoGebra: 3D-Koordinatensystem einzeichnen</div>
-                </div>
-                <div class="card-desc">Visualisierung des 3-dimensionalen Koordinatensystems</div>
-                <a class="card-link link-geo" href="https://t1p.de/3DKoord" target="_blank">Zum Applet <span class="ext-icon">↗</span></a>
-            </div>
-
-            <div class="card" data-type="geo">
-                <div class="card-top">
-                    <div class="type-badge badge-geo"><svg class="geo-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><g stroke-linecap="round" stroke-linejoin="round"><path fill="none" stroke="#666" stroke-width="33.34" d="M432.345 250.876c0 87.31-75.98 158.088-169.705 158.088-93.726 0-169.706-70.778-169.706-158.088 0-87.31 75.98-158.09 169.706-158.09 93.725 0 169.705 70.78 169.705 158.09z" transform="matrix(1.0156 .01389 -.20152 .9924 42.924 8.75)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -225.59 242.796)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -151.12 72.004)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -421.29 266.574)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -483.632 100.362)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -329.052 -23.649)"></path></g></svg></div>
-                    <div class="card-title">GeoGebra: Basistransformation</div>
-                </div>
-                <div class="card-desc">Visualisierung der Basistransformation</div>
-                <a class="card-link link-geo" href="https://t1p.de/koBasis" target="_blank">Zum Applet <span class="ext-icon">↗</span></a>
-            </div>
-
-        </div>
-    </div>
-        
-    <!-- ══════════════════════════════════════════════════════════ -->
-    <!-- GRUPPE 7: TRIGONOMETRIE & SINUSFUNKTION -->
-    <!-- ══════════════════════════════════════════════════════════ -->
-    <div class="topic-group" id="group-trig">
-        <div class="group-header" onclick="toggleGroup('group-trig')">
-            <span class="group-icon">△</span>
-            <span class="group-title">Trigonometrie</span>
-            <span class="group-meta" id="meta-trig">3 Tools</span>
-            <span class="group-chevron">▾</span>
-        </div>
-        <div class="cards-grid">
-
-            <div class="card" data-type="quiz">
-                <div class="card-top">
-                    <div class="type-badge badge-quiz"><span style="font-size:1.1rem;line-height:1">❓</span></div>
-                    <div class="card-title">Seiten im rechtwinkligen Dreieck benennen</div>
-                </div>
-                <div class="card-desc">Quiz: Ankathete, Gegenkathete, Hypotenuse benennen</div>
-                <a class="card-link link-quiz" href="seiten_benennung.html">Zum Quiz</a>
-            </div>
-
-            <div class="card" data-type="learn">
-                <div class="card-top">
-                    <div class="type-badge badge-learn"><span class="learn-icon">📝</span></div>
-                    <div class="card-title">Trigonometrie im <b>rechtwinkligen</b> Dreieck</div>
-                </div>
-                <div class="card-desc">Sinus, Kosinus, Tangens &amp; Pythagoras anwenden</div>
-                <a class="card-link link-learn" href="trigonometrie_uebung.html">Zur Übung</a>
-            </div>
-
-            <div class="card" data-type="learn">
-                <div class="card-top">
-                    <div class="type-badge badge-learn"><span class="learn-icon">📝</span></div>
-                    <div class="card-title">Trigonometrie im <b>beliebigen</b> Dreieck</div>
-                </div>
-                <div class="card-desc">Sinus- und Kosinussatz anwenden</div>
-                <a class="card-link link-learn" href="sinuskosinussatz_uebung.html">Zur Übung</a>
-            </div>
-
-        </div>
-    </div>
-
-    
-    <!-- ══════════════════════════════════════════════════════════ -->
-    <!-- GRUPPE 8: Trigonometrische Funktionen -->
-    <!-- ══════════════════════════════════════════════════════════ -->
-   <div class="topic-group" id="group-trigfunc">
-        <div class="group-header" onclick="toggleGroup('group-trigfunc')">
-            <span class="group-icon">∿</span>
-            <span class="group-title">Trigonometrische Funktionen</span>
-            <span class="group-meta" id="meta-trigfunc">5 Tools</span>
-            <span class="group-chevron">▾</span>
-        </div>
-
-        <div class="cards-grid">
-            <div class="card" data-type="geo">
-                <div class="card-top">
-                    <div class="type-badge badge-geo"><svg class="geo-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><g stroke-linecap="round" stroke-linejoin="round"><path fill="none" stroke="#666" stroke-width="33.34" d="M432.345 250.876c0 87.31-75.98 158.088-169.705 158.088-93.726 0-169.706-70.778-169.706-158.088 0-87.31 75.98-158.09 169.706-158.09 93.725 0 169.705 70.78 169.705 158.09z" transform="matrix(1.0156 .01389 -.20152 .9924 42.924 8.75)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -225.59 242.796)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -151.12 72.004)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -421.29 266.574)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -483.632 100.362)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -329.052 -23.649)"></path></g></svg></div>
-                    <div class="card-title">GeoGebra: Herleitung Sinusfunktion</div>
-                </div>
-                <div class="card-desc">Visualisierung der Herleitung der Sinusfunktion</div>
-                <a class="card-link link-geo" href="https://t1p.de/geogebra-herleitung-sinusfunktion" target="_blank">Zum Applet <span class="ext-icon">↗</span></a>
-            </div>
-
-            <div class="card" data-type="geo">
-                <div class="card-top">
-                    <div class="type-badge badge-geo"><svg class="geo-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><g stroke-linecap="round" stroke-linejoin="round"><path fill="none" stroke="#666" stroke-width="33.34" d="M432.345 250.876c0 87.31-75.98 158.088-169.705 158.088-93.726 0-169.706-70.778-169.706-158.088 0-87.31 75.98-158.09 169.706-158.09 93.725 0 169.705 70.78 169.705 158.09z" transform="matrix(1.0156 .01389 -.20152 .9924 42.924 8.75)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -225.59 242.796)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -151.12 72.004)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -421.29 266.574)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -483.632 100.362)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -329.052 -23.649)"></path></g></svg></div>
-                    <div class="card-title">GeoGebra: Herleitung Arkussinus</div>
-                </div>
-                <div class="card-desc">Visualisierung der Arkussinus-Funktion und ihrer Herleitung</div>
-                <a class="card-link link-geo" href="https://t1p.de/geogebra-arkussinus" target="_blank">Zum Applet <span class="ext-icon">↗</span></a>
-            </div>
-
-            <div class="card" data-type="geo">
-                <div class="card-top">
-                    <div class="type-badge badge-geo"><svg class="geo-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><g stroke-linecap="round" stroke-linejoin="round"><path fill="none" stroke="#666" stroke-width="33.34" d="M432.345 250.876c0 87.31-75.98 158.088-169.705 158.088-93.726 0-169.706-70.778-169.706-158.088 0-87.31 75.98-158.09 169.706-158.09 93.725 0 169.705 70.78 169.705 158.09z" transform="matrix(1.0156 .01389 -.20152 .9924 42.924 8.75)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -225.59 242.796)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -151.12 72.004)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -421.29 266.574)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -483.632 100.362)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -329.052 -23.649)"></path></g></svg></div>
-                    <div class="card-title">GeoGebra: Allgemeine Sinusfunktion ablesen/einzeichnen</div>
-                </div>
-                <div class="card-desc">Parameter der allgemeinen Sinusfunktion üben</div>
-                <a class="card-link link-geo" href="https://t1p.de/geogebra-sinus-parameter-ueben" target="_blank">Zum Applet <span class="ext-icon">↗</span></a>
-            </div>
-
-            <div class="card" data-type="geo">
-                <div class="card-top">
-                    <div class="type-badge badge-geo"><svg class="geo-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><g stroke-linecap="round" stroke-linejoin="round"><path fill="none" stroke="#666" stroke-width="33.34" d="M432.345 250.876c0 87.31-75.98 158.088-169.705 158.088-93.726 0-169.706-70.778-169.706-158.088 0-87.31 75.98-158.09 169.706-158.09 93.725 0 169.705 70.78 169.705 158.09z" transform="matrix(1.0156 .01389 -.20152 .9924 42.924 8.75)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -225.59 242.796)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -151.12 72.004)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -421.29 266.574)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -483.632 100.362)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -329.052 -23.649)"></path></g></svg></div>
-                    <div class="card-title">GeoGebra: Parameter der Sinusfunktion verändern</div>
-                </div>
-                <div class="card-desc">Auswirkungen der Lineartransformations-Parameter verstehen</div>
-                <a class="card-link link-geo" href="https://t1p.de/geogebra-sinus-parameter-veraendern" target="_blank">Zum Applet <span class="ext-icon">↗</span></a>
-            </div>
-
-            <div class="card" data-type="geo">
-                <div class="card-top">
-                    <div class="type-badge badge-geo"><svg class="geo-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><g stroke-linecap="round" stroke-linejoin="round"><path fill="none" stroke="#666" stroke-width="33.34" d="M432.345 250.876c0 87.31-75.98 158.088-169.705 158.088-93.726 0-169.706-70.778-169.706-158.088 0-87.31 75.98-158.09 169.706-158.09 93.725 0 169.705 70.78 169.705 158.09z" transform="matrix(1.0156 .01389 -.20152 .9924 42.924 8.75)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -225.59 242.796)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -151.12 72.004)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -421.29 266.574)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -483.632 100.362)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -329.052 -23.649)"></path></g></svg></div>
-                    <div class="card-title">GeoGebra: Fourierreihe</div>
-                </div>
-                <div class="card-desc">Visualisierung der Fourierreihe</div>
-                <a class="card-link link-geo" href="https://t1p.de/geogebra-fourier" target="_blank">Zum Applet <span class="ext-icon">↗</span></a>
-            </div>
-
-        </div>
-    </div>
-
-
-    <!-- ══════════════════════════════════════════════════════════ -->
-    <!-- GRUPPE 9: Mathematik-Sonstiges -->
-    <!-- ══════════════════════════════════════════════════════════ -->
-    <div class="topic-group" id="group-mathematik-sonstiges">
-        <div class="group-header" onclick="toggleGroup('group-mathematik-sonstiges')">
-            <span class="group-icon">🔢</span>
-            <span class="group-title">Mathematik-Sonstiges</span>
-            <span class="group-meta" id="meta-mathematik-sonstiges">1 Tool</span>
-            <span class="group-chevron">▾</span>
-        </div>
-        <div class="cards-grid">
-
-            <div class="card" data-type="flash">
-                <div class="card-top">
-                    <div class="type-badge badge-flash"><span style="font-size:1.1rem;line-height:1">📚</span></div>
-                    <div class="card-title">Graph erkennen</div>
-                </div>
-                <div class="card-desc">Welche Standard-Funktion wird dargestellt?</div>
-                <a class="card-link link-flash" href="graphen.html">Zu den Karten</a>
-            </div>
-
-        </div>
-    </div>
-
-    <!-- ══════════════════════════════════════════════════════════ -->
-    <!-- GRUPPE 10: Informatik -->
-    <!-- ══════════════════════════════════════════════════════════ -->
-    <div class="topic-group" id="group-informatik">
-        <div class="group-header" onclick="toggleGroup('group-informatik')">
-            <span class="group-icon">💻</span>
-            <span class="group-title">Informatik</span>
-            <span class="group-meta" id="meta-informatik">2 Tools</span>
-            <span class="group-chevron">▾</span>
-        </div>
-        <div class="cards-grid">
-
-                <div class="card" data-type="uebung">
-                <div class="card-top">
-                    <div class="type-badge badge-uebung"><span style="font-size:1.1rem;line-height:1">🧠</span></div>
-                    <div class="card-title">Binärzahlen</div>
-                </div>
-                <div class="card-desc">Umrechnung zwischen Binär- und Dezimalzahlen üben</div>
-                <a class="card-link link-uebung" href="binary.html">Zum Tool</a>
-            </div>
-
-            <div class="card" data-type="uebung">
-                <div class="card-top">
-                    <div class="type-badge badge-uebung"><span style="font-size:1.1rem;line-height:1">🧠</span></div>
-                    <div class="card-title">RSA</div>
-                </div>
-                <div class="card-desc">RSA-Verschlüsselung Schritt für Schritt üben</div>
-                <a class="card-link link-uebung" href="rsa_interaktiv.html">Zum Tool</a>
-            </div>
-
-        </div>
-    </div>
-
-
-    <!-- ══════════════════════════════════════════════════════════ -->
-    <!-- GRUPPE 12: Sprachen -->
-    <!-- ══════════════════════════════════════════════════════════ -->
-    <div class="topic-group" id="group-sprachen">
-        <div class="group-header" onclick="toggleGroup('group-sprachen')">
-            <span class="group-icon">🌐</span>
-            <span class="group-title">Sprachen</span>
-            <span class="group-meta" id="meta-sprachen">2 Tools</span>
-            <span class="group-chevron">▾</span>
-        </div>
-        <div class="cards-grid">
-
-            <div class="card" data-type="flash">
-                <div class="card-top">
-                    <div class="type-badge badge-flash"><span style="font-size:1.1rem;line-height:1">📚</span></div>
-                    <div class="card-title">Buchstaben kennenlernen</div>
-                </div>
-                <div class="card-desc">Wie heißen die griechischen (hebräischen, kyrillischen) Buchstaben und wie werden sie geschrieben?</div>
-                <a class="card-link link-flash" href="buchstaben_trainer.html">Zu den Karten</a>
-            </div>
-
-            <div class="card" data-type="uebung">
-                <div class="card-top">
-                    <div class="type-badge badge-uebung"><span style="font-size:1.1rem;line-height:1">🧠</span></div>
-                    <div class="card-title">Schrift-Trainer</div>
-                </div>
-                <div class="card-desc">Übersetze die Schrift von einzelnen Wörtern in andere Buchstabensysteme</div>
-                <a class="card-link link-uebung" href="schrift_trainer.html">Zum Tool</a>
-            </div>
-
-        </div>
-    </div>
-
-
-    <!-- ══════════════════════════════════════════════════════════ -->
-    <!-- GRUPPE 12: SPIELE -->
-    <!-- ══════════════════════════════════════════════════════════ -->
-    <div class="topic-group" id="group-spiele">
-        <div class="group-header" onclick="toggleGroup('group-spiele')">
-            <span class="group-icon">🎲</span>
-            <span class="group-title">Spiele</span>
-            <span class="group-meta" id="meta-spiele">1 Tool</span>
-            <span class="group-chevron">▾</span>
-        </div>
-        <div class="cards-grid">
-
-            <div class="card" data-type="game">
-                <div class="card-top">
-                    <div class="type-badge badge-game">🎮</div>
-                    <div class="card-title">TRIO</div>
-                </div>
-                <div class="card-desc">Zufallsgeneriertes Spielfeld für das Mathe-Spiel TRIO</div>
-                <a class="card-link link-game" href="TRIO.html">Zum Spiel</a>
-            </div>
-
-        </div>
-    </div>
-
-    <div id="no-results">Keine Tools für diesen Filter gefunden.</div>
-
-</main>
-
-<!-- <footer style="text-align:center;font-size:0.65rem;">© 2026 Koch &nbsp;·&nbsp; Mathe-Tools</footer> -->
 <footer class="site-footer">
-  <div class="footer-content">
-    M.&nbsp;Koch
-    <span class="footer-topic">Mathe-Tools</span>
-    <span class="footer-update">Zuletzt aktualisiert:&nbsp;<span id="last-update">...</span></span>
-  </div>
+    <div class="footer-content">
+        <span>M.&nbsp;Koch</span>
+        <span>Mathe-Tools</span>
+        <span>Zuletzt aktualisiert:&nbsp;<span id="last-update">…</span></span>
+    </div>
 </footer>
+
 <script>
-    // ── URL STATE ──────────────────────────────────────────────────
-    // Hash format: #filter=geo&collapsed=grundlagen,integral
-    // Both params are optional; omitting = defaults (all / none collapsed)
+    let isAutoScrolling = false;
+// ══════════════════════════════════════════════════════════════
+// SIDEBAR
+// ══════════════════════════════════════════════════════════════
 
-    function getHashParams() {
-        const hash = location.hash.replace('#', '');
-        const params = {};
-        hash.split('&').forEach(part => {
-            const [k, v] = part.split('=');
-            if (k) params[k] = v || '';
-        });
-        return params;
-    }
+function openSidebar() {
+    document.getElementById('sidebar').classList.add('open');
+    document.getElementById('sidebar-overlay').classList.add('open');
+}
+function closeSidebar() {
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('sidebar-overlay').classList.remove('open');
+    document.body.style.overflow = '';
+}
 
-    function buildHash(filter, collapsedIds) {
-        const parts = [];
-        if (filter && filter !== 'all') parts.push('filter=' + filter);
-        if (collapsedIds.length > 0) parts.push('collapsed=' + collapsedIds.join(','));
-        return parts.length ? '#' + parts.join('&') : '#';
-    }
-
-    function pushHash(filter, collapsedIds) {
-        const hash = buildHash(filter, collapsedIds);
-        // Use replaceState to avoid clogging browser history on every click
-        history.replaceState(null, '', hash === '#' ? location.pathname : hash);
-    }
-
-    function getCollapsedIds() {
-        return Array.from(document.querySelectorAll('.topic-group.collapsed'))
-            .map(g => g.id.replace('group-', ''));
-    }
-
-    // ── FILTER ────────────────────────────────────────────────────
-    let currentFilter = 'all';
-
-    function setFilter(type, btn, skipHash) {
-        if (type === currentFilter) {
-            type='all';
-            btn = document.querySelector('[data-filter="all"]');
-        }
-        currentFilter = type;
-
-        // expand all groups so filtered results are visible
-        document.querySelectorAll('.topic-group').forEach(g => g.classList.remove('collapsed'));
-
-        // update button styles
-        document.querySelectorAll('.filter-btn').forEach(b => b.className = 'filter-btn');
-        if (!btn) btn = document.querySelector('[data-filter="' + type + '"]');
-        if (btn) {
-            if (type === 'all')    btn.classList.add('active-all');
-            if (type === 'learn')  btn.classList.add('active-learn');
-            if (type === 'uebung') btn.classList.add('active-uebung');
-            if (type === 'geo')    btn.classList.add('active-geo');
-            if (type === 'game')   btn.classList.add('active-game');
-            if (type === 'quiz')   btn.classList.add('active-quiz');
-            if (type === 'flash')  btn.classList.add('active-flash');
-        }
-
-        // show/hide cards and groups
-        const groups = document.querySelectorAll('.topic-group');
-        let anyVisible = false;
-
-        groups.forEach(group => {
-            const cards = group.querySelectorAll('.card');
-            let visibleInGroup = 0;
-            cards.forEach(card => {
-                const match = type === 'all' || card.dataset.type === type;
-                card.classList.toggle('filtered-out', !match);
-                if (match) visibleInGroup++;
-            });
-            group.classList.toggle('hidden-group', visibleInGroup === 0);
-            if (visibleInGroup > 0) anyVisible = true;
-            const metaEl = document.getElementById('meta-' + group.id.replace('group-', ''));
-            if (metaEl) metaEl.textContent = visibleInGroup + (visibleInGroup === 1 ? ' Tool' : ' Tools');
-        });
-
-        document.getElementById('no-results').style.display = anyVisible ? 'none' : 'block';
-
-        updateCollapseAllBtn();
-        if (!skipHash) pushHash(currentFilter, getCollapsedIds());
-    }
-
-    // ── COLLAPSE ALL ──────────────────────────────────────────────
-    function toggleAllGroups() {
-        const groups = Array.from(document.querySelectorAll('.topic-group:not(.hidden-group)'));
-        const allCollapsed = groups.every(g => g.classList.contains('collapsed'));
-        groups.forEach(g => {
-            if (allCollapsed) g.classList.remove('collapsed');
-            else g.classList.add('collapsed');
-        });
-        updateCollapseAllBtn();
-        pushHash(currentFilter, getCollapsedIds());
-    }
-
-    function updateCollapseAllBtn() {
-        const groups = Array.from(document.querySelectorAll('.topic-group:not(.hidden-group)'));
-        const allCollapsed = groups.every(g => g.classList.contains('collapsed'));
-        const btn = document.getElementById('collapse-all-btn');
-        if (!btn) return;
-        document.getElementById('collapse-all-icon').textContent = allCollapsed ? '▸▸' : '▾▾';
-        document.getElementById('collapse-all-label').textContent = allCollapsed ? 'Alle ausklappen' : 'Alle einklappen';
-    }
-
-    // ── COLLAPSE ──────────────────────────────────────────────────
-    function toggleGroup(id) {
-        document.getElementById(id).classList.toggle('collapsed');
-        updateCollapseAllBtn();
-        pushHash(currentFilter, getCollapsedIds());
-    }
-
-    // ── RESTORE FROM URL ──────────────────────────────────────────
-    function restoreFromHash() {
-        const params = getHashParams();
-
-        // restore collapsed groups first (before filter, which expands all)
-        if (params.collapsed) {
-            params.collapsed.split(',').forEach(slug => {
-                const el = document.getElementById('group-' + slug);
-                if (el) el.classList.add('collapsed');
-            });
-        }
-
-        // restore filter (pass skipHash=true so we don't reset collapsed state)
-        const filter = params.filter || 'all';
-        // Apply filter without auto-expanding groups
-        currentFilter = filter;
-        const btn = document.querySelector('[data-filter="' + filter + '"]');
-        document.querySelectorAll('.filter-btn').forEach(b => b.className = 'filter-btn');
-        if (btn) {
-            if (filter === 'all')    btn.classList.add('active-all');
-            if (filter === 'learn')  btn.classList.add('active-learn');
-            if (filter === 'uebung') btn.classList.add('active-uebung');
-            if (filter === 'geo')    btn.classList.add('active-geo');
-            if (filter === 'game')   btn.classList.add('active-game');
-            if (filter === 'quiz')   btn.classList.add('active-quiz');
-            if (filter === 'flash')  btn.classList.add('active-flash');
-        }
-        const groups = document.querySelectorAll('.topic-group');
-        let anyVisible = false;
-        groups.forEach(group => {
-            const cards = group.querySelectorAll('.card');
-            let visibleInGroup = 0;
-            cards.forEach(card => {
-                const match = filter === 'all' || card.dataset.type === filter;
-                card.classList.toggle('filtered-out', !match);
-                if (match) visibleInGroup++;
-            });
-            group.classList.toggle('hidden-group', visibleInGroup === 0);
-            if (visibleInGroup > 0) anyVisible = true;
-            const metaEl = document.getElementById('meta-' + group.id.replace('group-', ''));
-            if (metaEl) metaEl.textContent = visibleInGroup + (visibleInGroup === 1 ? ' Tool' : ' Tools');
-        });
-        document.getElementById('no-results').style.display = anyVisible ? 'none' : 'block';
-        updateCollapseAllBtn();
-    }
-
-    // Run on load
-    restoreFromHash();
-
-    // Also handle browser back/forward
-    window.addEventListener('hashchange', restoreFromHash);
-
-    // Fix bfcache: when navigating back, remove any stuck hover states
-    window.addEventListener('pageshow', function(e) {
-        if (e.persisted) {
-            // Page restored from bfcache — force a style recalc to clear stuck :hover
-            document.body.style.display = 'none';
-            // eslint-disable-next-line no-unused-expressions
-            document.body.offsetHeight;
-            document.body.style.display = '';
+// ══════════════════════════════════════════════════════════════
+// SECTION NAV
+// ══════════════════════════════════════════════════════════════
+function updateSectionNav() {
+    const nav = document.getElementById('section-nav');
+    if (!nav) return;
+    const groups = document.querySelectorAll('.topic-group:not(.hidden-group)');
+    let html = '';
+    groups.forEach(group => {
+        const titleEl = group.querySelector('.group-title');
+        if (titleEl) {
+            const id = group.id;
+            const title = titleEl.textContent.trim();
+            html += `<a class="section-nav-link" data-title="${title}" onclick="scrollToGroup('${id}')">${title}</a>`;
         }
     });
-</script>
+    nav.innerHTML = html;
+}
 
+function scrollToGroup(id) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    
+    if (el.classList.contains('collapsed')) {
+        el.classList.remove('collapsed');
+        updateCollapseAllBtn();
+        pushHash(currentFilter, getCollapsedIds());
+    }
+
+    // Scroll-Position ZUERST berechnen, bevor irgendwas anderes die DOM-Position verändert
+    const navBar = document.querySelector('.sticky-top-nav');
+    const offset = navBar ? navBar.offsetHeight + 6 : 52;
+    const y = el.getBoundingClientRect().top + window.scrollY - offset;
+
+    // Danach: Highlight in der NavBar sofort aktualisieren
+    const navLinks = document.querySelectorAll('.section-nav-link');
+    navLinks.forEach(link => link.classList.remove('active'));
+    const activeLink = Array.from(navLinks).find(link =>
+        link.getAttribute('onclick')?.includes(id)
+    );
+    if (activeLink) {
+        activeLink.classList.add('active');
+        // Nur horizontal scrollen – kein scrollIntoView (würde ggf. Seite verschieben)
+        const nav = document.getElementById('section-nav');
+        if (nav) {
+            const linkLeft  = activeLink.offsetLeft;
+            const linkRight = linkLeft + activeLink.offsetWidth;
+            if (linkLeft < nav.scrollLeft) nav.scrollLeft = linkLeft - 10;
+            else if (linkRight > nav.scrollLeft + nav.clientWidth) nav.scrollLeft = linkRight - nav.clientWidth + 10;
+        }
+    }
+
+    isAutoScrolling = true;
+    window.scrollTo({ top: y, behavior: 'smooth' });
+    history.pushState(null, null, '#' + id);
+    setTimeout(() => { isAutoScrolling = false; }, 800);
+}
+
+// ══════════════════════════════════════════════════════════════
+// SVG ASSETS
+// ══════════════════════════════════════════════════════════════
+const SVG = {
+    geoBadge: `<svg class="geo-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><g stroke-linecap="round" stroke-linejoin="round"><path fill="none" stroke="#666" stroke-width="33.34" d="M432.345 250.876c0 87.31-75.98 158.088-169.705 158.088-93.726 0-169.706-70.778-169.706-158.088 0-87.31 75.98-158.09 169.706-158.09 93.725 0 169.705 70.78 169.705 158.09z" transform="matrix(1.0156 .01389 -.20152 .9924 42.924 8.75)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -225.59 242.796)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -151.12 72.004)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -421.29 266.574)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -483.632 100.362)"></path><path fill="#99f" stroke="#333" stroke-width="15.55" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -329.052 -23.649)"></path></g></svg>`,
+    geoFilter: `<svg style="width:14px;height:14px;flex-shrink:0" xmlns="http://www.w3.org/2000/svg" viewBox="40 8 470 464"><g stroke-linecap="round" stroke-linejoin="round"><path fill="none" stroke="currentColor" stroke-width="33.34" d="M432.345 250.876c0 87.31-75.98 158.088-169.705 158.088-93.726 0-169.706-70.778-169.706-158.088 0-87.31 75.98-158.09 169.706-158.09 93.725 0 169.705 70.78 169.705 158.09z" transform="matrix(1.0156 .01389 -.20152 .9924 42.924 8.75)"></path><path fill="#99f" stroke="currentColor" stroke-width="20" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -225.59 242.796)"></path><path fill="#99f" stroke="currentColor" stroke-width="20" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -151.12 72.004)"></path><path fill="#99f" stroke="currentColor" stroke-width="20" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -421.29 266.574)"></path><path fill="#99f" stroke="currentColor" stroke-width="20" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -483.632 100.362)"></path><path fill="#99f" stroke="currentColor" stroke-width="20" d="M644.286 145.571c0 26.431-20.787 47.858-46.429 47.858-25.642 0-46.428-21.427-46.428-47.858 0-26.43 20.786-47.857 46.428-47.857 25.642 0 46.429 21.427 46.429 47.857z" transform="matrix(.96842 0 0 .91438 -329.052 -23.649)"></path></g></svg>`,
+    parabola:   `<svg width="18" height="18" viewBox="0 0 40 30" xmlns="http://www.w3.org/2000/svg"><polyline points="2,28 8,14 14,6 20,3 26,6 32,14 38,28" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+    polynomial: `<svg width="18" height="18" viewBox="0 0 40 36" xmlns="http://www.w3.org/2000/svg"><path d="M2,32 C6,32 8,20 14,18 C20,16 20,20 26,10 C32,0 34,4 38,4" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+    mobileYes: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><path d="M12 18h.01"></path></svg>`,
+    mobileNo: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="4" y1="4" x2="20" y2="20"></line></svg>`
+};
+
+// ══════════════════════════════════════════════════════════════
+// DOM BUILDERS
+// ══════════════════════════════════════════════════════════════
+function typeIconHtml(typeObj, small = false) {
+    if (typeObj.iconType === 'svg') {
+        if (small) return SVG.geoBadge.replace('class="geo-svg"', 'class="geo-svg" style="width:10px;height:10px"');
+        return SVG.geoBadge;
+    }
+    const fs = small ? '0.7rem' : '0.85rem';
+    return `<span style="font-size:${fs};line-height:1">${typeObj.icon}</span>`;
+}
+
+function buildBadge(typeIds, typesMap) {
+    const types = typeIds.map(id => typesMap[id]).filter(Boolean);
+    if (!types.length) return '';
+
+    if (types.length === 1) {
+        const t = types[0];
+        return `<span class="type-badge badge-${t.id}" title="${t.label}: ${t.tooltip}">${typeIconHtml(t)}<span class="badge-label">${t.label}</span></span>`;
+    }
+    // Multi-type: show icons side by side
+    const label = types.map(t => t.label).join(' + ');
+    const segs = types.map(t => `<span class="badge-segment" title="${t.label}" style="color:${t.color}">${typeIconHtml(t, true)}</span>`).join('');
+    return `<span class="type-badge badge-multi" title="${label}">${segs}</span>`;
+}
+
+function buildGroupIcon(cat) {
+    if (cat.iconType === 'svg') {
+        const key = cat.icon.replace('svg:', '');
+        return SVG[key] ?? cat.icon;
+    }
+    return cat.icon;
+}
+
+function buildCard(card, typesMap) {
+    const primary = typesMap[card.types[0]];
+    const allTypes = card.types.join(' ');
+    const isExt = card.link.startsWith('http');
+    const target = isExt ? ' target="_blank" rel="noopener"' : '';
+    const arrowChar = isExt ? '↗' : '→';
+    const lbl = card.linkLabel || (primary ? primary.linkLabel : 'Öffnen');
+    const accentColor = primary ? primary.color : 'transparent';
+    // Mobile-Check
+    const isMobile = card.mobilefriendly === true;
+    const mobileIcon = isMobile 
+    ? `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+        <path d="M12 18h.01"></path>
+      </svg>`
+    : `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+        <line x1="4" y1="4" x2="20" y2="20"></line>
+      </svg>`;
+    const mobileTitle = isMobile ? "Handy-kompatibel" : "Nicht für Handys optimiert";
+
+    const mobileColor = isMobile 
+    ? "var(--muted)" 
+    : "rgba(220, 80, 80, 0.9)";
+    
+    return `<a class="card" href="${card.link}"${target} data-types="${allTypes}" data-mobile="${isMobile}" style="--card-accent:${accentColor}">
+    <div class="card-top">
+        <div class="card-title">${card.title}</div>
+        ${buildBadge(card.types, typesMap)}
+    </div>
+    <div class="card-desc">${card.desc}</div>
+
+    <div class="card-footer">
+        <span class="card-link-text">${lbl}</span>
+        <span class="card-arrow">${arrowChar}</span>
+    </div>
+
+    <span class="mobile-icon-corner" style="color:${mobileColor};" title="${mobileTitle}">
+        ${mobileIcon}
+    </span>
+</a>`;
+}
+
+function buildGroup(cat, cardsMap, typesMap) {
+    const cards = cat.cards.map(id => cardsMap[id]).filter(Boolean);
+    const n = cards.length;
+    const cardsHtml = cards.map(c => buildCard(c, typesMap)).join('');
+    const icon = buildGroupIcon(cat);
+
+    return `<div class="topic-group" id="group-${cat.id}">
+        <div class="group-header" onclick="toggleGroup('group-${cat.id}')" title="${cat.tooltip}">
+            <span class="group-icon">${icon}</span>
+            <span class="group-title">${cat.title}</span>
+            <span class="group-meta" id="meta-${cat.id}">${n} ${n === 1 ? 'Tool' : 'Tools'}</span>
+            <span class="group-chevron">▾</span>
+        </div>
+        <div class="cards-grid">${cardsHtml}</div>
+    </div>`;
+}
+
+function buildFilterBar(types) {
+    const bar = document.getElementById('filter-bar');
+    let html = `<button class="filter-btn active-all" data-filter="all" onclick="setFilter('all',this)">Alle anzeigen</button>`;
+    for (const t of types) {
+        const icon = t.iconType === 'svg'
+            ? SVG.geoFilter
+            : `<span class="dot dot-${t.id}"></span>`;
+        html += `<button class="filter-btn" data-filter="${t.id}" onclick="setFilter('${t.id}',this)" data-tooltip="${t.tooltip}">${icon} ${t.label}</button>`;
+    }
+    bar.innerHTML = html;
+}
+
+// ══════════════════════════════════════════════════════════════
+// DYNAMIC TYPE STYLES (from page_types.js)
+// ══════════════════════════════════════════════════════════════
+function hexToRgba(hex, alpha) {
+    const h = hex.replace('#', '');
+    const r = parseInt(h.slice(0,2), 16);
+    const g = parseInt(h.slice(2,4), 16);
+    const b = parseInt(h.slice(4,6), 16);
+    return `rgba(${r},${g},${b},${alpha})`;
+}
+
+function injectTypeStyles(types) {
+    let css = '';
+    for (const t of types) {
+        const id = t.id;
+        const c = t.color;
+        const bg = t.colorBg;
+        const border = hexToRgba(c, 0.25);
+        css += `.badge-${id}{background:${bg};color:${c};border-color:${border};}`;
+        css += `.filter-btn.active-${id}{background:${bg};color:${c};border-color:${c};box-shadow:none;}`;
+        css += `.dot-${id}{background:${c};}`;
+    }
+    let style = document.getElementById('type-styles');
+    if (!style) { style = document.createElement('style'); style.id = 'type-styles'; document.head.appendChild(style); }
+    style.textContent = css;
+}
+
+// ══════════════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════════════
+function init() {
+    const typesMap = Object.fromEntries(typesData.map(t => [t.id, t]));
+    const cardsMap = Object.fromEntries(cardsData.map(c => [c.id, c]));
+
+    injectTypeStyles(typesData);
+    buildFilterBar(typesData);
+
+    const main = document.getElementById('main-content');
+    main.innerHTML = categoriesData.map(cat => buildGroup(cat, cardsMap, typesMap)).join('');
+
+    restoreFromHash();
+    updateSectionNav();
+    initScrollSpy();
+    initNavScroll(); // <-- Diese Zeile neu hinzufügen
+}
+
+// ══════════════════════════════════════════════════════════════
+// URL STATE
+// ══════════════════════════════════════════════════════════════
+function getHashParams() {
+    const hash = location.hash.replace('#', '');
+    const params = {};
+    hash.split('&').forEach(part => {
+        const [k, v] = part.split('=');
+        if (k) params[k] = v || '';
+    });
+    return params;
+}
+function pushHash(filter, collapsedIds) {
+    const hash = buildHash(filter, collapsedIds);
+    history.replaceState(null, '', hash === '#' ? location.pathname : hash);
+}
+function getCollapsedIds() {
+    return Array.from(document.querySelectorAll('.topic-group.collapsed'))
+        .map(g => g.id.replace('group-', ''));
+}
+
+// ══════════════════════════════════════════════════════════════
+// FILTER
+// ══════════════════════════════════════════════════════════════
+let currentFilter = 'all';
+
+// NEU: Globale Variable für den Mobile-Filter
+let filterMobileOnly = false;
+
+// NEU: Zentrale Funktion, die prüft, welche Karten sichtbar sind
+function updateCardVisibility() {
+    const groups = document.querySelectorAll('.topic-group');
+    let anyVisible = false;
+    groups.forEach(group => {
+        const cards = group.querySelectorAll('.card');
+        let visibleInGroup = 0;
+        cards.forEach(card => {
+            const cardTypes = (card.dataset.types || '').split(' ');
+            const matchType = currentFilter === 'all' || cardTypes.includes(currentFilter);
+            const matchMobile = !filterMobileOnly || card.dataset.mobile === 'true';
+            
+            const match = matchType && matchMobile;
+            card.classList.toggle('filtered-out', !match);
+            if (match) visibleInGroup++;
+        });
+        group.classList.toggle('hidden-group', visibleInGroup === 0);
+        if (visibleInGroup > 0) anyVisible = true;
+        const metaEl = document.getElementById('meta-' + group.id.replace('group-', ''));
+        if (metaEl) metaEl.textContent = visibleInGroup + (visibleInGroup === 1 ? ' Tool' : ' Tools');
+    });
+    document.getElementById('no-results').style.display = anyVisible ? 'none' : 'block';
+}
+
+// NEU: Toggle Event-Listener für Mobile
+function toggleMobileFilter() {
+    const cb = document.getElementById('mobile-cb');
+    filterMobileOnly = cb.checked;
+    
+    const label = document.getElementById('mobile-toggle-label');
+    if (filterMobileOnly) label.classList.add('active');
+    else label.classList.remove('active');
+
+    updateCardVisibility();
+    updateCollapseAllBtn();
+    pushHash(currentFilter, getCollapsedIds());
+    updateSectionNav();
+    requestAnimationFrame(() => {
+        updateDynamicPaddings();
+        initScrollSpy();
+    });
+}
+// URL STATE anpassen (Mobile State merken)
+function buildHash(filter, collapsedIds) {
+    const parts = [];
+    if (filter && filter !== 'all') parts.push('filter=' + filter);
+    if (filterMobileOnly) parts.push('mobile=1'); // Merkt sich den Mobile-Toggle
+    if (collapsedIds.length > 0) parts.push('collapsed=' + collapsedIds.join(','));
+    return parts.length ? '#' + parts.join('&') : '#';
+}
+
+function setFilter(type, btn, skipHash) {
+    if (type === currentFilter) {
+        type = 'all';
+        btn = document.querySelector('[data-filter="all"]');
+    }
+    currentFilter = type;
+
+    document.querySelectorAll('.topic-group').forEach(g => g.classList.remove('collapsed'));
+    document.querySelectorAll('.filter-btn').forEach(b => b.className = 'filter-btn');
+    if (!btn) btn = document.querySelector('[data-filter="' + type + '"]');
+    if (btn) btn.classList.add(type === 'all' ? 'active-all' : 'active-' + type);
+
+    updateCardVisibility(); // Zentrale Filter-Logik aufrufen
+
+    updateCollapseAllBtn();
+    if (!skipHash) pushHash(currentFilter, getCollapsedIds());
+    updateSectionNav();
+    requestAnimationFrame(() => {
+        updateDynamicPaddings();
+        initScrollSpy();
+    });
+}
+
+function restoreFromHash() {
+    const params = getHashParams();
+    const anchorHash = window.location.hash.substring(1);
+    
+    if (params.collapsed) {
+        params.collapsed.split(',').forEach(slug => {
+            const el = document.getElementById('group-' + slug);
+            if (el) el.classList.add('collapsed');
+        });
+    }
+
+    // Mobile Toggle wiederherstellen
+    filterMobileOnly = params.mobile === '1';
+    const mobileCb = document.getElementById('mobile-cb');
+    const mobileLabel = document.getElementById('mobile-toggle-label');
+    if (mobileCb && mobileLabel) {
+        mobileCb.checked = filterMobileOnly;
+        if (filterMobileOnly) mobileLabel.classList.add('active');
+    }
+
+    const filter = params.filter || 'all';
+    currentFilter = filter;
+    const btn = document.querySelector('[data-filter="' + filter + '"]');
+    document.querySelectorAll('.filter-btn').forEach(b => b.className = 'filter-btn');
+    if (btn) btn.classList.add(filter === 'all' ? 'active-all' : 'active-' + filter);
+
+    updateCardVisibility(); // Zentrale Filter-Logik aufrufen
+
+    // ... (Der restliche Code in restoreFromHash für UI Updates & ScrollSpy bleibt exakt gleich wie vorher!)
+    updateCollapseAllBtn();
+    updateSectionNav();
+    updateDynamicPaddings();
+    initScrollSpy();
+
+    if (anchorHash && !anchorHash.includes('=')) { // Letzte Bedingung verhindert Scroll-Bug bei Hash mit =
+        const targetId = anchorHash.startsWith('group-') ? anchorHash : 'group-' + anchorHash;
+        const targetEl = document.getElementById(targetId);
+        // ... (Dein bisheriger Scroll-Code) ...
+        if (targetEl) {
+            window.removeEventListener('scroll', window.__scrollSpyHandler);
+            setTimeout(() => {
+                if (targetEl.classList.contains('collapsed')) {
+                    targetEl.classList.remove('collapsed');
+                    updateCollapseAllBtn();
+                }
+                const navLinks = document.querySelectorAll('.section-nav-link');
+                navLinks.forEach(link => link.classList.remove('active'));
+                const activeLink = Array.from(navLinks).find(link =>
+                    link.getAttribute('onclick')?.includes(targetId)
+                );
+                if (activeLink) {
+                    activeLink.classList.add('active');
+                    const nav = document.getElementById('section-nav');
+                    if (nav) {
+                        const ll = activeLink.offsetLeft, lr = ll + activeLink.offsetWidth;
+                        if (ll < nav.scrollLeft) nav.scrollLeft = ll - 10;
+                        else if (lr > nav.scrollLeft + nav.clientWidth) nav.scrollLeft = lr - nav.clientWidth + 10;
+                    }
+                }
+                const navBar = document.querySelector('.sticky-top-nav');
+                const offset = navBar ? navBar.offsetHeight + 6 : 58;
+                const y = targetEl.getBoundingClientRect().top + window.scrollY - offset;
+                window.scrollTo({ top: y, behavior: 'instant' });
+
+                isAutoScrolling = true;
+                setTimeout(() => {
+                    isAutoScrolling = false;
+                    initScrollSpy();
+                }, 200);
+            }, 150);
+        }
+    }
+}
+
+// ══════════════════════════════════════════════════════════════
+// COLLAPSE
+// ══════════════════════════════════════════════════════════════
+function toggleAllGroups() {
+    const groups = Array.from(document.querySelectorAll('.topic-group:not(.hidden-group)'));
+    const allCollapsed = groups.every(g => g.classList.contains('collapsed'));
+    groups.forEach(g => {
+        if (allCollapsed) g.classList.remove('collapsed');
+        else g.classList.add('collapsed');
+    });
+    updateCollapseAllBtn();
+    pushHash(currentFilter, getCollapsedIds());
+}
+
+function updateCollapseAllBtn() {
+    const groups = Array.from(document.querySelectorAll('.topic-group:not(.hidden-group)'));
+    const allCollapsed = groups.every(g => g.classList.contains('collapsed'));
+    document.getElementById('collapse-all-icon').textContent = allCollapsed ? '▸▸' : '▾▾';
+    document.getElementById('collapse-all-label').textContent = allCollapsed ? 'Alle ausklappen' : 'Alle einklappen';
+}
+
+function toggleGroup(id) {
+    document.getElementById(id).classList.toggle('collapsed');
+    updateCollapseAllBtn();
+    pushHash(currentFilter, getCollapsedIds());
+}
+
+// ══════════════════════════════════════════════════════════════
+// RESTORE FROM HASH
+// ══════════════════════════════════════════════════════════════
+
+// ══════════════════════════════════════════════════════════════
+// SCROLL SPY
+// ══════════════════════════════════════════════════════════════
+function initScrollSpy() {
+    const updateActiveNav = () => {
+        const groups = Array.from(document.querySelectorAll('.topic-group:not(.hidden-group)'));
+        const navLinks = document.querySelectorAll('.section-nav-link');
+        if (!groups.length || !navLinks.length) return;
+
+        const navHeight = document.querySelector('.sticky-top-nav')?.offsetHeight || 52;
+
+        // Am Seitenende: letzte sichtbare Gruppe aktivieren
+        const atBottom = (window.innerHeight + window.scrollY) >= document.body.offsetHeight - 80;
+
+        let activeGroup = groups[0];
+        if (atBottom) {
+            // Letzte Gruppe, die noch im Viewport sichtbar ist
+            for (let i = groups.length - 1; i >= 0; i--) {
+                if (groups[i].getBoundingClientRect().top < window.innerHeight) {
+                    activeGroup = groups[i];
+                    break;
+                }
+            }
+        } else {
+            // Standard: letzte Gruppe, deren oberer Rand die Nav-Bar passiert hat
+            const scrollPos = window.scrollY + navHeight + 10;
+            for (const group of groups) {
+                if (group.offsetTop <= scrollPos) activeGroup = group;
+                else break;
+            }
+        }
+
+        const activeLink = Array.from(navLinks).find(link =>
+            link.getAttribute('onclick')?.includes(activeGroup.id)
+        );
+
+        if (activeLink && !activeLink.classList.contains('active') && !isAutoScrolling) {
+            navLinks.forEach(link => link.classList.remove('active'));
+            activeLink.classList.add('active');
+            // Nur horizontal scrollen – kein scrollIntoView (würde Seite verschieben)
+            const nav = document.getElementById('section-nav');
+            if (nav) {
+                const linkLeft  = activeLink.offsetLeft;
+                const linkRight = linkLeft + activeLink.offsetWidth;
+                if (linkLeft < nav.scrollLeft) nav.scrollLeft = linkLeft - 10;
+                else if (linkRight > nav.scrollLeft + nav.clientWidth) nav.scrollLeft = linkRight - nav.clientWidth + 10;
+            }
+            // URL-Anker nur setzen, wenn der Nutzer wirklich gescrollt hat
+            if (window.scrollY > navHeight) {
+                history.replaceState(null, null, '#' + activeGroup.id);
+            }
+        }
+    };
+
+    window.removeEventListener('scroll', window.__scrollSpyHandler);
+    window.__scrollSpyHandler = updateActiveNav;
+    window.addEventListener('scroll', updateActiveNav, { passive: true });
+    updateActiveNav();
+}
+
+// ══════════════════════════════════════════════════════════════
+// DYNAMIC PADDINGS
+// ══════════════════════════════════════════════════════════════
+function updateDynamicPaddings() {
+    const topNav = document.querySelector('.sticky-top-nav');
+    if (topNav) document.documentElement.style.setProperty('--nav-height', topNav.offsetHeight + 'px');
+    const bottomNav = document.querySelector('.sticky-bottom-filters');
+    if (bottomNav) document.documentElement.style.setProperty('--filter-height', (bottomNav.offsetHeight + 10) + 'px');
+}
+
+// ══════════════════════════════════════════════════════════════
+// NAV SCROLL (MAUSRAD & DRAG)
+// ══════════════════════════════════════════════════════════════
+function initNavScroll() {
+    const nav = document.getElementById('section-nav');
+    if (!nav) return;
+
+    // 1. Scrollen mit dem Mausrad (Vertikal zu Horizontal)
+    nav.addEventListener('wheel', (e) => {
+        if (e.deltaY !== 0) {
+            e.preventDefault();
+            nav.scrollLeft += e.deltaY;
+        }
+    }, { passive: false });
+
+    // 2. Scrollen durch Ziehen mit der Maus (Drag-to-scroll)
+    let isDown = false;
+    let startX;
+    let scrollLeft;
+
+    nav.addEventListener('mousedown', (e) => {
+        isDown = true;
+        nav.style.cursor = 'grabbing';
+        startX = e.pageX - nav.offsetLeft;
+        scrollLeft = nav.scrollLeft;
+    });
+    nav.addEventListener('mouseleave', () => { isDown = false; nav.style.cursor = ''; });
+    nav.addEventListener('mouseup', () => { isDown = false; nav.style.cursor = ''; });
+    nav.addEventListener('mousemove', (e) => {
+        if (!isDown) return;
+        e.preventDefault();
+        const x = e.pageX - nav.offsetLeft;
+        const walk = (x - startX) * 1.5; // Multiplikator für Scroll-Geschwindigkeit
+        nav.scrollLeft = scrollLeft - walk;
+    });
+}
+
+// E-Mail obfuskiert (base64) – Zum Kodieren: btoa('ihre@email.de') im Browser
+var _EM=atob('bGVocmVya29jaDkwQGdtYWlsLmNvbQ=='); /* TODO: ggf. anpassen */
+function copyMail(e){
+  if(e)e.preventDefault();
+  var nearEl=e&&e.currentTarget?e.currentTarget:(e&&e.target?e.target:null);
+  navigator.clipboard.writeText(_EM).then(function(){_showToast('E-Mail kopiert ✓',nearEl);}).catch(function(){});
+}
+
+var _toastTimer=null;
+function _showToast(msg,nearEl){
+  var t=document.getElementById('copyToast');if(!t)return;
+  t.textContent=msg||'Kopiert ✓';
+  t.removeAttribute('style');
+  if(nearEl){
+    var r=nearEl.getBoundingClientRect();
+    var cx=r.left+r.width/2;
+    var tw=Math.min(200,window.innerWidth-16);
+    var left=Math.max(8,Math.min(cx-tw/2,window.innerWidth-tw-8));
+    var top=Math.max(8,r.top-46);
+    t.style.cssText='position:fixed;bottom:auto;left:'+left+'px;top:'+top+'px;transform:none;width:'+tw+'px;text-align:center;';
+  }
+  if(_toastTimer)clearTimeout(_toastTimer);
+  t.classList.add('show');
+  _toastTimer=setTimeout(function(){t.classList.remove('show');},2200);
+}
+// ══════════════════════════════════════════════════════════════
+// EVENTS
+// ══════════════════════════════════════════════════════════════
+// window.addEventListener('DOMContentLoaded', init);
+document.addEventListener('DOMContentLoaded', () => { if (typeof init === 'function') init(); });
+window.addEventListener('hashchange', restoreFromHash);
+window.addEventListener('load', updateDynamicPaddings);
+window.addEventListener('resize', updateDynamicPaddings);
+
+window.addEventListener('pageshow', function(e) {
+    if (e.persisted) {
+        document.body.style.display = 'none';
+        document.body.offsetHeight;
+        document.body.style.display = '';
+    }
+});
+
+// Klebende Tooltips auf Mobile verhindern
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.filter-btn, [data-tooltip]').forEach(el => {
+        el.addEventListener('touchstart', function() {
+            const t = this;
+            setTimeout(() => {
+                t.blur();
+                if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+            }, 1000);
+        }, { passive: true });
+    });
+});
+</script>
+<div class="share-toast" id="copyToast"></div>
 </body>
 </html>

@@ -1,0 +1,1960 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flächenberechnung – Polynom &amp; x-Achse</title>
+<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="scale.css">
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<script src="scale.js" defer></script>
+<style>
+  
+.site-footer {
+    width: 100%; box-sizing: border-box; padding: 12px 40px;
+    border-top: 1px solid #ccc; margin-top: 20px; margin-bottom: 10px;
+    font-family: sans-serif; font-size: 0.6em; color: #333333d8;
+  }
+  .footer-content {
+    display: flex; justify-content: center; align-items: center;
+    gap: 1.5rem; max-width: 1200px; margin: 0 auto; flex-wrap: wrap; text-align: center;
+  }
+  .footer-topic a{
+    color:inherit;
+    text-decoration:underline;
+  }
+#task-instruction { font-size: 1.1em; text-align: left; margin-bottom: 0.2em; }
+#task-formula { font-size: 1.6em; text-align: center; }
+#solution { color:red; font-size:1.3em; text-align:center; }
+#solutionPath {
+    margin: 1em;
+    border-width: thin;
+}
+#solutionPathContent { color:blue; font-size:1.0em }
+.solution-path-inner { overflow-x: auto; }
+.sol-head    { font-weight: bold; margin: 1em 0 0.2em; color: #1a3fa8; }
+.sol-text    { margin: 0.15em 0 0.15em 1.2em; color: #333; }
+.sol-formula { margin: 0.15em 0 0.15em 1.2em; }
+/* Left-align display math only inside the solution path, keep rest centered */
+.sol-formula mjx-container[display="true"] { text-align: left !important; margin-left: 0 !important; }
+.slider-container { margin: 10px 0; }
+.slider-container input[type="range"] { width: 200px; }
+
+/* ---- Toggle Switch (Segmented Control) ---- */
+.mode-switch-wrap {
+  display: flex;
+  justify-content: center;
+  margin: 10px 0 6px;
+}
+.switch {
+  display: inline-flex;
+  align-items: stretch;
+  cursor: pointer;
+  position: relative;
+  background: #d4d4d4;
+  border-radius: 30px;
+  padding: 3px;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+.switch input { display: none; }
+
+/* Sliding highlight pill */
+.switch .slider {
+  position: absolute;
+  top: 3px; bottom: 3px;
+  left: 3px;
+  width: calc(50% - 3px);
+  background: #4caf50;
+  border-radius: 24px;
+  transition: left 0.25s, background 0.25s;
+  pointer-events: none;
+}
+.switch input:checked ~ .slider {
+  left: 50%;
+  background: #e07b00;
+}
+.switch-blue input:checked ~ .slider { background: #1a5fa8; }
+
+/* Labels */
+.switch .labels {
+  display: flex;
+  position: relative;
+  z-index: 1;
+  width: 100%;
+}
+.switch .labels span {
+  flex: 1;
+  padding: 5px 14px;
+  font-size: 0.82em;
+  font-weight: bold;
+  color: #666;
+  text-align: center;
+  transition: color 0.2s;
+  white-space: nowrap;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+/* Active label = white, inactive = grey */
+.switch .labels span:first-child { color: #fff; }
+.switch input:checked ~ .labels span:first-child { color: #555; }
+.switch input:checked ~ .labels span:last-child  { color: #fff; }
+
+/* Narrow screens: allow text wrap, tighten padding */
+@media (max-width: 480px) {
+  .switch .labels span {
+    padding: 5px 8px;
+    font-size: 0.75em;
+    white-space: normal;
+    text-align: center;
+  }
+}
+
+#sketchDetails { margin-bottom: 1em; }
+
+.task-note { font-size: 0.9em; color: #444; margin-top: 0.3em; overflow-x: auto; }
+</style>
+</head>
+<body>
+
+<h1>Flächenberechnung – Polynom und x-Achse</h1>
+
+<details>
+<summary>Einstellungen</summary>
+
+<div class="form-block">
+<b>Aufgabenart: Nullstellen</b><br>
+<label><input type="radio" name="taskType" value="random" checked> Zufällige Aufgabenstellung</label><br>
+<label><input type="radio" name="taskType" value="findAll"> Alle Nullstellen selbst bestimmen</label><br>
+<label><input type="radio" name="taskType" value="givenAll"> Alle Nullstellen gegeben</label><br>
+<label><input type="radio" name="taskType" value="verify"> Alle Nullstellen rechnerisch nachweisen</label><br>
+</div>
+
+<div class="form-block">
+<b>Nullstellentyp</b><br>
+<label><input type="radio" name="zeroType" value="integer" checked> Nur ganzzahlige Nullstellen</label><br>
+<label><input type="radio" name="zeroType" value="rational"> Auch rationale Nullstellen (halbe, viertel)</label><br>
+<label><input type="radio" name="zeroType" value="irrational"> Auch irrationale Nullstellen (Wurzeln)</label><br>
+</div>
+
+<div class="form-block">
+<div class="slider-container">
+<b>Maximaler Grad: <span id="degreeValue">4</span></b><br>
+<input type="range" id="maxDegree" min="1" max="4" value="4">
+</div>
+</div>
+
+<div class="form-block">
+<div class="slider-container">
+<b>Max. Nullstellen im Intervall: <span id="maxZerosValue">2</span></b><br>
+<input type="range" id="maxZerosInRange" min="0" max="4" value="2">
+</div>
+</div>
+
+<div class="form-block">
+<b>Koeffizienten &amp; Faktor</b><br>
+<label><input type="checkbox" id="allowFractions"> Brüche bei den Koeffizienten erlauben</label><br>
+<label><input type="checkbox" id="allowDecimals"> Dezimalzahlen bei den Koeffizienten erlauben</label><br>
+<label><input type="checkbox" id="allowFactor"> Vorfaktor um die Funktion erlauben</label><br>
+</div>
+
+</details>
+
+<button onclick="newTask()">Neue Aufgabe</button>
+
+<h2>Aufgabe</h2>
+<div id="task-instruction"></div>
+<div class="scale-wrapper">
+  <div id="task-formula" class="scale-el"></div>
+</div>
+
+<details id="sketchDetails">
+  <summary>Hilfestellung: Skizze</summary>
+  <div style="padding:0.5em 8px 0;">
+    <canvas id="sketchCanvas" width="580" height="320"
+            style="display:block; margin:auto; max-width:100%; box-sizing:border-box; border:1px solid #ccc; border-radius:4px; background:#fafafa;"></canvas>
+  </div>
+</details>
+
+<details id="solutionDetailsContainer">
+  <summary>Lösung</summary>
+
+  <div class="mode-switch-wrap">
+    <label class="switch">
+      <input type="checkbox" id="roundingToggle">
+      <span class="slider"></span>
+      <span class="labels">
+        <span>Genau (Brüche)</span>
+        <span>Gerundet (2 St.)</span>
+      </span>
+    </label>
+  </div>
+
+  <div class="scale-wrapper">
+    <div id="solution" class="scale-el"></div>
+  </div>
+
+  <details id="solutionPath">
+    <summary>Lösungsweg</summary>
+
+    <div class="mode-switch-wrap">
+      <label class="switch switch-blue">
+        <input type="checkbox" id="styleToggle">
+        <span class="slider"></span>
+        <span class="labels">
+          <span>Einzeln &amp; Betrag</span>
+          <span>Vorzeichen vorab</span>
+        </span>
+      </label>
+    </div>
+
+    <div class="scale-wrapper">
+      <div id="solutionPathContent" class="scale-el"></div>
+    </div>
+  </details>
+</details>
+
+<script>
+// ================================================================
+// SCALE  (inline fallback if scale.js not available)
+// ================================================================
+function scaleToFit(el) {
+  if (!el) return;
+  el.style.transform = 'none';
+  el.style.transformOrigin = 'top left';
+  const wrapper = el.parentElement;
+  if (!wrapper) return;
+  wrapper.style.height = 'auto';
+  requestAnimationFrame(() => {
+    const available = wrapper.clientWidth;
+    const natural   = el.scrollWidth;
+    if (natural > available && available > 0) {
+      const scale = available / natural;
+      el.style.transform = `scale(${scale})`;
+      wrapper.style.height = (el.scrollHeight * scale) + 'px';
+    }
+  });
+}
+function scaleAllElements() { document.querySelectorAll('.scale-el').forEach(scaleToFit); }
+window.addEventListener('resize', scaleAllElements);
+
+// ================================================================
+// RATIONAL ARITHMETIC  { n, d },  d > 0, fully reduced
+// ================================================================
+function gcd(a, b) { a=Math.abs(a); b=Math.abs(b); while(b){let t=b;b=a%b;a=t;} return a||1; }
+function rat(n, d=1) {
+  if (d===0) throw new Error('div0');
+  if (d<0){n=-n;d=-d;}
+  let g=gcd(Math.abs(n),d); return {n:n/g, d:d/g};
+}
+const ratAdd=(a,b)=>rat(a.n*b.d+b.n*a.d, a.d*b.d);
+const ratSub=(a,b)=>rat(a.n*b.d-b.n*a.d, a.d*b.d);
+const ratMul=(a,b)=>rat(a.n*b.n, a.d*b.d);
+const ratDiv=(a,b)=>rat(a.n*b.d, a.d*b.n);
+function ratPow(a,e){ if(e===0)return rat(1); let r=rat(1); for(let i=0;i<e;i++)r=ratMul(r,a); return r; }
+const ratNeg =(a)=>rat(-a.n,a.d);
+const ratAbs =(a)=>rat(Math.abs(a.n),a.d);
+const ratToFloat=(r)=>r.n/r.d;
+const ratIsInt =(r)=>r.d===1;
+const ratIsZero=(r)=>r.n===0;
+const ratIsNeg =(r)=>r.n<0;
+const ratEq   =(a,b)=>a.n===b.n&&a.d===b.d;
+const ratIsExactAt2=(r)=>(Math.abs(r.n)*100)%r.d===0;
+
+// ================================================================
+// DECIMAL DISPLAY HELPER
+// When decMode=true, display polynomial coefficients as decimal numbers
+// (comma as decimal separator) rather than fractions.
+// ================================================================
+// Format a rational as a decimal LaTeX string (comma as decimal separator)
+function ratToDecimalLatex(r, skipOne=false) {
+  if (r.d===1) {
+    if (r.n===0) return '0';
+    if (skipOne && r.n===1)  return '';
+    if (skipOne && r.n===-1) return '-';
+    return r.n.toString();
+  }
+  // Convert to decimal string
+  let v=r.n/r.d;
+  let s=v.toFixed(4).replace(/0+$/,'').replace(/\.$/,'');
+  s=s.replace('.','{,}');
+  if (skipOne && s==='1')  return '';
+  if (skipOne && s==='-1') return '-';
+  return s;
+}
+
+// ================================================================
+// LATEX FOR RATIONALS  (identical logic to original bestimmtes_integral file)
+// ================================================================
+function ratToLatex(r, skipOne=false) {
+  if (r.d===1) {
+    if (r.n===0) return '0';
+    if (skipOne && r.n===1)  return '';
+    if (skipOne && r.n===-1) return '-';
+    return r.n.toString();
+  }
+  let absN=Math.abs(r.n), sign=r.n<0?'-':'';
+  if (skipOne && absN===r.d) return r.n<0?'-':'';
+  return `${sign}\\frac{${absN}}{${r.d}}`;
+}
+function ratToRoundedLatex(r) {
+  if (ratIsInt(r)) return r.n.toString();
+  let v=Math.round(ratToFloat(r)*100)/100;
+  return v.toFixed(2).replace(/0+$/,'').replace(/\.$/,'').replace('.','{,}');
+}
+function formatRat(r, mode, appendDecimal=false) {
+  if (mode==='round') return ratToRoundedLatex(r);
+  let base=ratToLatex(r);
+  if (appendDecimal && !ratIsInt(r)) {
+    let v=Math.round(ratToFloat(r)*100)/100;
+    let sign=ratIsExactAt2(r)?'=':'\\approx';
+    let s=v.toFixed(2).replace(/0+$/,'').replace(/\.$/,'').replace('.','{,}');
+    return `${base} ${sign} ${s}`;
+  }
+  return base;
+}
+function eqSign(r, mode) {
+  if (mode==='round') return ratIsExactAt2(r)?'=':'\\approx';
+  return '=';
+}
+
+// ================================================================
+// POLYNOMIAL  — coefficients[i] = rational for x^i
+// ================================================================
+function polyEval(c, x) {   // x rational
+  let s=rat(0);
+  for(let i=0;i<c.length;i++) if(!ratIsZero(c[i])) s=ratAdd(s,ratMul(c[i],ratPow(x,i)));
+  return s;
+}
+function polyEvalF(c, x) {  // x float
+  let s=0;
+  for(let i=0;i<c.length;i++) s+=ratToFloat(c[i])*Math.pow(x,i);
+  return s;
+}
+// poly * (x - r), r rational  →  coefficients
+function polyMulLinear(c, r) {
+  let res=new Array(c.length+1).fill(null).map(()=>rat(0));
+  for(let i=0;i<c.length;i++){
+    res[i+1]=ratAdd(res[i+1],c[i]);
+    res[i]  =ratSub(res[i],  ratMul(r,c[i]));
+  }
+  return res;
+}
+// poly * (x^2 + px + q), p,q rational
+function polyMulQuad(c, p, q) {
+  let res=new Array(c.length+2).fill(null).map(()=>rat(0));
+  for(let i=0;i<c.length;i++){
+    res[i+2]=ratAdd(res[i+2],c[i]);
+    res[i+1]=ratAdd(res[i+1],ratMul(p,c[i]));
+    res[i]  =ratAdd(res[i],  ratMul(q,c[i]));
+  }
+  return res;
+}
+// multiply all coefficients by scalar s (rational)
+function polyScale(c, s) { return c.map(x=>ratMul(x,s)); }
+
+function antideriv(c) {
+  let F=[rat(0)];
+  for(let i=0;i<c.length;i++) F.push(ratDiv(c[i],rat(i+1)));
+  return F;
+}
+
+// ================================================================
+// LATEX FOR POLYNOMIALS
+// ================================================================
+function polyToLatex(c, v='x', decMode=false) {
+  let coeff2lat=(r,skip)=>decMode?ratToDecimalLatex(r,skip):ratToLatex(r,skip);
+  let terms=[];
+  for(let i=c.length-1;i>=0;i--) {
+    let r=c[i]; if(ratIsZero(r)) continue;
+    let cs=coeff2lat(r,i>0);
+    let xp=i===0?'':(i===1?v:`${v}^{${i}}`);
+    let term;
+    if(i===0)         term=coeff2lat(r,false);
+    else if(cs==='')  term=xp;
+    else if(cs==='-') term=`-${xp}`;
+    else              term=`${cs}${xp}`;
+    terms.push({term, neg:ratIsNeg(r)});
+  }
+  if(!terms.length) return '0';
+  let s='';
+  for(let i=0;i<terms.length;i++) s+=(i===0?'':(terms[i].neg?'':'+'))+terms[i].term;
+  return s;
+}
+function substitutePoly(c, valLatex, decMode=false) {
+  let coeff2lat=(r,skip)=>decMode?ratToDecimalLatex(r,skip):ratToLatex(r,skip);
+  let terms=[];
+  for(let i=c.length-1;i>=0;i--) {
+    let r=c[i]; if(ratIsZero(r)) continue;
+    let cs=coeff2lat(r,i>0);
+    let xp=i===0?'':(i===1?`\\left(${valLatex}\\right)`:`\\left(${valLatex}\\right)^{${i}}`);
+    let term;
+    if(i===0)         term=coeff2lat(r,false);
+    else if(cs==='')  term=xp;
+    else if(cs==='-') term=`-${xp}`;
+    else              term=`${cs}\\cdot ${xp}`;
+    terms.push({term, neg:ratIsNeg(r)});
+  }
+  if(!terms.length) return '0';
+  let s='';
+  for(let i=0;i<terms.length;i++) s+=(i===0?'':(terms[i].neg?'':'+'))+terms[i].term;
+  return s;
+}
+function antiderivIntermediate(c, decMode=false) {
+  let coeff2lat=(r,skip)=>decMode?ratToDecimalLatex(r,skip):ratToLatex(r,skip);
+  let terms=[];
+  for(let i=c.length-1;i>=0;i--) {
+    let r=c[i]; if(ratIsZero(r)) continue;
+    let np=i+1, cs=coeff2lat(r,i>0);
+    let fullCs=coeff2lat(r,false);
+    let term;
+    if(i===0)      term=cs===''?'x':cs==='-'?'-x':`${fullCs}\\cdot x`;
+    else if(i===1) term=cs===''?`\\frac{x^{2}}{2}`:cs==='-'?`-\\frac{x^{2}}{2}`:`${cs}\\cdot\\frac{x^{2}}{2}`;
+    else           term=cs===''?`\\frac{x^{${np}}}{${np}}`:cs==='-'?`-\\frac{x^{${np}}}{${np}}`:`${cs}\\cdot\\frac{x^{${np}}}{${np}}`;
+    terms.push({term, neg:ratIsNeg(r)});
+  }
+  if(!terms.length) return '0';
+  let s='';
+  for(let i=0;i<terms.length;i++) s+=(i===0?'':(terms[i].neg?'':'+'))+terms[i].term;
+  return s;
+}
+
+// ================================================================
+// ZERO VALUE TYPES
+// A "zeroVal" is one of:
+//   {type:'rat',  r: rat}                          exact rational
+//   {type:'sqrt', n: positive integer, d: positive integer}   value = sqrt(n)/d  (or -sqrt(n)/d if sign=-1)
+//   — we store the POSITIVE form; zeros come in ± pairs for sqrt
+// A "zero" is {val: zeroVal, sign: +1 or -1, mult: integer}
+//   representing the zero  sign * |val|  with given multiplicity
+// For rational zeros, sign is baked into val.r.
+// For sqrt zeros, sign tells us + or -.
+// ================================================================
+function zeroValToFloat(v) {
+  if (v.type==='rat') return ratToFloat(v.r);
+  return Math.sqrt(v.n)/v.d;
+}
+function zeroToFloat(z) {
+  if (z.val.type==='rat') return ratToFloat(z.val.r); // sign already in r
+  return z.sign * Math.sqrt(z.val.n) / z.val.d;
+}
+function zeroToRat(z) {
+  // returns rat if z is rational, null otherwise
+  if (z.val.type==='rat') return z.val.r;
+  return null;
+}
+// LaTeX for a zero object
+function zeroToLatex(z) {
+  if (z.val.type==='rat') return ratToLatex(z.val.r);
+  // sqrt form
+  let inner = z.val.d===1 ? `\\sqrt{${z.val.n}}` : `\\frac{\\sqrt{${z.val.n}}}{${z.val.d}}`;
+  return z.sign>0 ? inner : `-${inner}`;
+}
+// Linear factor LaTeX for a rational zero r:  (x - r)
+function linearFactorLatex(r) {
+  if (ratIsZero(r)) return 'x';
+  if (ratIsNeg(r)) return `(x+${ratToLatex(ratAbs(r))})`;
+  return `(x-${ratToLatex(r)})`;
+}
+
+// ================================================================
+// RANDOM HELPERS
+// ================================================================
+const rand=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+function pick(arr){return arr[Math.floor(Math.random()*arr.length)];}
+function randSign(){return Math.random()<0.5?1:-1;}
+
+// Choose a leading coefficient 'a'.
+// Returns {r: rational, decMode: boolean}
+// decMode=true  → all polynomial coefficients displayed as decimals
+// decMode=false → displayed as integers or fractions (never as decimals)
+//
+// Weights: integer=1, fractions=2 (if enabled), decimals=2 (if enabled)
+// So e.g. only fractions checked → 1:2 ratio integers:fractions
+//         only decimals checked  → 1:2 ratio integers:decimals
+//         both checked           → 1:2:2 ratio integers:fractions:decimals
+function pickLeadCoeff() {
+  let allowFrac=document.getElementById('allowFractions').checked;
+  let allowDec =document.getElementById('allowDecimals').checked;
+
+  const posInts=[1,2,3,4,5,10];
+  const allInts=[-10,-5,-4,-3,-2,-1,...posInts];
+  const fracDenoms=[2,3,4,5,10];
+  // Decimal offsets as hundredths: 0.10…0.90, 0.25, 0.75
+  const decOffsets=[10,20,30,40,50,60,70,80,90,25,75];
+
+  // Build weighted choice: each "slot" is {type:'int'|'frac'|'dec'}
+  // weight 1 for integers, 2 for fractions, 2 for decimals
+  let slots=[];
+  for(let i=0;i<1;i++) slots.push('int');
+  if(allowFrac) for(let i=0;i<2;i++) slots.push('frac');
+  if(allowDec)  for(let i=0;i<2;i++) slots.push('dec');
+
+  let chosen=pick(slots);
+
+  if(chosen==='dec') {
+    let off=pick(decOffsets);
+    let absVal;
+    if(Math.random()<0.5) {
+      absVal=rat(off,100);            // e.g. 0.7
+    } else {
+      let prefix=pick(posInts);
+      absVal=rat(prefix*100+off,100); // e.g. 4.7
+    }
+    let r=Math.random()<0.5 ? absVal : ratNeg(absVal);
+    return {r, decMode:true};
+  }
+
+  if(chosen==='frac') {
+    // Pick a non-trivial fraction from the full integer×denom pool
+    let pool=[];
+    allInts.forEach(n=>{
+      fracDenoms.forEach(d=>{
+        let r=rat(n,d);
+        if(r.d>1) pool.push(r); // only true fractions (not reducible to integer)
+      });
+    });
+    pool=pool.filter(r=>!ratIsZero(r));
+    return {r:pick(pool), decMode:false};
+  }
+
+  // 'int': plain integer
+  let pool=allInts.filter(v=>v!==0).map(v=>rat(v));
+  return {r:pick(pool), decMode:false};
+}
+
+// Pick a zero value (rational) between -10 and 10, possibly half/quarter
+function pickRatZeroVal(zeroType) {
+  if (zeroType==='integer') {
+    return {type:'rat', r:rat(rand(-10,10))};
+  } else if (zeroType==='rational') {
+    let r=pick([1,2,4]); // denominator
+    let n=rand(-10*r,10*r);
+    return {type:'rat', r:rat(n,r)};
+  } else {
+    // irrational: either rational or sqrt
+    if (Math.random()<0.5) {
+      // rational fallback
+      return {type:'rat', r:rat(rand(-10,10))};
+    } else {
+      // sqrt(n) for positive non-perfect-square n
+      let candidates=[2,3,5,6,7,8,10,11,12,13,14,15,17,18,19,20];
+      let n=pick(candidates);
+      return {type:'sqrt', n, d:1};
+    }
+  }
+}
+
+// Build the rational representing a zero (for rational zeros): just its r
+// For polynomial multiplication, sqrt zeros give irrational roots → we build
+// the quadratic factor (x-sqrt(n))(x+sqrt(n)) = x²-n  instead.
+
+// ================================================================
+// QUADRATIC WITHOUT REAL ZEROS  (integer coefficients)
+// Returns {poly: coefficients [c,b,1], latex: display string, desc: text}
+// The poly is monic (leading coeff 1); caller scales by 'a' separately.
+// Form: x² + px + q  with discriminant p²-4q < 0
+// ================================================================
+function makeIrreducibleQuadratic() {
+  // Choose p (coefficient of x) and q (constant) so that p²-4q < 0
+  // Equivalently q > p²/4.
+  // Simple approach: p in {-4..4}, q = ceil(p²/4)+rand(1,4)
+  let p=rand(-4,4);
+  let minQ=Math.floor(p*p/4)+1;
+  let q=minQ+rand(0,4);
+  // poly: x²+px+q  represented as [rat(q), rat(p), rat(1)]
+  return {
+    poly: [rat(q), rat(p), rat(1)],
+    latex: `x^{2}${p>0?'+'+p:p<0?p:''}x${q>0?'+'+q:''}`.replace('+-','-').replace('0x','').replace('+0',''),
+    latexFull: `(x^{2}${p!==0?(p>0?'+':'')+p+'x':''}+${q})`,
+    p: rat(p), q: rat(q)
+  };
+}
+// Build a nicer latex for the irreducible quadratic shown as factor
+function irredLatex(iq) {
+  let pStr=iq.p.n===0?'':ratToLatex(iq.p)+'x';
+  let qStr='+'+iq.q.n; // q always positive
+  // full: x²+px+q
+  let inner='x^{2}';
+  if(!ratIsZero(iq.p)){
+    if(ratIsNeg(iq.p)) inner+=ratToLatex(iq.p)+'x';
+    else inner+='+'+ratToLatex(iq.p)+'x';
+  }
+  inner+='+'+ratToLatex(iq.q);
+  return `(${inner})`;
+}
+
+// ================================================================
+// ZERO SELECTION  (distinct, avoiding repeats where needed)
+// ================================================================
+function pickDistinctRationals(n, zeroType, exclude=[]) {
+  // Returns n distinct rational zero values (as rats), avoiding exclude list
+  let results=[];
+  let usedKeys=new Set(exclude.map(r=>`${r.n}/${r.d}`));
+  for(let i=0;i<n;i++) {
+    let v, key, tries=0;
+    do {
+      v=pickRatZeroVal(zeroType);
+      if(v.type!=='rat') v={type:'rat',r:rat(rand(-8,8))}; // fallback to int
+      key=`${v.r.n}/${v.r.d}`;
+      tries++;
+    } while(usedKeys.has(key) && tries<100);
+    usedKeys.add(key);
+    results.push(v.r);
+  }
+  return results;
+}
+
+// ================================================================
+// TASK GENERATION — MAIN
+// ================================================================
+function generateTask() {
+  let taskTypeSetting=document.querySelector('input[name="taskType"]:checked').value;
+  let zeroType       =document.querySelector('input[name="zeroType"]:checked').value;
+  let maxDeg         =parseInt(document.getElementById('maxDegree').value);
+  let maxZIR         =parseInt(document.getElementById('maxZerosInRange').value);
+  let allowFact      =document.getElementById('allowFactor').checked;
+
+  let taskType=taskTypeSetting==='random'?pick(['findAll','givenAll','verify']):taskTypeSetting;
+  let degree=rand(1,maxDeg);
+
+  // Leading coefficient 'a' — returns {r, decMode}
+  let {r:a, decMode} = pickLeadCoeff();
+
+  // Result of building:
+  let poly;        // rational coefficient array (with 'a' already multiplied in)
+  let zeros=[];    // array of {r:rat, mult:int} for rational zeros
+                   // or {sqrtN:int, mult:int} for ±sqrt zeros (two entries each)
+  let zeroFloats=[];  // sorted float values of all zeros
+  let factorLatex=''; // display of factored form (without outer factor)
+  let hasIrrZeros=false;
+  let noRealZeros=false; // polynomial has no real zeros at all
+  let verifyZeros=[]; // subset to verify (for 'verify' task)
+
+  // ── Inner build functions ──────────────────────────────────────
+
+  // Build poly from rational zero list + optional irred quadratic
+  // zeros_r: array of rat (the actual zero values, may repeat for multiplicity)
+  // iq: optional irreducible quadratic {poly, ...}
+  // returns: poly coeffs with leading coeff 1 (before scaling by a)
+  function buildFromFactors(zeros_r, iq) {
+    let p=[rat(1)];
+    for(let r of zeros_r) p=polyMulLinear(p,r);
+    if(iq) p=polyMulQuad(p, iq.p, iq.q);
+    return p;
+  }
+
+  // Build factored LaTeX string (monic, before 'a')
+  function factorLatexFromRatZeros(zeros_r, iq) {
+    let s='';
+    // Group consecutive equal values as powers
+    let groups=[];
+    let i=0;
+    while(i<zeros_r.length) {
+      let r=zeros_r[i], cnt=0;
+      while(i<zeros_r.length && ratEq(zeros_r[i],r)){cnt++;i++;}
+      groups.push({r,cnt});
+    }
+    for(let g of groups) {
+      let lf=linearFactorLatex(g.r);
+      s+= g.cnt>1 ? `${lf}^{${g.cnt}}` : lf;
+    }
+    if(iq) s+=irredLatex(iq);
+    return s;
+  }
+
+  // ── Decide build strategy ─────────────────────────────────────
+
+  if (taskType==='findAll') {
+    // Must produce a polynomial whose zeros can be found analytically
+    if (degree===1) {
+      let z=pickDistinctRationals(1,zeroType)[0];
+      zeros=[{r:z, mult:1}]; zeroFloats=[ratToFloat(z)];
+      poly=polyScale(polyMulLinear([rat(1)],z), a);
+      factorLatex=linearFactorLatex(z);
+    }
+    else if (degree===2) {
+      let sub=pick(['twoDistinct','double','none']);
+      if(sub==='twoDistinct') {
+        let [z1,z2]=pickDistinctRationals(2,zeroType);
+        if(zeroType==='irrational' && Math.random()<0.4) {
+          // use x²-n  (sqrt roots)
+          let n=pick([2,3,5,6,7,8,10,12,13,15]);
+          let r=Math.sqrt(n);
+          zeros=[{r:rat( Math.round(r*1000)/1000), mult:1, isSqrt:true, sqrtN:n, sqrtSign:1},
+                 {r:rat(-Math.round(r*1000)/1000), mult:1, isSqrt:true, sqrtN:n, sqrtSign:-1}];
+          zeroFloats=[r,-r].sort((a,b)=>a-b);
+          // poly: x²-n  (before scaling)
+          poly=polyScale([rat(-n),rat(0),rat(1)], a);
+          factorLatex=`(x^{2}-${n})`;
+          hasIrrZeros=true;
+        } else {
+          zeros=[{r:z1,mult:1},{r:z2,mult:1}];
+          zeroFloats=[ratToFloat(z1),ratToFloat(z2)].sort((a,b)=>a-b);
+          poly=polyScale(buildFromFactors([z1,z2]),a);
+          factorLatex=factorLatexFromRatZeros([z1,z2]);
+        }
+      } else if(sub==='double') {
+        let [z]=pickDistinctRationals(1,zeroType);
+        zeros=[{r:z,mult:2}]; zeroFloats=[ratToFloat(z)];
+        poly=polyScale(buildFromFactors([z,z]),a);
+        factorLatex=factorLatexFromRatZeros([z,z]);
+      } else {
+        // no real zeros
+        let iq=makeIrreducibleQuadratic();
+        zeros=[]; zeroFloats=[]; noRealZeros=true;
+        poly=polyScale(iq.poly,a);
+        factorLatex=irredLatex(iq);
+      }
+    }
+    else if (degree===3) {
+      // Subtypes (x always factorable as x·... or x²·... or x³)
+      let sub=pick(['x_two_distinct','x_double','x2_one','x3','x_irred']);
+      if(sub==='x_two_distinct') {
+        // ax(x-z1)(x-z2)
+        let [z1,z2]=pickDistinctRationals(2,zeroType,[ rat(0) ]);
+        zeros=[{r:rat(0),mult:1},{r:z1,mult:1},{r:z2,mult:1}];
+        zeroFloats=[0,ratToFloat(z1),ratToFloat(z2)].sort((a,b)=>a-b);
+        poly=polyScale(buildFromFactors([rat(0),z1,z2]),a);
+        factorLatex=`x${linearFactorLatex(z1)}${linearFactorLatex(z2)}`;
+      } else if(sub==='x_double') {
+        // ax(x-z1)²
+        let [z1]=pickDistinctRationals(1,zeroType,[rat(0)]);
+        zeros=[{r:rat(0),mult:1},{r:z1,mult:2}];
+        zeroFloats=[0,ratToFloat(z1)].sort((a,b)=>a-b);
+        poly=polyScale(buildFromFactors([rat(0),z1,z1]),a);
+        factorLatex=`x${linearFactorLatex(z1)}^{2}`;
+      } else if(sub==='x2_one') {
+        // ax²(x-z1)
+        let [z1]=pickDistinctRationals(1,zeroType,[rat(0)]);
+        zeros=[{r:rat(0),mult:2},{r:z1,mult:1}];
+        zeroFloats=[0,ratToFloat(z1)].sort((a,b)=>a-b);
+        poly=polyScale(buildFromFactors([rat(0),rat(0),z1]),a);
+        factorLatex=`x^{2}${linearFactorLatex(z1)}`;
+      } else if(sub==='x3') {
+        // ax³
+        zeros=[{r:rat(0),mult:3}]; zeroFloats=[0];
+        poly=polyScale([rat(0),rat(0),rat(0),rat(1)],a);
+        factorLatex='x^{3}';
+      } else {
+        // ax(x²+px+q)
+        let iq=makeIrreducibleQuadratic();
+        zeros=[{r:rat(0),mult:1}]; zeroFloats=[0];
+        poly=polyScale(buildFromFactors([rat(0)],iq),a);
+        factorLatex=`x${irredLatex(iq)}`;
+      }
+    }
+    else { // degree===4, findAll — structured subtypes only
+      let sub=pick([
+        'sq_sq_pos_pos','sq_sq_pos_neg','sq_sq_neg_neg',
+        'x2_sq_pos','x2_sq_neg','x2_lin_lin','x3_lin','x2_double_lin'
+      ]);
+      buildDeg4FindAll(sub);
+    }
+  }
+  else {
+    // givenAll or verify: build freely
+    if(degree===1) {
+      let z=pickDistinctRationals(1,zeroType)[0];
+      zeros=[{r:z,mult:1}]; zeroFloats=[ratToFloat(z)];
+      poly=polyScale(polyMulLinear([rat(1)],z),a);
+      factorLatex=linearFactorLatex(z);
+    }
+    else if(degree===2) {
+      buildDeg2Free();
+    }
+    else if(degree===3) {
+      buildDeg3Free();
+    }
+    else {
+      buildDeg4Free();
+    }
+  }
+
+  // ── Degree 4, findAll structured subtypes ────────────────────
+  function buildDeg4FindAll(sub) {
+    if(sub==='sq_sq_pos_pos') {
+      // a(x²-x1²)(x²-x2²) — 4 roots ±x1,±x2 (or fewer if some equal)
+      let x1v=pickRatZeroVal(zeroType), x2v=pickRatZeroVal(zeroType);
+      // Ensure x1v,x2v > 0 (take absolute value)
+      let x1f=Math.abs(zeroValToFloat(x1v)), x2f=Math.abs(zeroValToFloat(x2v));
+      if(x1f<0.01) x1f=1;
+      if(x2f<0.01) x2f=1;
+      // Build as (x²-x1²)(x²-x2²)
+      // For rational x1: zero at x1 and -x1
+      // inner: (x²-x1²) = quadratic with p=0, q=-x1²
+      let inner1, inner2;
+      if(x1v.type==='rat') {
+        let sq=ratMul(x1v.r,x1v.r);
+        inner1={poly:[ratNeg(sq),rat(0),rat(1)], p:rat(0), q:ratNeg(sq)};
+        let r1=ratAbs(x1v.r);
+        zeros.push({r:r1,mult:1},{r:ratNeg(r1),mult:1});
+        zeroFloats.push(ratToFloat(r1),ratToFloat(ratNeg(r1)));
+      } else {
+        inner1={poly:[rat(-x1v.n),rat(0),rat(1)], p:rat(0), q:rat(-x1v.n)};
+        zeros.push({r:null,mult:1,isSqrt:true,sqrtN:x1v.n,sqrtSign:1});
+        zeros.push({r:null,mult:1,isSqrt:true,sqrtN:x1v.n,sqrtSign:-1});
+        zeroFloats.push(Math.sqrt(x1v.n),-Math.sqrt(x1v.n));
+        hasIrrZeros=true;
+      }
+      if(x2v.type==='rat') {
+        let sq=ratMul(x2v.r,x2v.r);
+        inner2={poly:[ratNeg(sq),rat(0),rat(1)], p:rat(0), q:ratNeg(sq)};
+        let r2=ratAbs(x2v.r);
+        zeros.push({r:r2,mult:1},{r:ratNeg(r2),mult:1});
+        zeroFloats.push(ratToFloat(r2),ratToFloat(ratNeg(r2)));
+      } else {
+        inner2={poly:[rat(-x2v.n),rat(0),rat(1)], p:rat(0), q:rat(-x2v.n)};
+        zeros.push({r:null,mult:1,isSqrt:true,sqrtN:x2v.n,sqrtSign:1});
+        zeros.push({r:null,mult:1,isSqrt:true,sqrtN:x2v.n,sqrtSign:-1});
+        zeroFloats.push(Math.sqrt(x2v.n),-Math.sqrt(x2v.n));
+        hasIrrZeros=true;
+      }
+      let monic=polyMulQuad(inner1.poly, inner2.p, inner2.q);
+      poly=polyScale(monic,a);
+      // factored: (x²-x1²)(x²-x2²) or with sqrt notation
+      let f1=x1v.type==='rat'?`(x^{2}-${ratToLatex(ratMul(ratAbs(x1v.r),ratAbs(x1v.r)))})`:`(x^{2}-${x1v.n})`;
+      let f2=x2v.type==='rat'?`(x^{2}-${ratToLatex(ratMul(ratAbs(x2v.r),ratAbs(x2v.r)))})`:`(x^{2}-${x2v.n})`;
+      factorLatex=f1+f2;
+    }
+    else if(sub==='sq_sq_pos_neg') {
+      // a(x²-x1²)(x²+x2²) — only ±x1 are roots
+      let x1v=pickRatZeroVal(zeroType), x2v=pickRatZeroVal(zeroType);
+      let x2sq; // x2² as rational
+      if(x2v.type==='rat') x2sq=ratMul(ratAbs(x2v.r),ratAbs(x2v.r));
+      else x2sq=rat(x2v.n);
+      if(ratIsZero(x2sq)) x2sq=rat(1);
+      // (x²-x1²)
+      let inner1q, inner1p=rat(0), inner1;
+      if(x1v.type==='rat') {
+        let sq=ratMul(ratAbs(x1v.r),ratAbs(x1v.r));
+        inner1q=ratNeg(sq);
+        let r1=ratAbs(x1v.r);
+        zeros.push({r:r1,mult:1},{r:ratNeg(r1),mult:1});
+        zeroFloats.push(ratToFloat(r1),ratToFloat(ratNeg(r1)));
+      } else {
+        inner1q=rat(-x1v.n);
+        zeros.push({r:null,mult:1,isSqrt:true,sqrtN:x1v.n,sqrtSign:1});
+        zeros.push({r:null,mult:1,isSqrt:true,sqrtN:x1v.n,sqrtSign:-1});
+        zeroFloats.push(Math.sqrt(x1v.n),-Math.sqrt(x1v.n));
+        hasIrrZeros=true;
+      }
+      let monicBase=[inner1q,rat(0),rat(1)]; // x²-x1²
+      let monic=polyMulQuad(monicBase,rat(0),x2sq); // *(x²+x2²)
+      poly=polyScale(monic,a);
+      let x1sq_str=x1v.type==='rat'?ratToLatex(ratMul(ratAbs(x1v.r),ratAbs(x1v.r))):String(x1v.n);
+      let x2sq_str=ratToLatex(x2sq);
+      factorLatex=`(x^{2}-${x1sq_str})(x^{2}+${x2sq_str})`;
+    }
+    else if(sub==='sq_sq_neg_neg') {
+      // a(x²+x1²)(x²+x2²) — no real zeros
+      let iq1=makeIrreducibleQuadratic(), iq2=makeIrreducibleQuadratic();
+      zeros=[]; zeroFloats=[]; noRealZeros=true;
+      let monic=polyMulQuad(iq1.poly,iq2.p,iq2.q);
+      poly=polyScale(monic,a);
+      factorLatex=irredLatex(iq1)+irredLatex(iq2);
+    }
+    else if(sub==='x2_sq_pos') {
+      // ax²(x²-x1²) — zeros 0(double), ±x1
+      let x1v=pickRatZeroVal(zeroType);
+      let x1sq;
+      if(x1v.type==='rat'){ x1sq=ratMul(ratAbs(x1v.r),ratAbs(x1v.r)); let r1=ratAbs(x1v.r); zeros.push({r:r1,mult:1},{r:ratNeg(r1),mult:1}); zeroFloats.push(ratToFloat(r1),-ratToFloat(r1)); }
+      else { x1sq=rat(x1v.n); zeros.push({r:null,mult:1,isSqrt:true,sqrtN:x1v.n,sqrtSign:1},{r:null,mult:1,isSqrt:true,sqrtN:x1v.n,sqrtSign:-1}); zeroFloats.push(Math.sqrt(x1v.n),-Math.sqrt(x1v.n)); hasIrrZeros=true; }
+      zeros.unshift({r:rat(0),mult:2}); zeroFloats.push(0);
+      // poly: x²(x²-x1²) = x^4-x1²x²
+      let monic=[rat(0),rat(0),ratNeg(x1sq),rat(0),rat(1)];
+      poly=polyScale(monic,a);
+      let sq_str=x1v.type==='rat'?ratToLatex(ratMul(ratAbs(x1v.r),ratAbs(x1v.r))):String(x1v.n);
+      factorLatex=`x^{2}(x^{2}-${sq_str})`;
+    }
+    else if(sub==='x2_sq_neg') {
+      // ax²(x²+c) — only zero: x=0 (double)
+      let iq=makeIrreducibleQuadratic();
+      zeros=[{r:rat(0),mult:2}]; zeroFloats=[0];
+      let monicBase=[rat(0),rat(0),rat(1)]; // x²
+      let monic=polyMulQuad(monicBase,iq.p,iq.q);
+      poly=polyScale(monic,a);
+      factorLatex=`x^{2}${irredLatex(iq)}`;
+    }
+    else if(sub==='x2_lin_lin') {
+      // ax²(x-z1)(x-z2) — zeros 0(double),z1,z2
+      let [z1,z2]=pickDistinctRationals(2,zeroType,[rat(0)]);
+      zeros=[{r:rat(0),mult:2},{r:z1,mult:1},{r:z2,mult:1}];
+      zeroFloats=[0,ratToFloat(z1),ratToFloat(z2)].sort((a,b)=>a-b);
+      let monic=buildFromFactors([rat(0),rat(0),z1,z2]);
+      poly=polyScale(monic,a);
+      factorLatex=`x^{2}${linearFactorLatex(z1)}${linearFactorLatex(z2)}`;
+    }
+    else if(sub==='x3_lin') {
+      // ax³(x-z1) — zeros 0(triple),z1
+      let [z1]=pickDistinctRationals(1,zeroType,[rat(0)]);
+      zeros=[{r:rat(0),mult:3},{r:z1,mult:1}];
+      zeroFloats=[0,ratToFloat(z1)].sort((a,b)=>a-b);
+      let monic=buildFromFactors([rat(0),rat(0),rat(0),z1]);
+      poly=polyScale(monic,a);
+      factorLatex=`x^{3}${linearFactorLatex(z1)}`;
+    }
+    else { // x2_double_lin
+      // ax²(x-z1)² — zeros 0(double),z1(double)
+      let [z1]=pickDistinctRationals(1,zeroType,[rat(0)]);
+      zeros=[{r:rat(0),mult:2},{r:z1,mult:2}];
+      zeroFloats=[0,ratToFloat(z1)].sort((a,b)=>a-b);
+      let monic=buildFromFactors([rat(0),rat(0),z1,z1]);
+      poly=polyScale(monic,a);
+      factorLatex=`x^{2}${linearFactorLatex(z1)}^{2}`;
+    }
+  }
+
+  // ── Degree 2-4 free (givenAll/verify) ────────────────────────
+  function buildDeg2Free() {
+    let sub=pick(['two','double','none']);
+    if(sub==='two') {
+      let [z1,z2]=pickDistinctRationals(2,zeroType);
+      zeros=[{r:z1,mult:1},{r:z2,mult:1}];
+      zeroFloats=[ratToFloat(z1),ratToFloat(z2)].sort((a,b)=>a-b);
+      poly=polyScale(buildFromFactors([z1,z2]),a);
+      factorLatex=factorLatexFromRatZeros([z1,z2]);
+    } else if(sub==='double') {
+      let [z]=pickDistinctRationals(1,zeroType);
+      zeros=[{r:z,mult:2}];
+      zeroFloats=[ratToFloat(z)];
+      poly=polyScale(buildFromFactors([z,z]),a);
+      factorLatex=factorLatexFromRatZeros([z,z]);
+    } else {
+      let iq=makeIrreducibleQuadratic();
+      zeros=[]; zeroFloats=[]; noRealZeros=true;
+      poly=polyScale(iq.poly,a);
+      factorLatex=irredLatex(iq);
+    }
+  }
+
+  function buildDeg3Free() {
+    let r=Math.random();
+    if(r<0.7) {
+      // a(x-z1)(x-z2)(x-z3)
+      let [z1,z2,z3]=pickDistinctRationals(3,zeroType);
+      zeros=[{r:z1,mult:1},{r:z2,mult:1},{r:z3,mult:1}];
+      zeroFloats=[ratToFloat(z1),ratToFloat(z2),ratToFloat(z3)].sort((a,b)=>a-b);
+      poly=polyScale(buildFromFactors([z1,z2,z3]),a);
+      factorLatex=factorLatexFromRatZeros([z1,z2,z3]);
+    } else {
+      // a(x-z1)(irred quad)
+      let [z1]=pickDistinctRationals(1,zeroType);
+      let iq=makeIrreducibleQuadratic();
+      zeros=[{r:z1,mult:1}];
+      zeroFloats=[ratToFloat(z1)];
+      poly=polyScale(buildFromFactors([z1],iq),a);
+      factorLatex=`${linearFactorLatex(z1)}${irredLatex(iq)}`;
+    }
+  }
+
+  function buildDeg4Free() {
+    let r=Math.random();
+    if(r<0.6) {
+      // a(x-z1)(x-z2)(x-z3)(x-z4) — zeros may coincide
+      let [z1,z2]=pickDistinctRationals(2,zeroType);
+      let z3,z4;
+      // sometimes repeat a zero for multiplicity
+      if(Math.random()<0.3) { z3=z1; } else { [z3]=pickDistinctRationals(1,zeroType,[z1,z2]); }
+      if(Math.random()<0.3) { z4=z2; } else { [z4]=pickDistinctRationals(1,zeroType,[]); }
+      let allZ=[z1,z2,z3,z4];
+      // Count multiplicities
+      let multMap={};
+      for(let z of allZ) { let k=`${z.n}/${z.d}`; multMap[k]=(multMap[k]||{r:z,cnt:0}); multMap[k].cnt++; }
+      zeros=Object.values(multMap).map(m=>({r:m.r,mult:m.cnt}));
+      zeroFloats=[...new Set(allZ.map(z=>ratToFloat(z)))].sort((a,b)=>a-b);
+      poly=polyScale(buildFromFactors(allZ),a);
+      factorLatex=factorLatexFromRatZeros(allZ);
+    } else if(r<0.8) {
+      // a(x-z1)(x-z2)(irred quad)
+      let [z1,z2]=pickDistinctRationals(2,zeroType);
+      let iq=makeIrreducibleQuadratic();
+      zeros=[{r:z1,mult:1},{r:z2,mult:1}];
+      zeroFloats=[ratToFloat(z1),ratToFloat(z2)].sort((a,b)=>a-b);
+      poly=polyScale(buildFromFactors([z1,z2],iq),a);
+      factorLatex=`${factorLatexFromRatZeros([z1,z2])}${irredLatex(iq)}`;
+    } else {
+      // a(irred1)(irred2)
+      let iq1=makeIrreducibleQuadratic(), iq2=makeIrreducibleQuadratic();
+      zeros=[]; zeroFloats=[]; noRealZeros=true;
+      let monic=polyMulQuad(iq1.poly,iq2.p,iq2.q);
+      poly=polyScale(monic,a);
+      factorLatex=irredLatex(iq1)+irredLatex(iq2);
+    }
+  }
+
+  // ── For verify: choose a subset of zeros ──────────────────────
+  if(taskType==='verify' && zeros.length>0) {
+    let ratZeros=zeros.filter(z=>z.r!==null);
+    if(ratZeros.length>0) {
+      let n=rand(1,ratZeros.length);
+      verifyZeros=[...ratZeros].sort(()=>Math.random()-0.5).slice(0,n);
+    }
+  }
+
+  // ── Deduplicate & sort zeroFloats ─────────────────────────────
+  zeroFloats=[...new Set(zeroFloats.map(v=>Math.round(v*1e9)/1e9))].sort((a,b)=>a-b);
+
+  // ── Outer factor (separate from 'a') ─────────────────────────
+  // k*10^e (k in 1..9, e in 0..3) or 1/(k*10^e), positive or negative
+  let outerFactor=null;
+  if(allowFact && Math.random()<0.4) {
+    let intMultPool=[];
+    for(let e=0;e<=3;e++){
+      let p=Math.pow(10,e);
+      for(let k=1;k<=9;k++){
+        intMultPool.push(k*p);
+        intMultPool.push(-k*p);
+      }
+    }
+    let base=pick(intMultPool);
+    if(Math.random()<0.5){
+      outerFactor=rat(base);
+    } else {
+      // 1/|base|, sign from base
+      outerFactor=base>0?rat(1,base):ratNeg(rat(1,Math.abs(base)));
+    }
+  }
+
+  // ── Build factored form with 'a' ─────────────────────────────
+  let aLatexFull; // 'a' part for factored display
+  if(ratEq(a,rat(1))) aLatexFull='';
+  else if(ratEq(a,rat(-1))) aLatexFull='-';
+  else aLatexFull=ratToLatex(a);
+
+  // ── Determine integration bounds ─────────────────────────────
+  // Helper: convert a float (integer or .5) to a rat
+  function floatToRat(v) {
+    if (Number.isInteger(v)) return rat(v);
+    return rat(Math.round(v*2), 2); // e.g. 1.5 → rat(3,2)
+  }
+  // Helper: pick a "nice" value (integer or .5) in [lo, hi]
+  function niceValsIn(lo, hi) {
+    let vals=[];
+    let start=Math.ceil(lo*2)/2;
+    for(let v=start; v<=hi+1e-9; v+=0.5) vals.push(Math.round(v*2)/2);
+    return vals;
+  }
+
+  let boundA_rat=null, boundB_rat=null, boundA_float=0, boundB_float=1;
+  let zerosInRange=[];
+  let useOuterZeros=false; // whether we used outer-zeros strategy (for task text)
+
+  function setBound(v, isZero=false, zeroObj=null) {
+    // Returns {rat, float} for a bound value v
+    if (isZero && zeroObj && zeroObj.r) return {rat:zeroObj.r, float:ratToFloat(zeroObj.r)};
+    if (isZero && zeroObj && zeroObj.isSqrt) return {rat:null, float:zeroObjToFloat(zeroObj)};
+    return {rat:floatToRat(v), float:v};
+  }
+
+  if (zeroFloats.length>=2) {
+    // 50% chance of "vollständig eingeschlossene Fläche" — but only when all zeros fit in maxZIR
+    // (i.e. the number of interior zeros when using outermost bounds ≤ maxZIR)
+    let innerZerosIfOuter=zeroFloats.length-2; // zeros strictly between first and last
+    let outerPossible=innerZerosIfOuter<=maxZIR;
+    if (outerPossible && Math.random()<0.5) {
+      useOuterZeros=true;
+      let zA=zeros.find(z=>Math.abs(zeroObjToFloat(z)-zeroFloats[0])<1e-9);
+      let zB=zeros.find(z=>Math.abs(zeroObjToFloat(z)-zeroFloats[zeroFloats.length-1])<1e-9);
+      let bA=setBound(zeroFloats[0],true,zA);
+      let bB=setBound(zeroFloats[zeroFloats.length-1],true,zB);
+      boundA_rat=bA.rat; boundA_float=bA.float;
+      boundB_rat=bB.rat; boundB_float=bB.float;
+    } else {
+      // Position-based selection:
+      // 1. Pick a target number of zeros in range: 0..min(maxZIR, numDistinctZeros)
+      let numDistinct=zeroFloats.length;
+      let maxTarget=Math.min(maxZIR, numDistinct);
+      let targetZIR=rand(0, maxTarget);
+
+      // Build the "slots" between/around zeros:
+      // slot -1 : "before z[0]"  (nice vals in [z[0]-5 , z[0]), or z[0] itself)
+      // slot i  : "between z[i] and z[i+1]"  (nice vals in (z[i], z[i+1]), or z[i+1])
+      // slot n-1: "after z[n-1]"  (nice vals in (z[n-1], z[n-1]+5], or z[n-1])
+      // A "position" is one of: {type:'zero', idx} | {type:'between', left_idx, right_idx} | {type:'before', idx:0} | {type:'after', idx:last}
+      // For the left bound we pick a position, for the right bound a strictly later position.
+
+      // Helper: get candidate nice values for a position (includes the adjacent zeros)
+      // .5 values appear only 20% of the time when integer values are also available.
+      function positionCandidates(pos) {
+        // Returns array of {v:float, isZero:bool, zeroObj?}
+        function filterNice(vals) {
+          // vals is array of numbers. Separate into integers and halves.
+          let ints  = vals.filter(v=>Number.isInteger(v));
+          let halves= vals.filter(v=>!Number.isInteger(v));
+          if(ints.length===0) return halves.map(v=>({v,isZero:false}));
+          // 20% chance to include .5 values alongside integers
+          let pool = Math.random()<0.2 ? [...ints,...halves] : ints;
+          return pool.map(v=>({v,isZero:false}));
+        }
+
+        if(pos.type==='zero') {
+          let z=zeros.find(z=>Math.abs(zeroObjToFloat(z)-zeroFloats[pos.idx])<1e-9);
+          return [{v:zeroFloats[pos.idx], isZero:true, zeroObj:z}];
+        }
+        if(pos.type==='before') {
+          let lo=zeroFloats[0]-5, hi=zeroFloats[0];
+          let raw=niceValsIn(lo,hi-0.5);
+          let cands=filterNice(raw);
+          return cands.length ? cands : [{v:zeroFloats[0]-1, isZero:false}];
+        }
+        if(pos.type==='after') {
+          let lo=zeroFloats[numDistinct-1], hi=zeroFloats[numDistinct-1]+5;
+          let raw=niceValsIn(lo+0.5,hi);
+          let cands=filterNice(raw);
+          return cands.length ? cands : [{v:zeroFloats[numDistinct-1]+1, isZero:false}];
+        }
+        // between left_idx and right_idx
+        let lv=zeroFloats[pos.left_idx], rv=zeroFloats[pos.right_idx];
+        let raw=niceValsIn(lv+0.5, rv-0.5).filter(v=>v>lv+1e-9&&v<rv-1e-9);
+        let cands=filterNice(raw);
+        // if no nice value fits between them, fall back to the right zero
+        if(!cands.length) {
+          let z=zeros.find(z=>Math.abs(zeroObjToFloat(z)-rv)<1e-9);
+          return [{v:rv, isZero:true, zeroObj:z}];
+        }
+        return cands;
+      }
+
+      // All named positions in order from left to right:
+      // before(0), zero(0), between(0,1), zero(1), between(1,2), ..., zero(n-1), after(n-1)
+      // Index in the position list: 0=before, 1=z[0], 2=between(0,1), 3=z[1], ..., 2i+1=z[i], 2i+2=between(i,i+1), 2n-1=z[n-1], 2n=after
+      function makePositions() {
+        let ps=[];
+        ps.push({type:'before', idx:0});
+        for(let i=0;i<numDistinct;i++){
+          ps.push({type:'zero', idx:i});
+          if(i<numDistinct-1) ps.push({type:'between', left_idx:i, right_idx:i+1});
+        }
+        ps.push({type:'after', idx:numDistinct-1});
+        return ps;
+      }
+      let positions=makePositions();
+      // How many zeros are strictly contained between position pL and pR?
+      // pL_pos_idx, pR_pos_idx = index in positions array
+      function countZerosBetween(pLidx, pRidx) {
+        // zeros strictly inside means: their position index > pLidx AND < pRidx
+        let count=0;
+        for(let i=0;i<numDistinct;i++){
+          let zPosIdx=1+i*2; // position index of z[i] is 1 + 2*i
+          if(zPosIdx > pLidx && zPosIdx < pRidx) count++;
+        }
+        return count;
+      }
+
+      // Find all valid (pLidx, pRidx) pairs such that countZerosBetween == targetZIR
+      // and pLidx < pRidx
+      let validPairs=[];
+      for(let li=0;li<positions.length-1;li++){
+        for(let ri=li+1;ri<positions.length;ri++){
+          if(countZerosBetween(li,ri)===targetZIR) validPairs.push([li,ri]);
+        }
+      }
+      // Pick a random valid pair; if none (shouldn't happen) fallback to enclosing all
+      let pair;
+      if(validPairs.length>0) {
+        pair=pick(validPairs);
+      } else {
+        pair=[0, positions.length-1];
+      }
+      let [pLidx, pRidx]=pair;
+
+      // Pick specific candidate values for left and right
+      let leftCands=positionCandidates(positions[pLidx]);
+      let rightCands=positionCandidates(positions[pRidx]);
+      let chosenL=pick(leftCands);
+      let chosenR=pick(rightCands);
+
+      // Ensure left < right (should always be true by construction, but guard)
+      if(chosenL.v>=chosenR.v) { chosenL={v:chosenR.v-1, isZero:false}; }
+
+      let bA=chosenL.isZero?setBound(chosenL.v,true,chosenL.zeroObj):setBound(chosenL.v);
+      let bB=chosenR.isZero?setBound(chosenR.v,true,chosenR.zeroObj):setBound(chosenR.v);
+      boundA_rat=bA.rat; boundA_float=bA.float;
+      boundB_rat=bB.rat; boundB_float=bB.float;
+    }
+
+  } else if (zeroFloats.length===1) {
+    let zf=zeroFloats[0];
+    let zObj=zeros.find(z=>Math.abs(zeroObjToFloat(z)-zf)<1e-9);
+    // Helper: pick a nice distance, preferring integers (20% chance for .5)
+    function niceOffset() {
+      return Math.random()<0.2 ? pick([0.5,1,1.5,2,3,4,5]) : pick([1,2,3,4,5]);
+    }
+    if(Math.random()<0.2) {
+      // 20%: one bound IS the zero
+      if(Math.random()<0.5) {
+        let bA=setBound(zf,true,zObj);
+        boundA_rat=bA.rat; boundA_float=bA.float;
+        let hi=zf+niceOffset();
+        boundB_rat=floatToRat(hi); boundB_float=hi;
+      } else {
+        let lo=zf-niceOffset();
+        boundA_rat=floatToRat(lo); boundA_float=lo;
+        let bB=setBound(zf,true,zObj);
+        boundB_rat=bB.rat; boundB_float=bB.float;
+      }
+    } else if(maxZIR>=1 && Math.random()<0.6) {
+      // zero inside interval
+      let dist1=niceOffset(), dist2=niceOffset();
+      let lo=Math.round((zf-dist1)*2)/2;
+      let hi=Math.round((zf+dist2)*2)/2;
+      boundA_rat=floatToRat(lo); boundA_float=lo;
+      boundB_rat=floatToRat(hi); boundB_float=hi;
+    } else {
+      // both on same side
+      if(Math.random()<0.5){
+        let lo=Math.round((zf+niceOffset())*2)/2;
+        let hi=lo+niceOffset();
+        hi=Math.round(hi*2)/2;
+        boundA_rat=floatToRat(lo); boundA_float=lo;
+        boundB_rat=floatToRat(hi); boundB_float=hi;
+      } else {
+        let hi=Math.round((zf-niceOffset())*2)/2;
+        let lo=hi-niceOffset();
+        lo=Math.round(lo*2)/2;
+        boundA_rat=floatToRat(lo); boundA_float=lo;
+        boundB_rat=floatToRat(hi); boundB_float=hi;
+      }
+    }
+
+  } else {
+    // No zeros: pick 2 arbitrary nice values, max 10 apart, prefer integers
+    function niceOffsetNoZ() { return Math.random()<0.2 ? pick([0.5,1,1.5,2,3,4,5]) : pick([1,2,3,4,5]); }
+    let intPool=[-5,-4,-3,-2,-1,0,1,2,3];
+    let lo=pick(intPool);
+    let hi=lo+niceOffsetNoZ()+niceOffsetNoZ(); // 2–10 apart
+    hi=Math.min(hi, lo+10);
+    hi=Math.round(hi*2)/2;
+    boundA_rat=floatToRat(lo); boundA_float=lo;
+    boundB_rat=floatToRat(hi); boundB_float=hi;
+  }
+
+  // Ensure zerosInRange is computed
+  zerosInRange=zeroFloats.filter(v=>v>boundA_float+1e-9&&v<boundB_float-1e-9);
+
+  // Build breakpoints
+  let breakpoints=[boundA_float,...zerosInRange,boundB_float];
+  let intervalSigns=breakpoints.slice(0,-1).map((_,i)=>{
+    let mid=(breakpoints[i]+breakpoints[i+1])/2;
+    return polyEvalF(poly,mid)>=0?1:-1;
+  });
+
+  return {
+    poly, a, decMode, outerFactor, zeros, verifyZeros, zeroFloats, noRealZeros, hasIrrZeros,
+    zerosInRange, breakpoints, intervalSigns,
+    boundA_rat, boundB_rat, boundA_float, boundB_float,
+    useOuterZeros,
+    taskType, zeroType, degree, factorLatex, aLatexFull
+  };
+}
+
+// ================================================================
+// ZERO LATEX HELPERS
+// ================================================================
+function zeroObjToLatex(z) {
+  if(z.isSqrt) {
+    let s=`\\sqrt{${z.sqrtN}}`;
+    return z.sqrtSign>0?s:`-${s}`;
+  }
+  return ratToLatex(z.r);
+}
+function zeroObjToFloat(z) {
+  if(z.isSqrt) return z.sqrtSign*Math.sqrt(z.sqrtN);
+  return ratToFloat(z.r);
+}
+function zeroObjToRat(z) {
+  if(z.isSqrt) return null;
+  return z.r;
+}
+
+// ================================================================
+// BOUND LATEX HELPER
+// Bounds are always shown as decimals (e.g. -1,5) unless the bound
+// coincides with an irrational zero — then keep exact form (e.g. \sqrt{5}).
+// ================================================================
+function boundToLatex(rat_val, float_val, zeroObj) {
+  // If this bound IS an irrational zero, show it symbolically
+  if(zeroObj && zeroObj.isSqrt) return zeroObjToLatex(zeroObj);
+  // Otherwise: always decimal with comma
+  if(Number.isInteger(float_val)) return float_val.toString();
+  // Format as decimal with comma — strip trailing zeros
+  let s=float_val.toFixed(10).replace(/0+$/,'').replace(/\.$/,'');
+  return s.replace('.','{,}');
+}
+
+// ================================================================
+// BREAKPOINT OBJECTS  {float, rat|null, latex}
+// ================================================================
+function makeBpts(task) {
+  let {zeros, breakpoints, boundA_rat, boundB_rat, boundA_float, boundB_float} = task;
+  // Find irrational zero objects for the outer bounds (if they coincide)
+  let zA_irr=zeros.find(z=>z.isSqrt&&Math.abs(zeroObjToFloat(z)-boundA_float)<1e-9)||null;
+  let zB_irr=zeros.find(z=>z.isSqrt&&Math.abs(zeroObjToFloat(z)-boundB_float)<1e-9)||null;
+
+  return breakpoints.map((v,i)=>{
+    let isFirst=(i===0), isLast=(i===breakpoints.length-1);
+    if(isFirst) return {float:v, rat:boundA_rat, latex:boundToLatex(boundA_rat,boundA_float,zA_irr)};
+    if(isLast)  return {float:v, rat:boundB_rat, latex:boundToLatex(boundB_rat,boundB_float,zB_irr)};
+    // interior zero — always show exactly as its zero latex
+    let z=zeros.find(z=>Math.abs(zeroObjToFloat(z)-v)<1e-9);
+    if(z) return {float:v, rat:zeroObjToRat(z), latex:zeroObjToLatex(z)};
+    return {float:v, rat:null, latex:boundToLatex(null,v,null)};
+  });
+}
+
+// ================================================================
+// TASK TEXT
+// ================================================================
+function buildTaskText(task) {
+  let {poly, a, decMode, outerFactor, zeros, noRealZeros,
+       boundA_rat, boundB_rat, boundA_float, boundB_float,
+       taskType, aLatexFull, degree, factorLatex, useOuterZeros} = task;
+
+  // Build displayed function latex
+  let expandedLatex=polyToLatex(poly,'x',decMode);
+
+  // If outer factor: wrap everything in factor·(...)
+  let displayLatex;
+  if(task.outerFactor) {
+    let ofStr=ratToLatex(task.outerFactor,false);
+    if(ratEq(task.outerFactor,rat(-1))) ofStr='-';
+    displayLatex=`${ofStr}\\left(${expandedLatex}\\right)`;
+  } else {
+    displayLatex=expandedLatex;
+  }
+
+  // Bound latex — decimal notation, except irrational zeros stay symbolic
+  let zA_irr=zeros.find(z=>z.isSqrt&&Math.abs(zeroObjToFloat(z)-boundA_float)<1e-9)||null;
+  let zB_irr=zeros.find(z=>z.isSqrt&&Math.abs(zeroObjToFloat(z)-boundB_float)<1e-9)||null;
+  let aL=boundToLatex(boundA_rat,boundA_float,zA_irr);
+  let bL=boundToLatex(boundB_rat,boundB_float,zB_irr);
+  let intervalLatex=`\\left[${aL};\\,${bL}\\right]`;
+
+  // Build sorted zero list with grouped multiplicities
+  function sortedZeroLines(zs) {
+    let sorted=[...zs].sort((a,b)=>zeroObjToFloat(a)-zeroObjToFloat(b));
+    let groups=[];
+    for(let z of sorted){
+      let fv=zeroObjToFloat(z);
+      let g=groups.find(g=>Math.abs(g.fv-fv)<1e-9);
+      if(g){ g.mult+=z.mult; } else groups.push({fv,z,mult:z.mult});
+    }
+    let lines=[]; let idx=1;
+    for(let g of groups){
+      let valLatex=zeroObjToLatex(g.z);
+      if(g.mult===1){
+        lines.push(`x_{${idx}} = ${valLatex}`); idx++;
+      } else {
+        let indices=[]; for(let k=0;k<g.mult;k++) indices.push(idx+k);
+        lines.push(`x_{${indices.join(',\\,')}} = ${valLatex}`); idx+=g.mult;
+      }
+    }
+    return lines;
+  }
+  function zeroListHtml(zs) { return sortedZeroLines(zs).join(', \\quad '); }
+  // Wrap zero list in a scalable display block
+  function zeroBlock(zLines) {
+    return `<div class="scale-wrapper" style="margin:0.3em 0;"><div class="scale-el" style="font-size:1em;">$$${zLines}$$</div></div>`;
+  }
+
+  let instr='', note='', noteIsHTML=false;
+
+  if(useOuterZeros) {
+    // ── Vollständig eingeschlossene Fläche ──────────────────────
+    if(taskType==='findAll') {
+      instr='Berechne den Flächeninhalt der vollständig eingeschlossenen Fläche zwischen dem Graphen von \\(f\\) und der \\(x\\)-Achse.';
+    } else if(taskType==='givenAll') {
+      if(noRealZeros||zeros.length===0){
+        instr='Berechne den Flächeninhalt der vollständig eingeschlossenen Fläche zwischen dem Graphen von \\(f\\) und der \\(x\\)-Achse.';
+        note='f \\text{ hat keine reellen Nullstellen.}';
+      } else {
+        let zLines=zeroListHtml(zeros);
+        instr='Die untenstehende Funktion \\(f\\) besitzt die Nullstellen:'+zeroBlock(zLines)+'Ermittle den Flächeninhalt, der vollständig zwischen dem Graphen von \\(f\\) und der \\(x\\)-Achse eingeschlossen wird.';
+        noteIsHTML=true;
+      }
+    } else { // verify — always all zeros, no "find more"
+      if(zeros.length===0||noRealZeros){
+        instr='Zeige, dass \\(f\\) keine reellen Nullstellen besitzt. Berechne dann den Flächeninhalt.';
+        if(degree===4) instr+=`<div class="task-note">Faktorisierte Form: \\(f(x) = ${aLatexFull}${factorLatex}\\)</div>`;
+      } else {
+        let zLines=zeroListHtml(zeros);
+        instr='Zeige rechnerisch, dass \\(f\\) folgende Nullstellen besitzt:'+zeroBlock(zLines)+'Ermittle den Flächeninhalt, der vollständig zwischen dem Graphen von \\(f\\) und der \\(x\\)-Achse eingeschlossen wird.';
+        noteIsHTML=true;
+      }
+    }
+  } else {
+    // ── Intervall angeben ────────────────────────────────────────
+    if(taskType==='findAll') {
+      instr='Berechne den Flächeninhalt zwischen dem Graphen von \\(f\\) und der \\(x\\)-Achse im angegebenen Intervall.';
+    } else if(taskType==='givenAll') {
+      if(noRealZeros||zeros.length===0){
+        instr='Berechne den Flächeninhalt zwischen dem Graphen von \\(f\\) und der \\(x\\)-Achse im angegebenen Intervall.';
+        note='f \\text{ hat keine reellen Nullstellen.}';
+      } else {
+        let zLines=zeroListHtml(zeros);
+        instr='Die untenstehende Funktion \\(f\\) besitzt die Nullstellen:'+zeroBlock(zLines)+'Ermittle den Flächeninhalt zwischen dem Graphen von \\(f\\) und der \\(x\\)-Achse im angegebenen Intervall.';
+        noteIsHTML=true;
+      }
+    } else { // verify — always all zeros, no "find more"
+      if(zeros.length===0||noRealZeros){
+        instr='Zeige, dass \\(f\\) keine reellen Nullstellen besitzt. Berechne dann den Flächeninhalt im angegebenen Intervall.';
+        if(degree===4) instr+=`<div class="task-note">Faktorisierte Form: \\(f(x) = ${aLatexFull}${factorLatex}\\)</div>`;
+      } else {
+        let zLines=zeroListHtml(zeros);
+        instr='Zeige rechnerisch, dass \\(f\\) folgende Nullstellen besitzt:'+zeroBlock(zLines)+'Ermittle den Flächeninhalt zwischen dem Graphen von \\(f\\) und der \\(x\\)-Achse im angegebenen Intervall.';
+        noteIsHTML=true;
+      }
+    }
+  }
+
+  let formulaLatex=useOuterZeros
+    ? `f(x) = ${displayLatex}`
+    : `f(x) = ${displayLatex}, \\quad ${intervalLatex}`;
+
+  return {instr, note, noteIsHTML, formulaLatex, expandedLatex, displayLatex, decMode, aL, bL, intervalLatex};
+}
+
+// ================================================================
+// CURRENT STATE
+// ================================================================
+let _task=null;
+
+// ================================================================
+// RENDER SOLUTION
+// ================================================================
+function renderSolution() {
+  if(!_task) return;
+  let mode =document.getElementById('roundingToggle').checked?'round':'exact';
+  let style=document.getElementById('styleToggle').checked?'style2':'style1';
+
+  let {poly, a, decMode, outerFactor, zeros, verifyZeros, zeroFloats, noRealZeros,
+       breakpoints, intervalSigns,
+       boundA_rat, boundB_rat, boundA_float, boundB_float,
+       taskType, factorLatex, aLatexFull, degree, zerosInRange} = _task;
+
+  // Decimal mode comes directly from the task (set at generation time)
+
+  // The "full" poly for integration: if outerFactor present, multiply it in
+  let integPoly=outerFactor?polyScale(poly,outerFactor):poly;
+  let Fc=antideriv(integPoly);
+  let FLatex=polyToLatex(Fc,'x',decMode);
+
+  let bpts=makeBpts(_task);
+
+  // Bound latex — decimal notation, except irrational zeros stay symbolic
+  let zA_irr=zeros.find(z=>z.isSqrt&&Math.abs(zeroObjToFloat(z)-boundA_float)<1e-9)||null;
+  let zB_irr=zeros.find(z=>z.isSqrt&&Math.abs(zeroObjToFloat(z)-boundB_float)<1e-9)||null;
+  let aL=boundToLatex(boundA_rat,boundA_float,zA_irr);
+  let bL=boundToLatex(boundB_rat,boundB_float,zB_irr);
+  let closedInterval=`\\left[${aL};\\,${bL}\\right]`;
+  let openInterval  =`\\left(${aL};\\,${bL}\\right)`;
+
+  // Evaluate F at each breakpoint
+  let Fvals=bpts.map(bp=>{
+    if(bp.rat) return {rat:polyEval(Fc,bp.rat), approx:false};
+    let fv=polyEvalF(Fc,bp.float); return {float:fv, approx:true};
+  });
+
+  function FStr(Fv) {
+    if(!Fv.approx) return formatRat(Fv.rat,mode);
+    let v=Math.round(Fv.float*100)/100;
+    return `\\approx ${v.toFixed(2).replace(/0+$/,'').replace(/\.$/,'').replace('.','{,}')}`;
+  }
+  function FIsNeg(Fv) {
+    if(!Fv.approx) return mode==='round'?ratToFloat(Fv.rat)<0:ratIsNeg(Fv.rat);
+    return Fv.float<0;
+  }
+  function FFloat(Fv){ return Fv.approx?Fv.float:ratToFloat(Fv.rat); }
+
+  // Sub-integrals
+  let subs=bpts.slice(0,-1).map((_,i)=>{
+    let loV=Fvals[i], hiV=Fvals[i+1];
+    if(!loV.approx&&!hiV.approx) return {rat:ratSub(hiV.rat,loV.rat),approx:false,sign:intervalSigns[i]};
+    return {float:FFloat(hiV)-FFloat(loV),approx:true,sign:intervalSigns[i]};
+  });
+
+  // Total area
+  let totalApprox=subs.some(s=>s.approx);
+  let totalRat=rat(0),totalFloat=0;
+  for(let s of subs){if(!s.approx)totalRat=ratAdd(totalRat,ratAbs(s.rat));else totalFloat+=Math.abs(s.float);}
+  let totalStr;
+  if(!totalApprox) totalStr=formatRat(totalRat,mode,true);
+  else { let tot=totalFloat+ratToFloat(totalRat); totalStr=`\\approx ${tot.toFixed(2).replace(/0+$/,'').replace(/\.$/,'').replace('.','{,}')}`; }
+
+  document.getElementById('solution').innerHTML=`$$A = ${totalStr}$$`;
+
+  // ── LÖSUNGSWEG ──
+  // Block types: {t:'h', html} | {t:'p', html} | {t:'m', tex}
+  // 'h' = plain HTML heading  'p' = plain text (inline \(...\) ok)  'm' = \begin{aligned} block
+  let blocks = [], step = 1;
+  const H = html => blocks.push({t:'h', html});
+  const P = html => blocks.push({t:'p', html});
+  const M = tex  => blocks.push({t:'m', tex});
+  const MA = (tex, spec) => blocks.push({t:'ma', tex, spec});
+
+  // ── 1. Nullstellen ────────────────────────────────────────────────
+  H(`${step}. Nullstellen`); step++;
+  if (noRealZeros || zeros.length === 0) {
+    P('\\(f\\) hat keine reellen Nullstellen.');
+    P(`Daher liegt kein Vorzeichenwechsel zwischen den Integralgrenzen \\(${aL}\\) und \\(${bL}\\) vor. Somit verläuft der Graph in diesem Bereich vollständig über oder unter der x-Achse.`);
+  } else {
+    zeros.sort((z1,z2)=>zeroObjToFloat(z1)-zeroObjToFloat(z2));
+    let seen = new Set(), zrows = [], idx = 1;
+    zeros.forEach(z => {
+      let key = zeroObjToLatex(z);
+      if (seen.has(key)) return; seen.add(key);
+      let mult = z.mult > 1 ? ` \\;(${z.mult}\\text{-fach})` : '';
+      zrows.push(`x_{${idx}} & = & ${key} &${mult}`);
+      idx++;
+    });
+    MA(zrows.join(' \\\\ '), 'l c r');
+    if (taskType === 'verify') {
+      let fForVerif = outerFactor ? polyScale(poly, outerFactor) : poly;
+      let vrows = [];
+      seen.forEach(key => {
+        let substStr = substitutePoly(fForVerif, key, decMode);
+        vrows.push(`f\\!\\left(${key}\\right) & = & ${substStr} & = & 0 \\;\\checkmark`);
+      });
+      MA(vrows.join(' \\\\ '), 'l c l c l');
+    }
+    if (zerosInRange.length === 0) {
+      P(`Keine dieser Nullstellen liegt im Innern des Intervalls zwischen den Integralgrenzen \\(${aL}\\) und \\(${bL}\\). Somit verläuft der Graph in diesem Bereich vollständig über oder unter der x-Achse.`);
+    } else {
+      let irStr = zerosInRange.map(v => {
+        let z = zeros.find(z => Math.abs(zeroObjToFloat(z) - v) < 1e-9);
+        return `\\(${z ? `x = ${zeroObjToLatex(z)}` : `x \\approx ${v.toFixed(2).replace('.', '{,}')}`}\\)`;
+      }).join(', ');
+      P(`Zwischen den Integralgrenzen \\(${aL}\\) und \\(${bL}\\) liegen die Nullstellen ${irStr}, d.h. die Integrale müssen dort „stoppen".`);
+    }
+  }
+
+  // ── 2. Stammfunktion ─────────────────────────────────────────────
+  H(`${step}. Stammfunktion bestimmen`); step++;
+  {
+    let fForInterm = outerFactor ? polyScale(poly, outerFactor) : poly;
+    let interm = antiderivIntermediate(fForInterm, decMode);
+    M(interm !== FLatex ? `F(x) &= ${interm} \\\\ &= ${FLatex}` : `F(x) &= ${FLatex}`);
+  }
+
+  // ── 3. Vorzeichen (style2) ────────────────────────────────────────
+  if (style === 'style2' && bpts.length > 1) {
+    H(`${step}. Vorzeichen der Teilintegrale`); step++;
+    let rows = [];
+    for (let i = 0; i < intervalSigns.length; i++) {
+      let lo = bpts[i].latex, hi = bpts[i+1].latex, sgn = intervalSigns[i];
+      let mid = (breakpoints[i] + breakpoints[i+1]) / 2;
+      let midL = Number.isInteger(mid*2)
+        ? (mid === Math.floor(mid) ? mid.toString() : mid.toFixed(1).replace('.', '{,}'))
+        : mid.toFixed(2).replace('.', '{,}');
+      rows.push(`f\\!\\left(${midL}\\right) &${sgn>0?'>':'<'} 0 \\;\\Rightarrow\\; \\int_{${lo}}^{${hi}} f(x)\\,\\mathrm{d}x \\,${sgn>0?'>':'<'}\\, 0`);
+    }
+    M(rows.join(' \\\\ '));
+  }
+
+  // ── 4. Werte einsetzen ────────────────────────────────────────────
+  H(`${step}. Werte der Stammfunktion einsetzen`); step++;
+  {
+    let rows = [];
+    for (let i = 0; i < bpts.length; i++) {
+      let bp = bpts[i], Fv = Fvals[i];
+      let substStr = substitutePoly(Fc, bp.latex, decMode);
+      if (!Fv.approx) {
+        rows.push(`F\\!\\left(${bp.latex}\\right) & = & ${substStr} & ${eqSign(Fv.rat,mode)} & ${formatRat(Fv.rat,mode)}`);
+      } else {
+        let v = Math.round(Fv.float*100)/100;
+        rows.push(`F\\!\\left(${bp.latex}\\right) & = & ${substStr} & \\approx & ${v.toFixed(2).replace(/0+$/,'').replace(/\.$/,'').replace('.','{,}')}`);
+      }
+    }
+    MA(rows.join(' \\\\ '), 'l c l c r');
+  }
+
+  // ── 5. Teilintegrale ─────────────────────────────────────────────
+  H(`${step}. Teilintegrale berechnen`); step++;
+  let areaNames = [];
+  let allIntRows = [];
+  for (let i = 0; i < subs.length; i++) {
+    let lo = bpts[i].latex, hi = bpts[i+1].latex, s = subs[i];
+    let loNeg = FIsNeg(Fvals[i]), hiNeg = FIsNeg(Fvals[i+1]);
+    let loD = loNeg ? `\\left(${FStr(Fvals[i])}\\right)` : FStr(Fvals[i]);
+    let hiD = hiNeg ? `\\left(${FStr(Fvals[i+1])}\\right)` : FStr(Fvals[i+1]);
+    let aName = `A_{${i+1}}`;
+    areaNames.push(aName);
+    
+    let diffEq = !s.approx ? eqSign(s.rat,mode) : '\\approx';
+    let diffVal = !s.approx ? formatRat(s.rat,mode) : s.float.toFixed(2).replace(/0+$/,'').replace(/\.$/,'').replace('.','{,}');
+    let absEq = !s.approx ? eqSign(s.rat,mode) : '\\approx';
+    let absVal = !s.approx ? formatRat(ratAbs(s.rat),mode) : Math.abs(s.float).toFixed(2).replace(/0+$/,'').replace(/\.$/,'').replace('.','{,}');
+
+    if (style === 'style1') {
+      allIntRows.push(`\\displaystyle\\int_{${lo}}^{${hi}} f(x)\\,\\mathrm{d}x & = & F\\!\\left(${hi}\\right) - F\\!\\left(${lo}\\right) & = & ${hiD} - ${loD} & ${diffEq} & ${diffVal}`);
+      allIntRows.push(`&&\\boldsymbol{${aName}} & = & \\left|\\displaystyle\\int_{${lo}}^{${hi}} f(x)\\,\\mathrm{d}x\\right| &  ${absEq} & ${absVal}`);
+    } else {
+      let [dLo, dHi, FSlo, FShi] = s.sign > 0 ? [lo, hi, loD, hiD] : [hi, lo, hiD, loD];
+      allIntRows.push(`\\displaystyle\\int_{${dLo}}^{${dHi}} f(x)\\,\\mathrm{d}x & = & F\\!\\left(${dHi}\\right) - F\\!\\left(${dLo}\\right) & = & ${FShi} - ${FSlo} & ${absEq} & ${absVal}`);
+      allIntRows.push(`&&\\boldsymbol{${aName}} & = & \\left|\\displaystyle\\int_{${lo}}^{${hi}} f(x)\\,\\mathrm{d}x\\right| &  ${absEq} & ${absVal}`);
+    }
+  }
+  MA(allIntRows.join(' \\\\ '), 'l c r c r c r');
+
+  // ── 6. Gesamtfläche ───────────────────────────────────────────────
+  H(`${step}. Gesamtfläche`);
+  if (subs.length > 1) {
+    let summeWerte = subs.map(s => !s.approx
+      ? formatRat(ratAbs(s.rat),mode)
+      : Math.abs(s.float).toFixed(2).replace(/0+$/,'').replace(/\.$/,'').replace('.','{,}'));
+    let eqSign_tot = totalStr.startsWith('\\approx') ? '\\approx' : '=';
+    let totalVal   = totalStr.startsWith('\\approx') ? totalStr.slice(8) : totalStr;
+    let n = subs.length;
+    let spec = 'l' + 'c'.repeat(2*n+1) + 'r';
+    let r1 = ['A'], r2 = [''];
+    r1.push('='); r2.push('=');
+    for (let i = 0; i < n; i++) {
+      r1.push(areaNames[i]); r2.push(summeWerte[i]);
+      if (i < n-1) { r1.push('+'); r2.push('+'); }
+    }
+    r1.push('', ''); r2.push(eqSign_tot, totalVal);
+    MA(r1.join(' & ') + ' \\\\ ' + r2.join(' & '), spec);
+  } else {
+    M(`A &= ${areaNames[0]} = ${totalStr}`);
+  }
+
+  // ── Render ────────────────────────────────────────────────────────
+  let pathHTML = '<div class="solution-path-inner">' + blocks.map(b => {
+    if (b.t === 'h') return `<div class="sol-head">${b.html}</div>`;
+    if (b.t === 'p') return `<div class="sol-text">${b.html}</div>`;
+    if (b.t === 'm') return `<div class="sol-formula">$$\\begin{aligned}${b.tex}\\end{aligned}$$</div>`;
+    if (b.t === 'ma') return `<div class="sol-formula">$$\\begin{array}{${b.spec}}${b.tex}\\end{array}$$</div>`;
+    return '';
+  }).join('') + '</div>';
+  document.getElementById('solutionPathContent').innerHTML=pathHTML;
+  MathJax.typesetPromise().then(()=>scaleAllElements());
+}
+
+// ================================================================
+// SKETCH
+// ================================================================
+function drawSketch() {
+  if (!_task) return;
+  const canvas = document.getElementById('sketchCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+
+  const { poly, outerFactor, boundA_float, boundB_float, boundA_rat, boundB_rat,
+          breakpoints, intervalSigns, zeros, zeroFloats, noRealZeros } = _task;
+  const fPoly = outerFactor ? polyScale(poly, outerFactor) : poly;
+  const evalF = x => polyEvalF(fPoly, x);
+
+  // ── X range: ensure at least xStep of space on each side ────────
+  // Compute step from rough range first, then expand
+  function tickSeq(lo, hi, s) {
+    const result = [];
+    const start = Math.round(Math.ceil(lo / s - 1e-9) * s * 1e10) / 1e10;
+    for (let v = start; v <= hi + 1e-9; v = Math.round((v + s) * 1e10) / 1e10) result.push(v);
+    return result;
+  }
+  const roughXMin = boundA_float - 1.5, roughXMax = boundB_float + 1.5;
+  const xStep = tickSeq(roughXMin, roughXMax, 1).length <= 6 ? 1 : 2;
+  let xMin = Math.min(roughXMin, boundA_float - xStep) - 0.15;
+  let xMax = Math.max(roughXMax, boundB_float + xStep) + 0.15;
+  // Always show y-axis
+  if (xMin > -0.1) xMin = -xStep * 0.6 - 0.15;
+  if (xMax < 0.1)  xMax =  xStep * 0.6 + 0.15;
+
+  // ── Sample function for y range ───────────────────────────────────
+  const N = 500;
+  const dx = (xMax - xMin) / N;
+  const sYs = [];
+  for (let i = 0; i <= N; i++) sYs.push(evalF(xMin + i * dx));
+  const rawYMin = Math.min(...sYs, 0);
+  const rawYMax = Math.max(...sYs, 0);
+  const rawSpan = Math.max(rawYMax - rawYMin, 0.01);
+
+  // y step: nice, ensuring at least one step visible above and below x-axis
+  function niceYStep(range, target) {
+    const rough = range / target;
+    const mag = Math.pow(10, Math.floor(Math.log10(Math.max(Math.abs(rough), 1e-10))));
+    for (const f of [1, 2, 2.5, 5, 10]) { if (f * mag >= rough - 1e-12) return f * mag; }
+    return mag * 10;
+  }
+  const yStepRough = niceYStep(rawSpan * 1.4 + 0.01, 6);
+  const yMin = Math.min(rawYMin, -yStepRough) - rawSpan * 0.07 - 0.01;
+  const yMax = Math.max(rawYMax,  yStepRough) + rawSpan * 0.07 + 0.01;
+  const yStep = niceYStep(yMax - yMin, 6);
+  const xTicks = tickSeq(xMin, xMax, xStep);
+  const yTicks = tickSeq(yMin, yMax, yStep);
+
+  // ── Canvas layout ─────────────────────────────────────────────────
+  const W = canvas.width, H = canvas.height;
+  const mg = { top: 20, right: 26, bottom: 52, left: 56 };
+  const pw = W - mg.left - mg.right;
+  const ph = H - mg.top - mg.bottom;
+  const cx = x => mg.left + (x - xMin) / (xMax - xMin) * pw;
+  const cy = y => mg.top  + (yMax - y) / (yMax - yMin) * ph;
+
+  // ── Format helpers ────────────────────────────────────────────────
+  function fmtFloat(v) {
+    const r = Math.round(v * 1e9) / 1e9;
+    if (Number.isInteger(r)) return String(r);
+    return r.toFixed(1).replace('.', ',');
+  }
+  function fmtRat(r) {
+    if (!r) return null;
+    if (r.d === 1) return String(r.n);
+    return r.n + '\u2044' + r.d; // fraction slash
+  }
+  function zeroCanvasLabel(z) {
+    if (z.isSqrt) return (z.sqrtSign < 0 ? '-' : '') + '\u221a' + z.sqrtN;
+    return fmtRat(z.r) || fmtFloat(ratToFloat(z.r));
+  }
+  function boundCanvasLabel(rVal, fVal, zirr) {
+    if (zirr) return zeroCanvasLabel(zirr);
+    return fmtRat(rVal) || fmtFloat(fVal);
+  }
+
+  const FONT_TICK    = '13px sans-serif';
+  const FONT_SPECIAL = 'bold 13px sans-serif';
+  const FONT_AXIS    = 'italic 13px sans-serif';
+  const COL_TICK  = '#444';
+  const COL_ZERO  = '#c06000';  // amber
+  const COL_BOUND = '#1a7a20';  // green
+
+  // ── Clear ─────────────────────────────────────────────────────────
+  ctx.clearRect(0, 0, W, H);
+
+  // ── Grid ──────────────────────────────────────────────────────────
+  ctx.strokeStyle = '#d8d8e8'; ctx.lineWidth = 1;
+  xTicks.forEach(x => { const px=cx(x); ctx.beginPath(); ctx.moveTo(px,mg.top); ctx.lineTo(px,mg.top+ph); ctx.stroke(); });
+  yTicks.forEach(y => { const py=cy(y); ctx.beginPath(); ctx.moveTo(mg.left,py); ctx.lineTo(mg.left+pw,py); ctx.stroke(); });
+
+  // ── Shaded area ───────────────────────────────────────────────────
+  for (let seg = 0; seg < breakpoints.length - 1; seg++) {
+    const xL = breakpoints[seg], xR = breakpoints[seg+1], sign = intervalSigns[seg];
+    ctx.beginPath(); ctx.moveTo(cx(xL), cy(0));
+    for (let j = 0; j <= 300; j++) { const xx=xL+(xR-xL)*j/300; ctx.lineTo(cx(xx), cy(evalF(xx))); }
+    ctx.lineTo(cx(xR), cy(0)); ctx.closePath();
+    ctx.fillStyle   = sign > 0 ? 'rgba(220,60,40,0.20)' : 'rgba(50,120,255,0.20)'; ctx.fill();
+    ctx.strokeStyle = sign > 0 ? 'rgba(220,60,40,0.35)' : 'rgba(50,120,255,0.35)'; ctx.lineWidth=0.8; ctx.stroke();
+  }
+
+  // ── Axes ──────────────────────────────────────────────────────────
+  const yAxis0 = cy(Math.max(yMin, Math.min(yMax, 0)));
+  const xAxis0 = cx(Math.max(xMin, Math.min(xMax, 0)));
+  ctx.strokeStyle = '#444'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(mg.left, yAxis0); ctx.lineTo(mg.left+pw, yAxis0); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(xAxis0, mg.top);  ctx.lineTo(xAxis0, mg.top+ph);  ctx.stroke();
+  ctx.fillStyle = '#444';
+  ctx.beginPath(); ctx.moveTo(mg.left+pw+2,yAxis0); ctx.lineTo(mg.left+pw-5,yAxis0-3); ctx.lineTo(mg.left+pw-5,yAxis0+3); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(xAxis0,mg.top-2);     ctx.lineTo(xAxis0-3,mg.top+5);     ctx.lineTo(xAxis0+3,mg.top+5);     ctx.fill();
+
+  // ── y-axis ticks & labels ─────────────────────────────────────────
+  ctx.font = FONT_TICK; ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+  yTicks.forEach(y => {
+    const py = cy(y);
+    ctx.strokeStyle = COL_TICK; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(xAxis0-3, py); ctx.lineTo(xAxis0+3, py); ctx.stroke();
+    if (Math.abs(y) > yStep * 0.01) { ctx.fillStyle = COL_TICK; ctx.fillText(fmtFloat(y), xAxis0-7, py); }
+  });
+
+  // ── x-axis tick marks (no labels yet — labels drawn after specials) ─
+  xTicks.forEach(x => {
+    ctx.strokeStyle = COL_TICK; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(cx(x), yAxis0-3); ctx.lineTo(cx(x), yAxis0+3); ctx.stroke();
+  });
+
+  // Axis letters
+  ctx.font = FONT_AXIS; ctx.fillStyle = '#333';
+  ctx.textAlign = 'left';   ctx.textBaseline = 'middle'; ctx.fillText('x', mg.left+pw+7, yAxis0);
+  ctx.textAlign = 'center'; ctx.textBaseline = 'bottom'; ctx.fillText('y', xAxis0, mg.top-2);
+
+  // ── Boundary dashed lines ─────────────────────────────────────────
+  ctx.strokeStyle = COL_BOUND; ctx.lineWidth = 1.8; ctx.setLineDash([5,4]);
+  [boundA_float, boundB_float].forEach(xb => {
+    ctx.beginPath(); ctx.moveTo(cx(xb), cy(0)); ctx.lineTo(cx(xb), cy(evalF(xb))); ctx.stroke();
+  });
+  ctx.setLineDash([]);
+
+  // ── Curve ─────────────────────────────────────────────────────────
+  ctx.strokeStyle = '#c0001a'; ctx.lineWidth = 2;
+  const yClipLo = yMin-(yMax-yMin), yClipHi = yMax+(yMax-yMin);
+  ctx.beginPath(); let penDown = false;
+  for (let i = 0; i <= N; i++) {
+    const xx = xMin+i*dx, yy = evalF(xx);
+    if (yy<yClipLo||yy>yClipHi) { penDown=false; continue; }
+    if (!penDown) { ctx.moveTo(cx(xx),cy(yy)); penDown=true; } else ctx.lineTo(cx(xx),cy(yy));
+  }
+  ctx.stroke();
+
+  // ── Labels: determine which positions are claimed ──────────────────
+  // labeledX: Set of rounded keys whose x-position already has a text label
+  // posRow0:  Set of keys whose row-0 label slot is occupied
+  const labeledX = new Set();
+  const posRow0  = new Set();
+
+  // Zeros claim their positions first (only if NOT coinciding with a bound)
+  if (!noRealZeros) {
+    const seenZ = new Set();
+    zeroFloats.forEach(zf => {
+      const key = Math.round(zf * 1e9);
+      if (seenZ.has(key)) return; seenZ.add(key);
+      if (Math.abs(zf - boundA_float) < 1e-9 || Math.abs(zf - boundB_float) < 1e-9) return;
+      labeledX.add(key); posRow0.add(key);
+    });
+  }
+  // Bounds also claim if not on a tick
+  [boundA_float, boundB_float].forEach(xb => {
+    const key = Math.round(xb * 1e9);
+    const isOnTick = xTicks.some(t => Math.abs(t - xb) < xStep * 0.01);
+    if (!isOnTick) labeledX.add(key);
+  });
+
+  // Draw regular tick labels — skip positions claimed by zeros/bounds
+  ctx.font = FONT_TICK; ctx.fillStyle = COL_TICK;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+  xTicks.forEach(x => {
+    const key = Math.round(x * 1e9);
+    if (Math.abs(x) > xStep * 0.01 && !labeledX.has(key))
+      ctx.fillText(fmtFloat(x), cx(x), yAxis0+7);
+  });
+
+  // Draw zero labels (amber) — skip zeros that are also a bound
+  if (!noRealZeros) {
+    const seenZ = new Set();
+    zeroFloats.forEach(zf => {
+      const key = Math.round(zf * 1e9);
+      if (seenZ.has(key)) return; seenZ.add(key);
+      // Skip if this zero coincides with a bound (bound marker takes priority)
+      if (Math.abs(zf - boundA_float) < 1e-9 || Math.abs(zf - boundB_float) < 1e-9) return;
+      const z = zeros.find(z => Math.abs(zeroObjToFloat(z) - zf) < 1e-9);
+      if (!z) return;
+      const px = cx(zf);
+      // Dot on x-axis
+      ctx.fillStyle = COL_ZERO;
+      ctx.beginPath(); ctx.arc(px, yAxis0, 5, 0, 2*Math.PI); ctx.fill();
+      // Label in row0
+      ctx.font = FONT_SPECIAL; ctx.fillStyle = COL_ZERO;
+      ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+      ctx.fillText(zeroCanvasLabel(z), px, yAxis0+7);
+    });
+  }
+
+  // Draw bound markers + labels (green)
+  const zA_irr = zeros.find(z => z.isSqrt && Math.abs(zeroObjToFloat(z)-boundA_float)<1e-9)||null;
+  const zB_irr = zeros.find(z => z.isSqrt && Math.abs(zeroObjToFloat(z)-boundB_float)<1e-9)||null;
+  [
+    { xb: boundA_float, rVal: boundA_rat, zirr: zA_irr },
+    { xb: boundB_float, rVal: boundB_rat, zirr: zB_irr }
+  ].forEach(({ xb, rVal, zirr }) => {
+    const px   = cx(xb);
+    const isZero = !noRealZeros && zeroFloats.some(zf => Math.abs(zf-xb) < 1e-9);
+    // Bold tick on x-axis in bound color
+    ctx.strokeStyle = COL_BOUND; ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.moveTo(px, yAxis0-7); ctx.lineTo(px, yAxis0+7); ctx.stroke();
+    // Dot on curve
+    const yb = evalF(xb);
+    ctx.fillStyle = COL_BOUND;
+    ctx.beginPath(); ctx.arc(px, cy(yb), 4.5, 0, 2*Math.PI); ctx.fill();
+    // Text label: row0 normally, row1 if a zero label is already at this position
+    const row = isZero ? yAxis0+24 : yAxis0+7;
+    ctx.font = FONT_SPECIAL; ctx.fillStyle = COL_BOUND;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+    ctx.fillText(boundCanvasLabel(rVal, xb, zirr), px, row);
+  });
+}
+
+// ================================================================
+// NEW TASK
+// ================================================================
+function newTask() {
+  document.querySelectorAll('details').forEach(d=>d.removeAttribute('open'));
+  let task=null,tries=0;
+  while(tries<60){
+    try{
+      task=generateTask();
+      if(task&&task.poly&&task.poly.length>=2)break;
+    }catch(e){}
+    tries++;
+  }
+  _task=task;
+  let {instr,note,noteIsHTML,formulaLatex}=buildTaskText(task);
+  let instrEl=document.getElementById('task-instruction');
+  instrEl.innerHTML=instr;
+  if(note && !noteIsHTML) instrEl.innerHTML+=`<div class="task-note">\\(${note}\\)</div>`;
+  document.getElementById('task-formula').innerHTML=`$$${formulaLatex}$$`;
+  MathJax.typesetPromise().then(()=>{renderSolution();drawSketch();scaleAllElements();});
+}
+
+// ================================================================
+// EVENTS & INIT
+// ================================================================
+function readUrlParams() {
+  let params = new URLSearchParams(window.location.search);
+  if(params.has('taskType')) { let el = document.querySelector(`input[name="taskType"][value="${params.get('taskType')}"]`); if(el) el.checked=true; }
+  if(params.has('zeroType')) { let el = document.querySelector(`input[name="zeroType"][value="${params.get('zeroType')}"]`); if(el) el.checked=true; }
+  ['maxDegree','maxZerosInRange'].forEach(id=>{
+    if(params.has(id)) {
+      let el=document.getElementById(id);
+      if(el) {
+        el.value=params.get(id);
+        if(id==='maxDegree') document.getElementById('degreeValue').textContent=el.value;
+        if(id==='maxZerosInRange') document.getElementById('maxZerosValue').textContent=el.value;
+      }
+    }
+  });
+  ['allowFractions','allowDecimals','allowFactor'].forEach(id=>{
+    if(params.has(id)){
+      let el=document.getElementById(id);
+      if(el) el.checked=(params.get(id)==='true');
+    }
+  });
+}
+
+function updateUrlParams() {
+  let params = new URLSearchParams(window.location.search);
+  let tt = document.querySelector('input[name="taskType"]:checked'); if(tt) params.set('taskType', tt.value);
+  let zt = document.querySelector('input[name="zeroType"]:checked'); if(zt) params.set('zeroType', zt.value);
+  params.set('maxDegree', document.getElementById('maxDegree').value);
+  params.set('maxZerosInRange', document.getElementById('maxZerosInRange').value);
+  params.set('allowFractions', document.getElementById('allowFractions').checked);
+  params.set('allowDecimals', document.getElementById('allowDecimals').checked);
+  params.set('allowFactor', document.getElementById('allowFactor').checked);
+  window.history.replaceState({}, '', `${window.location.pathname}?${params.toString()}`);
+}
+
+// Event-Listener für URL-Updates an alle Inputs hängen
+document.querySelectorAll('.form-block input').forEach(el => {
+  el.addEventListener('change', updateUrlParams);
+});
+
+document.getElementById('roundingToggle').addEventListener('change',()=>renderSolution());
+document.getElementById('styleToggle').addEventListener('change',   ()=>renderSolution());
+document.getElementById('sketchDetails')?.addEventListener('toggle', ()=>drawSketch());
+document.getElementById('solutionPath')?.addEventListener('toggle', ()=>{
+  if(window.MathJax) MathJax.typesetPromise().then(()=>scaleToFit(document.getElementById('solutionPathContent')));
+});
+
+document.getElementById('maxDegree').addEventListener('input',()=>{
+  document.getElementById('degreeValue').textContent=document.getElementById('maxDegree').value;
+  updateUrlParams();
+});
+document.getElementById('maxZerosInRange').addEventListener('input',()=>{
+  document.getElementById('maxZerosValue').textContent=document.getElementById('maxZerosInRange').value;
+  updateUrlParams();
+});
+
+// URL auslesen, bevor die erste Aufgabe generiert wird
+readUrlParams();
+MathJax.startup.promise.then(()=>newTask());
+</script>
+<footer class="site-footer">
+  <div class="footer-content">
+    M.&nbsp;Koch
+    <span class="footer-topic"><a href="./index.html">Mathe-Tools</a></span>
+    <span class="footer-update">Zuletzt aktualisiert:&nbsp;<span id="last-update">...</span></span>
+  </div>
+</footer>
+<script src="last-update.js" defer></script>
+</body>
+</html>
