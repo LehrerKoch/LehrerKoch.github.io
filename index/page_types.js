@@ -69,14 +69,14 @@ const typesData = [
   //   "tooltip": "Externe Video-Inhalte zur Vertiefung des Stoffes",
   //   "linkLabel": "Zum Video"
   // },
-  // {
-  //   "id": "info",
-  //   "label": "Info",
-  //   "icon": "ℹ️",
-  //   "iconType": "emoji",
-  //   "color": "#6b7280",
-  //   "colorBg": "rgba(107,114,128,0.08)",
-  //   "tooltip": "Zusätzliche Informationen, Erklärungen und Tipps zum Thema",
-  //   "linkLabel": "Zur Info"
-  // }
+  {
+    "id": "info",
+    "label": "Info",
+    "icon": "ℹ️",
+    "iconType": "emoji",
+    "color": "#6b7280",
+    "colorBg": "rgba(107,114,128,0.08)",
+    "tooltip": "Zusätzliche Informationen, Erklärungen und Tipps zum Thema",
+    "linkLabel": "Zur Info"
+  }
 ];

@@ -71,14 +71,14 @@ const categoriesData = [
     "tooltip": "Sinusfunktion, Arkussinus und ihre Parameter visualisieren",
     "cards": ["geo-sinus-herleitung", "geo-arkussinus", "geo-sinus-ablesen", "geo-sinus-veraendern", , "geo-parameter-einheit", "sinus-toene", "geo-fourier"]
   },
-  // {
-  //   "id": "mathematik-sonstiges",
-  //   "title": "Mathematik-Sonstiges",
-  //   "icon": "🔢",
-  //   "iconType": "emoji",
-  //   "tooltip": "Weitere mathematische Themen",
-  //   "cards": ["graphen"]
-  // },
+  {
+    "id": "mathematik-sonstiges",
+    "title": "Mathematik-Sonstiges",
+    "icon": "🔢",
+    "iconType": "emoji",
+    "tooltip": "Weitere mathematische Themen",
+    "cards": ["studiengaenge"]
+  },
   {
     "id": "informatik",
     "title": "Informatik",

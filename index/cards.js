@@ -303,5 +303,13 @@ const cardsData = [
     "types": ["game"],
     "mobilefriendly": false,
     "link": "math_domini.html"
+  },
+  {
+    "id": "studiengaenge",
+    "title": "Studienwahl Mathematik",
+    "desc": "Orientierungshilfe für Studiengänge rund um Mathematik",
+    "types": ["info"],
+    "mobilefriendly": true,
+    "link": "studiengaenge_mathematik.html"
   }
 ];
