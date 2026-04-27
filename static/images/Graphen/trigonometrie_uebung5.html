@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trigonometrie im rechtwinkligen Dreieck – Übung</title>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<style>
+html { overflow-y: scroll; }
+body { font-family: Calibri, sans-serif; padding: 0 2% 0 2%; }
+p { margin: 1%; }
+button {
+  background-color: #4CAF50; border: none; color: white;
+  padding: 10px 20px; text-align: center; text-decoration: none;
+  display: inline-block; font-size: 12px; margin: 4px 2px;
+  cursor: pointer; border-radius: 5px;
+}
+details { padding: 0px; border: 2px solid #000000; margin-bottom: 6px; }
+summary { margin: 5px; padding: 0px 3px 3px 3px; cursor: pointer; font-weight: bold; display: block; }
+summary::after { margin-left: 1ch; display: inline-block; content: '▶️'; transition: 0.2s; }
+details[open] > summary::after { transform: rotate(90deg); }
+.form-block { border: 1px solid black; padding: 3px; margin: 10px; }
+input[type="radio"], input[type="checkbox"] { margin-top: 5px; margin-right: 3px; margin-left: 10px; }
+.scale-el { transform-origin: top left; display: inline-block; min-width: 100%; }
+.scale-wrapper { overflow: hidden; width: 95%; padding: 0.5em; }
+#task-formula { font-size: 1.3em; text-align: center; }
+#solution { color: red; font-size: 1.3em; text-align: center; }
+#solutionPath { margin: 6px; }
+#solutionPathContent { color: blue; font-size: 1.0em; }
+.solution-path-inner { display: inline-block; text-align: left; }
+/* Aufgabentyp-Blöcke */
+.type-block { border: 1px solid #c8d8c8; border-radius: 6px; margin: 5px 0; overflow: hidden; }
+.type-block-header { background: #eaf2ea; padding: 5px 10px; border-bottom: 1px solid #c8d8c8; }
+.type-block-header label { display: flex; align-items: center; gap: 7px; font-weight: bold; cursor: pointer; margin: 0; color: #1a4a1a; }
+.type-block-header input[type=checkbox] { margin: 0; }
+.type-block-body { padding: 4px 8px 6px 26px; display: flex; flex-wrap: wrap; gap: 0 10px; background: #fafff8; }
+.type-block-body label { display: flex; align-items: center; gap: 4px; font-size: 0.93em; cursor: pointer; color: #222; line-height: 1.9em; }
+.type-block-body label.disabled { color: #bbb !important; pointer-events: none; }
+.type-block-body input[type=checkbox] { margin: 0 2px 0 0; }
+/* radio row */
+.radio-row { display: flex; flex-wrap: wrap; gap: 4px; margin: 4px 0 2px 10px; }
+.radio-row label { display: flex; align-items: center; gap: 4px; padding: 2px 10px; border: 1.5px solid #bbb; border-radius: 20px; cursor: pointer; font-size: 0.93em; }
+.radio-row input[type=radio] { margin: 0; }
+/* sketch */
+.sketch-outer { display: flex; flex-direction: column; align-items: center; margin: 4px 0 6px 0; }
+.sketch-note { font-size: 0.78em; font-style: italic; color: #aaa; margin-bottom: 2px; align-self: flex-start; margin-left: 8px; }
+.sketch-svg-wrap { display: flex; justify-content: center; width: 100%; }
+</style>
+</head>
+<body>
+<h1>Trigonometrie im rechtwinkligen Dreieck</h1>
+
+<details id="settingsDetails">
+<summary>Einstellungen</summary>
+
+<div class="form-block">
+  <b>Aufgabenformat</b>
+  <div class="radio-row">
+    <label><input type="radio" name="taskFormat" value="text" checked> Textform</label>
+    <label><input type="radio" name="taskFormat" value="sketch"> Skizze</label>
+    <label><input type="radio" name="taskFormat" value="random"> Zufällig</label>
+  </div>
+</div>
+
+<div class="form-block">
+  <b>Bezeichnungen</b>
+  <div class="radio-row">
+    <label><input type="radio" name="labeling" value="abc" checked> Klassisch – Dreieck ABC (a,b,c / α,β,γ)</label>
+    <label><input type="radio" name="labeling" value="rand"> Zufällige Eckenbezeichnung</label>
+  </div>
+</div>
+
+<div class="form-block">
+  <b>Schwierigkeitsgrad</b>
+  <div class="radio-row">
+    <label><input type="radio" name="difficulty" value="easy" checked> Einfach</label>
+    <label><input type="radio" name="difficulty" value="medium"> Mittel</label>
+    <label><input type="radio" name="difficulty" value="hard"> Schwierig</label>
+  </div>
+  <div style="margin-left:10px;font-size:0.88em;color:#555;margin-top:3px;">
+    <span id="diffHint">Seitenlängen: ganzzahlig ≤ 12 &nbsp;|&nbsp; Winkel: ganzzahlig, 10°–80°</span>
+  </div>
+</div>
+
+<div class="form-block">
+  <b>Bezeichnung der Umkehrfunktionen</b>
+  <div class="radio-row">
+    <label><input type="radio" name="invFunc" value="arc" checked> arcsin, arccos, arctan</label>
+    <label><input type="radio" name="invFunc" value="a"> asin, acos, atan</label>
+    <label><input type="radio" name="invFunc" value="inv"> sin⁻¹, cos⁻¹, tan⁻¹</label>
+  </div>
+</div>
+
+<div class="form-block">
+  <b>Aufgabentyp</b>
+  <div class="type-block">
+    <div class="type-block-header"><label><input type="checkbox" id="useSin" checked onchange="syncSubChecks()"> Sinus</label></div>
+    <div class="type-block-body" id="sinBody">
+      <label><input type="checkbox" id="sinGeg" checked> Gegenkathete gesucht</label>
+      <label><input type="checkbox" id="sinHyp" checked> Hypotenuse gesucht</label>
+      <label><input type="checkbox" id="sinWin" checked> Winkel gesucht</label>
+    </div>
+  </div>
+  <div class="type-block">
+    <div class="type-block-header"><label><input type="checkbox" id="useCos" checked onchange="syncSubChecks()"> Kosinus</label></div>
+    <div class="type-block-body" id="cosBody">
+      <label><input type="checkbox" id="cosAnk" checked> Ankathete gesucht</label>
+      <label><input type="checkbox" id="cosHyp" checked> Hypotenuse gesucht</label>
+      <label><input type="checkbox" id="cosWin" checked> Winkel gesucht</label>
+    </div>
+  </div>
+  <div class="type-block">
+    <div class="type-block-header"><label><input type="checkbox" id="useTan" checked onchange="syncSubChecks()"> Tangens</label></div>
+    <div class="type-block-body" id="tanBody">
+      <label><input type="checkbox" id="tanGeg" checked> Gegenkathete gesucht</label>
+      <label><input type="checkbox" id="tanAnk" checked> Ankathete gesucht</label>
+      <label><input type="checkbox" id="tanWin" checked> Winkel gesucht</label>
+    </div>
+  </div>
+  <div class="type-block">
+    <div class="type-block-header"><label><input type="checkbox" id="usePyth" checked onchange="syncSubChecks()"> Satz des Pythagoras</label></div>
+    <div class="type-block-body" id="pythBody">
+      <label><input type="checkbox" id="pythKath" checked> Kathete gesucht</label>
+      <label><input type="checkbox" id="pythHyp" checked> Hypotenuse gesucht</label>
+    </div>
+  </div>
+</div>
+</details>
+
+<button onclick="newTask()">Neue Aufgabe</button>
+
+<h2>Aufgabe</h2>
+
+<!-- sketch-mode: direct -->
+<div id="sketch-direct-wrap" style="display:none">
+  <div class="sketch-outer">
+    <span class="sketch-note">Skizze nicht maßstabsgerecht</span>
+    <div class="sketch-svg-wrap" id="sketch-direct"></div>
+  </div>
+</div>
+
+<!-- text-mode -->
+<div id="text-task-wrap">
+  <div class="scale-wrapper"><div id="task-formula" class="scale-el"></div></div>
+  <details id="sketch-collapsible">
+    <summary>Skizze anzeigen</summary>
+    <div class="sketch-outer">
+      <span class="sketch-note">Skizze nicht maßstabsgerecht</span>
+      <div class="sketch-svg-wrap" id="sketch-inside"></div>
+    </div>
+  </details>
+</div>
+
+<details id="solutionDetailsContainer">
+  <summary>Lösung</summary>
+  <div class="scale-wrapper"><div id="solution" class="scale-el"></div></div>
+  <details id="solutionPath">
+    <summary>Lösungsweg</summary>
+    <div class="scale-wrapper"><div id="solutionPathContent" class="scale-el"></div></div>
+  </details>
+</details>
+
+<script>
+// === SCALE ===
+function scaleToFit(el) {
+  if (!el) return;
+  el.style.transform = 'none';
+  el.style.transformOrigin = 'top left';
+  const wrapper = el.parentElement;
+  if (!wrapper) return;
+  wrapper.style.height = 'auto';
+  requestAnimationFrame(() => {
+    const available = wrapper.clientWidth - parseFloat(getComputedStyle(wrapper).paddingLeft) - parseFloat(getComputedStyle(wrapper).paddingRight);
+    const natural = el.scrollWidth;
+    if (natural > available && available > 0) {
+      const scale = available / natural;
+      el.style.transform = `scale(${scale})`;
+      wrapper.style.height = (el.scrollHeight * scale + parseFloat(getComputedStyle(wrapper).paddingTop) + parseFloat(getComputedStyle(wrapper).paddingBottom)) + 'px';
+    }
+  });
+}
+function scaleAllElements() { document.querySelectorAll('.scale-el').forEach(scaleToFit); }
+window.addEventListener('resize', scaleAllElements);
+
+// === DIFFICULTY HINTS ===
+const DIFF_HINTS = {
+  easy:   'Seitenlängen: ganzzahlig ≤ 12 &nbsp;|&nbsp; Winkel: ganzzahlig, 10°–80°',
+  medium: 'Seitenlängen: eine Nachkommastelle &nbsp;|&nbsp; Winkel: ganzzahlig oder ×,5°',
+  hard:   'Seitenlängen: bis zwei Nachkommastellen, auch > 12 &nbsp;|&nbsp; Winkel: beliebig'
+};
+document.querySelectorAll('input[name="difficulty"]').forEach(r =>
+  r.addEventListener('change', () => { document.getElementById('diffHint').innerHTML = DIFF_HINTS[r.value]; updateURL(); })
+);
+
+// === SUB-CHECKBOX SYNC (Punkt 3) ===
+function syncSubChecks() {
+  [['useSin','sinBody',['sinGeg','sinHyp','sinWin']],
+   ['useCos','cosBody',['cosAnk','cosHyp','cosWin']],
+   ['useTan','tanBody',['tanGeg','tanAnk','tanWin']],
+   ['usePyth','pythBody',['pythKath','pythHyp']]
+  ].forEach(([mId, bId, subs]) => {
+    const on = document.getElementById(mId).checked;
+    subs.forEach(id => {
+      const el = document.getElementById(id);
+      el.disabled = !on;
+      el.closest('label').classList.toggle('disabled', !on);
+    });
+  });
+}
+
+// === HELPERS ===
+const randInt = (a,b) => Math.floor(Math.random()*(b-a+1))+a;
+const round2  = v => Math.round(v*100)/100;
+const round1  = v => Math.round(v*10)/10;
+const f1      = v => (+v).toFixed(1);
+const n2      = (x,y) => { const l=Math.sqrt(x*x+y*y)||1; return [x/l,y/l]; };
+
+function fmtN(v) {
+  let s = round2(v).toFixed(2).replace(/\.?0+$/,'');
+  return s.replace('.', '{,}');
+}
+function fmtNsvg(v) {
+  return round2(v).toFixed(2).replace(/\.?0+$/,'').replace('.',',');
+}
+function fmtDeg(v)    { return fmtN(v)+'^{\\circ}'; }
+function fmtDegSvg(v) { return fmtNsvg(v)+'°'; }
+
+// === UMKEHRFUNKTIONEN (Punkt 4) ===
+function invLabel(fn) {
+  const m = (document.querySelector('input[name="invFunc"]:checked')||{value:'arc'}).value;
+  return ({
+    arc: {sin:'\\arcsin',    cos:'\\arccos',    tan:'\\arctan'},
+    a:   {sin:'\\operatorname{asin}', cos:'\\operatorname{acos}', tan:'\\operatorname{atan}'},
+    inv: {sin:'\\sin^{-1}',  cos:'\\cos^{-1}',  tan:'\\tan^{-1}'}
+  })[m][fn];
+}
+
+// === NAMING (Punkt 3 – echte Buchstaben, kein "x") ===
+// V1=ang1-Vertex (Referenzwinkel), V2=ang2-Vertex, V3=rechter-Winkel-Vertex
+// s1=Gegenkathete(ang1)=V2–V3, s2=Ankathete(ang1)=V1–V3, s3=Hyp=V1–V2
+function genNaming(labeling) {
+  if (labeling === 'abc') {
+    return { V1:'A', V2:'B', V3:'C',
+             s1:'a', s2:'b', s3:'c',
+             ang1:'\\alpha', ang2:'\\beta', ang3:'\\gamma',
+             ang1p:'α', ang2p:'β', ang3p:'γ' };
+  }
+  // Zufällig 3 verschiedene Großbuchstaben (nicht A,B,C)
+  const pool = 'DEFGHIJKLMNPQRSTUVWXYZ'.split('');
+  const picked = [];
+  while (picked.length < 3) picked.push(pool.splice(randInt(0,pool.length-1),1)[0]);
+  const [P,Q,R] = picked;
+  return { V1:P, V2:Q, V3:R,
+           s1:P.toLowerCase(), s2:Q.toLowerCase(), s3:R.toLowerCase(),
+           ang1:`\\hat{${P}}`, ang2:`\\hat{${Q}}`, ang3:`\\hat{${R}}`,
+           ang1p:P, ang2p:Q, ang3p:R };
+}
+// LaTeX-Label für internen Schlüssel
+function nmTex(key, nm) {
+  return {a:nm.s1, b:nm.s2, c:nm.s3, alpha:nm.ang1, beta:nm.ang2, gamma:nm.ang3}[key];
+}
+// SVG-Klartextlabel
+function nmSvg(key, nm) {
+  return {a:nm.s1, b:nm.s2, c:nm.s3, alpha:nm.ang1p, beta:nm.ang2p, gamma:nm.ang3p}[key];
+}
+
+// === DIFFICULTY ===
+function genSide(diff) {
+  if (diff==='easy')   return randInt(2,12);
+  if (diff==='medium') return round1(2+Math.random()*13);
+  return round2(2+Math.random()*28);
+}
+function genAngle(diff) {
+  if (diff==='easy')   return randInt(10,80);
+  if (diff==='medium') return (Math.random()<0.5) ? randInt(10,80) : randInt(20,160)/2;
+  return round2(10+Math.random()*70);
+}
+
+// === TRIANGLE GENERATION ===
+// Rechter Winkel bei C (γ). a=GK(α)=B–C, b=AK(α)=A–C, c=Hyp=A–B
+function genTriangle(choice, diff) {
+  const {type, sub} = choice;
+  let alpha, a, b, c;
+  if (type==='pyth') {
+    if (sub==='hyp') { a=genSide(diff); b=genSide(diff); while(Math.abs(a-b)<0.5)b=genSide(diff); c=round2(Math.sqrt(a*a+b*b)); }
+    else             { b=genSide(diff); c=genSide(diff); while(c<=b+0.5)c=genSide(diff); a=round2(Math.sqrt(c*c-b*b)); }
+    alpha=round2(Math.atan2(a,b)*180/Math.PI);
+  } else {
+    alpha=genAngle(diff);
+    const ar=alpha*Math.PI/180;
+    if      (type==='sin'&&sub==='geg') { c=genSide(diff); a=round2(c*Math.sin(ar)); b=round2(c*Math.cos(ar)); }
+    else if (type==='sin'&&sub==='hyp') { a=genSide(diff); c=round2(a/Math.sin(ar)); b=round2(c*Math.cos(ar)); }
+    else if (type==='sin'&&sub==='win') { a=genSide(diff); c=genSide(diff); while(c<=a)c=genSide(diff); b=round2(Math.sqrt(c*c-a*a)); alpha=round2(Math.asin(a/c)*180/Math.PI); }
+    else if (type==='cos'&&sub==='ank') { c=genSide(diff); b=round2(c*Math.cos(ar)); a=round2(c*Math.sin(ar)); }
+    else if (type==='cos'&&sub==='hyp') { b=genSide(diff); c=round2(b/Math.cos(ar)); a=round2(c*Math.sin(ar)); }
+    else if (type==='cos'&&sub==='win') { b=genSide(diff); c=genSide(diff); while(c<=b)c=genSide(diff); a=round2(Math.sqrt(c*c-b*b)); alpha=round2(Math.acos(b/c)*180/Math.PI); }
+    else if (type==='tan'&&sub==='geg') { b=genSide(diff); a=round2(b*Math.tan(ar)); c=round2(Math.sqrt(a*a+b*b)); }
+    else if (type==='tan'&&sub==='ank') { a=genSide(diff); b=round2(a/Math.tan(ar)); c=round2(Math.sqrt(a*a+b*b)); }
+    else { a=genSide(diff); b=genSide(diff); while(Math.abs(a-b)<0.3)b=genSide(diff); c=round2(Math.sqrt(a*a+b*b)); alpha=round2(Math.atan2(a,b)*180/Math.PI); }
+  }
+  return { alpha, beta: round2(90-alpha), a, b, c };
+}
+
+// === POOL ===
+function buildPool() {
+  const pool=[], add=(t,s)=>pool.push({type:t,sub:s});
+  if(document.getElementById('useSin').checked){if(document.getElementById('sinGeg').checked)add('sin','geg');if(document.getElementById('sinHyp').checked)add('sin','hyp');if(document.getElementById('sinWin').checked)add('sin','win');}
+  if(document.getElementById('useCos').checked){if(document.getElementById('cosAnk').checked)add('cos','ank');if(document.getElementById('cosHyp').checked)add('cos','hyp');if(document.getElementById('cosWin').checked)add('cos','win');}
+  if(document.getElementById('useTan').checked){if(document.getElementById('tanGeg').checked)add('tan','geg');if(document.getElementById('tanAnk').checked)add('tan','ank');if(document.getElementById('tanWin').checked)add('tan','win');}
+  if(document.getElementById('usePyth').checked){if(document.getElementById('pythKath').checked)add('pyth','kath');if(document.getElementById('pythHyp').checked)add('pyth','hyp');}
+  return pool;
+}
+
+// === TASK DATA ===
+function buildTaskData(choice, tri) {
+  const {type,sub}=choice, {alpha,a,b,c}=tri;
+  let sk, gp;
+  if      (type==='sin'&&sub==='geg') {sk='a'; gp=[['alpha',alpha],['c',c]];}
+  else if (type==='sin'&&sub==='hyp') {sk='c'; gp=[['alpha',alpha],['a',a]];}
+  else if (type==='sin'&&sub==='win') {sk='alpha'; gp=[['a',a],['c',c]];}
+  else if (type==='cos'&&sub==='ank') {sk='b'; gp=[['alpha',alpha],['c',c]];}
+  else if (type==='cos'&&sub==='hyp') {sk='c'; gp=[['alpha',alpha],['b',b]];}
+  else if (type==='cos'&&sub==='win') {sk='alpha'; gp=[['b',b],['c',c]];}
+  else if (type==='tan'&&sub==='geg') {sk='a'; gp=[['alpha',alpha],['b',b]];}
+  else if (type==='tan'&&sub==='ank') {sk='b'; gp=[['alpha',alpha],['a',a]];}
+  else if (type==='tan'&&sub==='win') {sk='alpha'; gp=[['a',a],['b',b]];}
+  else if (type==='pyth'&&sub==='hyp'){sk='c'; gp=[['a',a],['b',b]];}
+  else                                {sk='a'; gp=[['c',c],['b',b]];}
+  return {type, sub, searchedKey:sk, givenPairs:gp, ansVal: sk==='alpha'?alpha:tri[sk]};
+}
+
+// === SVG SKETCH (Punkt 1+2) ===
+//
+// Festes 3-4-5-Dreieck. leg4=s1(GK von alpha), leg3=s2(AK von alpha).
+// Rechter Winkel immer bei V3.
+// Orientierungen (Position von V3):
+//   0: V3 unten-rechts (Standard abc/Text), V1 unten-links,  V2 oben-rechts
+//   1: V3 unten-links  (gespiegelt),        V1 unten-rechts, V2 oben-links
+//   2: V3 oben-rechts,                      V1 oben-links,   V2 unten-rechts
+//   3: V3 oben-links,                       V1 oben-rechts,  V2 unten-links
+//
+// Farben: gesucht=rot, gegeben=grün, unbekannt=grau, rechterWinkel=blaugrün
+// Rechter-Winkel-Marker: runder Bogen + Punkt (Punkt 2, KEIN Quadrat)
+// Labels: "Name = Wert" für gegeben; "Name = ?" für gesucht; "Name" für unbekannt
+//
+function buildSVG(tri, task, nm, orientation) {
+  const {alpha, beta, a, b, c} = tri;
+  const {searchedKey, givenPairs} = task;
+
+  const UNIT=44, leg4=4*UNIT, leg3=3*UNIT, PAD=54;
+  const bW=leg3+2*PAD, bH=leg4+2*PAD;
+
+  let pV1, pV2, pV3;
+  if      (orientation===0) { pV3=[PAD+leg3,PAD+leg4]; pV1=[PAD,      PAD+leg4]; pV2=[PAD+leg3,PAD]; }
+  else if (orientation===1) { pV3=[PAD,      PAD+leg4]; pV1=[PAD+leg3, PAD+leg4]; pV2=[PAD,      PAD]; }
+  else if (orientation===2) { pV3=[PAD+leg3,PAD];       pV1=[PAD,      PAD];      pV2=[PAD+leg3,PAD+leg4]; }
+  else                      { pV3=[PAD,      PAD];       pV1=[PAD+leg3, PAD];      pV2=[PAD,      PAD+leg4]; }
+
+  const givenSet = new Set(givenPairs.map(([k])=>k));
+  givenSet.add('gamma'); // rechter Winkel ist immer bekannt
+
+  const COL_SEARCH='#cc0000', COL_GIVEN='#3a9a3a', COL_UNK='#666', COL_RA='#3a8858';
+  const sCol = k => k===searchedKey ? COL_SEARCH : givenSet.has(k) ? COL_GIVEN : COL_UNK;
+  const sW   = k => k===searchedKey ? 2.8 : 2.0;
+  const aCol = k => k===searchedKey ? COL_SEARCH : givenSet.has(k) ? COL_GIVEN : COL_UNK;
+
+  function valStrSvg(k) {
+    if(k==='alpha') return fmtDegSvg(alpha);
+    if(k==='beta')  return fmtDegSvg(beta);
+    if(k==='gamma') return '90°';
+    return fmtNsvg(tri[k]);
+  }
+  function lblStr(k) {
+    const name = nmSvg(k, nm);
+    if(k===searchedKey)  return name+' = ?';
+    if(givenSet.has(k))  return name+' = '+valStrSvg(k);
+    return name;
+  }
+
+  const cent = [(pV1[0]+pV2[0]+pV3[0])/3, (pV1[1]+pV2[1]+pV3[1])/3];
+
+  function ln([x1,y1],[x2,y2],col,w) {
+    return `<line x1="${f1(x1)}" y1="${f1(y1)}" x2="${f1(x2)}" y2="${f1(y2)}" stroke="${col}" stroke-width="${w}" stroke-linecap="round"/>`;
+  }
+  // s1(a)=V2–V3, s2(b)=V1–V3, s3(c)=V1–V2
+  const lines = ln(pV2,pV3,sCol('a'),sW('a')) + ln(pV1,pV3,sCol('b'),sW('b')) + ln(pV1,pV2,sCol('c'),sW('c'));
+
+  // Rechter-Winkel-Marker: Bogen + Punkt (Punkt 2)
+  function raMarker([Cx,Cy],[Ax,Ay],[Bx,By]) {
+    const [u1x,u1y]=n2(Ax-Cx,Ay-Cy), [u2x,u2y]=n2(Bx-Cx,By-Cy);
+    const r=17;
+    const sx=Cx+r*u1x, sy=Cy+r*u1y, ex=Cx+r*u2x, ey=Cy+r*u2y;
+    const cross=u1x*u2y-u1y*u2x, sweep=cross>0?1:0;
+    const ma=Math.atan2(u1y+u2y, u1x+u2x), dr=r*0.75;
+    const dotX=Cx+dr*Math.cos(ma), dotY=Cy+dr*Math.sin(ma);
+    return `<path d="M ${f1(sx)} ${f1(sy)} A ${r} ${r} 0 0 ${sweep} ${f1(ex)} ${f1(ey)}" fill="none" stroke="${COL_RA}" stroke-width="1.7"/>`
+         + `<circle cx="${f1(dotX)}" cy="${f1(dotY)}" r="2.8" fill="${COL_RA}"/>`;
+  }
+
+  // Winkelbogen
+  function angArc([Px,Py],[Q1x,Q1y],[Q2x,Q2y],r,col) {
+    const a1=Math.atan2(Q1y-Py,Q1x-Px), a2=Math.atan2(Q2y-Py,Q2x-Px);
+    let d=a2-a1;
+    while(d>Math.PI)d-=2*Math.PI; while(d<-Math.PI)d+=2*Math.PI;
+    const m0=a1+d/2, tx=Px+r*1.6*Math.cos(m0), ty=Py+r*1.6*Math.sin(m0);
+    if((cent[0]-Px)*(tx-Px)+(cent[1]-Py)*(ty-Py)<0) d=d>0?d-2*Math.PI:d+2*Math.PI;
+    const sx=Px+r*Math.cos(a1), sy=Py+r*Math.sin(a1);
+    const ex=Px+r*Math.cos(a1+d), ey=Py+r*Math.sin(a1+d);
+    return `<path d="M ${f1(sx)} ${f1(sy)} A ${r} ${r} 0 0 ${d>0?1:0} ${f1(ex)} ${f1(ey)}" fill="none" stroke="${col}" stroke-width="1.5"/>`;
+  }
+
+  // Seitenlabel: Mittelpunkt der Seite, nach außen (weg vom gegenüberliegenden Eckpunkt)
+  function sideLabel([P1x,P1y],[P2x,P2y],[Ox,Oy],text,col) {
+    const mx=(P1x+P2x)/2, my=(P1y+P2y)/2;
+    const [dx,dy]=n2(mx-Ox,my-Oy), off=20;
+    const fs=text.length>7?10:12;
+    return `<text x="${f1(mx+dx*off)}" y="${f1(my+dy*off)}" fill="${col}" font-size="${fs}" font-family="Georgia,serif" font-style="italic" text-anchor="middle" dominant-baseline="middle">${esc(text)}</text>`;
+  }
+
+  // Winkellabel: entlang der Winkelhalbierenden
+  function angLabel([Px,Py],[Q1x,Q1y],[Q2x,Q2y],r,col,text) {
+    const a1=Math.atan2(Q1y-Py,Q1x-Px), a2=Math.atan2(Q2y-Py,Q2x-Px);
+    let d=a2-a1;
+    while(d>Math.PI)d-=2*Math.PI; while(d<-Math.PI)d+=2*Math.PI;
+    const m0=a1+d/2, tx=Px+r*1.6*Math.cos(m0), ty=Py+r*1.6*Math.sin(m0);
+    if((cent[0]-Px)*(tx-Px)+(cent[1]-Py)*(ty-Py)<0) d=d>0?d-2*Math.PI:d+2*Math.PI;
+    const midA=a1+d/2, lr=r+20;
+    const fs=text.length>7?10:12;
+    return `<text x="${f1(Px+lr*Math.cos(midA))}" y="${f1(Py+lr*Math.sin(midA))}" fill="${col}" font-size="${fs}" font-family="Georgia,serif" font-style="italic" text-anchor="middle" dominant-baseline="middle">${esc(text)}</text>`;
+  }
+
+  // γ-Label beim rechten Winkel, in Richtung Schwerpunkt
+  function gammaLabel([Cx,Cy],[Ax,Ay],[Bx,By],text,col) {
+    const [u1x,u1y]=n2(Ax-Cx,Ay-Cy), [u2x,u2y]=n2(Bx-Cx,By-Cy);
+    const r=28, lx=Cx+(u1x+u2x)*r/Math.SQRT2, ly=Cy+(u1y+u2y)*r/Math.SQRT2;
+    const fs=text.length>7?10:12;
+    return `<text x="${f1(lx)}" y="${f1(ly)}" fill="${col}" font-size="${fs}" font-family="Georgia,serif" font-style="italic" text-anchor="middle" dominant-baseline="middle">${esc(text)}</text>`;
+  }
+
+  // Eckpunkt-Label, nach außen vom Schwerpunkt verschoben
+  function vtxLabel([Px,Py],name) {
+    const [dx,dy]=n2(Px-cent[0],Py-cent[1]);
+    return `<text x="${f1(Px+dx*20)}" y="${f1(Py+dy*20)}" fill="#333" font-size="13" font-family="Georgia,serif" font-weight="bold" text-anchor="middle" dominant-baseline="middle">${esc(name)}</text>`;
+  }
+
+  function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+  const raM   = raMarker(pV3,pV1,pV2);
+  const arcV1 = angArc(pV1,pV2,pV3,22,aCol('alpha'));
+  const arcV2 = angArc(pV2,pV1,pV3,22,aCol('beta'));
+  const lS1   = sideLabel(pV2,pV3,pV1,lblStr('a'),sCol('a'));
+  const lS2   = sideLabel(pV1,pV3,pV2,lblStr('b'),sCol('b'));
+  const lS3   = sideLabel(pV1,pV2,pV3,lblStr('c'),sCol('c'));
+  const lA1   = angLabel(pV1,pV2,pV3,22,aCol('alpha'),lblStr('alpha'));
+  const lA2   = angLabel(pV2,pV1,pV3,22,aCol('beta'), lblStr('beta'));
+  const lGam  = gammaLabel(pV3,pV1,pV2,lblStr('gamma'),COL_RA);
+  const vV1=vtxLabel(pV1,nm.V1), vV2=vtxLabel(pV2,nm.V2), vV3=vtxLabel(pV3,nm.V3);
+
+  return `<svg viewBox="0 0 ${f1(bW)} ${f1(bH)}" xmlns="http://www.w3.org/2000/svg" style="max-height:300px;max-width:100%;">
+  ${lines}${raM}${arcV1}${arcV2}
+  ${lS1}${lS2}${lS3}${lA1}${lA2}${lGam}
+  ${vV1}${vV2}${vV3}
+</svg>`;
+}
+
+// === MAIN ===
+function newTask() {
+  document.querySelectorAll('details').forEach(d=>{ if(d.id!=='settingsDetails') d.removeAttribute('open'); });
+  const pool=buildPool();
+  if(pool.length===0){
+    document.getElementById('task-formula').innerHTML='\\(\\text{Bitte mindestens einen Aufgabentyp auswählen.}\\)';
+    MathJax.typesetPromise(); return;
+  }
+  const choice    = pool[randInt(0,pool.length-1)];
+  const diff      = document.querySelector('input[name="difficulty"]:checked').value;
+  const labeling  = document.querySelector('input[name="labeling"]:checked').value;
+  const tri       = genTriangle(choice, diff);
+  const nm        = genNaming(labeling);
+  const task      = buildTaskData(choice, tri);
+  const fmtMode   = document.querySelector('input[name="taskFormat"]:checked').value;
+  const useSketch = fmtMode==='sketch' || (fmtMode==='random' && Math.random()<0.5);
+  // Text-Modus: Orientation 0 (Standard); Skizze: zufällig, 50% gespiegelt
+  const orientation = useSketch ? randInt(0,3) : 0;
+  const svgStr = buildSVG(tri, task, nm, orientation);
+
+  if (useSketch) {
+    document.getElementById('sketch-direct-wrap').style.display = '';
+    document.getElementById('text-task-wrap').style.display = 'none';
+    document.getElementById('sketch-direct').innerHTML = svgStr;
+  } else {
+    document.getElementById('sketch-direct-wrap').style.display = 'none';
+    document.getElementById('text-task-wrap').style.display = '';
+    document.getElementById('sketch-inside').innerHTML = svgStr;
+    // Aufgabentext mit Dreieckname
+    const isAng = k => ['alpha','beta','gamma'].includes(k);
+    const gStr = task.givenPairs.map(([k,v]) =>
+      `${nmTex(k,nm)} = ${isAng(k)?fmtDeg(v):fmtN(v)}`).join(', \\quad ');
+    const triName = `\\triangle ${nm.V1}${nm.V2}${nm.V3}`;
+    document.getElementById('task-formula').innerHTML =
+      `$$${triName}: \\quad ${nm.ang3} = 90^{\\circ}, \\quad ${gStr}$$`
+      + `$$\\text{ges.: } ${nmTex(task.searchedKey, nm)}$$`;
+  }
+
+  renderSolution(task, tri, nm);
+  MathJax.typesetPromise().then(()=>scaleAllElements());
+  updateURL();
+}
+
+// === SOLUTION (Punkt 5: ≈ statt = bei berechneten Ergebnissen; Punkt 6: Pythagoras-Intro) ===
+function renderSolution(task, tri, nm) {
+  const {alpha,beta,a,b,c} = tri;
+  const {type,sub,searchedKey,givenPairs,ansVal} = task;
+  const lbl  = k => nmTex(k, nm);
+  const aL=lbl('a'), bL=lbl('b'), cL=lbl('c'), alL=lbl('alpha');
+  const isAngSk = (searchedKey==='alpha');
+
+  // Ergebnis (immer ≈)
+  document.getElementById('solution').innerHTML =
+    `$$${lbl(searchedKey)} \\approx ${isAngSk ? fmtDeg(ansVal) : fmtN(ansVal)}$$`;
+
+  // Erklärungstext
+  const roleOf = k => ({
+    a: `die Gegenkathete zum Winkel \\(${nm.ang1}\\)`,
+    b: `die Ankathete zum Winkel \\(${nm.ang1}\\)`,
+    c: 'die Hypotenuse',
+    alpha: `der Winkel \\(${nm.ang1}\\)`
+  })[k];
+
+  let explanation = '';
+  if (type !== 'pyth') {
+    const fn  = {sin:'Sinus', cos:'Kosinus', tan:'Tangens'}[type];
+    const why = {
+      sin:'da der Sinus das Verhältnis von Gegenkathete zu Hypotenuse beschreibt',
+      cos:'da der Kosinus das Verhältnis von Ankathete zu Hypotenuse beschreibt',
+      tan:'da der Tangens das Verhältnis von Gegenkathete zu Ankathete beschreibt'
+    }[type];
+    const gsk = givenPairs.map(([k])=>k).filter(k=>!['alpha','beta','gamma'].includes(k));
+    let parts = [];
+    if (searchedKey !== 'alpha') {
+      parts.push(`Gegeben ist der Winkel \\(${alL} = ${fmtDeg(alpha)}\\).`);
+      gsk.forEach(k => parts.push(`Die Seite \\(${lbl(k)}\\) ist ${roleOf(k)}.`));
+      parts.push(`Gesucht ist \\(${lbl(searchedKey)}\\), also ${roleOf(searchedKey)}.`);
+    } else {
+      parts.push(`Die Seite \\(${lbl(gsk[0])}\\) ist ${roleOf(gsk[0])} und \\(${lbl(gsk[1])}\\) ist ${roleOf(gsk[1])}.`);
+      parts.push(`Gesucht ist der Winkel \\(${alL}\\).`);
+    }
+    parts.push(`Wir verwenden daher den <b>${fn}</b>, ${why}.`);
+    explanation = parts.join(' ');
+  } else {
+    // Punkt 6: Hypotenuse benennen, bevor Gleichung aufgestellt wird
+    explanation = `Da kein Winkel bekannt ist, verwenden wir den <b>Satz des Pythagoras</b>. `
+      + `Die Hypotenuse ist hier \\(${cL}\\) – sie liegt dem rechten Winkel \\(${nm.ang3}\\) gegenüber. `
+      + `Es gilt daher: \\(${aL}^2 + ${bL}^2 = ${cL}^2\\).`;
+  }
+
+  // Rechenschritte – Punkt 5: letztes Ergebnis mit ≈
+  const rows = [];
+  const eq  = (l,r) => rows.push(`${l} &= ${r} \\\\[3pt]`);
+  const apx = (l,r) => rows.push(`${l} &\\approx ${r} \\\\[3pt]`);
+
+  if (type==='sin') {
+    rows.push(`\\sin(${alL}) &= \\dfrac{\\text{GK}}{\\text{Hyp.}} = \\dfrac{${aL}}{${cL}} \\\\[8pt]`);
+    if(sub==='geg'){eq(aL,`${cL}\\cdot\\sin(${alL})`);eq(aL,`${fmtN(c)}\\cdot\\sin(${fmtDeg(alpha)})`);apx(aL,`\\mathbf{${fmtN(a)}}`);}
+    else if(sub==='hyp'){eq(cL,`\\dfrac{${aL}}{\\sin(${alL})}`);eq(cL,`\\dfrac{${fmtN(a)}}{\\sin(${fmtDeg(alpha)})}`);apx(cL,`\\mathbf{${fmtN(c)}}`);}
+    else{eq(alL,`${invLabel('sin')}\\!\\left(\\dfrac{${aL}}{${cL}}\\right)`);eq(alL,`${invLabel('sin')}\\!\\left(\\dfrac{${fmtN(a)}}{${fmtN(c)}}\\right)`);apx(alL,`\\mathbf{${fmtDeg(alpha)}}`);}
+  } else if (type==='cos') {
+    rows.push(`\\cos(${alL}) &= \\dfrac{\\text{AK}}{\\text{Hyp.}} = \\dfrac{${bL}}{${cL}} \\\\[8pt]`);
+    if(sub==='ank'){eq(bL,`${cL}\\cdot\\cos(${alL})`);eq(bL,`${fmtN(c)}\\cdot\\cos(${fmtDeg(alpha)})`);apx(bL,`\\mathbf{${fmtN(b)}}`);}
+    else if(sub==='hyp'){eq(cL,`\\dfrac{${bL}}{\\cos(${alL})}`);eq(cL,`\\dfrac{${fmtN(b)}}{\\cos(${fmtDeg(alpha)})}`);apx(cL,`\\mathbf{${fmtN(c)}}`);}
+    else{eq(alL,`${invLabel('cos')}\\!\\left(\\dfrac{${bL}}{${cL}}\\right)`);eq(alL,`${invLabel('cos')}\\!\\left(\\dfrac{${fmtN(b)}}{${fmtN(c)}}\\right)`);apx(alL,`\\mathbf{${fmtDeg(alpha)}}`);}
+  } else if (type==='tan') {
+    rows.push(`\\tan(${alL}) &= \\dfrac{\\text{GK}}{\\text{AK}} = \\dfrac{${aL}}{${bL}} \\\\[8pt]`);
+    if(sub==='geg'){eq(aL,`${bL}\\cdot\\tan(${alL})`);eq(aL,`${fmtN(b)}\\cdot\\tan(${fmtDeg(alpha)})`);apx(aL,`\\mathbf{${fmtN(a)}}`);}
+    else if(sub==='ank'){eq(bL,`\\dfrac{${aL}}{\\tan(${alL})}`);eq(bL,`\\dfrac{${fmtN(a)}}{\\tan(${fmtDeg(alpha)})}`);apx(bL,`\\mathbf{${fmtN(b)}}`);}
+    else{eq(alL,`${invLabel('tan')}\\!\\left(\\dfrac{${aL}}{${bL}}\\right)`);eq(alL,`${invLabel('tan')}\\!\\left(\\dfrac{${fmtN(a)}}{${fmtN(b)}}\\right)`);apx(alL,`\\mathbf{${fmtDeg(alpha)}}`);}
+  } else {
+    // Pythagoras
+    rows.push(`${aL}^2 + ${bL}^2 &= ${cL}^2 \\\\[3pt]`);
+    if(sub==='hyp'){
+      eq(cL,`\\sqrt{${aL}^2+${bL}^2}`);
+      eq(cL,`\\sqrt{${fmtN(a)}^2+${fmtN(b)}^2}`);
+      eq(cL,`\\sqrt{${fmtN(round2(a*a+b*b))}}`);
+      apx(cL,`\\mathbf{${fmtN(c)}}`);
+    } else {
+      eq(aL,`\\sqrt{${cL}^2-${bL}^2}`);
+      eq(aL,`\\sqrt{${fmtN(c)}^2-${fmtN(b)}^2}`);
+      eq(aL,`\\sqrt{${fmtN(round2(c*c-b*b))}}`);
+      apx(aL,`\\mathbf{${fmtN(a)}}`);
+    }
+  }
+
+  document.getElementById('solutionPathContent').innerHTML =
+    `<div class="solution-path-inner" style="color:blue;font-size:0.92em;padding:4px;">
+      <p style="color:#333;margin:4px 0 10px 0;line-height:1.55;">${explanation}</p>
+      $$\\begin{aligned}${rows.join('\n')}\\end{aligned}$$
+    </div>`;
+}
+
+// === URL PERSISTENCE ===
+function updateURL(){
+  const url=new URL(window.location);
+  url.searchParams.set('fmt',  document.querySelector('input[name="taskFormat"]:checked').value);
+  url.searchParams.set('lbl',  document.querySelector('input[name="labeling"]:checked').value);
+  url.searchParams.set('diff', document.querySelector('input[name="difficulty"]:checked').value);
+  url.searchParams.set('inv',  document.querySelector('input[name="invFunc"]:checked').value);
+  ['useSin','sinGeg','sinHyp','sinWin','useCos','cosAnk','cosHyp','cosWin',
+   'useTan','tanGeg','tanAnk','tanWin','usePyth','pythKath','pythHyp']
+    .forEach(id=>url.searchParams.set(id,document.getElementById(id).checked?'1':'0'));
+  history.replaceState({},'',url);
+}
+function loadURL(){
+  const url=new URL(window.location);
+  const g=(k,d)=>url.searchParams.has(k)?url.searchParams.get(k):d;
+  const setR=(n,v)=>{const e=document.querySelector(`input[name="${n}"][value="${v}"]`);if(e)e.checked=true;};
+  setR('taskFormat', g('fmt','text'));
+  setR('labeling',   g('lbl','abc'));
+  setR('difficulty', g('diff','easy'));
+  setR('invFunc',    g('inv','arc'));
+  ['useSin','sinGeg','sinHyp','sinWin','useCos','cosAnk','cosHyp','cosWin',
+   'useTan','tanGeg','tanAnk','tanWin','usePyth','pythKath','pythHyp'].forEach(id=>{
+    if(url.searchParams.has(id))document.getElementById(id).checked=url.searchParams.get(id)==='1';
+  });
+}
+
+loadURL();
+syncSubChecks();
+document.querySelectorAll('input').forEach(e=>e.addEventListener('change',()=>{syncSubChecks();updateURL();}));
+document.getElementById('solutionPath').addEventListener('toggle',()=>{
+  if(window.MathJax)MathJax.typesetPromise().then(()=>scaleToFit(document.getElementById('solutionPathContent')));
+});
+MathJax.startup.promise.then(()=>newTask());
+</script>
+</body>
+</html>
