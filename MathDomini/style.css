@@ -4,396 +4,531 @@
     --text-front: #000000;
     --text-back: #d32f2f;
     --accent: #3498db;
+    /* Fluid – kein harter Breakpoint-Sprung */
+    --card-w: clamp(100px, 20vw, 160px);
+    --card-h: clamp(145px, 29vw, 230px);
+    --card-font: clamp(0.65rem, calc(0.65rem + (100vw - 380px) * 0.00071), 0.82rem);
 }
 
+/* --------------------------------------------------------
+   RESET & BASE
+-------------------------------------------------------- */
 body {
     font-family: 'Segoe UI', Tahoma, sans-serif;
     background-color: var(--bg-color);
     margin: 0;
     overflow: hidden;
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    -webkit-user-select: none;
+    user-select: none;
+    touch-action: pan-x pan-y;
 }
 
-/* Skalierungs-Klassen */
-.scale-wrapper {
-    overflow: hidden; width: 100%; height: 100%;
-    display: flex; align-items: center; justify-content: center;
-}
-.scale-el {
-    display: inline-block; transform-origin: center center;
-}
-
-/* LOBBY / START-MENÜ */
+/* --------------------------------------------------------
+   LOBBY
+-------------------------------------------------------- */
 #lobby {
     position: fixed; inset: 0; background: white; z-index: 1000;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; overflow-y: auto;
+    padding: 20px; box-sizing: border-box;
 }
+
+#lobby h1 { margin: 0 0 8px 0; font-size: 1.8rem; }
 
 #tag-filters {
-    display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; max-width: 600px; margin: 20px;
+    display: flex; flex-wrap: wrap; gap: 6px;
+    justify-content: center; max-width: 600px; margin: 8px 20px;
 }
 
-/* Tausche die Klasse .tag-btn gegen dies hier aus, um sie kleiner zu machen */
 .tag-btn {
-    padding: 4px 10px; /* Kleineres Padding */
-    font-size: 0.8rem; /* Kleinere Schrift */
-    border: 1px solid #ddd; 
-    background: #f9f9f9; 
-    border-radius: 15px; 
-    cursor: pointer;
-    transition: all 0.2s;
+    padding: 3px 9px; font-size: 0.72rem;
+    border: 1px solid #ddd; background: #f9f9f9;
+    border-radius: 15px; cursor: pointer; transition: all 0.2s;
 }
-
 .tag-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
 
-/* GAME UI */
+#game-rules {
+    max-width: 600px; margin: 0 20px 3px 20px;
+    padding: 4px 10px; background: #fdfdfd;
+    border-left: 4px solid var(--accent);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    border-radius: 0 8px 8px 0; font-size: 0.85rem; line-height: 1.4; color: #444;
+}
+#game-rules h2 { margin-top: 0; font-size: 1.1rem; color: var(--accent); margin-bottom: 5px; }
+
+/* --------------------------------------------------------
+   GAME OVER OVERLAY
+-------------------------------------------------------- */
+#game-over {
+    position: fixed; inset: 0; background: rgba(255,255,255,0.97);
+    z-index: 1500; display: flex; align-items: center; justify-content: center;
+}
+.game-over-inner {
+    display: flex; flex-direction: column; align-items: center;
+    gap: 10px; text-align: center;
+}
+.game-over-icon { font-size: 3rem; }
+.game-over-inner h2 { margin: 0; font-size: 1.8rem; }
+.final-score-label { color: #888; font-size: 0.9rem; margin-top: 5px; }
+.final-score-value { font-size: 3.5rem; font-weight: 800; color: var(--accent); line-height: 1; }
+.restart-btn {
+    margin-top: 15px; padding: 12px 40px; background: var(--accent);
+    color: white; border: none; border-radius: 25px; cursor: pointer;
+    font-size: 1rem; font-weight: bold;
+    box-shadow: 0 4px 12px rgba(52,152,219,0.3);
+    transition: all 0.2s;
+}
+.restart-btn:hover { background: #2980b9; transform: translateY(-2px); }
+
+/* --------------------------------------------------------
+   HEADER
+-------------------------------------------------------- */
 header {
-    height: 60px; display: flex; align-items: center; justify-content: space-around;
+    height: 46px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: space-around;
     background: white; border-bottom: 1px solid #ddd; font-weight: bold;
+    font-size: 0.85rem;
+    padding: 0 10px; box-sizing: border-box; gap: 10px;
+}
+.header-stat { white-space: nowrap; }
+.potential { color: #27ae60; font-size: 0.95em; margin-left: 2px; }
+
+/* --------------------------------------------------------
+   ROUND RESULT BAR  –  immer im Layout (kein Layout-Shift)
+-------------------------------------------------------- */
+#round-result-bar {
+    flex-shrink: 0;
+    height: 44px;
+    box-sizing: border-box;
+    border-bottom: 2px solid transparent;
+    display: flex; align-items: center; justify-content: center;
+    gap: 15px; padding: 0 20px; font-size: 0.95rem;
+    overflow: hidden;
+    visibility: hidden;
+    transition: background 0.15s, border-color 0.15s;
+}
+#round-result-bar.result-bar-placeholder {
+    visibility: hidden;
+    background: transparent;
+}
+#round-result-bar.correct,
+#round-result-bar.wrong {
+    visibility: visible;
+}
+#round-result-bar.correct {
+    background: #d4edda; color: #155724; border-color: #28a745;
+}
+#round-result-bar.wrong {
+    background: #f8d7da; color: #721c24; border-color: #dc3545;
+}
+#round-result-btn {
+    padding: 5px 18px; border: none; border-radius: 20px; cursor: pointer;
+    font-weight: bold; background: rgba(0,0,0,0.15); color: inherit;
+    transition: background 0.2s; white-space: nowrap;
+}
+#round-result-btn:hover { background: rgba(0,0,0,0.25); }
+
+@keyframes slideIn {
+    from { opacity: 0; transform: translateY(-6px); }
+    to   { opacity: 1; transform: translateY(0); }
 }
 
+/* --------------------------------------------------------
+   KARTEN-ANZAHL SLIDER (Lobby)
+-------------------------------------------------------- */
+.cards-slider-wrap {
+    display: flex; flex-direction: column; align-items: center;
+    gap: 4px; margin: 6px 0 2px 0;
+}
+.cards-slider-wrap label {
+    font-size: 0.95rem; color: #444;
+}
+.slider-row {
+    width: 260px;
+}
+.slider-row input[type=range] {
+    width: 100%;
+    accent-color: var(--accent);
+    cursor: pointer;
+}
+.slider-ticks {
+    display: flex; justify-content: space-between;
+    width: 260px; font-size: 0.72rem; color: #999;
+    padding: 0 2px; box-sizing: border-box;
+    margin-top: -4px;
+}
+
+/* --------------------------------------------------------
+   TIMELINE AREA
+-------------------------------------------------------- */
 #timeline-area {
-    height: calc(100vh - 340px); 
-    display: flex; 
-    flex-direction: column; /* Dies erzwingt die vertikale Anordnung */
-    align-items: center; 
-    justify-content: center;
-    overflow-x: hidden;
-    overflow-y: hidden;
-    padding: 5px;
+    flex: 1; min-height: 0;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    overflow: hidden; padding: 5px;
+    box-sizing: border-box;
 }
 
-/* 3. Automatischer Zoom-Out für den Zeitstrahl */
 #timeline {
-    display: flex;
-    gap: 10px;
+    display: flex; gap: 10px;
     transition: transform 0.3s ease;
-    transform-origin: center;
-    width: max-content; /* Wichtig für die Berechnung */
+    transform-origin: top center;
+    width: max-content;
 }
 
-/* KARTEN DESIGN & 3D FLIP ANIMATION */
+/* --------------------------------------------------------
+   HAND AREA
+-------------------------------------------------------- */
+#hand-area {
+    flex-shrink: 0;
+    background: #eef1f3; border-top: 1px solid #ccc;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 8px 0 10px 0; box-sizing: border-box;
+    height: calc(var(--card-h) + 20px);   /* immer hoch genug für Karten */
+    overflow: hidden;
+}
+
+#hand {
+    display: flex; gap: 12px;
+    transform-origin: top center;
+    transition: transform 0.3s ease;
+}
+
+/* --------------------------------------------------------
+   KARTEN – 3D FLIP (identische Struktur wie ableitungen.html #taskCard)
+-------------------------------------------------------- */
 .card {
-    width: 160px;
-    height: 230px;
-    perspective: 1200px;
+    width: var(--card-w);
+    height: var(--card-h);
+    flex-shrink: 0;
+    position: relative;
     cursor: grab;
-}
-
-.card-inner {
-    position: relative; width: 100%; height: 100%;
-    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    /* Rotation direkt auf .card, kein card-inner-Wrapper */
+    transform: perspective(800px) rotateY(0deg);
     transform-style: preserve-3d;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
     border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
 }
 
-.card.flipped .card-inner { 
-    transform: rotateY(180deg); 
+.card.flipped {
+    transform: perspective(800px) rotateY(180deg);
 }
 
 .card-front, .card-back {
-    position: absolute; inset: 0; 
+    position: absolute; inset: 0;
     backface-visibility: hidden;
     -webkit-backface-visibility: hidden;
     background: var(--card-bg); border-radius: 12px;
     border: 1px solid #ccc; padding: 8px; box-sizing: border-box;
-    display: flex; flex-direction: column; align-items: center; text-align: center;
+    display: flex; flex-direction: column; align-items: center;
+    text-align: center; overflow: hidden;
 }
 
+.card-front {
+    color: var(--text-front);
+    justify-content: flex-start;
+}
+
+.card-back {
+    transform: rotateY(180deg);
+    color: #333;
+    justify-content: flex-start;
+    background-color: #fcfcfc;
+    visibility: hidden;
+}
+.card.flipped .card-back {
+    visibility: visible;
+}
+
+/* --------------------------------------------------------
+   KARTEN-INHALT
+-------------------------------------------------------- */
 .card-title-wrapper {
     width: 100%;
-    height: 2.8em; /* Platz für ca. 2 Zeilen */
-    margin-bottom: 5px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    height: 35%;          /* fixer Anteil der Kartenhöhe für die Überschrift */
+    max-height: 35%;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; margin-bottom: 0;
+    overflow: hidden;
+    /* kein container-type mehr – JS übernimmt Skalierung */
 }
 
-.card-front { 
-    color: var(--text-front); 
-    justify-content: center; 
-    font-size: 1.1em;
-    /* FIX: Schiebt die Vorderseite 1px nach vorne */
-    transform: translateZ(1px);
-}
-
-/* FIX: Rückseite physikalisch entfernen, damit sie beim Draggen nicht existiert */
-.card-back { 
-    display: none; 
-    transform: rotateY(180deg); 
-    color: #333; justify-content: space-between; background-color: #fcfcfc; 
-}
-
-.back-title { font-size: 0.7rem; color: #777; text-transform: uppercase; margin-bottom: 5px; cursor: help; }
-.back-year { font-size: 1.8rem; color: var(--text-back); font-weight: 800; margin: auto 0; }
-.back-info { font-size: 0.75rem; line-height: 1.3; margin-top: 5px; height: 50%; }
-
-/* Nur wenn 'flipped', wird die Rückseite aktiv */
-.card.flipped .card-back { 
-    display: flex; 
-}
-/* FIX: Karte darf beim Draggen NICHT auf width:0 gesetzt werden, sonst springt alles */
-.dragging {
-    opacity: 0.2 !important;
-}
-
-/* FIX: Hand-Bereich kleiner und Padding reduziert für besseren Button-Zugriff */
-#hand-area {
-    min-height: 180px; height: auto; background: #eef1f3; border-top: 1px solid #ccc;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    padding: 5px 0 10px 0; box-sizing: border-box;
-}
-
-#hand { display: flex; gap: 15px; margin-top: 15px; } /* margin-bottom entfernt, margin-top hinzugefügt */
-
-#reveal-risk-btn {
-    margin-top: 15px;
-    margin-bottom: 15px;
-    padding: 10px 25px;
-    background: #27ae60;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
+.card-title {
     font-weight: bold;
+    color: var(--accent);
+    border-bottom: 1px solid #eee;
+    padding-bottom: 3px;
+    width: 100%; text-align: center;
+    line-height: 1.2;
+    /* Nur an Wortgrenzen umbrechen – kein Mittelwort-Trennen */
+    word-break: normal;
+    overflow-wrap: break-word;
+    /* Startwert: deutlich größer als Fließtext; JS verkleinert bei Bedarf */
+    font-size: calc(var(--card-font) * 1.45);
 }
 
-/* MODAL / ZOOM */
-#zoom-modal {
-    position: fixed; inset: 0; background: rgba(255,255,255,0.95);
-    z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: center;
-}
-
-.zoom-container { display: flex; gap: 40px; }
-
-.card.big { width: 300px; height: 420px; cursor: default; }
-.card.big .card-front { font-size: 1.6em; }
-.card.big .back-year { font-size: 3rem; }
-.card.big .back-info { font-size: 1rem; }
-
-.hidden { display: none !important; }
-
-/* Container für Zentrierung unter den Karten */
-.controls-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+/* Fliesstext auf den Karten: echte Schriftverkleinerung + Umbruch, kein scale() */
+.card-text {
+    font-size: var(--card-font);
+    line-height: 1.4;
+    overflow: hidden;
+    flex: 1;
     width: 100%;
-    margin-top: 20px;
+    text-align: center;
+    word-break: break-word;
 }
 
-/* Zeitstrahl-Pfeil */
-.timeline-direction {
-    display: flex;
-    align-items: center;
-    width: 90%; /* Etwas schmaler wirkt eleganter */
-    max-width: 1800px;
-    gap: 10px;
-    color: #7f8c8d;
-    font-size: 0.8rem;
-    font-weight: bold;
-    text-transform: uppercase;
+.back-text {
+    color: var(--text-back);   /* Rot, nicht fett */
+    font-weight: normal;
 }
 
-.arrow-line {
-    flex-grow: 1;
-    height: 2px;
-    background: #bdc3c7;
+.back-year {
+    font-size: clamp(1rem, 5vw, 1.5rem);
+    color: var(--text-back);
+    font-weight: 800;
+    flex-shrink: 0;
+    margin: 0 0 4px 0;
+    white-space: nowrap;   /* immer einzeilig – JS verkleinert bei Überlauf */
+    overflow: hidden;
+    max-width: 100%;
+    text-align: center;
+}
+
+.extra-info {
+    position: absolute; bottom: 4px; left: 0;
+    width: 100%; font-size: 0.6em; color: #888; text-align: center;
+    flex-shrink: 0;
+}
+.extra-info a { color: var(--accent); text-decoration: none; }
+
+/* --------------------------------------------------------
+   FURTHER INFO ICON (Rückseite der Karten, unten rechts)
+-------------------------------------------------------- */
+.further-info-icon {
+    position: absolute;
+    bottom: 4px; right: 5px;
+    background: none; border: none;
+    cursor: pointer; font-size: 0.78em;
+    opacity: 0.35; padding: 2px 3px; line-height: 1;
+    color: var(--accent);
+    transition: opacity 0.15s;
+    z-index: 5;
+    /* Nicht als Flip-Auslöser wirken */
+    pointer-events: all;
+}
+.further-info-icon:hover { opacity: 0.8; }
+
+/* --------------------------------------------------------
+   FURTHER INFO TOOLTIP (an <body> gehängt)
+-------------------------------------------------------- */
+#further-info-tooltip {
+    display: none;
+    position: fixed;
+    z-index: 5000;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+    padding: 10px 12px;
+    max-width: 260px; min-width: 160px;
+    font-size: 0.82rem; color: #333; line-height: 1.5;
+    pointer-events: all;
+}
+.finfo-header {
+    font-weight: bold; color: var(--accent);
+    font-size: 0.88rem;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 4px; margin-bottom: 6px;
+}
+.finfo-item { margin: 3px 0; }
+.finfo-item a {
+    color: var(--accent); text-decoration: underline;
+    word-break: break-all;
+}
+
+/* --------------------------------------------------------
+   DRAG
+-------------------------------------------------------- */
+/* opacity auf einem preserve-3d-Element bricht den 3D-Kontext und lässt die
+   Rückseite durchscheinen. Stattdessen: ::after-Overlay ohne 3D-Eingriff */
+.dragging {
     position: relative;
-    margin-right: 10px; /* Platz für die Spitze */
 }
-
-/* Die korrigierte Pfeilspitze */
-.arrow-line::after {
+.dragging::after {
     content: '';
     position: absolute;
-    right: -10px; /* Schiebt die Spitze genau ans Ende der Linie */
-    top: -5px;    /* Zentriert die Spitze vertikal zur 2px Linie */
+    inset: 0;
+    background: rgba(255, 255, 255, 0.78);
+    border-radius: 12px;
+    z-index: 10;
+    pointer-events: none;
+}
+
+/* Drag-Ghost (Touch) */
+.touch-ghost {
+    position: fixed; pointer-events: none; z-index: 9999;
+    border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+    opacity: 0.85;
+    transform: scale(1.06);
+    transition: none;
+}
+
+/* --------------------------------------------------------
+   CONTROLS UNTER DEM ZEITSTRAHL
+-------------------------------------------------------- */
+.controls-container {
+    display: flex; flex-direction: column;
+    align-items: center; width: 100%; margin-top: 8px;
+    flex-shrink: 0;
+}
+
+.timeline-direction {
+    display: flex; align-items: center;
+    width: 88%; max-width: 1800px; gap: 10px;
+    color: #7f8c8d; font-size: 0.8rem; font-weight: bold;
+    text-transform: uppercase;
+}
+.arrow-line {
+    flex-grow: 1; height: 2px; background: #bdc3c7;
+    position: relative; margin-right: 10px;
+}
+.arrow-line::after {
+    content: ''; position: absolute; right: -10px; top: -5px;
     border-top: 6px solid transparent;
     border-bottom: 6px solid transparent;
     border-left: 10px solid #bdc3c7;
 }
 
-/* Risiko-Button */
 #reveal-risk-btn {
-    margin-top: 20px; /* Abstand zum Pfeil */
-    padding: 12px 35px;
-    background: #27ae60;
-    color: white;
-    border: none;
-    border-radius: 25px;
-    cursor: pointer;
-    font-weight: bold;
-    box-shadow: 0 4px 12px rgba(39, 174, 96, 0.2);
-    transition: all 0.2s;
+    margin-top: 10px; padding: clamp(8px, 2vw, 10px) clamp(22px, 5vw, 32px);
+    background: #27ae60; color: white;
+    border: none; border-radius: 25px; cursor: pointer;
+    font-weight: bold; font-size: clamp(0.85rem, 2vw, 0.95rem);
+    box-shadow: 0 4px 12px rgba(39,174,96,0.25);
+    transition: background 0.2s, transform 0.2s;
 }
+#reveal-risk-btn:hover { background: #2ecc71; transform: translateY(-2px); }
 
-#reveal-risk-btn:hover {
-    background: #2ecc71;
-    transform: translateY(-2px);
-}
-
-/* Hand-Bereich wieder schlank machen */
-#hand-area {
-    min-height: 150px;
-    background: #eef1f3;
-    border-top: 1px solid #ccc;
-    display: flex;
-    justify-content: center;
-    padding: 10px 0;
-}
-
-#hand { margin-bottom: 0; }
-
-/* Spielregeln Box */
-#game-rules {
-    max-width: 600px;
-    margin: 0 20px 20px 20px;
-    padding: 5px 10px;
-    background: #fdfdfd;
-    border-left: 4px solid var(--accent);
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-    border-radius: 0 8px 8px 0;
-    font-size: 0.9rem;
-    line-height: 1.5;
-    color: #444;
-}
-
-#game-rules h2 {
-    margin-top: 0;
-    font-size: 1.1rem;
-    color: var(--accent);
-    margin-bottom: 5px;
+/* --------------------------------------------------------
+   PLACEHOLDER (Drag-Indikator)
+-------------------------------------------------------- */
+.placeholder {
+    width: 6px; height: var(--card-h);
+    background: #3498db; border-radius: 3px;
+    flex-shrink: 0; pointer-events: none;
 }
 
 /* --------------------------------------------------------
-   SWITCH / TOGGLE DESIGN FÜR SPIELMODUS
+   ZOOM MODAL
 -------------------------------------------------------- */
-.switch-container {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 15px;
+#zoom-modal {
+    position: fixed; inset: 0; background: rgba(255,255,255,0.95);
+    z-index: 2000; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 20px; box-sizing: border-box;
+}
+.zoom-container { display: flex; gap: clamp(15px, 4vw, 30px); flex-wrap: wrap; justify-content: center; }
+
+.card.big {
+    width: min(280px, 42vw);
+    height: min(400px, 63vw);
+    cursor: default;
+}
+.card.big .card-title { font-size: calc(var(--card-font) * 2.0); }
+.card.big .back-year  { font-size: clamp(1.8rem, 8vw, 2.8rem); }
+.card.big .card-text  { font-size: clamp(0.9rem, 2.2vw, 1.1rem); }
+
+/* --------------------------------------------------------
+   TOAST (kurze Fehlermeldung)
+-------------------------------------------------------- */
+#game-toast {
+    position: fixed; bottom: 220px; left: 50%; transform: translateX(-50%);
+    background: #333; color: #fff; padding: 10px 22px;
+    border-radius: 10px; font-size: 0.9rem;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.35s; z-index: 3000;
+    white-space: nowrap; max-width: 90vw;
+}
+#game-toast.show { opacity: 1; }
+#game-toast.error { background: #c0392b; }
+#game-toast.success { background: #27ae60; }
+
+/* --------------------------------------------------------
+   LOBBY MODUS-SWITCH
+-------------------------------------------------------- */
+.mode-selection {
+    display: flex; flex-direction: column;
+    align-items: center; margin: 6px 20px;
+}
+.mode-switch-wrap { display: flex; justify-content: center; margin: 4px 0 4px; }
+#mode-description {
+    margin-top: 4px; font-size: 0.78em; color: #555;
+    max-width: 550px; text-align: center;
+    height: 75px; overflow: hidden;   /* fixe Höhe – kein Layout-Sprung */
+    line-height: 1.3;
 }
 
 .switch {
-    display: inline-flex;
-    align-items: stretch;
-    cursor: pointer;
-    position: relative;
-    background: #d4d4d4;
-    border-radius: 30px;
-    padding: 3px;
-    min-width: 320px; /* Verhindert das Quetschen der Schrift */
-    box-sizing: border-box;
+    display: inline-flex; align-items: stretch;
+    cursor: pointer; position: relative;
+    background: #d4d4d4; border-radius: 30px;
+    padding: 3px; min-width: min(360px, 92vw); box-sizing: border-box;
 }
 .switch input { display: none; }
 
-/* Sliding highlight pill */
 .switch .slider {
-    position: absolute;
-    top: 3px; bottom: 3px;
-    left: 3px;
-    width: calc(50% - 3px);
-    background: #3498db; /* Blau für Direkt */
+    position: absolute; top: 3px; bottom: 3px; left: 3px;
+    width: calc(50% - 3px); background: #3498db;
     border-radius: 24px;
     transition: left 0.25s, background 0.25s;
     pointer-events: none;
 }
-.switch input:checked ~ .slider {
-    left: 50%;
-    background: #27ae60; /* Grün für Risiko */
-}
+.switch input:checked ~ .slider { left: 50%; background: #27ae60; }
 
-/* Labels */
 .switch .labels {
-    display: flex;
-    position: relative;
-    z-index: 1;
-    width: 100%;
+    display: flex; position: relative; z-index: 1; width: 100%;
 }
 .switch .labels span {
-    flex: 1;
-    padding: 8px 14px;
-    font-size: 0.9em;
-    font-weight: bold;
-    color: #666;
-    text-align: center;
-    transition: color 0.2s;
-    white-space: nowrap;
-    min-width: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    flex: 1; padding: clamp(7px, 2vw, 8px) clamp(8px, 2.5vw, 14px);
+    font-size: clamp(0.78em, 2.5vw, 0.9em); font-weight: bold;
+    color: #666; text-align: center; transition: color 0.2s;
+    white-space: nowrap; display: flex; align-items: center; justify-content: center;
 }
-
-/* Active label = white, inactive = grey */
 .switch .labels span:first-child { color: #fff; }
 .switch input:checked ~ .labels span:first-child { color: #666; }
 .switch input:checked ~ .labels span:last-child  { color: #fff; }
 
-.slider.round:before {
-    border-radius: 50%;
+/* --------------------------------------------------------
+   LOBBY & HEADER BUTTONS
+-------------------------------------------------------- */
+.lobby-btn {
+    padding: 9px 36px; cursor: pointer;
+    border: none; border-radius: 25px;
+    font-size: 1rem; font-weight: bold; letter-spacing: 0.02em;
+    transition: all 0.2s; box-shadow: 0 3px 10px rgba(0,0,0,0.12);
 }
+.primary-btn {
+    background: var(--accent); color: white;
+}
+.primary-btn:hover { background: #2980b9; transform: translateY(-2px); }
 
-/* Feste Höhe für die Beschreibung, damit nichts springt */
-.mode-selection {
-    display: flex; 
-    flex-direction: column; 
-    align-items: center;
-    margin: 15px 20px;
+.quit-btn {
+    padding: 6px 16px; cursor: pointer;
+    border: 1px solid #ddd; border-radius: 20px;
+    background: white; color: #666; font-size: 0.85rem;
+    transition: all 0.2s;
 }
+.quit-btn:hover { background: #fdecea; color: #c0392b; border-color: #f5c6cb; }
 
-#mode-description {
-    margin-top: 10px; 
-    font-size: 0.9em; 
-    color: #555; 
-    max-width: 550px; 
-    text-align: center; 
-    min-height: 80px; /* Verhindert Layout-Shifts */
-    line-height: 1.3;
-}
+/* --------------------------------------------------------
+   UTILITY
+-------------------------------------------------------- */
+.hidden { display: none !important; }
 
-/* ---- Toggle Switch (Segmented Control) ---- */
-.mode-switch-wrap {
-    display: flex;
-    justify-content: center;
-    margin: 10px 0 6px;
-}
 
-.mode-label {
-    font-size: 1rem;
-    font-weight: normal;
-    color: #95a5a6;
-    transition: color 0.3s, font-weight 0.3s;
-    cursor: default;
-}
-
-.mode-label.active-mode {
-    font-weight: bold;
-    color: #2c3e50;
-}
-
-.card-title {
-    font-weight: bold;
-    font-size: 1.1em;
-    margin-bottom: 10px;
-    color: var(--accent);
-    border-bottom: 1px solid #eee;
-    padding-bottom: 5px;
-}
-
-.extra-info {
-    position: absolute;
-    bottom: 5px;
-    left: 0;
-    width: 100%;
-    font-size: 0.65em;
-    color: #888;
-    text-align: center;
-}
-
-.extra-info a {
-    color: var(--accent);
-    text-decoration: none;
-}
