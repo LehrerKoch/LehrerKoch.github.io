@@ -2,6 +2,7 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Math Domini</title>
     <link rel="stylesheet" href="MathDomini/style.css">
     <script>
@@ -9,44 +10,42 @@
     </script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="last-update.js" defer></script>
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-5K8WYYXDL2"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-        gtag('config', 'G-5K8WYYXDL2');
-    </script>
-<style>   
-  .site-footer {
-    width: 100%; box-sizing: border-box; padding: 12px 40px;
-    border-top: 1px solid #ccc; margin-top: 10px; margin-bottom: 15px;
-    font-family: sans-serif; font-size: 0.6em; color: #333333d8;
-  }
-  .footer-content {
-    display: flex; justify-content: center; align-items: center;
-    gap: 1.5rem; max-width: 1200px; margin: 0 auto; flex-wrap: wrap; text-align: center;
-  }
-  .footer-topic a{
-    color:inherit;
-    text-decoration:underline;
-  }
-</style>
+    <style>
+        .site-footer {
+            width: 100%; box-sizing: border-box; padding: 12px 12px;
+            border-top: 1px solid #ccc; margin-top: 12px; margin-bottom: 4px;
+            font-family: sans-serif; font-size: 0.6em; color: #333333d8;
+        }
+        .footer-content {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            align-items: center;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .footer-content > :first-child {
+            justify-self: start;
+        }
+        .footer-content > :nth-child(2) {
+            justify-self: center;
+        }
+        .footer-content > :last-child {
+            justify-self: end;
+        }
+        .footer-topic a { color: inherit; text-decoration: underline; }
+    </style>
 </head>
 <body>
+    <!-- LOBBY -->
     <div id="lobby">
         <h1>Math Domini</h1>
-        
         <div id="game-rules">
-            <h2>Spielregeln & Lernziel</h2>
+            <h2>Spielregeln &amp; Lernziel</h2>
             <p>Willkommen bei Math Domini! Dieses Spiel hilft dir dabei, ein Gefühl für die historische Entwicklung der Mathematik zu entwickeln – von antiken Entdeckungen bis zur modernen Kryptographie.</p>
             <p><strong>So geht's:</strong> Ziehe die Karten aus deiner Hand an die richtige Stelle im Zeitstrahl. Ziel ist es, eine chronologisch korrekte Reihenfolge von <em>alt (links) nach neu (rechts)</em> zu bilden.<br>
-            Falls du nur bestimmte Themen wählen möchtest, klicke auf die entsprechenden Themen-Filter.<br>
-            Entscheide dich für einen Spielmodus und starte das Spiel, viel Spaß!</p>
+            Wähle optional Themen-Filter und einen Spielmodus, dann starte das Spiel. Viel Spaß!</p>
         </div>
-
         <div id="tag-filters"></div>
-        
         <div class="mode-selection">
             <div class="mode-switch-wrap">
                 <label class="switch">
@@ -60,33 +59,59 @@
             </div>
             <div id="mode-description"></div>
         </div>
-
-        <button onclick="startNewGame()" style="padding: 10px 40px; cursor:pointer; margin-top: 15px;">Start</button>
+        <div class="cards-slider-wrap">
+            <label for="cards-slider">Anzahl Karten: <strong id="slider-display">20</strong></label>
+            <div class="slider-row">
+                <input type="range" id="cards-slider" min="1" max="30" value="20"
+                    oninput="document.getElementById('slider-display').textContent=this.value; updateURL()">
+            </div>
+            <div class="slider-ticks">
+                <span>1</span><span>5</span><span>10</span><span>15</span><span>20</span><span>25</span><span>30</span>
+            </div>
+        </div>
+        <div id="lobby-card-count" style="text-align:center;font-size:0.82em;color:#555;margin-top:4px;"></div>
+        <button onclick="startNewGame()" class="lobby-btn primary-btn" style="margin-top: 10px;">▶ Spiel starten</button>
         <footer class="site-footer">
-  <div class="footer-content">
-    M.&nbsp;Koch
-    <span class="footer-topic"><a href="./index.html">Mathe-Tools</a></span>
-    <span class="footer-update">Zuletzt aktualisiert:&nbsp;<span id="last-update">...</span></span>
-  </div>
-</footer>
+            <div class="footer-content">
+                M.&nbsp;Koch
+                <span class="footer-topic"><a href="./index.html">Mathe-Tools</a></span>
+                <span class="footer-update">Zuletzt aktualisiert:&nbsp;<span id="last-update">...</span></span>
+            </div>
+        </footer>
     </div>
 
+    <!-- GAME OVER OVERLAY -->
+    <div id="game-over" class="hidden">
+        <div class="game-over-inner">
+            <div class="game-over-icon">🎉</div>
+            <h2>Spiel beendet!</h2>
+            <div class="final-score-label">Deine Punktzahl</div>
+            <div class="final-score-value" id="final-score-value">0</div>
+            <button onclick="location.reload()" class="restart-btn">Nochmal spielen</button>
+        </div>
+    </div>
+
+    <!-- GAME UI -->
     <header>
-        <div>Punkte: <span id="score">0</span></div>
-        <div>Noch <span id="remaining">20</span> Karten</div>
-        <button onclick="location.reload()">Beenden</button>
+        <div class="header-stat">Punkte: <span id="score">0</span> <span id="potential-points" class="potential" style="display:none;"></span></div>
+        <div class="header-stat">Noch <span id="remaining">20</span> Karten</div>
+        <button onclick="location.reload()" class="quit-btn">✕ Beenden</button>
     </header>
+
+    <!-- ROUND RESULT BAR (immer im Layout, nur Inhalt wird ausgeblendet) -->
+    <div id="round-result-bar" class="result-bar-placeholder">
+        <span id="round-result-msg"></span>
+        <button id="round-result-btn">Weiter →</button>
+    </div>
 
     <main id="timeline-area">
         <div id="timeline"></div>
-        
         <div class="controls-container">
             <div class="timeline-direction">
                 <span class="arrow-label">älter</span>
                 <div class="arrow-line"></div>
                 <span class="arrow-label">neuer</span>
             </div>
-
             <button id="reveal-risk-btn" onclick="revealRisk()" style="display:none;">Reihe werten</button>
         </div>
     </main>
@@ -95,10 +120,14 @@
         <div id="hand"></div>
     </footer>
 
+    <!-- ZOOM MODAL -->
     <div id="zoom-modal" class="hidden">
         <div class="zoom-container"></div>
         <button onclick="closeZoom()" style="padding: 10px 40px; cursor:pointer; margin-top: 20px;">Zurück</button>
     </div>
+
+    <!-- TOAST -->
+    <div id="game-toast"></div>
 
     <script src="MathDomini/cards.js"></script>
     <script src="MathDomini/game.js"></script>
