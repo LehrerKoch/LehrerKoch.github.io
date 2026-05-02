@@ -1765,7 +1765,7 @@ function _refreshPrompt(){
     }else{
       var tf=dictForm||toTarget(cased);
       var ts=isHeb?stripNikud(tf):tf;
-      if(dir==='de-gr'){prompt=dictTrans||fromTarget(ts);}
+      if(dir==='de-gr'){prompt=dictTrans||fromTarget(tf);}
       else{prompt=(isHeb&&!gNik())?ts:tf;}
     }
   }
@@ -2043,7 +2043,7 @@ function nextWord(){
       var ts=isHeb?stripNikud(tf):tf;
       if(dir==='de-gr'){
         // DE→Ziel: Romanisierung zeigen, User tippt Zielschrift
-        prompt=dictTrans||fromTarget(ts);
+        prompt=dictTrans||fromTarget(tf);
       }else{
         // Ziel→DE: Zielwort zeigen, User tippt Romanisierung
         prompt=(isHeb&&!gNik())?ts:tf;
@@ -2163,23 +2163,39 @@ function checkAnswer(){
   // ── A: Training + Grundlage ZIEL + Richtung Ziel→DE ─────────
   if(mode==='training'&&base==='ziel'&&dir==='gr-de'){
     var tf=dictForm||toTarget(cased);
-    var ts=isHeb?stripNikud(tf):tf;
-    var algoRom=fromTarget(ts);
-    var ansN=normLat(ans);
-    var algoN=normLat(algoRom);
-    var manN=dictTrans?normLat(dictTrans):null;
-    var ok=lenient?((ansN===algoN)||(manN&&ansN===manN)):(ansN===(manN||algoN));
+    var algoRom=fromTarget(tf);
+    // Angezeigte Lösung: gespeicherte Transkription bevorzugt, sonst algorithmisch
+    var sol=dictTrans||algoRom;
+    // Tolerante Normalisierung für lateinische Transkription
+    function normLatLenient(s){
+      s=normLat(s);
+      s=s.replace(/h$/,'');              // Torah = Tora
+      s=s.replace(/([aeiou])\1+/g,'$1');// Doppelvokale → einfach
+      s=s.replace(/(.)\1+/g,'$1');      // Doppelkonsonanten → einfach
+      s=s.replace(/sch/g,'sh');          // sch = sh
+      s=s.replace(/tz|ts/g,'z');         // tz = ts = z
+      s=s.replace(/ck/g,'k');
+      s=s.replace(/v/g,'w');             // w = v (Dawid = David)
+      s=s.replace(/y/g,'j');             // j = y (Jom = Yom)
+      s=s.replace(/kh/g,'ch');           // kh = ch (akademisch)
+      s=s.replace(/(?<![sc])h/g,'ch');   // h = ch (Hanukka = Chanukka)
+      return s;
+    }
+    var ansN=normLat(ans), solN=normLat(sol), algoN=normLat(algoRom);
+    var ansL=normLatLenient(ans), solL=normLatLenient(sol), algoL=normLatLenient(algoRom);
+    var ok=lenient
+      ?(ansN===solN||ansL===solL||ansN===algoN||ansL===algoL)
+      :(ansN===solN);
+    var solSpan=tgtSpan(sol);
     if(ok){
-      var showMan=dictTrans&&normLat(dictTrans)!==algoN&&ansN!==normLat(dictTrans);
+      var exact=(ansN===solN||ansN===algoN);
       setFeedback('Richtig! \uD83C\uDF89','green',
-        showMan?'<span class="fb-lbl">Musterlsg.:</span>'+tgtSpan(dictTrans):deWortHint,
-        showMan?deWortHint:null);
+        exact?deWortHint:'<span class="fb-lbl">L\u00f6sung:</span>'+solSpan,
+        exact?null:deWortHint);
     }else{
-      var solSpan=tgtSpan(algoRom);
-      var manSpan=(dictTrans&&normLat(dictTrans)!==algoN)?tgtSpan(dictTrans):null;
       setFeedback('Falsch!','red',
         '<span class="fb-lbl">L\u00f6sung:</span>'+solSpan,
-        manSpan?'<span class="fb-lbl">Musterlsg.:</span>'+manSpan:deWortHint);
+        deWortHint);
     }
     return;
   }
