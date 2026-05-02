@@ -3,17 +3,17 @@
 var WOERTER_KYRILLISCH_BASIC = {
 
   // Zahlen (Russisch)
-  'null (0)':            ['ноль',          'Nol'],
-  'eins (1)':            ['один',          'Odin'],
-  'zwei (2)':            ['два',           'Dwa'],
-  'drei (3)':            ['три',           'Tri'],
-  'vier (4)':            ['четыре',        'Tschetyre'],
-  'fünf (5)':            ['пять',          'Pjat'],
-  'sechs (6)':           ['шесть',         'Schest'],
-  'sieben (7)':          ['семь',          'Sem'],
-  'acht (8)':            ['восемь',        'Wosem'],
-  'neun (9)':            ['девять',        'Dewjat'],
-  'zehn (10)':           ['десять',        'Desjat'],
+  'null':            ['ноль',          'Nol'],
+  'eins':            ['один',          'Odin'],
+  'zwei':            ['два',           'Dwa'],
+  'drei':            ['три',           'Tri'],
+  'vier':            ['четыре',        'Tschetyre'],
+  'fünf':            ['пять',          'Pjat'],
+  'sechs':           ['шесть',         'Schest'],
+  'sieben':          ['семь',          'Sem'],
+  'acht':            ['восемь',        'Wosem'],
+  'neun':            ['девять',        'Dewjat'],
+  'zehn':           ['десять',        'Desjat'],
 
   // Begrüßungen
   'ja':                  ['да',            'Da'],
