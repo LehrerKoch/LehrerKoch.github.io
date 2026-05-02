@@ -294,7 +294,8 @@ function init() {
             }, 500);
         };
         const cancelPress = () => clearTimeout(pressTimer);
-        const endPress = () => {
+        const endPress = (e) => {
+            if (e.cancelable) e.preventDefault(); // verhindert synthetischen click-Event
             clearTimeout(pressTimer);
             if (!didLongPress) { btn.classList.toggle('active'); updateURL(); }
         };
