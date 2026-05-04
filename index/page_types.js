@@ -55,7 +55,7 @@ const typesData = [
     "icon": "🎮",
     "iconType": "emoji",
     "color": "#f7bd00",
-    "colorBg": "rgba(255,236,0,0.55)",
+    "colorBg": "rgba(255, 238, 0, 0.16)",
     "tooltip": "Spielerisches Lernen mit mathematischen Spielen",
     "linkLabel": "Zum Spiel"
   },
@@ -72,7 +72,7 @@ const typesData = [
   {
     "id": "info",
     "label": "Info",
-    "icon": "ℹ️",
+    "icon": "ℹ",
     "iconType": "emoji",
     "color": "#6b7280",
     "colorBg": "rgba(107,114,128,0.08)",

@@ -177,16 +177,16 @@ const cardsData = [
   },
   {
     "id": "trigonometrie",
-    "title": "Trigonometrie im <b>rechtwinkligen</b> Dreieck",
-    "desc": "Sinus, Kosinus, Tangens &amp; Pythagoras anwenden",
+    "title": "Sinus, Kosinus, Tangens &amp; Pythagoras",
+    "desc": "Trigonometrie im <b>rechtwinkligen</b> Dreieck: Sinus, Kosinus, Tangens &amp; Pythagoras anwenden",
     "types": ["learn"],
     "mobilefriendly": true,
     "link": "trigonometrie_uebung.html"
   },
   {
     "id": "sinuskosinussatz",
-    "title": "Trigonometrie im <b>beliebigen</b> Dreieck",
-    "desc": "Sinus- und Kosinussatz anwenden",
+    "title": "Sinussatz- und Kosinussatz",
+    "desc": "Trigonometrie im <b>beliebigen</b> Dreieck: Sinus- und Kosinussatz anwenden",
     "types": ["learn"],
     "mobilefriendly": true,
     "link": "sinuskosinussatz_uebung.html"
@@ -276,7 +276,7 @@ const cardsData = [
     "id": "buchstaben-trainer",
     "title": "Buchstaben kennenlernen",
     "desc": "Wie heißen die griechischen (hebräischen, kyrillischen) Buchstaben und wie werden sie geschrieben?",
-    "types": ["flash", "quiz", "uebung"],
+    "types": ["flash", "quiz"],
     "mobilefriendly": true,
     "link": "buchstaben_trainer.html"
   },

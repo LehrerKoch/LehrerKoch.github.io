@@ -3,12 +3,13 @@ const cardPool = [
         "title": "Die ersten Zähler aus Mesopotamien",
         "fronttext": "Indem verschiedene Formen in weichen Ton gepresst wurden, konnten langfristig gezählte Ergebnisse festgehalten werden.",
         "backtext": "Tausende verschiedenen Formen wurden z.B. im heutigen Irak gefunden, die offenbar zum Zählen, Messen und Markieren verschiedener Zahlen dienten.",
-        "valuetext": "4000 bis 3200 v. Chr.",
+        "valuetext": "um 3600 v. Chr.",
         "startvalue": -4000,
         "endvalue": -3200,
         "tags": [
             "Antike",
-            "Zahlen"
+            "Zahlen",
+            "!einfach"
         ],
         "furtherInformation": []
     },
@@ -21,14 +22,15 @@ const cardPool = [
         "endvalue": -2600,
         "tags": [
             "Antike",
-            "Zahlen"
+            "Zahlen",
+            "!einfach"
         ],
         "furtherInformation": []
     },
     {
         "title": "Papyrus Rhind",
-        "fronttext": "Die etwa 2 Meter lange Schriftrolle zeigt Multiplikationsaufgaben, Rechenregeln zu Brüchen und Geometrie und gilt als eines der ersten und berühmtesten mathematischen Relikte.",
-        "backtext": "Der ägyptische Schreiber Ahmose/Ahmes zeigte zum Beispiel, wie sich Brüche als Summe von Stammbrüchen darstellen lassen, d.h. Brüchen deren Zähler 1 ist.",
+        "fronttext": "Die etwa 2 Meter lange Schriftrolle zeigt Multiplikationsaufgaben, Rechenregeln zu Brüchen und Geometrie und gilt als eines berühmtesten mathematischen Relikte.",
+        "backtext": "Der ägyptische Schreiber Ahmose/Ahmes zeigte zum Beispiel, wie sich Brüche als Summe von Stammbrüchen mit Zähler 1 darstellen lassen, z.B. 3/17 = 1/6 + 1/102.",
         "valuetext": "um 1550 v. Chr.",
         "startvalue": -1600,
         "endvalue": -1500,
@@ -36,7 +38,9 @@ const cardPool = [
             "Antike",
             "Geometrie"
         ],
-        "furtherInformation": []
+        "furtherInformation": [
+            "Zum Ausprobieren: <a href='https://www.omnicalculator.com/math/egyptian-fraction' target='_blank'>Link</a>"
+        ]
     },
     {
         "title": "Plimpton 322",
@@ -47,7 +51,8 @@ const cardPool = [
         "endvalue": -1700,
         "tags": [
             "Antike",
-            "Zahlen"
+            "Zahlen",
+            "Dreiecke"
         ],
         "furtherInformation": []
     },
@@ -60,7 +65,9 @@ const cardPool = [
         "endvalue": -501,
         "tags": [
             "Antike",
-            "Geometrie"
+            "Geometrie",
+            "Dreiecke",
+            "!wichtig"
         ],
         "furtherInformation": []
     },
@@ -74,7 +81,8 @@ const cardPool = [
         "tags": [
             "Antike",
             "Zahlen",
-            "Dreiecke"
+            "Dreiecke",
+            "!wichtig"
         ],
         "furtherInformation": []
     },
@@ -86,17 +94,18 @@ const cardPool = [
         "startvalue": -540,
         "endvalue": -520,
         "tags": [
-            "Antike"
+            "Antike",
+            "Trigonometrie"
         ],
         "furtherInformation": []
     },
     {
         "title": "Zenons Paradoxien",
         "fronttext": "Kann Achilles die Schildkröte jemals einholen? Ein Philosoph stellt die Logik von Raum und Zeit infrage.",
-        "backtext": "Zenon von Elea formulierte Paradoxien über die Unendlichkeit, die Mathematiker erst Jahrtausende später mit der Analysis lösen konnten.",
+        "backtext": "Zenon von Elea formulierte Paradoxien über die Unendlichkeit, die Mathematiker erst später mit der Analysis lösen konnten.",
         "valuetext": "um 450 v. Chr.",
-        "startvalue": -440,
-        "endvalue": -430,
+        "startvalue": -460,
+        "endvalue": -440,
         "tags": [
             "Antike",
             "Logik",
@@ -109,11 +118,14 @@ const cardPool = [
         "fronttext": "Die erste Entdeckung, dass das Volumen von Kegeln und anderen spitzen Körpern ein Drittel des zugehörigen Prismenartigen Körpers mit selben Grundflächen und Höhen ist.",
         "backtext": "Der griechische Mathematiker Demokrit hat außerdem als einer der Ersten vermutet, dass sich die gesamte Materie aus winzigen Atomen zusammensetzt.",
         "valuetext": "um 380 v. Chr.",
-        "startvalue": -400,
+        "startvalue": -390,
         "endvalue": -370,
         "tags": [
             "Antike",
-            "Geometrie"
+            "Geometrie",
+            "Körper",
+            "!einfach",
+            "!wichtig"
         ],
         "furtherInformation": []
     },
@@ -122,11 +134,14 @@ const cardPool = [
         "fronttext": "In seiner Akademie hieß es: 'Keiner trete ein, der nicht Geometrie versteht.' Er beschrieb fünf regelmäßige Körper, die die Elemente der Welt symbolisieren.",
         "backtext": "Platon sah in der Mathematik den Weg zur Erkenntnis ewiger Wahrheiten. Die nach ihm benannten Platonischen Körper sind Tetraeder, Hexaeder, Oktaeder, Dodekaeder und Ikosaeder.",
         "valuetext": "um 360 v. Chr.",
-        "startvalue": -380,
-        "endvalue": -340,
+        "startvalue": -370,
+        "endvalue": -350,
         "tags": [
             "Antike",
-            "Geometrie"
+            "Geometrie",
+            "Zitate",
+            "!einfach",
+            "!wichtig"
         ],
         "furtherInformation": []
     },
@@ -135,7 +150,7 @@ const cardPool = [
         "fronttext": "Er legte das Fundament für die wissenschaftliche Methode und die formale Logik, indem er untersuchte, wie man aus wahren Sätzen neue Schlüsse zieht.",
         "backtext": "Aristoteles' Syllogismen dominierten die Logik über 2000 Jahre lang. Er unterschied auch klar zwischen dem potenziell Unendlichen und dem aktual Unendlichen.",
         "valuetext": "um 330 v. Chr.",
-        "startvalue": -350,
+        "startvalue": -340,
         "endvalue": -320,
         "tags": [
             "Antike",
@@ -148,7 +163,7 @@ const cardPool = [
         "fronttext": "In einem berühmten Dialog lässt er einen Sklaven ohne Vorwissen entdecken, wie man ein Quadrat mit doppeltem Flächeninhalt konstruiert.",
         "backtext": "Sokrates nutzte die Maieutik (Hebammenkunst), um zu zeigen, dass mathematisches Wissen bereits in uns schlummert und nur durch Fragen geweckt werden muss.",
         "valuetext": "um 400 v. Chr.",
-        "startvalue": -420,
+        "startvalue": -410,
         "endvalue": -390,
         "tags": [
             "Antike",
@@ -159,14 +174,15 @@ const cardPool = [
     },
     {
         "title": "Die Ordnung des Wissens",
-        "fronttext": "Er sammelte und strukturierte das gesamte mathematische Wissen seiner Zeit in einer logisch aufeinander aufbauenden Kette von Beweisen.",
+        "fronttext": "Er sammelte und strukturierte das gesamte mathematische Wissen seiner Zeit in einer logisch aufeinander aufbauenden Kette von Beweisen und beschrieb: 'Es gibt keinen Königsweg zur Mathematik.'",
         "backtext": "Euklid von Alexandria begründete die axiomatische Methode: Alles beginnt mit unbeweisbaren, aber einleuchtenden Grundsätzen.",
         "valuetext": "um 300 v. Chr.",
         "startvalue": -310,
         "endvalue": -290,
         "tags": [
             "Antike",
-            "Geometrie"
+            "Geometrie",
+            "Logik"
         ],
         "furtherInformation": []
     },
@@ -179,7 +195,9 @@ const cardPool = [
         "endvalue": -290,
         "tags": [
             "Antike",
-            "Geometrie"
+            "Geometrie",
+            "!einfach",
+            "!wichtig"
         ],
         "furtherInformation": []
     },
@@ -193,7 +211,8 @@ const cardPool = [
         "tags": [
             "Antike",
             "Zahlen",
-            "Informatik"
+            "Informatik",
+            "Primzahlen"
         ],
         "furtherInformation": []
     },
@@ -202,11 +221,12 @@ const cardPool = [
         "fronttext": "Durch das Einschreiben und Umschreiben von Polygonen kam ein Genie dem wahren Wert von Pi verblüffend nahe.",
         "backtext": "Archimedes von Syrakus nutzte die Ausschöpfungsmethode, um den Umfang eines Kreises mathematisch präzise einzugrenzen.",
         "valuetext": "um 250 v. Chr.",
-        "startvalue": -250,
-        "endvalue": -250,
+        "startvalue": -260,
+        "endvalue": -240,
         "tags": [
             "Antike",
-            "Geometrie"
+            "Geometrie",
+            "Pi"
         ],
         "furtherInformation": []
     },
@@ -228,11 +248,13 @@ const cardPool = [
         "fronttext": "Er untersuchte systematisch, welche Kurven entstehen, wenn man einen Kegel in verschiedenen Winkeln schneidet: Kreis, Ellipse, Parabel und Hyperbel.",
         "backtext": "Apollonius von Perge gab diesen Kurven ihre Namen und beschrieb ihre mathematischen Eigenschaften in acht Büchern.",
         "valuetext": "um 200 v. Chr.",
-        "startvalue": -220,
+        "startvalue": -210,
         "endvalue": -190,
         "tags": [
             "Antike",
-            "Geometrie"
+            "Geometrie",
+            "Körper",
+            "!wichtig"
         ],
         "furtherInformation": []
     },
@@ -242,7 +264,7 @@ const cardPool = [
         "backtext": "Hipparchos von Nicäa gilt als Begründer der Trigonometrie. Er erstellte die erste bekannte Sehnentabelle, die Vorläuferin der Sinusfunktion.",
         "valuetext": "um 150 v. Chr.",
         "startvalue": -160,
-        "endvalue": -120,
+        "endvalue": -140,
         "tags": [
             "Antike",
             "Trigonometrie",
@@ -259,46 +281,51 @@ const cardPool = [
         "endvalue": 100,
         "tags": [
             "Antike",
-            "Wurzeln",
-            "Algorithmen"
+            "Informatik",
+            "!wichtig"
         ],
         "furtherInformation": []
     },
     {
         "title": "Herons Formel",
         "fronttext": "Berechnung der Fläche eines Dreiecks allein aus seinen Seitenlängen.",
-        "backtext": "Heron von Alexandria war ein Meister der angewandten Mathematik und Mechanik.",
+        "backtext": "Heron von Alexandria zeigte, dass die Fläche eines Dreiecks mit den Seitenlängen a, b und c durch die Formel $A=\\sqrt{s(s-a)(s-b)(s-c)}$ berechnet werden kann, wobei $s=\\frac{a+b+c}{2}$ der halbe Umfang ist.",
         "valuetext": "1. Jh.",
         "startvalue": 1,
         "endvalue": 100,
         "tags": [
             "Antike",
-            "Geometrie"
+            "Geometrie",
+            "Dreiecke"
         ],
         "furtherInformation": []
     },
     {
-        "title": "Harmonie der Teiler",
-        "fronttext": "Er klassifizierte Zahlen, die gleich der Summe ihrer echten Teiler sind, wie 6 ($1+2+3$) oder 28 ($1+2+4+7+14$).",
+        "title": "Perfekte Zahlen",
+        "fronttext": "Er klassifizierte Zahlen, die gleich der Summe ihrer echten Teiler sind, wie $6~(=1+2+3)$ oder $28~(=1+2+4+7+14)$.",
         "backtext": "Nicomachus von Gerasa beschrieb in seiner 'Einführung in die Arithmetik' diese 'Perfekten Zahlen' und sah in ihnen ein Zeichen göttlicher Ordnung. Bis heute ist es eines der großen ungelösten Probleme, ob es ungerade perfekte Zahlen gibt.",
         "valuetext": "um 100",
-        "startvalue": 60,
-        "endvalue": 120,
+        "startvalue": 90,
+        "endvalue": 110,
         "tags": [
             "Antike",
-            "Zahlen"
+            "Zahlen",
+            "!wichtig",
+            "!wichtig",
+            "!ungelöst"
         ],
-        "furtherInformation": ["Alle bekannten perfekten Zahlen sind abgeleitet von den $\rightarrow$ Mersenne-Primzahlen"]
+        "furtherInformation": ["Alle bisher bekannten perfekten Zahlen sind abgeleitet von den $\\rightarrow$ Mersenne-Primzahlen"]
     },
     {
         "title": "Ptolemäus' Almagest",
         "fronttext": "Ein monumentales Werk, das die Astronomie für über 1000 Jahre dominierte. Er nahm allerdings an, dass unser Weltbild geozentrisch sein, d.h. sich alle Planeten um die Erde kreisen.",
         "backtext": "Claudius Ptolemäus lieferte umfangreiche trigonometrische Tabellen für die Sternbeobachtung.",
         "valuetext": "um 150",
-        "startvalue": 150,
-        "endvalue": 150,
+        "startvalue": 140,
+        "endvalue": 160,
         "tags": [
             "Antike",
+            "Trigonometrie",
             "Astronomie"
         ],
         "furtherInformation": []
@@ -325,7 +352,7 @@ const cardPool = [
         "endvalue": 499,
         "tags": [
             "Antike",
-            "Zahlentheorie"
+            "Zahlen"
         ],
         "furtherInformation": []
     },
@@ -334,8 +361,8 @@ const cardPool = [
         "fronttext": "Ein Werk, das sich mit Gleichungen beschäftigt, bei denen nur ganzzahlige Lösungen gesucht werden.",
         "backtext": "Diophantos von Alexandria gilt als 'Vater der Algebra', da er erste Ansätze für eine symbolische Schreibweise entwickelte.",
         "valuetext": "um 250",
-        "startvalue": 250,
-        "endvalue": 250,
+        "startvalue": 240,
+        "endvalue": 260,
         "tags": [
             "Antike",
             "Algebra"
@@ -351,7 +378,8 @@ const cardPool = [
         "endvalue": 270,
         "tags": [
             "Antike",
-            "Zahlen"
+            "Zahlen",
+            "!einfach"
         ],
         "furtherInformation": []
     },
@@ -360,11 +388,13 @@ const cardPool = [
         "fronttext": "Die erste namentlich bekannte Mathematikerin der Geschichte lehrte Astronomie und Philosophie in einer unruhigen Zeit.",
         "backtext": "Hypatia schrieb Kommentare zu Diophantos und Apollonios, bevor sie Opfer religiöser Unruhen wurde.",
         "valuetext": "um 400",
-        "startvalue": 350,
-        "endvalue": 415,
+        "startvalue": 390,
+        "endvalue": 410,
         "tags": [
             "Antike",
-            "Frauen"
+            "Frauen",
+            "Astronomie",
+            "Philosophie"
         ],
         "furtherInformation": []
     },
@@ -373,9 +403,10 @@ const cardPool = [
         "fronttext": "Die Kreiszahl wurde mithilfe des Umfangs eines 24.576-Eck auf 7 Dezimalstellen genau angenähert.",
         "backtext": "Der chinesische Astronom Zu Chongzhi schaffte eine Annäherung an Pi (355/113), die über 800 Jahre nicht verbessert wurde. Er fand auch die Volumenformel der Kugel.",
         "valuetext": "um 480",
-        "startvalue": 460,
-        "endvalue": 500,
+        "startvalue": 470,
+        "endvalue": 490,
         "tags": [
+            "Antike",
             "Pi"
         ],
         "furtherInformation": []
@@ -398,11 +429,13 @@ const cardPool = [
         "fronttext": "Nichts als eine Zahl? In Indien wurde das Konzept der Null als eigenständiger Wert revolutioniert.",
         "backtext": "Brahmagupta legte erstmals Regeln für das Rechnen mit Null fest. Ohne Null als Platzhalter und Zahl wäre das Dezimalsystem undenkbar.",
         "valuetext": "um 650",
-        "startvalue": 630,
-        "endvalue": 668,
+        "startvalue": 640,
+        "endvalue": 660,
         "tags": [
             "Mittelalter",
-            "Zahlen"
+            "Zahlen",
+            "!einfach",
+            "!wichtig"
         ],
         "furtherInformation": []
     },
@@ -415,7 +448,8 @@ const cardPool = [
         "endvalue": 820,
         "tags": [
             "Mittelalter",
-            "Algebra"
+            "Algebra",
+            "!wichtig"
         ],
         "furtherInformation": []
     },
@@ -441,7 +475,7 @@ const cardPool = [
         "endvalue": 899,
         "tags": [
             "Mittelalter",
-            "Kryptographie"
+            "Informatik"
         ],
         "furtherInformation": []
     },
@@ -522,30 +556,35 @@ const cardPool = [
         "endvalue": 1202,
         "tags": [
             "Mittelalter",
-            "Zahlen"
+            "Zahlen",
+            "Symbole",
+            "!einfach",
+            "!wichtig"
         ],
         "furtherInformation": []
     },
     {
         "title": "Fibonacci-Folge",
         "fronttext": "Ein Rätsel über die Vermehrung von Kaninchen führte zu einer Zahlenfolge, die überall in der Natur auftaucht: 1, 2, 3, 4, 5, 8, 13...",
-        "backtext": "Jede Zahl ist die Summe ihrer beiden Vorgänger. Das Verhältnis nähert sich dem Goldenen Schnitt an.",
+        "backtext": "Jede Zahl ist die Summe ihrer beiden Vorgänger. Das Verhältnis nähert sich dem Goldenen Schnitt an. Eigentlich ist die Folge schon in Indien bekannt, aber Fibonacci veröffentlichte sie in Europa.",
         "valuetext": "1202",
         "startvalue": 1202,
         "endvalue": 1202,
         "tags": [
             "Mittelalter",
-            "Zahlen"
+            "Zahlen",
+            "!einfach",
+            "!wichtig"
         ],
         "furtherInformation": []
     },
     {
-        "title": "Magische Quadrate",
-        "fronttext": "Quadrate, in denen die Summe jeder Zeile, Spalte und Diagonale gleich ist, faszinierten chinesische Gelehrte seit Jahrtausenden.",
+        "title": "Entdeckung von Magischen Quadraten",
+        "fronttext": "Quadrate, in denen die Summe jeder Zeile, Spalte und Diagonale gleich ist, faszinieren bis heute.",
         "backtext": "Yang Hui systematisierte den Bau dieser Quadrate und lieferte die ersten komplexen Beispiele für Ordnungen über 3 hinaus.",
         "valuetext": "1275",
-        "startvalue": 1270,
-        "endvalue": 1280,
+        "startvalue": 1275,
+        "endvalue": 1275,
         "tags": [
             "Mittelalter",
             "Zahlen"
@@ -576,10 +615,10 @@ const cardPool = [
         "startvalue": 1340,
         "endvalue": 1360,
         "tags": [
-            "Mittelalter",
+            "Renaissance",
             "Zahlen",
             "Analysis",
-            "latex"
+            "!wichtig"
         ],
         "furtherInformation": []
     },
@@ -588,10 +627,10 @@ const cardPool = [
         "fronttext": "Er nutzte als Erster Koordinaten, um die Änderung von Qualitäten über die Zeit darzustellen.",
         "backtext": "Oresme war ein Vorläufer der modernen graphischen Darstellung von Funktionen.",
         "valuetext": "um 1350",
-        "startvalue": 1350,
-        "endvalue": 1350,
+        "startvalue": 1340,
+        "endvalue": 1360,
         "tags": [
-            "Mittelalter",
+            "Renaissance",
             "Analysis"
         ],
         "furtherInformation": []
@@ -599,12 +638,12 @@ const cardPool = [
     {
         "title": "Madhava und die Unendlichkeit",
         "fronttext": "In Südindien entdeckte ein Mathematiker als erstes unendliche Reihen für Pi.",
-        "backtext": "Madhava von Sangamagrama begründete die Kerala-Schule, die bereits Grundkonzepte der Analysis vorwegnahm, jahrhunderte vor den Europäern.",
+        "backtext": "Madhava von Sangamagrama begründete die Kerala-Schule, die bereits Grundkonzepte der Analysis vorwegnahm, Jahrhunderte vor den Europäern.",
         "valuetext": "um 1400",
         "startvalue": 1350,
         "endvalue": 1425,
         "tags": [
-            "Mittelalter",
+            "Renaissance",
             "Analysis"
         ],
         "furtherInformation": []
@@ -617,8 +656,9 @@ const cardPool = [
         "startvalue": 1400,
         "endvalue": 1499,
         "tags": [
-            "Neuzeit",
-            "Symbole"
+            "Renaissance",
+            "Symbole",
+            "!einfach"
         ],
         "furtherInformation": []
     },
@@ -630,7 +670,7 @@ const cardPool = [
         "startvalue": 1464,
         "endvalue": 1464,
         "tags": [
-            "Neuzeit",
+            "Renaissance",
             "Trigonometrie"
         ],
         "furtherInformation": []
@@ -643,8 +683,8 @@ const cardPool = [
         "startvalue": 1494,
         "endvalue": 1494,
         "tags": [
-            "Neuzeit",
-            "Arithmetik"
+            "Renaissance",
+            "Symbole"
         ],
         "furtherInformation": []
     },
@@ -656,7 +696,7 @@ const cardPool = [
         "startvalue": 1515,
         "endvalue": 1515,
         "tags": [
-            "Neuzeit",
+            "Renaissance",
             "Algebra"
         ],
         "furtherInformation": []
@@ -664,39 +704,42 @@ const cardPool = [
     {
         "title": "Das Wurzelzeichen",
         "fronttext": "Das Symbol für die Quadratwurzel sieht aus wie ein kleines 'r' – und das ist kein Zufall.",
-        "backtext": "Christoph Rudolff führte das Zeichen in seinem Buch 'Die Coss' ein, abgeleitet vom lateinischen Wort 'radix'.",
+        "backtext": "Christoph Rudolff führte das Zeichen in seinem Buch 'Die Coss' ein, abgeleitet vom lateinischen Wort 'radix' zu Deutsch 'Wurzel'.",
         "valuetext": "1525",
         "startvalue": 1525,
         "endvalue": 1525,
         "tags": [
-            "Neuzeit",
-            "Symbole"
+            "Renaissance",
+            "Symbole",
+            "!einfach"
         ],
         "furtherInformation": []
     },
     {
         "title": "Lösung der Gleichung 3. Grades",
         "fronttext": "In einem mathematischen Wettstreit knackte ein Gelehrter das Rätsel um die kubischen Gleichungen.",
-        "backtext": "Niccolò Tartaglia fand die Lösung, die später von Gerolamo Cardano in der 'Ars Magna' veröffentlicht wurde.",
+        "backtext": "Niccolò Tartaglia fand die Lösung, die später von Gerolamo Cardano in der 'Ars Magna' veröffentlicht wurde und nach dem dem diese Formel heutzutage benannt ist.",
         "valuetext": "1535",
         "startvalue": 1535,
         "endvalue": 1535,
         "tags": [
-            "Neuzeit",
-            "Algebra"
+            "Renaissance",
+            "Algebra",
+            "!wichtig"
         ],
         "furtherInformation": []
     },
     {
         "title": "Zahlen aus einer anderen Welt",
         "fronttext": "Bei der Lösung komplexer Gleichungen stießen Mathematiker auf Ausdrücke wie $\\sqrt{-1}$. Zuerst hielten sie diese für unmöglich.",
-        "backtext": "Cardano erkannte, dass man mit diesen 'imaginären' Zahlen rechnen kann, auch wenn sie keine Entsprechung auf dem Zahlenstrahl haben.",
+        "backtext": "Cardano erkannte, dass man mit diesen 'imaginären' Zahlen rechnen kann, auch wenn sie keine Entsprechung auf dem (eindimensionalen) Zahlenstrahl haben.",
         "valuetext": "1545",
         "startvalue": 1545,
         "endvalue": 1545,
         "tags": [
-            "Neuzeit",
-            "Algebra"
+            "Renaissance",
+            "Algebra",
+            "!wichtig"
         ],
         "furtherInformation": []
     },
@@ -709,9 +752,8 @@ const cardPool = [
         "startvalue": 1544,
         "endvalue": 1544,
         "tags": [
-            "Neuzeit",
-            "Algebra",
-            "test"
+            "Renaissance",
+            "Algebra"
         ],
         "furtherInformation": []
     },
@@ -723,8 +765,9 @@ const cardPool = [
         "startvalue": 1557,
         "endvalue": 1557,
         "tags": [
-            "Neuzeit",
-            "Symbole"
+            "Renaissance",
+            "Symbole",
+            "!einfach"
         ],
         "furtherInformation": []
     },
@@ -736,8 +779,10 @@ const cardPool = [
         "startvalue": 1591,
         "endvalue": 1591,
         "tags": [
-            "Neuzeit",
-            "Algebra"
+            "Renaissance",
+            "Algebra",
+            "Symbole",
+            "!wichtig"
         ],
         "furtherInformation": []
     },
@@ -749,21 +794,23 @@ const cardPool = [
         "startvalue": 1614,
         "endvalue": 1614,
         "tags": [
-            "Neuzeit",
-            "Zahlen"
+            "Aufklärung",
+            "Zahlen",
+            "!wichtig"
         ],
         "furtherInformation": []
     },
     {
         "title": "Analytische Geometrie",
         "fronttext": "Die Verbindung von Geometrie und Algebra ermöglichte es, Formen durch Gleichungen darzustellen.",
-        "backtext": "René Descartes schuf das kartesische Koordinatensystem und prägte den Satz: 'Ich denke, also bin ich.'",
+        "backtext": "René Descartes schuf das kartesische Koordinatensystem und prägte den Satz: 'Ich denke, also bin ich.' Dank ihm nutzen wir die Buchstaben $x$, $y$ und $z$ für Unbekannte.",
         "valuetext": "1637",
         "startvalue": 1637,
         "endvalue": 1637,
         "tags": [
-            "Neuzeit",
-            "Geometrie"
+            "Aufklärung",
+            "Geometrie",
+            "!wichtig"
         ],
         "furtherInformation": []
     },
@@ -775,9 +822,10 @@ const cardPool = [
         "startvalue": 1644,
         "endvalue": 1644,
         "tags": [
-            "Neuzeit",
+            "Aufklärung",
+            "Kryptographie",
             "Zahlentheorie",
-            "Kryptographie"
+            "Primzahlen"
         ],
         "furtherInformation": []
     },
@@ -789,22 +837,22 @@ const cardPool = [
         "startvalue": 1635,
         "endvalue": 1635,
         "tags": [
-            "Neuzeit",
-            "Analysis"
+            "Aufklärung",
+            "Analysis",
+            "Körper"
         ],
         "furtherInformation": []
     },
     {
         "title": "Fermats letzter Satz",
         "fronttext": "Anders als beim Satz des Pythagoras mit Exponenten $n=2$ soll die Gleichung $a^n+b^n=c^n$ für $n>2$ keine ganzzahligen Lösungen besitzen.",
-        "backtext": "Pierre de Fermat schrieb: 'Ich habe hierfür einen wahrhaft wunderbaren Beweis gefunden, doch ist dieser Rand hier zu schmal...' -- Mathematiker scheiterten im Anschluss jedoch über viele hundert Jahre an dem Beweis und machten diesen Satz zu einem der berühmtesten Sätze der Mathematik.",
+        "backtext": "Pierre de Fermat schrieb: 'Ich habe hierfür einen wahrhaft wunderbaren Beweis gefunden, doch ist dieser Rand hier zu schmal...' -- Mathematiker scheiterten im Anschluss jedoch über viele hundert Jahre an dem Beweis und machten diesen Satz zu einem der berühmtesten Sätze der Mathematik, der sogar in Star Trek und den Simpsons erwähnt wird.",
         "valuetext": "um 1637",
         "startvalue": 1637,
         "endvalue": 1637,
         "tags": [
-            "Neuzeit",
+            "Aufklärung",
             "Zahlentheorie",
-            "Beweis",
             "!wichtig"
         ],
         "furtherInformation": []
@@ -817,8 +865,9 @@ const cardPool = [
         "startvalue": 1615,
         "endvalue": 1615,
         "tags": [
-            "Neuzeit",
-            "Analysis"
+            "Aufklärung",
+            "Analysis",
+            "Integrale"
         ],
         "furtherInformation": []
     },
@@ -830,7 +879,7 @@ const cardPool = [
         "startvalue": 1642,
         "endvalue": 1642,
         "tags": [
-            "Neuzeit",
+            "Aufklärung",
             "Informatik"
         ],
         "furtherInformation": []
@@ -843,21 +892,23 @@ const cardPool = [
         "startvalue": 1654,
         "endvalue": 1654,
         "tags": [
-            "Neuzeit",
-            "Stochastik"
+            "Aufklärung",
+            "Stochastik",
+            "!wichtig"
         ],
         "furtherInformation": []
     },
     {
         "title": "Das Unendlich-Zeichen",
         "fronttext": "Eine liegende Acht symbolisiert seither die Unendlichkeit in der Mathematik.",
-        "backtext": "John Wallis führte die Lemniskate in seinem Werk 'De sectionibus conicis' ein.",
+        "backtext": "John Wallis führte das Zeichen in seinem Werk 'De sectionibus conicis' ein. Vermutet wird, dass es sich von der griechischen Buchstaben Omega ableitet, der für 'Ende' steht.",
         "valuetext": "1655",
         "startvalue": 1655,
         "endvalue": 1655,
         "tags": [
-            "Neuzeit",
-            "Symbole"
+            "Aufklärung",
+            "Symbole",
+            "!einfach"
         ],
         "furtherInformation": []
     },
@@ -869,7 +920,7 @@ const cardPool = [
         "startvalue": 1657,
         "endvalue": 1657,
         "tags": [
-            "Neuzeit",
+            "Aufklärung",
             "Stochastik"
         ],
         "furtherInformation": []
@@ -877,13 +928,16 @@ const cardPool = [
     {
         "title": "Das Integralzeichen",
         "fronttext": "Ein deutsches Universalgenie entwickelte eine Notation mit einem langen S für das Integral, die wir noch heute nutzen.",
-        "backtext": "Gottfried Wilhelm Leibniz erfand die Analysis unabhängig von Newton, aber mit der eleganteren Schreibweise.",
+        "backtext": "Gottfried Wilhelm Leibniz erfand die Analysis unabhängig von Newton.",
         "valuetext": "1675",
         "startvalue": 1675,
         "endvalue": 1675,
         "tags": [
-            "Neuzeit",
-            "Analysis"
+            "Aufklärung",
+            "Analysis",
+            "Symbole",
+            "Integrale",
+            "!wichtig"
         ],
         "furtherInformation": []
     },
@@ -895,46 +949,53 @@ const cardPool = [
         "startvalue": 1679,
         "endvalue": 1679,
         "tags": [
-            "Neuzeit",
-            "Informatik"
+            "Aufklärung",
+            "Informatik",
+            "Zitate",
+            "!wichtig",
+            "!einfach"
         ],
-        "furtherInformation": []
+        "furtherInformation": [
+            "'„Es ist unwürdig, die Zeit von hervorragenden Leuten mit knechtischen Rechenarbeiten zu verschwenden, weil bei Einsatz einer Maschine auch der Einfältigste die Ergebnisse sicher hinschreiben kann.'"
+        ]
     },
     {
         "title": "Der Prioritätsstreit des Jahrhunderts",
         "fronttext": "Zwei Genies entwickelten gleichzeitig die Differentialrechnung, nutzten aber völlig unterschiedliche Schreibweisen.",
-        "backtext": "Der Streit zwischen Newton und Leibniz spaltete die mathematische Welt für Jahrzehnte. Zeitgleich entdeckte Seki Takakazu die Infinitesimalrechnung in Japan.",
+        "backtext": "Der Streit zwischen Newton ($\\dot x$) und Leibniz ($\\frac{df}{dx}$) spaltete die mathematische Welt für Jahrzehnte und endete im Gerichtsverfahren. Zeitgleich entdeckte Seki Takakazu die Infinitesimalrechnung in Japan.",
         "valuetext": "um 1675",
         "startvalue": 1670,
         "endvalue": 1680,
         "tags": [
-            "Neuzeit",
-            "Analysis"
+            "Aufklärung",
+            "Analysis",
+            "!wichtig"
         ],
         "furtherInformation": []
     },
     {
         "title": "Gesetz der großen Zahlen",
         "fronttext": "Je öfter man ein Experiment wiederholt, desto näher rückt die relative, eingetretende Häufigkeit zur tatsächlichen Wahrscheinlichkeit.",
-        "backtext": "Jakob Bernoulli, einer großen Familie bedeutender Mathematiker, die sich später ab sehr zerstritten haben, bewies dieses fundamentale Gesetz der Wahrscheinlichkeit in seinem Werk 'Ars Conjectandi'.",
+        "backtext": "Jakob Bernoulli, einer großen Familie bedeutender Mathematiker, die sich später aber sehr zerstritten haben, bewies dieses fundamentale Gesetz der Wahrscheinlichkeit in seinem Werk 'Ars Conjectandi'.",
         "valuetext": "1713",
         "startvalue": 1713,
         "endvalue": 1713,
         "tags": [
-            "Neuzeit",
-            "Stochastik"
+            "Aufklärung",
+            "Stochastik",
+            "!wichtig"
         ],
         "furtherInformation": []
     },
     {
-        "title": "Kurven durch Punkte ersetzen",
+        "title": "Taylor-Reihe",
         "fronttext": "Er zeigte, wie man komplizierte Funktionen durch unendliche Polynomreihen annähern kann.",
         "backtext": "Die Taylor-Reihe ist heute ein Standardwerkzeug, um komplexe Kurven an einem Punkt lokal zu verstehen.",
         "valuetext": "1715",
         "startvalue": 1715,
         "endvalue": 1715,
         "tags": [
-            "Neuzeit",
+            "Aufklärung",
             "Analysis"
         ],
         "furtherInformation": []
@@ -942,54 +1003,64 @@ const cardPool = [
     {
         "title": "Die Eulersche Zahl $e$",
         "fronttext": "Eine fundamentale Konstante der Analysis, die bei Zinseszinsen und Wachstumsprozessen auftaucht.",
-        "backtext": "Leonhard Euler führte den Buchstaben 'e' für die Basis des natürlichen Logarithmus ein.",
+        "backtext": "Leonhard Euler führte den Buchstaben 'e' für die Basis des natürlichen Logarithmus ein, eine der wichtigsten Zahlen in der Mathematik, die in vielen Bereichen von der Analysis bis zur Zahlentheorie eine Rolle spielt.",
         "valuetext": "1727",
         "startvalue": 1727,
         "endvalue": 1727,
         "tags": [
-            "Neuzeit",
-            "Analysis"
+            "Aufklärung",
+            "Analysis",
+            "Zahlen",
+            "!wichtig"
         ],
         "furtherInformation": []
     },
     {
         "title": "Die Goldbach-Vermutung",
         "fronttext": "Jede gerade Zahl größer als 2 lässt sich als Summe zweier Primzahlen schreiben. Bis heute ist das unbewiesen.",
-        "backtext": "Christian Goldbach formulierte diesen Brief an Euler. Es ist eines der bekanntesten ungelösten Probleme der Mathematik.",
+        "backtext": "Christian Goldbach formulierte diesen Brief an Euler. Es ist eines der bekanntesten ungelösten Probleme der Mathematik und stellt eine tiefe Verbindung zwischen Primzahlen als Atome der Zahlen als Produkt und als Summe dar.",
         "valuetext": "1742",
-        "startvalue": 1740,
-        "endvalue": 1745,
+        "startvalue": 1742,
+        "endvalue": 1742,
         "tags": [
-            "Neuzeit",
+            "Aufklärung",
+            "Primzahlen",
             "Zahlentheorie",
-            "ungelöst",
+            "!ungelöst",
+            "!einfach",
             "!wichtig"
         ],
-        "furtherInformation": []
+        "furtherInformation": [
+            "Übrigens folgt daraus direkt, dass auch jede ungerade Zahl größer als 5 als Summe von drei Primzahlen geschrieben werden kann ('schwache Goldbach-Vermutung'), da jede ungerade Zahl als Summe der Primzahl 3 und einer geraden Zahl geschrieben werden kann."
+        ]
     },
     {
         "title": "Der König der Mathematik",
-        "fronttext": "Er war so produktiv, dass er trotz Erblindung (<em>'Jetzt werde ich weniger Ablenkung haben'</em>) weiterhin hunderte von Abhandlungen verfasste und die Notation der Mathematik prägte.",
+        "fronttext": "Er war so produktiv, dass er trotz Erblindung (<em>'Jetzt werde ich weniger Ablenkung haben'</em>) weiterhin hunderte von Abhandlungen verfasste und die Mathematik prägte.",
         "backtext": "Leonhard Euler führte Symbole wie $f(x)$, $\\mathrm{i}$ und das Summenzeichen $\\sum$ ein. Er gilt als einer der größten Mathematiker aller Zeiten.",
-        "valuetext": "18. Jh.",
+        "valuetext": "1720-1783",
         "startvalue": 1720,
         "endvalue": 1783,
         "tags": [
-            "Neuzeit",
+            "Aufklärung",
             "Analysis",
+            "Personen",
+            "!einfach",
             "!wichtig"
         ],
-        "furtherInformation": ["Euler war so genial und gleichzeitig so produktiv, dass viele mathematische Sätze nicht nach ihm als Entdecker benannt wurden, sondern nach der zweiten Person, die diese entdeckt haben."]
+        "furtherInformation": ["Euler war so genial und gleichzeitig so produktiv, dass viele mathematische Sätze nicht nach ihm als Entdecker benannt wurden, sondern nach der zweiten Person, die diese entdeckt haben:<br>\
+            <a href='https://en.wikipedia.org/wiki/List_of_topics_named_after_Leonhard_Euler'>Wikipedia: List of topics named after Leonhard Euler</a>"]
     },
     {
         "title": "Königsberger Brückenproblem",
-        "fronttext": "Kann man einen Rundgang machen, bei dem man jede der sieben Brücken genau einmal überquert?",
+        "fronttext": "Kann man einen Rundgang machen, bei dem man jede der sieben Brücken in Königsberg (heute: Kaliningrad) genau einmal überquert?",
         "backtext": "Leonhard Euler bewies, dass dies unmöglich ist, und legte damit den Grundstein für die Graphentheorie.",
         "valuetext": "1736",
         "startvalue": 1736,
         "endvalue": 1736,
         "tags": [
-            "Neuzeit",
+            "Aufklärung",
+            "Graphentheorie",
             "Informatik"
         ],
         "furtherInformation": [
@@ -1000,15 +1071,16 @@ const cardPool = [
     },
     {
         "title": "Pi hat kein Ende und kein Muster",
-        "fronttext": "Er bewies als Erster, dass Pi eine irrationale Zahl ist und sich niemals als einfacher Bruch schreiben lässt.",
-        "backtext": "Johann Heinrich Lambert nutzte Kettenbrüche für diesen Beweis und ahnte bereits die Existenz nicht-euklidischer Räume voraus.",
+        "fronttext": "Er bewies als Erster, dass Pi eine irrationale Zahl ist und sich somit niemals als einfacher Bruch schreiben lässt.",
+        "backtext": "Johann Heinrich Lambert nutzte unendliche Kettenbrüche für diesen Beweis. Außerdem ahnte er bereits die Existenz nicht-euklidischer Räume voraus.",
         "valuetext": "1761",
         "startvalue": 1761,
         "endvalue": 1761,
         "tags": [
-            "Neuzeit",
+            "Aufklärung",
             "Pi",
-            "Analysis"
+            "Analysis",
+            "!wichtig"
         ],
         "furtherInformation": []
     },
@@ -1020,8 +1092,9 @@ const cardPool = [
         "startvalue": 1733,
         "endvalue": 1733,
         "tags": [
-            "Neuzeit",
-            "Stochastik"
+            "Aufklärung",
+            "Stochastik",
+            "!wichtig"
         ],
         "furtherInformation": []
     },
@@ -1033,7 +1106,8 @@ const cardPool = [
         "startvalue": 1747,
         "endvalue": 1747,
         "tags": [
-            "Neuzeit",
+            "Aufklärung",
+            "Trigonometrie",
             "Physik"
         ],
         "furtherInformation": []
@@ -1041,14 +1115,14 @@ const cardPool = [
     {
         "title": "Eulersche Identität",
         "fronttext": "Eine Formel, die die fünf wichtigsten Konstanten der Mathematik in einer einfachen Gleichung vereint und als eine der schönsten Formeln der Mathematik gilt:\\[\
-        e^{i\\pi} + 1 = 0\
+        e^{i\\,\\pi} + 1 = 0\
         \\]",
-        "backtext": "TODO:",
+        "backtext": "Diese Identität ist eine direkte Konsequenz der Euler'schen Formel und zeigt die tiefe Verbindung zwischen Exponentialfunktionen, trigonometrischen Funktionen und komplexen Zahlen.",
         "valuetext": "1748",
         "startvalue": 1748,
         "endvalue": 1748,
         "tags": [
-            "Neuzeit",
+            "Aufklärung",
             "Analysis",
             "!wichtig"
         ],
@@ -1062,7 +1136,7 @@ const cardPool = [
         "startvalue": 1748,
         "endvalue": 1748,
         "tags": [
-            "Neuzeit",
+            "Aufklärung",
             "Frauen",
             "Analysis"
         ],
@@ -1073,23 +1147,25 @@ const cardPool = [
         "fronttext": "Ein Mathematiker bewies, dass alle Konstruktionen, die mit Zirkel und Lineal möglich sind, auch mit dem Zirkel allein gelingen.",
         "backtext": "Lorenzo Mascheroni widmete seine Entdeckung Napoleon Bonaparte. Der 'Satz von Mohr-Mascheroni' ist ein Klassiker der Geometrie.",
         "valuetext": "1797",
-        "startvalue": 1790,
-        "endvalue": 1800,
+        "startvalue": 1797,
+        "endvalue": 1797,
         "tags": [
-            "Moderne",
-            "Geometrie"
+            "Industrialisierung",
+            "Geometrie",
+            "!wichtig",
+            "!einfach"
         ],
         "furtherInformation": []
     },
     {
-        "title": "Mechanik ohne Bilder",
-        "fronttext": "In seinem Hauptwerk über Mechanik findet sich keine einzige Zeichnung – alles wurde rein analytisch gelöst.",
+        "title": "Dezimale Maßeinheiten",
+        "fronttext": "Der französische Revolutionär führte ein metrisches System ein, das auf Zehnerpotenzen basiert und die Maßeinheiten in fast der gesamten Weltvereinheitlichte.",
         "backtext": "Joseph-Louis Lagrange reformierte die Physik und schuf die Variationsrechnung, um Bewegungen effizienter zu berechnen. Dank ihm benutzen wir die Schreibweise $f'(x)$ für die erste Ableitung von $f$.",
-        "valuetext": "1788",
-        "startvalue": 1788,
-        "endvalue": 1788,
+        "valuetext": "1793",
+        "startvalue": 1793,
+        "endvalue": 1793,
         "tags": [
-            "Moderne",
+            "Industrialisierung",
             "Physik",
             "Analysis"
         ],
@@ -1103,48 +1179,50 @@ const cardPool = [
         "startvalue": 1799,
         "endvalue": 1799,
         "tags": [
-            "Moderne",
-            "Algebra"
+            "Industrialisierung",
+            "Algebra",
+            "!wichtig"
         ],
         "furtherInformation": []
     },
     {
         "title": "Das Buch der sieben Siegel",
-        "fronttext": "Dieses Werk revolutionierte die Zahlentheorie und führte die Modulo-Rechnung ('Uhrzeit-Mathematik') ein.",
+        "fronttext": "Dieses Werk revolutionierte die Zahlentheorie und führte die Modulo-Rechnung ('Uhrzeit-Mathematik') formal ein.",
         "backtext": "Carl Friedrich Gauß veröffentlichte die 'Disquisitiones Arithmeticae' mit nur 24 Jahren.",
         "valuetext": "1801",
         "startvalue": 1801,
         "endvalue": 1801,
         "tags": [
-            "Moderne",
+            "Industrialisierung",
             "Zahlentheorie"
         ],
         "furtherInformation": []
     },
     {
         "title": "Der Fürst der Mathematik",
-        "fronttext": "Schon während seiner Lebzeiten galt er als Fürst oder Prinz der Mathematik und schuf Meilensteine in Themen wie der nichteuklidische Mathematik, Integralsätze, Normalverteilung und Krümmung.",
-        "backtext": "Carl Friedrich Gauß veröffentlichte die 'Disquisitiones Arithmeticae' mit nur 24 Jahren.",
-        "valuetext": "1801",
-        "startvalue": 1801,
-        "endvalue": 1801,
+        "fronttext": "Schon während seiner Lebzeiten galt er als 'Fürst' oder 'Prinz der Mathematik' und schuf Meilensteine in Themen wie der nichteuklidische Mathematik, Integralsätze, Normalverteilung und Krümmung.",
+        "backtext": "Carl Friedrich Gauß war ein Universalgenie, das in vielen Bereichen der Mathematik und Physik bahnbrechende Beiträge leistete, aber vieles nicht veröffentlichte. Heute liegt er in Göttingen begraben, wo er auch lange Zeit gelehrt hat.",
+        "valuetext": "1777-1855",
+        "startvalue": 1777,
+        "endvalue": 1855,
         "tags": [
-            "Moderne",
-            "Zahlentheorie"
+            "Industrialisierung",
+            "Personen",
+            "!wichtig"
         ],
         "furtherInformation": []
     },
     {
         "title": "Die Summenformel eines Genies",
         "fronttext": "Von seinem Lehrer wurde ihm als 8-Jähriger die Aufgabe gegeben, die ersten hundert (Natürlichen) Zahlen zu summieren: schon nach wenigen Minuten entdeckte er einen Trick, der eine große Zukunft voraussagte.",
-        "backtext": "Carl Friedrich Gauß summierte die Zahlen vom Rand aus: $(1+100)+(2+99)+(3+98)+\\ldots$=50\cdot51$. Dieser Trick gilt ist seither als Gauß'sche Summenformel bekannt:\\[\
-        \\sum_{k=1}^n k = \\frac{n\cdot(n+1)}{2}\
+        "backtext": "Carl Friedrich Gauß summierte die Zahlen vom Rand aus: $(1+100)+(2+99)+(3+98)+\\ldots$=50\\cdot51$. Dieser Trick gilt ist seither als Gauß'sche Summenformel bekannt:\\[\
+        \\sum_{k=1}^n k = \\frac{n\\cdot(n+1)}{2}\
         \\]",
-        "valuetext": "XXX",
-        "startvalue": 1801,
-        "endvalue": 1801,
+        "valuetext": "1785",
+        "startvalue": 1785,
+        "endvalue": 1785,
         "tags": [
-            "Moderne",
+            "Industrialisierung",
             "Zahlentheorie",
             "!wichtig"
         ],
@@ -1158,7 +1236,7 @@ const cardPool = [
         "startvalue": 1805,
         "endvalue": 1805,
         "tags": [
-            "Moderne",
+            "Industrialisierung",
             "Stochastik"
         ],
         "furtherInformation": []
@@ -1171,8 +1249,9 @@ const cardPool = [
         "startvalue": 1809,
         "endvalue": 1809,
         "tags": [
-            "Moderne",
-            "Stochastik"
+            "Industrialisierung",
+            "Stochastik",
+            "!wichtig"
         ],
         "furtherInformation": []
     },
@@ -1184,22 +1263,25 @@ const cardPool = [
         "startvalue": 1790,
         "endvalue": 1800,
         "tags": [
-            "Moderne",
+            "Industrialisierung",
             "Geometrie"
         ],
         "furtherInformation": []
     },
     {
         "title": "Sophie Germain und die Primzahlen",
-        "fronttext": "Unter einem männlichen Pseudonym korrespondierte eine Frau mit den wichtigsten Gauß über die Zahlentheorie und sicherte bei der Besetzung Braunschweigs durch Napoleons Truppen seine Sicherheit.",
-        "backtext": "Sophie Germain machte entscheidende Fortschritte beim Beweis von Fermats letztem Satz durch die <em>Sophie-Germain-Primzahlen</em>, eine der vielen offenen Fragen, ob es davon unendlich viele gibt.",
+        "fronttext": "Unter männlichem Pseudonym schrieb eine Frau mit Gauß über Zahlentheorie und sicherte bei der Besetzung Braunschweigs durch Napoleons Truppen seine Sicherheit.",
+        "backtext": "Sophie Germain machte entscheidende Fortschritte beim Beweis von Fermats letztem Satz durch die <em>Sophie-Germain-Primzahlen</em>. Heute noch eine der vielen offenen Fragen, ob es davon unendlich viele gibt.",
         "valuetext": "1816",
         "startvalue": 1816,
         "endvalue": 1816,
         "tags": [
-            "Moderne",
+            "Industrialisierung",
             "Frauen",
-            "Zahlentheorie"
+            "Zahlentheorie",
+            "Primzahlen",
+            "!ungelöst",
+            "!wichtig"
         ],
         "furtherInformation": []
     },
@@ -1211,7 +1293,7 @@ const cardPool = [
         "startvalue": 1822,
         "endvalue": 1822,
         "tags": [
-            "Moderne",
+            "Industrialisierung",
             "Geometrie"
         ],
         "furtherInformation": []
@@ -1219,13 +1301,15 @@ const cardPool = [
     {
         "title": "Die Fourier-Reihe",
         "fronttext": "Er behauptete, dass sich viele Funktionen in Intervallen aus einer Summe einfacher Sinuswellen zusammensetzen -- der Fourier-Reihe.",
-        "backtext": "Joseph Fourier entwickelte diese Theorie beim Studium der Wärmeleitung. Heute ist sie Basis für MP3 und JPEG.",
+        "backtext": "Joseph Fourier entwickelte diese Theorie beim Studium der Wärmeleitung. Heute ist sie Basis für MP3 und JPEG. Er beschrieb auch modellhaft etwas, was wir heute als Treibhaus-Effekt kennen.",
         "valuetext": "1822",
         "startvalue": 1822,
         "endvalue": 1822,
         "tags": [
-            "Moderne",
-            "Analysis"
+            "Industrialisierung",
+            "Analysis",
+            "Trigonometrie",
+            "!wichtig"
         ],
         "furtherInformation": []
     },
@@ -1237,34 +1321,37 @@ const cardPool = [
         "startvalue": 1858,
         "endvalue": 1858,
         "tags": [
-            "Moderne",
-            "Topologie"
+            "Industrialisierung",
+            "Topologie",
+            "!einfach"
         ],
         "furtherInformation": []
     },
     {
         "title": "Ordnung im Chaos der Analysis",
-        "fronttext": "Er gab der Analysis ein strenges Fundament, indem er Grenzwerte und Stetigkeit präzise mit 'Epsilon und Delta' definierte.",
+        "fronttext": "Augustin-Louis Cauchy gab der Analysis ein strenges Fundament, indem er Grenzwerte und Stetigkeit präzise mit 'Epsilon und Delta' definierte.",
         "backtext": "Augustin-Louis Cauchy war einer der produktivsten Mathematiker und prägte den modernen Mathematikunterricht.",
-        "valuetext": "1821",
-        "startvalue": 1821,
-        "endvalue": 1821,
+        "valuetext": "1789-1857",
+        "startvalue": 1789,
+        "endvalue": 1857,
         "tags": [
-            "Moderne",
-            "Analysis"
+            "Industrialisierung",
+            "Analysis",
+            "Personen"
         ],
         "furtherInformation": []
     },
     {
         "title": "Unmöglichkeit der Lösung 5. Grades",
         "fronttext": "Nach Jahrhunderten der Suche bewies ein junger Norweger, dass es keine allgemeine Lösungsformel für Gleichungen 5. Grades gibt , bevor er kurz darauf mit nur 26 Jahren an Tuberkulose starb.",
-        "backtext": "Niels Henrik Abel erschütterte die Fachwelt mit diesem, sowie vielen weiteren Resultaten, die auch heute noch seinen Namen tragen, und das trotz seiner kurzen Lebzeit.",
+        "backtext": "Niels Henrik Abel galt als größtes Talent, starb jedoch viel zu früh. Viele Entdeckungen und auch der wichtigste Preis für Mathematik ist nach ihm benannt, neben der Fields-Medaille.",
         "valuetext": "1824",
         "startvalue": 1824,
         "endvalue": 1824,
         "tags": [
-            "Moderne",
-            "Algebra"
+            "Industrialisierung",
+            "Algebra",
+            "!wichtig"
         ],
         "furtherInformation": []
     },
@@ -1276,8 +1363,10 @@ const cardPool = [
         "startvalue": 1829,
         "endvalue": 1829,
         "tags": [
-            "Moderne",
-            "Geometrie"
+            "Industrialisierung",
+            "Geometrie",
+            "!einfach",
+            "!wichtig"
         ],
         "furtherInformation": []
     },
@@ -1289,8 +1378,9 @@ const cardPool = [
         "startvalue": 1832,
         "endvalue": 1832,
         "tags": [
-            "Moderne",
-            "Algebra"
+            "Industrialisierung",
+            "Algebra",
+            "!wichtig"
         ],
         "furtherInformation": []
     },
@@ -1302,33 +1392,35 @@ const cardPool = [
         "startvalue": 1837,
         "endvalue": 1837,
         "tags": [
-            "Moderne",
-            "Informatik"
+            "Industrialisierung",
+            "Informatik",
+            "!einfach"
         ],
         "furtherInformation": []
     },
     {
         "title": "Der Schöpfer der Matrizen",
         "fronttext": "Er führte das Konzept der Matrix ein und entwickelte zusammen mit Cayley die Theorie der Invarianten.",
-        "backtext": "James Joseph Sylvester war ein leidenschaftlicher Mathematiker, der viele Fachbegriffe wie 'Diskriminante' erfand.",
+        "backtext": "Der Jude James Joseph Sylvester war ein leidenschaftlicher Mathematiker, der viele Fachbegriffe wie 'Diskriminante' erfand und der als Jugendlicher beschuldigt wurde, einen anderen Studenten erstochen zu haben.",
         "valuetext": "um 1850",
         "startvalue": 1845,
         "endvalue": 1855,
         "tags": [
-            "Moderne",
-            "Algebra"
+            "Industrialisierung",
+            "Algebra",
+            "!wichtig"
         ],
         "furtherInformation": []
     },
     {
         "title": "Die Welt der elliptischen Funktionen",
         "fronttext": "Er zeigte, dass es Funktionen gibt, die in zwei Richtungen periodisch sind – wie ein Muster auf einer Tapete.",
-        "backtext": "Carl Gustav Jacobi war ein Meister der Analysis und legte Grundlagen für die theoretische Mechanik.",
+        "backtext": "Der gebürtige Potsdamer Carl Gustav Jacobi war ein Meister der Analysis und legte Grundlagen für die theoretische Mechanik. Auch sein Bruder war ein bekannter Mathematiker.",
         "valuetext": "1829",
         "startvalue": 1829,
         "endvalue": 1829,
         "tags": [
-            "Moderne",
+            "Industrialisierung",
             "Analysis"
         ],
         "furtherInformation": []
@@ -1341,8 +1433,9 @@ const cardPool = [
         "startvalue": 1847,
         "endvalue": 1847,
         "tags": [
-            "Moderne",
-            "Logik"
+            "Industrialisierung",
+            "Logik",
+            "Informatik"
         ],
         "furtherInformation": []
     },
@@ -1354,8 +1447,9 @@ const cardPool = [
         "startvalue": 1865,
         "endvalue": 1865,
         "tags": [
-            "Moderne",
-            "Logik"
+            "Industrialisierung",
+            "Logik",
+            "!einfach"
         ],
         "furtherInformation": []
     },
@@ -1367,8 +1461,10 @@ const cardPool = [
         "startvalue": 1854,
         "endvalue": 1854,
         "tags": [
-            "Moderne",
-            "Analysis"
+            "Industrialisierung",
+            "Analysis",
+            "Integrale",
+            "!wichtig"
         ],
         "furtherInformation": []
     },
@@ -1380,7 +1476,7 @@ const cardPool = [
         "startvalue": 1843,
         "endvalue": 1843,
         "tags": [
-            "Moderne",
+            "Industrialisierung",
             "Frauen",
             "Informatik"
         ],
@@ -1391,15 +1487,16 @@ const cardPool = [
         "fronttext": "Ein Gelehrter ritzte die Formel für eine neue Art von Zahlen in eine Brücke in Dublin ein.",
         "backtext": "William Rowan Hamilton erweiterte die komplexen Zahlen auf vier Dimensionen, was heute in der 3D-Grafik wichtig ist:\\[\
         i^2=j^2=k^2=ijk=-1\
-        \\]",
+        \\]\
+        Tatsächlich finden sich Quaternionen schon vollständig ausgearbeitet in privaten Gauß'schen Aufzeichnungen viele Jahrzehnte vor Hamilton.",
         "valuetext": "1843",
         "startvalue": 1843,
         "endvalue": 1843,
         "tags": [
-            "Moderne",
+            "Industrialisierung",
             "Algebra",
-            "latex",
-            "test"
+            "Zahlen",
+            "!wichtig"
         ],
         "furtherInformation": []
     },
@@ -1411,9 +1508,10 @@ const cardPool = [
         "startvalue": 1854,
         "endvalue": 1854,
         "tags": [
-            "Moderne",
+            "Industrialisierung",
             "Informatik",
-            "Logik"
+            "Logik",
+            "!wichtig"
         ],
         "furtherInformation": []
     },
@@ -1425,24 +1523,24 @@ const cardPool = [
         "startvalue": 1858,
         "endvalue": 1858,
         "tags": [
-            "Moderne",
-            "Frauen",
-            "Statistik"
+            "Industrialisierung",
+            "Frauen"
         ],
         "furtherInformation": []
     },
     {
         "title": "Riemannsche Vermutung",
         "fronttext": "Eines der größten ungelösten Rätsel der Mathematik betrifft die Verteilung der Primzahlen.",
-        "backtext": "Bernhard Riemann formulierte eine Hypothese über die Nullstellen der Zeta-Funktion, die bis heute unbewiesen ist und eines der Millenium-Probleme ist, sowie eines der Hilbert-Probleme. Dieser soll einmal gesagt haben: 'Wenn ich nach einem tausendjährigen Schlaf aufwachen würde, wäre meine erste Frage: »Wurde die Riemann-Hypothese bewiesen?«'",
+        "backtext": "Bernhard Riemann formulierte eine Hypothese über die Nullstellen der Zeta-Funktion und eines der ungelösten Millenium-Probleme ist. Hilbert soll einmal gesagt haben: 'Wenn ich nach einem tausendjährigen Schlaf aufwachen würde, wäre meine erste Frage: »Wurde die Riemann-Hypothese bewiesen?«'",
         "valuetext": "1859",
         "startvalue": 1859,
         "endvalue": 1859,
         "tags": [
-            "Moderne",
+            "Industrialisierung",
             "Zahlentheorie",
-            "!wichtig",
-            "test"
+            "Primzahlen",
+            "!ungelöst",
+            "!wichtig"
         ],
         "furtherInformation": []
     },
@@ -1454,7 +1552,7 @@ const cardPool = [
         "startvalue": 1854,
         "endvalue": 1854,
         "tags": [
-            "Moderne",
+            "Industrialisierung",
             "Algebra"
         ],
         "furtherInformation": []
@@ -1467,7 +1565,7 @@ const cardPool = [
         "startvalue": 1872,
         "endvalue": 1872,
         "tags": [
-            "Moderne",
+            "Industrialisierung",
             "Analysis"
         ],
         "furtherInformation": []
@@ -1480,9 +1578,7 @@ const cardPool = [
         "startvalue": 1874,
         "endvalue": 1874,
         "tags": [
-            "Moderne",
-            "Mengenlehre",
-            "test"
+            "Industrialisierung"
         ],
         "furtherInformation": []
     },
@@ -1494,8 +1590,9 @@ const cardPool = [
         "startvalue": 1888,
         "endvalue": 1888,
         "tags": [
-            "Moderne",
-            "Frauen"
+            "Industrialisierung",
+            "Frauen",
+            "Analysis"
         ],
         "furtherInformation": []
     },
@@ -1507,36 +1604,39 @@ const cardPool = [
         "startvalue": 1889,
         "endvalue": 1889,
         "tags": [
-            "Moderne",
+            "Industrialisierung",
+            "Zahlentheorie",
             "Logik",
-            "latex"
+            "Axiomatik",
+            "!wichtig"
         ],
         "furtherInformation": []
     },
     {
-        "title": "Henri Poincaré",
-        "fronttext": "Drei-Körper-Problem, Poincaré-Vermutung.",
+        "title": "Poincaré-Vermutung",
+        "fronttext": "Henri Poincaré legte mit der Untersuchung des Drei-Körper-Problems den Grundstein für die Chaostheorie und formulierte eine fundamentale Vermutung über die Topologie von Sphären, der Poincaré-Vermutung.",
         "backtext": "Poincaré war einer der letzten 'Universal-Gelehrter', die fast alle Gebiete der Mathematik beherrschten.",
-        "valuetext": "1895",
-        "startvalue": 1895,
-        "endvalue": 1895,
+        "valuetext": "1904",
+        "startvalue": 1904,
+        "endvalue": 1904,
         "tags": [
             "Moderne",
-            "Topologie"
+            "Physik"
         ],
         "furtherInformation": []
     },
     {
         "title": "Hilberts 23 Probleme",
         "fronttext": "Der Mathematiker listete die wichtigsten offenen Fragen auf und gab damit die Marschrichtung für das kommende Jahrhundert vor.",
-        "backtext": "David Hilbert präsentierte seine Liste auf dem internationalen Kongress in Paris und prägte Generationen von Forschern.",
+        "backtext": "David Hilbert präsentierte seine Liste auf dem internationalen Kongress in Paris und prägte Generationen von Forschern.<br>Sein Zitat: <em>'Wir müssen wissen, wir werden wissen!'</em>",
         "valuetext": "1900",
         "startvalue": 1900,
         "endvalue": 1900,
         "tags": [
             "Moderne",
-            "Zukunft",
-            "ungeloest"
+            "!wichtig",
+            "Zitate",
+            "!ungelöst"
         ],
         "furtherInformation": [
             "Liste der 23 Probleme: <a href='https://de.wikipedia.org/wiki/Hilbertsche_Probleme#Die_Probleme'>Wikipedia</a>",
@@ -1552,14 +1652,15 @@ const cardPool = [
         "endvalue": 1901,
         "tags": [
             "Moderne",
-            "Logik"
+            "Logik",
+            "Philosophie"
         ],
         "furtherInformation": []
     },
     {
         "title": "Noether-Theorem",
         "fronttext": "Ein tiefer Zusammenhang zwischen Symmetrien in der Natur und Erhaltungsgrößen wie Energie wurde bewiesen.",
-        "backtext": "Emmy Noether revolutionierte die theoretische Physik. Einstein nannte sie ein bedeutendes Genie.",
+        "backtext": "Die Jüdin Emmy Noether revolutionierte die theoretische Physik. Einstein nannte sie ein bedeutendes Genie, und auch Hilbert war ihr größter Förderer.",
         "valuetext": "1915",
         "startvalue": 1915,
         "endvalue": 1915,
@@ -1573,26 +1674,28 @@ const cardPool = [
     {
         "title": "Ramanujan und die 1729",
         "fronttext": "Die kleinste Zahl, die man auf zwei verschiedene Arten als Summe von zwei Kubikzahlen schreiben kann.",
-        "backtext": "Das indische Autodidakt Srinivasa Ramanujan gilt als mathematisches Genie, der leider schon mit 32 Jahren gestorben ist.",
+        "backtext": "Das indische Autodidakt Srinivasa Ramanujan gilt als mathematisches Genie, der leider schon mit 32 Jahren gestorben ist. Viele seiner Entdeckungen wurden erst Jahre später verstanden und bewiesen.",
         "valuetext": "1918",
         "startvalue": 1918,
         "endvalue": 1918,
         "tags": [
             "Moderne",
-            "Zahlentheorie"
+            "Zahlentheorie",
+            "Pi"
         ],
         "furtherInformation": []
     },
     {
-        "title": "Das Schottische Café",
-        "fronttext": "Er begründete die moderne Funktionalanalysis in einem Café in Lemberg das 'Schottische Café', das für seine Mathematiker-Treffen weltberühmt war.",
-        "backtext": "Banach-Räume sind heute ein zentrales Konzept der höheren Mathematik.",
+        "title": "Banach-Räume im Schottischen Café",
+        "fronttext": "In einem Café in Lemberg, das 'Schottische Café', wurden viele wichtige mathematische Ideen diskutiert.",
+        "backtext": "Unter anderem hat Stefan Banach dort seine Banach-Räume entwickelt, die auch heute ein zentrales Konzept der höheren Mathematik sind.",
         "valuetext": "1922",
         "startvalue": 1922,
         "endvalue": 1922,
         "tags": [
             "Moderne",
-            "Analysis"
+            "Analysis",
+            "!einfach"
         ],
         "furtherInformation": [
             "TODO: Podcast-Link"
@@ -1600,14 +1703,15 @@ const cardPool = [
     },
     {
         "title": "Gödels Unvollständigkeitssatz",
-        "fronttext": "Innerhalb eines hinreichend starken Systems gibt es wahre Aussagen, die niemals bewiesen werden können.",
-        "backtext": "Kurt Gödel setzte dem Traum von einer vollständig beweisbaren Mathematik ein jähes Ende.",
+        "fronttext": "Innerhalb eines hinreichend starken Systems gibt es wahre Aussagen, die niemals bewiesen werden können -- dieser Satz erschütterte die Mathematik.",
+        "backtext": "Kurt Gödel wird als größter Logiker seit Aristoteles angesehen, leidete aber später unter Verfolgungswahn und aß nur noch Speisen, die seine Frau zubereitete und vorkostete, bis diese einige Zeit im Krankenhaus war und er an Unterernährung starb.",
         "valuetext": "1931",
         "startvalue": 1931,
         "endvalue": 1931,
         "tags": [
             "Moderne",
-            "Logik"
+            "Logik",
+            "!wichtig"
         ],
         "furtherInformation": []
     },
@@ -1620,20 +1724,22 @@ const cardPool = [
         "endvalue": 1933,
         "tags": [
             "Moderne",
-            "Stochastik"
+            "Stochastik",
+            "Axiomatik",
+            "!wichtig"
         ],
         "furtherInformation": []
     },
     {
         "title": "Nicolas Bourbaki",
         "fronttext": "Ein fiktiver Mathematiker, hinter dem sich eine ganze Gruppe französischer Gelehrter verbarg.",
-        "backtext": "Die Bourbaki-Gruppe wollte die gesamte Mathematik streng axiomatisch neu aufbauen.",
+        "backtext": "Die Bourbaki-Gruppe wollte die gesamte Mathematik streng axiomatisch neu aufbauen. In ihren Büchern nutzten sie weder Grafiken noch Beispiele.",
         "valuetext": "1935",
         "startvalue": 1935,
         "endvalue": 1935,
         "tags": [
             "Moderne",
-            "Struktur"
+            "Axiomatik"
         ],
         "furtherInformation": []
     },
@@ -1646,12 +1752,13 @@ const cardPool = [
         "endvalue": 1936,
         "tags": [
             "Moderne",
-            "Informatik"
+            "Informatik",
+            "!wichtig"
         ],
         "furtherInformation": []
     },
     {
-        "title": "Spieltheorie",
+        "title": "Gründung der Spieltheorie",
         "fronttext": "Mathematische Analyse von Strategien in Situationen, in denen der Erfolg vom Verhalten anderer abhängt.",
         "backtext": "John von Neumann und Oskar Morgenstern begründeten dieses Feld, das heute in der Ökonomie unverzichtbar ist.",
         "valuetext": "1944",
@@ -1659,13 +1766,15 @@ const cardPool = [
         "endvalue": 1944,
         "tags": [
             "Moderne",
-            "Anwendung"
+            "Spieltheorie",
+            "Informatik",
+            "!wichtig"
         ],
         "furtherInformation": []
     },
     {
         "title": "Informationstheorie",
-        "fronttext": "Die Entdeckung des 'Bit' als Maßeinheit für Information.",
+        "fronttext": "Die Benenennung des 'Bit' als Maßeinheit für Information.",
         "backtext": "Claude Shannon definierte mathematisch, wie Informationen übertragen und komprimiert werden können und erwähnte erstmals das Wort Bit, als Abkürzung für 'binary digit'.",
         "valuetext": "1948",
         "startvalue": 1948,
@@ -1686,7 +1795,8 @@ const cardPool = [
         "tags": [
             "Moderne",
             "Frauen",
-            "Informatik"
+            "Informatik",
+            "!einfach"
         ],
         "furtherInformation": []
     },
@@ -1718,9 +1828,9 @@ const cardPool = [
         "furtherInformation": []
     },
     {
-        "title": "Robert Langlands",
-        "fronttext": "Ein gewaltiges Programm zur Vereinigung von Zahlentheorie und Gruppentheorie wurde skizziert.",
-        "backtext": "Das Langlands-Programm gilt oft als die 'Grand Unified Theory' der Mathematik.",
+        "title": "Langlands-Programm",
+        "fronttext": "Ein gewaltiges Netz von Vermutungen wurde skizziert, welches verschiedene mathematische Bereiche verbindet.",
+        "backtext": "Das Langlands-Programm gilt oft als die 'Grand Unified Theory' der Mathematik. Im Jahr 2018 erhielt Robert Langlands den bedeutenden Abel-Preis für seine bahnbrechenden Beiträge zu diesem Programm.",
         "valuetext": "1967",
         "startvalue": 1967,
         "endvalue": 1967,
@@ -1732,7 +1842,7 @@ const cardPool = [
     {
         "title": "John Conway und das Leben",
         "fronttext": "Ein mathematisches Spiel, das zeigt, wie aus einfachen Regeln hochkomplexe Strukturen entstehen.",
-        "backtext": "Conways 'Game of Life' ist der bekannteste zelluläre Automat.",
+        "backtext": "Conways 'Game of Life' ist der bekannteste zelluläre Automat. Durch einfache Regeln, ob eine Zelle lebt oder stirbt, entstehen faszinierende Animationen.",
         "valuetext": "1970",
         "startvalue": 1970,
         "endvalue": 1970,
@@ -1756,7 +1866,13 @@ const cardPool = [
             "Frauen",
             "Logik"
         ],
-        "furtherInformation": []
+        "furtherInformation": [
+            "'Montag: Ich versuche, einen Satz zu beweisen.<br>\
+            Dienstag: Ich versuche immer noch, den Satz zu beweisen.<br>\
+            Mittwoch: Nach wie vor versuche ich, den Satz zu beweisen.<br>\
+            Donnerstag: Ich versuche weiterhin, den Satz zu beweisen.<br>\
+            Freitag: Ich finde ein Gegenbeispiel, das zeigt, dass man den Satz gar nicht beweisen kann.'"
+        ]
     },
     {
         "title": "Stephen Hawking und Schwarze Löcher",
@@ -1773,7 +1889,7 @@ const cardPool = [
     },
     {
         "title": "Fraktale und Mandelbrot",
-        "fronttext": "Selbstähnliche geometrische Muster, die bei jeder Vergrößerung immer wieder neue Details offenbaren.",
+        "fronttext": "Selbstähnliche geometrische Muster, die bei jeder Vergrößerung immer wieder neue Details offenbaren. Die Mandelbrot-Menge ist das berühmteste Beispiel.",
         "backtext": "Benoît Mandelbrot prägte den Begriff und zeigte, dass viele komplexe Naturformen fraktal sind.",
         "valuetext": "1975",
         "startvalue": 1975,
@@ -1787,13 +1903,15 @@ const cardPool = [
     {
         "title": "Vier-Farben-Satz",
         "fronttext": "Jede Landkarte kann mit nur vier Farben so koloriert werden, dass keine zwei angrenzenden Länder die gleiche Farbe haben.",
-        "backtext": "Kenneth Appel und Wolfgang Haken lieferten den ersten großen Beweis, der massiv auf Computerberechnungen angewiesen war.",
+        "backtext": "Kenneth Appel und Wolfgang Haken lieferten den ersten großen Beweis, der massiv auf Computerberechnungen angewiesen war. Eine Stunde Rechenzeit kostete damals etwa 1000 Dollar.",
         "valuetext": "1976",
         "startvalue": 1976,
         "endvalue": 1976,
         "tags": [
             "Gegenwart",
-            "Graphentheorie"
+            "Graphentheorie",
+            "!einfach",
+            "!wichtig"
         ],
         "furtherInformation": []
     },
@@ -1841,13 +1959,14 @@ const cardPool = [
     {
         "title": "Terence Tao und Primzahl-Strukturen",
         "fronttext": "Der Beweis, dass es beliebig lange arithmetische Folgen von Primzahlen gibt.",
-        "backtext": "Terence Tao gilt als eines der vielseitigsten mathematischen Genies der heutigen Zeit.",
+        "backtext": "Terence Tao gilt vielen als größtes mathematisches Genie der heutigen Zeit, der als äußerst sozial und ausgesprochen kommunikativ gilt. Seine aktuelle Arbeit nutzt Künstliche Intelligenz für mathematische Beweise.",
         "valuetext": "2004",
         "startvalue": 2004,
         "endvalue": 2004,
         "tags": [
             "Gegenwart",
-            "Zahlentheorie"
+            "Zahlentheorie",
+            "Primzahlen"
         ],
         "furtherInformation": []
     },
@@ -1898,19 +2017,25 @@ const cardPool = [
     "startvalue": 1921,
     "endvalue": 1921,
     "tags": [
+        "Moderne",
         "Logik",
         "Philosophie",
-        "Sprache"
+        "Zitate"
     ],
     "furtherInformation": []
-    },{
+    },
+    {
     "title": "Parallelenaxiom",
-    "fronttext": "Das 5. Postulat von Euklid war über zwei Jahrtausende lang der Ausgangspunkt für eine der tiefsten Krisen und Entdeckungen der Geometrie.",
-    "backtext": "Es besagt, dass es zu einer Geraden nur eine Parallele durch einen Punkt außerhalb gibt. Die Unbeweisbarkeit führte zur Entdeckung nichteuklidischer Geometrien.",
+    "fronttext": "Das Parallelenaxiom besagt, dass es zu einer Geraden nur eine Parallele durch einen Punkt außerhalb gibt. Viele Mathematiker versuchten, dieses Axiom aus den anderen zu beweisen, was jedoch nicht möglich ist.",
+    "backtext": "Das 5. Postulat von Euklid war über lange Zeit der Ausgangspunkt für eine der tiefsten Krisen und Entdeckungen der Geometrie. Die Unbeweisbarkeit führte zur Entdeckung nichteuklidischer Geometrien.",
     "valuetext": "ca. 300 v. Chr.",
     "startvalue": -300,
     "endvalue": -300,
-    "tags": ["Geometrie", "Antike", "Axiomatik"],
+    "tags": [
+        "Antike",
+        "Geometrie",
+        "!wichtig"
+    ],
     "furtherInformation": []
   },
   {
@@ -1920,22 +2045,29 @@ const cardPool = [
     "valuetext": "1694",
     "startvalue": 1694,
     "endvalue": 1694,
-    "tags": ["Analysis", "Kurven", "Geometrie"],
+    "tags": [
+        "Aufklärung",
+        "Analysis",
+        "Geometrie"
+],
     "furtherInformation": []
   },
   {
-    "title": "LaTeX",
-    "fronttext": "Leslie Lamport entwickelte ein System auf Basis von Donald Knuths TeX, das heute der absolute Standard für wissenschaftliche Publikationen ist.",
-    "backtext": "LaTeX ermöglicht den perfekten Satz komplexer mathematischer Formeln und trennt dabei strikt den Inhalt von der optischen Gestaltung.",
+    "title": "$\\LaTeX$",
+    "fronttext": "Basierend auf der Basis von Donald Knuths TeX, ist die Weiterentwicklung namens LaTeX (sprich: 'Lah-Tech') heute der absolute technische Standard für wissenschaftliche Publikationen.",
+    "backtext": "LaTeX ermöglicht den perfekten Satz komplexer mathematischer Formeln und trennt strikt Inhalt von optischer Gestaltung. Früher wurden mathematische Formeln oft von Hand gesetzt, was fehleranfällig und zeitaufwendig war.",
     "valuetext": "1984",
     "startvalue": 1984,
     "endvalue": 1984,
     "tags": [
         "Gegenwart", 
-        "Notation", 
-        "Informatik"
+        "Symbole", 
+        "Informatik",
+        "!wichtig"
     ],
-    "furtherInformation": []
+    "furtherInformation": [
+        "Donald Knuth ist wohl einer der bekanntesten Informatiker, dessen <em>Art of Computer Programming</em> als eines der wichtigsten Werke gilt."
+    ]
   },
   {
     "title": "Grundlagenstreit",
@@ -1945,7 +2077,10 @@ const cardPool = [
     "startvalue": 1920,
     "endvalue": 1928,
     "tags": [
-        "Logik"
+        "Moderne",
+        "Logik",
+        "Philosophie",
+        "!wichtig"
     ],
     "furtherInformation": []
   },
@@ -1957,8 +2092,10 @@ const cardPool = [
     "startvalue": 1944,
     "endvalue": 1944,
     "tags": [
+        "Moderne",
         "Geometrie",
-        "Topologie"
+        "Topologie",
+        "!einfach"
     ],
     "furtherInformation": []
   },
@@ -1971,7 +2108,8 @@ const cardPool = [
     "endvalue": 2000,
     "tags": [
         "Gegenwart",
-        "ungelöst"
+        "!ungelöst",
+        "!wichtig"
     ],
     "furtherInformation": []
   },
@@ -1983,9 +2121,12 @@ const cardPool = [
     "startvalue": 2015,
     "endvalue": 2026,
     "tags": [
-        "Gegenwart"
+        "Gegenwart",
+        "Informatik"
     ],
-    "furtherInformation": []
+    "furtherInformation": [
+        "Link zum Kanal: <a href='https://www.youtube.com/c/3blue1brown'>3Blue1Brown</a>"
+    ]
   },
   {
     "title": "Weierstraßsche Strenge",
@@ -1995,19 +2136,24 @@ const cardPool = [
     "startvalue": 1861,
     "endvalue": 1861,
     "tags": [
+        "Industrialisierung",
         "Analysis", 
-        "Funktionstheorie"
+        "Gegenwart"
     ],
-    "furtherInformation": []
+    "furtherInformation": [
+        "Bolzano hatte schon Jahrzehnte zuvor eine ähnliche Funktion beschrieben, aber Weierstraß' Beweis war rigoros und überzeugend.",
+        "Er schrieb einmal seiner Lieblingsschülerin Sofja Kowalewskaja, deren Verhältnis wohl über das rein fachliche hinaus ging: 'Ein Mathematiker, der nicht etwas Poet ist, wird nimmer ein vollkommener Mathematiker sein.'"
+    ]
   },
   {
     "title": "Hausdorff-Dimension",
-    "fronttext": "Felix Hausdorff erweiterte den Dimensionsbegriff, sodass er auch für Gebilde gilt, die zwischen den klassischen Dimensionen liegen, d.h. die z.B. 1,5-dimensional sind.",
+    "fronttext": "Der Jude Felix Hausdorff erweiterte den Dimensionsbegriff, sodass er auch für Gebilde gilt, die zwischen den klassischen Dimensionen liegen, d.h. die z.B. 1,5-dimensional sind.",
     "backtext": "Dieses Konzept ist die Grundlage für die Beschreibung von Fraktalen, deren Dimension oft keine ganze Zahl ist (z.B. 1,26 für eine Küstenlinie).",
     "valuetext": "1918",
     "startvalue": 1918,
     "endvalue": 1918,
     "tags": [
+        "Moderne",
         "Fraktale",
         "Topologie",
         "Geometrie"
@@ -2022,9 +2168,9 @@ const cardPool = [
     "startvalue": 1951,
     "endvalue": 1951,
     "tags": [
+        "Gegenwart",
         "Spieltheorie",
-        "Logik",
-        "Gesellschaft"
+        "Logik"
     ],
     "furtherInformation": [
         "TODO: Video verlinken"
@@ -2041,8 +2187,9 @@ const cardPool = [
         "Gegenwart",
         "Kryptographie", 
         "Informatik",
-         "Zahlentheorie"
-        ],
+        "Zahlentheorie",
+        "Primzahlen"
+    ],
     "furtherInformation": []
   },
   {
@@ -2057,5 +2204,393 @@ const cardPool = [
         "Spieltheorie"
     ],
     "furtherInformation": []
+  },{
+    "title": "Verdrängung und Auftrieb",
+    "fronttext": "Beim Baden wird ein fundamentales Gesetz der Statik entdeckt, das erklärt, warum riesige Schiffe schwimmen, während kleine Steine versinken. Der Freude über die Erkenntnis soll so groß gewesen sein, dass der Entdecker nackt durch die Straßen gerannt sein soll, während er 'Heureka!' rief.",
+    "backtext": "Archimedes entdeckte: Die Auftriebskraft eines Körpers in einer Flüssigkeit ist genau so groß wie die Gewichtskraft des vom Körper verdrängten Fluids. Somit auch: durch Eintauchung eines Körpers in Wasser kann man sein Volumen bestimmen, durch Messen der Menge des verdrängten Wassers.",
+    "valuetext": "ca. 250 v. Chr.",
+    "startvalue": -260,
+    "endvalue": -240,
+    "tags": [
+        "Antike",
+        "Physik",
+        "Körper",
+        "Zitate",
+        "!einfach"
+    ],
+    "furtherInformation": []
+  },
+  {
+    "title": "Alexander Grothendieck",
+    "fronttext": "Er gilt als das einsame Genie, das die Algebraische Geometrie durch maximale Abstraktion und die Einführung von 'Schemata' von Grund auf revolutionierte.",
+    "backtext": "Grothendieck suchte nach den tiefsten Strukturen der Mathematik. 1966 erhielt er die Fields-Medaille, bevor er sich später radikal aus der Gesellschaft zurückzog.",
+    "valuetext": "1966",
+    "startvalue": 1966,
+    "endvalue": 1966,
+    "tags": [
+        "Gegenwart",
+        "Algebra"
+    ],
+    "furtherInformation": []
+  },
+  {
+    "title": "Newton-Verfahren",
+    "fronttext": "Dieses iterative Verfahren ist eines der wichtigsten Werkzeuge der Numerik, um Nullstellen von Funktionen schnell und präzise zu approximieren.",
+    "backtext": "Es nutzt die Tangente an einem Punkt, um den nächsten Näherungswert zu finden. Die Formel lautet: $x_{n+1} = x_n - \\frac{f(x_n)}{f'(x_n)}$.",
+    "valuetext": "1669",
+    "startvalue": 1669,
+    "endvalue": 1669,
+    "tags": [
+        "Aufklärung",
+        "Analysis"
+    ],
+    "furtherInformation": []
+  },
+  {
+    "title": "Donut und Kaffeetasse",
+    "fronttext": "In der Topologie gelten ein Donut (Torus) und eine Kaffeetasse als 'homöomorph' – also im Grunde als das gleiche Objekt, weil sie gleich viele Löcher haben.",
+    "backtext": "Topologie ist die 'Gummiband-Geometrie'. Da beide Objekte genau ein Loch haben, kann man eines stetig in das andere verformen, ohne es zu zerschneiden oder zu kleben.",
+    "valuetext": "ca. 1895",
+    "startvalue": 1890,
+    "endvalue": 1900,
+    "tags": [
+        "Moderne",
+        "Topologie",
+        "Geometrie"
+    ],
+    "furtherInformation": []
+  },
+  {
+    "title": "Niedergang von Göttingen",
+    "fronttext": "Auf die Anfrage, wie die Mathematik in Göttingen nach der 'Befreiung vom jüdischen Einfluss' stehe, gab David Hilbert eine erschütternde Antwort.",
+    "backtext": "Hilbert entgegnete: 'Die Mathematik in Göttingen? Da gibt es eigentlich gar keine mehr.' Durch die Vertreibung jüdischer Genies verlor das Weltzentrum der Mathematik seine Bedeutung.",
+    "valuetext": "1934",
+    "startvalue": 1934,
+    "endvalue": 1934,
+    "tags": [
+        "Moderne",
+        "Zitate"
+    ],
+    "furtherInformation": []
+  },
+  {
+    "title": "Regel von L'Hôspital",
+    "fronttext": "Diese Regel hilft dabei, Grenzwerte von Quotienten zu berechnen, die beim Einsetzen auf unbestimmte Ausdrücke wie '0 durch 0' oder 'unendlich durch unendlich' führen würden.",
+    "backtext": "Man leitet Zähler und Nenner separat ab, bis der Grenzwert bestimmbar ist. Kurios: Guillaume de l'Hôspital kaufte das Theorem eigentlich von Johann Bernoulli ein.",
+    "valuetext": "1696",
+    "startvalue": 1696,
+    "endvalue": 1696,
+    "tags": [
+        "Aufklärung",
+        "Analysis"
+    ],
+    "furtherInformation": []
+  },
+  {
+    "title": "Rubik's Cube",
+    "fronttext": "Der Zauberwürfel vom Ungarn Ernő Rubik ist für Mathematiker weit mehr als ein Geduldsspiel; er ist ein Paradebeispiel für eine endliche Gruppe.",
+    "backtext": "Mithilfe der Gruppentheorie lässt sich zeigen, dass der Würfel über 43 Trillionen Stellungen hat, aber jede davon in maximal 20 Zügen ('Gottes Algorithmus') lösbar ist.",
+    "valuetext": "1974",
+    "startvalue": 1974,
+    "endvalue": 1974,
+    "tags": [
+        "Gegenwart",
+        "Kombinatorik",
+        "Algebra",
+        "!einfach"
+    ],
+    "furtherInformation": []
+  },
+  {
+    "title": "Paul Erdős",
+    "fronttext": "Er war ein mathematischer Nomade ohne festen Wohnsitz, der sein Leben lang von Universität zu Universität reiste, um mit Kollegen Probleme zu lösen.",
+    "backtext": "Erdős publizierte über 1.500 Artikel und prägte wegen seiner Arbeit in der Zahlentheorie und Graphentheorie die 'Erdős-Zahl'. Diese gibt an, wie nah ein Wissenschaftler durch gemeinsame Publikationen mit dem legendären Mathematiker verbunden ist.",
+    "valuetext": "1934",
+    "startvalue": 1934,
+    "endvalue": 1934,
+    "tags": [
+        "Moderne",
+        "Zahlentheorie"
+    ],
+    "furtherInformation": []
+  },
+  {
+    "title": "SET-Spiel",
+    "fronttext": "Dieses preisgekrönte und vor Allem unter Mathematiker*innen beliebte Kartenspiel ist eigentlich angewandte Kombinatorik und Geometrie in einem vierdimensionalen Vektorraum über dem Körper mit drei Elementen.",
+    "backtext": "Ein 'Set' besteht aus drei Karten, bei denen jede Eigenschaft (Farbe, Form, Anzahl, Füllung) entweder bei allen gleich oder bei allen verschieden ist. Mathematisch gesehen bilden drei solche Karten eine Gerade im Raum $AG(4,3)$.",
+    "valuetext": "1974",
+    "startvalue": 1974,
+    "endvalue": 1974,
+    "tags": [
+        "Gegenwart",
+        "Kombinatorik",
+        "Spieltheorie",
+        "Geometrie"
+    ],
+    "furtherInformation": [
+        "TODO: Link zum Spiel"
+    ]
+  },
+  {
+    "title": "Johann Friedrich Pfaff",
+    "fronttext": "Er war der Entdecker des 'Pfaffschen Problems' und gilt als der bedeutendste deutsche Mathematiker seiner Zeit – direkt vor dem Aufstieg seines berühmtesten Schülers.",
+    "backtext": "Pfaff war der Doktorvater von Carl Friedrich Gauß. Er leistete Pionierarbeit bei der Untersuchung von Systemen partieller Differentialgleichungen (Pfaffsche Formen).",
+    "valuetext": "1815",
+    "startvalue": 1815,
+    "endvalue": 1815,
+    "tags": [
+        "Industrialisierung",
+        "Analysis",
+        "Personen"
+    ],
+    "furtherInformation": []
+  },
+  {
+    "title": "Schubfachprinzip",
+    "fronttext": "Das Schubfachprinzip (Pigeonhole Principle) besagt: Wenn man eine Anzahl an Objekten in eine geringere Anzahl an Fächern legt, muss in mindestens einem Fach mehr als ein Objekt liegen.",
+    "backtext": "Peter Dirichlet, der in Berlin und Göttigen lehrte, ist für dieses verblüffend einfache aber mächtige Prinzip der Kombinatorik bekannt. Er schuf auch den modernen Begriff der Funktion und leistete wichtige Beiträge zur Zahlentheorie.",
+    "valuetext": "1837",
+    "startvalue": 1837,
+    "endvalue": 1837,
+    "tags": [
+        "Industrialisierung",
+        "Zahlentheorie",
+        "Kombinatorik",
+        "Analysis",
+        "!einfach",
+        "!wichtig"
+    ],
+    "furtherInformation": []
+  },
+  {
+    "title": "Quadratur des Kreises",
+    "fronttext": "Durch den Nachweis der Transzendenz von Pi bewies Ferdinand von Lindemann, dass es unmöglich ist, mit Zirkel und Lineal ein Quadrat mit demselben Flächeninhalt wie ein gegebener Kreis zu konstruieren.",
+    "backtext": "Die Quadratur des Kreises war eines der klassischen Probleme der Antike, das über 2000 Jahre lang Mathematiker beschäftigte. Die Unlösbarkeit für 'Die Quadratur des Kreises' wurde auch zum geflügelten Wort für eine unmögliche Aufgabe.",
+    "valuetext": "1882",
+    "startvalue": 1882,
+    "endvalue": 1882,
+    "tags": [
+        "Moderne",
+        "Geometrie",
+        "Zahlentheorie",
+        "Zitate",
+        "!wichtig"
+    ],
+    "furtherInformation": []
+  },
+  {
+    "title": "Auswahlaxiom (ZFC)",
+    "fronttext": "Ernst Zermelo formulierte dieses Axiom, das besagt, dass man aus einer beliebigen Menge von nichtleeren Mengen immer eine 'Auswahl' treffen kann.",
+    "backtext": "Obwohl es intuitiv klingt, führt es zu bizarren Resultaten wie dem Banach-Tarski-Paradoxon. Es ist der 'C'-Teil (<em>Choice</em>) der Zermelo-Fraenkel-Mengenlehre (ZFC).",
+    "valuetext": "1904",
+    "startvalue": 1904,
+    "endvalue": 1904,
+    "tags": [
+        "Moderne",
+        "Logik", 
+        "Axiomatik",
+        "!wichtig"
+    ],
+    "furtherInformation": []
+  },
+  {
+    "title": "Lebesgue-Integral",
+    "fronttext": "Henri Lebesgue revolutionierte die Integrationstheorie, indem er einen Weg fand, auch extrem 'zackige' Funktionen zu messen, an denen Riemann scheiterte.",
+    "backtext": "Während das Riemann-Integral die $x$-Achse unterteilt, unterteilt das Lebesgue-Integral die $y$-Achse (Wertebereich). Es ist das Fundament der modernen Stochastik und Maßtheorie.",
+    "valuetext": "1902",
+    "startvalue": 1902,
+    "endvalue": 1902,
+    "tags": [
+        "Moderne",
+        "Analysis",
+        "Integrale",
+        "!wichtig"
+    ],
+    "furtherInformation": []
+  },
+  {
+    "title": "Landau-Symbole",
+    "fronttext": "Der Berliner Mathematiker Edmund Landau prägte die Notation, mit der Informatiker und Mathematiker heute das Wachstum von Laufzeiten beschreiben.",
+    "backtext": "Die $O$-Notation (z.B. $\\mathcal{O}(n^2)$) beschreibt das asymptotische Verhalten von Funktionen. Landau wurde 1933 aufgrund seiner jüdischen Herkunft durch die Nationalsozialisten aus Göttingen vertrieben.",
+    "valuetext": "1909",
+    "startvalue": 1909,
+    "endvalue": 1909,
+    "tags": [
+        "Moderne",
+        "Informatik", 
+        "Zahlentheorie",
+        "!wichtig"
+    ],
+    "furtherInformation": []
+  },
+  {
+    "title": "Max Dehn",
+    "fronttext": "Dehn löste als Erster eines der berühmten 23 Hilbertschen Probleme und bewies, dass man Körper nicht immer in gleiche Teile 'zerlegen' kann.",
+    "backtext": "Er zeigte im 3. Hilbertschen Problem, dass zwei Polyeder mit gleichem Volumen nicht unbedingt in die gleichen Teil-Polyeder zerlegt werden können (Dehnsche Invariante).",
+    "valuetext": "1900",
+    "startvalue": 1900,
+    "endvalue": 1900,
+    "tags": [
+        "Moderne",
+        "Geometrie",
+        "Topologie"
+    ],
+    "furtherInformation": []
+  },
+  {
+    "title": "Brouwer'scher Fixpunktsatz",
+    "fronttext": "L.E.J. Brouwer bewies, dass bei jeder stetigen Verformung einer Scheibe in sich selbst mindestens ein Punkt genau an seinem Platz bleibt.",
+    "backtext": "Praktisches Beispiel: Wenn du eine Landkarte auf einen Tisch legst, gibt es immer mindestens einen Punkt, der genau über seinem eigentlichen Ort liegt.",
+    "valuetext": "1911",
+    "startvalue": 1911,
+    "endvalue": 1911,
+    "tags": [
+        "Moderne",
+        "Analysis",
+        "Topologie"
+    ],
+    "furtherInformation": []
+  },
+  {
+    "title": "'Raum - Zeit - Materie'",
+    "fronttext": "Das Werk 'Raum - Zeit - Materie' prägte das Verständnis der theoretischen Physik, das die mathematischen Grundlagen der Relativitätstheorie und der Geometrie des Universums legte.",
+    "backtext": "Hermann Weyl war ein Universalgenie, das die Brücke zwischen abstrakter Gruppentheorie, Quantenmechanik und der Relativitätstheorie schlug und war einer der führenden Köpfe in Princeton, wo er mit Einstein und Gödel zusammenarbeitete.",
+    "valuetext": "1918",
+    "startvalue": 1918,
+    "endvalue": 1918,
+    "tags": [
+        "Moderne",
+        "Physik",
+        "Philosophie"
+    ],
+    "furtherInformation": []
+  },
+  {
+    "title": "How to Solve It",
+    "fronttext": "George Pólya Weltbestseller 'Schule des Denkens' (How to Solve It) bietet Strategien zur Problemlösung und lehrte Generationen von Schülern, wie man systematisch an mathematische Probleme herangeht.",
+    "backtext": "Pólya war als Schüler nicht gut in Mathematik und wird zitiert mit 'Den Beweis habe ich verstanden, aber: wie kommt man darauf?'. Er leistete später wichtige Beiträge zur Kombinatorik und Wahrscheinlichkeit.",
+    "valuetext": "1945",
+    "startvalue": 1945,
+    "endvalue": 1945,
+    "tags": [
+        "Moderne",
+        "Geometrie",
+        "Kombinatorik"
+    ],
+    "furtherInformation": []
+  },
+  {
+    "title": "Der längste Beweis aller Zeiten",
+    "fronttext": "Um die 'Klassifikation der endlichen einfachen Gruppen' abzuschließen, war ein Beweis von über 15.000 Seiten notwendig.",
+    "backtext": "Der Beweis wurde von hunderten Mathematikern, später unter der Führung von Daniel Gorenstein, über mehrere Jahrzehnte hinweg erarbeitet und wird aktuell 'vereinfacht', sodass er nur noch etwa 5000 Seiten umfasst.",
+    "valuetext": "1920-1980",
+    "startvalue": 1920,
+    "endvalue": 1980,
+    "tags": [
+        "Gegenwart",
+        "Logik"
+    ],
+    "furtherInformation": []
+  },
+  {
+    "title": "Banach-Tarski-Paradoxon",
+    "fronttext": "Dieses Paradoxon besagt, dass eine Kugel in nur 5 Teile zerlegt und diese Teile so umgeordnet werden können, dass man zwei identische Kugeln erhält.",
+    "backtext": "Dieses unintuitive Ergebnis zeigt, dass unser klassisches Verständnis von Volumen in der Mathematik nicht immer anwendbar ist. Jedoch: es gibt kein konstruktives Verfahren, um die Zerlegung tatsächlich durchzuführen.",
+    "valuetext": "1924",
+    "startvalue": 1924,
+    "endvalue": 1924,
+    "tags": [
+        "Moderne",
+        "Körper"
+    ],
+    "furtherInformation": []
+  },
+  {
+    "title": "Fields-Medaille",
+    "fronttext": "Da es keinen Nobelpreis für Mathematik gibt, entstand diese Auszeichnung als höchste Ehre für junge Mathematiker und Mathematikerinnen unter 40 Jahren.",
+    "backtext": "Die erste Vergabe fand 1936 in Oslo an Lars Ahlfors und Jesse Douglas statt. Die Altersgrenze soll die Preisträger zu weiteren Höchstleistungen anspornen.",
+    "valuetext": "1936",
+    "startvalue": 1936,
+    "endvalue": 1936,
+    "tags": [
+        "Moderne",
+        "!einfach",
+    ],
+    "furtherInformation": []
+  },
+  {
+    "title": "Turing-Bombe",
+    "fronttext": "Er rettete Millionen Menschenleben, indem er die Enigma-Verschlüsselung knackte, doch sein eigenes Land dankte es ihm mit grausamer Verfolgung.",
+    "backtext": "Turing entwickelte die 'Bombe' zur Dechiffrierung. 1952 wurde er wegen seiner Homosexualität zur chemischen Kastration gezwungen; erst 2013 erfolgte die offizielle königliche Begnadigung.",
+    "valuetext": "1939-1941",
+    "startvalue": 1939,
+    "endvalue": 1941,
+    "tags": [
+        "Moderne",
+        "Informatik",
+        "Kryptographie"
+    ],
+    "furtherInformation": []
+  },
+  {
+    "title": "Grahams Zahl",
+    "fronttext": "Diese Zahl ist die größte Zahl, die jemals in einem mathematischen Beweis verwendet wurde.",
+    "backtext": "Sie ist eine Obergrenze und stammt aus der Ramsey-Theorie. Die Zahl ist so groß, dass sie nicht sinnvoll darstellbar ist, am ehesten wird sie mittels Pfeilschreibweise von Knuth angegeben.",
+    // \
+    // \[\
+    //     3\\underbrace_{}{\\uparrow\\uparrow\\ldots\\uparrow}3\
+    // \]",
+    "valuetext": "1977",
+    "startvalue": 1977,
+    "endvalue": 1977,
+    "tags": [
+        "Gegenwart",
+        "Kombinatorik",
+        "Zahlentheorie"
+    ],
+    "furtherInformation": []
+  },
+  {
+    "title": "Erster Beweis der Unendlichkeit der Primzahlen",
+    "fronttext": "Indem man das Produkt aller bekannten Primzahlen plus Eins betrachtet, wurde gezeigt, dass es immer eine neue Primzahl geben muss.",
+    "backtext": "Euklid zeigte, dass diese neue Zahl entweder selbst eine Primzahl ist oder durch eine Primzahl teilbar ist, die nicht in der ursprünglichen Liste enthalten war. Damit gibt es unendlich viele Primzahlen.",
+    "valuetext": "ca. 300 v. Chr.",
+    "startvalue": -300,
+    "endvalue": -300,
+    "tags": [
+        "Antike",
+        "Zahlentheorie",
+        "Primzahlen"
+    ],
+    "furtherInformation": []
+  },
+  {
+    "title": "Ackermannfunktion",
+    "fronttext": "In der Welt der Algorithmen ist diese Funktion der Endgegner: Sie wächst so schnell, dass sie selbst Potenztürme wie winzige Ameisen aussehen lässt.",
+    "backtext": "Diese nicht-primitiv rekursive Funktion mit 3 Argumenten erlaubt Summe, Produkt, Exponentiation und darüber hinaus unendlich viele aufbauende Operationen der ersten Argumente.",
+    "valuetext": "1928",
+    "startvalue": 1928,
+    "endvalue": 1928,
+    "tags": ["Informatik", "Logik", "Rekursion"],
+    "furtherInformation": [
+        "Zum Nachlesen: <a href='https://de.wikipedia.org/wiki/Ackermannfunktion#Definition_und_Varianten'>Wikipedia: Ackermannfunktion#Definition_und_Varianten</a>"
+    ]
+  },
+  {
+    "title": "Collatz-Vermutung",
+    "fronttext": "Nimm eine Zahl $n$: Ist sie gerade, halbiere sie. Ist sie ungerade, rechne $3n+1$. Wiederhole dies. Landet am Ende wirklich jede Zahl in der endlosen Schleife $4-2-1$?",
+    "backtext": "Obwohl das Problem von Lothar Collatz (manchmal auch $3n+1$-Problem oder Ulam-Problem genannt) so einfach klingt, dass es jedes Schulkind versteht, ist es eines der berüchtigtsten ungelösten Rätsel der Mathematik.'",
+    "valuetext": "1937",
+    "startvalue": 1937,
+    "endvalue": 1937,
+    "tags": [
+        "Moderne",
+        "Zahlentheorie",
+        "!ungelöst",
+        "!einfach"
+    ],
+    "furtherInformation": [
+        "Lothar Collatz trat allerdings 1933 der SA und 1937 der NSDAP bei."
+    ]
   }
 ]

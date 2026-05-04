@@ -3,17 +3,17 @@
 var WOERTER_HEBRAEISCH_BASIC = {
 
   // Zahlen
-  'null (0)':            ['אֶפֶס',      'Efers'],
-  'eins (1)':            ['אֶחָד',      'Echad'],
-  'zwei (2)':            ['שְׁתַּיִם',  'Schtajim'],
-  'drei (3)':            ['שָׁלוֹשׁ',  'Schalosch'],
-  'vier (4)':            ['אַרְבַּע',   'Arba'],
-  'fünf (5)':            ['חָמֵשׁ',    'Chamesch'],
-  'sechs (6)':           ['שֵׁשׁ',     'Schesch'],
-  'sieben (7)':          ['שֶׁבַע',    'Schewa'],
-  'acht (8)':            ['שְׁמוֹנֶה', 'Schmone'],
-  'neun (9)':            ['תֵּשַׁע',   'Teschaː'],
-  'zehn (10)':           ['עֶשֶׂר',    'Eser'],
+  'null':            ['אֶפֶס',      'Efers'],
+  'eins':            ['אֶחָד',      'Echad'],
+  'zwei':            ['שְׁתַּיִם',  'Schtajim'],
+  'drei':            ['שָׁלוֹשׁ',  'Schalosch'],
+  'vier':            ['אַרְבַּע',   'Arba'],
+  'fünf':            ['חָמֵשׁ',    'Chamesch'],
+  'sechs':           ['שֵׁשׁ',     'Schesch'],
+  'sieben':          ['שֶׁבַע',    'Schewa'],
+  'acht':            ['שְׁמוֹנֶה', 'Schmone'],
+  'neun':            ['תֵּשַׁע',   'Teschaː'],
+  'zehn':           ['עֶשֶׂר',    'Eser'],
 
   // Begrüßungen
   'ja':                  ['כֵּן',       'Ken'],

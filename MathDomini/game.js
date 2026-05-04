@@ -103,7 +103,7 @@ function fitCardContents(root = document) {
 
         // Höhe: weiter verkleinern falls zu viele Zeilen entstehen
         let tries = 0;
-        while (el.scrollHeight > wH + 1 && fs > 6 && tries < 40) {
+        while (el.scrollHeight > wH+1 && fs > 6 && tries < 40) {
             fs = Math.max(6, fs - 0.5);
             el.style.fontSize = fs + 'px';
             tries++;
@@ -164,7 +164,12 @@ function fitCardContents(root = document) {
 // --------------------------------------------------------
 // FURTHER INFO TOOLTIP
 // --------------------------------------------------------
-function showFurtherInfoTooltip(iconBtn, links) {
+function formatRange(start, end) {
+    const fmt = v => v < 0 ? `${Math.abs(v)} v. Chr.` : `${v} n. Chr.`;
+    return `${fmt(start)} – ${fmt(end)}`;
+}
+
+function showFurtherInfoTooltip(iconBtn, items, title = 'Weiterführende Infos') {
     clearTimeout(furtherInfoHideTimer);
     let tip = document.getElementById('further-info-tooltip');
     if (!tip) {
@@ -178,10 +183,10 @@ function showFurtherInfoTooltip(iconBtn, links) {
     }
     tip._source = iconBtn;
 
-    const itemsHTML = links.map(item =>
+    const itemsHTML = items.map(item =>
         `<div class="finfo-item">${item.startsWith('http') ? `<a href="${item}" target="_blank" rel="noopener" onclick="event.stopPropagation()">${item}</a>` : item}</div>`
     ).join('');
-    tip.innerHTML = `<div class="finfo-header">Weiterführende Infos</div>${itemsHTML}`;
+    tip.innerHTML = `<div class="finfo-header">${title}</div>${itemsHTML}`;
 
     tip.style.visibility = 'hidden';
     tip.style.display = 'block';
@@ -248,7 +253,7 @@ function updateMode() {
     const isRisk = document.getElementById('mode-toggle').checked;
     const desc   = document.getElementById('mode-description');
     if (isRisk) {
-        desc.innerHTML = "<b>Risiko-Variante:</b> Platziere die Karten blind im Zeitstrahl – die Jahreszahlen bleiben verborgen. Erst wenn du auf 'Reihe werten' klickst, werden alle Karten aufgedeckt. Ist die Reihenfolge fehlerfrei, erhältst du quadratisch steigende Punkte: bei n Karten n·(n+1)/2. Ein einziger Fehler bringt dir null Punkte für die gesamte Reihe!";
+        desc.innerHTML = "<b>Risiko-Variante:</b> Platziere die Karten blind im Zeitstrahl – die Jahreszahlen bleiben verborgen. Erst wenn du auf 'Reihe werten' klickst, werden alle Karten aufgedeckt. Ist die Reihe fehlerfrei, erhältst du Punkte. Ein einziger Fehler bringt dir null Punkte! Mehr Risiko, mehr Punkte, ideal für Fortgeschrittene!";
     } else {
         desc.innerHTML = "<b>Direktes Aufdecken:</b> Sofortiges Feedback: Sobald du eine Karte an eine Position ziehst, wird sie umgedreht. Stimmt die Position nicht, wird die Karte entfernt. Ideal zum Lernen!";
     }
@@ -272,7 +277,7 @@ function init() {
         document.getElementById('slider-display').textContent = slider.value;
     }
 
-    const allTags   = [...new Set(cardPool.flatMap(c => c.tags))];
+    const allTags   = [...new Set(cardPool.flatMap(c => c.tags))].sort((a, b) => a.localeCompare(b, 'de'));
     const container = document.getElementById('tag-filters');
     allTags.forEach(tag => {
         const btn = document.createElement('button');
@@ -283,28 +288,40 @@ function init() {
         // Short click: toggle; Long press: diesen als einzigen aktivieren
         let pressTimer = null;
         let didLongPress = false;
+        let touchStartY = 0;
+        let touchMoved = false;
 
-        const startPress = () => {
+        const startPress = (e) => {
             didLongPress = false;
+            touchMoved = false;
+            if (e.touches) touchStartY = e.touches[0].clientY;
             pressTimer = setTimeout(() => {
+                if (touchMoved) return;
                 didLongPress = true;
                 document.querySelectorAll('.tag-btn').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
                 updateURL();
             }, 500);
         };
+        const onTouchMove = (e) => {
+            if (Math.abs(e.touches[0].clientY - touchStartY) > 8) {
+                touchMoved = true;
+                clearTimeout(pressTimer);
+            }
+        };
         const cancelPress = () => clearTimeout(pressTimer);
         const endPress = (e) => {
-            if (e.cancelable) e.preventDefault(); // verhindert synthetischen click-Event
+            if (e.cancelable) e.preventDefault();
             clearTimeout(pressTimer);
-            if (!didLongPress) { btn.classList.toggle('active'); updateURL(); }
+            if (!didLongPress && !touchMoved) { btn.classList.toggle('active'); updateURL(); }
         };
 
-        btn.addEventListener('mousedown',  startPress);
-        btn.addEventListener('touchstart', startPress, { passive: true });
-        btn.addEventListener('mouseup',    endPress);
-        btn.addEventListener('touchend',   endPress);
-        btn.addEventListener('mouseleave', cancelPress);
+        btn.addEventListener('mousedown',   startPress);
+        btn.addEventListener('touchstart',  startPress,   { passive: true });
+        btn.addEventListener('touchmove',   onTouchMove,  { passive: true });
+        btn.addEventListener('mouseup',     endPress);
+        btn.addEventListener('touchend',    endPress);
+        btn.addEventListener('mouseleave',  cancelPress);
         btn.addEventListener('touchcancel', cancelPress);
 
         container.appendChild(btn);
@@ -324,26 +341,32 @@ function startNewGame() {
     let pool = activeFilters.length > 0
         ? cardPool.filter(c => c.tags.some(t => activeFilters.includes(t)))
         : cardPool;
-    // Anzahl auf verfügbare Karten begrenzen
-    if (cardsToPlay > pool.length) cardsToPlay = pool.length;
-    startcardsToPlay = cardsToPlay;
-    deck = JSON.parse(JSON.stringify(pool))
+
+    const poolSize = pool.length;
+    // Handkarten immer 5 (separat, zählen NICHT gegen N)
+    const handSize = Math.min(5, poolSize - 1); // mind. 1 Karte für Mitte/Stapel
+    const maxN = Math.max(1, poolSize - handSize);
+    const N = Math.min(startcardsToPlay, maxN);
+    startcardsToPlay = N;
+
+    const shuffled = JSON.parse(JSON.stringify(pool))
         .sort(() => Math.random() - 0.5)
         .map((c, i) => ({ ...c, _uid: i }));
+
+    // Ersten N Karten → Spielstapel; nächste handSize → initiale Hand
+    deck = shuffled.slice(0, N);
+    hand = shuffled.slice(N, N + handSize);
 
     document.getElementById('lobby').classList.add('hidden');
     document.getElementById('game-over').classList.add('hidden');
 
-    if (deck.length > 0 && cardsToPlay > 0) {
-        let first = deck.pop();
+    // 1 Karte aus Stapel in die Mitte
+    if (deck.length > 0) {
+        const first = deck.pop();
         first.isFlipped = (currentGameMode === 'direct');
         timeline.push(first);
-        cardsToPlay--;
     }
-    // Im Direct-Modus zählt die erste (aufgedeckte) Startkarte bereits als Punkt
     if (currentGameMode === 'direct') score = 1;
-    // Initiale Hand: kostenlos (cardsToPlay++ kompensiert drawCard's decrement)
-    for (let i = 0; i < 5; i++) { cardsToPlay++; drawCard(); }
     updateUI();
 }
 
@@ -394,16 +417,24 @@ function renderHand() {
 }
 
 function triggerMathJax() {
-    if (window.MathJax) {
-        MathJax.typesetPromise().then(() => {
-            setTimeout(adjustTimelineZoom, 30);
-            setTimeout(adjustHandZoom,     30);
-            setTimeout(fitCardContents,       30);
+    // Alle Karten-Inhalte unsichtbar schalten bis Skalierung abgeschlossen
+    document.querySelectorAll('.card-front, .card-back').forEach(el => {
+        el.style.visibility = 'hidden';
+    });
+
+    const reveal = () => {
+        adjustTimelineZoom();
+        adjustHandZoom();
+        fitCardContents();
+        document.querySelectorAll('.card-front, .card-back').forEach(el => {
+            el.style.visibility = '';
         });
+    };
+
+    if (window.MathJax) {
+        MathJax.typesetPromise().then(() => requestAnimationFrame(reveal));
     } else {
-        setTimeout(adjustTimelineZoom, 30);
-        setTimeout(adjustHandZoom,     30);
-        setTimeout(fitCardContents,       30);
+        requestAnimationFrame(reveal);
     }
 }
 
@@ -459,6 +490,11 @@ function createCardUI(card, isHand, index, isZoom = false) {
         ? `<button class="further-info-icon" title="Weiterführende Infos">🔗</button>`
         : '';
 
+    const hasRange = card.startvalue !== card.endvalue;
+    const rangeStarHTML = hasRange
+        ? `<button class="range-star-icon" title="Akzeptierter Zeitraum">✱</button>`
+        : '';
+
     cardEl.innerHTML = `
         <div class="card-front">
             <div class="card-title-wrapper">
@@ -470,17 +506,42 @@ function createCardUI(card, isHand, index, isZoom = false) {
             <div class="card-title-wrapper">
                 <div class="card-title">${card.title}</div>
             </div>
-            <div class="back-year">${card.valuetext}</div>
+            <div class="back-year-wrap">
+                <div class="back-year">${card.valuetext}</div>${rangeStarHTML}
+            </div>
             <div class="card-text back-text">${card.backtext}</div>
             ${infoIconHTML}
         </div>
     `;
 
+    // Range-Stern Tooltip
+    if (hasRange) {
+        const starBtn = cardEl.querySelector('.range-star-icon');
+        const rangeLinks = [formatRange(card.startvalue, card.endvalue)];
+        starBtn.addEventListener('mouseenter', () => {
+            clearTimeout(furtherInfoHideTimer);
+            showFurtherInfoTooltip(starBtn, rangeLinks, 'Akzeptierter Zeitraum');
+        });
+        starBtn.addEventListener('mouseleave', () => {
+            furtherInfoHideTimer = setTimeout(hideFurtherInfoTooltip, 250);
+        });
+        starBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const tip = document.getElementById('further-info-tooltip');
+            if (tip && tip._source === starBtn && tip.style.display !== 'none') {
+                hideFurtherInfoTooltip();
+            } else {
+                clearTimeout(furtherInfoHideTimer);
+                showFurtherInfoTooltip(starBtn, rangeLinks, 'Akzeptierter Zeitraum');
+            }
+        });
+    }
+
     if (hasLinks) {
         const iconBtn = cardEl.querySelector('.further-info-icon');
         iconBtn.addEventListener('mouseenter', () => {
             clearTimeout(furtherInfoHideTimer);
-            showFurtherInfoTooltip(iconBtn, card.furtherInformation);
+            showFurtherInfoTooltip(iconBtn, card.furtherInformation, 'Weiterführende Infos');
         });
         iconBtn.addEventListener('mouseleave', () => {
             furtherInfoHideTimer = setTimeout(hideFurtherInfoTooltip, 250);
@@ -492,7 +553,7 @@ function createCardUI(card, isHand, index, isZoom = false) {
                 hideFurtherInfoTooltip();
             } else {
                 clearTimeout(furtherInfoHideTimer);
-                showFurtherInfoTooltip(iconBtn, card.furtherInformation);
+                showFurtherInfoTooltip(iconBtn, card.furtherInformation, 'Weiterführende Infos');
             }
         });
     }
@@ -748,9 +809,8 @@ function isValidOrder() {
 }
 
 function drawCard() {
-    if (deck.length > 0 && hand.length < 5 && cardsToPlay > 0) {
+    if (deck.length > 0 && hand.length < 5) {
         hand.push(deck.pop());
-        cardsToPlay--;
     }
 }
 
@@ -777,15 +837,16 @@ function revealRisk() {
 
         showRoundResult(msg, correct, () => {
             timeline = [];
-            if (deck.length > 0 && cardsToPlay > 0) {
-                const next = deck.pop();
-                next.isFlipped = (currentGameMode === 'direct');
-                timeline.push(next);
-                cardsToPlay--;
-                updateUI();
-            } else {
+            // Risiko: nach Wertung → Spiel vorbei wenn kein Nachziehstapel mehr
+            if (deck.length === 0) {
                 showGameOver();
+                return;
             }
+            const next = deck.pop();
+            next.isFlipped = false; // Risikovariante: verdeckt starten
+            timeline.push(next);
+            drawCard();
+            updateUI();
         });
     }, totalDelay);
 }
