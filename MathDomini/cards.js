@@ -289,7 +289,7 @@ const cardPool = [
     {
         "title": "Herons Formel",
         "fronttext": "Berechnung der Fläche eines Dreiecks allein aus seinen Seitenlängen.",
-        "backtext": "Heron von Alexandria zeigte, dass die Fläche eines Dreiecks mit den Seitenlängen a, b und c durch die Formel $A=\\sqrt{s(s-a)(s-b)(s-c)}$ berechnet werden kann, wobei $s=\\frac{a+b+c}{2}$ der halbe Umfang ist.",
+        "backtext": "Heron von Alexandria zeigte, dass die Fläche eines Dreiecks mit den Seitenlängen $a$, $b$ und $c$ durch die Formel $A=\\sqrt{s(s-a)(s-b)(s-c)}$ berechnet werden kann, wobei $s=\\frac{a+b+c}{2}$ der halbe Umfang ist.",
         "valuetext": "1. Jh.",
         "startvalue": 1,
         "endvalue": 100,
@@ -847,9 +847,9 @@ const cardPool = [
         "title": "Fermats letzter Satz",
         "fronttext": "Anders als beim Satz des Pythagoras mit Exponenten $n=2$ soll die Gleichung $a^n+b^n=c^n$ für $n>2$ keine ganzzahligen Lösungen besitzen.",
         "backtext": "Pierre de Fermat schrieb: 'Ich habe hierfür einen wahrhaft wunderbaren Beweis gefunden, doch ist dieser Rand hier zu schmal...' -- Mathematiker scheiterten im Anschluss jedoch über viele hundert Jahre an dem Beweis und machten diesen Satz zu einem der berühmtesten Sätze der Mathematik, der sogar in Star Trek und den Simpsons erwähnt wird.",
-        "valuetext": "um 1637",
+        "valuetext": "um 1640",
         "startvalue": 1637,
-        "endvalue": 1637,
+        "endvalue": 1643,
         "tags": [
             "Aufklärung",
             "Zahlentheorie",

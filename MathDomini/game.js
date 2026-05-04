@@ -34,18 +34,40 @@ function adjustTimelineZoom() {
     });
 }
 
+// function adjustHandZoom() {
+//     const container = document.getElementById('hand');
+//     const area      = document.getElementById('hand-area');
+//     if (!container || !area) return;
+//     container.style.transform = 'scale(1)';
+//     requestAnimationFrame(() => {
+//         const totalW    = container.scrollWidth;
+//         const available = area.clientWidth - 20;
+//         if (totalW > available) {
+//             const scale = Math.max(available / totalW, 0.35);
+//             container.style.transform = `scale(${scale})`;
+//         }
+//     });
+// }
 function adjustHandZoom() {
     const container = document.getElementById('hand');
     const area      = document.getElementById('hand-area');
     if (!container || !area) return;
+
     container.style.transform = 'scale(1)';
+
     requestAnimationFrame(() => {
         const totalW    = container.scrollWidth;
         const available = area.clientWidth - 20;
+
+        let scale = 1;
         if (totalW > available) {
-            const scale = Math.max(available / totalW, 0.35);
+            scale = Math.max(available / totalW, 0.35);
             container.style.transform = `scale(${scale})`;
         }
+
+        // 👉 NEU: Höhe anpassen!
+        const baseHeight = container.scrollHeight;
+        area.style.height = (baseHeight * scale + 20) + 'px';
     });
 }
 
@@ -242,10 +264,12 @@ function updateLobbyCount() {
         : cardPool;
     const sliderVal = parseInt(document.getElementById('cards-slider')?.value || 20);
     const playable  = Math.min(sliderVal, pool.length);
+    const handPlayable  = Math.min(playable-1, 5);
+    const timelinePlayable = Math.min(sliderVal-1, pool.length - handPlayable - 1);
     let el = document.getElementById('lobby-card-count');
     if (!el) return;
     el.textContent = activeTags.length > 0
-        ? `${pool.length} Karten verfügbar (${playable} werden gespielt)`
+        ? `${pool.length} Karten verfügbar (${handPlayable}+1`+(timelinePlayable>0 ? `+${timelinePlayable}` : ``)+` werden gespielt)`
         : `${pool.length} Karten verfügbar`;
 }
 
