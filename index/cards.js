@@ -301,7 +301,7 @@ const cardsData = [
     "title": "Math-Domini",
     "desc": "Ordne mathematische Ereignisse am Zeitstrahl",
     "types": ["game"],
-    "mobilefriendly": false,
+    "mobilefriendly": true,
     "link": "math_domini.html"
   },
   {
