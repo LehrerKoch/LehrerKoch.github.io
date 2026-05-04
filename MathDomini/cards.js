@@ -302,7 +302,7 @@ const cardPool = [
     },
     {
         "title": "Perfekte Zahlen",
-        "fronttext": "Er klassifizierte Zahlen, die gleich der Summe ihrer echten Teiler sind, wie $6~(=1+2+3)$ oder $28~(=1+2+4+7+14)$.",
+        "fronttext": "Er klassifizierte Zahlen, die gleich der Summe ihrer echten Teiler sind, wie $6$ ($=1+2+3$) oder $28$ ($=1+2+4+7+14$).",
         "backtext": "Nicomachus von Gerasa beschrieb in seiner 'Einführung in die Arithmetik' diese 'Perfekten Zahlen' und sah in ihnen ein Zeichen göttlicher Ordnung. Bis heute ist es eines der großen ungelösten Probleme, ob es ungerade perfekte Zahlen gibt.",
         "valuetext": "um 100",
         "startvalue": 90,
@@ -1215,7 +1215,7 @@ const cardPool = [
     {
         "title": "Die Summenformel eines Genies",
         "fronttext": "Von seinem Lehrer wurde ihm als 8-Jähriger die Aufgabe gegeben, die ersten hundert (Natürlichen) Zahlen zu summieren: schon nach wenigen Minuten entdeckte er einen Trick, der eine große Zukunft voraussagte.",
-        "backtext": "Carl Friedrich Gauß summierte die Zahlen vom Rand aus: $(1+100)+(2+99)+(3+98)+\\ldots$=50\\cdot51$. Dieser Trick gilt ist seither als Gauß'sche Summenformel bekannt:\\[\
+        "backtext": "Carl Friedrich Gauß summierte die Zahlen vom Rand aus: $(1+100)+(2+99)+(3+98)+\\ldots$ $=50\\cdot51$. Dieser Trick gilt ist seither als Gauß'sche Summenformel bekannt:\\[\
         \\sum_{k=1}^n k = \\frac{n\\cdot(n+1)}{2}\
         \\]",
         "valuetext": "1785",

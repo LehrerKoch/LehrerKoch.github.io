@@ -22,6 +22,7 @@ let furtherInfoHideTimer = null;
 function adjustTimelineZoom() {
     const container = document.getElementById('timeline');
     const area      = document.getElementById('timeline-area');
+    // const placeholder = document.getElementById('placeholder');
     if (!container || !area) return;
     container.style.transform = 'scale(1)';
     requestAnimationFrame(() => {
@@ -30,6 +31,7 @@ function adjustTimelineZoom() {
         if (totalW > available) {
             const scale = Math.max(available / totalW, 0.28);
             container.style.transform = `scale(${scale})`;
+            // placeholder.style.transform = `scale(${scale})`;
         }
     });
 }
@@ -247,7 +249,7 @@ document.addEventListener('click', (e) => {
 function updateURL() {
     const mode = document.getElementById('mode-toggle').checked ? 'risk' : 'direct';
     const currentTags = [...document.querySelectorAll('.tag-btn.active')].map(b => b.innerText);
-    const cards = document.getElementById('cards-slider')?.value || 20;
+    const cards = document.getElementById('cards-slider')?.value || 10;
     const urlParams = new URLSearchParams(window.location.search);
     urlParams.set('mode', mode);
     urlParams.set('cards', cards);
@@ -262,7 +264,7 @@ function updateLobbyCount() {
     const pool = activeTags.length > 0
         ? cardPool.filter(c => c.tags.some(t => activeTags.includes(t)))
         : cardPool;
-    const sliderVal = parseInt(document.getElementById('cards-slider')?.value || 20);
+    const sliderVal = parseInt(document.getElementById('cards-slider')?.value || 10);
     const playable  = Math.min(sliderVal, pool.length);
     const handPlayable  = Math.min(playable-1, 5);
     const timelinePlayable = Math.min(sliderVal-1, pool.length - handPlayable - 1);
@@ -273,7 +275,7 @@ function updateLobbyCount() {
         : `${pool.length} Karten verfügbar`;
 }
 
-function updateMode() {
+function updateMode(skipURL = false) {
     const isRisk = document.getElementById('mode-toggle').checked;
     const desc   = document.getElementById('mode-description');
     if (isRisk) {
@@ -281,18 +283,18 @@ function updateMode() {
     } else {
         desc.innerHTML = "<b>Direktes Aufdecken:</b> Sofortiges Feedback: Sobald du eine Karte an eine Position ziehst, wird sie umgedreht. Stimmt die Position nicht, wird die Karte entfernt. Ideal zum Lernen!";
     }
-    updateURL();
+    if (!skipURL) updateURL();
 }
 
 function init() {
     const params  = new URLSearchParams(window.location.search);
     const urlTags = params.get('tags') ? params.get('tags').split(',') : [];
     const urlMode = params.get('mode');
-    const urlCards = parseInt(params.get('cards') || 20);
+    const urlCards = parseInt(params.get('cards') || 10);
 
     const modeToggle = document.getElementById('mode-toggle');
     modeToggle.checked = (urlMode === 'risk');
-    updateMode();
+    updateMode(true);
 
     // Slider auf URL-Wert setzen
     const slider = document.getElementById('cards-slider');
@@ -354,7 +356,7 @@ function init() {
 }
 
 function startNewGame() {
-    const sliderVal = parseInt(document.getElementById('cards-slider')?.value || 20);
+    const sliderVal = parseInt(document.getElementById('cards-slider')?.value || 10);
     startcardsToPlay = sliderVal;
     currentGameMode = document.getElementById('mode-toggle').checked ? 'risk' : 'direct';
     activeFilters   = [...document.querySelectorAll('.tag-btn.active')].map(b => b.innerText);
@@ -593,6 +595,7 @@ function setupTouchDrag(cardEl, index, isHand) {
 
     cardEl.addEventListener('touchstart', (e) => {
         if (draggingBlocked) return;
+        // Ändert --card-h für das gesamte Projekt
         startX = e.touches[0].clientX;
         startY = e.touches[0].clientY;
         localDragging = false;
@@ -756,14 +759,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('.placeholder').forEach(p => p.remove());
     });
 
-    // URL-Default
-    const urlParams = new URLSearchParams(window.location.search);
-    if (!urlParams.has('mode')) {
-        urlParams.set('mode', 'direct');
-        window.history.replaceState({}, '', `${window.location.pathname}?${urlParams}`);
-    }
-    document.getElementById('mode-toggle').checked = (urlParams.get('mode') === 'risk');
-
+    
     window.addEventListener('resize', () => {
         adjustTimelineZoom();
         adjustHandZoom();
@@ -978,4 +974,4 @@ document.addEventListener('keydown', (e) => {
 // --------------------------------------------------------
 // START
 // --------------------------------------------------------
-window.onload = init;
+document.addEventListener('DOMContentLoaded', init);
