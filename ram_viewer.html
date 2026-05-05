@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>8-Bit RAM Anzeige</title>
+  <link href="https://fonts.googleapis.com/css2?family=VT323&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:          #070d07;
+      --surface:     #0b120b;
+      --surface2:    #0f1a0f;
+      --border:      #1a321a;
+      --border2:     #2a502a;
+      --accent:      #39ff6e;
+      --accent-dim:  #1a8a3a;
+      --accent-glow: rgba(57,255,110,0.18);
+      --text:        #8fdf8f;
+      --text-dim:    #3a6a3a;
+      --text-faint:  #1e3a1e;
+      --yellow:      #ffe94d;
+      --yellow-bg:   #2a2500;
+      --yellow-glow: rgba(255,233,77,0.25);
+      --pink:        #ff6bcd;
+      --pink-bg:     #1f0018;
+      --green-hi:    #39ff6e;
+      --green-bg:    #002a12;
+      --err:         #ff3a5c;
+      --err-bg:      #200010;
+      --err-glow:    rgba(255,58,92,0.25);
+      --amber:       #ffb030;
+      /* desktop: available = 100vw - sidebar(188) - grid-padding(28) - hdr(24) - gaps(16×2=32) = 100vw - 272px */
+      --cell:        clamp(18px, calc((100vw - 272px) / 16), 38px);
+      --hdr:         24px;
+      --cell-font:   clamp(0.68rem, calc((100vw - 272px) / 16 * 0.036), 1.2rem);
+      --sidebar-w:   188px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { height: 100%; }
+    body {
+      height: 100%; display: flex; flex-direction: column;
+      background: var(--bg); color: var(--text);
+      font-family: 'Share Tech Mono', monospace; overflow: hidden;
+    }
+    body::before {
+      content: ''; position: fixed; inset: 0;
+      background: repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,0.06) 3px,rgba(0,0,0,0.06) 4px);
+      pointer-events: none; z-index: 500;
+    }
+    header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 16px; height: 38px; flex-shrink: 0;
+      background: var(--surface); border-bottom: 1px solid var(--border);
+    }
+    .logo {
+      font-family: 'VT323', monospace; font-size: 1.35rem; letter-spacing: 3px;
+      color: var(--accent); text-shadow: 0 0 10px var(--accent), 0 0 22px var(--accent-glow);
+    }
+    .meta { font-size: 0.6rem; color: var(--text-dim); letter-spacing: 1px; }
+    .app { display: flex; flex: 1; min-height: 0; }
+    .sidebar {
+      width: var(--sidebar-w); min-width: var(--sidebar-w);
+      background: var(--surface); border-right: 1px solid var(--border);
+      display: flex; flex-direction: column;
+      overflow-y: auto; overflow-x: hidden;
+      padding: 9px 7px; gap: 4px;
+      scrollbar-width: thin; scrollbar-color: var(--border2) transparent;
+    }
+    .info-card {
+      background: var(--surface2); border: 1px solid var(--border); padding: 5px 8px 4px;
+    }
+    .info-card .lbl { font-size: 0.57rem; color: var(--text-dim); letter-spacing: 1.5px; text-transform: uppercase; }
+    .info-card .val {
+      font-family: 'VT323', monospace; font-size: 1.6rem;
+      color: var(--accent); text-shadow: 0 0 8px var(--accent-glow);
+      letter-spacing: 3px; line-height: 1.1;
+    }
+    .sep { border: none; border-top: 1px solid var(--text-faint); margin: 2px 0; }
+    .sec { font-size: 0.57rem; color: var(--text-faint); letter-spacing: 2px; text-transform: uppercase; padding: 1px 2px; }
+    .btn {
+      display: block; width: 100%; background: transparent; color: var(--text);
+      border: 1px solid var(--border); font-family: 'Share Tech Mono', monospace;
+      font-size: 0.67rem; padding: 5px 6px; cursor: pointer; text-align: left;
+      letter-spacing: 0.5px; transition: background 0.1s, color 0.08s, border-color 0.1s;
+    }
+    .btn::before { content: '▸ '; color: var(--text-faint); }
+    .btn:hover:not(:disabled) { background: var(--surface2); color: var(--accent); border-color: var(--accent-dim); }
+    .btn:hover:not(:disabled)::before { color: var(--accent); }
+    .btn:active:not(:disabled) { background: var(--accent-dim); }
+    .btn:disabled { opacity: 0.3; cursor: not-allowed; }
+    .btn.read-btn { color: var(--text-dim); }
+    .btn.read-btn:not(:disabled) { color: var(--text); }
+    .grid-area {
+      flex: 1; overflow: auto; padding: 12px 14px;
+      scrollbar-width: thin; scrollbar-color: var(--border2) transparent;
+    }
+    .ram-grid {
+      display: inline-grid;
+      grid-template-columns: var(--hdr) repeat(16, var(--cell));
+      gap: 2px; user-select: none;
+    }
+    .cell-hdr {
+      font-family: 'VT323', monospace; font-size: clamp(0.62rem, 1.3vw, 0.9rem);
+      color: var(--text-dim); text-align: center;
+      line-height: var(--cell); width: var(--cell);
+    }
+    .cell-hdr.rh { width: var(--hdr); text-align: right; padding-right: 3px; }
+    .cell {
+      width: var(--cell); height: var(--cell);
+      border: 1px solid var(--text-faint); background: var(--surface);
+      font-family: 'VT323', monospace; font-size: var(--cell-font);
+      text-align: center; line-height: var(--cell);
+      cursor: pointer; position: relative;
+      color: var(--text); letter-spacing: 1px; transition: border-color 0.08s;
+    }
+    .cell.empty { color: var(--text-faint); }
+    .cell:not(.editing):hover { border-color: var(--accent-dim); z-index: 1; }
+    .cell.selected { background: var(--yellow-bg); border-color: var(--yellow); color: var(--yellow); box-shadow: 0 0 8px var(--yellow-glow); z-index: 2; }
+    .cell.highlight { background: var(--green-bg); border-color: var(--green-hi); color: var(--green-hi); box-shadow: 0 0 5px var(--accent-glow); z-index: 2; }
+    .cell.active { background: var(--pink-bg); border-color: var(--pink); color: var(--pink); }
+    .cell.editing { padding: 0; overflow: hidden; }
+    .cell.editing input {
+      width: 100%; height: 100%; background: #1a2a00; color: var(--yellow);
+      border: none; outline: none; font-family: 'VT323', monospace;
+      font-size: var(--cell-font); text-align: center; caret-color: var(--yellow);
+    }
+    @keyframes errFlash {
+      0%   { background: var(--surface); border-color: var(--text-faint); color: var(--text); }
+      25%  { background: #3a0010; border-color: var(--err); color: var(--err); box-shadow: 0 0 10px var(--err-glow); }
+      65%  { background: #550018; border-color: var(--err); color: var(--err); }
+      100% { background: var(--surface); border-color: var(--text-faint); color: var(--text); }
+    }
+    .cell.err-flash { animation: errFlash 0.6s ease forwards; }
+    .overlay {
+      position: fixed; inset: 0; background: rgba(0,8,0,0.88);
+      display: none; align-items: center; justify-content: center; z-index: 200;
+    }
+    .overlay.open { display: flex; }
+    .modal {
+      background: var(--surface); border: 1px solid var(--accent-dim);
+      box-shadow: 0 0 40px rgba(0,180,60,0.1); padding: 18px 20px 15px;
+      min-width: 300px; max-width: 94vw; animation: mIn 0.11s ease;
+    }
+    @keyframes mIn {
+      from { opacity: 0; transform: scale(0.96) translateY(-4px); }
+      to   { opacity: 1; transform: none; }
+    }
+    .modal h2 {
+      font-family: 'VT323', monospace; font-size: 1.2rem; letter-spacing: 3px;
+      color: var(--accent); text-shadow: 0 0 8px var(--accent-glow);
+      margin-bottom: 13px; border-bottom: 1px solid var(--border); padding-bottom: 5px;
+    }
+    .modal.exc { border-color: var(--err); box-shadow: 0 0 40px var(--err-glow); }
+    .modal.exc h2 { color: var(--err); text-shadow: 0 0 8px var(--err-glow); border-color: #400018; }
+    .form-row { display: flex; align-items: center; gap: 7px; margin-bottom: 9px; flex-wrap: wrap; }
+    .form-row label { font-size: 0.67rem; color: var(--text-dim); min-width: 90px; text-align: right; }
+    .form-row label.mono { font-family: 'VT323', monospace; font-size: 1rem; color: var(--text); min-width: auto; }
+    .addr-disp { font-family: 'VT323', monospace; font-size: 1.1rem; color: var(--accent); min-width: 52px; letter-spacing: 2px; }
+    input.mi {
+      background: var(--surface2); border: 1px solid var(--border2);
+      color: var(--text); font-family: 'Share Tech Mono', monospace;
+      font-size: 0.77rem; padding: 4px 6px; outline: none; width: 80px;
+    }
+    input.mi:focus { border-color: var(--accent); }
+    input.mi.wide { width: 150px; }
+    input.mi.narrow { width: 50px; }
+    .modal .sep { margin: 9px 0; }
+    .btn-row { display: flex; gap: 6px; justify-content: flex-end; margin-top: 13px; }
+    .btn-row .btn { width: auto; padding: 5px 14px; }
+    .btn.primary { border-color: var(--accent); color: var(--accent); }
+    .btn.primary:hover { background: var(--accent-dim); color: #fff; }
+    .btn.err-btn { border-color: var(--err); color: var(--err); }
+    .btn.err-btn:hover { background: #400018; }
+    .mini-btn {
+      background: transparent; border: 1px solid var(--border2); color: var(--text-dim);
+      font-family: 'Share Tech Mono', monospace; font-size: 0.62rem; padding: 3px 7px;
+      cursor: pointer; transition: color 0.1s, border-color 0.1s;
+    }
+    .mini-btn:hover { color: var(--accent); border-color: var(--accent-dim); }
+    .exc-type { font-family: 'VT323', monospace; font-size: 1.3rem; color: var(--err); letter-spacing: 1px; margin-bottom: 4px; }
+    .exc-msg  { font-size: 0.75rem; color: var(--text); margin-bottom: 10px; line-height: 1.5; }
+    .exc-trace {
+      background: var(--err-bg); border: 1px solid #400018; padding: 8px 10px;
+      font-size: 0.68rem; color: #cc4466; line-height: 1.6; white-space: pre;
+      font-family: 'Share Tech Mono', monospace; max-height: 120px; overflow-y: auto;
+    }
+    .result-meta { font-size: 0.65rem; color: var(--text-dim); margin-bottom: 8px; letter-spacing: 1px; }
+    .result-box {
+      background: var(--surface2); border: 1px solid var(--border2); padding: 10px 12px;
+      font-family: 'VT323', monospace; font-size: 1.15rem; color: var(--accent);
+      letter-spacing: 1.5px; max-height: 180px; overflow-y: auto;
+      white-space: pre-wrap; word-break: break-all; line-height: 1.5;
+    }
+    #toast {
+      position: fixed; bottom: 44px; left: 50%; transform: translateX(-50%);
+      background: var(--surface2); border: 1px solid var(--accent-dim);
+      color: var(--accent); font-size: 0.7rem; padding: 5px 14px; letter-spacing: 1px;
+      opacity: 0; transition: opacity 0.25s; pointer-events: none; z-index: 999;
+    }
+    #toast.show { opacity: 1; }
+    /* ── FOOTER ── */
+    .site-footer {
+      flex-shrink: 0;
+      background: var(--surface); border-top: 1px solid var(--border);
+      width: 100%; box-sizing: border-box; padding: 5px 5px;
+      margin-top: 4px; margin-bottom: 0px;
+    }
+    .footer-content {
+      /* display: flex; 
+      align-items: center; 
+      gap: 14px; */
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      margin: 0 auto;
+      padding: 5px 16px;
+      font-size: 0.6rem; color: var(--text-faint); letter-spacing: 1px;
+    }
+    .footer-content > :first-child {
+        justify-self: start;
+    }
+    .footer-content > :nth-child(2) {
+        justify-self: center;
+    }
+    .footer-content > :last-child {
+        justify-self: end;
+    }
+    .footer-content > *::before { content: '// '; opacity: 0.45; }
+    .footer-content > *:first-child::before { content: ''; }
+    .footer-topic a { color: var(--accent-dim); text-decoration: none; }
+    .footer-topic a:hover { color: var(--accent); }
+    .footer-update { margin-left: auto; }
+    /* ── RESPONSIVE ── */
+    @media (max-width: 640px) {
+      :root {
+        /* mobile: available = 100vw - grid-padding(12) - hdr(20) - gaps(32) = 100vw - 64px */
+        --cell: clamp(16px, calc((100vw - 64px) / 16), 34px);
+        --hdr: 20px;
+        --cell-font: clamp(0.65rem, calc((100vw - 64px) / 16 * 0.036), 1.1rem);
+        --sidebar-w: 100%;
+      }
+      .app { flex-direction: column; }
+      .sidebar {
+        width: 100%; min-width: 0; flex-direction: row; flex-wrap: wrap;
+        flex-shrink: 0;
+        max-height: 38vh; border-right: none; border-bottom: 1px solid var(--border); gap: 3px;
+      }
+      .info-card { flex: 1 1 75px; }
+      .btn { flex: 1 1 110px; width: auto; }
+      .sep { flex-basis: 100%; margin: 1px 0; }
+      .sec { flex-basis: 100%; }
+      .grid-area { padding: 7px 6px; min-height: 0; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <span class="logo">▸ 8-BIT RAM</span>
+  <span class="meta">256 × 8BIT &nbsp;|&nbsp; 0x00–0xFF</span>
+</header>
+
+<div class="app">
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="info-card">
+      <div class="lbl">Adresse</div>
+      <div class="val" id="lbl-addr">0x--</div>
+    </div>
+    <div class="info-card">
+      <div class="lbl">Wert</div>
+      <div class="val" id="lbl-val">--</div>
+    </div>
+    <hr class="sep">
+    <div class="sec">RAM</div>
+    <button class="btn" onclick="openModal('m-reload')">RAM belegen</button>
+    <button class="btn" onclick="emptyRam()">Empty RAM</button>
+    <button class="btn" onclick="resetRam()">Reset RAM (→ 00)</button>
+    <button class="btn" onclick="saveRam()">Save RAM</button>
+    <button class="btn" onclick="document.getElementById('file-in').click()">Load RAM</button>
+    <input type="file" id="file-in" accept=".txt" style="display:none" onchange="loadRamFile(event)">
+    <button class="btn" onclick="random10()">Random 10%</button>
+    <hr class="sep">
+    <div class="sec">Schreiben</div>
+    <button class="btn" onclick="openIntModal()">New Int</button>
+    <button class="btn" onclick="openStrModal()">New String</button>
+    <button class="btn" onclick="openArrayModal()">New Array</button>
+    <button class="btn" onclick="openListModal()">New List</button>
+    <hr class="sep">
+    <div class="sec">Lesen</div>
+    <button class="btn read-btn" id="btn-rInt"  disabled onclick="readInt()">Read Int</button>
+    <button class="btn read-btn" id="btn-rStr"  disabled onclick="readString()">Read String</button>
+    <button class="btn read-btn" id="btn-rArr"  disabled onclick="openReadArrModal()">Read Array</button>
+    <button class="btn read-btn" id="btn-rList" disabled onclick="readList()">Read List</button>
+  </nav>
+
+  <!-- GRID -->
+  <main class="grid-area">
+    <div class="ram-grid" id="ram-grid"></div>
+  </main>
+</div>
+
+<!-- FOOTER -->
+<footer class="site-footer">
+  <div class="footer-content">
+      M.&nbsp;Koch
+      <span class="footer-topic"><a href="./index.html">Mathe-Tools</a></span>
+      <span class="footer-update">Last updated:&nbsp;<span id="last-update">...</span></span>
+  </div>
+</footer>
+<script src="last-update.js" defer></script>
+
+<!-- ═══════ MODALS ═══════ -->
+
+<!-- RAM belegen -->
+<div class="overlay" id="m-reload">
+  <div class="modal">
+    <h2>RAM BELEGEN</h2>
+    <div class="form-row"><label>Nullen (0x00):</label><input class="mi" type="number" id="r-nullen" min="0" max="256" placeholder="0"></div>
+    <div class="form-row"><label>Random:</label><input class="mi" type="number" id="r-random" min="0" max="256" placeholder="0"></div>
+    <div class="form-row"><label>Leer (auto):</label><input class="mi" type="number" id="r-leer" min="0" max="256" placeholder="auto"></div>
+    <div class="btn-row">
+      <button class="btn" onclick="closeModal('m-reload')">Abbrechen</button>
+      <button class="btn primary" onclick="applyReload()">OK</button>
+    </div>
+  </div>
+</div>
+
+<!-- New Int -->
+<div class="overlay" id="m-int">
+  <div class="modal">
+    <h2>NEW INT</h2>
+    <div class="form-row"><label>Wert (0–255):</label><input class="mi" type="number" id="int-v" min="0" max="255" placeholder="random" onkeydown="if(event.key==='Enter')saveInt()"></div>
+    <div class="form-row"><label>Adresse:</label><span class="addr-disp" id="int-addr">0x..</span><button class="mini-btn" onclick="intFind()">Find</button></div>
+    <div class="btn-row">
+      <button class="btn" onclick="abortModal('m-int')">Abbrechen</button>
+      <button class="btn primary" onclick="saveInt()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- New String -->
+<div class="overlay" id="m-str">
+  <div class="modal">
+    <h2>NEW STRING</h2>
+    <div class="form-row"><label>String:</label><input class="mi wide" type="text" id="str-v" placeholder="hello" onkeydown="if(event.key==='Enter')saveStr()"></div>
+    <div class="form-row"><label>Adresse:</label><span class="addr-disp" id="str-addr">0x..</span><button class="mini-btn" onclick="strFind()">Find</button></div>
+    <div class="btn-row">
+      <button class="btn" onclick="abortModal('m-str')">Abbrechen</button>
+      <button class="btn primary" onclick="saveStr()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- New Array -->
+<div class="overlay" id="m-arr">
+  <div class="modal">
+    <h2>NEW ARRAY (of Ints)</h2>
+    <div class="form-row">
+      <label>Length:</label>
+      <input class="mi narrow" type="number" id="arr-len" min="1" max="255" placeholder="4">
+      <button class="mini-btn" onclick="arrFind()">Find Addr</button>
+      <button class="mini-btn" onclick="arrCreate()">Create</button>
+    </div>
+    <div class="form-row"><label>Adresse:</label><span class="addr-disp" id="arr-addr">0x..</span></div>
+    <hr class="sep">
+    <div class="form-row">
+      <label class="mono">array[</label>
+      <input class="mi narrow" type="number" id="arr-idx" min="0" placeholder="0" onkeydown="if(event.key==='Enter')arrChange()">
+      <label class="mono">] =</label>
+      <input class="mi narrow" type="text" id="arr-val" placeholder="hex" onkeydown="if(event.key==='Enter')arrChange()">
+      <button class="mini-btn" onclick="arrChange()">Execute</button>
+    </div>
+    <div class="form-row">
+      <label>addr.:</label>
+      <span class="addr-disp" id="arr-akt-addr" style="font-size:.95rem">0x..</span>
+      <span style="color:var(--text-dim)"> = </span>
+      <span class="addr-disp" id="arr-akt-val" style="font-size:.95rem">--</span>
+    </div>
+    <div class="btn-row"><button class="btn" onclick="abortModal('m-arr')">Abbrechen</button></div>
+  </div>
+</div>
+
+<!-- New List -->
+<div class="overlay" id="m-list">
+  <div class="modal">
+    <h2>NEW LIST (of Ints)</h2>
+    <div class="form-row"><label>Start-Adresse:</label><span class="addr-disp" id="list-start">0x..</span><button class="mini-btn" onclick="listCreate()">Create</button></div>
+    <hr class="sep">
+    <div class="form-row">
+      <label class="mono">list.append(</label>
+      <input class="mi narrow" type="text" id="list-val" placeholder="00" onkeydown="if(event.key==='Enter')listAppend()">
+      <label class="mono">)</label>
+      <button class="mini-btn" onclick="listAppend()">Execute</button>
+    </div>
+    <div class="form-row"><label>Active-Adresse:</label><span class="addr-disp" id="list-active" style="font-size:.95rem">0x..</span></div>
+    <div class="btn-row"><button class="btn" onclick="abortModal('m-list')">Abbrechen</button></div>
+  </div>
+</div>
+
+<!-- Read Array (length input) -->
+<div class="overlay" id="m-read-arr">
+  <div class="modal">
+    <h2>READ ARRAY</h2>
+    <div class="form-row"><label>Adresse:</label><span class="addr-disp" id="rarr-addr">0x..</span></div>
+    <div class="form-row"><label>Length:</label><input class="mi narrow" type="number" id="rarr-len" min="1" max="255" placeholder="4" onkeydown="if(event.key==='Enter')execReadArr()"></div>
+    <div class="btn-row">
+      <button class="btn" onclick="closeModal('m-read-arr')">Abbrechen</button>
+      <button class="btn primary" onclick="execReadArr()">Read</button>
+    </div>
+  </div>
+</div>
+
+<!-- Read Result -->
+<div class="overlay" id="m-result">
+  <div class="modal">
+    <h2 id="result-title">READ RESULT</h2>
+    <div class="result-meta" id="result-meta"></div>
+    <div class="result-box"  id="result-box"></div>
+    <div class="btn-row"><button class="btn primary" onclick="closeModal('m-result')">OK</button></div>
+  </div>
+</div>
+
+<!-- Exception -->
+<div class="overlay" id="m-exc">
+  <div class="modal exc">
+    <h2>&#9888; EXCEPTION</h2>
+    <div class="exc-type"  id="exc-type">MemoryError</div>
+    <div class="exc-msg"   id="exc-msg"></div>
+    <div class="exc-trace" id="exc-trace"></div>
+    <div class="btn-row"><button class="btn err-btn" onclick="closeModal('m-exc')">OK</button></div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ── STATE ──
+const RAM_SIZE = 256, COLS = 16, ROWS = 16;
+let ram = Array(RAM_SIZE).fill(-1);
+let selectedIndex   = null;
+let activeFelder    = [];
+let highlightFelder = [];
+let savingPos       = null;
+let arrObj = null, arrPos = null;
+let listLastIdx = null, listAllFelder = [];
+
+// ── HELPERS ──
+const h2  = v => (v >= 0 && v <= 255) ? v.toString(16).toUpperCase().padStart(2,'0') : '';
+const adr = i => `0x${i.toString(16).toUpperCase().padStart(2,'0')}`;
+
+function updateInfo(idx) {
+  document.getElementById('lbl-addr').textContent = idx == null ? '0x--' : adr(idx);
+  const v = idx == null ? -2 : ram[idx];
+  document.getElementById('lbl-val').textContent  = idx == null ? '--' : (v>=0&&v<=255 ? h2(v) : 'XX');
+}
+
+function updateReadBtns() {
+  const dis = selectedIndex === null;
+  ['btn-rInt','btn-rStr','btn-rArr','btn-rList'].forEach(id => {
+    document.getElementById(id).disabled = dis;
+  });
+}
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(t._t);
+  t._t = setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+function throwException(type, msg, trace, errCells = []) {
+  errCells.forEach(idx => {
+    const c = document.querySelector(`[data-idx="${idx}"]`);
+    if (c) { c.classList.remove('err-flash'); void c.offsetWidth; c.classList.add('err-flash'); }
+  });
+  const delay = errCells.length ? 500 : 0;
+  setTimeout(() => {
+    document.getElementById('exc-type').textContent  = type;
+    document.getElementById('exc-msg').textContent   = msg;
+    document.getElementById('exc-trace').textContent = trace;
+    openModal('m-exc');
+    errCells.forEach(idx => {
+      const c = document.querySelector(`[data-idx="${idx}"]`);
+      if (c) c.classList.remove('err-flash');
+    });
+  }, delay);
+}
+
+function showResult(title, meta, content) {
+  document.getElementById('result-title').textContent = title;
+  document.getElementById('result-meta').textContent  = meta;
+  document.getElementById('result-box').textContent   = content;
+  openModal('m-result');
+}
+
+// ── RENDER ──
+function drawRam() {
+  const grid = document.getElementById('ram-grid');
+  grid.innerHTML = '';
+  grid.appendChild(document.createElement('div')); // top-left spacer
+  for (let j = 0; j < COLS; j++) {
+    const el = document.createElement('div');
+    el.className = 'cell-hdr';
+    el.textContent = `x${j.toString(16).toUpperCase()}`;
+    grid.appendChild(el);
+  }
+  for (let i = 0; i < ROWS; i++) {
+    const rh = document.createElement('div');
+    rh.className = 'cell-hdr rh';
+    rh.textContent = `${i.toString(16).toUpperCase()}x`;
+    grid.appendChild(rh);
+    for (let j = 0; j < COLS; j++) {
+      const idx  = i * COLS + j;
+      const v    = ram[idx];
+      const cell = document.createElement('div');
+      cell.className   = 'cell';
+      cell.dataset.idx = idx;
+      if      (idx === selectedIndex)          cell.classList.add('selected');
+      else if (highlightFelder.includes(idx))  cell.classList.add('highlight');
+      else if (activeFelder.includes(idx))     cell.classList.add('active');
+      else if (v === -1)                        cell.classList.add('empty');
+      cell.textContent = v === -1 ? '·' : h2(v);
+      let ct = null;
+      cell.addEventListener('click', () => {
+        if (ct !== null) return;
+        ct = setTimeout(() => { ct = null; selectCell(idx); }, 200);
+      });
+      cell.addEventListener('dblclick', () => {
+        if (ct !== null) { clearTimeout(ct); ct = null; }
+        editCell(cell, idx);
+      });
+      cell.addEventListener('mouseenter', () => { if (selectedIndex === null) updateInfo(idx); });
+      cell.addEventListener('mouseleave', () => { if (selectedIndex === null) updateInfo(null); });
+      grid.appendChild(cell);
+    }
+  }
+  updateReadBtns();
+}
+
+function selectCell(idx) {
+  selectedIndex = (selectedIndex === idx) ? null : idx;
+  updateInfo(selectedIndex);
+  drawRam();
+}
+
+function editCell(cell, idx) {
+  const v   = ram[idx];
+  const cur = (v >= 0 && v <= 255) ? h2(v) : '';
+  cell.classList.add('editing'); cell.textContent = '';
+  const inp = document.createElement('input');
+  inp.value = cur; inp.maxLength = 2;
+  cell.appendChild(inp); inp.focus(); inp.select();
+  const save = () => {
+    const raw = inp.value.trim().toLowerCase();
+    if (!raw || raw === 'xx' || raw === '-1') ram[idx] = -1;
+    else { const n = parseInt(raw, 16); if (!isNaN(n) && n >= 0 && n <= 255) ram[idx] = n; }
+    updateInfo(selectedIndex); drawRam();
+  };
+  inp.addEventListener('keydown', e => { if (e.key==='Enter') save(); if (e.key==='Escape') drawRam(); });
+  inp.addEventListener('blur', save);
+}
+
+// ── RAM CONTROLS ──
+function clearState() {
+  selectedIndex = null; activeFelder = []; highlightFelder = [];
+  savingPos = null; arrObj = null; arrPos = null; listLastIdx = null; listAllFelder = [];
+  updateInfo(null);
+}
+function emptyRam() { ram = Array(RAM_SIZE).fill(-1); clearState(); drawRam(); toast('RAM geleert'); }
+function resetRam() { ram = Array(RAM_SIZE).fill(0);  clearState(); drawRam(); toast('RAM → 0x00'); }
+function random10() {
+  ram = Array.from({length:RAM_SIZE}, () => Math.random()<0.1 ? Math.floor(Math.random()*256) : -1);
+  clearState(); drawRam();
+}
+function saveRam() {
+  let lines = [];
+  for (let i=0;i<ROWS;i++)
+    lines.push(Array.from({length:COLS},(_,j)=>{const v=ram[i*COLS+j];return(v>=0&&v<=255)?h2(v):'XX';}).join(','));
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([lines.join('\n')],{type:'text/plain'}));
+  a.download = 'ram.txt'; a.click(); toast('RAM gespeichert');
+}
+function loadRamFile(e) {
+  const f = e.target.files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = ev => {
+    const nr = [];
+    for (const line of ev.target.result.split('\n'))
+      for (const v of line.split(',')) {
+        const t = v.trim().toLowerCase(); if (!t) continue;
+        if (t==='xx'||t==='-1') nr.push(-1);
+        else { const n=parseInt(t,16); nr.push(isNaN(n)?0:n); }
+      }
+    while (nr.length < RAM_SIZE) nr.push(-1);
+    ram = nr.slice(0, RAM_SIZE); clearState(); drawRam(); toast('RAM geladen');
+  };
+  r.readAsText(f); e.target.value = '';
+}
+
+// ── MODALS ──
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function abortModal(id) { activeFelder=[]; highlightFelder=[]; drawRam(); closeModal(id); }
+document.querySelectorAll('.overlay').forEach(el =>
+  el.addEventListener('click', e => { if (e.target===el) abortModal(el.id); })
+);
+
+function applyReload() {
+  let n = parseInt(document.getElementById('r-nullen').value)||0;
+  let r = parseInt(document.getElementById('r-random').value)||0;
+  if (n+r>256){n=0;r=0;}
+  const leer=256-n-r;
+  let arr=[...Array(n).fill(0),...Array(leer).fill(-1),...Array.from({length:r},()=>Math.floor(Math.random()*256))];
+  for (let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}
+  ram=arr; clearState(); drawRam(); closeModal('m-reload');
+  toast(`RAM belegt: ${n}×00, ${r}×rnd`);
+}
+
+// ── SPACE FINDER ──
+function isEnoughSpace(pos,len){
+  if (pos<1||pos+len>RAM_SIZE) return false;
+  for (let i=0;i<len;i++) if(ram[pos+i]!==-1) return false;
+  return true;
+}
+function findSpace(len){
+  const max=RAM_SIZE-len;
+  const start=Math.floor(Math.random()*(max-1))+1;
+  for (let i=0;i<max;i++){
+    const p=((start-1+i)%(max-1))+1;
+    if(isEnoughSpace(p,len)){savingPos=p;return p;}
+  }
+  savingPos=null; return -1;
+}
+function checkSpace(pos,len){
+  const c=[];
+  for (let i=0;i<len;i++) if(ram[pos+i]!==-1) c.push(pos+i);
+  return c;
+}
+
+// ── NEW INT ──
+let _intPos=null;
+function openIntModal(){
+  document.getElementById('int-v').value='';
+  _intPos=selectedIndex;
+  document.getElementById('int-addr').textContent=_intPos!=null?adr(_intPos):'0x..';
+  openModal('m-int');
+  setTimeout(()=>document.getElementById('int-v').focus(),80);
+}
+function intFind(){
+  const p=findSpace(1);_intPos=savingPos;
+  document.getElementById('int-addr').textContent=p===-1?'VOLL':adr(p);
+}
+function saveInt(){
+  let v=parseInt(document.getElementById('int-v').value);
+  if(isNaN(v)) v=Math.floor(Math.random()*256);
+  if(v<0||v>255) return;
+  if(_intPos===null){findSpace(1);_intPos=savingPos;}
+  if(_intPos===null){throwException('MemoryError','Kein freier Platz im RAM.','find_space(1) → -1');return;}
+  const c=checkSpace(_intPos,1);
+  if(c.length){
+    throwException('MemoryError',
+      `Adresse ${adr(_intPos)} ist bereits belegt (0x${h2(ram[_intPos])}).`,
+      `ram[${adr(_intPos)}] = 0x${h2(ram[_intPos])}  ← bereits gesetzt\nÜberschreiben nicht erlaubt.`,c);return;
+  }
+  activeFelder=[_intPos];highlightFelder=[_intPos];
+  ram[_intPos]=v;
+  selectedIndex=null;savingPos=null;updateInfo(null);drawRam();
+  closeModal('m-int');toast(`Int ${v} → ${adr(_intPos)}`);
+}
+
+// ── NEW STRING ──
+let _strPos=null;
+function openStrModal(){
+  document.getElementById('str-v').value='';
+  _strPos=selectedIndex;
+  document.getElementById('str-addr').textContent=_strPos!=null?adr(_strPos):'0x..';
+  openModal('m-str');
+  setTimeout(()=>document.getElementById('str-v').focus(),80);
+}
+function strFind(){
+  const t=document.getElementById('str-v').value;
+  const p=findSpace(t.length+1);_strPos=savingPos;
+  document.getElementById('str-addr').textContent=p===-1?'VOLL':adr(p);
+}
+function saveStr(){
+  const t=document.getElementById('str-v').value;
+  const vals=[...t].map(c=>c.charCodeAt(0)).concat([0]);
+  if(_strPos===null){strFind();_strPos=savingPos;}
+  if(_strPos===null){throwException('MemoryError',`Kein Block mit ${vals.length} freien Bytes.`,`find_space(${vals.length}) → -1`);return;}
+  const c=checkSpace(_strPos,vals.length);
+  if(c.length){
+    const lines=c.map(i=>`  ram[${adr(i)}] = 0x${h2(ram[i])}`).join('\n');
+    throwException('MemoryError',
+      `${c.length} Zelle(n) im Bereich ${adr(_strPos)}..${adr(_strPos+vals.length-1)} belegt.`,
+      `Konflikte:\n${lines}`,c);return;
+  }
+  activeFelder=vals.map((_,i)=>_strPos+i);highlightFelder=[_strPos];
+  vals.forEach((v,i)=>{ram[_strPos+i]=v;});
+  selectedIndex=null;savingPos=null;updateInfo(null);drawRam();
+  closeModal('m-str');toast(`"${t}" → ${adr(_strPos)}`);
+}
+
+// ── NEW ARRAY ──
+let _arrPos=null;
+function openArrayModal(){
+  document.getElementById('arr-len').value='';
+  document.getElementById('arr-idx').value='';
+  document.getElementById('arr-val').value='';
+  document.getElementById('arr-akt-addr').textContent='0x..';
+  document.getElementById('arr-akt-val').textContent='--';
+  _arrPos=selectedIndex; arrObj=null; arrPos=null;
+  document.getElementById('arr-addr').textContent=_arrPos!=null?adr(_arrPos):'0x..';
+  openModal('m-arr');
+}
+function arrFind(){
+  const l=parseInt(document.getElementById('arr-len').value);
+  if(isNaN(l)||l<1) return;
+  const p=findSpace(l);_arrPos=savingPos;
+  document.getElementById('arr-addr').textContent=p===-1?'VOLL':adr(p);
+}
+function arrCreate(){
+  const l=parseInt(document.getElementById('arr-len').value);
+  if(isNaN(l)||l<1||l>255) return;
+  if(_arrPos===null){arrFind();_arrPos=savingPos;}
+  if(_arrPos===null){throwException('MemoryError',`Kein Block mit ${l} freien Bytes.`,`find_space(${l}) → -1`);return;}
+  const c=checkSpace(_arrPos,l);
+  if(c.length){
+    const lines=c.map(i=>`  ram[${adr(i)}] = 0x${h2(ram[i])}`).join('\n');
+    throwException('MemoryError',
+      `${c.length} Zelle(n) im Bereich ${adr(_arrPos)}..${adr(_arrPos+l-1)} belegt.`,
+      `Konflikte:\n${lines}`,c);return;
+  }
+  const vals=Array(l).fill(0);
+  vals.forEach((_,i)=>{ram[_arrPos+i]=0;});
+  arrObj=[...vals];arrPos=_arrPos;
+  activeFelder=vals.map((_,i)=>arrPos+i);highlightFelder=[arrPos];
+  document.getElementById('arr-addr').textContent=adr(arrPos);
+  selectedIndex=null;savingPos=null;updateInfo(null);drawRam();
+  toast(`Array[${l}] → ${adr(arrPos)}`);
+}
+function arrChange(){
+  if(!arrObj) return;
+  const idx=parseInt(document.getElementById('arr-idx').value);
+  if(isNaN(idx)||idx<0||idx>=arrObj.length) return;
+  const pos=arrPos+idx;
+  const raw=document.getElementById('arr-val').value.trim();
+  if(!raw){
+    document.getElementById('arr-akt-addr').textContent=adr(pos);
+    document.getElementById('arr-akt-val').textContent=ram[pos]>=0?h2(ram[pos]):'XX';
+    activeFelder=arrObj.map((_,i)=>arrPos+i);highlightFelder=[pos];
+  } else {
+    const v=parseInt(raw,16);
+    if(isNaN(v)||v<0||v>255) return;
+    ram[pos]=v;arrObj[idx]=v;
+    document.getElementById('arr-akt-addr').textContent=adr(pos);
+    document.getElementById('arr-akt-val').textContent=h2(v);
+    activeFelder=arrObj.map((_,i)=>arrPos+i);highlightFelder=[pos];
+  }
+  drawRam();
+}
+
+// ── NEW LIST ──
+function openListModal(){
+  document.getElementById('list-val').value='';
+  listLastIdx=null;listAllFelder=[];
+  const hint=selectedIndex!=null&&ram[selectedIndex]===-1?adr(selectedIndex)+' (geplant)':'0x..';
+  document.getElementById('list-start').textContent=hint;
+  document.getElementById('list-active').textContent='0x..';
+  openModal('m-list');
+}
+function listCreate(){
+  let pos;
+  if(selectedIndex!==null&&ram[selectedIndex]===-1){pos=selectedIndex;savingPos=pos;}
+  else{findSpace(1);pos=savingPos;}
+  if(pos==null){
+    document.getElementById('list-start').textContent='VOLL';
+    throwException('MemoryError','Kein freier Platz für Listen-Kopf.','find_space(1) → -1');return;
+  }
+  listLastIdx=pos;listAllFelder=[pos];
+  ram[pos]=0;savingPos=null;
+  document.getElementById('list-start').textContent=adr(pos);
+  activeFelder=[...listAllFelder];highlightFelder=[pos];
+  drawRam();toast('Liste erstellt');
+}
+function listAppend(){
+  if(listLastIdx===null){toast('Erst Create!');return;}
+  const raw=document.getElementById('list-val').value.trim()||'0';
+  const v=parseInt(raw,16);
+  if(isNaN(v)||v<0||v>255) return;
+  findSpace(2);
+  if(savingPos===null){
+    document.getElementById('list-active').textContent='VOLL';
+    throwException('MemoryError','Kein freier 2-Byte-Block für neuen Knoten.','find_space(2) → -1');return;
+  }
+  const np=savingPos;
+  ram[listLastIdx]=np;ram[np]=v;ram[np+1]=0;
+  listAllFelder=[...listAllFelder,np,np+1];
+  activeFelder=[...listAllFelder];highlightFelder=[np,np+1];
+  listLastIdx=np+1;
+  document.getElementById('list-active').textContent=adr(np);
+  savingPos=null;drawRam();toast(`Appended 0x${h2(v)}`);
+}
+
+// ── READ INT ──
+function readInt(){
+  if(selectedIndex===null) return;
+  const v=ram[selectedIndex];
+  if(v===-1){
+    throwException('UninitializedMemoryError',
+      `Adresse ${adr(selectedIndex)} enthält keinen initialisierten Wert.`,
+      `ram[${adr(selectedIndex)}] = -1  ← uninitialisiert`,[selectedIndex]);return;
+  }
+  highlightFelder=[selectedIndex];activeFelder=[];drawRam();
+  const bin=v.toString(2).padStart(8,'0');
+  showResult('READ INT',`Adresse ${adr(selectedIndex)}`,
+    `HEX  0x${h2(v)}\nDEC  ${v}\nBIN  ${bin.slice(0,4)} ${bin.slice(4)}`);
+}
+
+// ── READ STRING ──
+function readString(){
+  if(selectedIndex===null) return;
+  let pos=selectedIndex;
+  const cells=[],chars=[];
+  while(pos<RAM_SIZE){
+    const v=ram[pos];
+    if(v===-1){
+      throwException('UninitializedMemoryError',
+        `Uninitialisierter Speicher bei ${adr(pos)} – kein Null-Terminator erreichbar.`,
+        `ram[${adr(pos)}] = -1\nLetzter gültiger Byte bei ${adr(pos-1)}`,[pos]);return;
+    }
+    cells.push(pos);
+    if(v===0) break;
+    chars.push(v);pos++;
+    if(pos>=RAM_SIZE){
+      throwException('MemoryError','Kein Null-Terminator (0x00) bis RAM-Ende gefunden.',
+        `Suche ab ${adr(selectedIndex)}, RAM-Ende (0xFF) erreicht`,[]);return;
+    }
+  }
+  highlightFelder=cells;activeFelder=[];drawRam();
+  const str=chars.map(c=>String.fromCharCode(c)).join('');
+  const hexLine=chars.map(h2).join(' ')+' 00';
+  showResult('READ STRING',
+    `${adr(selectedIndex)} .. ${adr(selectedIndex+chars.length)}  (${chars.length+1} Bytes inkl. \\0)`,
+    `"${str}"\n\nASCII:  ${hexLine}`);
+}
+
+// ── READ ARRAY ──
+function openReadArrModal(){
+  if(selectedIndex===null) return;
+  document.getElementById('rarr-addr').textContent=adr(selectedIndex);
+  document.getElementById('rarr-len').value='';
+  openModal('m-read-arr');
+  setTimeout(()=>document.getElementById('rarr-len').focus(),80);
+}
+function execReadArr(){
+  const len=parseInt(document.getElementById('rarr-len').value);
+  if(isNaN(len)||len<1||len>255) return;
+  const base=selectedIndex;
+  if(base+len>RAM_SIZE){
+    throwException('IndexError',`Array[${len}] ab ${adr(base)} überschreitet RAM-Ende.`,
+      `${adr(base)} + ${len} = 0x${(base+len).toString(16).toUpperCase()} > 0xFF`);return;
+  }
+  const uninit=[];
+  for(let i=0;i<len;i++) if(ram[base+i]===-1) uninit.push(base+i);
+  if(uninit.length){
+    throwException('UninitializedMemoryError',
+      `${uninit.length} uninitialisierte(r) Wert(e) im Bereich ${adr(base)}..${adr(base+len-1)}.`,
+      uninit.map(i=>`  ram[${adr(i)}] = -1  ← uninitialisiert`).join('\n'),uninit);return;
+  }
+  const cells=Array.from({length:len},(_,i)=>base+i);
+  highlightFelder=cells;activeFelder=[];closeModal('m-read-arr');drawRam();
+  const pad4 = s => s.padStart(4,' ');
+  const idxLine = cells.map((_,i) => pad4(String(i))).join('');
+  const hexLine = cells.map(i => pad4(h2(ram[i]))).join('');
+  const decLine = cells.map(i => pad4(String(ram[i]))).join('');
+  showResult('READ ARRAY',`${adr(base)} .. ${adr(base+len-1)}  (${len} Bytes)`,
+    `idx ${idxLine}\nhex ${hexLine}\ndec ${decLine}`);
+}
+
+// ── READ LIST ──
+function readList(){
+  if(selectedIndex===null) return;
+  const headPos=selectedIndex;
+  const v0=ram[headPos];
+  if(v0===-1){
+    throwException('UninitializedMemoryError',
+      `Listen-Kopf bei ${adr(headPos)} nicht initialisiert.`,
+      `ram[${adr(headPos)}] = -1`,[headPos]);return;
+  }
+  const cells=[headPos],values=[];
+  let ptr=v0,steps=0;
+  while(ptr!==0){
+    if(steps++>128){
+      throwException('RuntimeError','Mögliche Endlosschleife: >128 Knoten traversiert.',
+        `Letzter Pointer: ${adr(ptr)}\nPrüfe auf zirkuläre Referenzen.`);return;
+    }
+    if(ptr<0||ptr+1>=RAM_SIZE){
+      throwException('SegmentationFault',
+        `Ungültiger Pointer ${adr(ptr)} außerhalb des RAMs.`,
+        `Pointer bei ${adr(cells[cells.length-1])} → ${adr(ptr)}`);return;
+    }
+    const val=ram[ptr],next=ram[ptr+1];
+    if(val===-1||next===-1){
+      throwException('UninitializedMemoryError',
+        `Knoten bei ${adr(ptr)} enthält uninitialisierte Felder.`,
+        `ram[${adr(ptr)}]   = ${val===-1?'-1 (uninit)':h2(val)}\n`+
+        `ram[${adr(ptr+1)}] = ${next===-1?'-1 (uninit)':h2(next)}`,
+        [ptr,ptr+1].filter(i=>ram[i]===-1));return;
+    }
+    cells.push(ptr,ptr+1);values.push(val);ptr=next;
+  }
+  highlightFelder=cells;activeFelder=[];drawRam();
+  const listStr=values.length===0?'[]':`[${values.map(h2).join(', ')}]`;
+  const detail=values.length===0?'(leere Liste)':values.map((v,i)=>`  [${i}]  0x${h2(v)}  =  ${v}`).join('\n');
+  showResult('READ LIST',`Kopf ${adr(headPos)}  →  ${values.length} Knoten`,`${listStr}\n\n${detail}`);
+}
+
+// ── KEYBOARD ──
+document.addEventListener('keydown', e => {
+  if(e.key==='Escape')
+    ['m-reload','m-int','m-str','m-arr','m-list','m-read-arr','m-result','m-exc']
+      .forEach(id=>{if(document.getElementById(id).classList.contains('open'))abortModal(id);});
+});
+
+// ── BOOT ──
+document.getElementById('last-update').textContent =
+  new Date().toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric'});
+random10();
+</script>
+</body>
+</html>

@@ -273,6 +273,14 @@ const cardsData = [
     "link": "rsa_interaktiv.html"
   },
   {
+    "id": "RAM",
+    "title": "RAM-Visualisierung",
+    "desc": "Visualisierung des Speicherverhaltens in einem Computer",
+    "types": ["uebung"],
+    "mobilefriendly": true,
+    "link": "ram_viewer.html"
+  },
+  {
     "id": "buchstaben-trainer",
     "title": "Buchstaben kennenlernen",
     "desc": "Wie heißen die griechischen (hebräischen, kyrillischen) Buchstaben und wie werden sie geschrieben?",

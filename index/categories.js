@@ -85,7 +85,7 @@ const categoriesData = [
     "icon": "💻",
     "iconType": "emoji",
     "tooltip": "Informatik-Themen: Binärzahlen, Kryptographie und mehr",
-    "cards": ["binary", "rsa"]
+    "cards": ["binary", "rsa", "RAM"]
   },
   {
     "id": "sprachen",
