@@ -90,6 +90,8 @@
     .btn:disabled { opacity: 0.3; cursor: not-allowed; }
     .btn.read-btn { color: var(--text-dim); }
     .btn.read-btn:not(:disabled) { color: var(--text); }
+    .btn.read-btn.read-dim { color: var(--text-faint) !important; border-color: var(--text-faint); }
+    .btn.read-btn.read-dim::before { color: var(--text-faint); }
     .grid-area {
       flex: 1; overflow: auto; padding: 12px 14px;
       scrollbar-width: thin; scrollbar-color: var(--border2) transparent;
@@ -131,25 +133,84 @@
       100% { background: var(--surface); border-color: var(--text-faint); color: var(--text); }
     }
     .cell.err-flash { animation: errFlash 0.6s ease forwards; }
-    .overlay {
-      position: fixed; inset: 0; background: rgba(0,8,0,0.88);
-      display: none; align-items: center; justify-content: center; z-index: 200;
+    /* ── LIGHT MODE ── */
+    body.light {
+      --bg:          #eef5ee;
+      --surface:     #e2ede2;
+      --surface2:    #d4e6d4;
+      --border:      #9cc49c;
+      --border2:     #74a874;
+      --accent:      #1a6e2e;
+      --accent-dim:  #2d8a44;
+      --accent-glow: rgba(26,110,46,0.15);
+      --text:        #1a3a1a;
+      --text-dim:    #4a7a4a;
+      --text-faint:  #8ab88a;
+      --yellow:      #a06000;
+      --yellow-bg:   #fff8e0;
+      --yellow-glow: rgba(160,96,0,0.18);
+      --pink:        #a00060;
+      --pink-bg:     #ffe8f4;
+      --green-hi:    #006620;
+      --green-bg:    #ccf0d8;
+      --err:         #cc0022;
+      --err-bg:      #ffe8ec;
+      --err-glow:    rgba(204,0,34,0.18);
     }
-    .overlay.open { display: flex; }
+    body.light::before { background: none; }
+    body.light .logo { text-shadow: none; }
+    body.light .cell.editing input { background: #e8f8e8; color: var(--yellow); }
+    body.light .cell.selected { box-shadow: 0 0 6px var(--yellow-glow); }
+    body.light .cell.highlight { box-shadow: 0 0 4px var(--accent-glow); }
+    body.light .modal { box-shadow: 0 4px 24px rgba(0,60,20,0.12); }
+    body.light .modal h2 { text-shadow: none; }
+    body.light .info-card .val { text-shadow: none; }
+    /* ── THEME TOGGLE ── */
+    .theme-toggle {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 0.58rem; color: var(--text-dim); letter-spacing: 1px; cursor: pointer;
+      user-select: none;
+    }
+    .theme-toggle .tk-track {
+      width: 28px; height: 14px; border: 1px solid var(--border2);
+      background: var(--surface2); border-radius: 0;
+      position: relative; transition: background 0.2s, border-color 0.2s;
+      flex-shrink: 0;
+    }
+    .theme-toggle .tk-thumb {
+      position: absolute; top: 2px; left: 2px;
+      width: 8px; height: 8px;
+      background: var(--text-dim);
+      transition: left 0.18s, background 0.18s;
+    }
+    body.light .theme-toggle .tk-thumb { left: 16px; background: var(--accent); }
+    body.light .theme-toggle .tk-track { background: var(--green-bg); border-color: var(--accent); }
+    /* ── OVERLAY / MODAL (draggable) ── */
+    .overlay {
+      position: fixed; inset: 0; background: rgba(0,8,0,0.75);
+      display: none; z-index: 200;
+    }
+    body.light .overlay { background: rgba(0,30,0,0.35); }
+    .overlay.open { display: block; }
     .modal {
+      position: absolute;
       background: var(--surface); border: 1px solid var(--accent-dim);
       box-shadow: 0 0 40px rgba(0,180,60,0.1); padding: 18px 20px 15px;
-      min-width: 300px; max-width: 94vw; animation: mIn 0.11s ease;
+      min-width: 300px; max-width: 94vw; max-height: 90vh; overflow-y: auto;
+      animation: mIn 0.11s ease;
     }
     @keyframes mIn {
-      from { opacity: 0; transform: scale(0.96) translateY(-4px); }
+      from { opacity: 0; transform: scale(0.97); }
       to   { opacity: 1; transform: none; }
     }
     .modal h2 {
       font-family: 'VT323', monospace; font-size: 1.2rem; letter-spacing: 3px;
       color: var(--accent); text-shadow: 0 0 8px var(--accent-glow);
       margin-bottom: 13px; border-bottom: 1px solid var(--border); padding-bottom: 5px;
+      cursor: move; user-select: none;
+      display: flex; align-items: center; gap: 6px;
     }
+    .modal h2::before { content: '⠿'; font-size: 0.9rem; color: var(--text-faint); flex-shrink: 0; }
     .modal.exc { border-color: var(--err); box-shadow: 0 0 40px var(--err-glow); }
     .modal.exc h2 { color: var(--err); text-shadow: 0 0 8px var(--err-glow); border-color: #400018; }
     .form-row { display: flex; align-items: center; gap: 7px; margin-bottom: 9px; flex-wrap: wrap; }
@@ -198,6 +259,22 @@
       opacity: 0; transition: opacity 0.25s; pointer-events: none; z-index: 999;
     }
     #toast.show { opacity: 1; }
+    /* ── FOOTER ── */
+    
+    /* .site-footer {
+      flex-shrink: 0;
+      background: var(--surface); border-top: 1px solid var(--border);
+    }
+    .footer-content {
+      display: flex; align-items: center; gap: 14px;
+      padding: 5px 16px;
+      font-size: 0.6rem; color: var(--text-faint); letter-spacing: 1px;
+    }
+    .footer-content > *::before { content: '// '; opacity: 0.45; }
+    .footer-content > *:first-child::before { content: ''; }
+    .footer-topic a { color: var(--accent-dim); text-decoration: none; }
+    .footer-topic a:hover { color: var(--accent); }
+    .footer-update { margin-left: auto; } */
     /* ── FOOTER ── */
     .site-footer {
       flex-shrink: 0;
@@ -257,6 +334,11 @@
 
 <header>
   <span class="logo">▸ 8-BIT RAM</span>
+  <label class="theme-toggle" title="Dark / Light Mode">
+    <span id="tk-lbl">DARK</span>
+    <span class="tk-track"><span class="tk-thumb"></span></span>
+    <span id="tk-rbl">LIGHT</span>
+  </label>
   <span class="meta">256 × 8BIT &nbsp;|&nbsp; 0x00–0xFF</span>
 </header>
 
@@ -300,12 +382,13 @@
   </main>
 </div>
 
+
 <!-- FOOTER -->
 <footer class="site-footer">
   <div class="footer-content">
       M.&nbsp;Koch
       <span class="footer-topic"><a href="./index.html">Mathe-Tools</a></span>
-      <span class="footer-update">Updated:&nbsp;<span id="last-update">...</span></span>
+      <span class="footer-update">Last updated:&nbsp;<span id="last-update">...</span></span>
   </div>
 </footer>
 <script src="last-update.js" defer></script>
@@ -456,9 +539,13 @@ function updateInfo(idx) {
 }
 
 function updateReadBtns() {
-  const dis = selectedIndex === null;
-  ['btn-rInt','btn-rStr','btn-rArr','btn-rList'].forEach(id => {
-    document.getElementById(id).disabled = dis;
+  const ids = ['btn-rInt','btn-rStr','btn-rArr','btn-rList'];
+  const hasSelection = selectedIndex !== null;
+  const isEmpty = hasSelection && ram[selectedIndex] === -1;
+  ids.forEach(id => {
+    const btn = document.getElementById(id);
+    btn.disabled = !hasSelection;
+    btn.classList.toggle('read-dim', hasSelection && isEmpty);
   });
 }
 
@@ -599,12 +686,77 @@ function loadRamFile(e) {
 }
 
 // ── MODALS ──
-function openModal(id)  { document.getElementById(id).classList.add('open'); }
-function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function openModal(id) {
+  const overlay = document.getElementById(id);
+  overlay.classList.add('open');
+  const modal = overlay.querySelector('.modal');
+  // center on first open or after reset
+  if (!modal._placed) {
+    modal._placed = true;
+    requestAnimationFrame(() => {
+      const mw = modal.offsetWidth, mh = modal.offsetHeight;
+      modal.style.left = `${Math.max(0, (window.innerWidth  - mw) / 2)}px`;
+      modal.style.top  = `${Math.max(0, (window.innerHeight - mh) / 2)}px`;
+    });
+  }
+}
+function closeModal(id) {
+  const overlay = document.getElementById(id);
+  overlay.classList.remove('open');
+  const modal = overlay.querySelector('.modal');
+  if (modal) { modal._placed = false; modal.style.left = ''; modal.style.top = ''; }
+}
 function abortModal(id) { activeFelder=[]; highlightFelder=[]; drawRam(); closeModal(id); }
-document.querySelectorAll('.overlay').forEach(el =>
-  el.addEventListener('click', e => { if (e.target===el) abortModal(el.id); })
-);
+
+document.querySelectorAll('.overlay').forEach(el => {
+  el.addEventListener('click', e => {
+    const modal = el.querySelector('.modal');
+    if (e.target === el && !(modal && modal._dragging)) abortModal(el.id);
+  });
+});
+
+function makeDraggable(modal) {
+  const handle = modal.querySelector('h2');
+  let sx, sy, ox, oy;
+
+  function startDrag(cx, cy) {
+    sx = cx; sy = cy;
+    ox = modal.offsetLeft; oy = modal.offsetTop;
+    modal._dragging = false; // becomes true only after a small move
+  }
+  function moveDrag(cx, cy) {
+    const dx = cx - sx, dy = cy - sy;
+    if (!modal._dragging && Math.abs(dx) + Math.abs(dy) < 4) return;
+    modal._dragging = true;
+    const maxX = window.innerWidth  - modal.offsetWidth;
+    const maxY = window.innerHeight - modal.offsetHeight;
+    modal.style.left = `${Math.max(0, Math.min(maxX, ox + dx))}px`;
+    modal.style.top  = `${Math.max(0, Math.min(maxY, oy + dy))}px`;
+  }
+  function endDrag() {
+    setTimeout(() => { modal._dragging = false; }, 50);
+  }
+
+  // Mouse
+  handle.addEventListener('mousedown', e => {
+    e.preventDefault();
+    startDrag(e.clientX, e.clientY);
+    const mm = e2 => moveDrag(e2.clientX, e2.clientY);
+    const mu = () => { endDrag(); document.removeEventListener('mousemove', mm); document.removeEventListener('mouseup', mu); };
+    document.addEventListener('mousemove', mm);
+    document.addEventListener('mouseup', mu);
+  });
+
+  // Touch
+  handle.addEventListener('touchstart', e => {
+    const t = e.touches[0];
+    startDrag(t.clientX, t.clientY);
+    const tm = e2 => { e2.preventDefault(); const t2 = e2.touches[0]; moveDrag(t2.clientX, t2.clientY); };
+    const tu = () => { endDrag(); handle.removeEventListener('touchmove', tm); handle.removeEventListener('touchend', tu); };
+    handle.addEventListener('touchmove', tm, {passive: false});
+    handle.addEventListener('touchend', tu);
+  }, {passive: true});
+}
 
 function applyReload() {
   let n = parseInt(document.getElementById('r-nullen').value)||0;
@@ -923,7 +1075,13 @@ document.addEventListener('keydown', e => {
       .forEach(id=>{if(document.getElementById(id).classList.contains('open'))abortModal(id);});
 });
 
+// ── THEME ──
+document.querySelector('.theme-toggle').addEventListener('click', () => {
+  document.body.classList.toggle('light');
+});
+
 // ── BOOT ──
+document.querySelectorAll('.modal').forEach(makeDraggable);
 document.getElementById('last-update').textContent =
   new Date().toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric'});
 random10();
