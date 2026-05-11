@@ -45,7 +45,7 @@ const categoriesData = [
     "icon": "∫",
     "iconType": "text",
     "tooltip": "Stammfunktionen und bestimmte Integrale von Polynomen",
-    "cards": ["integral", "bestimmtes-integral", "geo-integral", "aufg-flaechen-integrale"]
+    "cards": ["integral", "bestimmtes-integral", "geo-integral", "aufg-flaechen-integrale", "aufg-schnittflaechen-integrale"]
   },
   {
     "id": "vec",
