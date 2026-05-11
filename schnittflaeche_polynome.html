@@ -1,0 +1,1902 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flächenberechnung – Schnittflächen zweier Polynome</title>
+<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="scale.css">
+<script>
+MathJax = {
+  loader: {load: ['[tex]/color']},
+  tex: {packages: {'[+]': ['color']}}
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<script src="scale.js" defer></script>
+<!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-5K8WYYXDL2"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'G-5K8WYYXDL2');
+    </script>
+<style>
+
+#task-instruction { font-size: 1.1em; text-align: left; margin-bottom: 0.2em; }
+#task-formula { font-size: 1.6em; text-align: center; }
+#solution { color: red; font-size: 1.3em; text-align: center; }
+#solutionPath { margin: 1em; border-width: thin; }
+#solutionPathContent { color: blue; font-size: 1.0em; }
+.solution-path-inner { overflow-x: auto; }
+.sol-head    { font-weight: bold; margin: 1em 0 0.2em; color: #1a3fa8; }
+.sol-text    { margin: 0.15em 0 0.15em 1.2em; color: #333; }
+.sol-formula { margin: 0.15em 0 0.15em 1.2em; }
+.sol-formula mjx-container[display="true"] { text-align: left !important; margin-left: 0 !important; }
+.slider-container { margin: 10px 0; }
+.slider-container input[type="range"] { width: 200px; }
+
+/* ---- Toggle Switch (Segmented Control) ---- */
+.mode-switch-wrap { display: flex; justify-content: center; margin: 10px 0 6px; }
+.switch {
+  display: inline-flex; align-items: stretch; cursor: pointer; position: relative;
+  background: #d4d4d4; border-radius: 30px; padding: 3px;
+  max-width: 100%; box-sizing: border-box;
+}
+.switch input { display: none; }
+.switch .slider {
+  position: absolute; top: 3px; bottom: 3px; left: 3px;
+  width: calc(50% - 3px); background: #4caf50; border-radius: 24px;
+  transition: left 0.25s, background 0.25s; pointer-events: none;
+}
+.switch input:checked ~ .slider { left: 50%; background: #e07b00; }
+.switch-blue input:checked ~ .slider { background: #1a5fa8; }
+.switch-purple input:checked ~ .slider { background: #7700aa; }
+.switch .labels { display: flex; position: relative; z-index: 1; width: 100%; }
+.switch .labels span {
+  flex: 1; padding: 5px 14px; font-size: 0.82em; font-weight: bold; color: #666;
+  text-align: center; transition: color 0.2s; white-space: nowrap; min-width: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+.switch .labels span:first-child { color: #fff; }
+.switch input:checked ~ .labels span:first-child { color: #555; }
+.switch input:checked ~ .labels span:last-child  { color: #fff; }
+@media (max-width: 480px) {
+  .switch .labels span { padding: 5px 8px; font-size: 0.75em; white-space: normal; text-align: center; }
+}
+
+#sketchDetails { margin-bottom: 1em; }
+.task-note { font-size: 0.9em; color: #444; margin-top: 0.3em; overflow-x: auto; }
+
+/* Farben f und g */
+.col-f { color: #b00018 !important; }
+.col-g { color: #005098 !important; }
+.sol-formula.col-f mjx-container, .sol-formula.col-f { color: #b00018; }
+.sol-formula.col-g mjx-container, .sol-formula.col-g { color: #005098; }
+</style>
+</head>
+<body>
+
+<h1>Flächenberechnung – Schnittflächen zweier Polynome</h1>
+
+<details>
+<summary>Einstellungen</summary>
+
+<div class="form-block">
+<b>Aufgabenart: Schnittstellen</b><br>
+<label><input type="radio" name="taskType" value="random" checked> Zufällige Aufgabenstellung</label><br>
+<label><input type="radio" name="taskType" value="findAll"> Alle Schnittstellen selbst bestimmen</label><br>
+<label><input type="radio" name="taskType" value="givenAll"> Alle Schnittstellen gegeben</label><br>
+<label><input type="radio" name="taskType" value="verify"> Alle Schnittstellen rechnerisch nachweisen</label><br>
+</div>
+
+<div class="form-block">
+<b>Schnittstellen-Typ</b><br>
+<label><input type="radio" name="zeroType" value="integer" checked> Nur ganzzahlige Schnittstellen</label><br>
+<label><input type="radio" name="zeroType" value="rational"> Auch rationale Schnittstellen (halbe, viertel)</label><br>
+<label><input type="radio" name="zeroType" value="irrational"> Auch irrationale Schnittstellen (Wurzeln)</label><br>
+</div>
+
+<div class="form-block">
+<div class="slider-container">
+<b>Maximaler Grad (Differenzfunktion): <span id="degreeValue">3</span></b><br>
+<input type="range" id="maxDegree" min="1" max="3" value="3">
+</div>
+</div>
+
+<div class="form-block">
+<div class="slider-container">
+<b>Max. Schnittstellen im Intervall: <span id="maxZerosValue">2</span></b><br>
+<input type="range" id="maxZerosInRange" min="0" max="4" value="2">
+</div>
+</div>
+
+<div class="form-block">
+<b>Koeffizienten &amp; Faktor (Differenzfunktion)</b><br>
+<label><input type="checkbox" id="allowFractions"> Brüche bei den Koeffizienten erlauben</label><br>
+<label><input type="checkbox" id="allowDecimals"> Dezimalzahlen bei den Koeffizienten erlauben</label><br>
+<label><input type="checkbox" id="allowFactor"> Vorfaktor um die Differenzfunktion erlauben</label><br>
+</div>
+
+</details>
+
+<button onclick="newTask()" style="align-self: flex-start;">Neue Aufgabe</button>
+
+<h2>Aufgabe</h2>
+<div id="task-instruction"></div>
+<div class="scale-wrapper">
+  <div id="task-formula" class="scale-el"></div>
+</div>
+
+<details id="sketchDetails">
+  <summary>Hilfestellung: Skizze</summary>
+  <div style="padding:0.5em 8px 0;">
+    <div class="mode-switch-wrap">
+      <label class="switch switch-purple">
+        <input type="checkbox" id="sketchModeToggle">
+        <span class="slider"></span>
+        <span class="labels">
+          <span>Beide Graphen</span>
+          <span>Differenzfunktion</span>
+        </span>
+      </label>
+    </div>
+    <canvas id="sketchCanvas" width="580" height="320"
+            style="display:block; margin:auto; max-width:100%; box-sizing:border-box; border:1px solid #ccc; border-radius:4px; background:#fafafa;"></canvas>
+  </div>
+</details>
+
+<details id="solutionDetailsContainer">
+  <summary>Lösung</summary>
+
+  <div class="mode-switch-wrap">
+    <label class="switch">
+      <input type="checkbox" id="roundingToggle">
+      <span class="slider"></span>
+      <span class="labels">
+        <span>Genau (Brüche)</span>
+        <span>Gerundet (2 St.)</span>
+      </span>
+    </label>
+  </div>
+
+  <div class="scale-wrapper">
+    <div id="solution" class="scale-el"></div>
+  </div>
+
+  <details id="solutionPath">
+    <summary>Lösungsweg</summary>
+
+    <div class="mode-switch-wrap">
+      <label class="switch switch-blue">
+        <input type="checkbox" id="styleToggle">
+        <span class="slider"></span>
+        <span class="labels">
+          <span>Differenzfunktion</span>
+          <span>Einzelne Integrale</span>
+        </span>
+      </label>
+    </div>
+
+    <div class="scale-wrapper">
+      <div id="solutionPathContent" class="scale-el"></div>
+    </div>
+  </details>
+</details>
+
+<script>
+// ================================================================
+// SCALE  (inline fallback)
+// ================================================================
+function scaleToFit(el) {
+  if (!el) return;
+  el.style.transform = 'none';
+  el.style.transformOrigin = 'top left';
+  const wrapper = el.parentElement;
+  if (!wrapper) return;
+  wrapper.style.height = 'auto';
+  requestAnimationFrame(() => {
+    const available = wrapper.clientWidth;
+    const natural   = el.scrollWidth;
+    if (natural > available && available > 0) {
+      const scale = available / natural;
+      el.style.transform = `scale(${scale})`;
+      wrapper.style.height = (el.scrollHeight * scale) + 'px';
+    }
+  });
+}
+function scaleAllElements() { document.querySelectorAll('.scale-el').forEach(scaleToFit); }
+window.addEventListener('resize', scaleAllElements);
+
+// ================================================================
+// RATIONAL ARITHMETIC
+// ================================================================
+function gcd(a, b) { a=Math.abs(a); b=Math.abs(b); while(b){let t=b;b=a%b;a=t;} return a||1; }
+function rat(n, d=1) {
+  if (d===0) throw new Error('div0');
+  if (d<0){n=-n;d=-d;}
+  let g=gcd(Math.abs(n),d); return {n:n/g, d:d/g};
+}
+const ratAdd=(a,b)=>rat(a.n*b.d+b.n*a.d, a.d*b.d);
+const ratSub=(a,b)=>rat(a.n*b.d-b.n*a.d, a.d*b.d);
+const ratMul=(a,b)=>rat(a.n*b.n, a.d*b.d);
+const ratDiv=(a,b)=>rat(a.n*b.d, a.d*b.n);
+function ratPow(a,e){ if(e===0)return rat(1); let r=rat(1); for(let i=0;i<e;i++)r=ratMul(r,a); return r; }
+const ratNeg =(a)=>rat(-a.n,a.d);
+const ratAbs =(a)=>rat(Math.abs(a.n),a.d);
+const ratToFloat=(r)=>r.n/r.d;
+const ratIsInt =(r)=>r.d===1;
+const ratIsZero=(r)=>r.n===0;
+const ratIsNeg =(r)=>r.n<0;
+const ratEq   =(a,b)=>a.n===b.n&&a.d===b.d;
+const ratIsExactAt2=(r)=>(Math.abs(r.n)*100)%r.d===0;
+
+function ratToDecimalLatex(r, skipOne=false) {
+  if (r.d===1) {
+    if (r.n===0) return '0';
+    if (skipOne && r.n===1)  return '';
+    if (skipOne && r.n===-1) return '-';
+    return r.n.toString();
+  }
+  let v=r.n/r.d;
+  let s=v.toFixed(4).replace(/0+$/,'').replace(/\.$/,'');
+  s=s.replace('.','{,}');
+  if (skipOne && s==='1')  return '';
+  if (skipOne && s==='-1') return '-';
+  return s;
+}
+
+function ratToLatex(r, skipOne=false) {
+  if (r.d===1) {
+    if (r.n===0) return '0';
+    if (skipOne && r.n===1)  return '';
+    if (skipOne && r.n===-1) return '-';
+    return r.n.toString();
+  }
+  let absN=Math.abs(r.n), sign=r.n<0?'-':'';
+  if (skipOne && absN===r.d) return r.n<0?'-':'';
+  return `${sign}\\frac{${absN}}{${r.d}}`;
+}
+function ratToRoundedLatex(r) {
+  if (ratIsInt(r)) return r.n.toString();
+  let v=Math.round(ratToFloat(r)*100)/100;
+  return v.toFixed(2).replace(/0+$/,'').replace(/\.$/,'').replace('.','{,}');
+}
+function formatRat(r, mode, appendDecimal=false) {
+  if (mode==='round') return ratToRoundedLatex(r);
+  let base=ratToLatex(r);
+  if (appendDecimal && !ratIsInt(r)) {
+    let v=Math.round(ratToFloat(r)*100)/100;
+    let sign=ratIsExactAt2(r)?'=':'\\approx';
+    let s=v.toFixed(2).replace(/0+$/,'').replace(/\.$/,'').replace('.','{,}');
+    return `${base} ${sign} ${s}`;
+  }
+  return base;
+}
+function eqSign(r, mode) {
+  if (mode==='round') return ratIsExactAt2(r)?'=':'\\approx';
+  return '=';
+}
+
+// ================================================================
+// POLYNOMIAL
+// ================================================================
+function polyEval(c, x) {
+  let s=rat(0);
+  for(let i=0;i<c.length;i++) if(!ratIsZero(c[i])) s=ratAdd(s,ratMul(c[i],ratPow(x,i)));
+  return s;
+}
+function polyEvalF(c, x) {
+  let s=0;
+  for(let i=0;i<c.length;i++) s+=ratToFloat(c[i])*Math.pow(x,i);
+  return s;
+}
+function polyMulLinear(c, r) {
+  let res=new Array(c.length+1).fill(null).map(()=>rat(0));
+  for(let i=0;i<c.length;i++){
+    res[i+1]=ratAdd(res[i+1],c[i]);
+    res[i]  =ratSub(res[i],  ratMul(r,c[i]));
+  }
+  return res;
+}
+function polyMulQuad(c, p, q) {
+  let res=new Array(c.length+2).fill(null).map(()=>rat(0));
+  for(let i=0;i<c.length;i++){
+    res[i+2]=ratAdd(res[i+2],c[i]);
+    res[i+1]=ratAdd(res[i+1],ratMul(p,c[i]));
+    res[i]  =ratAdd(res[i],  ratMul(q,c[i]));
+  }
+  return res;
+}
+function polyScale(c, s) { return c.map(x=>ratMul(x,s)); }
+function polyAdd(a, b) {
+  let n=Math.max(a.length,b.length);
+  let r=[];
+  for(let i=0;i<n;i++){
+    let ai=i<a.length?a[i]:rat(0);
+    let bi=i<b.length?b[i]:rat(0);
+    r.push(ratAdd(ai,bi));
+  }
+  return r;
+}
+function antideriv(c) {
+  let F=[rat(0)];
+  for(let i=0;i<c.length;i++) F.push(ratDiv(c[i],rat(i+1)));
+  return F;
+}
+
+// ================================================================
+// LATEX FOR POLYNOMIALS
+// ================================================================
+function polyToLatex(c, v='x', decMode=false) {
+  let coeff2lat=(r,skip)=>decMode?ratToDecimalLatex(r,skip):ratToLatex(r,skip);
+  let terms=[];
+  for(let i=c.length-1;i>=0;i--) {
+    let r=c[i]; if(ratIsZero(r)) continue;
+    let cs=coeff2lat(r,i>0);
+    let xp=i===0?'':(i===1?v:`${v}^{${i}}`);
+    let term;
+    if(i===0)         term=coeff2lat(r,false);
+    else if(cs==='')  term=xp;
+    else if(cs==='-') term=`-${xp}`;
+    else              term=`${cs}${xp}`;
+    terms.push({term, neg:ratIsNeg(r)});
+  }
+  if(!terms.length) return '0';
+  let s='';
+  for(let i=0;i<terms.length;i++) s+=(i===0?'':(terms[i].neg?'':'+'))+terms[i].term;
+  return s;
+}
+function substitutePoly(c, valLatex, decMode=false) {
+  let coeff2lat=(r,skip)=>decMode?ratToDecimalLatex(r,skip):ratToLatex(r,skip);
+  let terms=[];
+  for(let i=c.length-1;i>=0;i--) {
+    let r=c[i]; if(ratIsZero(r)) continue;
+    let cs=coeff2lat(r,i>0);
+    let xp=i===0?'':(i===1?`\\left(${valLatex}\\right)`:`\\left(${valLatex}\\right)^{${i}}`);
+    let term;
+    if(i===0)         term=coeff2lat(r,false);
+    else if(cs==='')  term=xp;
+    else if(cs==='-') term=`-${xp}`;
+    else              term=`${cs}\\cdot ${xp}`;
+    terms.push({term, neg:ratIsNeg(r)});
+  }
+  if(!terms.length) return '0';
+  let s='';
+  for(let i=0;i<terms.length;i++) s+=(i===0?'':(terms[i].neg?'':'+'))+terms[i].term;
+  return s;
+}
+function antiderivIntermediate(c, decMode=false) {
+  let coeff2lat=(r,skip)=>decMode?ratToDecimalLatex(r,skip):ratToLatex(r,skip);
+  let terms=[];
+  for(let i=c.length-1;i>=0;i--) {
+    let r=c[i]; if(ratIsZero(r)) continue;
+    let np=i+1, cs=coeff2lat(r,i>0);
+    let fullCs=coeff2lat(r,false);
+    let term;
+    if(i===0)      term=cs===''?'x':cs==='-'?'-x':`${fullCs}\\cdot x`;
+    else if(i===1) term=cs===''?`\\frac{x^{2}}{2}`:cs==='-'?`-\\frac{x^{2}}{2}`:`${cs}\\cdot\\frac{x^{2}}{2}`;
+    else           term=cs===''?`\\frac{x^{${np}}}{${np}}`:cs==='-'?`-\\frac{x^{${np}}}{${np}}`:`${cs}\\cdot\\frac{x^{${np}}}{${np}}`;
+    terms.push({term, neg:ratIsNeg(r)});
+  }
+  if(!terms.length) return '0';
+  let s='';
+  for(let i=0;i<terms.length;i++) s+=(i===0?'':(terms[i].neg?'':'+'))+terms[i].term;
+  return s;
+}
+
+// ================================================================
+// ZERO VALUE TYPES
+// ================================================================
+function zeroValToFloat(v) {
+  if (v.type==='rat') return ratToFloat(v.r);
+  return Math.sqrt(v.n)/v.d;
+}
+function linearFactorLatex(r) {
+  if (ratIsZero(r)) return 'x';
+  if (ratIsNeg(r)) return `(x+${ratToLatex(ratAbs(r))})`;
+  return `(x-${ratToLatex(r)})`;
+}
+
+// ================================================================
+// RANDOM HELPERS
+// ================================================================
+const rand=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+function pick(arr){return arr[Math.floor(Math.random()*arr.length)];}
+function randSign(){return Math.random()<0.5?1:-1;}
+
+function pickLeadCoeff() {
+  let allowFrac=document.getElementById('allowFractions').checked;
+  let allowDec =document.getElementById('allowDecimals').checked;
+  const posInts=[1,2,3,4,5,10];
+  const allInts=[-10,-5,-4,-3,-2,-1,...posInts];
+  const fracDenoms=[2,3,4,5,10];
+  const decOffsets=[10,20,30,40,50,60,70,80,90,25,75];
+  let slots=[];
+  for(let i=0;i<1;i++) slots.push('int');
+  if(allowFrac) for(let i=0;i<2;i++) slots.push('frac');
+  if(allowDec)  for(let i=0;i<2;i++) slots.push('dec');
+  let chosen=pick(slots);
+  if(chosen==='dec') {
+    let off=pick(decOffsets);
+    let absVal;
+    if(Math.random()<0.5) { absVal=rat(off,100); }
+    else { let prefix=pick(posInts); absVal=rat(prefix*100+off,100); }
+    let r=Math.random()<0.5 ? absVal : ratNeg(absVal);
+    return {r, decMode:true};
+  }
+  if(chosen==='frac') {
+    let pool=[];
+    allInts.forEach(n=>{ fracDenoms.forEach(d=>{ let r=rat(n,d); if(r.d>1) pool.push(r); }); });
+    pool=pool.filter(r=>!ratIsZero(r));
+    return {r:pick(pool), decMode:false};
+  }
+  let pool=allInts.filter(v=>v!==0).map(v=>rat(v));
+  return {r:pick(pool), decMode:false};
+}
+
+function pickRatZeroVal(zeroType) {
+  if (zeroType==='integer') {
+    return {type:'rat', r:rat(rand(-6,6))};
+  } else if (zeroType==='rational') {
+    let r=pick([1,2,4]);
+    let n=rand(-6*r,6*r);
+    return {type:'rat', r:rat(n,r)};
+  } else {
+    if (Math.random()<0.5) {
+      return {type:'rat', r:rat(rand(-6,6))};
+    } else {
+      // sqrt(n) <= 6  →  n <= 36; alle Kandidaten erfüllen das bereits
+      let candidates=[2,3,5,6,7,8,10,11,12,13,14,15,17,18,19,20];
+      let n=pick(candidates);
+      return {type:'sqrt', n, d:1};
+    }
+  }
+}
+
+function makeIrreducibleQuadratic() {
+  let p=rand(-4,4);
+  let minQ=Math.floor(p*p/4)+1;
+  let q=minQ+rand(0,4);
+  return {
+    poly: [rat(q), rat(p), rat(1)],
+    latex: `x^{2}${p>0?'+'+p:p<0?p:''}x${q>0?'+'+q:''}`.replace('+-','-').replace('0x','').replace('+0',''),
+    latexFull: `(x^{2}${p!==0?(p>0?'+':'')+p+'x':''}+${q})`,
+    p: rat(p), q: rat(q)
+  };
+}
+function irredLatex(iq) {
+  let inner='x^{2}';
+  if(!ratIsZero(iq.p)){
+    if(ratIsNeg(iq.p)) inner+=ratToLatex(iq.p)+'x';
+    else inner+='+'+ratToLatex(iq.p)+'x';
+  }
+  inner+='+'+ratToLatex(iq.q);
+  return `(${inner})`;
+}
+
+function pickDistinctRationals(n, zeroType, exclude=[]) {
+  let results=[];
+  let usedKeys=new Set(exclude.map(r=>`${r.n}/${r.d}`));
+  for(let i=0;i<n;i++) {
+    let v, key, tries=0;
+    do {
+      v=pickRatZeroVal(zeroType);
+      if(v.type!=='rat') v={type:'rat',r:rat(rand(-8,8))};
+      key=`${v.r.n}/${v.r.d}`;
+      tries++;
+    } while(usedKeys.has(key) && tries<100);
+    usedKeys.add(key);
+    results.push(v.r);
+  }
+  return results;
+}
+
+// ================================================================
+// g(x) GENERATOR – erzeugt g(x) passend zur Differenzfunktion d(x)
+// ================================================================
+function generateGPoly(hPoly, dDegree) {
+  const small = [-4,-3,-2,-1,1,2,3,4];
+  const any   = [-3,-2,-1,0,1,2,3];
+  const r = Math.random();
+
+  // Grad von g bestimmen
+  let gDegree;
+  if (r < 0.10) {
+    // 10 %: höherer Grad (d.h. f und g haben je einen term mehr, der sich wegkürzt)
+    gDegree = dDegree + 1;
+  } else if (r < 0.70) {
+    // 60 %: gleicher Grad wie d
+    gDegree = dDegree;
+  } else {
+    // 30 %: niedrigerer Grad
+    if (Math.random() < 0.70) {
+      gDegree = Math.max(0, dDegree - 1);
+    } else {
+      gDegree = Math.max(0, dDegree - 2);
+    }
+  }
+
+  // Koeffizienten-Array aufbauen [c0, c1, ..., c_gDegree]
+  let coeffs = [];
+  for (let i = 0; i < gDegree; i++) {
+    coeffs.push(rat(pick(any)));
+  }
+
+  // Leitkoeffizient
+  let leadCoeff;
+  if (gDegree === 0) {
+    leadCoeff = rat(pick(any));
+  } else if (r >= 0.10 && r < 0.70) {
+    // Gleicher Grad: Vorzeichen des d-Leitkoeffizienten beachten
+    const dLead = hPoly[dDegree];
+    const dSign = (dLead && !ratIsZero(dLead) && ratIsNeg(dLead)) ? -1 : 1;
+    if (Math.random() < 0.70) {
+      // 70 %: entgegengesetztes Vorzeichen (optisch schöner: eine Kurve öffnet anders)
+      const pool = small.filter(v => v * dSign < 0);
+      leadCoeff = rat(pick(pool.length ? pool : small));
+    } else {
+      // 30 %: gleiches Vorzeichen
+      const pool = small.filter(v => v * dSign > 0);
+      leadCoeff = rat(pick(pool.length ? pool : small));
+    }
+  } else {
+    leadCoeff = rat(pick(small));
+  }
+  coeffs.push(leadCoeff);
+
+  // Sicherheit: Leitkoeffizient darf nicht 0 sein
+  while (coeffs.length > 1 && ratIsZero(coeffs[coeffs.length-1])) {
+    coeffs[coeffs.length-1] = rat(pick(small));
+  }
+  return coeffs;
+}
+
+// ================================================================
+// TASK GENERATION
+// ================================================================
+function generateTask() {
+  let taskTypeSetting=document.querySelector('input[name="taskType"]:checked').value;
+  let zeroType       =document.querySelector('input[name="zeroType"]:checked').value;
+  let maxDeg         =parseInt(document.getElementById('maxDegree').value);
+  let maxZIR         =parseInt(document.getElementById('maxZerosInRange').value);
+  let allowFact      =document.getElementById('allowFactor').checked;
+
+  let taskType=taskTypeSetting==='random'?pick(['findAll','givenAll','verify']):taskTypeSetting;
+  // Gewichtete Grad-Wahl
+  let degree;
+  if (maxDeg===1) { degree=1; }
+  else if (maxDeg===2) { degree = Math.random()<0.9 ? 2 : 1; }
+  else { // maxDeg===3
+    let r=Math.random();
+    degree = r<0.40 ? 3 : r<0.90 ? 2 : 1;
+  }
+  let {r:a, decMode} = pickLeadCoeff();
+
+  let poly;
+  let zeros=[];
+  let zeroFloats=[];
+  let factorLatex='';
+  let hasIrrZeros=false;
+  let noRealZeros=false;
+  let verifyZeros=[];
+
+  function buildFromFactors(zeros_r, iq) {
+    let p=[rat(1)];
+    for(let r of zeros_r) p=polyMulLinear(p,r);
+    if(iq) p=polyMulQuad(p, iq.p, iq.q);
+    return p;
+  }
+  function factorLatexFromRatZeros(zeros_r, iq) {
+    let s='';
+    let groups=[];
+    let i=0;
+    while(i<zeros_r.length) {
+      let r=zeros_r[i], cnt=0;
+      while(i<zeros_r.length && ratEq(zeros_r[i],r)){cnt++;i++;}
+      groups.push({r,cnt});
+    }
+    for(let g of groups) {
+      let lf=linearFactorLatex(g.r);
+      s+= g.cnt>1 ? `${lf}^{${g.cnt}}` : lf;
+    }
+    if(iq) s+=irredLatex(iq);
+    return s;
+  }
+
+  if (taskType==='findAll') {
+    if (degree===1) {
+      let z=pickDistinctRationals(1,zeroType)[0];
+      zeros=[{r:z, mult:1}]; zeroFloats=[ratToFloat(z)];
+      poly=polyScale(polyMulLinear([rat(1)],z), a);
+      factorLatex=linearFactorLatex(z);
+    }
+    else if (degree===2) {
+      let r2=Math.random();
+      let sub = r2<0.80 ? 'twoDistinct' : r2<0.90 ? 'double' : 'none';
+      if(sub==='twoDistinct') {
+        let [z1,z2]=pickDistinctRationals(2,zeroType);
+        if(zeroType==='irrational' && Math.random()<0.4) {
+          let n=pick([2,3,5,6,7,8,10,12,13,15]);
+          let r=Math.sqrt(n);
+          zeros=[{r:rat( Math.round(r*1000)/1000), mult:1, isSqrt:true, sqrtN:n, sqrtSign:1},
+                 {r:rat(-Math.round(r*1000)/1000), mult:1, isSqrt:true, sqrtN:n, sqrtSign:-1}];
+          zeroFloats=[r,-r].sort((a,b)=>a-b);
+          poly=polyScale([rat(-n),rat(0),rat(1)], a);
+          factorLatex=`(x^{2}-${n})`;
+          hasIrrZeros=true;
+        } else {
+          zeros=[{r:z1,mult:1},{r:z2,mult:1}];
+          zeroFloats=[ratToFloat(z1),ratToFloat(z2)].sort((a,b)=>a-b);
+          poly=polyScale(buildFromFactors([z1,z2]),a);
+          factorLatex=factorLatexFromRatZeros([z1,z2]);
+        }
+      } else if(sub==='double') {
+        let [z]=pickDistinctRationals(1,zeroType);
+        zeros=[{r:z,mult:2}]; zeroFloats=[ratToFloat(z)];
+        poly=polyScale(buildFromFactors([z,z]),a);
+        factorLatex=factorLatexFromRatZeros([z,z]);
+      } else {
+        let iq=makeIrreducibleQuadratic();
+        zeros=[]; zeroFloats=[]; noRealZeros=true;
+        poly=polyScale(iq.poly,a);
+        factorLatex=irredLatex(iq);
+      }
+    }
+    else if (degree===3) {
+      let r3=Math.random();
+      // 60% drei verschiedene (x·z1·z2), 20% einfach+doppelt (x·z²  oder  x²·z), 10% nur eine einfache (x·irred), 10% dreifache (x³)
+      let sub;
+      if      (r3<0.60) sub = 'x_two_distinct';
+      else if (r3<0.80) sub = Math.random()<0.5 ? 'x_double' : 'x2_one';
+      else if (r3<0.90) sub = 'x_irred';
+      else              sub = 'x3';
+      if(sub==='x_two_distinct') {
+        let [z1,z2]=pickDistinctRationals(2,zeroType,[ rat(0) ]);
+        zeros=[{r:rat(0),mult:1},{r:z1,mult:1},{r:z2,mult:1}];
+        zeroFloats=[0,ratToFloat(z1),ratToFloat(z2)].sort((a,b)=>a-b);
+        poly=polyScale(buildFromFactors([rat(0),z1,z2]),a);
+        factorLatex=`x${linearFactorLatex(z1)}${linearFactorLatex(z2)}`;
+      } else if(sub==='x_double') {
+        let [z1]=pickDistinctRationals(1,zeroType,[rat(0)]);
+        zeros=[{r:rat(0),mult:1},{r:z1,mult:2}];
+        zeroFloats=[0,ratToFloat(z1)].sort((a,b)=>a-b);
+        poly=polyScale(buildFromFactors([rat(0),z1,z1]),a);
+        factorLatex=`x${linearFactorLatex(z1)}^{2}`;
+      } else if(sub==='x2_one') {
+        let [z1]=pickDistinctRationals(1,zeroType,[rat(0)]);
+        zeros=[{r:rat(0),mult:2},{r:z1,mult:1}];
+        zeroFloats=[0,ratToFloat(z1)].sort((a,b)=>a-b);
+        poly=polyScale(buildFromFactors([rat(0),rat(0),z1]),a);
+        factorLatex=`x^{2}${linearFactorLatex(z1)}`;
+      } else if(sub==='x3') {
+        zeros=[{r:rat(0),mult:3}]; zeroFloats=[0];
+        poly=polyScale([rat(0),rat(0),rat(0),rat(1)],a);
+        factorLatex='x^{3}';
+      } else {
+        let iq=makeIrreducibleQuadratic();
+        zeros=[{r:rat(0),mult:1}]; zeroFloats=[0];
+        poly=polyScale(buildFromFactors([rat(0)],iq),a);
+        factorLatex=`x${irredLatex(iq)}`;
+      }
+    }
+    else { // degree===4
+      let sub=pick(['sq_sq_pos_pos','sq_sq_pos_neg','sq_sq_neg_neg','x2_sq_pos','x2_sq_neg','x2_lin_lin','x3_lin','x2_double_lin']);
+      buildDeg4FindAll(sub);
+    }
+  }
+  else {
+    if(degree===1) {
+      let z=pickDistinctRationals(1,zeroType)[0];
+      zeros=[{r:z,mult:1}]; zeroFloats=[ratToFloat(z)];
+      poly=polyScale(polyMulLinear([rat(1)],z),a);
+      factorLatex=linearFactorLatex(z);
+    }
+    else if(degree===2) { buildDeg2Free(); }
+    else if(degree===3) { buildDeg3Free(); }
+    else { buildDeg4Free(); }
+  }
+
+  function buildDeg4FindAll(sub) {
+    if(sub==='sq_sq_pos_pos') {
+      let x1v=pickRatZeroVal(zeroType), x2v=pickRatZeroVal(zeroType);
+      let x1f=Math.abs(zeroValToFloat(x1v)), x2f=Math.abs(zeroValToFloat(x2v));
+      if(x1f<0.01) x1f=1; if(x2f<0.01) x2f=1;
+      let inner1, inner2;
+      if(x1v.type==='rat') {
+        let sq=ratMul(x1v.r,x1v.r); inner1={poly:[ratNeg(sq),rat(0),rat(1)],p:rat(0),q:ratNeg(sq)};
+        let r1=ratAbs(x1v.r); zeros.push({r:r1,mult:1},{r:ratNeg(r1),mult:1}); zeroFloats.push(ratToFloat(r1),ratToFloat(ratNeg(r1)));
+      } else {
+        inner1={poly:[rat(-x1v.n),rat(0),rat(1)],p:rat(0),q:rat(-x1v.n)};
+        zeros.push({r:null,mult:1,isSqrt:true,sqrtN:x1v.n,sqrtSign:1},{r:null,mult:1,isSqrt:true,sqrtN:x1v.n,sqrtSign:-1});
+        zeroFloats.push(Math.sqrt(x1v.n),-Math.sqrt(x1v.n)); hasIrrZeros=true;
+      }
+      if(x2v.type==='rat') {
+        let sq=ratMul(x2v.r,x2v.r); inner2={poly:[ratNeg(sq),rat(0),rat(1)],p:rat(0),q:ratNeg(sq)};
+        let r2=ratAbs(x2v.r); zeros.push({r:r2,mult:1},{r:ratNeg(r2),mult:1}); zeroFloats.push(ratToFloat(r2),ratToFloat(ratNeg(r2)));
+      } else {
+        inner2={poly:[rat(-x2v.n),rat(0),rat(1)],p:rat(0),q:rat(-x2v.n)};
+        zeros.push({r:null,mult:1,isSqrt:true,sqrtN:x2v.n,sqrtSign:1},{r:null,mult:1,isSqrt:true,sqrtN:x2v.n,sqrtSign:-1});
+        zeroFloats.push(Math.sqrt(x2v.n),-Math.sqrt(x2v.n)); hasIrrZeros=true;
+      }
+      let monic=polyMulQuad(inner1.poly, inner2.p, inner2.q);
+      poly=polyScale(monic,a);
+      let f1=x1v.type==='rat'?`(x^{2}-${ratToLatex(ratMul(ratAbs(x1v.r),ratAbs(x1v.r)))})`:`(x^{2}-${x1v.n})`;
+      let f2=x2v.type==='rat'?`(x^{2}-${ratToLatex(ratMul(ratAbs(x2v.r),ratAbs(x2v.r)))})`:`(x^{2}-${x2v.n})`;
+      factorLatex=f1+f2;
+    }
+    else if(sub==='sq_sq_pos_neg') {
+      let x1v=pickRatZeroVal(zeroType), x2v=pickRatZeroVal(zeroType);
+      let x2sq=x2v.type==='rat'?ratMul(ratAbs(x2v.r),ratAbs(x2v.r)):rat(x2v.n);
+      if(ratIsZero(x2sq)) x2sq=rat(1);
+      let inner1q;
+      if(x1v.type==='rat') {
+        let sq=ratMul(ratAbs(x1v.r),ratAbs(x1v.r)); inner1q=ratNeg(sq);
+        let r1=ratAbs(x1v.r); zeros.push({r:r1,mult:1},{r:ratNeg(r1),mult:1}); zeroFloats.push(ratToFloat(r1),ratToFloat(ratNeg(r1)));
+      } else {
+        inner1q=rat(-x1v.n);
+        zeros.push({r:null,mult:1,isSqrt:true,sqrtN:x1v.n,sqrtSign:1},{r:null,mult:1,isSqrt:true,sqrtN:x1v.n,sqrtSign:-1});
+        zeroFloats.push(Math.sqrt(x1v.n),-Math.sqrt(x1v.n)); hasIrrZeros=true;
+      }
+      let monicBase=[inner1q,rat(0),rat(1)];
+      let monic=polyMulQuad(monicBase,rat(0),x2sq);
+      poly=polyScale(monic,a);
+      let x1sq_str=x1v.type==='rat'?ratToLatex(ratMul(ratAbs(x1v.r),ratAbs(x1v.r))):String(x1v.n);
+      factorLatex=`(x^{2}-${x1sq_str})(x^{2}+${ratToLatex(x2sq)})`;
+    }
+    else if(sub==='sq_sq_neg_neg') {
+      let iq1=makeIrreducibleQuadratic(), iq2=makeIrreducibleQuadratic();
+      zeros=[]; zeroFloats=[]; noRealZeros=true;
+      let monic=polyMulQuad(iq1.poly,iq2.p,iq2.q);
+      poly=polyScale(monic,a); factorLatex=irredLatex(iq1)+irredLatex(iq2);
+    }
+    else if(sub==='x2_sq_pos') {
+      let x1v=pickRatZeroVal(zeroType); let x1sq;
+      if(x1v.type==='rat'){ x1sq=ratMul(ratAbs(x1v.r),ratAbs(x1v.r)); let r1=ratAbs(x1v.r); zeros.push({r:r1,mult:1},{r:ratNeg(r1),mult:1}); zeroFloats.push(ratToFloat(r1),-ratToFloat(r1)); }
+      else { x1sq=rat(x1v.n); zeros.push({r:null,mult:1,isSqrt:true,sqrtN:x1v.n,sqrtSign:1},{r:null,mult:1,isSqrt:true,sqrtN:x1v.n,sqrtSign:-1}); zeroFloats.push(Math.sqrt(x1v.n),-Math.sqrt(x1v.n)); hasIrrZeros=true; }
+      zeros.unshift({r:rat(0),mult:2}); zeroFloats.push(0);
+      let monic=[rat(0),rat(0),ratNeg(x1sq),rat(0),rat(1)];
+      poly=polyScale(monic,a);
+      let sq_str=x1v.type==='rat'?ratToLatex(ratMul(ratAbs(x1v.r),ratAbs(x1v.r))):String(x1v.n);
+      factorLatex=`x^{2}(x^{2}-${sq_str})`;
+    }
+    else if(sub==='x2_sq_neg') {
+      let iq=makeIrreducibleQuadratic();
+      zeros=[{r:rat(0),mult:2}]; zeroFloats=[0];
+      let monicBase=[rat(0),rat(0),rat(1)];
+      let monic=polyMulQuad(monicBase,iq.p,iq.q);
+      poly=polyScale(monic,a); factorLatex=`x^{2}${irredLatex(iq)}`;
+    }
+    else if(sub==='x2_lin_lin') {
+      let [z1,z2]=pickDistinctRationals(2,zeroType,[rat(0)]);
+      zeros=[{r:rat(0),mult:2},{r:z1,mult:1},{r:z2,mult:1}];
+      zeroFloats=[0,ratToFloat(z1),ratToFloat(z2)].sort((a,b)=>a-b);
+      poly=polyScale(buildFromFactors([rat(0),rat(0),z1,z2]),a);
+      factorLatex=`x^{2}${linearFactorLatex(z1)}${linearFactorLatex(z2)}`;
+    }
+    else if(sub==='x3_lin') {
+      let [z1]=pickDistinctRationals(1,zeroType,[rat(0)]);
+      zeros=[{r:rat(0),mult:3},{r:z1,mult:1}];
+      zeroFloats=[0,ratToFloat(z1)].sort((a,b)=>a-b);
+      poly=polyScale(buildFromFactors([rat(0),rat(0),rat(0),z1]),a);
+      factorLatex=`x^{3}${linearFactorLatex(z1)}`;
+    }
+    else {
+      let [z1]=pickDistinctRationals(1,zeroType,[rat(0)]);
+      zeros=[{r:rat(0),mult:2},{r:z1,mult:2}];
+      zeroFloats=[0,ratToFloat(z1)].sort((a,b)=>a-b);
+      poly=polyScale(buildFromFactors([rat(0),rat(0),z1,z1]),a);
+      factorLatex=`x^{2}${linearFactorLatex(z1)}^{2}`;
+    }
+  }
+
+  function buildDeg2Free() {
+    let r2=Math.random();
+    let sub = r2<0.80 ? 'two' : r2<0.90 ? 'double' : 'none';
+    if(sub==='two') {
+      let [z1,z2]=pickDistinctRationals(2,zeroType);
+      zeros=[{r:z1,mult:1},{r:z2,mult:1}]; zeroFloats=[ratToFloat(z1),ratToFloat(z2)].sort((a,b)=>a-b);
+      poly=polyScale(buildFromFactors([z1,z2]),a); factorLatex=factorLatexFromRatZeros([z1,z2]);
+    } else if(sub==='double') {
+      let [z]=pickDistinctRationals(1,zeroType);
+      zeros=[{r:z,mult:2}]; zeroFloats=[ratToFloat(z)];
+      poly=polyScale(buildFromFactors([z,z]),a); factorLatex=factorLatexFromRatZeros([z,z]);
+    } else {
+      let iq=makeIrreducibleQuadratic(); zeros=[]; zeroFloats=[]; noRealZeros=true;
+      poly=polyScale(iq.poly,a); factorLatex=irredLatex(iq);
+    }
+  }
+  function buildDeg3Free() {
+    let r3=Math.random();
+    if(r3<0.60) {
+      // drei verschiedene Nullstellen
+      let [z1,z2,z3]=pickDistinctRationals(3,zeroType);
+      zeros=[{r:z1,mult:1},{r:z2,mult:1},{r:z3,mult:1}];
+      zeroFloats=[ratToFloat(z1),ratToFloat(z2),ratToFloat(z3)].sort((a,b)=>a-b);
+      poly=polyScale(buildFromFactors([z1,z2,z3]),a); factorLatex=factorLatexFromRatZeros([z1,z2,z3]);
+    } else if(r3<0.80) {
+      // einfache + doppelte Nullstelle
+      if(Math.random()<0.5) {
+        // (x-z1)·(x-z2)²
+        let [z1,z2]=pickDistinctRationals(2,zeroType);
+        zeros=[{r:z1,mult:1},{r:z2,mult:2}];
+        zeroFloats=[ratToFloat(z1),ratToFloat(z2)].sort((a,b)=>a-b);
+        poly=polyScale(buildFromFactors([z1,z2,z2]),a); factorLatex=factorLatexFromRatZeros([z1,z2,z2]);
+      } else {
+        // (x-z1)²·(x-z2)
+        let [z1,z2]=pickDistinctRationals(2,zeroType);
+        zeros=[{r:z1,mult:2},{r:z2,mult:1}];
+        zeroFloats=[ratToFloat(z1),ratToFloat(z2)].sort((a,b)=>a-b);
+        poly=polyScale(buildFromFactors([z1,z1,z2]),a); factorLatex=factorLatexFromRatZeros([z1,z1,z2]);
+      }
+    } else if(r3<0.90) {
+      // eine einfache Nullstelle + irreduzibler quadratischer Faktor
+      let [z1]=pickDistinctRationals(1,zeroType); let iq=makeIrreducibleQuadratic();
+      zeros=[{r:z1,mult:1}]; zeroFloats=[ratToFloat(z1)];
+      poly=polyScale(buildFromFactors([z1],iq),a); factorLatex=`${linearFactorLatex(z1)}${irredLatex(iq)}`;
+    } else {
+      // dreifache Nullstelle
+      let [z1]=pickDistinctRationals(1,zeroType);
+      zeros=[{r:z1,mult:3}]; zeroFloats=[ratToFloat(z1)];
+      poly=polyScale(buildFromFactors([z1,z1,z1]),a); factorLatex=factorLatexFromRatZeros([z1,z1,z1]);
+    }
+  }
+  function buildDeg4Free() {
+    let r=Math.random();
+    if(r<0.6) {
+      let [z1,z2]=pickDistinctRationals(2,zeroType);
+      let z3,z4;
+      if(Math.random()<0.3){z3=z1;}else{[z3]=pickDistinctRationals(1,zeroType,[z1,z2]);}
+      if(Math.random()<0.3){z4=z2;}else{[z4]=pickDistinctRationals(1,zeroType,[]);}
+      let allZ=[z1,z2,z3,z4];
+      let multMap={};
+      for(let z of allZ){let k=`${z.n}/${z.d}`;multMap[k]=(multMap[k]||{r:z,cnt:0});multMap[k].cnt++;}
+      zeros=Object.values(multMap).map(m=>({r:m.r,mult:m.cnt}));
+      zeroFloats=[...new Set(allZ.map(z=>ratToFloat(z)))].sort((a,b)=>a-b);
+      poly=polyScale(buildFromFactors(allZ),a); factorLatex=factorLatexFromRatZeros(allZ);
+    } else if(r<0.8) {
+      let [z1,z2]=pickDistinctRationals(2,zeroType); let iq=makeIrreducibleQuadratic();
+      zeros=[{r:z1,mult:1},{r:z2,mult:1}]; zeroFloats=[ratToFloat(z1),ratToFloat(z2)].sort((a,b)=>a-b);
+      poly=polyScale(buildFromFactors([z1,z2],iq),a); factorLatex=`${factorLatexFromRatZeros([z1,z2])}${irredLatex(iq)}`;
+    } else {
+      let iq1=makeIrreducibleQuadratic(),iq2=makeIrreducibleQuadratic();
+      zeros=[]; zeroFloats=[]; noRealZeros=true;
+      poly=polyScale(polyMulQuad(iq1.poly,iq2.p,iq2.q),a); factorLatex=irredLatex(iq1)+irredLatex(iq2);
+    }
+  }
+
+  if(taskType==='verify' && zeros.length>0) {
+    let ratZeros=zeros.filter(z=>z.r!==null);
+    if(ratZeros.length>0) {
+      let n=rand(1,ratZeros.length);
+      verifyZeros=[...ratZeros].sort(()=>Math.random()-0.5).slice(0,n);
+    }
+  }
+
+  zeroFloats=[...new Set(zeroFloats.map(v=>Math.round(v*1e9)/1e9))].sort((a,b)=>a-b);
+
+  let outerFactor=null;
+  if(allowFact && Math.random()<0.4) {
+    let intMultPool=[];
+    for(let e=0;e<=3;e++){
+      let p=Math.pow(10,e);
+      for(let k=1;k<=9;k++){intMultPool.push(k*p);intMultPool.push(-k*p);}
+    }
+    let base=pick(intMultPool);
+    if(Math.random()<0.5){ outerFactor=rat(base); }
+    else { outerFactor=base>0?rat(1,base):ratNeg(rat(1,Math.abs(base))); }
+  }
+
+  let aLatexFull;
+  if(ratEq(a,rat(1))) aLatexFull='';
+  else if(ratEq(a,rat(-1))) aLatexFull='-';
+  else aLatexFull=ratToLatex(a);
+
+  function floatToRat(v) {
+    if (Number.isInteger(v)) return rat(v);
+    return rat(Math.round(v*2), 2);
+  }
+  function niceValsIn(lo, hi) {
+    let vals=[]; let start=Math.ceil(lo*2)/2;
+    for(let v=start; v<=hi+1e-9; v+=0.5) vals.push(Math.round(v*2)/2);
+    return vals;
+  }
+
+  let boundA_rat=null, boundB_rat=null, boundA_float=0, boundB_float=1;
+  let zerosInRange=[];
+  let useOuterZeros=false;
+
+  function setBound(v, isZero=false, zeroObj=null) {
+    if (isZero && zeroObj && zeroObj.r) return {rat:zeroObj.r, float:ratToFloat(zeroObj.r)};
+    if (isZero && zeroObj && zeroObj.isSqrt) return {rat:null, float:zeroObjToFloat(zeroObj)};
+    return {rat:floatToRat(v), float:v};
+  }
+  // Kleine Offsets (max 1) für die 10%-Fälle
+  const SMALL_OFFSETS=[0.5,1];
+
+  if (zeroFloats.length>=2) {
+    // Gültige Paare: innere Schnittstellen ≤ maxZIR
+    let validPairs=[];
+    for(let li=0;li<zeroFloats.length-1;li++){
+      for(let ri=li+1;ri<zeroFloats.length;ri++){
+        if(ri-li-1<=maxZIR) validPairs.push([li,ri]);
+      }
+    }
+    if(!validPairs.length) validPairs=[[0,zeroFloats.length-1]];
+    let [li,ri]=pick(validPairs);
+    let zA=zeros.find(z=>Math.abs(zeroObjToFloat(z)-zeroFloats[li])<1e-9);
+    let zB=zeros.find(z=>Math.abs(zeroObjToFloat(z)-zeroFloats[ri])<1e-9);
+
+    if(Math.random()<0.90) {
+      // 90 %: vollständig eingeschlossene Fläche – beide Grenzen auf Schnittstellen
+      let bA=setBound(zeroFloats[li],true,zA);
+      let bB=setBound(zeroFloats[ri],true,zB);
+      boundA_rat=bA.rat; boundA_float=bA.float;
+      boundB_rat=bB.rat; boundB_float=bB.float;
+      useOuterZeros=(li===0&&ri===zeroFloats.length-1);
+    } else {
+      // 10 %: eine oder beide Grenzen mit kleinem Offset
+      let bA, bB;
+      if(Math.random()<0.5){ bA=setBound(zeroFloats[li],true,zA); }
+      else { let v=Math.round((zeroFloats[li]-pick(SMALL_OFFSETS))*2)/2; bA=setBound(v); }
+      if(Math.random()<0.5){ bB=setBound(zeroFloats[ri],true,zB); }
+      else { let v=Math.round((zeroFloats[ri]+pick(SMALL_OFFSETS))*2)/2; bB=setBound(v); }
+      if(bA.float>=bB.float) bA=setBound(zeroFloats[li],true,zA);
+      boundA_rat=bA.rat; boundA_float=bA.float;
+      boundB_rat=bB.rat; boundB_float=bB.float;
+      useOuterZeros=false;
+    }
+
+  } else if (zeroFloats.length===1) {
+    let zf=zeroFloats[0];
+    let zObj=zeros.find(z=>Math.abs(zeroObjToFloat(z)-zf)<1e-9);
+    // Eine Grenze auf der Nullstelle (90 %), die andere ± höchstens 1
+    let off=pick(SMALL_OFFSETS);
+    if(Math.random()<0.9){
+      // Nullstelle als eine der Grenzen
+      let bZ=setBound(zf,true,zObj);
+      if(Math.random()<0.5){
+        boundA_rat=bZ.rat; boundA_float=bZ.float;
+        let hiF=Math.round((zf+off)*2)/2; boundB_float=hiF; boundB_rat=floatToRat(hiF);
+      } else {
+        let loF=Math.round((zf-off)*2)/2; boundA_float=loF; boundA_rat=floatToRat(loF);
+        boundB_rat=bZ.rat; boundB_float=bZ.float;
+      }
+    } else {
+      // Beide Grenzen neben der Nullstelle
+      let off2=pick(SMALL_OFFSETS);
+      let loF=Math.round((zf-off)*2)/2, hiF=Math.round((zf+off2)*2)/2;
+      if(loF>=hiF) hiF=loF+1;
+      boundA_float=loF; boundA_rat=floatToRat(loF);
+      boundB_float=hiF; boundB_rat=floatToRat(hiF);
+    }
+  } else {
+    // Keine Nullstellen: kleines Integer-Intervall
+    let lo=pick([-3,-2,-1,0,1,2,3]);
+    let hi=lo+pick([1,2,3]);
+    boundA_float=lo; boundA_rat=rat(lo);
+    boundB_float=hi; boundB_rat=rat(hi);
+  }
+
+  zerosInRange=zeroFloats.filter(v=>v>boundA_float+1e-9&&v<boundB_float-1e-9);
+  let breakpoints=[boundA_float,...zerosInRange,boundB_float];
+  let intervalSigns=breakpoints.slice(0,-1).map((_,i)=>{
+    let mid=(breakpoints[i]+breakpoints[i+1])/2;
+    return polyEvalF(poly,mid)>=0?1:-1;
+  });
+
+  // ── g(x) und f(x) aus der Differenzfunktion ableiten ──────────────
+  let hPoly = outerFactor ? polyScale(poly, outerFactor) : poly;
+  let gPoly = generateGPoly(hPoly, degree);
+  let fPoly = polyAdd(hPoly, gPoly);
+
+  return {
+    poly, a, decMode, outerFactor, zeros, verifyZeros, zeroFloats, noRealZeros, hasIrrZeros,
+    zerosInRange, breakpoints, intervalSigns,
+    boundA_rat, boundB_rat, boundA_float, boundB_float,
+    useOuterZeros,
+    taskType, zeroType, degree, factorLatex, aLatexFull,
+    hPoly, gPoly, fPoly
+  };
+}
+
+// ================================================================
+// ZERO LATEX HELPERS
+// ================================================================
+function zeroObjToLatex(z) {
+  if(z.isSqrt) {
+    let s=`\\sqrt{${z.sqrtN}}`; return z.sqrtSign>0?s:`-${s}`;
+  }
+  return ratToLatex(z.r);
+}
+function zeroObjToFloat(z) {
+  if(z.isSqrt) return z.sqrtSign*Math.sqrt(z.sqrtN);
+  return ratToFloat(z.r);
+}
+function zeroObjToRat(z) {
+  if(z.isSqrt) return null;
+  return z.r;
+}
+
+function boundToLatex(rat_val, float_val, zeroObj) {
+  if(zeroObj && zeroObj.isSqrt) return zeroObjToLatex(zeroObj);
+  if(Number.isInteger(float_val)) return float_val.toString();
+  let s=float_val.toFixed(10).replace(/0+$/,'').replace(/\.$/,'');
+  return s.replace('.','{,}');
+}
+
+function makeBpts(task) {
+  let {zeros, breakpoints, boundA_rat, boundB_rat, boundA_float, boundB_float} = task;
+  let zA_irr=zeros.find(z=>z.isSqrt&&Math.abs(zeroObjToFloat(z)-boundA_float)<1e-9)||null;
+  let zB_irr=zeros.find(z=>z.isSqrt&&Math.abs(zeroObjToFloat(z)-boundB_float)<1e-9)||null;
+  return breakpoints.map((v,i)=>{
+    let isFirst=(i===0), isLast=(i===breakpoints.length-1);
+    if(isFirst) return {float:v, rat:boundA_rat, latex:boundToLatex(boundA_rat,boundA_float,zA_irr)};
+    if(isLast)  return {float:v, rat:boundB_rat, latex:boundToLatex(boundB_rat,boundB_float,zB_irr)};
+    let z=zeros.find(z=>Math.abs(zeroObjToFloat(z)-v)<1e-9);
+    if(z) return {float:v, rat:zeroObjToRat(z), latex:zeroObjToLatex(z)};
+    return {float:v, rat:null, latex:boundToLatex(null,v,null)};
+  });
+}
+
+// ================================================================
+// TASK TEXT
+// ================================================================
+function buildTaskText(task) {
+  let {poly, a, decMode, outerFactor, zeros, noRealZeros, fPoly, gPoly,
+       boundA_rat, boundB_rat, boundA_float, boundB_float,
+       taskType, aLatexFull, degree, factorLatex, useOuterZeros} = task;
+
+  let fLatex = polyToLatex(fPoly, 'x', decMode);
+  let gLatex = polyToLatex(gPoly, 'x', decMode);
+
+  let zA_irr=zeros.find(z=>z.isSqrt&&Math.abs(zeroObjToFloat(z)-boundA_float)<1e-9)||null;
+  let zB_irr=zeros.find(z=>z.isSqrt&&Math.abs(zeroObjToFloat(z)-boundB_float)<1e-9)||null;
+  let aL=boundToLatex(boundA_rat,boundA_float,zA_irr);
+  let bL=boundToLatex(boundB_rat,boundB_float,zB_irr);
+  let intervalLatex=`\\left[${aL};\\,${bL}\\right]`;
+
+  function sortedZeroLines(zs) {
+    let sorted=[...zs].sort((a,b)=>zeroObjToFloat(a)-zeroObjToFloat(b));
+    let groups=[];
+    for(let z of sorted){
+      let fv=zeroObjToFloat(z);
+      let g=groups.find(g=>Math.abs(g.fv-fv)<1e-9);
+      if(g){g.mult+=z.mult;}else groups.push({fv,z,mult:z.mult});
+    }
+    let lines=[], idx=1;
+    for(let g of groups){
+      let valLatex=zeroObjToLatex(g.z);
+      if(g.mult===1){lines.push(`x_{${idx}} = ${valLatex}`); idx++;}
+      else {
+        let indices=[]; for(let k=0;k<g.mult;k++) indices.push(idx+k);
+        lines.push(`x_{${indices.join(',\\,')}} = ${valLatex}`); idx+=g.mult;
+      }
+    }
+    return lines;
+  }
+  function zeroListHtml(zs) { return sortedZeroLines(zs).join(', \\quad '); }
+  function zeroBlock(zLines) {
+    return `<div class="scale-wrapper" style="margin:0.3em 0;"><div class="scale-el" style="font-size:1em;">$$${zLines}$$</div></div>`;
+  }
+
+  let instr='', note='', noteIsHTML=false;
+
+  if(useOuterZeros) {
+    if(taskType==='findAll') {
+      instr='Berechne den Flächeninhalt der vollständig eingeschlossenen Fläche zwischen den Graphen von \\(f\\) und \\(g\\).';
+    } else if(taskType==='givenAll') {
+      if(noRealZeros||zeros.length===0){
+        instr='Berechne den Flächeninhalt der vollständig eingeschlossenen Fläche zwischen den Graphen von \\(f\\) und \\(g\\).';
+        note='f \\text{ und } g \\text{ haben keine Schnittpunkte.}';
+      } else {
+        let zLines=zeroListHtml(zeros);
+        instr='Die Graphen von \\(f\\) und \\(g\\) schneiden sich bei:'+zeroBlock(zLines)+'Ermittle den Flächeninhalt, der vollständig zwischen den Graphen eingeschlossen wird.';
+        noteIsHTML=true;
+      }
+    } else {
+      if(zeros.length===0||noRealZeros){
+        instr='Zeige, dass \\(f\\) und \\(g\\) keine gemeinsamen Schnittpunkte haben. Berechne dann den Flächeninhalt.';
+        if(degree===4) instr+=`<div class="task-note">Faktorisierte Form der Differenzfunktion: \\(h(x) = f(x)-g(x) = ${aLatexFull}${factorLatex}\\)</div>`;
+      } else {
+        let zLines=zeroListHtml(zeros);
+        instr='Zeige rechnerisch, dass sich \\(f\\) und \\(g\\) bei folgenden \\(x\\)-Werten schneiden:'+zeroBlock(zLines)+'Ermittle den vollständig eingeschlossenen Flächeninhalt.';
+        noteIsHTML=true;
+      }
+    }
+  } else {
+    if(taskType==='findAll') {
+      instr='Berechne den Flächeninhalt zwischen den Graphen von \\(f\\) und \\(g\\) im angegebenen Intervall.';
+    } else if(taskType==='givenAll') {
+      if(noRealZeros||zeros.length===0){
+        instr='Berechne den Flächeninhalt zwischen den Graphen von \\(f\\) und \\(g\\) im angegebenen Intervall.';
+        note='f \\text{ und } g \\text{ haben keine Schnittpunkte.}';
+      } else {
+        let zLines=zeroListHtml(zeros);
+        instr='Die Graphen von \\(f\\) und \\(g\\) schneiden sich bei:'+zeroBlock(zLines)+'Ermittle den Flächeninhalt zwischen den Graphen im angegebenen Intervall.';
+        noteIsHTML=true;
+      }
+    } else {
+      if(zeros.length===0||noRealZeros){
+        instr='Zeige, dass \\(f\\) und \\(g\\) keine Schnittpunkte haben. Berechne dann den Flächeninhalt im angegebenen Intervall.';
+        if(degree===4) instr+=`<div class="task-note">Faktorisierte Form der Differenzfunktion: \\(h(x)=f(x)-g(x) = ${aLatexFull}${factorLatex}\\)</div>`;
+      } else {
+        let zLines=zeroListHtml(zeros);
+        instr='Zeige rechnerisch, dass sich \\(f\\) und \\(g\\) bei folgenden \\(x\\)-Werten schneiden:'+zeroBlock(zLines)+'Ermittle den Flächeninhalt zwischen den Graphen im angegebenen Intervall.';
+        noteIsHTML=true;
+      }
+    }
+  }
+
+  let fDisplay=`f(x) = ${fLatex}`;
+  let gDisplay=`g(x) = ${gLatex}`;
+  let formulaLatex = useOuterZeros
+    ? `\\begin{array}{l}${fDisplay}\\\\[0.3em]${gDisplay}\\end{array}`
+    : `\\begin{array}{l}${fDisplay}\\\\[0.3em]${gDisplay}\\end{array}\\quad${intervalLatex}`;
+
+  return {instr, note, noteIsHTML, formulaLatex, fLatex, gLatex, decMode, aL, bL, intervalLatex};
+}
+
+// ================================================================
+// CURRENT STATE
+// ================================================================
+let _task=null;
+
+// ================================================================
+// RENDER SOLUTION
+// ================================================================
+function renderSolution() {
+  if(!_task) return;
+  let mode  = document.getElementById('roundingToggle').checked?'round':'exact';
+  let style = document.getElementById('styleToggle').checked?'style2':'style1';
+
+  let {hPoly, fPoly, gPoly, poly, outerFactor, zeros, verifyZeros, zeroFloats, noRealZeros,
+       breakpoints, intervalSigns, decMode,
+       boundA_rat, boundB_rat, boundA_float, boundB_float,
+       taskType, factorLatex, aLatexFull, degree, zerosInRange} = _task;
+
+  let Dc = antideriv(hPoly);  // d(x) = Differenzfunktion, D(x) = Stammfunktion
+  let Fc = antideriv(fPoly);
+  let Gc = antideriv(gPoly);
+
+  let bpts = makeBpts(_task);
+
+  let zA_irr=zeros.find(z=>z.isSqrt&&Math.abs(zeroObjToFloat(z)-boundA_float)<1e-9)||null;
+  let zB_irr=zeros.find(z=>z.isSqrt&&Math.abs(zeroObjToFloat(z)-boundB_float)<1e-9)||null;
+  let aL=boundToLatex(boundA_rat,boundA_float,zA_irr);
+  let bL=boundToLatex(boundB_rat,boundB_float,zB_irr);
+
+  function evalBpts(Pc) {
+    return bpts.map(bp=>{
+      if(bp.rat) return {rat:polyEval(Pc,bp.rat), approx:false};
+      return {float:polyEvalF(Pc,bp.float), approx:true};
+    });
+  }
+  let Dvals = evalBpts(Dc);
+  let Fvals = evalBpts(Fc);
+  let Gvals = evalBpts(Gc);
+
+  function PFloat(Pv){ return Pv.approx?Pv.float:ratToFloat(Pv.rat); }
+  function PStr(Pv) {
+    if(!Pv.approx) return formatRat(Pv.rat, mode);
+    let v=Math.round(Pv.float*100)/100;
+    return `\\approx ${v.toFixed(2).replace(/0+$/,'').replace(/\.$/,'').replace('.','{,}')}`;
+  }
+  function PIsNeg(Pv) {
+    if(!Pv.approx) return mode==='round'?ratToFloat(Pv.rat)<0:ratIsNeg(Pv.rat);
+    return Pv.float<0;
+  }
+  function valStr(Pv) { return PIsNeg(Pv)?`\\left(${PStr(Pv)}\\right)`:PStr(Pv); }
+
+  // Teilintegrale über Differenzfunktion d
+  let subs=bpts.slice(0,-1).map((_,i)=>{
+    let loV=Dvals[i], hiV=Dvals[i+1];
+    if(!loV.approx&&!hiV.approx) return {rat:ratSub(hiV.rat,loV.rat),approx:false,sign:intervalSigns[i]};
+    return {float:PFloat(hiV)-PFloat(loV), approx:true, sign:intervalSigns[i]};
+  });
+
+  let totalApprox=subs.some(s=>s.approx);
+  let totalRat=rat(0), totalFloat=0;
+  for(let s of subs){if(!s.approx)totalRat=ratAdd(totalRat,ratAbs(s.rat));else totalFloat+=Math.abs(s.float);}
+  let totalStr;
+  if(!totalApprox) totalStr=formatRat(totalRat,mode,true);
+  else { let tot=totalFloat+ratToFloat(totalRat); totalStr=`\\approx ${tot.toFixed(2).replace(/0+$/,'').replace(/\.$/,'').replace('.','{,}')}`; }
+
+  document.getElementById('solution').innerHTML=`$$A = ${totalStr}$$`;
+
+  let blocks=[], step=1;
+  const BH = html => blocks.push({t:'h', html});
+  const P  = html => blocks.push({t:'p', html});
+  const M  = (tex, cls='') => blocks.push({t:'m', tex, cls});
+  const MA = (tex, spec, cls='') => blocks.push({t:'ma', tex, spec, cls});
+
+  let dLatex = polyToLatex(hPoly, 'x', decMode);
+  let fLatex = polyToLatex(fPoly, 'x', decMode);
+  let gLatex = polyToLatex(gPoly, 'x', decMode);
+  let DLatex = polyToLatex(Dc, 'x', decMode);
+  let FLatex = polyToLatex(Fc, 'x', decMode);
+  let GLatex = polyToLatex(Gc, 'x', decMode);
+
+  // ── STYLE 1: Differenzfunktion d(x) / D(x) ──────────────────────────
+  if (style === 'style1') {
+
+    BH(`${step}. Differenzfunktion bilden`); step++;
+    M(`d(x) &= f(x) - g(x) \\\\ &= \\left(${fLatex}\\right) - \\left(${gLatex}\\right) \\\\ &= ${dLatex}`);
+
+    BH(`${step}. Nullstellen von \\(d\\) (Schnittstellen von \\(f\\) und \\(g\\))`); step++;
+    if (noRealZeros || zeros.length === 0) {
+      P('\\(d\\) hat keine reellen Nullstellen – die Graphen von \\(f\\) und \\(g\\) schneiden sich nicht.');
+      P(`Der Graph von \\(f\\) liegt im Intervall \\([${aL};\\,${bL}]\\) vollständig über oder unter dem Graphen von \\(g\\).`);
+    } else {
+      zeros.sort((z1,z2)=>zeroObjToFloat(z1)-zeroObjToFloat(z2));
+      let seen=new Set(), zrows=[], idx=1;
+      zeros.forEach(z=>{
+        let key=zeroObjToLatex(z);
+        if(seen.has(key)) return; seen.add(key);
+        let mult=z.mult>1?` \\;(${z.mult}\\text{-fach})`:'';
+        zrows.push(`x_{${idx}} & = & ${key} &${mult}`); idx++;
+      });
+      MA(zrows.join(' \\\\ '), 'l c r');
+      if (taskType==='verify') {
+        let vrows=[]; seen.forEach(key=>{
+          let substStr=substitutePoly(hPoly, key, decMode);
+          vrows.push(`d\\!\\left(${key}\\right) & = & ${substStr} & = & 0 \\;\\checkmark`);
+        });
+        MA(vrows.join(' \\\\ '),'l c l c l');
+      }
+      if (zerosInRange.length === 0) {
+        P(`Keine dieser Nullstellen liegt im Innern von \\([${aL};\\,${bL}]\\) – dort kein Vorzeichenwechsel von \\(d\\).`);
+      } else {
+        let irStr=zerosInRange.map(v=>{
+          let z=zeros.find(z=>Math.abs(zeroObjToFloat(z)-v)<1e-9);
+          return `\\(${z?`x = ${zeroObjToLatex(z)}`:`x \\approx ${v.toFixed(2).replace('.', '{,}')}`}\\)`;
+        }).join(', ');
+        P(`Innerhalb \\([${aL};\\,${bL}]\\) liegen die Schnittstellen ${irStr}; die Teilintegrale stoppen dort.`);
+      }
+    }
+
+    BH(`${step}. Stammfunktion \\(D(x)\\) von \\(d\\) bestimmen`); step++;
+    {
+      let interm=antiderivIntermediate(hPoly, decMode);
+      M(interm !== DLatex ? `D(x) &= ${interm} \\\\ &= ${DLatex}` : `D(x) &= ${DLatex}`);
+    }
+
+    BH(`${step}. Werte der Stammfunktion einsetzen`); step++;
+    {
+      let rows=[];
+      for (let i=0; i<bpts.length; i++) {
+        let bp=bpts[i], Dv=Dvals[i];
+        let substStr=substitutePoly(Dc, bp.latex, decMode);
+        if(!Dv.approx){
+          rows.push(`D\\!\\left(${bp.latex}\\right) & = & ${substStr} & ${eqSign(Dv.rat,mode)} & ${formatRat(Dv.rat,mode)}`);
+        } else {
+          let v=Math.round(Dv.float*100)/100;
+          rows.push(`D\\!\\left(${bp.latex}\\right) & = & ${substStr} & \\approx & ${v.toFixed(2).replace(/0+$/,'').replace(/\.$/,'').replace('.','{,}')}`);
+        }
+      }
+      MA(rows.join(' \\\\ '), 'l c l c r');
+    }
+
+    BH(`${step}. Teilintegrale berechnen`); step++;
+    let areaNames1=[];
+    let allIntRows=[];
+    for (let i=0; i<subs.length; i++) {
+      let lo=bpts[i].latex, hi=bpts[i+1].latex, s=subs[i];
+      let loD=valStr(Dvals[i]), hiD=valStr(Dvals[i+1]);
+      let aName=`A_{${i+1}}`; areaNames1.push(aName);
+      let diffEq=!s.approx?eqSign(s.rat,mode):'\\approx';
+      let diffVal=!s.approx?formatRat(s.rat,mode):s.float.toFixed(2).replace(/0+$/,'').replace(/\.$/,'').replace('.','{,}');
+      let absEq=!s.approx?eqSign(s.rat,mode):'\\approx';
+      let absVal=!s.approx?formatRat(ratAbs(s.rat),mode):Math.abs(s.float).toFixed(2).replace(/0+$/,'').replace(/\.$/,'').replace('.','{,}');
+      allIntRows.push(`\\displaystyle\\int_{${lo}}^{${hi}} d(x)\\,\\mathrm{d}x & = & D\\!\\left(${hi}\\right)-D\\!\\left(${lo}\\right) & = & ${hiD}-${loD} & ${diffEq} & ${diffVal}`);
+      allIntRows.push(`&&\\boldsymbol{${aName}} & = & \\left|\\displaystyle\\int_{${lo}}^{${hi}} d(x)\\,\\mathrm{d}x\\right| & ${absEq} & ${absVal}`);
+    }
+    MA(allIntRows.join(' \\\\ '), 'l c r c r c r');
+
+    BH(`${step}. Gesamtfläche`); step++;
+    if (subs.length > 1) {
+      let summeWerte=subs.map(s=>!s.approx?formatRat(ratAbs(s.rat),mode):Math.abs(s.float).toFixed(2).replace(/0+$/,'').replace(/\.$/,'').replace('.','{,}'));
+      let eqSign_tot=totalStr.startsWith('\\approx')?'\\approx':'=';
+      let totalVal=totalStr.startsWith('\\approx')?totalStr.slice(8):totalStr;
+      let n=subs.length, spec='l'+'c'.repeat(2*n+1)+'r';
+      let r1=['A'], r2=[''];
+      r1.push('='); r2.push('=');
+      for(let i=0;i<n;i++){ r1.push(areaNames1[i]); r2.push(summeWerte[i]); if(i<n-1){r1.push('+');r2.push('+');} }
+      r1.push('',''); r2.push(eqSign_tot,totalVal);
+      MA(r1.join(' & ')+' \\\\ '+r2.join(' & '), spec);
+    } else {
+      M(`A &= ${areaNames1[0]} ${totalStr.startsWith('\\approx')?'\\approx':'='} ${totalStr.startsWith('\\approx')?totalStr.slice(8):totalStr}`);
+    }
+
+  // ── STYLE 2: Einzelne Integrale ─────────────────────────────────────
+  } else {
+    if (taskType==='findAll') {
+      BH(`${step}. Schnittstellen bestimmen:`); step++;
+      P('Gleichsetzen: \\(f(x) = g(x)\\)');
+      M(`f(x) &= g(x) \\\\ ${fLatex} &= ${gLatex} \\\\ \\left(${fLatex}\\right) - \\left(${gLatex}\\right) &= 0 \\\\ ${dLatex} &= 0`);
+    } 
+    else if (taskType==='givenAll') {
+      BH(`${step}. Schnittstellen gegeben:`); step++;
+      P('Die Schnittstellen von \\(f\\) und \\(g\\) sind gegeben:');
+    } else {
+      BH(`${step}. Schnittstellen nachweisen:`); step++;
+      P('Einsetzen in \\(f(x)\\) und \\(g(x)\\)');
+    }
+    if (noRealZeros || zeros.length === 0) {
+        P('\\(d(x)\\) hat keine reellen Nullstellen – die Graphen schneiden sich nicht.');
+        P(`Im Intervall \\([${aL};\\,${bL}]\\) liegt \\(f\\) vollständig über oder unter \\(g\\).`);
+      } else {
+        zeros.sort((z1,z2)=>zeroObjToFloat(z1)-zeroObjToFloat(z2));
+        let seen=new Set(), zrows=[], idx=1;
+        zeros.forEach(z=>{
+          let key=zeroObjToLatex(z); if(seen.has(key)) return; seen.add(key);
+          let mult=z.mult>1?` \\;(${z.mult}\\text{-fach})`:'';
+          zrows.push(`x_{${idx}} & = & ${key} &${mult}`); idx++;
+        });
+        MA(zrows.join(' \\\\ '),'l c r');
+      }
+      if (taskType==='verify') {
+        let vrows=[];
+        let dedup = []; let sz = new Set();
+        zeros.forEach(z=>{ let k=zeroObjToLatex(z); if(!sz.has(k)){sz.add(k); dedup.push(z);} });
+        dedup.forEach(z=>{
+          let key=zeroObjToLatex(z);
+          let fSubst=substitutePoly(fPoly, key, decMode);
+          let gSubst=substitutePoly(gPoly, key, decMode);
+          let yTex = "";
+          if (!z.isSqrt) {
+              yTex = formatRat(polyEval(fPoly, z.r), mode);
+          } else {
+              let yF = polyEvalF(fPoly, zeroObjToFloat(z));
+              if (Math.abs(yF - Math.round(yF)) < 1e-9) yTex = Math.round(yF).toString();
+              else yTex = '\\approx ' + yF.toFixed(2).replace('.', '{,}');
+          }
+          vrows.push(`\\color{#b00018}{f\\!\\left(${key}\\right)} & \\color{#b00018}{=} & \\color{#b00018}{${fSubst}} & \\color{#b00018}{=} & \\color{#b00018}{${yTex}} &`);
+          vrows.push(`\\color{#005098}{g\\!\\left(${key}\\right)} & \\color{#005098}{=} & \\color{#005098}{${gSubst}} & \\color{#005098}{=} & \\color{#005098}{${yTex}} & \\color{#005098}{\\;\\checkmark}`);
+        });
+        MA(vrows.join(' \\\\ '),'l c c c r r');
+      }
+      if (zerosInRange.length===0) {
+        P(`Keine Schnittstelle liegt im Innern von \\([${aL};\\,${bL}]\\).`);
+      } else {
+        let irStr=zerosInRange.map(v=>{
+          let z=zeros.find(z=>Math.abs(zeroObjToFloat(z)-v)<1e-9);
+          return `\\(${z?`x=${zeroObjToLatex(z)}`:`x\\approx${v.toFixed(2).replace('.', '{,}')}`}\\)`;
+        }).join(', ');
+        P(`Schnittstellen innerhalb \\([${aL};\\,${bL}]\\): ${irStr} – Teilintegrale stoppen dort.`);
+      }
+    // }
+    // }
+    BH(`${step}. Stammfunktionen bestimmen`); step++;
+    {
+      let Finterm=antiderivIntermediate(fPoly, decMode);
+      let Ginterm=antiderivIntermediate(gPoly, decMode);
+      M(Finterm!==FLatex ? `F(x) &= ${Finterm} \\\\ &= ${FLatex}` : `F(x) &= ${FLatex}`, 'col-f');
+      M(Ginterm!==GLatex ? `G(x) &= ${Ginterm} \\\\ &= ${GLatex}` : `G(x) &= ${GLatex}`, 'col-g');
+    }
+
+    BH(`${step}. Werte der Stammfunktionen einsetzen`); step++;
+    let step3Rows = [];
+    for (let i=0; i<bpts.length; i++) {
+      let bp=bpts[i], Fv=Fvals[i], Gv=Gvals[i];
+      let Fsubst=substitutePoly(Fc, bp.latex, decMode);
+      let Gsubst=substitutePoly(Gc, bp.latex, decMode);
+      let fRow, gRow;
+      if(!Fv.approx){
+        fRow=`F\\!\\left(${bp.latex}\\right) & = & ${Fsubst} & ${eqSign(Fv.rat,mode)} & ${formatRat(Fv.rat,mode)}`;
+      } else {
+        let v=Math.round(Fv.float*100)/100;
+        fRow=`F\\!\\left(${bp.latex}\\right) & = & ${Fsubst} & \\approx & ${v.toFixed(2).replace(/0+$/,'').replace(/\.$/,'').replace('.','{,}')}`;
+      }
+      if(!Gv.approx){
+        gRow=`G\\!\\left(${bp.latex}\\right) & = & ${Gsubst} & ${eqSign(Gv.rat,mode)} & ${formatRat(Gv.rat,mode)}`;
+      } else {
+        let v=Math.round(Gv.float*100)/100;
+        gRow=`G\\!\\left(${bp.latex}\\right) & = & ${Gsubst} & \\approx & ${v.toFixed(2).replace(/0+$/,'').replace(/\.$/,'').replace('.','{,}')}`;
+      }
+      step3Rows.push(fRow.split('&').map(c=>`\\color{#b00018}{${c}}`).join('&'));
+      step3Rows.push(gRow.split('&').map(c=>`\\color{#005098}{${c}}`).join('&'));
+    }
+    MA(step3Rows.join(' \\\\ '), 'l c c c r');
+
+    BH(`${step}. Teilintegrale berechnen`); step++;
+    let areaNames2=[];
+    for (let i=0;i<subs.length;i++){
+      let lo=bpts[i].latex, hi=bpts[i+1].latex, s=subs[i];
+      let aName=`A_{${i+1}}`; areaNames2.push(aName);
+      if(subs.length>1) P(`Teilintervall \\(\\left[${lo};\\,${hi}\\right]\\):`);
+
+      let Fhi=Fvals[i+1], Flo=Fvals[i], Ghi=Gvals[i+1], Glo=Gvals[i];
+      let FhiS=valStr(Fhi), FloS=valStr(Flo);
+      let GhiS=valStr(Ghi), GloS=valStr(Glo);
+
+      let diffF_rat=(!Fhi.approx&&!Flo.approx)?ratSub(Fhi.rat,Flo.rat):null;
+      let diffF_float=PFloat(Fhi)-PFloat(Flo);
+      let diffFStr=diffF_rat?formatRat(diffF_rat,mode):diffF_float.toFixed(2).replace(/0+$/,'').replace(/\.$/,'').replace('.','{,}');
+      let diffFEq=diffF_rat?eqSign(diffF_rat,mode):'\\approx';
+
+      let diffG_rat=(!Ghi.approx&&!Glo.approx)?ratSub(Ghi.rat,Glo.rat):null;
+      let diffG_float=PFloat(Ghi)-PFloat(Glo);
+      let diffGStr=diffG_rat?formatRat(diffG_rat,mode):diffG_float.toFixed(2).replace(/0+$/,'').replace(/\.$/,'').replace('.','{,}');
+      let diffGEq=diffG_rat?eqSign(diffG_rat,mode):'\\approx';
+
+      let absEq=!s.approx?eqSign(s.rat,mode):'\\approx';
+      let absVal=!s.approx?formatRat(ratAbs(s.rat),mode):Math.abs(s.float).toFixed(2).replace(/0+$/,'').replace(/\.$/,'').replace('.','{,}');
+
+      let fInt = `\\displaystyle\\int_{${lo}}^{${hi}} f(x)\\,\\mathrm{d}x & = & F\\!\\left(${hi}\\right) - F\\!\\left(${lo}\\right) & = & ${FhiS} - ${FloS} & ${diffFEq} & ${diffFStr}`;
+      let gInt = `\\displaystyle\\int_{${lo}}^{${hi}} g(x)\\,\\mathrm{d}x & = & G\\!\\left(${hi}\\right) - G\\!\\left(${lo}\\right) & = & ${GhiS} - ${GloS} & ${diffGEq} & ${diffGStr}`;
+      let aInt = `\\boldsymbol{${aName}} & = & \\left|\\displaystyle\\int_{${lo}}^{${hi}} f(x)\\,\\mathrm{d}x - \\int_{${lo}}^{${hi}} g(x)\\,\\mathrm{d}x\\right|& ${diffFEq} & \\left|${diffFStr} - \\left(${diffGStr}\\right)\\right| & ${absEq} & ${absVal}`;
+      
+      let step4Rows = [
+        fInt.split('&').map(c=>`\\color{#b00018}{${c}}`).join('&'),
+        gInt.split('&').map(c=>`\\color{#005098}{${c}}`).join('&'),
+        aInt
+      ];
+      MA(step4Rows.join(' \\\\ '), 'r c c c c c r');
+    }
+
+    BH(`${step}. Gesamtfläche`); step++;
+    if (subs.length > 1) {
+      let summeWerte=subs.map(s=>!s.approx?formatRat(ratAbs(s.rat),mode):Math.abs(s.float).toFixed(2).replace(/0+$/,'').replace(/\.$/,'').replace('.','{,}'));
+      let eqSign_tot=totalStr.startsWith('\\approx')?'\\approx':'=';
+      let totalVal=totalStr.startsWith('\\approx')?totalStr.slice(8):totalStr;
+      let n=subs.length, spec='l'+'c'.repeat(2*n+1)+'r';
+      let r1=['A'], r2=[''];
+      r1.push('='); r2.push('=');
+      for(let i=0;i<n;i++){ r1.push(areaNames2[i]); r2.push(summeWerte[i]); if(i<n-1){r1.push('+');r2.push('+');} }
+      r1.push('',''); r2.push(eqSign_tot,totalVal);
+      MA(r1.join(' & ')+' \\\\ '+r2.join(' & '), spec);
+    } else {
+      M(`A &= ${areaNames2[0]} ${totalStr.startsWith('\\approx')?'\\approx':'='} ${totalStr.startsWith('\\approx')?totalStr.slice(8):totalStr}`);
+    }
+  }
+
+  // ── Render ───────────────────────────────────────────────────────────
+  let pathHTML='<div class="solution-path-inner">'+blocks.map(b=>{
+    if(b.t==='h') return `<div class="sol-head">${b.html}</div>`;
+    if(b.t==='p') return `<div class="sol-text">${b.html}</div>`;
+    if(b.t==='m') return `<div class="sol-formula${b.cls?' '+b.cls:''}">$$\\begin{aligned}${b.tex}\\end{aligned}$$</div>`;
+    if(b.t==='ma') return `<div class="sol-formula${b.cls?' '+b.cls:''}">$$\\begin{array}{${b.spec}}${b.tex}\\end{array}$$</div>`;
+    return '';
+  }).join('')+'</div>';
+  document.getElementById('solutionPathContent').innerHTML=pathHTML;
+  MathJax.typesetPromise().then(()=>scaleAllElements());
+}
+
+// ================================================================
+// SKETCH
+// ================================================================
+function drawSketch() {
+  if (!_task) return;
+  const canvas=document.getElementById('sketchCanvas');
+  if (!canvas) return;
+  const ctx=canvas.getContext('2d');
+  const sketchMode = document.getElementById('sketchModeToggle').checked; // true = Differenzfunktion
+
+  const {hPoly, fPoly, gPoly, boundA_float, boundB_float, boundA_rat, boundB_rat,
+         breakpoints, intervalSigns, zeros, zeroFloats, noRealZeros} = _task;
+
+  const evalH = x => polyEvalF(hPoly, x);
+  const evalF = x => polyEvalF(fPoly, x);
+  const evalG = x => polyEvalF(gPoly, x);
+
+  function tickSeq(lo, hi, s) {
+    const result=[];
+    const start=Math.round(Math.ceil(lo/s-1e-9)*s*1e10)/1e10;
+    for(let v=start; v<=hi+1e-9; v=Math.round((v+s)*1e10)/1e10) result.push(v);
+    return result;
+  }
+  // x-Bereich: 0.5 hinter der nächst-weiteren ganzzahligen Grenze; y-Achse immer einschließen
+  const nextIntLeft  = Math.floor(boundA_float);   // nächste ganze Zahl ≤ linke Grenze
+  const nextIntRight = Math.ceil(boundB_float);    // nächste ganze Zahl ≥ rechte Grenze
+  let xMin = Math.min(nextIntLeft  - 0.5, -0.5);
+  let xMax = Math.max(nextIntRight + 0.5,  0.5);
+  const xStep = 1;
+
+  const Nsamp=500;
+  const dx0=(xMax-xMin)/Nsamp;
+  const sYs=[];
+  for(let i=0;i<=Nsamp;i++){
+    const xx=xMin+i*dx0;
+    if(sketchMode){ sYs.push(evalH(xx)); }
+    else { sYs.push(evalF(xx)); sYs.push(evalG(xx)); }
+  }
+  const rawYMin=Math.min(...sYs,0);
+  const rawYMax=Math.max(...sYs,0);
+  const rawSpan=Math.max(rawYMax-rawYMin,0.01);
+
+  function niceYStep(range, target) {
+    const rough=range/target;
+    const mag=Math.pow(10,Math.floor(Math.log10(Math.max(Math.abs(rough),1e-10))));
+    for(const f of [1,2,2.5,5,10]){if(f*mag>=rough-1e-12) return f*mag;}
+    return mag*10;
+  }
+  const yStepRough=niceYStep(rawSpan*1.4+0.01,6);
+  const yMin=Math.min(rawYMin,-yStepRough)-rawSpan*0.07-0.01;
+  const yMax=Math.max(rawYMax, yStepRough)+rawSpan*0.07+0.01;
+  const yStep=niceYStep(yMax-yMin,6);
+  const xTicks=tickSeq(xMin,xMax,xStep);
+  const yTicks=tickSeq(yMin,yMax,yStep);
+
+  const W=canvas.width, H=canvas.height;
+  const mg={top:20,right:26,bottom:52,left:56};
+  const pw=W-mg.left-mg.right;
+  const ph=H-mg.top-mg.bottom;
+  const cx=x=>mg.left+(x-xMin)/(xMax-xMin)*pw;
+  const cy=y=>mg.top+(yMax-y)/(yMax-yMin)*ph;
+
+  function fmtFloat(v) {
+    const r=Math.round(v*1e9)/1e9;
+    if(Number.isInteger(r)) return String(r);
+    return r.toFixed(1).replace('.',',');
+  }
+  function fmtRat(r) {
+    if(!r) return null;
+    if(r.d===1) return String(r.n);
+    return r.n+'\u2044'+r.d;
+  }
+  function zeroCanvasLabel(z) {
+    if(z.isSqrt) return (z.sqrtSign<0?'-':'')+'\u221a'+z.sqrtN;
+    return fmtRat(z.r)||fmtFloat(ratToFloat(z.r));
+  }
+  function boundCanvasLabel(rVal, fVal, zirr) {
+    if(zirr) return zeroCanvasLabel(zirr);
+    return fmtRat(rVal)||fmtFloat(fVal);
+  }
+
+  const FONT_TICK   ='13px sans-serif';
+  const FONT_SPECIAL='bold 13px sans-serif';
+  const FONT_AXIS   ='italic 13px sans-serif';
+  const COL_TICK ='#444';
+  const COL_ZERO ='#c06000';
+  const COL_BOUND='#1a7a20';
+
+  ctx.clearRect(0,0,W,H);
+
+  // Grid
+  ctx.strokeStyle='#d8d8e8'; ctx.lineWidth=1;
+  xTicks.forEach(x=>{const px=cx(x);ctx.beginPath();ctx.moveTo(px,mg.top);ctx.lineTo(px,mg.top+ph);ctx.stroke();});
+  yTicks.forEach(y=>{const py=cy(y);ctx.beginPath();ctx.moveTo(mg.left,py);ctx.lineTo(mg.left+pw,py);ctx.stroke();});
+
+  const yAxis0=cy(Math.max(yMin,Math.min(yMax,0)));
+  const xAxis0=cx(Math.max(xMin,Math.min(xMax,0)));
+  const yClipLo=yMin-(yMax-yMin), yClipHi=yMax+(yMax-yMin);
+
+  if (sketchMode) {
+    // ── MODUS: Differenzfunktion h(x) ─────────────────────────────
+    // Schattierung wie Original
+    for(let seg=0;seg<breakpoints.length-1;seg++){
+      const xL=breakpoints[seg],xR=breakpoints[seg+1],sign=intervalSigns[seg];
+      ctx.beginPath(); ctx.moveTo(cx(xL),cy(0));
+      for(let j=0;j<=300;j++){const xx=xL+(xR-xL)*j/300;ctx.lineTo(cx(xx),cy(evalH(xx)));}
+      ctx.lineTo(cx(xR),cy(0)); ctx.closePath();
+      ctx.fillStyle=sign>0?'rgba(160,0,170,0.18)':'rgba(0,80,160,0.18)'; ctx.fill();
+      ctx.strokeStyle=sign>0?'rgba(160,0,170,0.35)':'rgba(0,80,160,0.35)'; ctx.lineWidth=0.8; ctx.stroke();
+    }
+
+    // Achsen
+    ctx.strokeStyle='#444'; ctx.lineWidth=1.5;
+    ctx.beginPath();ctx.moveTo(mg.left,yAxis0);ctx.lineTo(mg.left+pw,yAxis0);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(xAxis0,mg.top);ctx.lineTo(xAxis0,mg.top+ph);ctx.stroke();
+    ctx.fillStyle='#444';
+    ctx.beginPath();ctx.moveTo(mg.left+pw+2,yAxis0);ctx.lineTo(mg.left+pw-5,yAxis0-3);ctx.lineTo(mg.left+pw-5,yAxis0+3);ctx.fill();
+    ctx.beginPath();ctx.moveTo(xAxis0,mg.top-2);ctx.lineTo(xAxis0-3,mg.top+5);ctx.lineTo(xAxis0+3,mg.top+5);ctx.fill();
+
+    // y-Achse Beschriftung
+    ctx.font=FONT_TICK; ctx.textAlign='right'; ctx.textBaseline='middle';
+    yTicks.forEach(y=>{
+      const py=cy(y);
+      ctx.strokeStyle=COL_TICK; ctx.lineWidth=1;
+      ctx.beginPath();ctx.moveTo(xAxis0-3,py);ctx.lineTo(xAxis0+3,py);ctx.stroke();
+      if(Math.abs(y)>yStep*0.01){ctx.fillStyle=COL_TICK;ctx.fillText(fmtFloat(y),xAxis0-7,py);}
+    });
+    xTicks.forEach(x=>{
+      ctx.strokeStyle=COL_TICK; ctx.lineWidth=1;
+      ctx.beginPath();ctx.moveTo(cx(x),yAxis0-3);ctx.lineTo(cx(x),yAxis0+3);ctx.stroke();
+    });
+    ctx.font=FONT_AXIS; ctx.fillStyle='#333';
+    ctx.textAlign='left'; ctx.textBaseline='middle'; ctx.fillText('x',mg.left+pw+7,yAxis0);
+    ctx.textAlign='center'; ctx.textBaseline='bottom'; ctx.fillText('y',xAxis0,mg.top-2);
+
+    // Begrenzungslinien
+    ctx.strokeStyle=COL_BOUND; ctx.lineWidth=1.8; ctx.setLineDash([5,4]);
+    [boundA_float,boundB_float].forEach(xb=>{
+      ctx.beginPath();ctx.moveTo(cx(xb),cy(0));ctx.lineTo(cx(xb),cy(evalH(xb)));ctx.stroke();
+    });
+    ctx.setLineDash([]);
+
+    // h-Kurve (violett)
+    ctx.strokeStyle='#8800cc'; ctx.lineWidth=2;
+    ctx.beginPath(); let penDown=false;
+    for(let i=0;i<=Nsamp;i++){
+      const xx=xMin+i*dx0, yy=evalH(xx);
+      if(yy<yClipLo||yy>yClipHi){penDown=false;continue;}
+      if(!penDown){ctx.moveTo(cx(xx),cy(yy));penDown=true;}else ctx.lineTo(cx(xx),cy(yy));
+    }
+    ctx.stroke();
+
+    // Kurven-Label h
+    ctx.font='bold 13px sans-serif'; ctx.fillStyle='#8800cc';
+    ctx.textAlign='right'; ctx.textBaseline='bottom';
+    ctx.fillText('d',mg.left+pw-4,mg.top+16);
+
+    // Nullstellen & Bounds beschriften
+    const labeledX=new Set(); const posRow0=new Set();
+    if(!noRealZeros){
+      const seenZ=new Set();
+      zeroFloats.forEach(zf=>{
+        const key=Math.round(zf*1e9);
+        if(seenZ.has(key))return;seenZ.add(key);
+        if(Math.abs(zf-boundA_float)<1e-9||Math.abs(zf-boundB_float)<1e-9)return;
+        labeledX.add(key);posRow0.add(key);
+      });
+    }
+    [boundA_float,boundB_float].forEach(xb=>{
+      const key=Math.round(xb*1e9);
+      const isOnTick=xTicks.some(t=>Math.abs(t-xb)<xStep*0.01);
+      if(!isOnTick) labeledX.add(key);
+    });
+    ctx.font=FONT_TICK; ctx.fillStyle=COL_TICK;
+    ctx.textAlign='center'; ctx.textBaseline='top';
+    xTicks.forEach(x=>{
+      const key=Math.round(x*1e9);
+      if(Math.abs(x)>xStep*0.01&&!labeledX.has(key)) ctx.fillText(fmtFloat(x),cx(x),yAxis0+7);
+    });
+    if(!noRealZeros){
+      const seenZ=new Set();
+      zeroFloats.forEach(zf=>{
+        const key=Math.round(zf*1e9);
+        if(seenZ.has(key))return;seenZ.add(key);
+        if(Math.abs(zf-boundA_float)<1e-9||Math.abs(zf-boundB_float)<1e-9)return;
+        const z=zeros.find(z=>Math.abs(zeroObjToFloat(z)-zf)<1e-9);
+        if(!z)return;
+        const px=cx(zf);
+        ctx.fillStyle=COL_ZERO;
+        ctx.beginPath();ctx.arc(px,yAxis0,5,0,2*Math.PI);ctx.fill();
+        ctx.font=FONT_SPECIAL;ctx.fillStyle=COL_ZERO;
+        ctx.textAlign='center';ctx.textBaseline='top';
+        ctx.fillText(zeroCanvasLabel(z),px,yAxis0+7);
+      });
+    }
+    const zA_irr=zeros.find(z=>z.isSqrt&&Math.abs(zeroObjToFloat(z)-boundA_float)<1e-9)||null;
+    const zB_irr=zeros.find(z=>z.isSqrt&&Math.abs(zeroObjToFloat(z)-boundB_float)<1e-9)||null;
+    [{xb:boundA_float,rVal:boundA_rat,zirr:zA_irr},{xb:boundB_float,rVal:boundB_rat,zirr:zB_irr}].forEach(({xb,rVal,zirr})=>{
+      const px=cx(xb);
+      const isZero=!noRealZeros&&zeroFloats.some(zf=>Math.abs(zf-xb)<1e-9);
+      ctx.strokeStyle=COL_BOUND;ctx.lineWidth=2.5;
+      ctx.beginPath();ctx.moveTo(px,yAxis0-7);ctx.lineTo(px,yAxis0+7);ctx.stroke();
+      const yb=evalH(xb);
+      ctx.fillStyle=COL_BOUND;
+      ctx.beginPath();ctx.arc(px,cy(yb),4.5,0,2*Math.PI);ctx.fill();
+      const row=isZero?yAxis0+24:yAxis0+7;
+      ctx.font=FONT_SPECIAL;ctx.fillStyle=COL_BOUND;
+      ctx.textAlign='center';ctx.textBaseline='top';
+      ctx.fillText(boundCanvasLabel(rVal,xb,zirr),px,row);
+    });
+
+  } else {
+    // ── MODUS: Beide Graphen + Schnittfläche ──────────────────────
+    // Schattierung zwischen f und g
+    for(let seg=0;seg<breakpoints.length-1;seg++){
+      const xL=breakpoints[seg],xR=breakpoints[seg+1],sign=intervalSigns[seg];
+      ctx.beginPath();
+      ctx.moveTo(cx(xL),cy(evalF(xL)));
+      for(let j=0;j<=300;j++){const xx=xL+(xR-xL)*j/300;ctx.lineTo(cx(xx),cy(evalF(xx)));}
+      for(let j=300;j>=0;j--){const xx=xL+(xR-xL)*j/300;ctx.lineTo(cx(xx),cy(evalG(xx)));}
+      ctx.closePath();
+      ctx.fillStyle=sign>0?'rgba(220,60,40,0.20)':'rgba(0,80,168,0.20)'; ctx.fill();
+      ctx.strokeStyle=sign>0?'rgba(220,60,40,0.35)':'rgba(0,80,168,0.35)'; ctx.lineWidth=0.8; ctx.stroke();
+    }
+
+    // Achsen
+    ctx.strokeStyle='#444';ctx.lineWidth=1.5;
+    ctx.beginPath();ctx.moveTo(mg.left,yAxis0);ctx.lineTo(mg.left+pw,yAxis0);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(xAxis0,mg.top);ctx.lineTo(xAxis0,mg.top+ph);ctx.stroke();
+    ctx.fillStyle='#444';
+    ctx.beginPath();ctx.moveTo(mg.left+pw+2,yAxis0);ctx.lineTo(mg.left+pw-5,yAxis0-3);ctx.lineTo(mg.left+pw-5,yAxis0+3);ctx.fill();
+    ctx.beginPath();ctx.moveTo(xAxis0,mg.top-2);ctx.lineTo(xAxis0-3,mg.top+5);ctx.lineTo(xAxis0+3,mg.top+5);ctx.fill();
+
+    ctx.font=FONT_TICK;ctx.textAlign='right';ctx.textBaseline='middle';
+    yTicks.forEach(y=>{
+      const py=cy(y);
+      ctx.strokeStyle=COL_TICK;ctx.lineWidth=1;
+      ctx.beginPath();ctx.moveTo(xAxis0-3,py);ctx.lineTo(xAxis0+3,py);ctx.stroke();
+      if(Math.abs(y)>yStep*0.01){ctx.fillStyle=COL_TICK;ctx.fillText(fmtFloat(y),xAxis0-7,py);}
+    });
+    xTicks.forEach(x=>{
+      ctx.strokeStyle=COL_TICK;ctx.lineWidth=1;
+      ctx.beginPath();ctx.moveTo(cx(x),yAxis0-3);ctx.lineTo(cx(x),yAxis0+3);ctx.stroke();
+    });
+    ctx.font=FONT_AXIS;ctx.fillStyle='#333';
+    ctx.textAlign='left';ctx.textBaseline='middle';ctx.fillText('x',mg.left+pw+7,yAxis0);
+    ctx.textAlign='center';ctx.textBaseline='bottom';ctx.fillText('y',xAxis0,mg.top-2);
+
+    // Begrenzungslinien für f und g (beide)
+    ctx.setLineDash([5,4]);
+    [boundA_float,boundB_float].forEach(xb=>{
+      ctx.strokeStyle='#c0001a';ctx.lineWidth=1.4;
+      ctx.beginPath();ctx.moveTo(cx(xb),cy(evalF(xb)));ctx.lineTo(cx(xb),cy(evalG(xb)));ctx.stroke();
+    });
+    ctx.setLineDash([]);
+
+    // f-Kurve (rot)
+    ctx.strokeStyle='#c0001a';ctx.lineWidth=2;
+    ctx.beginPath();let pen1=false;
+    for(let i=0;i<=Nsamp;i++){
+      const xx=xMin+i*dx0,yy=evalF(xx);
+      if(yy<yClipLo||yy>yClipHi){pen1=false;continue;}
+      if(!pen1){ctx.moveTo(cx(xx),cy(yy));pen1=true;}else ctx.lineTo(cx(xx),cy(yy));
+    }
+    ctx.stroke();
+
+    // g-Kurve (blau)
+    ctx.strokeStyle='#0057a8';ctx.lineWidth=2;
+    ctx.beginPath();let pen2=false;
+    for(let i=0;i<=Nsamp;i++){
+      const xx=xMin+i*dx0,yy=evalG(xx);
+      if(yy<yClipLo||yy>yClipHi){pen2=false;continue;}
+      if(!pen2){ctx.moveTo(cx(xx),cy(yy));pen2=true;}else ctx.lineTo(cx(xx),cy(yy));
+    }
+    ctx.stroke();
+
+    // Kurven-Labels
+    ctx.font='bold 13px sans-serif';
+    const fLabelX=mg.left+pw-4;
+    const fLabelY=cy(evalF(xMax-0.2));
+    const gLabelY=cy(evalG(xMax-0.2));
+    if(fLabelY>=mg.top&&fLabelY<=mg.top+ph){
+      ctx.fillStyle='#c0001a';ctx.textAlign='right';ctx.textBaseline='bottom';ctx.fillText('f',fLabelX,fLabelY);
+    }
+    if(gLabelY>=mg.top&&gLabelY<=mg.top+ph){
+      ctx.fillStyle='#0057a8';ctx.textAlign='right';ctx.textBaseline='top';ctx.fillText('g',fLabelX,gLabelY);
+    }
+
+    // Tick-Beschriftung x
+    const labeledX=new Set();
+    [boundA_float,boundB_float].forEach(xb=>{
+      const key=Math.round(xb*1e9);
+      const isOnTick=xTicks.some(t=>Math.abs(t-xb)<xStep*0.01);
+      if(!isOnTick) labeledX.add(key);
+    });
+    if(!noRealZeros){
+      const seenZ=new Set();
+      zeroFloats.forEach(zf=>{
+        const key=Math.round(zf*1e9);
+        if(seenZ.has(key))return;seenZ.add(key);
+        if(Math.abs(zf-boundA_float)<1e-9||Math.abs(zf-boundB_float)<1e-9)return;
+        labeledX.add(key);
+      });
+    }
+    ctx.font=FONT_TICK;ctx.fillStyle=COL_TICK;
+    ctx.textAlign='center';ctx.textBaseline='top';
+    xTicks.forEach(x=>{
+      const key=Math.round(x*1e9);
+      if(Math.abs(x)>xStep*0.01&&!labeledX.has(key)) ctx.fillText(fmtFloat(x),cx(x),yAxis0+7);
+    });
+
+    // Schnittpunkte (amber, auf Kurve)
+    if(!noRealZeros){
+      const seenZ=new Set();
+      zeroFloats.forEach(zf=>{
+        const key=Math.round(zf*1e9);
+        if(seenZ.has(key))return;seenZ.add(key);
+        if(Math.abs(zf-boundA_float)<1e-9||Math.abs(zf-boundB_float)<1e-9)return;
+        const z=zeros.find(z=>Math.abs(zeroObjToFloat(z)-zf)<1e-9);
+        if(!z)return;
+        const px=cx(zf), yIntersect=evalF(zf);
+        ctx.fillStyle=COL_ZERO;
+        ctx.beginPath();ctx.arc(px,cy(yIntersect),5,0,2*Math.PI);ctx.fill();
+        ctx.font=FONT_SPECIAL;ctx.fillStyle=COL_ZERO;
+        ctx.textAlign='center';ctx.textBaseline='top';
+        ctx.fillText(zeroCanvasLabel(z),px,yAxis0+7);
+      });
+    }
+
+    // Bounds (grün) – Punkte auf BEIDEN Kurven
+    const zA_irr=zeros.find(z=>z.isSqrt&&Math.abs(zeroObjToFloat(z)-boundA_float)<1e-9)||null;
+    const zB_irr=zeros.find(z=>z.isSqrt&&Math.abs(zeroObjToFloat(z)-boundB_float)<1e-9)||null;
+    [{xb:boundA_float,rVal:boundA_rat,zirr:zA_irr},{xb:boundB_float,rVal:boundB_rat,zirr:zB_irr}].forEach(({xb,rVal,zirr})=>{
+      const px=cx(xb);
+      const isZero=!noRealZeros&&zeroFloats.some(zf=>Math.abs(zf-xb)<1e-9);
+      ctx.strokeStyle=COL_BOUND;ctx.lineWidth=2.5;
+      ctx.beginPath();ctx.moveTo(px,yAxis0-7);ctx.lineTo(px,yAxis0+7);ctx.stroke();
+      // Punkte auf beiden Kurven
+      [evalF(xb),evalG(xb)].forEach(yb=>{
+        ctx.fillStyle=COL_BOUND;
+        ctx.beginPath();ctx.arc(px,cy(yb),4,0,2*Math.PI);ctx.fill();
+      });
+      const row=isZero?yAxis0+24:yAxis0+7;
+      ctx.font=FONT_SPECIAL;ctx.fillStyle=COL_BOUND;
+      ctx.textAlign='center';ctx.textBaseline='top';
+      ctx.fillText(boundCanvasLabel(rVal,xb,zirr),px,row);
+    });
+  }
+}
+
+// ================================================================
+// NEW TASK
+// ================================================================
+function newTask() {
+  document.querySelectorAll('details').forEach(d=>d.removeAttribute('open'));
+  let task=null, tries=0;
+  while(tries<60){
+    try{task=generateTask();if(task&&task.poly&&task.poly.length>=2)break;}catch(e){}
+    tries++;
+  }
+  _task=task;
+  let {instr,note,noteIsHTML,formulaLatex}=buildTaskText(task);
+  let instrEl=document.getElementById('task-instruction');
+  instrEl.innerHTML=instr;
+  if(note&&!noteIsHTML) instrEl.innerHTML+=`<div class="task-note">\\(${note}\\)</div>`;
+  document.getElementById('task-formula').innerHTML=`$$${formulaLatex}$$`;
+  MathJax.typesetPromise().then(()=>{renderSolution();drawSketch();scaleAllElements();});
+}
+
+// ================================================================
+// EVENTS & INIT
+// ================================================================
+function readUrlParams() {
+  let params=new URLSearchParams(window.location.search);
+  if(params.has('taskType')){let el=document.querySelector(`input[name="taskType"][value="${params.get('taskType')}"]`);if(el)el.checked=true;}
+  if(params.has('zeroType')){let el=document.querySelector(`input[name="zeroType"][value="${params.get('zeroType')}"]`);if(el)el.checked=true;}
+  ['maxDegree','maxZerosInRange'].forEach(id=>{
+    if(params.has(id)){
+      let el=document.getElementById(id);
+      if(el){
+        el.value=params.get(id);
+        if(id==='maxDegree') document.getElementById('degreeValue').textContent=el.value;
+        if(id==='maxZerosInRange') document.getElementById('maxZerosValue').textContent=el.value;
+      }
+    }
+  });
+  ['allowFractions','allowDecimals','allowFactor'].forEach(id=>{
+    if(params.has(id)){let el=document.getElementById(id);if(el)el.checked=(params.get(id)==='true');}
+  });
+}
+
+function updateUrlParams() {
+  let params=new URLSearchParams(window.location.search);
+  let tt=document.querySelector('input[name="taskType"]:checked');if(tt)params.set('taskType',tt.value);
+  let zt=document.querySelector('input[name="zeroType"]:checked');if(zt)params.set('zeroType',zt.value);
+  params.set('maxDegree',document.getElementById('maxDegree').value);
+  params.set('maxZerosInRange',document.getElementById('maxZerosInRange').value);
+  params.set('allowFractions',document.getElementById('allowFractions').checked);
+  params.set('allowDecimals',document.getElementById('allowDecimals').checked);
+  params.set('allowFactor',document.getElementById('allowFactor').checked);
+  window.history.replaceState({},'',`${window.location.pathname}?${params.toString()}`);
+}
+
+document.querySelectorAll('.form-block input').forEach(el=>{el.addEventListener('change',updateUrlParams);});
+document.getElementById('roundingToggle').addEventListener('change',()=>renderSolution());
+document.getElementById('styleToggle').addEventListener('change',()=>renderSolution());
+document.getElementById('sketchModeToggle').addEventListener('change',()=>drawSketch());
+document.getElementById('sketchDetails')?.addEventListener('toggle',()=>drawSketch());
+document.getElementById('solutionPath')?.addEventListener('toggle',()=>{
+  if(window.MathJax) MathJax.typesetPromise().then(()=>scaleToFit(document.getElementById('solutionPathContent')));
+});
+document.getElementById('maxDegree').addEventListener('input',()=>{
+  document.getElementById('degreeValue').textContent=document.getElementById('maxDegree').value;
+  updateUrlParams();
+});
+document.getElementById('maxZerosInRange').addEventListener('input',()=>{
+  document.getElementById('maxZerosValue').textContent=document.getElementById('maxZerosInRange').value;
+  updateUrlParams();
+});
+
+readUrlParams();
+MathJax.startup.promise.then(()=>newTask());
+</script>
+<div id="lobby-spacer"></div>
+<footer class="site-footer">
+  <div class="footer-content">
+      M.&nbsp;Koch
+      <span class="footer-topic"><a href="./index.html">Mathe-Tools</a></span>
+      <span class="footer-update">Last updated:&nbsp;<span id="last-update">...</span></span>
+  </div>
+</footer>
+<script src="last-update.js" defer></script>
+<script src="last-update.js" defer></script>
+</body>
+</html>
