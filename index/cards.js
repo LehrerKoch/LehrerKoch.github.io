@@ -176,6 +176,14 @@ const cardsData = [
     "link": "https://t1p.de/koBasis"
   },
   {
+    "id": "kongruenzsatz",
+    "title": "Kongruenzsätze erkennen und zeichnen",
+    "desc": "Kongruenzsätze sicher erkennen und zeichnen können",
+    "types": ["learn"],
+    "mobilefriendly": true,
+    "link": "kongruenzsatz.html"
+  },
+  {
     "id": "seiten-benennung",
     "title": "Seiten im rechtwinkligen Dreieck benennen",
     "desc": "Quiz: Ankathete, Gegenkathete, Hypotenuse benennen",
