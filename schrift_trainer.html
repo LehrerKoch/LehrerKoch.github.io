@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Hebrew:wght@400;700&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&family=Playpen+Sans+Hebrew:wght@100..800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=GFS+Didot&family=Frank+Ruhl+Libre:wght@600&family=Noto+Serif:wght@400;700&display=swap" rel="stylesheet">
   <!-- Google tag (gtag.js) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-5K8WYYXDL2"></script>
   <script>
@@ -307,6 +308,35 @@ body.cursive-mode.lang-cyrillic .alpha-row b {
 .wl-tooltip .wl-tip-note{color:#cbd5e1;font-size:.69rem;}
 .wl-help-btn:hover .wl-tooltip{display:block;}
 .wl-help-btn.tip-open .wl-tooltip{display:block;}
+/* ─── Serifenmodus: Seitenleiste ────────────────────────── */
+body.serif-mode.lang-hebrew  .alpha-row b,
+body.serif-mode.lang-hebrew  .alpha-row.nikud-row b {
+  font-family: 'Frank Ruhl Libre', serif !important;
+  font-weight: 600 !important;
+}
+body.serif-mode.lang-greek   .alpha-row b {
+  font-family: 'GFS Didot', serif !important;
+}
+body.serif-mode.lang-cyrillic .alpha-row b {
+  font-family: 'Noto Serif', serif !important;
+}
+/* ─── Serifenmodus: Tastatur (Zeichen-Tasten) ───────────── */
+body.serif-mode.lang-hebrew  #kb-hebrew .key {
+  font-family: 'Frank Ruhl Libre', serif !important;
+  font-weight: 600 !important;
+}
+body.serif-mode.lang-greek   #kb-greek .key {
+  font-family: 'GFS Didot', serif !important;
+}
+body.serif-mode.lang-cyrillic #kb-cyrillic .key {
+  font-family: 'Noto Serif', serif !important;
+}
+/* ─── Serifenmodus: Longpress-Popup ─────────────────────── */
+body.serif-mode.lang-hebrew  .lpp .lpo,
+body.serif-mode.lang-hebrew  .nikud-picker .lpo {
+  font-family: 'Frank Ruhl Libre', serif !important;
+  font-weight: 600 !important;
+}
 /* ─── Kursivmodus: Eingabefelder Griechisch fett ────────── */
 body.cursive-mode.lang-greek #freeIn,
 body.cursive-mode.lang-greek #playIn,
@@ -516,9 +546,10 @@ body.cursive-mode.lang-hebrew  .nikud-picker .lpo {
       <input type="radio" name="case" id="c-u" value="upper" onchange="onCaseChange()"><label for="c-u">GROẞ</label>
     </div>
   </div>
-  <div class="tg" data-gtip="Schriftbild der Buchstaben in Seitenleiste und Tastatur"><span class="lbl" data-htip="Schriftbild der Zielsprache:\n• Druck: klare Blockschrift\n• Kursiv: handschriftliche Form">Schrift</span>
+  <div class="tg" data-gtip="Schriftbild der Buchstaben in Seitenleiste und Tastatur"><span class="lbl" data-htip="Schriftbild der Zielsprache:\n• Druck: klare Blockschrift\n• Serifen: klassische Serifenschrift\n• Kursiv: handschriftliche Form">Schrift</span>
     <div class="tsw">
       <input type="radio" name="script" id="sc-p" value="print" checked onchange="onScriptChange()"><label for="sc-p">Druck</label>
+      <input type="radio" name="script" id="sc-s" value="serif" onchange="onScriptChange()"><label for="sc-s">Serifen</label>
       <input type="radio" name="script" id="sc-k" value="cursive" onchange="onScriptChange()"><label for="sc-k">Kursiv</label>
     </div>
   </div>
@@ -778,8 +809,9 @@ function gNikudInput(){return (document.querySelector('input[name=nikinput]:chec
 function gScript(){return(document.querySelector('input[name="script"]:checked')||{value:'print'}).value;}
 
 function updateBodyClass(){
-  var cursive=gScript()==='cursive';
-  document.body.classList.toggle('cursive-mode',cursive);
+  var sc=gScript();
+  document.body.classList.toggle('cursive-mode',sc==='cursive');
+  document.body.classList.toggle('serif-mode',sc==='serif');
   ['greek','hebrew','cyrillic'].forEach(function(l){
     document.body.classList.toggle('lang-'+l,l===lang);
   });
@@ -934,10 +966,17 @@ function _openPreview(anchor,html){
 }
 function _wasJustDismissedBy(el){return _previewDismissedEl===el&&Date.now()-_previewDismissedAt<400;}
 function _cursiveFont(){
-  if(gScript()!=='cursive')return null;
-  if(lang==='hebrew') return "'Playpen Sans Hebrew', cursive";
-  if(lang==='greek')  return "'AC-HighSchool', serif";
-  if(lang==='cyrillic')return "'Caveat', cursive";
+  var sc=gScript();
+  if(sc==='cursive'){
+    if(lang==='hebrew') return "'Playpen Sans Hebrew', cursive";
+    if(lang==='greek')  return "'AC-HighSchool', serif";
+    if(lang==='cyrillic')return "'Caveat', cursive";
+  }
+  if(sc==='serif'){
+    if(lang==='hebrew') return "'Frank Ruhl Libre', serif";
+    if(lang==='greek')  return "'GFS Didot', serif";
+    if(lang==='cyrillic')return "'Noto Serif', serif";
+  }
   return null;
 }
 function _langFont(){
@@ -1035,7 +1074,9 @@ function applyScriptFont(){
   var dir=gDir();
   var baseTgt=isHeb?"'Noto Sans Hebrew','Arial Hebrew','David',Arial,sans-serif":null;
   // Greek cursive (AC-HighSchool) needs bold weight
-  var needBold=(cf&&lang==='greek');
+  var needBold=(cf&&lang==='greek'&&gScript()==='cursive');
+  // Hebrew serif (Frank Ruhl Libre) needs weight 600
+  var needSemibold=(cf&&lang==='hebrew'&&gScript()==='serif');
 
   function applyTo(id,isTarget){
     var el=document.getElementById(id);if(!el)return;
@@ -1045,8 +1086,9 @@ function applyScriptFont(){
     var font=isTarget?(cf||baseTgt):null;
     if(font)el.style.setProperty('font-family',font,'important');
     else el.style.removeProperty('font-family');
-    // font-weight: bold for AC-HighSchool on target fields
+    // font-weight
     if(isTarget&&needBold)el.style.setProperty('font-weight','bold','important');
+    else if(isTarget&&needSemibold)el.style.setProperty('font-weight','600','important');
     else el.style.removeProperty('font-weight');
   }
 
@@ -1508,15 +1550,46 @@ function toTarget(t){if(lang==='greek')return toGr(t);if(lang==='cyrillic')retur
 function fromTarget(t){if(lang==='greek')return fromGr(t);if(lang==='cyrillic')return fromCyr(t);if(lang==='hebrew')return fromHe(t);return t;}
 
 function toGr(text){
-  var r=text.toLowerCase();
-  var ph={'sch':'\u03C3\u03C7','sh':'\u03C3','th':'\u03B8','ph':'\u03C6','ch':'\u03C7','ps':'\u03C8','ks':'\u03BE','oh':'\u03C9','oo':'\u03C9','eh':'\u03B7','ee':'\u03B7','\u00E4h':'\u03B7','\u00E4':'\u03B7','\u00F6':'\u03BF\u03B9','\u00FC':'\u03C5','y':'\u03C5','eu':'\u03B5\u03C5','au':'\u03B1\u03C5','ei':'\u03B5\u03B9'};
-  for(var d in ph)r=r.split(d).join(ph[d]);
+  var lower=text.toLowerCase();
+  // Multi-char patterns in priority order (longer/earlier entries win)
+  var ph=[['sch','\u03C3\u03C7'],['\u00E4h','\u03B7'],['sh','\u03C3'],['th','\u03B8'],['ph','\u03C6'],['ch','\u03C7'],['ps','\u03C8'],['ks','\u03BE'],['oh','\u03C9'],['oo','\u03C9'],['eh','\u03B7'],['ee','\u03B7'],['eu','\u03B5\u03C5'],['au','\u03B1\u03C5'],['ei','\u03B5\u03B9'],['\u00E4','\u03B7'],['\u00F6','\u03BF\u03B9'],['\u00FC','\u03C5'],['y','\u03C5']];
   var sm={a:'\u03B1',b:'\u03B2',c:'\u03BA',d:'\u03B4',e:'\u03B5',f:'\u03C6',g:'\u03B3',h:'\u03C7',i:'\u03B9',j:'\u03B9',k:'\u03BA',l:'\u03BB',m:'\u03BC',n:'\u03BD',o:'\u03BF',p:'\u03C0',q:'\u03BA',r:'\u03C1',s:'\u03C3',t:'\u03C4',u:'\u03C5',v:'\u03B2',w:'\u03B2',x:'\u03BE',z:'\u03B6'};
-  var fin='';
-  for(var i=0;i<r.length;i++){var c=sm[r[i]]||r[i];if(c==='\u03C3'&&(!r[i+1]||/[\s.,!?\n]/.test(r[i+1])))c='\u03C2';fin+=c;}
+  // Build output tokens, each carrying the source index it came from
+  var outChars=[];
+  var i=0;
+  while(i<lower.length){
+    var matched=false;
+    for(var p=0;p<ph.length;p++){
+      var pat=ph[p][0],repl=ph[p][1];
+      if(lower.substr(i,pat.length)===pat){
+        for(var k=0;k<repl.length;k++)outChars.push({ch:repl[k],src:i});
+        i+=pat.length;matched=true;break;
+      }
+    }
+    if(!matched){
+      var mapped=sm[lower[i]]||lower[i];
+      for(var k=0;k<mapped.length;k++)outChars.push({ch:mapped[k],src:i});
+      i++;
+    }
+  }
+  // Apply sigma-final rule (σ at word end → ς)
+  for(var j=0;j<outChars.length;j++){
+    if(outChars[j].ch==='\u03C3'){
+      var nx=j+1<outChars.length?outChars[j+1].ch:'';
+      if(!nx||/[\s.,!?\n]/.test(nx))outChars[j].ch='\u03C2';
+    }
+  }
+  // Apply capitalization: each output char inherits case from its source position
   var out='';
-  for(var i=0;i<fin.length;i++){if(i<text.length&&text[i]===text[i].toUpperCase()&&text[i].match(/[A-Z\u00C4\u00D6\u00DC]/))out+=fin[i]==='\u03C2'?'\u03A3':fin[i].toUpperCase();else out+=fin[i];}
-  return applyCase(out||fin,gCase());
+  for(var j=0;j<outChars.length;j++){
+    var sc=outChars[j].src<text.length?text[outChars[j].src]:'';
+    if(sc&&sc===sc.toUpperCase()&&/[A-Z\u00C4\u00D6\u00DC]/.test(sc)){
+      out+=outChars[j].ch==='\u03C2'?'\u03A3':outChars[j].ch.toUpperCase();
+    }else{
+      out+=outChars[j].ch;
+    }
+  }
+  return applyCase(out,gCase());
 }
 function fromGr(text){
   var m={'\u03B1':'a','\u03B2':'b','\u03B3':'g','\u03B4':'d','\u03B5':'e','\u03B6':'z','\u03B7':'e','\u03B8':'th','\u03B9':'i','\u03BA':'k','\u03BB':'l','\u03BC':'m','\u03BD':'n','\u03BE':'x','\u03BF':'o','\u03C0':'p','\u03C1':'r','\u03C3':'s','\u03C2':'s','\u03C4':'t','\u03C5':'u','\u03C6':'ph','\u03C7':'ch','\u03C8':'ps','\u03C9':'o'};
@@ -1535,15 +1608,39 @@ function fromGr(text){
   return applyCase(out,gCase());
 }
 function toCyr(text){
-  var ph=[['sch','\u0449'],['sh','\u0448'],['tsch','\u0447'],['ch','\u0445'],['zh','\u0436'],['ju','\u044E'],['ja','\u044F'],['jo','\u0451'],['je','\u0435'],['ts','\u0446'],['th','\u0442'],['ph','\u0444'],['\u00E4','\u044D'],['\u00F6','\u0451'],['\u00FC','\u044E'],['oo','\u0443'],['ee','\u0438']];
-  var r=text.toLowerCase();
-  for(var i=0;i<ph.length;i++)r=r.split(ph[i][0]).join(ph[i][1]);
+  var lower=text.toLowerCase();
+  // Multi-char patterns in priority order (tsch before sch, sch before sh/ch, etc.)
+  var ph=[['tsch','\u0447'],['sch','\u0449'],['sh','\u0448'],['ch','\u0445'],['zh','\u0436'],['ju','\u044E'],['ja','\u044F'],['jo','\u0451'],['je','\u0435'],['ts','\u0446'],['th','\u0442'],['ph','\u0444'],['\u00E4','\u044D'],['\u00F6','\u0451'],['\u00FC','\u044E'],['oo','\u0443'],['ee','\u0438']];
   var sm={a:'\u0430',b:'\u0431',v:'\u0432',w:'\u0432',g:'\u0433',d:'\u0434',e:'\u0435',f:'\u0444',i:'\u0438',j:'\u0439',k:'\u043A',l:'\u043B',m:'\u043C',n:'\u043D',o:'\u043E',p:'\u043F',r:'\u0440',s:'\u0441',t:'\u0442',u:'\u0443',x:'\u043A\u0441',y:'\u044B',z:'\u0437'};
-  var res='';for(var i=0;i<r.length;i++)res+=sm[r[i]]||r[i];
+  // Build output tokens, each carrying the source index it came from
+  var outChars=[];
+  var i=0;
+  while(i<lower.length){
+    var matched=false;
+    for(var p=0;p<ph.length;p++){
+      var pat=ph[p][0],repl=ph[p][1];
+      if(lower.substr(i,pat.length)===pat){
+        for(var k=0;k<repl.length;k++)outChars.push({ch:repl[k],src:i});
+        i+=pat.length;matched=true;break;
+      }
+    }
+    if(!matched){
+      var mapped=sm[lower[i]]||lower[i];
+      for(var k=0;k<mapped.length;k++)outChars.push({ch:mapped[k],src:i});
+      i++;
+    }
+  }
+  // Apply capitalization: each output char inherits case from its source position
   var out='';
-  for(var i=0;i<res.length;i++){if(i<text.length&&text[i]&&text[i]===text[i].toUpperCase()&&text[i].match(/[A-Z\u00C4\u00D6\u00DC]/))out+=res[i].toUpperCase();else out+=res[i];}
-  if(res.length>text.length)out+=res.slice(text.length);
-  return applyCase(out||res,gCase());
+  for(var j=0;j<outChars.length;j++){
+    var sc=outChars[j].src<text.length?text[outChars[j].src]:'';
+    if(sc&&sc===sc.toUpperCase()&&/[A-Z\u00C4\u00D6\u00DC]/.test(sc)){
+      out+=outChars[j].ch.toUpperCase();
+    }else{
+      out+=outChars[j].ch;
+    }
+  }
+  return applyCase(out,gCase());
 }
 function fromCyr(text){
   var m={'\u0430':'a','\u0431':'b','\u0432':'w','\u0433':'g','\u0434':'d','\u0435':'je','\u0451':'jo','\u0436':'sch','\u0437':'s','\u0438':'i','\u0439':'j','\u043A':'k','\u043B':'l','\u043C':'m','\u043D':'n','\u043E':'o','\u043F':'p','\u0440':'r','\u0441':'s','\u0442':'t','\u0443':'u','\u0444':'f','\u0445':'ch','\u0446':'z','\u0447':'tsch','\u0448':'sch','\u0449':'schtsch','\u044A':'','\u044B':'y','\u044C':'','\u044D':'e','\u044E':'ju','\u044F':'ja'};
