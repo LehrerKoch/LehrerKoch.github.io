@@ -26,12 +26,13 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playpen+Sans+Hebrew:wght@100..800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=GFS+Didot&family=Frank+Ruhl+Libre:wght@600&family=Noto+Serif:wght@400;700&display=swap" rel="stylesheet">
   <style>
 
 /* Griechische lokale Font */
 @font-face {
     font-family: 'AC-HighSchool';
-    src: url('AC-HighSchool.ttf') format('truetype'),
+    src: url('./static/fonts/AC-HighSchool.ttf') format('truetype'),
          url('AC-HighSchool.otf') format('opentype');
 }
 
@@ -341,6 +342,30 @@ html body.cursive-mode.lang-greek table.letter-table td:not(:nth-child(2)) {
     font-weight: bold !important;
 }
 
+/* ─── SERIFENMODUS ─────────────────────────────────────────────────────── */
+/* Griechisch: GFS Didot */
+html body.serif-mode.lang-greek .big-char.char-display,
+html body.serif-mode.lang-greek #loesung.char-display,
+html body.serif-mode.lang-greek #choiceContainer.choices-are-chars .choice-btn .scale-el,
+html body.serif-mode.lang-greek table.letter-table td:not(:nth-child(2)) {
+    font-family: 'GFS Didot', serif !important;
+}
+/* Hebräisch: Frank Ruhl Libre 600 */
+html body.serif-mode.lang-hebrew .big-char.char-display,
+html body.serif-mode.lang-hebrew #loesung.char-display,
+html body.serif-mode.lang-hebrew #choiceContainer.choices-are-chars .choice-btn .scale-el,
+html body.serif-mode.lang-hebrew table.letter-table td:not(:nth-child(2)) {
+    font-family: 'Frank Ruhl Libre', serif !important;
+    font-weight: 600 !important;
+}
+/* Kyrillisch: Noto Serif */
+html body.serif-mode.lang-cyrillic .big-char.char-display,
+html body.serif-mode.lang-cyrillic #loesung.char-display,
+html body.serif-mode.lang-cyrillic #choiceContainer.choices-are-chars .choice-btn .scale-el,
+html body.serif-mode.lang-cyrillic table.letter-table td:not(:nth-child(2)) {
+    font-family: 'Noto Serif', serif !important;
+}
+
 table.letter-table td:nth-child(2) {
     font-family: sans-serif !important;
     font-weight: 400 !important;
@@ -413,11 +438,15 @@ table.letter-table th:nth-child(2){
   <div style="display: flex; flex-direction: column; align-items: center;">
     <div class="radio-group" id="fontStyleGroup" style="display: flex; justify-content: center; margin-bottom: 0px;">
       <label style="display: flex; align-items: center; gap: 5px;">
-        <input type="radio" name="fontStyle" value="standard" checked oninput="document.getElementById('cursiveMode').checked=false; onCursiveModeChange();">
+        <input type="radio" name="fontStyle" value="standard" checked oninput="document.getElementById('cursiveMode').checked=false; document.getElementById('serifMode').checked=false; onCursiveModeChange();">
         Druckschrift
       </label>
       <label style="display: flex; align-items: center; gap: 5px;">
-        <input type="radio" name="fontStyle" value="cursive" oninput="document.getElementById('cursiveMode').checked=true; onCursiveModeChange();">
+        <input type="radio" name="fontStyle" value="serif" oninput="document.getElementById('cursiveMode').checked=false; document.getElementById('serifMode').checked=true; onCursiveModeChange();">
+        Serifenschrift
+      </label>
+      <label style="display: flex; align-items: center; gap: 5px;">
+        <input type="radio" name="fontStyle" value="cursive" oninput="document.getElementById('cursiveMode').checked=true; document.getElementById('serifMode').checked=false; onCursiveModeChange();">
         Kursivschrift
       </label>
     </div>
@@ -427,6 +456,7 @@ table.letter-table th:nth-child(2){
   </div>
 
   <input type="checkbox" id="cursiveMode" style="display:none">
+  <input type="checkbox" id="serifMode" style="display:none">
 </div>
 
       <div class="form-block" style="margin-top:10px;">
@@ -577,7 +607,8 @@ const latexToUnicode = {
 };
 
 function displayVal(str) {
-  if (!document.getElementById('cursiveMode')?.checked || currentLanguage !== 'greek') return str;
+  const nonStd = document.getElementById('cursiveMode')?.checked || document.getElementById('serifMode')?.checked;
+  if (!nonStd || currentLanguage !== 'greek') return str;
   return latexToUnicode[str] || str;
 }
 
@@ -589,12 +620,14 @@ function displayTableVal(str) {
 
 function isMathContent(str) {
   if (!str) return false;
-  if (document.getElementById('cursiveMode')?.checked && currentLanguage === 'greek') return false;
+  const nonStd = document.getElementById('cursiveMode')?.checked || document.getElementById('serifMode')?.checked;
+  if (nonStd && currentLanguage === 'greek') return false;
   return str.includes('$');
 }
 
 function updateBodyClass() {
   document.body.classList.toggle('cursive-mode', !!document.getElementById('cursiveMode')?.checked);
+  document.body.classList.toggle('serif-mode',   !!document.getElementById('serifMode')?.checked);
   document.body.className = document.body.className
     .replace(/\blang-\w+\b/g, '').trim();
   document.body.classList.add('lang-' + currentLanguage);
@@ -684,7 +717,8 @@ function updateURL() {
     cCount: document.getElementById('choiceCountSlider').value,
     fChoice: document.getElementById('forceChoices').checked,
     skipAnim: document.getElementById('skipAnimations').checked,
-    cursive: document.getElementById('cursiveMode').checked
+    cursive: document.getElementById('cursiveMode').checked,
+    serif:   document.getElementById('serifMode').checked
   };
   window.history.replaceState(null, '', '#' + btoa(JSON.stringify(settings)));
 }
@@ -701,7 +735,9 @@ function loadFromURL() {
     if (settings.fChoice) document.getElementById('forceChoices').checked = true;
     if (settings.skipAnim) document.getElementById('skipAnimations').checked = true;
     if (settings.cursive) document.getElementById('cursiveMode').checked = true;
-    document.querySelector(`input[name="fontStyle"][value="${settings.cursive ? 'cursive' : 'standard'}"]`).checked = true;
+    if (settings.serif)   document.getElementById('serifMode').checked   = true;
+    const fontStyleVal = settings.cursive ? 'cursive' : (settings.serif ? 'serif' : 'standard');
+    document.querySelector(`input[name="fontStyle"][value="${fontStyleVal}"]`).checked = true;
     updateBodyClass();
     updatePinBtn();
     renderLetterSettings(); 

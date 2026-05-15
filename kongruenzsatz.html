@@ -4,14 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Kongruenzsatz-Trainer</title>
-<!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-5K8WYYXDL2"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-        gtag('config', 'G-5K8WYYXDL2');
-    </script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -36,7 +28,7 @@ body{font-family:system-ui,'Segoe UI',sans-serif;font-size:14px;line-height:1.45
   transition:background .12s,border-color .12s;color:#777;white-space:nowrap}
 .chip.on{background:var(--g4);border-color:var(--g1);color:var(--g0)}
 .chip.nonks{font-style:italic;border-style:dashed}
-.chip.nonks.on{background:var(--g4);border-color:var(--g1);color:var(--g0)}
+.chip.nonks.on{border-style:dashed}
 .toggle-row{display:flex;align-items:flex-start;gap:6px;margin-top:5px;font-size:.80em;
   color:var(--muted);cursor:pointer;line-height:1.4}
 .toggle-row input{margin-top:2px;cursor:pointer;flex-shrink:0;accent-color:var(--g1)}
@@ -325,7 +317,7 @@ function computeGeometry(){
       alpha=deg(Math.acos(clamp((b*b+c*c-a*a)/(2*b*c),-1,1)));
       beta =deg(Math.acos(clamp((a*a+c*c-b*b)/(2*a*c),-1,1)));
       gamma=180-alpha-beta;
-      if(currentCase==='sSw'&&off_>1e-6){const tv2=foot_-off_;if(tv2>1e-6)C2={thirdV2:tv2,thirdK};}
+      if(currentCase==='sSw'&&off_>1e-6){const tv2=foot_-off_;if(tv2>1e-6)C2={pending:true};}
       break;}
     case 'WWW':
       {const sumA=alpha+beta+gamma;
@@ -338,19 +330,16 @@ function computeGeometry(){
   if(currentCase==='SsW'||currentCase==='sSw'){
     if(valid){
       C={x:b*Math.cos(rad(alpha)),y:b*Math.sin(rad(alpha))};
-      if(C2){
-        // Second solution: re-derive full geometry with thirdK = thirdV2
-        const{thirdV2,thirdK}=C2;
-        let a2=a,b2=b,c2=c;
-        if(thirdK==='a')a2=thirdV2; else if(thirdK==='b')b2=thirdV2; else c2=thirdV2;
-        const alpha2=deg(Math.acos(clamp((b2*b2+c2*c2-a2*a2)/(2*b2*c2),-1,1)));
-        C2={x:b2*Math.cos(rad(alpha2)),y:b2*Math.sin(rad(alpha2)),
-            a2,b2,c2,
-            beta2:deg(Math.acos(clamp((a2*a2+c2*c2-b2*b2)/(2*a2*c2),-1,1))),
-            gamma2:0};
-        C2.gamma2=180-alpha2-C2.beta2;
-        // B2 might differ from B if thirdK='c'
-        C2.B2={x:c2,y:0};
+      // Check ambiguity via the construction (independent of standard coords)
+      const angK=givenA[0];
+      const oppK={alpha:'a',beta:'b',gamma:'c'}[angK];
+      const adjK=givenS.find(s=>s!==oppK);
+      const adjV_=currentValues[adjK],oppV_=currentValues[oppK],angV_=currentValues[angK];
+      const sinA_=Math.sin(rad(angV_));
+      const disc_=oppV_*oppV_-adjV_*adjV_*sinA_*sinA_;
+      if(currentCase==='sSw'&&disc_>=0){
+        const t2_=adjV_*Math.cos(rad(angV_))-Math.sqrt(disc_);
+        if(t2_>1e-4)C2={pending:true};
       }
     }
   } else if(valid||currentCase==='WWW'){
@@ -364,18 +353,46 @@ function computeGeometry(){
 }
 
 // ── STABLE VIEWPORT TRANSFORM ────────────────────────
-// Based ONLY on the final triangle vertices so every step uses the same scale.
 let _t,_W,_H;
 function computeTransform(geo,W,H){
-  const{A,B,C,C2}=geo,mg=68;
-  const pts=[{x:A.x,y:A.y},{x:B.x,y:B.y}];
-  if(C&&isFinite(C.x)&&isFinite(C.y))pts.push(C);
-  if(C2&&isFinite(C2.x)&&isFinite(C2.y))pts.push(C2);
-  if(!pts.some(p=>p.y>0.1))pts.push({x:B.x/2,y:Math.max(B.x*0.5,2)});
-  let x0=Math.min(...pts.map(p=>p.x))-0.05;
-  let x1=Math.max(...pts.map(p=>p.x));
-  let y0=Math.min(...pts.map(p=>p.y))-0.15;
-  let y1=Math.max(...pts.map(p=>p.y));
+  const{A,B,C,C2,givenS,givenA,valid}=geo;
+  const mg=68;let pts;
+  if((currentCase==='SsW'||currentCase==='sSw')&&!valid){
+    // Invalid: use local construction coords
+    const angK=givenA[0],oppK={alpha:'a',beta:'b',gamma:'c'}[angK];
+    const adjK=givenS.find(s=>s!==oppK);
+    const adjVal=currentValues[adjK],angVal=currentValues[angK];
+    const angVN2={alpha:'A',beta:'B',gamma:'C'}[angK];
+    const rv2=adjVal,cosG2=Math.cos(rad(angVal)),sinG2=Math.sin(rad(angVal));
+    let pA2,pB2,pC2;
+    if(angVN2==='A'){pA2={x:0,y:0};pB2={x:rv2,y:0};pC2={x:rv2*cosG2,y:rv2*sinG2};}
+    else if(angVN2==='B'){pA2={x:0,y:0};pB2={x:rv2,y:0};pC2={x:rv2-rv2*cosG2,y:rv2*sinG2};}
+    else{pA2={x:0,y:0};pB2={x:rv2,y:0};pC2={x:rv2*0.5,y:rv2*sinG2};}
+    pts=[pA2,pB2,pC2];
+  } else {
+    pts=[{x:A.x,y:A.y},{x:B.x,y:B.y}];
+    if(C&&isFinite(C.x)&&isFinite(C.y))pts.push(C);
+    // For valid sSw, also include C2 position
+    if((currentCase==='SsW'||currentCase==='sSw')&&valid&&C&&C2&&C2.pending){
+      const angK=givenA[0],oppK={alpha:'a',beta:'b',gamma:'c'}[angK];
+      const adjK=givenS.find(s=>s!==oppK),oppVal=currentValues[oppK];
+      const gv={A,B,C};
+      const angVN={alpha:'A',beta:'B',gamma:'C'}[angK];
+      const adjVNs={c:['A','B'],b:['A','C'],a:['B','C']}[adjK];
+      const circVN=adjVNs.find(v=>v!==angVN);
+      const thirdVN=['A','B','C'].find(v=>v!==angVN&&v!==circVN);
+      const angPt=gv[angVN],circPt=gv[circVN],thirdPt=gv[thirdVN];
+      const rayDir=Math.atan2(thirdPt.y-angPt.y,thirdPt.x-angPt.x);
+      const cosR=Math.cos(rayDir),sinR=Math.sin(rayDir);
+      const dx=angPt.x-circPt.x,dy=angPt.y-circPt.y;
+      const footP=dx*cosR+dy*sinR;
+      const disc=oppVal*oppVal-(dx*dx+dy*dy-footP*footP);
+      if(disc>=0){const sqD=Math.sqrt(disc);const t2=-footP-sqD;if(t2>1e-4)pts.push({x:angPt.x+t2*cosR,y:angPt.y+t2*sinR});}
+    }
+    if(!pts.some(p=>p.y>0.1))pts.push({x:B.x/2,y:Math.max(B.x*0.5,2)});
+  }
+  let x0=Math.min(...pts.map(p=>p.x))-0.05,x1=Math.max(...pts.map(p=>p.x));
+  let y0=Math.min(...pts.map(p=>p.y))-0.15,y1=Math.max(...pts.map(p=>p.y));
   const w=Math.max(x1-x0,0.1),h=Math.max(y1-y0,0.1);
   const s=Math.min((W-2*mg)/w,(H-2*mg)/h);
   return{s,ox:(W-w*s)/2-x0*s,oy:(H-h*s)/2+y1*s};
@@ -418,8 +435,8 @@ function sSideLbl(p1,p2,opp,nm,val,isG){
   const ex=p2.x-p1.x,ey=p2.y-p1.y,L=Math.sqrt(ex*ex+ey*ey)||1;
   let nx=-ey/L,ny=ex/L;
   if((opp.x-mx)*nx+(opp.y-my)*ny>0){nx=-nx;ny=-ny;}
-  const OFF=0.55,lx=mx+nx*OFF,ly=my+ny*OFF;
-  return`<text x="${sx(lx).toFixed(1)}" y="${sy(ly).toFixed(1)}" text-anchor="middle" dominant-baseline="middle" font-size="12" font-style="italic" font-weight="${isG?700:500}" fill="${isG?GN:MT}">${esc(nm+'='+val)}</text>`;
+  const OFF=clamp(L*0.1,0.1,0.4),lx=mx+nx*OFF,ly=my+ny*OFF;
+  return`<text x="${sx(lx).toFixed(1)}" y="${sy(ly).toFixed(1)}" text-anchor="middle" dominant-baseline="middle" font-size="13" font-style="italic" font-weight="${isG?700:500}" fill="${isG?GN:MT}">${esc(nm+'='+val)}</text>`;
 }
 function sAngArc(vtx,p1,p2,r,lbl,isG){
   if(!dd(vtx)||!dd(p1)||!dd(p2))return'';
@@ -430,11 +447,11 @@ function sAngArc(vtx,p1,p2,r,lbl,isG){
   if(span<0.5)return'';
   const steps=Math.max(10,Math.round(span/3)),pl=[];
   for(let i=0;i<=steps;i++){const ag=sa+span*i/steps;pl.push(sx(vtx.x+r*Math.cos(rad(ag))).toFixed(1)+','+sy(vtx.y+r*Math.sin(rad(ag))).toFixed(1));}
-  const ma=sa+span/2,lr=r+0.42;
+  const ma=sa+span/2,lr=r*1.5;
   const lx=vtx.x+lr*Math.cos(rad(ma)),ly=vtx.y+lr*Math.sin(rad(ma));
   const col=isG?GN:MT,sw=isG?2.5:1.5;
   return`<polyline points="${pl.join(' ')}" fill="none" stroke="${col}" stroke-width="${sw}"/>`+
-         `<text x="${sx(lx).toFixed(1)}" y="${sy(ly).toFixed(1)}" text-anchor="middle" dominant-baseline="middle" font-size="11" font-style="italic" font-weight="${isG?700:500}" fill="${col}">${esc(lbl)}</text>`;
+         `<text x="${sx(lx).toFixed(1)}" y="${sy(ly).toFixed(1)}" text-anchor="middle" dominant-baseline="middle" font-size="12" font-style="italic" font-weight="${isG?700:500}" fill="${col}">${esc(lbl)}</text>`;
 }
 function sErrBanner(msg){
   const cy=_H*0.42,cx=_W/2,tw=Math.max(msg.length*6.8,50),p=10,ph=28;
@@ -442,7 +459,7 @@ function sErrBanner(msg){
          `<text x="${cx.toFixed(0)}" y="${cy.toFixed(0)}" text-anchor="middle" dominant-baseline="middle" font-size="11" font-weight="700" fill="white">${esc(msg)}</text>`;
 }
 const ctr3=(A,B,C)=>({x:(A.x+B.x+C.x)/3,y:(A.y+B.y+C.y)/3});
-const arcR=(p1,p2)=>clamp(Math.sqrt((p1.x-p2.x)**2+(p1.y-p2.y)**2)*0.18,0.3,0.9);
+const arcR=(vtx,p1,p2)=>{const d1=Math.sqrt((vtx.x-p1.x)**2+(vtx.y-p1.y)**2),d2=Math.sqrt((vtx.x-p2.x)**2+(vtx.y-p2.y)**2);return clamp(Math.min(d1,d2)*0.22,0.18,0.65);};
 
 // Draw the complete final triangle (step 4): black sides + green highlights + all arcs + labels.
 // No duplicate arcs - all three drawn exactly once.
@@ -458,9 +475,9 @@ function addFinalTriangle(parts,A,B,C,geo,ctr){
   parts.push(sSideLbl(B,C,A,'a',e1(a)+' cm',givenS.includes('a')));
   parts.push(sSideLbl(A,C,B,'b',e1(b)+' cm',givenS.includes('b')));
   // Angles: all three, no duplicates
-  parts.push(sAngArc(A,B,C,arcR(B,C),'\u03b1='+e0(alpha)+'\u00b0',givenA.includes('alpha')));
-  parts.push(sAngArc(B,A,C,arcR(A,C),'\u03b2='+e0(beta)+'\u00b0',givenA.includes('beta')));
-  parts.push(sAngArc(C,A,B,arcR(A,B),'\u03b3='+e0(gamma)+'\u00b0',givenA.includes('gamma')));
+  parts.push(sAngArc(A,B,C,arcR(A,B,C),'\u03b1='+e0(alpha)+'\u00b0',givenA.includes('alpha')));
+  parts.push(sAngArc(B,A,C,arcR(B,A,C),'\u03b2='+e0(beta)+'\u00b0',givenA.includes('beta')));
+  parts.push(sAngArc(C,A,B,arcR(C,A,B),'\u03b3='+e0(gamma)+'\u00b0',givenA.includes('gamma')));
   parts.push(sDot(A,4,'white',BK,1.5));parts.push(sDot(B,4,'white',BK,1.5));
   parts.push(sDot(C,5,GN,'white',1.5));
   parts.push(sVtx(A,'A',ctr));parts.push(sVtx(B,'B',ctr));parts.push(sVtx(C,'C',ctr));
@@ -511,7 +528,7 @@ function drawSWS_alpha(parts,geo,step,sp2){
   if(step>=2){
     const Cp=C||{x:Math.cos(rad(alpha)),y:Math.sin(rad(alpha))};
     const cur=step===2;if(cur||sp2)parts.push(sRay(A,alpha,cur?HC:HP,cur?2:1.5));
-    parts.push(sAngArc(A,B,Cp,arcR(B,Cp),'\u03b1='+e0(alpha)+'\u00b0',givenA.includes('alpha')));
+    parts.push(sAngArc(A,B,Cp,arcR(A,B,Cp),'\u03b1='+e0(alpha)+'\u00b0',givenA.includes('alpha')));
   }
   if(step>=3){
     const cur=step===3;if(cur||sp2)parts.push(sCirc(A.x,A.y,b,cur?HC:HP,cur?2:1.5,cur?'':'8,5'));
@@ -534,7 +551,7 @@ function drawSWS_beta(parts,geo,step,sp2){
   if(step>=2){
     const Cp=C||{x:B.x+Math.cos(rad(bDir)),y:Math.sin(rad(bDir))};
     const cur=step===2;if(cur||sp2)parts.push(sRay(B,bDir,cur?HC:HP,cur?2:1.5));
-    parts.push(sAngArc(B,A,Cp,arcR(A,Cp),'\u03b2='+e0(beta)+'\u00b0',givenA.includes('beta')));
+    parts.push(sAngArc(B,A,Cp,arcR(B,A,Cp),'\u03b2='+e0(beta)+'\u00b0',givenA.includes('beta')));
   }
   if(step>=3){
     const cur=step===3;if(cur||sp2)parts.push(sCirc(B.x,B.y,a,cur?HC:HP,cur?2:1.5,cur?'':'8,5'));
@@ -552,7 +569,7 @@ function drawSWS_gamma(parts,geo,step,sp2){
   const dirCB=Math.atan2(B.y-C.y,B.x-C.x)/RAD;
   // Step 1: place C, gamma arc, two construction rays (current step)
   parts.push(sDot(C,5,RD,'white',1.5));
-  parts.push(sAngArc(C,A,B,arcR(A,B),'\u03b3='+e0(gamma)+'\u00b0',givenA.includes('gamma')));
+  parts.push(sAngArc(C,A,B,arcR(C,A,B),'\u03b3='+e0(gamma)+'\u00b0',givenA.includes('gamma')));
   {const cur=step===1;if(cur||sp2){parts.push(sRay(C,dirCA,cur?HC:HP,cur?2:1.5));parts.push(sRay(C,dirCB,cur?HC:HP,cur?2:1.5));}}
   if(step<4)parts.push(sVtx(C,'C',{x:C.x+0.6,y:C.y+0.4}));
   // Step 2: segment CA=b
@@ -592,12 +609,12 @@ function drawWSW_c(parts,geo,step,sp2){
   if(step>=2){
     const Cp=C||{x:Math.cos(rad(alpha)),y:Math.sin(rad(alpha))};
     const cur=step===2;if(cur||sp2)parts.push(sRay(A,alpha,cur?HC:HP,cur?2:1.5));
-    parts.push(sAngArc(A,B,Cp,arcR(B,Cp),'\u03b1='+e0(alpha)+'\u00b0',givenA.includes('alpha')));
+    parts.push(sAngArc(A,B,Cp,arcR(A,B,Cp),'\u03b1='+e0(alpha)+'\u00b0',givenA.includes('alpha')));
   }
   if(step>=3){
     const Cp=C||{x:B.x+Math.cos(rad(bDir)),y:Math.sin(rad(bDir))};
     const cur=step===3;if(cur||sp2)parts.push(sRay(B,bDir,cur?HC:HP,cur?2:1.5));
-    parts.push(sAngArc(B,A,Cp,arcR(A,Cp),'\u03b2='+e0(beta)+'\u00b0',givenA.includes('beta')));
+    parts.push(sAngArc(B,A,Cp,arcR(B,A,Cp),'\u03b2='+e0(beta)+'\u00b0',givenA.includes('beta')));
     if(valid&&C&&step<4){parts.push(sDot(C,5.5,RD,'white',1.5));parts.push(sVtx(C,'C',ctr));}
     else if(!valid)parts.push(sErrBanner(reason||'\u03b1+\u03b2 \u2265 180\u00b0!'));
   }
@@ -622,11 +639,11 @@ function drawWSW_b(parts,geo,step,sp2){
   }
   if(step>=2){
     const cur=step===2;if(cur||sp2)parts.push(sRay(A,0,cur?HC:HP,cur?2:1.5));
-    parts.push(sAngArc(A,B,C,arcR(B,C),'\u03b1='+e0(alpha)+'\u00b0',givenA.includes('alpha')));
+    parts.push(sAngArc(A,B,C,arcR(A,B,C),'\u03b1='+e0(alpha)+'\u00b0',givenA.includes('alpha')));
   }
   if(step>=3){
     const cur=step===3;if(cur||sp2)parts.push(sRay(C,dirCB,cur?HC:HP,cur?2:1.5));
-    parts.push(sAngArc(C,A,B,arcR(A,B),'\u03b3='+e0(gamma)+'\u00b0',givenA.includes('gamma')));
+    parts.push(sAngArc(C,A,B,arcR(C,A,B),'\u03b3='+e0(gamma)+'\u00b0',givenA.includes('gamma')));
     if(valid&&step<4){parts.push(sDot(B,5.5,RD,'white',1.5));parts.push(sVtx(B,'B',ctr));}
     else if(!valid)parts.push(sErrBanner(reason));
   }
@@ -648,11 +665,11 @@ function drawWSW_a(parts,geo,step,sp2){
   }
   if(step>=2){
     const cur=step===2;if(cur||sp2)parts.push(sRay(B,180,cur?HC:HP,cur?2:1.5));
-    parts.push(sAngArc(B,A,C,arcR(A,C),'\u03b2='+e0(beta)+'\u00b0',givenA.includes('beta')));
+    parts.push(sAngArc(B,A,C,arcR(B,A,C),'\u03b2='+e0(beta)+'\u00b0',givenA.includes('beta')));
   }
   if(step>=3){
     const cur=step===3;if(cur||sp2)parts.push(sRay(C,dirCA,cur?HC:HP,cur?2:1.5));
-    parts.push(sAngArc(C,B,A,arcR(B,A),'\u03b3='+e0(gamma)+'\u00b0',givenA.includes('gamma')));
+    parts.push(sAngArc(C,B,A,arcR(C,B,A),'\u03b3='+e0(gamma)+'\u00b0',givenA.includes('gamma')));
     if(valid&&step<4){parts.push(sDot(A,5.5,RD,'white',1.5));parts.push(sVtx(A,'A',ctr));}
     else if(!valid)parts.push(sErrBanner(reason));
   }
@@ -660,8 +677,6 @@ function drawWSW_a(parts,geo,step,sp2){
 }
 
 // ── SsW / sSw ────────────────────────────────────────
-// Generic: angK=given angle, oppK=opp side (given), adjK=adj side (given)
-// Base = adjK segment. Ray from angle vertex. Circle at other adj endpoint, radius=oppK.
 function drawSSA(parts,geo,step,sp2){
   if(step===0)return;
   const{A,B,C,C2,a,b,c,alpha,beta,gamma,givenS,givenA,valid,reason}=geo;
@@ -670,84 +685,168 @@ function drawSSA(parts,geo,step,sp2){
   const angK=givenA[0];
   const oppK={alpha:'a',beta:'b',gamma:'c'}[angK];
   const adjK=givenS.find(s=>s!==oppK);
-  // vertices per side: c=AB, b=AC, a=BC
-  const sideV={c:['A','B'],b:['A','C'],a:['B','C']};
-  const vPts={A,B,C:C||{x:b*Math.cos(rad(alpha)),y:Math.max(b*Math.sin(rad(alpha)),0.3)}};
   const angVN={alpha:'A',beta:'B',gamma:'C'}[angK];
-  const adjVNs=sideV[adjK];
+  const adjVNs={c:['A','B'],b:['A','C'],a:['B','C']}[adjK];
   const circVN=adjVNs.find(v=>v!==angVN);
   const thirdVN=['A','B','C'].find(v=>v!==angVN&&v!==circVN);
+  const angSym={alpha:'\u03b1',beta:'\u03b2',gamma:'\u03b3'};
+  const vAng={A:'alpha',B:'beta',C:'gamma'};
+  const adjVal=currentValues[adjK],oppVal=currentValues[oppK],angValG=currentValues[angK];
 
-  const angPt=vPts[angVN],circPt=vPts[circVN],thirdPt=vPts[thirdVN];
-  const adjP1=vPts[adjVNs[0]],adjP2=vPts[adjVNs[1]];
-  const adjVal={a,b,c}[adjK],oppVal={a,b,c}[oppK];
-  const angSyms={alpha:'\u03b1',beta:'\u03b2',gamma:'\u03b3'};
-  const angLbl=angSyms[angK]+'='+e0({alpha,beta,gamma}[angK])+'\u00b0';
+  // ── Positions ──
+  // Valid: use standard geo coords (A/B/C correct orientation)
+  // Invalid: build local coords so something sensible is drawn
+  let gPts; // {A,B,C} in drawing space
+  if(valid&&C){
+    gPts={A,B,C};
+  } else {
+    // Local coords: match standard-case layout (A={0,0}, B on x-axis, C above)
+    // so the scene doesn't jump when transitioning valid↔invalid.
+    const rv=adjVal;
+    const cosG=Math.cos(rad(angValG)),sinG=Math.sin(rad(angValG));
+    let locA,locB,locC;
+    if(angVN==='A'){
+      locA={x:0,y:0}; locB={x:rv,y:0}; locC={x:rv*cosG,y:rv*sinG};
+    } else if(angVN==='B'){
+      // Angle at B between BA(180°) and BC = angValG → BC dir = 180°-angValG
+      locA={x:0,y:0}; locB={x:rv,y:0};
+      locC={x:rv-rv*cosG,y:rv*sinG};
+    } else { // angVN==='C', place C above midpoint
+      locA={x:0,y:0}; locB={x:rv,y:0};
+      locC={x:rv*0.5,y:rv*sinG};
+    }
+    gPts={A:locA,B:locB,C:locC};
+  }
+  const angPt=gPts[angVN],circPt=gPts[circVN],thirdPt=gPts[thirdVN];
 
-  // Ray direction: from angPt toward thirdPt
-  const rayAngle=Math.atan2(thirdPt.y-angPt.y,thirdPt.x-angPt.x)/RAD;
+  // C2 position: ray-circle intersection in standard coords (valid only)
+  let C2pt=null;
+  if(valid&&C&&C2&&C2.pending){
+    const rayDir=Math.atan2(thirdPt.y-angPt.y,thirdPt.x-angPt.x);
+    const cosR=Math.cos(rayDir),sinR=Math.sin(rayDir);
+    const dx=angPt.x-circPt.x,dy=angPt.y-circPt.y;
+    const footP=dx*cosR+dy*sinR;
+    const disc2=oppVal*oppVal-(dx*dx+dy*dy-footP*footP);
+    if(disc2>=0){const sqD=Math.sqrt(disc2);const t2=-footP-sqD;if(t2>1e-4)C2pt={x:angPt.x+t2*cosR,y:angPt.y+t2*sinR};}
+  }
 
-  const ctr=C?ctr3(A,B,C):{x:(angPt.x+circPt.x)/2,y:oppVal*0.5};
+  const ctr1=valid&&C?ctr3(gPts.A,gPts.B,gPts.C):{x:(angPt.x+circPt.x)/2+0.5,y:oppVal*0.4};
   const fs=4;
 
-  // ── Step 1: draw adjK segment ──
-  parts.push(sLine(adjP1,adjP2,givenS.includes(adjK)?GN:BK,givenS.includes(adjK)?3:2));
-  if(step<fs){
-    const adjMid={x:(adjP1.x+adjP2.x)/2,y:(adjP1.y+adjP2.y)/2};
-    const awayY=adjMid.y-0.5;
-    parts.push(sDot(adjP1,4,'white',BK,1.5));parts.push(sDot(adjP2,4,'white',BK,1.5));
-    parts.push(sVtx(adjP1,adjVNs[0],{x:adjMid.x,y:awayY}));
-    parts.push(sVtx(adjP2,adjVNs[1],{x:adjMid.x,y:awayY}));
+  // Helpers
+  const angLbl=(vn,sub,useGeo)=>{
+    const k=vAng[vn];
+    const dg=useGeo&&valid?Math.round({alpha,beta,gamma}[k]):Math.round(angValG);
+    return angSym[k]+(sub||'')+'='+(k===angK||useGeo?dg:'?')+'\u00b0';
+  };
+
+  // ── Step 1: draw base (adjK) ──
+  const adjP1=gPts[adjVNs[0]],adjP2=gPts[adjVNs[1]];
+  parts.push(sLine(adjP1,adjP2,GN,3));
+  // Vertex dots for base – drawn in all steps so they stay visible even in step 4 invalid
+  parts.push(sDot(adjP1,4,'white',BK,1.5));
+  parts.push(sDot(adjP2,4,'white',BK,1.5));
+  if(step<fs||(step>=fs&&!valid)){
+    // Labels for base vertices shown when no final triangle drawn
+    parts.push(sVtx(adjP1,adjVNs[0],{x:(adjP1.x+adjP2.x)/2,y:Math.min(adjP1.y,adjP2.y)-0.5}));
+    parts.push(sVtx(adjP2,adjVNs[1],{x:(adjP1.x+adjP2.x)/2,y:Math.min(adjP1.y,adjP2.y)-0.5}));
     parts.push(sSideLbl(adjP1,adjP2,thirdPt,adjK,e1(adjVal)+' cm',true));
   }
 
-  // ── Step 2: ray from angPt + angle arc ──
+  // ── Step 2: ray + angle arc ──
   if(step>=2){
     const cur=step===2;
-    if(cur||sp2)parts.push(sRay(angPt,rayAngle,cur?HC:HP,cur?2:1.5));
-    // Angle arc at angPt: between adj direction (toward circPt) and ray direction (toward thirdPt)
-    parts.push(sAngArc(angPt,circPt,thirdPt,arcR(circPt,thirdPt),angLbl,true));
+    if(cur||sp2)parts.push(sRay(angPt,Math.atan2(thirdPt.y-angPt.y,thirdPt.x-angPt.x)/RAD,cur?HC:HP,cur?2:1.5));
+    parts.push(sAngArc(angPt,circPt,thirdPt,arcR(angPt,circPt,thirdPt),angSym[angK]+'='+Math.round(angValG)+'\u00b0',true));
   }
 
-  // ── Step 3: circle from circPt radius oppVal; mark thirdVN ──
+  // ── Step 3: circle + intersections ──
   if(step>=3){
     const cur=step===3;
     if(cur||sp2)parts.push(sCirc(circPt.x,circPt.y,oppVal,cur?HC:HP,cur?2:1.5,cur?'':'8,5'));
-    if(valid&&C&&step<fs){
+    if(!valid){
+      parts.push(sErrBanner(reason));
+    } else if(step<fs){
       parts.push(sDot(thirdPt,5.5,RD,'white',1.5));
-      parts.push(sVtx(thirdPt,thirdVN,ctr));
-      if(C2&&C2.x!==undefined){
-        // C2 has different third vertex position; compute its vPts
-        const vPts2={A,B:C2.B2||B,C};
-        // For the C2 triangle the third vertex changes
-        const thirdPt2={...vPts2[thirdVN]};
-        // Recompute: C2 has its own geometry
-        const ctr2_={x:(A.x+B.x+(C2.x||C.x))/3,y:(A.y+B.y+(C2.y||C.y))/3};
-        if(isFinite(C2.x)&&C2.y>0.01){
-          parts.push(sDot({x:C2.x,y:C2.y},5.5,OG,'white',1.5));
-          parts.push(sVtx({x:C2.x,y:C2.y},thirdVN+'\u2082',ctr2_));
-        }
+      parts.push(sVtx(thirdPt,thirdVN,ctr1));
+      if(C2pt){
+        const ctr2=ctr3(adjP1,adjP2,C2pt);
+        parts.push(sDot(C2pt,5.5,OG,'white',1.5));
+        parts.push(sVtx(C2pt,thirdVN+'\u2082',ctr2));
       }
-    } else if(!valid)parts.push(sErrBanner(reason));
+    }
   }
 
-  // ── Step 4: final triangle ──
+  // ── Step 4: final triangle(s) ──
   if(step>=fs){
-    if(valid&&C){
-      addFinalTriangle(parts,A,B,C,geo,ctr);
-      // Second triangle for sSw ambiguous
-      if(C2&&isFinite(C2.x)&&C2.y>0.01){
-        const B2=C2.B2||B;
-        const ctr2=ctr3(A,B2,{x:C2.x,y:C2.y});
-        parts.push(`<polygon points="${sp(A)} ${sp(B2)} ${sx(C2.x).toFixed(1)},${sy(C2.y).toFixed(1)}" fill="rgba(200,120,0,.07)" stroke="none"/>`);
-        [A,{x:C2.x,y:C2.y},[A,B2],[B2,{x:C2.x,y:C2.y}]].slice(2).forEach(([p1,p2])=>parts.push(sLine(p1,p2,OG,2,'5,3')));
-        parts.push(sLine(A,{x:C2.x,y:C2.y},OG,2,'5,3'));
-        parts.push(sDot({x:C2.x,y:C2.y},5,OG,'white',1.5));
-        parts.push(sVtx({x:C2.x,y:C2.y},thirdVN+'\u2082',ctr2));
-        const ey2=Math.min(sy(C.y),sy(C2.y))-14;
-        parts.push(`<text x="${(_W/2).toFixed(0)}" y="${ey2.toFixed(0)}" text-anchor="middle" font-size="11" fill="${OG}" font-weight="700">Zweideutig! (sSw)</text>`);
-      }
-    } else parts.push(sErrBanner('Kein Dreieck: '+reason));
+    if(!valid){
+      parts.push(sErrBanner('Kein Dreieck: '+reason));
+      return;
+    }
+    const LA=gPts.A,LB=gPts.B,LC=gPts.C;
+    // Fill
+    parts.unshift(`<polygon points="${sp(LA)} ${sp(LB)} ${sp(LC)}" fill="rgba(25,110,25,.07)" stroke="none"/>`);
+    // Sides
+    [[LA,LB,'c'],[LB,LC,'a'],[LA,LC,'b']].forEach(([p1,p2,s])=>{
+      parts.push(sLine(p1,p2,BK,2));
+      if(givenS.includes(s))parts.push(sLine(p1,p2,GN,3));
+    });
+    parts.push(sSideLbl(LA,LB,LC,'c',e1(c)+' cm',givenS.includes('c')));
+    parts.push(sSideLbl(LB,LC,LA,'a',e1(a)+' cm',givenS.includes('a')));
+    parts.push(sSideLbl(LA,LC,LB,'b',e1(b)+' cm',givenS.includes('b')));
+
+    if(!C2pt){
+      // Unambiguous: draw all 3 angles once each
+      parts.push(sAngArc(LA,LB,LC,arcR(LA,LB,LC),angSym.alpha+'='+Math.round(alpha)+'\u00b0',givenA.includes('alpha')));
+      parts.push(sAngArc(LB,LA,LC,arcR(LB,LA,LC),angSym.beta+'='+Math.round(beta)+'\u00b0',givenA.includes('beta')));
+      parts.push(sAngArc(LC,LA,LB,arcR(LC,LA,LB),angSym.gamma+'='+Math.round(gamma)+'\u00b0',givenA.includes('gamma')));
+      parts.push(sDot(gPts[adjVNs[0]],4,'white',BK,1.5));parts.push(sDot(gPts[adjVNs[1]],4,'white',BK,1.5));parts.push(sDot(gPts[thirdVN],5,GN,'white',1.5));
+      parts.push(sVtx(LA,'A',ctr1));parts.push(sVtx(LB,'B',ctr1));parts.push(sVtx(LC,'C',ctr1));
+    } else {
+      // Ambiguous: angVN angle = single arc (same for both solutions since it's given)
+      const ctr2=ctr3(adjP1,adjP2,C2pt);
+      const ang_vals={alpha,beta,gamma};
+
+      // angVN: no subscript (identical in both solutions since it's given)
+      parts.push(sAngArc(gPts[angVN],gPts[circVN],gPts[thirdVN],arcR(gPts[angVN],gPts[circVN],gPts[thirdVN]),
+        angSym[angK]+'='+Math.round(angValG)+'\u00b0',true));
+      // circVN: subscript ₁
+      const circA1=angSym[vAng[circVN]]+'\u2081='+Math.round(ang_vals[vAng[circVN]])+'\u00b0';
+      parts.push(sAngArc(gPts[circVN],gPts[angVN],gPts[thirdVN],arcR(gPts[circVN],gPts[angVN],gPts[thirdVN]),circA1,false));
+      // thirdVN (C₁): subscript ₁
+      const thirdA1=angSym[vAng[thirdVN]]+'\u2081='+Math.round(ang_vals[vAng[thirdVN]])+'\u00b0';
+      parts.push(sAngArc(gPts[thirdVN],gPts[angVN],gPts[circVN],arcR(gPts[thirdVN],gPts[angVN],gPts[circVN]),thirdA1,false));
+
+      // Primary triangle vertices
+      parts.push(sDot(gPts[adjVNs[0]],4,'white',BK,1.5));parts.push(sDot(gPts[adjVNs[1]],4,'white',BK,1.5));parts.push(sDot(gPts[thirdVN],5,GN,'white',1.5));
+      parts.push(sVtx(LA,'A',ctr1));parts.push(sVtx(LB,'B',ctr1));parts.push(sVtx(LC,'C',ctr1));
+
+      // Second triangle
+      const L2={...gPts,[thirdVN]:C2pt};
+      const LA2=L2.A,LB2=L2.B,LC2=L2.C;
+      const a2=Math.sqrt((LB2.x-LC2.x)**2+(LB2.y-LC2.y)**2);
+      const b2=Math.sqrt((LA2.x-LC2.x)**2+(LA2.y-LC2.y)**2);
+      const c2=Math.sqrt((LA2.x-LB2.x)**2+(LA2.y-LB2.y)**2);
+      const alpha2=deg(Math.acos(clamp((b2*b2+c2*c2-a2*a2)/(2*b2*c2),-1,1)));
+      const beta2 =deg(Math.acos(clamp((a2*a2+c2*c2-b2*b2)/(2*a2*c2),-1,1)));
+      const gamma2=180-alpha2-beta2;
+      const ang2={alpha:alpha2,beta:beta2,gamma:gamma2};
+
+      parts.push(`<polygon points="${sp(LA2)} ${sp(LB2)} ${sp(LC2)}" fill="rgba(200,120,0,.07)" stroke="none"/>`);
+      parts.push(sLine(gPts[angVN],C2pt,OG,2,'5,3'));
+      parts.push(sLine(gPts[circVN],C2pt,OG,2,'5,3'));
+      // Reuse adj side (already drawn green above) — just draw the two new sides orange
+      parts.push(sDot(C2pt,5,OG,'white',1.5));
+      parts.push(sVtx(C2pt,thirdVN+'\u2082',ctr2));
+      // circVN: subscript ₂  (offset arc radius slightly to avoid overlap)
+      const circA2=angSym[vAng[circVN]]+'\u2082='+Math.round(ang2[vAng[circVN]])+'\u00b0';
+      parts.push(sAngArc(gPts[circVN],gPts[angVN],C2pt,arcR(gPts[circVN],gPts[angVN],C2pt)*1.35,circA2,false));
+      // thirdVN (C₂): subscript ₂
+      const thirdA2=angSym[vAng[thirdVN]]+'\u2082='+Math.round(ang2[vAng[thirdVN]])+'\u00b0';
+      parts.push(sAngArc(C2pt,gPts[angVN],gPts[circVN],arcR(C2pt,gPts[angVN],gPts[circVN]),thirdA2,false));
+
+      const ey2=Math.min(sy(gPts[thirdVN].y),sy(C2pt.y))-14;
+    }
   }
 }
 
@@ -765,9 +864,9 @@ function drawWWW(parts,geo,step){
   const ctr=ctr3(A,B,C);
   parts.push(`<polygon points="${sp(A)} ${sp(B)} ${sp(C)}" fill="rgba(80,100,80,.07)" stroke="none"/>`);
   parts.push(sLine(A,B,'#8a9a8a',1.5));parts.push(sLine(B,C,'#8a9a8a',1.5));parts.push(sLine(A,C,'#8a9a8a',1.5));
-  parts.push(sAngArc(A,B,C,arcR(B,C),'\u03b1='+e0(alpha)+'\u00b0',givenA.includes('alpha')));
-  parts.push(sAngArc(B,A,C,arcR(A,C),'\u03b2='+e0(beta)+'\u00b0',givenA.includes('beta')));
-  parts.push(sAngArc(C,A,B,arcR(A,B),'\u03b3='+e0(gamma)+'\u00b0',givenA.includes('gamma')));
+  parts.push(sAngArc(A,B,C,arcR(A,B,C),'\u03b1='+e0(alpha)+'\u00b0',givenA.includes('alpha')));
+  parts.push(sAngArc(B,A,C,arcR(B,A,C),'\u03b2='+e0(beta)+'\u00b0',givenA.includes('beta')));
+  parts.push(sAngArc(C,A,B,arcR(C,A,B),'\u03b3='+e0(gamma)+'\u00b0',givenA.includes('gamma')));
   parts.push(sDot(A,4,'#8a9a8a'));parts.push(sDot(B,4,'#8a9a8a'));parts.push(sDot(C,4,'#8a9a8a'));
   parts.push(sVtx(A,'A',ctr));parts.push(sVtx(B,'B',ctr));parts.push(sVtx(C,'C',ctr));
   if(step>=2){
@@ -782,27 +881,31 @@ function drawWWW(parts,geo,step){
 // ── MAIN DISPATCH ────────────────────────────────────
 function maxSteps(){return currentCase==='WWW'?2:4;}
 
+let _drawReq=0;
 function drawSketch(){
-  const wrap=document.getElementById('svg-wrap');
-  if(selectedParts.length!==3){wrap.innerHTML='';return;}
-  const sl=document.getElementById('step-slider');
-  const ms=maxSteps(),s=Math.min(parseInt(sl.value),ms);
-  sl.max=ms;document.getElementById('step-label').textContent=s+'/'+ms;
-  const sp2=document.getElementById('show-aux').checked;
-  const W=wrap.clientWidth||600,H=wrap.clientHeight||400;
-  if(!W||!H)return;
-  const geo=computeGeometry();
-  setTfm(computeTransform(geo,W,H),W,H);
-  const parts=[];
-  switch(currentCase){
-    case 'SSS': drawSSS(parts,geo,s,sp2);break;
-    case 'SWS': drawSWS(parts,geo,s,sp2);break;
-    case 'WSW':case 'SWW': drawWSW(parts,geo,s,sp2);break;
-    case 'SsW':case 'sSw': drawSSA(parts,geo,s,sp2);break;
-    case 'WWW': drawWWW(parts,geo,s);break;
-  }
-  document.getElementById('sketch-desc').textContent=getStepDesc(s,geo);
-  wrap.innerHTML=`<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}"><defs><clipPath id="cl"><rect width="${W}" height="${H}"/></clipPath></defs><g clip-path="url(#cl)">${parts.join('')}</g></svg>`;
+  cancelAnimationFrame(_drawReq);
+  _drawReq=requestAnimationFrame(()=>{
+    const wrap=document.getElementById('svg-wrap');
+    if(selectedParts.length!==3){wrap.innerHTML='';return;}
+    const sl=document.getElementById('step-slider');
+    const ms=maxSteps(),s=Math.min(parseInt(sl.value),ms);
+    sl.max=ms;document.getElementById('step-label').textContent=s+'/'+ms;
+    const sp2=document.getElementById('show-aux').checked;
+    const W=wrap.clientWidth||600,H=wrap.clientHeight||400;
+    if(!W||!H)return;
+    const geo=computeGeometry();
+    setTfm(computeTransform(geo,W,H),W,H);
+    const parts=[];
+    switch(currentCase){
+      case 'SSS': drawSSS(parts,geo,s,sp2);break;
+      case 'SWS': drawSWS(parts,geo,s,sp2);break;
+      case 'WSW':case 'SWW': drawWSW(parts,geo,s,sp2);break;
+      case 'SsW':case 'sSw': drawSSA(parts,geo,s,sp2);break;
+      case 'WWW': drawWWW(parts,geo,s);break;
+    }
+    document.getElementById('sketch-desc').textContent=getStepDesc(s,geo);
+    wrap.innerHTML=`<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}"><defs><clipPath id="cl"><rect width="${W}" height="${H}"/></clipPath></defs><g clip-path="url(#cl)">${parts.join('')}</g></svg>`;
+  });
 }
 
 // ── STEP DESCRIPTIONS ────────────────────────────────
@@ -869,8 +972,8 @@ const HINTS={
   SWS:'Zwei Seiten + eingeschlossener Winkel \u2192 Kongruenzsatz.',
   WSW:'Seite liegt ZWISCHEN beiden Winkeln \u2192 Kongruenzsatz.',
   SWW:'Zwei Winkel + Seite \u2192 fehlenden Winkel berechnen, dann wie WSW.',
-  SsW:'Winkel gegen\u00fcber der <em>größeren</em> Seite.',
-  sSw:'Winkel ggü. der <em>kleineren</em> Seite \u2013 kein Kongruenzsatz!',
+  SsW:'Winkel gegen\u00fcber der GR\u00d6\u00deSREN Seite.',
+  sSw:'Winkel ggü. der KLEINEREN Seite \u2013 kein Kongruenzsatz!',
   WWW:'Nur Winkel: beliebig skalierbar \u2013 kein Kongruenzsatz!'
 };
 function handleQ1(chosen,btnEl){
@@ -887,7 +990,7 @@ function handleQ1(chosen,btnEl){
   });
   const fb=document.getElementById('q1-fb');
   fb.className='quiz-fb '+(ok?'ok':'err');
-  fb.innerHTML=ok?'<strong>\u2713 Richtig!</strong> <br>'+(HINTS[cs]||''):'<strong>\u2717 Falsch.</strong> Richtig: <em>'+correct+'</em>. <br>'+(HINTS[cs]||'');
+  fb.innerHTML=ok?'<strong>\u2713 Richtig!</strong> '+(HINTS[cs]||''):'<strong>\u2717 Falsch.</strong> Richtig: <em>'+correct+'</em>. '+(HINTS[cs]||'');
   setTimeout(()=>showQ2(),380);
 }
 function showQ2(){
@@ -908,7 +1011,7 @@ function showQ2(){
 function handleQ2(chosen,btnEl,opts){
   if(quizState.q2done)return;quizState.q2done=true;
   const geo=computeGeometry();
-  const correct=!geo.valid?'kein':(geo.C2?'zweideutig':'eindeutig');
+  const correct=!geo.valid?'kein':(geo.C2&&isFinite(geo.C2.x)&&isFinite(geo.C2.y)?'zweideutig':'eindeutig');
   const ok=chosen===correct;
   document.querySelectorAll('#q2-btns .ans-btn').forEach((b,i)=>{
     b.disabled=true;
