@@ -302,7 +302,7 @@ const cardPool = [
     },
     {
         "title": "Perfekte Zahlen",
-        "fronttext": "Er klassifizierte Zahlen, die gleich der Summe ihrer echten Teiler sind, wie $6$ ($=1+2+3$) oder $28$ ($=1+2+4+7+14$).",
+        "fronttext": "Er klassifizierte Zahlen, die gleich der Summe ihrer echten Teiler (kleiner als die Zahl selbst) sind, wie $6$ ($=1+2+3$) oder $28$ ($=1+2+4+7+14$).",
         "backtext": "Nicomachus von Gerasa beschrieb in seiner 'Einführung in die Arithmetik' diese 'Perfekten Zahlen' und sah in ihnen ein Zeichen göttlicher Ordnung. Bis heute ist es eines der großen ungelösten Probleme, ob es ungerade perfekte Zahlen gibt.",
         "valuetext": "um 100",
         "startvalue": 90,
@@ -311,7 +311,7 @@ const cardPool = [
             "Antike",
             "Zahlen",
             "!wichtig",
-            "!wichtig",
+            "!einfach",
             "!ungelöst"
         ],
         "furtherInformation": ["Alle bisher bekannten perfekten Zahlen sind abgeleitet von den $\\rightarrow$ Mersenne-Primzahlen"]

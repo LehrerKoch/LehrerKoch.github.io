@@ -17,6 +17,64 @@ let toastTimer = null;
 let furtherInfoHideTimer = null;
 
 // --------------------------------------------------------
+// HAND-AREA MIN-HÖHE
+// Reserviert dauerhaft den Platz für genau 1 Karte, damit
+// beim Ausspielen von Karten keine anderen Elemente springen.
+// Wird bei Start und bei Größen-/Orientierungsänderungen neu
+// berechnet und als CSS min-height festgeklemmt.
+// --------------------------------------------------------
+function updateHandAreaMinHeight() {
+    const area = document.getElementById('hand-area');
+    if (!area) return;
+
+    // getPropertyValue('--card-h') liefert den rohen CSS-Text
+    // (z.B. "clamp(80px, 38vw, 200px)") – parseFloat davon wäre NaN.
+    // Stattdessen: ein unsichtbares Probe-Element mit denselben CSS-Regeln
+    // wie eine echte Karte erzeugen; der Browser löst clamp() und dvh korrekt auf.
+    const probe = document.createElement('div');
+    probe.style.cssText =
+        'position:absolute;visibility:hidden;pointer-events:none;' +
+        'width:var(--card-w);height:var(--card-h);max-height:35dvh;' +
+        'top:-9999px;left:-9999px;';
+    document.body.appendChild(probe);
+    const cardH = probe.getBoundingClientRect().height || 130;
+    document.body.removeChild(probe);
+
+    // Padding: clamp(4px,1dvh,12px) oben + clamp(5px,1.2dvh,14px) unten
+    // Konservative Näherung: ~22 px (wird bei Resize neu berechnet)
+    const paddingApprox = 22;
+    const fixedH = Math.ceil(cardH + paddingApprox);
+
+    // Sowohl height als auch minHeight festklemmen:
+    // minHeight allein: height kann durch anderen Code überschrieben werden.
+    // height allein: größere Karten würden area aufweiten.
+    // Beide zusammen: Bereich bleibt immer exakt so groß wie 1 Karte.
+    area.style.minHeight = fixedH + 'px';
+    area.style.height    = fixedH + 'px';
+    // Visuellen Hintergrund zurücksetzen – adjustHandZoom setzt ihn
+    // danach auf den echten Wert (bis dahin: volle graue Fläche)
+    area.style.removeProperty('--hand-visual-h');
+}
+
+// Resize / Orientierungswechsel: min-Höhe und Zoom neu berechnen.
+// Debounce verhindert zu viele Aufrufe während des Resize-Ziehens.
+let _resizeTimer = null;
+function _onResize() {
+    clearTimeout(_resizeTimer);
+    _resizeTimer = setTimeout(() => {
+        updateHandAreaMinHeight();
+        adjustHandZoom();
+        adjustTimelineZoom();
+    }, 80);
+}
+window.addEventListener('resize', _onResize);
+// Orientierungswechsel: kurz warten bis der Browser das Layout
+// abgeschlossen hat, dann neu messen
+if (screen.orientation) {
+    screen.orientation.addEventListener('change', () => setTimeout(_onResize, 150));
+}
+
+// --------------------------------------------------------
 // ZOOM-ANPASSUNG
 // --------------------------------------------------------
 function adjustTimelineZoom() {
@@ -29,7 +87,7 @@ function adjustTimelineZoom() {
         const totalW     = container.scrollWidth;
         const available  = area.clientWidth - 20;
         if (totalW > available) {
-            const scale = Math.max(available / totalW, 0.28);
+            const scale = Math.max(available / totalW, 0.15);
             container.style.transform = `scale(${scale})`;
             // placeholder.style.transform = `scale(${scale})`;
         }
@@ -67,9 +125,11 @@ function adjustHandZoom() {
             container.style.transform = `scale(${scale})`;
         }
 
-        // 👉 NEU: Höhe anpassen!
-        const baseHeight = container.scrollHeight;
-        area.style.height = (baseHeight * scale + 20) + 'px';
+        // Sichtbare Höhe = skalierter Kartenbereich + Padding.
+        // CSS ::after auf #hand-area nutzt diese Variable für den
+        // grauen Hintergrund, der nur so groß wie die Karten ist.
+        const visualH = Math.round(container.scrollHeight * scale + 22);
+        area.style.setProperty('--hand-visual-h', visualH + 'px');
     });
 }
 
@@ -266,7 +326,7 @@ function updateLobbyCount() {
         : cardPool;
     const sliderVal = parseInt(document.getElementById('cards-slider')?.value || 10);
     const playable  = Math.min(sliderVal, pool.length);
-    const handPlayable  = Math.min(playable-1, 5);
+    const handPlayable  = Math.min(pool.length-1, 5);
     const timelinePlayable = Math.min(sliderVal-1, pool.length - handPlayable - 1);
     let el = document.getElementById('lobby-card-count');
     if (!el) return;
@@ -385,6 +445,10 @@ function startNewGame() {
 
     document.getElementById('lobby').classList.add('hidden');
     document.getElementById('game-over').classList.add('hidden');
+
+    // Min-Höhe des Handbereichs für 1 Karte festlegen (verhindert
+    // Layout-Sprünge wenn Karten ausgespielt werden)
+    updateHandAreaMinHeight();
 
     // 1 Karte aus Stapel in die Mitte
     if (deck.length > 0) {
@@ -544,11 +608,13 @@ function createCardUI(card, isHand, index, isZoom = false) {
     if (hasRange) {
         const starBtn = cardEl.querySelector('.range-star-icon');
         const rangeLinks = [formatRange(card.startvalue, card.endvalue)];
-        starBtn.addEventListener('mouseenter', () => {
+        starBtn.addEventListener('pointerenter', (e) => {
+            if (e.pointerType !== 'mouse') return;
             clearTimeout(furtherInfoHideTimer);
             showFurtherInfoTooltip(starBtn, rangeLinks, 'Akzeptierter Zeitraum');
         });
-        starBtn.addEventListener('mouseleave', () => {
+        starBtn.addEventListener('pointerleave', (e) => {
+            if (e.pointerType !== 'mouse') return;
             furtherInfoHideTimer = setTimeout(hideFurtherInfoTooltip, 250);
         });
         starBtn.addEventListener('click', (e) => {
@@ -565,11 +631,13 @@ function createCardUI(card, isHand, index, isZoom = false) {
 
     if (hasLinks) {
         const iconBtn = cardEl.querySelector('.further-info-icon');
-        iconBtn.addEventListener('mouseenter', () => {
+        iconBtn.addEventListener('pointerenter', (e) => {
+            if (e.pointerType !== 'mouse') return;
             clearTimeout(furtherInfoHideTimer);
             showFurtherInfoTooltip(iconBtn, card.furtherInformation, 'Weiterführende Infos');
         });
-        iconBtn.addEventListener('mouseleave', () => {
+        iconBtn.addEventListener('pointerleave', (e) => {
+            if (e.pointerType !== 'mouse') return;
             furtherInfoHideTimer = setTimeout(hideFurtherInfoTooltip, 250);
         });
         iconBtn.addEventListener('click', (e) => {
