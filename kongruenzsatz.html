@@ -54,8 +54,8 @@ body{font-family:system-ui,'Segoe UI',sans-serif;font-size:14px;line-height:1.45
   padding:4px 8px;font-size:.83em;margin-bottom:6px;line-height:1.75}
 .quiz-q{font-weight:700;font-size:.80em;color:var(--g0);margin-bottom:3px}
 .quiz-btns{display:flex;flex-wrap:wrap;gap:3px}
-.ans-btn{padding:3px 8px;border:1.5px solid #ccc;border-radius:18px;background:#f8f8f8;
-  font-size:.78em;font-weight:700;cursor:pointer;transition:all .12s;touch-action:manipulation;white-space:nowrap}
+.ans-btn{padding:6px 11px;border:1.5px solid #ccc;border-radius:18px;background:#f8f8f8;
+  font-size:.80em;font-weight:700;cursor:pointer;transition:all .12s;touch-action:manipulation;white-space:nowrap;min-height:32px}
 .ans-btn:hover:not(:disabled){background:var(--g4);border-color:var(--g1)}
 .ans-btn:disabled{cursor:not-allowed;opacity:.8}
 .ans-btn.correct{background:#cef0ce!important;border-color:var(--g2)!important;color:var(--g0)!important}
@@ -67,6 +67,16 @@ body{font-family:system-ui,'Segoe UI',sans-serif;font-size:14px;line-height:1.45
 .quiz-fb.err{background:#fdecea;border-left:3px solid var(--red);color:var(--red);display:block}
 .quiz-next{margin-top:6px;border-top:1px solid var(--border);padding-top:6px}
 .quiz-done{margin-top:5px;font-size:.76em;color:var(--muted)}
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);
+  background:var(--g0);color:#fff;padding:8px 22px;border-radius:22px;font-size:.84em;
+  font-weight:700;box-shadow:0 3px 16px rgba(0,0,0,.35);opacity:0;pointer-events:none;
+  transition:opacity .28s ease;z-index:9999;white-space:nowrap}
+.toast.show{opacity:1}
+.share-btn{display:inline-flex;align-items:center;gap:3px;padding:2px 9px 2px 7px;
+  border:1.5px solid var(--g1);border-radius:14px;background:var(--card);color:var(--g0);
+  font-size:.74em;font-weight:700;cursor:pointer;transition:background .12s;line-height:1.6}
+.share-btn:hover{background:var(--g4)}
+.share-btn svg{width:12px;height:12px;flex-shrink:0;margin-top:1px}
 .canvas-pane{background:var(--card);border:1px solid var(--border);border-radius:var(--r);
   box-shadow:var(--sh);display:flex;flex-direction:column;overflow:hidden;min-height:0}
 .svg-wrap{flex:1;min-height:0;overflow:hidden}
@@ -108,13 +118,21 @@ body{font-family:system-ui,'Segoe UI',sans-serif;font-size:14px;line-height:1.45
       <label class="chip nonks on"><input type="checkbox" value="sSw" checked hidden onchange="flipChip(this)">sSw</label>
     </div>
     <label class="toggle-row">
-      <input type="checkbox" id="allow-impossible">
-      <span>Unmögliche Fälle erlauben (Dreiecksungl., Winkelsumme, WWW)</span>
+      <input type="checkbox" id="allow-impossible" onchange="syncURL()">
+      <span>Unmögliche Fälle? (Dreiecksungl., Winkelsumme, WWW)</span>
     </label>
     <button class="btn" onclick="generateRandomValues()">&#x1F3B2; Zufällige Werte</button>
   </div>
   <div class="card">
-    <div class="card-title">Werte-Eingabe <span style="font-weight:400;color:var(--muted)">(genau 3)</span></div>
+    <div class="card-title" style="display:flex;align-items:center;justify-content:space-between">
+      <span>Werte-Eingabe <span style="font-weight:400;color:var(--muted)">(genau 3)</span></span>
+      <button class="share-btn" id="share-btn" onclick="shareValues()" style="visibility:hidden" title="Aktuelle Maße in URL teilen">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+          <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+        </svg>Teilen
+      </button>
+    </div>
     <div class="chips" id="parts-selector" style="margin-bottom:9px">
       <label class="chip"><input type="checkbox" value="a"     hidden onchange="togglePart(this)">a</label>
       <label class="chip"><input type="checkbox" value="b"     hidden onchange="togglePart(this)">b</label>
@@ -148,10 +166,10 @@ body{font-family:system-ui,'Segoe UI',sans-serif;font-size:14px;line-height:1.45
     <div class="ctrl-row">
       <div class="step-grp">
         <span>Schritt:</span>
-        <input type="range" id="step-slider" min="0" max="4" value="4" oninput="drawSketch()">
+        <input type="range" id="step-slider" min="0" max="4" value="4" oninput="drawSketch();syncURL()">
         <span class="step-num" id="step-label">4/4</span>
       </div>
-      <label><input type="checkbox" id="show-aux" checked onchange="drawSketch()"> Hilfslinien (vorige Schr.)</label>
+      <label><input type="checkbox" id="show-aux" checked onchange="drawSketch();syncURL()"> Hilfslinien (vorige Schr.)</label>
     </div>
   </div>
 </main>
@@ -177,7 +195,7 @@ let currentCase='';
 let quizState={q1done:false,q2done:false};
 
 // ── UI ────────────────────────────────────────────────
-function flipChip(cb){cb.parentElement.classList.toggle('on',cb.checked);}
+function flipChip(cb){cb.parentElement.classList.toggle('on',cb.checked);syncURL();}
 
 function togglePart(cb){
   if(cb.checked){if(selectedParts.length>=3){cb.checked=false;return;}selectedParts.push(cb.value);}
@@ -217,12 +235,15 @@ function updVal(p,v,src){
   autoApply();
 }
 function autoApply(){
+  const shareBtn=document.getElementById('share-btn');
   if(selectedParts.length!==3){
     document.getElementById('sketch-desc').textContent='W\u00e4hle drei Werte aus.';
     document.getElementById('svg-wrap').innerHTML='';
     document.getElementById('quiz-card').style.display='none';
+    if(shareBtn)shareBtn.style.visibility='hidden';
     return;
   }
+  if(shareBtn)shareBtn.style.visibility='';
   determineCase();
   const syms={alpha:'\u03b1',beta:'\u03b2',gamma:'\u03b3'};
   document.getElementById('given-display').innerHTML=selectedParts.map(p=>{
@@ -337,7 +358,7 @@ function computeGeometry(){
       const adjV_=currentValues[adjK],oppV_=currentValues[oppK],angV_=currentValues[angK];
       const sinA_=Math.sin(rad(angV_));
       const disc_=oppV_*oppV_-adjV_*adjV_*sinA_*sinA_;
-      if(currentCase==='sSw'&&disc_>=0){
+      if(currentCase==='sSw'&&disc_>1e-6){
         const t2_=adjV_*Math.cos(rad(angV_))-Math.sqrt(disc_);
         if(t2_>1e-4)C2={pending:true};
       }
@@ -972,8 +993,8 @@ const HINTS={
   SWS:'Zwei Seiten + eingeschlossener Winkel \u2192 Kongruenzsatz.',
   WSW:'Seite liegt ZWISCHEN beiden Winkeln \u2192 Kongruenzsatz.',
   SWW:'Zwei Winkel + Seite \u2192 fehlenden Winkel berechnen, dann wie WSW.',
-  SsW:'Winkel gegen\u00fcber der GR\u00d6\u00deSREN Seite.',
-  sSw:'Winkel ggü. der KLEINEREN Seite \u2013 kein Kongruenzsatz!',
+  SsW:'Winkel gegen\u00fcber der <em>größeren</em> Seite.',
+  sSw:'Winkel ggü. der <em>kleineren</em> Seite \u2013 kein Kongruenzsatz!',
   WWW:'Nur Winkel: beliebig skalierbar \u2013 kein Kongruenzsatz!'
 };
 function handleQ1(chosen,btnEl){
@@ -990,7 +1011,7 @@ function handleQ1(chosen,btnEl){
   });
   const fb=document.getElementById('q1-fb');
   fb.className='quiz-fb '+(ok?'ok':'err');
-  fb.innerHTML=ok?'<strong>\u2713 Richtig!</strong> '+(HINTS[cs]||''):'<strong>\u2717 Falsch.</strong> Richtig: <em>'+correct+'</em>. '+(HINTS[cs]||'');
+  fb.innerHTML=ok?'<strong>\u2713 Richtig!</strong><br>'+(HINTS[cs]||''):'<strong>\u2717 Falsch.</strong><br>Richtig: <em>'+correct+'</em>. '+(HINTS[cs]||'');
   setTimeout(()=>showQ2(),380);
 }
 function showQ2(){
@@ -1011,7 +1032,7 @@ function showQ2(){
 function handleQ2(chosen,btnEl,opts){
   if(quizState.q2done)return;quizState.q2done=true;
   const geo=computeGeometry();
-  const correct=!geo.valid?'kein':(geo.C2&&isFinite(geo.C2.x)&&isFinite(geo.C2.y)?'zweideutig':'eindeutig');
+  const correct=!geo.valid?'kein':(geo.C2?'zweideutig':'eindeutig');
   const ok=chosen===correct;
   document.querySelectorAll('#q2-btns .ans-btn').forEach((b,i)=>{
     b.disabled=true;
@@ -1023,8 +1044,78 @@ function handleQ2(chosen,btnEl,opts){
   const lbl={eindeutig:'Eindeutig',zweideutig:'Zweideutig',kein:'Nicht m\u00f6glich'}[correct];
   const fb=document.getElementById('q2-fb');
   fb.className='quiz-fb '+(ok?'ok':'err');
-  fb.innerHTML=ok?'<strong>\u2713 Richtig!</strong> '+expl:'<strong>\u2717 Falsch.</strong> Richtig: <em>'+lbl+'</em>. '+expl;
+  fb.innerHTML=ok?'<strong>\u2713 Richtig!</strong><br>'+expl:'<strong>\u2717 Falsch.</strong><br>Richtig: <em>'+lbl+'</em>. '+expl;
   document.getElementById('quiz-done').style.display='';
+}
+
+// ── URL PERSISTENCE ──────────────────────────────────
+let _sharedInURL=false;
+
+function syncURL(){
+  const p=new URLSearchParams();
+  const allCases=['SSS','SWS','WSW','SWW','SsW','sSw'];
+  const cases=[...document.querySelectorAll('#case-filter input:checked')].map(i=>i.value);
+  if(cases.length<allCases.length||!allCases.every(c=>cases.includes(c)))
+    p.set('cases',cases.join(','));
+  const sl=document.getElementById('step-slider');
+  if(sl&&+sl.value!==4)p.set('step',sl.value);
+  const aux=document.getElementById('show-aux');
+  if(aux&&!aux.checked)p.set('aux','0');
+  const ai=document.getElementById('allow-impossible');
+  if(ai&&ai.checked)p.set('ai','1');
+  if(_sharedInURL&&selectedParts.length===3){
+    p.set('parts',selectedParts.join(','));
+    selectedParts.forEach(pp=>p.set(pp,currentValues[pp]));
+  }
+  const str=p.toString();
+  history.replaceState(null,'',str?'?'+str:location.pathname);
+}
+
+function loadFromURL(){
+  const p=new URLSearchParams(location.search);
+  if(p.has('cases')){
+    const cases=p.get('cases').split(',');
+    document.querySelectorAll('#case-filter input').forEach(cb=>{
+      cb.checked=cases.includes(cb.value);
+      cb.parentElement.classList.toggle('on',cb.checked);
+    });
+  }
+  if(p.has('step')){
+    const sl=document.getElementById('step-slider');
+    if(sl)sl.value=parseInt(p.get('step'))||4;
+  }
+  if(p.has('aux')){
+    const aux=document.getElementById('show-aux');
+    if(aux)aux.checked=p.get('aux')!=='0';
+  }
+  const ai=document.getElementById('allow-impossible');
+  if(ai)ai.checked=p.get('ai')==='1';
+  if(p.has('parts')){
+    const parts=p.get('parts').split(',');
+    const vals=parts.map(pp=>parseFloat(p.get(pp)));
+    if(parts.length===3&&vals.every(v=>isFinite(v)&&v>0)){
+      _sharedInURL=true;
+      selectedParts=[];
+      parts.forEach((pp,i)=>{selectedParts.push(pp);currentValues[pp]=vals[i];});
+      syncChipStyles();renderInputs();return;
+    }
+  }
+  renderInputs();
+}
+
+function shareValues(){
+  if(selectedParts.length!==3)return;
+  _sharedInURL=true;
+  syncURL();
+  navigator.clipboard.writeText(location.href)
+    .then(()=>showToast('\uD83D\uDD17 Link in Zwischenablage kopiert!'))
+    .catch(()=>showToast('Link: '+location.href));
+}
+
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  clearTimeout(t._tid);t._tid=setTimeout(()=>t.classList.remove('show'),2600);
 }
 
 // ── RANDOM ───────────────────────────────────────────
@@ -1043,7 +1134,8 @@ function generateRandomValues(){
     const allFive=['SSS','SWS','WSW','SWW','SsW'].every(k=>enabled.includes(k));
     if(allFive)pool.push('WWW');
   }
-  for(let t=0;t<80;t++){const r=tryGen(pool[Math.floor(Math.random()*pool.length)]);if(r){selectedParts=r.p;Object.assign(currentValues,r.v);syncChipStyles();renderInputs();return;}}
+  _sharedInURL=false;
+  for(let t=0;t<80;t++){const r=tryGen(pool[Math.floor(Math.random()*pool.length)]);if(r){selectedParts=r.p;Object.assign(currentValues,r.v);syncChipStyles();renderInputs();syncURL();return;}}
 }
 
 // WSW combos: side between both angles
@@ -1135,8 +1227,9 @@ function tryGen(ct){
 }
 
 // ── INIT ─────────────────────────────────────────────
-renderInputs();
+loadFromURL();
 window.addEventListener('resize',()=>{if(selectedParts.length===3)drawSketch();});
 </script>
+<div class="toast" id="toast"></div>
 </body>
 </html>
