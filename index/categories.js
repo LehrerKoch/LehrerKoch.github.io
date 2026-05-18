@@ -85,7 +85,7 @@ const categoriesData = [
     "icon": "💻",
     "iconType": "emoji",
     "tooltip": "Informatik-Themen: Binärzahlen, Kryptographie und mehr",
-    "cards": ["binary", "rsa", "RAM"]
+    "cards": ["binary", "rsa", "RAM", "annoinformatica"]
   },
   {
     "id": "sprachen",
@@ -101,6 +101,6 @@ const categoriesData = [
     "icon": "🎲",
     "iconType": "emoji",
     "tooltip": "Spielerische mathematische Aktivitäten",
-    "cards": ["trio", "mathdomini"]
+    "cards": ["trio", "annomathematica"]
   }
 ];

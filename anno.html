@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Anno Mathematica</title>
+    <link rel="stylesheet" href="Anno/style.css">
+    <script>
+        window.MathJax = { tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] } };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-5K8WYYXDL2"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-5K8WYYXDL2');
+    </script>
+    <script src="last-update.js" defer></script>
+
+    <!-- ── Thema-Erkennung: setzt data-subject auf <html>, BEVOR der Body gerendert wird ── -->
+    <script>
+        (function () {
+            const p = new URLSearchParams(window.location.search);
+            window.SUBJECT = p.get('subject') === 'informatik' ? 'informatik' : 'math';
+            document.documentElement.dataset.subject = window.SUBJECT;
+            document.documentElement.style.visibility = 'hidden';
+            if (window.SUBJECT === 'informatik') document.title = 'Anno Informatica';
+        })();
+    </script>
+
+    <style>
+        /* ── Footer ── */
+        .site-footer {
+            width: 100%; box-sizing: border-box; padding: 5px 5px;
+            border-top: 1px solid #ccc; margin-top: 4px; margin-bottom: 0px;
+            font-family: sans-serif; font-size: 0.6em; color: #333333d8;
+        }
+        .footer-content {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            align-items: center;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .footer-content > :first-child  { justify-self: start; }
+        .footer-content > :nth-child(2) { justify-self: center; }
+        .footer-content > :last-child   { justify-self: end; }
+        .footer-topic a { color: inherit; text-decoration: underline; }
+
+        /* ── Themen-spezifische Sichtbarkeit ──
+           data-subject sitzt auf <html>, wird im <head> gesetzt,
+           also wirkt die Regel sofort beim ersten Paint.         ── */
+        html[data-subject="math"]        .subject-informatik { display: none !important; }
+        html[data-subject="informatik"]  .subject-math       { display: none !important; }
+            
+        /* ── Quellen-Akkordeon ── */
+        details.quellen-details {
+            margin-top: 6px;
+            font-size: 0.82em;
+            color: #555;
+            background: #fdfdfd;
+                border: 1px solid #e8e8e8;
+                border-radius: 6px;
+                box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+        details.quellen-details summary {
+            cursor: pointer;
+            color: #777;
+            font-weight: normal;
+            list-style: none;
+            user-select: none;
+            padding: 4px 0px 4px 6px;
+            background: #f5f5f5;
+        }
+        details.quellen-details summary::-webkit-details-marker { display: none; }
+        details.quellen-details summary::before {
+            content: '▶';
+            font-size: 0.65em;
+            margin-right: 4px;
+            transition: transform 0.2s;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        details.quellen-details[open] summary::before { transform: rotate(90deg); }
+        .quellen-body {
+            padding: 4px 4px 2px 14px;
+            line-height: 1.6;
+        }
+        .quellen-body a {
+            color: var(--accent);
+            text-decoration: underline;
+            word-break: break-all;
+        }
+        .quellen-body ul {
+            margin: 2px 0 6px 0;
+            padding-left: 16px;
+        }
+        .quellen-body li { margin-bottom: 2px; }
+        .quellen-body h4 {
+            margin: 6px 0 2px;
+            font-size: 1em;
+            color: #666;
+        }
+
+        /* ── Scrollbar: Platz immer reservieren, sichtbar wenn nötig ────────── */
+        /* overflow-y:scroll reserviert den Platz auch wenn kein Inhalt scrollt.
+           Der Balken selbst wird vom Browser gezeigt, wenn er gebraucht wird,
+           ist aber sonst nicht ausgegraut (scrollbar-color mit transparentem Track). */
+        #lobby {
+            overflow-y: scroll !important;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(0,0,0,0.25) transparent;
+        }
+        #lobby::-webkit-scrollbar        { width: 6px; }
+        #lobby::-webkit-scrollbar-track  { background: transparent; }
+        #lobby::-webkit-scrollbar-thumb  {
+            background: rgba(0,0,0,0.25);
+            border-radius: 3px;
+        }
+        /* Nur sichtbar wenn Inhalt scrollt; sonst versteckt */
+        #lobby:not(:hover)::-webkit-scrollbar-thumb:not(:active) {
+            background: transparent;
+        }
+
+        /* ── Segmented Mode Control ── */
+        .seg-control {
+            display: flex;
+            background: #d4d4d4;
+            border-radius: 30px;
+            padding: 3px;
+            gap: 0;
+            min-width: min(360px, 92vw);
+            box-sizing: border-box;
+        }
+        .seg-btn {
+            flex: 1;
+            border: none;
+            background: transparent;
+            border-radius: 27px;
+            padding: clamp(7px, 2vw, 9px) clamp(6px, 2vw, 12px);
+            font-size: clamp(0.72em, 2.4vw, 0.88em);
+            font-weight: bold;
+            color: #666;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+            white-space: nowrap;
+            font-family: inherit;
+        }
+        .seg-btn.active {
+            background: var(--accent);
+            color: white;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.18);
+        }
+        .seg-btn:not(.active):hover { color: #333; }
+
+        /* ── Guess Area ── */
+        #guess-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: clamp(8px, 2dvh, 20px);
+            padding: clamp(6px, 2dvh, 20px) 10px;
+            box-sizing: border-box;
+        }
+        #guess-card-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        /* Karte im Schätz-Modus: Zoom-Cursor (Karte ist klickbar) */
+        #guess-card-container .card { cursor: zoom-in; }
+
+        /* Karte im Schätz-Modus: kompakter als .big-Default */
+        #guess-card-container {
+            max-height: min(46dvh, 55vw);   /* begrenzt Karte auf etwa halbe Bildschirmhöhe */
+        }
+        #guess-card-container .card.big {
+            /* Breite so, dass Karte in max-height des Containers passt:
+               aspect-ratio 240/345 → bei height H ist width = H*(240/345) ≈ H*0.696 */
+            width: clamp(90px, min(32vw, calc(min(46dvh, 55vw) * 0.696)), 200px);
+            height: auto;
+        }
+        #guess-input-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            width: 100%;
+            max-width: 420px;
+        }
+        #guess-input {
+            width: 100%;
+            box-sizing: border-box;
+            padding: clamp(8px, 1.8dvh, 13px) 12px;
+            font-size: clamp(1rem, 3dvh, 1.3rem);
+            border: 2px solid #ccc;
+            border-radius: 10px;
+            text-align: center;
+            font-family: inherit;
+            transition: border-color 0.15s;
+        }
+        #guess-input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+        #guess-input:disabled { background: #f5f5f5; color: #999; }
+        #guess-submit-btn {
+            width: 100%;
+            padding: clamp(8px, 1.8dvh, 13px) clamp(12px, 3vw, 22px);
+            font-size: clamp(0.9rem, 2.5dvh, 1.1rem);
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            font-family: inherit;
+            transition: background 0.15s, transform 0.1s;
+        }
+        #guess-submit-btn:hover:not(:disabled) { filter: brightness(1.1); transform: translateY(-1px); }
+        #guess-submit-btn:disabled { background: #ccc; cursor: default; }
+        .guess-hint {
+            font-size: 0.75em;
+            color: #999;
+            text-align: center;
+        }
+
+        /* ── Quellen: Einklapp-Button am Ende ── */
+        .quellen-close-btn {
+            display: block;
+            width: 100%;
+            margin-top: 8px;
+            padding: 5px 0 2px;
+            background: #f5f5f5;
+            border: none;
+            border-top: 1px solid #e8e8e8;
+            color: #777777;
+            font-size: 0.78em;
+            cursor: pointer;
+            text-align: center;
+            font-family: inherit;
+            letter-spacing: 0.04em;
+            transition: color 0.15s;
+        }
+        .quellen-close-btn:hover { color: #999; }
+
+        /* ── Themen-Wechsel-Button ── */
+        .subject-switch-btn {
+            display: inline-block;
+            font-size: 0.78em;
+            padding: 5px 13px;
+            border-radius: 20px;
+            border: 1.5px solid var(--accent);
+            color: var(--accent);
+            background: transparent;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background 0.15s, color 0.15s;
+            font-family: inherit;
+            margin-top: 2px;
+        }
+        .subject-switch-btn:hover {
+            background: var(--accent);
+            color: white;
+        }
+
+        /* ══════════════════════════════════════════════
+           INFORMATIK-THEME  –  Grüne Farbgebung
+           (überschreibt alle accent-Farben + Hardcodes)
+        ══════════════════════════════════════════════ */
+        html[data-subject="informatik"] {
+            --accent: #2e7d32;
+        }
+
+        /* Hover-Farben für Buttons mit hardcoded #2980b9 */
+        html[data-subject="informatik"] .primary-btn:hover,
+        html[data-subject="informatik"] .restart-btn:hover {
+            background: #1b5e20 !important;
+        }
+        html[data-subject="informatik"] .restart-btn {
+            box-shadow: 0 4px 12px rgba(46,125,50,0.3);
+        }
+
+        /* Drag-Placeholder (hardcoded #3498db) */
+        html[data-subject="informatik"] .placeholder {
+            background: #2e7d32 !important;
+        }
+
+        /* Toggle-Slider (hardcoded #3498db) */
+        html[data-subject="informatik"] .switch .slider {
+            background: #2e7d32 !important;
+        }
+        html[data-subject="informatik"] .switch input:checked ~ .slider {
+            background: #1b5e20 !important;
+        }
+
+        /* Tag-Buttons aktiv */
+        html[data-subject="informatik"] .tag-btn.active {
+            background: var(--accent) !important;
+            border-color: var(--accent) !important;
+        }
+
+        /* Lobby h1 – leicht grüner Akzent */
+        html[data-subject="informatik"] #lobby h1 {
+            color: #1b5e20;
+        }
+
+        /* game-rules border */
+        html[data-subject="informatik"] #game-rules {
+            border-left-color: var(--accent) !important;
+        }
+        /* Vorderseite: nur der Titel ist accent-farbig, der Fließtext bleibt schwarz */
+        html[data-subject="informatik"] .card-front .card-text {
+            color: var(--text-front) !important;
+        }
+    </style>
+</head>
+<body>
+
+    <script>
+        // Hilfsfunktion: URL für Themen-Wechsel erzeugen
+        function buildSubjectURL(subject) {
+            const p = new URLSearchParams(window.location.search);
+            if (subject === 'math') p.delete('subject');
+            else p.set('subject', subject);
+            const qs = p.toString();
+            return window.location.pathname + (qs ? '?' + qs : '');
+        }
+    </script>
+
+    <!-- ════════════════════════════════════
+         LOBBY
+    ════════════════════════════════════ -->
+    <div id="lobby">
+
+        <!-- Titel -->
+        <h1 class="subject-math">Anno Mathematica</h1>
+        <h1 class="subject-informatik">Anno Informatica</h1>
+
+        <!-- Themen-Wechsler -->
+        <div style="text-align:center; margin-top:-4px;">
+            <a class="subject-switch-btn subject-math"
+               id="switch-to-informatik"
+               href="#">🖥️ Zur Informatik-Version</a>
+            <a class="subject-switch-btn subject-informatik"
+               id="switch-to-math"
+               href="#">📐 Zur Mathe-Version</a>
+        </div>
+
+        <!-- Spielregeln – Mathe -->
+        <div id="game-rules" class="subject-math">
+            <h2>Spielregeln &amp; Lernziel</h2>
+            <p>Willkommen bei <em>Anno Mathematica</em>! Dieses Spiel hilft dir dabei, ein Gefühl für die historische Entwicklung der Mathematik zu entwickeln – von antiken Entdeckungen bis zur modernen, ungelösten Problemen.</p>
+            <p><strong>So geht's:</strong> Ziehe die Karten aus deiner Hand an die richtige Stelle im Zeitstrahl. Ziel ist es, eine chronologisch korrekte Reihenfolge von <em>alt (links) nach neu (rechts)</em> zu bilden.<br>
+            Wähle optional Themen-Filter oder z.&nbsp;B. <code>!einfach</code> für einfachere Karten und einen Spielmodus, dann starte das Spiel. Viel Spaß!</p>
+            <details class="quellen-details">
+                <summary>📚 Weiterführendes &amp; Quellen</summary>
+                <div class="quellen-body">
+                    <h4>Quellen</h4>
+                    Das Spiel basiert auf dem echten Kartenspiel <em>'Anno Domini'</em>, soll durch seinen kooperativen Zugang aber vor allem Spaß machen und zum Stöbern in der faszinierenden Geschichte der Mathematik anregen.<br>
+                    Die Karten sind mittels KI generiert und sollen wichtige Meilensteine, Persönlichkeiten und Entdeckungen der Mathematikgeschichte abdecken. Trotz sorgfältiger Gestaltung können Fehler oder Ungenauigkeiten auftreten – zögere nicht, mir solche Fälle zu melden!
+                    <br>
+                    Hier sind einige Ressourcen, wenn du tiefer eintauchen möchtest:
+                    <h4>Online-Ressourcen</h4>
+                    <ul>
+                        <li><a href="https://detektor.fm/serien/geschichten-aus-der-mathematik" target="_blank" rel="noopener">Geschichten aus der Mathematik (Podcast)</a> – Toller Podcast, in dem in jeder Folge eine interessante mathematische Person beleuchtet wird</li>
+                        <li><a href="https://de.mathigon.org/timeline" target="_blank" rel="noopener">Zeitleiste der Mathematik (Mathigon)</a> – Detaillierte Zeitleiste mit den wichtigsten Personen der Mathematik, sowie kurzen Informationen</li>
+                        <li><a href="https://www.youtube.com/playlist?list=PLb0zKSynM2PD9aEfKM1gfaPZTooCJNhDy" target="_blank" rel="noopener">Eine kurze Geschichte der Mathematik (YouTube-Playlist von Weitz)</a> – Toller Mitschnitt einer kurzen Vorlesungsreihe (6 Folge) zu den fundamentalen Etappen der Mathematikgeschichte</li>
+                    </ul>
+                    <h4>Bücher</h4>
+                    <ul>
+                        <li><a href="https://www.thalia.de/shop/home/artikeldetails/A1066410627" target="_blank" rel="noopener">Weitz, E.: <em>Gesichter der Mathematik – 111 Portraits und biographische Miniaturen</em></a><br>
+                        Tolles Buch mit kurzweiligen Geschichten, die Lust auf weitere Erkundungen machen</li>
+                        <li><a href="https://www.thalia.de/shop/home/artikeldetails/A1007537828" target="_blank" rel="noopener">Wallace, D. F.: <em>Die Entdeckung des Unendlichen – Georg Cantor und die Welt der Mathematik</em></a><br>
+                        Das Buch, welches mein Interesse an der Geschichte der Mathematik weckte</li>
+                        <li><a href="https://www.thalia.de/shop/home/artikeldetails/A1000200894" target="_blank" rel="noopener">Singh, S.: <em>Fermats letzter Satz</em></a><br>
+                        Der Klassiker der Mathematikgeschichte, spannend erzählt</li>
+                    </ul>
+                <!-- <button class="quellen-close-btn" onclick="this.closest('details').open=false">▲ einklappen</button> -->
+                </div>
+            </details>
+        </div>
+
+        <!-- Spielregeln – Informatik -->
+        <div id="game-rules" class="subject-informatik">
+            <h2>Spielregeln &amp; Lernziel</h2>
+            <p>Willkommen bei <em>Anno Informatica</em>! Dieses Spiel vermittelt dir einen Überblick über die Geschichte der Informatik und Computertechnik – von den ersten mechanischen Rechenmaschinen bis zur modernen KI-Forschung.</p>
+            <p><strong>So geht's:</strong> Ziehe die Karten aus deiner Hand an die richtige Stelle im Zeitstrahl. Ziel ist es, eine chronologisch korrekte Reihenfolge von <em>alt (links) nach neu (rechts)</em> zu bilden.<br>
+            Wähle optional Themen-Filter und einen Spielmodus, dann starte das Spiel. Viel Spaß!</p>
+            <details class="quellen-details">
+                <summary>📚 Weiterführendes &amp; Quellen</summary>
+                <div class="quellen-body">
+                    <div class="quellen-body">
+                    <h4>Quellen</h4>
+                    Das Spiel basiert auf dem echten Kartenspiel <em>Anno Domini</em>, soll durch seinen kooperativen Zugang aber vor allem Spaß machen und zum Stöbern in der faszinierenden Geschichte der Informatik und von Computern anregen.<br>
+                    Die Karten sind mittels KI generiert und sollen wichtige Meilensteine, Persönlichkeiten und Entdeckungen der Informatik- und Computergeschichte abdecken. Trotz sorgfältiger Gestaltung können Fehler oder Ungenauigkeiten auftreten – zögere nicht, mir solche Fälle zu melden!
+                    <br>
+                    Hier sind einige Ressourcen, wenn du tiefer eintauchen möchtest:
+                    <!-- <h4>Online-Ressourcen</h4>
+                    <ul>
+                        <li><a href="https://detektor.fm/serien/geschichten-aus-der-mathematik" target="_blank" rel="noopener">Geschichten aus der Mathematik (Podcast)</a> – Toller Podcast, in dem in jeder Folge eine interessante mathematische Person beleuchtet wird</li>
+                        <li><a href="https://de.mathigon.org/timeline" target="_blank" rel="noopener">Zeitleiste der Mathematik (Mathigon)</a> – Detaillierte Zeitleiste mit den wichtigsten Personen der Mathematik, sowie kurzen Informationen</li>
+                        <li><a href="https://www.youtube.com/playlist?list=PLb0zKSynM2PD9aEfKM1gfaPZTooCJNhDy" target="_blank" rel="noopener">Eine kurze Geschichte der Mathematik (YouTube-Playlist von Weitz)</a> – Toller Mitschnitt einer kurzen Vorlesung (6 Folge) zu den fundamentalen Etappen der Mathematikgeschichte</li>
+                    </ul> -->
+                    <h4>Bücher</h4>
+                    <ul>
+                        <li><a href="https://www.thalia.de/shop/home/artikeldetails/A1074131287" target="_blank" rel="noopener">Wolf, J.: <em>Computer-Geschichte(n)</em></a><br>
+                        Detaillierte Darstellung der wichtigsten Etappen der Computergeschichte</li>
+                        <li><a href="https://www.thalia.de/shop/home/artikeldetails/A1061522534" target="_blank" rel="noopener">Ignotofsky, R.: <em>History of the Computer</em></a><br>
+                        Toll gestaltetes Buch mit kurzen Übersichten zu verschiedenen Etappen (engl.)</li>
+                    </ul>
+                <button class="quellen-close-btn" onclick="this.closest('details').open=false">▲ einklappen</button>
+                </div>
+            </details>
+        </div>
+
+        <div id="tag-filters"></div>
+
+        <div class="mode-selection">
+            <div class="mode-switch-wrap">
+                <div class="seg-control">
+                    <button class="seg-btn active" data-mode="direct"  onclick="setLobbyMode('direct')">Direktes Aufdecken</button>
+                    <button class="seg-btn"         data-mode="risk"    onclick="setLobbyMode('risk')">Risiko-Variante</button>
+                    <button class="seg-btn"         data-mode="guess"   onclick="setLobbyMode('guess')">Jahr schätzen</button>
+                </div>
+            </div>
+            <div id="mode-description"></div>
+        </div>
+
+        <div class="cards-slider-wrap">
+            <label for="cards-slider">Anzahl (zu ziehender) Karten: <strong id="slider-display">10</strong></label>
+            <div class="slider-row">
+                <input type="range" id="cards-slider" min="1" max="30" value="10"
+                    oninput="document.getElementById('slider-display').textContent=this.value; updateURL()">
+            </div>
+            <div class="slider-ticks">
+                <span>1</span><span>5</span><span>10</span><span>15</span><span>20</span><span>25</span><span>30</span>
+            </div>
+        </div>
+        <div id="lobby-card-count" style="text-align:center;font-size:0.78em;color:#555;margin-top:1px;"></div>
+
+        <button onclick="startNewGame()" class="lobby-btn primary-btn" style="margin-top: 10px;">▶ Spiel starten</button>
+
+        <div id="lobby-spacer"></div>
+
+        <footer class="site-footer">
+            <div class="footer-content">
+                M.&nbsp;Koch
+                <span class="footer-topic"><a href="./index.html">Mathe-Tools</a></span>
+                <span class="footer-update">Last updated:&nbsp;<span id="last-update">...</span></span>
+            </div>
+        </footer>
+    </div>
+
+    <!-- ════════════════════════════════════
+         GAME OVER OVERLAY
+    ════════════════════════════════════ -->
+    <div id="game-over" class="hidden">
+        <div class="game-over-inner">
+            <div class="game-over-icon">🎉</div>
+            <h2>Spiel beendet!</h2>
+            <div class="final-score-label">Deine Punktzahl</div>
+            <div class="final-score-value" id="final-score-value">0</div>
+            <button onclick="location.reload()" class="restart-btn">Nochmal spielen</button>
+        </div>
+    </div>
+
+    <!-- ════════════════════════════════════
+         GAME UI
+    ════════════════════════════════════ -->
+    <header>
+        <div class="header-stat">Punkte: <span id="score">0</span> <span id="potential-points" class="potential" style="display:none;"></span></div>
+        <div class="header-stat">Noch <span id="remaining">20</span> Karten</div>
+        <button onclick="location.reload()" class="quit-btn">✕ Beenden</button>
+    </header>
+
+    <!-- ROUND RESULT BAR -->
+    <div id="round-result-bar" class="result-bar-placeholder">
+        <span id="round-result-msg"></span>
+        <button id="round-result-btn">Weiter →</button>
+    </div>
+
+    <main id="timeline-area">
+        <div id="timeline"></div>
+        <div class="controls-container">
+            <div class="timeline-direction">
+                <span class="arrow-label">älter</span>
+                <div class="arrow-line"></div>
+                <span class="arrow-label">neuer</span>
+            </div>
+            <button id="reveal-risk-btn" onclick="revealRisk()" style="display:none;">Reihe werten</button>
+        </div>
+    </main>
+
+    <footer id="hand-area">
+        <div id="hand"></div>
+    </footer>
+
+    <!-- GUESS MODE AREA -->
+    <div id="guess-area" class="hidden">
+        <div id="guess-card-container"></div>
+        <div id="guess-input-area">
+            <input type="number" id="guess-input"
+                   placeholder="Jahr  (negativ = v. Chr.)"
+                   onkeydown="if(event.key==='Enter'){ event.preventDefault(); submitGuess(); }">
+            <button id="guess-submit-btn" onclick="submitGuess()">✓ Bestätigen</button>
+            <div class="guess-hint">Negative Zahl für v. Chr. &nbsp;·&nbsp; Beispiel: &minus;500 für 500 v. Chr.</div>
+        </div>
+    </div>
+
+    <!-- ZOOM MODAL -->
+    <div id="zoom-modal" class="hidden">
+        <div class="zoom-container"></div>
+        <button onclick="closeZoom()" style="padding: 10px 40px; cursor:pointer; margin-top: 20px;">Zurück</button>
+    </div>
+
+    <!-- TOAST -->
+    <div id="game-toast"></div>
+
+    <!-- ════════════════════════════════════
+         KARTEN-SKRIPT (themen-abhängig)
+    ════════════════════════════════════ -->
+    <script>
+        (function () {
+            const src = window.SUBJECT === 'informatik'
+                ? 'Anno/informatik-cards.js'
+                : 'Anno/mathematik-cards.js';
+            const s = document.createElement('script');
+            s.src = src;
+            // game.js erst laden, wenn cards geladen sind
+            s.onload = function () {
+                const g = document.createElement('script');
+                g.src = 'Anno/game.js';
+                // game.js registriert init() via DOMContentLoaded -
+                // das Event ist beim dynamischen Laden aber schon gefeuert.
+                // Deshalb rufen wir init() direkt nach dem Laden auf.
+                g.onload = function () {
+                    // init() und setupDragDrop() laufen in game.js selbst
+                    // via readyState-Check – kein manueller Aufruf nötig.
+                    // init() läuft synchron sofort im selben Skript-Tick (readyState='complete').
+                    // Vier Frames geben Browser+MathJax Zeit, alle DOM-Änderungen
+                    // (Tags, Modus-Buttons, Slider, Karten-Count) zu rendern.
+                    requestAnimationFrame(() => requestAnimationFrame(() =>
+                        requestAnimationFrame(() => requestAnimationFrame(() => {
+                            document.documentElement.style.visibility = '';
+                        }))
+                    ));
+                };
+                document.body.appendChild(g);
+            };
+            document.body.appendChild(s);
+        })();
+
+        // ── Slider + Modus-Buttons sofort aus URL setzen, ohne CSS-Transition ────
+        (function () {
+            const params   = new URLSearchParams(window.location.search);
+
+            // Slider
+            const urlCards = parseInt(params.get('cards')) || 10;
+            const slider   = document.getElementById('cards-slider');
+            const display  = document.getElementById('slider-display');
+            if (slider) {
+                slider.style.transition = 'none';
+                slider.value = Math.min(30, Math.max(1, urlCards));
+                if (display) display.textContent = slider.value;
+                void slider.offsetWidth;
+                slider.style.transition = '';
+            }
+
+            // Segmented Control: aktiven Button sofort korrekt setzen
+            const urlMode = params.get('mode');
+            const validMode = ['direct','risk','guess'].includes(urlMode) ? urlMode : 'direct';
+            document.querySelectorAll('.seg-btn').forEach(btn => {
+                // Transition kurz deaktivieren, damit kein Farbwechsel sichtbar ist
+                btn.style.transition = 'none';
+                btn.classList.toggle('active', btn.dataset.mode === validMode);
+                void btn.offsetWidth;               // Reflow
+                btn.style.transition = '';
+            });
+        })();
+
+        // Themen-Wechsel-Links setzen (Script laeuft im Body, DOM bereits bereit)
+        (function () {
+            const toInfo = document.getElementById('switch-to-informatik');
+            const toMath = document.getElementById('switch-to-math');
+            if (toInfo) toInfo.href = buildSubjectURL('informatik');
+            if (toMath) toMath.href = buildSubjectURL('math');
+        })();
+    </script>
+</body>
+</html>

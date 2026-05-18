@@ -179,7 +179,7 @@ const cardsData = [
     "id": "kongruenzsatz",
     "title": "Kongruenzsätze erkennen und zeichnen",
     "desc": "Kongruenzsätze sicher erkennen und zeichnen können",
-    "types": ["learn"],
+    "types": ["uebung", "quiz"],
     "mobilefriendly": true,
     "link": "kongruenzsatz.html"
   },
@@ -297,6 +297,14 @@ const cardsData = [
     "link": "ram_viewer.html"
   },
   {
+    "id": "annoinformatica",
+    "title": "Anno Informatica",
+    "desc": "Ordne informatische und Computer-geschichtliche Ereignisse am Zeitstrahl",
+    "types": ["game"],
+    "mobilefriendly": true,
+    "link": "anno.html?subject=informatik"
+  },
+  {
     "id": "buchstaben-trainer",
     "title": "Buchstaben kennenlernen",
     "desc": "Wie heißen die griechischen (hebräischen, kyrillischen) Buchstaben und wie werden sie geschrieben?",
@@ -321,12 +329,12 @@ const cardsData = [
     "link": "TRIO.html"
   },
   {
-    "id": "mathdomini",
-    "title": "Math-Domini",
-    "desc": "Ordne mathematische Ereignisse am Zeitstrahl",
+    "id": "annomathematica",
+    "title": "Anno Mathematica",
+    "desc": "Ordne mathematische Ereignisse am Zeitstrahl, von der Antike bis zur Gegenwart.",
     "types": ["game"],
     "mobilefriendly": true,
-    "link": "math_domini.html"
+    "link": "anno.html"
   },
   {
     "id": "studiengaenge",
