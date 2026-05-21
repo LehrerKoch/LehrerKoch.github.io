@@ -443,6 +443,22 @@ const cardPool = [
         "furtherInformation": []
     },
     {
+    "title": "Maria Stuart & Mathematik",
+    "fronttext": "In ihrer Gefangenschaft nutzte Maria Stuart die Mathematik (insbesondere Chiffren) als Überlebensstrategie.",
+    "backtext": "Die Entschlüsselung ihres verschlüsselten Briefwechsels durch Francis Walsingham mittels mathematischer Kryptanalyse führte zu ihrer Verurteilung.",
+    "valuetext": "1586",
+    "startvalue": 1586,
+    "endvalue": 1586,
+    "tags": [
+        "Geschichte",
+        "Kryptographie",
+        "Politik"
+    ],
+    "furtherInformation": [
+            "<a href='https://detektor.fm/wissen/geschichten-aus-der-mathematik-maryna-viazovska'>Podcast: <em>Geschichten aus der Mathematik</em> | Maryna Viazovska: Das Problem mit den achtdimensionalen Pralinen</a>"
+        ]
+  },
+    {
         "title": "Kerckhoffs' Prinzip",
         "fronttext": "Ein fundamentales Kriterium der modernen Kryptographie besagt: Die Sicherheit eines Schutzes darf nicht auf der Geheimhaltung des Algorithmus beruhen, sondern einzig auf der Geheimhaltung des Schlüssels.",
         "backtext": "Auguste Kerckhoffs vom militärischen Aufklärungsdienst formulierte dieses Prinzip im 19. Jahrhundert. Es bildet das direkte Gegenkonzept zu 'Security through obscurity' (Sicherheit durch Unklarheit) und begründet offene Quelltext-Sicherheitsstandards.",
@@ -2697,9 +2713,9 @@ const cardPool = [
         "title": "Hedy Lamarr",
         "fronttext": "Geburtsjahr einer berühmten Hollywood-Schauspielerin, welche die technologische Basis für heutiges WLAN, Bluetooth und GPS erfand.",
         "backtext": "Sie entwickelte im Zweiten Weltkrieg ein störungssicheres Funkfernsteuerungssystem für Torpedos, das auf automatischen Frequenzwechseln basierte.",
-        "valuetext": "1942",
-        "startvalue": 1942,
-        "endvalue": 1942,
+        "valuetext": "1914",
+        "startvalue": 1914,
+        "endvalue": 1914,
         "tags": [
             "Person",
             "Netzwerk",
@@ -2726,9 +2742,9 @@ const cardPool = [
         "title": "Donald Knuth",
         "fronttext": "Geburtsjahr des Autors von 'The Art of Computer Programming' und Schöpfer des mathematischen Textsatzsystems TeX.",
         "backtext": "Knuth gilt als Urvater der Algorithmenanalyse. Er weigerte sich jahrzehntelang, eine E-Mail-Adresse zu nutzen, um ungestört arbeiten zu können.",
-        "valuetext": "1968",
-        "startvalue": 1968,
-        "endvalue": 1968,
+        "valuetext": "1938",
+        "startvalue": 1938,
+        "endvalue": 1938,
         "tags": [
             "Person",
             "Theorie",
@@ -2740,38 +2756,40 @@ const cardPool = [
         "title": "Margaret Hamilton",
         "fronttext": "Geburtsjahr der Direktorin für Software-Entwicklung, deren Code die Mondlandung der Apollo-11-Mission rettete.",
         "backtext": "Sie prägte den Begriff 'Software Engineering'. Ihr asynchroner Code verhinderte den Abbruch der Mondlandung, als das Radar den Computer überlastete.",
-        "valuetext": "1969",
-        "startvalue": 1969,
-        "endvalue": 1969,
+        "valuetext": "1936",
+        "startvalue": 1936,
+        "endvalue": 1936,
         "tags": [
             "Person",
             "Software",
             "Frauen",
             "Pionier"
         ],
-        "furtherInformation": []
+        "furtherInformation": [
+            "<a href='https://detektor.fm/wissen/geschichten-aus-der-mathematik-margaret-hamilton' target='_blank'>Podcast: <em>Geschichten aus der Mathematik</em> | Margaret Hamilton: Die Rettung der Mondlandung</a>",
+        ]
     },
-    {
-        "title": "Barbara Liskov",
-        "fronttext": "Geburtsjahr einer der ersten Frauen, die in den USA in Informatik promovierten, berühmt für ihre Beiträge zur objektorientierten Programmierung.",
-        "backtext": "Sie entwickelte das 'Liskovsche Substitutionsprinzip' (das 'L' in den SOLID-Prinzipien), ein Grundpfeiler des modernen Software-Designs.",
-        "valuetext": "1987",
-        "startvalue": 1987,
-        "endvalue": 1987,
-        "tags": [
-            "Person",
-            "Theorie",
-            "Frauen"
-        ],
-        "furtherInformation": []
-    },
+    // {
+    //     "title": "Barbara Liskov",
+    //     "fronttext": "Geburtsjahr einer der ersten Frauen, die in den USA in Informatik promovierten, berühmt für ihre Beiträge zur objektorientierten Programmierung.",
+    //     "backtext": "Sie entwickelte das 'Liskovsche Substitutionsprinzip' (das 'L' in den SOLID-Prinzipien), ein Grundpfeiler des modernen Software-Designs.",
+    //     "valuetext": "1987",
+    //     "startvalue": 1987,
+    //     "endvalue": 1987,
+    //     "tags": [
+    //         "Person",
+    //         "Theorie",
+    //         "Frauen"
+    //     ],
+    //     "furtherInformation": []
+    // },
     {
         "title": "Linus Torvalds",
         "fronttext": "Geburtsjahr des Schöpfers von Linux und Git, der für seine kompromisslose Haltung zur Code-Qualität weltbekannt ist.",
         "backtext": "Obwohl er zwei der wichtigsten Technologien der modernen Welt erfunden hat, stellt er seine Projekte konsequent unter freie Open-Source-Lizenzen.",
-        "valuetext": "1991",
-        "startvalue": 1991,
-        "endvalue": 1991,
+        "valuetext": "1969",
+        "startvalue": 1969,
+        "endvalue": 1969,
         "tags": [
             "Person",
             "Software",

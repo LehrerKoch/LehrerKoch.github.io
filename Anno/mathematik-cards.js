@@ -14,7 +14,7 @@ const cardPool = [
         "furtherInformation": []
     },
     {
-        "title": "Sumersches Sexagesimalsystem",
+        "title": "Das Sexagesimalsystem",
         "fronttext": "Warum hat eine Stunde 60 Minuten? Dieses Zahlensystem ist der Grund.",
         "backtext": "Die Sumerer nutzten die Basis 60, was wir noch heute bei Zeit und Winkeln beibehalten.",
         "valuetext": "um 2700 v. Chr.",
@@ -170,7 +170,9 @@ const cardPool = [
             "Antike",
             "Logik"
         ],
-        "furtherInformation": []
+        "furtherInformation": [
+            "<a href='https://detektor.fm/wissen/geschichten-aus-der-mathematik-aristoteles'>Podcast: <em>Geschichten aus der Mathematik</em> | Aristoteles: Der unermüdliche Forschungsdrang</a>"
+        ]
     },
     {
         "title": "Geometrie durch Fragen",
@@ -287,7 +289,7 @@ const cardPool = [
         "furtherInformation": []
     },
     {
-        "title": "Der Taschenrechner der Antike",
+        "title": "Algorithmus zum Wurzelziehen",
         "fronttext": "Er beschrieb ein effizientes Verfahren zur schrittweisen Annäherung an die Quadratwurzel einer Zahl, das heute noch in Programmiersprachen genutzt wird.",
         "backtext": "Heron von Alexandria war ein Meister der angewandten Mathematik. Das Heron-Verfahren nutzt den Durchschnitt aus Schätzung und Division.",
         "valuetext": "1. Jh.",
@@ -332,7 +334,7 @@ const cardPool = [
     },
     {
         "title": "Ptolemäus' Almagest",
-        "fronttext": "Ein monumentales Werk, das die Astronomie für über 1000 Jahre dominierte. Er nahm allerdings an, dass unser Weltbild geozentrisch sein, d.h. sich alle Planeten um die Erde kreisen.",
+        "fronttext": "Das monomentale Astronomie-Werk. Ptolemäus nahm allerdings an, dass unser Weltbild geozentrisch sein, d.h. sich alle Planeten um die Erde kreisen.",
         "backtext": "Claudius Ptolemäus lieferte umfangreiche trigonometrische Tabellen für die Sternbeobachtung.",
         "valuetext": "um 150",
         "startvalue": 140,
@@ -410,7 +412,9 @@ const cardPool = [
             "Astronomie",
             "Philosophie"
         ],
-        "furtherInformation": []
+        "furtherInformation": [
+            "<a href='https://detektor.fm/wissen/geschichten-aus-der-mathematik-hypatia'>Podcast: <em>Geschichten aus der Mathematik</em> | Hypatia von Alexandria: Das Ende der antiken Wissenschaft</a>"
+        ]
     },
     {
         "title": "Approximation von Pi mit einem 24.576-Eck",
@@ -575,7 +579,9 @@ const cardPool = [
             "!einfach",
             "!wichtig"
         ],
-        "furtherInformation": []
+        "furtherInformation": [
+            "<a href='https://detektor.fm/wissen/geschichten-aus-der-mathematik-leonardo-fibonacci'>Podcast: <em>Geschichten aus der Mathematik</em> | Leonardo Fibonacci: Leonardo Fibonacci und das indisch-arabische Zahlensystem</a>"
+        ]
     },
     {
         "title": "Fibonacci-Folge",
@@ -741,7 +747,9 @@ const cardPool = [
             "Algebra",
             "!wichtig"
         ],
-        "furtherInformation": []
+        "furtherInformation": [
+            "<a href='https://detektor.fm/wissen/geschichten-aus-der-mathematik-niccolo-tartaglia'>Podcast: <em> Geschichten aus der Mathematik</em> | Niccolò Tartaglia: Die geheime Formel</a>"
+        ]
     },
     {
         "title": "Zahlen aus einer anderen Welt",
@@ -870,7 +878,10 @@ const cardPool = [
             "Zahlentheorie",
             "!wichtig"
         ],
-        "furtherInformation": []
+        "furtherInformation": [
+            "<a href='https://detektor.fm/wissen/geschichten-aus-der-mathematik-pierre-de-fermat'>Podcast: <em> Geschichten aus der Mathematik</em> | Pierre de Fermat: Der Wettstreit wider Willen</a>",
+            "Berühmtes Buch: <em>Fermats letzter Satz</em> von Simon Singh"
+        ]
     },
     {
         "title": "Johannes Kepler und die Weinfässer",
@@ -911,7 +922,9 @@ const cardPool = [
             "Stochastik",
             "!wichtig"
         ],
-        "furtherInformation": []
+        "furtherInformation": [
+            "<a href='https://detektor.fm/wissen/geschichten-aus-der-mathematik-wahrscheinlichkeitsrechnung'>Podcast: <em> Geschichten aus der Mathematik</em> | Wahrscheinlichkeitsrechnung: Die Anfänge der Wahrscheinlichkeitsrechnung</a>"
+        ]
     },
     {
         "title": "Das Unendlich-Zeichen",
@@ -986,7 +999,9 @@ const cardPool = [
             "Analysis",
             "!wichtig"
         ],
-        "furtherInformation": []
+        "furtherInformation": [
+            "<a href='https://detektor.fm/wissen/geschichten-aus-der-mathematik-gottfried-wilhelm-leibniz'>Podcast: <em>Geschichten aus der Mathematik</em> | Gottfried Wilhelm Leibniz: Der ewige Streit mit Newton</a>"
+        ]
     },
     {
         "title": "Gesetz der großen Zahlen",
@@ -1050,12 +1065,12 @@ const cardPool = [
         ]
     },
     {
-        "title": "Der König der Mathematik",
+        "title": "Geburtsjahr des Königs der Mathematik",
         "fronttext": "Er war so produktiv, dass er trotz Erblindung (<em>'Jetzt werde ich weniger Ablenkung haben'</em>) weiterhin hunderte von Abhandlungen verfasste und die Mathematik prägte.",
         "backtext": "Leonhard Euler führte Symbole wie $f(x)$, $\\mathrm{i}$ und das Summenzeichen $\\sum$ ein. Er gilt als einer der größten Mathematiker aller Zeiten.",
-        "valuetext": "1720-1783",
+        "valuetext": "1720",
         "startvalue": 1720,
-        "endvalue": 1783,
+        "endvalue": 1720,
         "tags": [
             "Aufklärung",
             "Analysis",
@@ -1359,12 +1374,12 @@ const cardPool = [
         "furtherInformation": []
     },
     {
-        "title": "Ordnung im Chaos der Analysis",
-        "fronttext": "Augustin-Louis Cauchy gab der Analysis ein strenges Fundament, indem er Grenzwerte und Stetigkeit präzise mit 'Epsilon und Delta' definierte.",
+        "title": "Geburtsjahr von Augustin-Louis Cauchy",
+        "fronttext": "Geburtsjahr von Augustin-Louis Cauchy. Er gab der Analysis ein strenges Fundament, indem er Grenzwerte und Stetigkeit präzise mit 'Epsilon und Delta' definierte.",
         "backtext": "Augustin-Louis Cauchy war einer der produktivsten Mathematiker und prägte den modernen Mathematikunterricht.",
-        "valuetext": "1789-1857",
+        "valuetext": "1789",
         "startvalue": 1789,
-        "endvalue": 1857,
+        "endvalue": 1789,
         "tags": [
             "Industrialisierung",
             "Analysis",
@@ -1384,7 +1399,9 @@ const cardPool = [
             "Algebra",
             "!wichtig"
         ],
-        "furtherInformation": []
+        "furtherInformation": [
+            "<a href='https://detektor.fm/wissen/geschichten-aus-der-mathematik-niels-henrik-abel'>Podcast: <em>Geschichten aus der Mathematik</em> | Niels Henrik Abel: Die mühsame Suche nach Anerkennung</a>"
+        ]
     },
     {
         "title": "Nichteuklidische Geometrie",
@@ -1413,7 +1430,9 @@ const cardPool = [
             "Algebra",
             "!wichtig"
         ],
-        "furtherInformation": []
+        "furtherInformation": [
+            "<a href='https://detektor.fm/wissen/geschichten-aus-der-mathematik-evariste-galois'>Podcast <em>Geschichten aus der Mathematik</em> | Évariste Galois: Das tödliche Duell</a>"
+        ]
     },
     {
         "title": "Der Vater des Computers",
@@ -1529,7 +1548,9 @@ const cardPool = [
             "Zahlen",
             "!wichtig"
         ],
-        "furtherInformation": []
+        "furtherInformation": [
+            "<a href='https://detektor.fm/wissen/geschichten-aus-der-mathematik-william-rowan-hamilton'>Podcast: <em>Geschichten aus der Mathematik</em> | William Rowan Hamilton: Wie eine Formel Lara Croft das Laufen lehrte</a>"
+        ]
     },
     {
         "title": "Boolesche Algebra",
@@ -1549,7 +1570,7 @@ const cardPool = [
     {
         "title": "Florence Nightingale",
         "fronttext": "Sie nutzte statistische Grafiken (Polar-Area-Diagramme), um die Hygiene in Krankenhäusern zu verbessern.",
-        "backtext": "Nightingale war eine Pionierin der angewandten Statistik und Visualisierung.",
+        "backtext": "Nightingale war eine Pionierin der angewandten Statistik und Visualisierung und rettete damit viele Leben.",
         "valuetext": "1858",
         "startvalue": 1858,
         "endvalue": 1858,
@@ -1557,7 +1578,9 @@ const cardPool = [
             "Industrialisierung",
             "Frauen"
         ],
-        "furtherInformation": []
+        "furtherInformation": [
+            "<a href='https://detektor.fm/wissen/geschichten-aus-der-mathematik-florence-nightingale'>Podcast: <em>Geschichten aus der Mathematik</em> | Florence Nightingale: Die lebensrettende Statistik</a>"
+        ]
     },
     {
         "title": "Riemannsche Vermutung",
@@ -1591,7 +1614,7 @@ const cardPool = [
     {
         "title": "Richard Dedekind",
         "fronttext": "Er definierte die reellen Zahlen durch 'Schnitte' in der Menge der rationalen Zahlen.",
-        "backtext": "Dedekind gab der Analysis ein strenges logisches Fundament.",
+        "backtext": "Dedekind gab der Analysis ein strenges logisches Fundament und leistete wichtige Beiträge zur Zahlentheorie, die später anderen Mathematikern zugeschrieben wurden.",
         "valuetext": "1872",
         "startvalue": 1872,
         "endvalue": 1872,
@@ -1613,7 +1636,10 @@ const cardPool = [
             "Logik",
             "!wichtig"
         ],
-        "furtherInformation": []
+        "furtherInformation": [
+            "<em>'Aus dem Paradies, das Cantor uns geschaffen, soll uns niemand vertreiben können.'</em> - David Hilbert",
+            "<a href='https://detektor.fm/wissen/geschichten-aus-der-mathematik-georg-cantor'>Podcast: <em>Geschichten aus der Mathematik</em> | Georg Cantor: Das Plagiat unter Freunden</a>"
+        ]
     },
     {
         "title": "Sofia Kowalewskaja",
@@ -1656,7 +1682,9 @@ const cardPool = [
             "Moderne",
             "Physik"
         ],
-        "furtherInformation": []
+        "furtherInformation": [
+            "<a href='https://detektor.fm/wissen/geschichten-aus-der-mathematik-henri-poincare'>Podcast: <em>Geschichten aus der Mathematik</em> | Henri Poincaré: Die Geburt der Chaostheorie</a>"
+        ]
     },
     {
         "title": "Hilberts 23 Probleme",
@@ -1702,7 +1730,9 @@ const cardPool = [
             "Frauen",
             "Physik"
         ],
-        "furtherInformation": []
+        "furtherInformation": [
+            "<a href='https://detektor.fm/wissen/geschichten-aus-der-mathematik-emmy-noether'>Podcast: <em>Geschichten aus der Mathematik</em> | Emmy Noether: Das Team im Rücken</a>"
+        ]
     },
     {
         "title": "Ramanujan und die 1729",
@@ -1716,7 +1746,9 @@ const cardPool = [
             "Zahlentheorie",
             "Pi"
         ],
-        "furtherInformation": []
+        "furtherInformation": [
+            "<a href='https://detektor.fm/wissen/geschichten-aus-der-mathematik-srinivasa-ramanujan'>Podcast: <em>Geschichten aus der Mathematik</em> | Srinivasa Ramanujan: Der Bruch mit den Regeln der Mathematik</a>"
+        ]
     },
     {
         "title": "Banach-Räume im Schottischen Café",
@@ -1731,7 +1763,7 @@ const cardPool = [
             "!einfach"
         ],
         "furtherInformation": [
-            "TODO: Podcast-Link"
+            "<a href='https://detektor.fm/wissen/geschichten-aus-der-mathematik-stefan-banach'>Podcast: <em>Geschichten aus der Mathematik</em> | Stefan Banach: Der Zauber des Schottischen Cafés</a>"
         ]
     },
     {
@@ -1746,7 +1778,9 @@ const cardPool = [
             "Logik",
             "!wichtig"
         ],
-        "furtherInformation": []
+        "furtherInformation": [
+            "<a href='https://detektor.fm/wissen/geschichten-aus-der-mathematik-kurt-goedel'>Podcast: <em>Geschichten aus der Mathematik</em> | Kurt Gödel: Die Grenzen der Logik</a>"
+        ]
     },
     {
         "title": "Axiomatisierung der Wahrscheinlichkeitstheorie",
@@ -1761,7 +1795,9 @@ const cardPool = [
             "Axiomatik",
             "!wichtig"
         ],
-        "furtherInformation": []
+        "furtherInformation": [
+            "<a href='https://detektor.fm/wissen/geschichten-aus-der-mathematik-andrei-kolmogorow'>Podcast: <em>Geschichten aus der Mathematik</em> | Andrey Kolmogorov: Das Dopelleben in der Diktatur</a>"
+        ]
     },
     {
         "title": "Nicolas Bourbaki",
@@ -1803,7 +1839,9 @@ const cardPool = [
             "Informatik",
             "!wichtig"
         ],
-        "furtherInformation": []
+        "furtherInformation": [
+            "<a href='https://detektor.fm/wissen/geschichten-aus-der-mathematik-john-von-neumann'>Podcast: <em>Geschichten aus der Mathematik</em> | John von Neumann: Die Macht der Spieltheorie</a>"
+        ]
     },
     {
         "title": "Informationstheorie",
@@ -1834,7 +1872,7 @@ const cardPool = [
         "furtherInformation": []
     },
     {
-        "title": "Katherine Johnson",
+        "title": "Raumflüge dank menschlicher Computerin",
         "fronttext": "Die präzisen Berechnungen der Flugbahnen von Katherine Johnson, einer Mathematikerin mit afroamerikanischer Abstammung, ermöglichten die ersten bemannten Raumflüge der USA.",
         "backtext": "Johnson war eine 'menschliche Computerin' bei der NASA, deren Arbeit für die Mondlandung entscheidend war.",
         "valuetext": "1962",
@@ -2028,11 +2066,13 @@ const cardPool = [
             "Gegenwart",
             "Frauen"
         ],
-        "furtherInformation": []
+        "furtherInformation": [
+            "<a href='https://detektor.fm/wissen/geschichten-aus-der-mathematik-maryam-mirzakhani'>Podcast: <em>Geschichten aus der Mathematik</em> | Maryam Mirzakhani: Die Schönheit der Mathematik</a>"
+        ]
     },
     {
         "title": "Peter Scholze",
-        "fronttext": "Der deutsche Mathematiker Peter Scholze revolutionierte die arithmetische Geometrie mit 'perfektoiden Räumen' und wurde dafür mit nur 30 Jahres mit der Fields Medaille beehrt, als zweiter Deutscher jemals.",
+        "fronttext": "Der deutsche Mathematiker Peter Scholze revolutionierte die arithmetische Geometrie mit 'perfektoiden Räumen' und wurde dafür mit nur 30 Jahren mit der Fields Medaille beehrt, als zweiter Deutscher jemals.",
         "backtext": "Der geborene Dresdner besuchte das Berliner Heinrich-Hertz-Gymnasium mit mathematischem Schwerpunkt bevor er zum Studium nach Bonn zog.",
         "valuetext": "2018",
         "startvalue": 2018,
@@ -2266,7 +2306,9 @@ const cardPool = [
             "Gegenwart",
             "Algebra"
         ],
-        "furtherInformation": []
+        "furtherInformation": [
+            "<a href='https://detektor.fm/wissen/geschichten-aus-der-mathematik-alexander-grothendieck'>Podcast: <em>Geschichten aus der Mathematik</em> | Alexander Grothendieck: Die Einsamkeit der Gedanken</a>"
+        ]
     },
     {
         "title": "Newton-Verfahren",
@@ -2283,7 +2325,7 @@ const cardPool = [
     },
     {
         "title": "Donut und Kaffeetasse",
-        "fronttext": "In der Topologie gelten ein Donut (Torus) und eine Kaffeetasse als 'homöomorph' – also im Grunde als das gleiche Objekt, weil sie gleich viele Löcher haben.",
+        "fronttext": "Die Disziplan der Topologie wurde eigenständig: hier gelten ein Donut (Torus) und eine Kaffeetasse als 'homöomorph' – also im Grunde als das gleiche Objekt, weil sie gleich viele Löcher haben.",
         "backtext": "Topologie ist die 'Gummiband-Geometrie'. Da beide Objekte genau ein Loch haben, kann man eines stetig in das andere verformen, ohne es zu zerschneiden oder zu kleben.",
         "valuetext": "ca. 1895",
         "startvalue": 1890,
@@ -2337,17 +2379,20 @@ const cardPool = [
         "furtherInformation": []
     },
     {
-        "title": "Paul Erdős",
-        "fronttext": "Er war ein mathematischer Nomade ohne festen Wohnsitz, der sein Leben lang von Universität zu Universität reiste, um mit Kollegen Probleme zu lösen.",
-        "backtext": "Erdős publizierte über 1.500 Artikel und prägte wegen seiner Arbeit in der Zahlentheorie und Graphentheorie die 'Erdős-Zahl'. Diese gibt an, wie nah ein Wissenschaftler durch gemeinsame Publikationen mit dem legendären Mathematiker verbunden ist.",
-        "valuetext": "1934",
-        "startvalue": 1934,
-        "endvalue": 1934,
+        "title": "Erdős-Nummer",
+        "fronttext": "Paul Erdős publizierte über 1.500 Artikel, sodass die Nähe von Mathematikern zu ihm durch die 'Erdős-Nummer' gemessen werden kann, wie nah sie durch gemeinsame Publikationen mit ihm verbunden sind.",
+        "backtext": "Erdős war ein mathematischer Nomade ohne festen Wohnsitz, der sein Leben lang von Universität zu Universität reiste, um mit Kollegen Probleme zu lösen.",
+        "valuetext": "1969",
+        "startvalue": 1969,
+        "endvalue": 1969,
         "tags": [
             "Moderne",
             "Zahlentheorie"
         ],
-        "furtherInformation": []
+        "furtherInformation": [
+            "<a href='https://detektor.fm/wissen/geschichten-aus-der-mathematik-paul-erdoes-fbi'>Podcast: <em>Geschichten aus der Mathematik</em> | Paul Erdős: Paul Erdős und seine FBI-Akte</a>",
+            "<a href='https://detektor.fm/wissen/geschichten-aus-der-mathematik-paul-erdos'>Podcast: <em>Geschichten aus der Mathematik</em> | Paul Erdős: Paul Erdős und das Buch der Beweise</a>"
+        ]
     },
     {
         "title": "SET-Spiel",
@@ -2367,8 +2412,8 @@ const cardPool = [
         ]
     },
     {
-        "title": "Johann Friedrich Pfaff",
-        "fronttext": "Er war der Entdecker des 'Pfaffschen Problems' und gilt als der bedeutendste deutsche Mathematiker seiner Zeit – direkt vor dem Aufstieg seines berühmtesten Schülers.",
+        "title": "Pfaffsche Formen",
+        "fronttext": "Johann Friedrich Pfaff war der Entdecker des 'Pfaffschen Problems' und gilt als der bedeutendste deutsche Mathematiker seiner Zeit – direkt vor dem Aufstieg seines berühmtesten Schülers.",
         "backtext": "Pfaff war der Doktorvater von Carl Friedrich Gauß. Er leistete Pionierarbeit bei der Untersuchung von Systemen partieller Differentialgleichungen (Pfaffsche Formen).",
         "valuetext": "1815",
         "startvalue": 1815,
@@ -2426,7 +2471,9 @@ const cardPool = [
             "Axiomatik",
             "!wichtig"
         ],
-        "furtherInformation": []
+        "furtherInformation": [
+            "<a href='https://detektor.fm/wissen/geschichten-aus-der-mathematik-ernst-zermelo'>Podcast: <em>Geschichten aus der Mathematik</em> | Ernst Zermelo: Der Beef um die Basics</a>"
+        ]
     },
     {
         "title": "Lebesgue-Integral",
@@ -2459,8 +2506,8 @@ const cardPool = [
         "furtherInformation": []
     },
     {
-        "title": "Max Dehn",
-        "fronttext": "Dehn löste als Erster eines der berühmten 23 Hilbertschen Probleme und bewies, dass man Körper nicht immer in gleiche Teile 'zerlegen' kann.",
+        "title": "Beweis der Unzerlegbarkeit von Polyedern",
+        "fronttext": "Max Dehn löste als Erster eines der berühmten 23 Hilbertschen Probleme und bewies, dass man Körper nicht immer in gleiche Teile 'zerlegen' kann.",
         "backtext": "Er zeigte im 3. Hilbertschen Problem, dass zwei Polyeder mit gleichem Volumen nicht unbedingt in die gleichen Teil-Polyeder zerlegt werden können (Dehnsche Invariante).",
         "valuetext": "1900",
         "startvalue": 1900,
@@ -2488,8 +2535,8 @@ const cardPool = [
     },
     {
         "title": "'Raum - Zeit - Materie'",
-        "fronttext": "Das Werk 'Raum - Zeit - Materie' prägte das Verständnis der theoretischen Physik, das die mathematischen Grundlagen der Relativitätstheorie und der Geometrie des Universums legte.",
-        "backtext": "Hermann Weyl war ein Universalgenie, das die Brücke zwischen abstrakter Gruppentheorie, Quantenmechanik und der Relativitätstheorie schlug und war einer der führenden Köpfe in Princeton, wo er mit Einstein und Gödel zusammenarbeitete.",
+        "fronttext": "Das Werk 'Raum - Zeit - Materie' vom Hermann Weyl prägte das Verständnis der theoretischen Physik, das die mathematischen Grundlagen der Relativitätstheorie und der Gruppentheorie legte.",
+        "backtext": "Hermann Weyl war Universalgenie und enger Freund von Einstein. Kurios: Er schrieb einmal von der Primzahl 57, die aber durch 3 und 19 teilbar ist, der gleiche Fehler passierte auch Grothendieck, deswegen wird 57 scherzhaft als Grothendieck-Primzahl bezeichnet.",
         "valuetext": "1918",
         "startvalue": 1918,
         "endvalue": 1918,
@@ -2541,7 +2588,7 @@ const cardPool = [
         "furtherInformation": []
     },
     {
-        "title": "Fields-Medaille",
+        "title": "Erste Fields-Medaille",
         "fronttext": "Da es keinen Nobelpreis für Mathematik gibt, entstand diese Auszeichnung als höchste Ehre für junge Mathematiker und Mathematikerinnen unter 40 Jahren.",
         "backtext": "Die erste Vergabe fand 1936 in Oslo an Lars Ahlfors und Jesse Douglas statt. Die Altersgrenze soll die Preisträger zu weiteren Höchstleistungen anspornen.",
         "valuetext": "1936",
@@ -2646,4 +2693,336 @@ const cardPool = [
         ],
         "furtherInformation": []
     },
+    {
+        "title": "Ziegenproblem",
+        "fronttext": "Marilyn vos Savant löste dieses Rätsel in ihrer Kolumne, obwohl selbst Mathematiker anfangs heftig widersprachen.",
+        "backtext": "Drei Türen, hinter einer der Gewinn, hinter den anderen beiden sind Ziegen. Der Moderator kennt die Gewinn-Tür und öffnet nach deiner Wahl immer eine Tür mit einer Ziege? Wenn man wechselt, verdoppelt sich die Gewinnchance von 1/3 auf 2/3. Das Problem zeigt, wie menschliche Intuition oft von der tatsächlichen Wahrscheinlichkeit abweicht und selbst Mathematiker dazu verleitet, falsche Schlüsse zu ziehen.",
+        "valuetext": "1990",
+        "startvalue": 1990,
+        "endvalue": 1990,
+        "tags": [
+            "Stochastik",
+            "Wahrscheinlichkeit",
+            "Paradoxon"
+        ],
+        "furtherInformation": [
+            "<a href='https://detektor.fm/wissen/geschichten-aus-der-mathematik-marilyn-vos-savant'>Podcast: <em>Geschichten aus der Mathematik</em> | Marilyn vos Savant: Das Ziegenproblem</a>"
+        ]
+    },
+    {
+        "title": "Simpson-Paradox",
+        "fronttext": "Dieses statistische Phänomen beschreibt eine Situation, in der sich ein Trend, der in mehreren Gruppen existiert, umkehrt, wenn man diese Gruppen zusammenfasst.",
+        "backtext": "Es warnt davor, Korrelationen in aggregierten Daten ohne Berücksichtigung der zugrunde liegenden Teilgruppen zu interpretieren.",
+        "valuetext": "1951",
+        "startvalue": 1951,
+        "endvalue": 1951,
+        "tags": [
+            "Statistik",
+            "Datenanalyse",
+            "Paradoxon"
+        ],
+        "furtherInformation": []
+    },
+    {
+        "title": "Veröffentlichung des Geburtstagsparadoxons",
+        "fronttext": "Wie viele Personen müssen in einem Raum sein, damit die Wahrscheinlichkeit für zwei gleiche Geburtstage über 50% liegt?",
+        "backtext": "Entgegen der Intuition reichen bereits 23 Personen aus. Dies verdeutlicht die Diskrepanz zwischen menschlicher Intuition und kombinatorischer Wahrscheinlichkeit.",
+        "valuetext": "1939",
+        "startvalue": 1939,
+        "endvalue": 1939,
+        "tags": [
+            "Stochastik",
+            "Kombinatorik",
+            "Paradoxon"
+        ],
+        "furtherInformation": []
+    },
+    {
+        "title": "Veröffentlichung des Hauses vom Nikolaus",
+        "fronttext": "In diesem klassischen Zeichenrätsel soll ein bestimmtes Muster gezeichnet werden, ohne mit dem Stift abzusetzen und ohne eine Linie mehrfach zu nutzen.",
+        "backtext": "Die Lösung ist ein 'eulerscher Pfad', wie Leonard Euler bei seinem Königsberger Brückenproblem feststellte. Das Haus vom Nikolaus lässt sich nur zeichnen, indem man bei einem der unteren Eckpunkte startet, diese haben eine ungerade Anzahl an Kanten.",
+        "valuetext": "Ende 19. Jh.",
+        "startvalue": 1870,
+        "endvalue": 1900,
+        "tags": [
+            "Graphentheorie",
+            "Topologie",
+            "Unterhaltungsmathematik"
+        ],
+        "furtherInformation": [
+            "<a href='https://detektor.fm/wissen/geschichten-aus-der-mathematik-haus-vom-nikolaus-graphentheorie-euler'>Podcast: <em>Geschichten aus der Mathematik</em> | Haus vom Nikolaus: Das ist das Haus vom Niko… hä?!?</a>"
+        ]
+    },
+    // {
+    //     "title": "'Liebe und Mathematik'",
+    //     "fronttext": "Edward Frenkel, der durch sein Buch 'Liebe und Mathematik' und seine Arbeit am Langlands-Programm bekannt wurde.",
+    //     "backtext": "Er versucht, die Mathematik als verborgene Sprache des Universums breiten Schichten zugänglich zu machen.",
+    //     "valuetext": "2013",
+    //     "startvalue": 2013,
+    //     "endvalue": 2013,
+    //     "tags": [
+    //         "Zahlentheorie",
+    //         "Bildung",
+    //         "Gegenwart"
+    //     ],
+    //     "furtherInformation": [
+    //         "<a href='https://detektor.fm/wissen/geschichten-aus-der-mathematik-edward-frenkel-babelfisch'>Podcast: <em>Geschichten aus der Mathematik</em> | Edward Frenkel: Der mathematische Babelfisch</a>"
+    //     ]
+    // },
+    // {
+    //     "title": "Veröffentlichung des Atiyah-Singer-Indexsatzes",
+    //     "fronttext": "Einer der bedeutendsten Mathematiker des 20. Jahrhunderts, bekannt für den Atiyah-Singer-Indexsatz.",
+    //     "backtext": "Seine Arbeit verband Geometrie, Topologie und Analysis auf eine Weise, die auch für die theoretische Physik fundamentale Bedeutung erlangte.",
+    //     "valuetext": "1963",
+    //     "startvalue": 1963,
+    //     "endvalue": 1963,
+    //     "tags": [
+    //         "Geometrie",
+    //         "Topologie",
+    //         "Analysis"
+    //     ],
+    //     "furtherInformation": [
+    //         "<a href='https://detektor.fm/wissen/geschichten-aus-der-mathematik-michael-atiyah'>Podcast: <em>Geschichten aus der Mathematik</em> | Michael Atiyah: Die sensationelle Ankündigung</a>"
+    //     ]
+    // },
+    {
+        "title": "Martin Hellman",
+        "fronttext": "Ein Pionier der Kryptographie, der zusammen mit Whitfield Diffie das Konzept des Public-Key-Austauschs entwickelte.",
+        "backtext": "Der Diffie-Hellman-Schlüsselaustausch ermöglichte erstmals sichere Kommunikation über unsichere Kanäle ohne vorherigen Austausch eines gemeinsamen Schlüssels.",
+        "valuetext": "1976",
+        "startvalue": 1976,
+        "endvalue": 1976,
+        "tags": [
+            "Kryptographie",
+            "Informatik",
+            "Sicherheit"
+        ],
+        "furtherInformation": [
+            "<a href='https://detektor.fm/wissen/geschichten-aus-der-mathematik-martin-hellman'>Podcast: <em>Geschichten aus der Mathematik</em> | Martin Hellman: Der allererste „Crypto War“</a>"
+        ]
+    },
+    // {
+    //     "title": "Beppo Levi",
+    //     "fronttext": "Ein italienischer Mathematiker, der fundamentale Beiträge zur Mengenlehre und zur Lebesgue-Integrationstheorie leistete.",
+    //     "backtext": "Bekannt für das 'Monotone Konvergenztheorem' von Beppo Levi, einem zentralen Werkzeug der modernen Maßtheorie.",
+    //     "valuetext": "1906",
+    //     "startvalue": 1906,
+    //     "endvalue": 1906,
+    //     "tags": [
+    //         "Analysis",
+    //         "Maßtheorie",
+    //         "Integration"
+    //     ],
+    //     "furtherInformation": [
+    //         "<a href='https://detektor.fm/wissen/geschichten-aus-der-mathematik-beppo-levi'>Podcast: <em>Geschichten aus der Mathematik</em> | Beppo Levi: Neuanfang in Argentinien</a>"
+    //     ]
+    // },
+    {
+        "title": "Zentralperspektive",
+        "fronttext": "Die mathematische Fundierung der Zentralperspektive ermöglichte es, dreidimensionale Räume exakt auf eine zweidimensionale Fläche zu projizieren.",
+        "backtext": "Filippo Brunelleschi verbund die Mathematik mit der Kunst und prägte damit die Renaissance-Kunst.",
+        "valuetext": "1415",
+        "startvalue": 1415,
+        "endvalue": 1415,
+        "tags": [
+            "Geometrie",
+            "Kunst",
+            "Renaissance"
+        ],
+        "furtherInformation": [
+            "<a href='https://detektor.fm/wissen/geschichten-aus-der-mathematik-filippo-brunelleschi'>Podcast: <em>Geschichten aus der Mathematik</em> | Filippo Brunelleschi: Die Verkupplung von Kunst und Mathematik</a>"
+        ]
+    },
+    {
+        "title": "Kleinsche Flasche",
+        "fronttext": "Wie kann man eine Fläche ohne Rand und ohne 'Innen' oder 'Außen' in unserem dreidimensionalen Raum darstellen, d.h. quasi ein Möbiusband in höherer Dimension?",
+        "backtext": "Felix Klein erschuf die Kleinsche Flasche, eine 4D-Struktur, die in unserem 3D-Raum eine Selbst-Durchdringung erzwingt. Man kann sie sich als eine Flasche vorstellen, deren Hals durch den eigenen Körper nach innen geführt wird.",
+        "valuetext": "1882",
+        "startvalue": 1882,
+        "endvalue": 1882,
+        "tags": [
+            "Topologie",
+        ],
+        "furtherInformation": [
+            "<a href='https://detektor.fm/wissen/geschichten-aus-der-mathematik-shinichi-mochizuki'>Podcast: <em>Geschichten aus der Mathematik</em> | Shinichi Mochizuki: Der umstrittene Beweis</a>"
+        ]
+    },
+    {
+        "title": "abc-Vermutung",
+        "fronttext": "Die abc-Vermutung ist eines der tiefgründigsten Probleme der Zahlentheorie; sie stellt eine Verbindung zwischen Addition und Multiplikation her und ist bis heute nicht anerkannt bewiesen.",
+        "backtext": "Für drei natürliche Zahlen a, b, c mit a+b=c gilt: Die Anzahl der verschiedenen Primfaktoren von a*b*c ist meist nicht viel kleiner als c. Sie beschreibt, dass 'additiv einfache' Zahlen selten 'multiplikativ einfach' sind. Der angebliche Beweis von Shinichi Mochizuki aus dem Jahr 2012 ist so komplex, dass er von der mathematischen Gemeinschaft bisher nicht vollständig verstanden oder akzeptiert wurde.",
+        "valuetext": "1985",
+        "startvalue": 1985,
+        "endvalue": 1985,
+        "tags": [
+            "Zahlentheorie",
+            "Primzahlen",
+            "!ungelöst"
+        ],
+        "furtherInformation": [
+            "<a href='https://detektor.fm/wissen/geschichten-aus-der-mathematik-shinichi-mochizuki'>Podcast: <em>Geschichten aus der Mathematik</em> | Shinichi Mochizuki: Der umstrittene Beweis</a>"
+        ]
+    },
+    // {
+    //     "title": "Cédric Villani",
+    //     "fronttext": "Ein Fields-Medaillenträger und französischer Mathematiker, der durch seine Arbeit an der Boltzmann-Gleichung bekannt wurde.",
+    //     "backtext": "Villani ist bekannt für seine exzentrische Art, sein Engagement in der Politik und seine Gabe, komplexe mathematische Konzepte lebendig zu erklären.",
+    //     "valuetext": "2010",
+    //     "startvalue": 2010,
+    //     "endvalue": 2010,
+    //     "tags": [
+    //         "Analysis",
+    //         "Physik",
+    //         "Gegenwart"
+    //     ],
+    //     "furtherInformation": [
+    //         "<a href='https://detektor.fm/wissen/geschichten-aus-der-mathematik-shinichi-mochizuki'>Podcast: <em>Geschichten aus der Mathematik</em> | Cédric Villani: Rechnen mit der Realität</a>"
+    //     ]
+    // },
+    {
+        "title": "Formulierung des Survivorship Bias",
+        "fronttext": "Abraham Wald erkannte, dass es ein logischer Fehler ist, nur die Daten der 'Überlebenden' oder 'Erfolgreichen' zu betrachten, um eine Strategie für zukünftige Fälle abzuleiten.",
+        "backtext": "Er bemerkte, dass Flugzeuge zukünftig nicht dort gepanzert werden müssen, wo Einschusslöcher bei den zurückgekehrten Flugzeugen existieren, da diese Treffer keinen Absturz verursacht haben, sondern vielmehr dort, wo die Überlebenden keine Löcher hatten. Dieser Fehlschluss (Survivorship Bias), führt oft auch in anderen Bereichen zu falschen Schlussfolgerungen.",
+        "valuetext": "1943",
+        "startvalue": 1943,
+        "endvalue": 1943,
+        "tags": [
+                "Statistik",
+                "Logik",
+                "Kognitive Verzerrung"
+        ],
+        "furtherInformation": [
+            "<a href='https://detektor.fm/wissen/geschichten-aus-der-mathematik-survivorship-bias'>Podcast: <em>Geschichten aus der Mathematik</em> | Survivorship Bias: Die Illusion des Erfolgs</a>"
+        ]
+    },
+    {
+        "title": "Mathematiker als Präsident",
+        "fronttext": "Der Mathematiker Nicușor Dan wird als Präsident von Rumänien gewählt.",
+        "backtext": "Er verbindet seine mathematische analytische Herangehensweise mit stadtplanerischem Aktivismus gegen Korruption.",
+        "valuetext": "2025",
+        "startvalue": 2025,
+        "endvalue": 2025,
+        "tags": [
+            "Politik",
+            "Mathematik",
+            "Gegenwart"
+        ],
+        "furtherInformation": [
+            "<a href='https://detektor.fm/wissen/geschichten-aus-der-mathematik-nicusor-dan'>Podcast: <em>Geschichten aus der Mathematik</em> | Nicușor Dan: Die schicksalhafte Präsidentschaftswahl</a>"
+        ]
+    },
+    {
+        "title": "Der erste Taschenrechner",
+        "fronttext": "Curt Herzstark entwickelte den ersten (mechanischen) Taschenrechner, der wirklich in eine Tasche passte und alle Grundrechenarten beherrschte.",
+        "backtext": "Curt Herzstark entwickelte die 'Curta', als er im KZ Buchenwald inhaftiert war. Sie war ein Meisterwerk der Feinmechanik und blieb bis zum Aufkommen elektronischer Taschenrechner der Standard für mobile Berechnungen.",
+        "valuetext": "1948",
+        "startvalue": 1948,
+        "endvalue": 1948,
+        "tags": [
+            "Technik",
+            "Mechanik",
+            "Geschichte"
+        ],
+        "furtherInformation": [
+            "<a href='https://detektor.fm/wissen/geschichten-aus-der-mathematik-curt-herzstark'>Podcast: <em>Geschichten aus der Mathematik</em> | Curt Herzstark: Der erste echte Taschenrechner</a>"
+        ]
+    },
+    // {
+    //     "title": "Mura Yakerson",
+    //     "fronttext": "Eine zeitgenössische Mathematikerin, die sich auf die Verbindung von algebraischer Geometrie und theoretischer Informatik konzentriert.",
+    //     "backtext": "Ihre Arbeit in der homotopischen Algebra und ihre Forschungen in der theoretischen Informatik prägen moderne akademische Ansätze.",
+    //     "valuetext": "2020",
+    //     "startvalue": 2020,
+    //     "endvalue": 2020,
+    //     "tags": [
+    //         "Algebra",
+    //         "Geometrie",
+    //         "Informatik"
+    //     ],
+    //     "furtherInformation": [
+    //         "<a href='https://detektor.fm/wissen/geschichten-aus-der-mathematik-mura-yakerson'>Podcast: <em>Geschichten aus der Mathematik</em> | Mura Yakerson: Der Gefängnis-Traum</a>"
+    //     ]
+    // },
+    {
+        "title": "Futurama-Theorem",
+        "fronttext": "Der Mathematiker und Serienschreiber Ken Keeler erfand ein echtes mathematisches Theorem, um ein Plotloch in Futurama zu lösen.",
+        "backtext": "Das Theorem bewies, dass man jede Gruppe von Körpern, die ihre Gehirne getauscht haben, wieder durch den Einsatz von zwei zusätzlichen 'unbeteiligten' Personen in den Ursprungszustand zurückversetzen kann.",
+        "valuetext": "2010",
+        "startvalue": 2010,
+        "endvalue": 2010,
+        "tags": [
+            "Gruppentheorie",
+            "Unterhaltungsmathematik",
+            "Kombinatorik"
+        ],
+        "furtherInformation": [
+            "<a href='https://detektor.fm/wissen/geschichten-aus-der-mathematik-futurama'>Podcast: <em>Geschichten aus der Mathematik</em> | Futurama: Ken Keeler und das Futurama-Theorem</a>"
+        ]
+    },
+    {
+        "title": "Turing Awards für Computergrafik",
+        "fronttext": "Der Pionier der Computergrafik, Pat Hanrahan, der die mathematischen Grundlagen für modernes Rendering (RenderMan) legte, erhält die höchste Auszeichnung in der Informatik.",
+        "backtext": "Für seine grundlegenden Beiträge zur 3D-Computergrafik, die heute jeden modernen Animationsfilm ermöglichen, erhielt Hanrahan auch mehrere Academy Awards (Oscars).",
+        "valuetext": "2019",
+        "startvalue": 2019,
+        "endvalue": 2019,
+        "tags": [
+            "Informatik",
+            "Geometrie",
+            "Technik"
+        ],
+        "furtherInformation": [
+            "<a href='https://detektor.fm/wissen/geschichten-aus-der-mathematik-pat-hanrahan'>Podcast: <em>Geschichten aus der Mathematik</em> | Pat Hanrahan: Warum glänzt dieser Helm so schön?</a>",
+            "Viele Animationen am Computer werden mit sogenannten Quaternionen umgesetzt"
+        ]
+    },
+    {
+        "title": "Josephus-Problem",
+        "fronttext": "Ein Abzählrätsel: In welcher Position muss man stehen, um als Letzter übrig zu bleiben, wenn man jeden k-ten Menschen entfernt?",
+        "backtext": "Das Problem führt zu einer faszinierenden rekursiven Lösung und demonstriert mathematische Prinzipien der dynamischen Programmierung.",
+        "valuetext": "60",
+        "startvalue": 60,
+        "endvalue": 60,
+        "tags": [
+            "Kombinatorik",
+            "Algorithmik",
+            "Geschichte"
+        ],
+        "furtherInformation": [
+            "<a href='https://detektor.fm/wissen/geschichten-aus-der-mathematik-flavius-josephus'>Podcast: <em>Geschichten aus der Mathematik</em> | Flavius Josephus: Ene, mene, muh!</a>"
+        ]
+    },
+    {
+        "title": "Maryna Viazovskas Lösung des Kugelpackungsproblems",
+        "fronttext": "Sie löste das Jahrhunderte alte Problem des Kugelpackungsproblems in den Dimensionen 8 und 24.",
+        "backtext": "Für ihre Arbeit zur optimalen Anordnung von Sphären in hochdimensionalen Räumen erhielt sie als zweite Frau die Fields-Medaille.",
+        "valuetext": "2022",
+        "startvalue": 2022,
+        "endvalue": 2022,
+        "tags": [
+            "Geometrie",
+            "Diskret",
+            "Gegenwart"
+        ],
+        "furtherInformation": [
+            "<a href='https://detektor.fm/wissen/geschichten-aus-der-mathematik-maryna-viazovska'>Podcast: <em>Geschichten aus der Mathematik</em> | Maryna Viazovska: Das Problem mit den achtdimensionalen Pralinen</a>"
+        ]
+    },
+    {
+        "title": "Guiness-Bier und die t-Verteilung",
+        "fronttext": "Als Chemiker bei der Guinness-Brauerei brauchte William Sealy Gosset eine Methode, um die Qualität von Bier mit kleinen Stichproben zu prüfen.",
+        "backtext": "Unter dem Pseudonym 'Student' entwickelte er die t-Verteilung, da er als Angestellter seine Forschungsergebnisse nicht unter eigenem Namen veröffentlichen durfte.",
+        "valuetext": "1908",
+        "startvalue": 1908,
+        "endvalue": 1908,
+        "tags": [
+            "Statistik",
+            "Wirtschaft",
+            "Geschichte"
+        ],
+        "furtherInformation": [
+            "<a href='https://detektor.fm/wissen/geschichten-aus-der-mathematik-statistik-aus-der-brauerei'>Podcast: <em>Geschichten aus der Mathematik</em> | Statistik aus der Brauerei: Guinness und die Statistik</a>"
+        ]
+    },
 ]
+// TODO: Cleo Integrale overflow, Tags, einige zu Informatik
