@@ -21,7 +21,7 @@ const categoriesData = [
     "icon": "svg:polynomial",
     "iconType": "svg",
     "tooltip": "Polynome, Potenzfunktionen und ihr Grenzverhalten",
-    "cards": ["geo-potparam", "geo-koSymm", "grenzverhalten-poly"]
+    "cards": ["geo-potparam", "geo-koSymm", "grenzverhalten-poly", "polynom-reko"]
   },
   {
     "id": "ableitungen",

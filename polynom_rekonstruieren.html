@@ -1,0 +1,2333 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Polynomfunktionen rekonstruieren – Übung</title>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-5K8WYYXDL2"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-5K8WYYXDL2');
+    </script>
+<style>
+html { overflow-y: scroll; }
+body { font-family: Calibri, sans-serif; padding: 0 2%; max-width: 900px; margin: 0 auto; }
+h1  { margin-bottom: 4px; }
+h2  { margin: 6px 0 2px 0; }
+
+button {
+  background: #4CAF50; border: none; color: #fff;
+  padding: 8px 16px; font-size: 12px; margin: 3px 2px;
+  cursor: pointer; border-radius: 5px; font-family: inherit; line-height: 1.4;
+}
+button:hover { filter: brightness(.88); }
+.btn-orange { background: #E07B00; }
+
+details { border: 2px solid #000; margin-bottom: 6px; }
+summary { margin: 5px; padding: 0 3px 3px 3px; cursor: pointer;
+  font-weight: bold; display: block; }
+summary::after { margin-left: 1ch; display: inline-block; content: '▶️'; transition:.2s; }
+details[open] > summary::after { transform: rotate(90deg); }
+
+.form-block { border: 1px solid #000; padding: 4px 8px; margin: 8px; }
+.form-block > b { display: block; margin-bottom: 2px; }
+
+.radio-row { display: flex; flex-wrap: wrap; gap: 4px; margin: 3px 0 2px 10px; }
+.radio-row label { display: flex; align-items: center; gap: 4px;
+  padding: 2px 10px; border: 1.5px solid #bbb; border-radius: 20px;
+  cursor: pointer; font-size: .93em; }
+.radio-row input[type=radio] { margin: 0; }
+
+/* Slider */
+.slider-wrap { margin: 4px 0 2px 10px; }
+.slider-vals { display: flex; justify-content: space-between; width: 170px;
+  font-size: .78em; color: #666; padding: 0 2px; pointer-events: none; }
+input[type=range] { display: block; width: 170px; accent-color: #4CAF50; cursor: pointer; margin: 2px 0; }
+.slider-cur { font-weight: bold; color: #1a4a1a; }
+
+.type-block { border: 1px solid #c8d8c8; border-radius: 6px; margin: 4px 0; overflow: hidden; }
+.type-block-header { background: #eaf2ea; padding: 4px 10px; border-bottom: 1px solid #c8d8c8; }
+.type-block-header label { display: flex; align-items: center; gap: 7px;
+  font-weight: bold; cursor: pointer; margin: 0; color: #1a4a1a; }
+.type-block-body { padding: 3px 8px 5px 14px; display: flex; flex-wrap: wrap;
+  gap: 4px 6px; background: #fafff8; }
+.type-block-body label { display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 10px; border: 1.5px solid #bbb; border-radius: 20px;
+  cursor: pointer; font-size: .88em; color: #222; }
+.type-block-body label.disabled { color: #bbb !important; border-color: #ddd !important; pointer-events: none; }
+.type-block-body input[type=checkbox] { margin: 0; }
+
+/* Quiz toggle switch */
+.switch-quiz { position: relative; display: inline-block; width: 120px; height: 34px; cursor: pointer; }
+.switch-quiz input { opacity: 0; width: 0; height: 0; }
+.switch-quiz .sl { position: absolute; inset: 0; background: #ffcccc;
+  border-radius: 34px; border: 1px solid #c04040; transition:.4s; }
+.switch-quiz .sl:before { position: absolute; content: ""; height: 26px; width: 26px;
+  left: 4px; bottom: 3px; background: #fff; border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0,0,0,.2); transition:.4s; }
+.switch-quiz input:checked + .sl { background: #c8f0c8; border-color: #4a9a4a; }
+.switch-quiz input:checked + .sl:before { transform: translateX(84px); }
+.switch-quiz .lbs { position: absolute; top: 9px; left: 0; right: 0;
+  font-size: 12px; font-weight: bold; pointer-events: none; }
+.switch-quiz .lbs span { position: absolute; left: 0; right: 0; text-align: center; transition: opacity .4s; }
+.switch-quiz .lbs span:first-child { color: #6a0000; }
+.switch-quiz .lbs span:last-child { color: #1a4a1a; opacity: 0; }
+.switch-quiz input:checked ~ .lbs span:first-child { opacity: 0; }
+.switch-quiz input:checked ~ .lbs span:last-child { opacity: 1; }
+
+/* Task text */
+#taskText { font-size: 1.05em; line-height: 1.85; margin: 4px 0 6px 0; }
+#taskText ol { margin: 4px 0; padding-left: 1.6em; }
+#taskText li { margin: 2px 0; }
+.cond-item { transition: background .35s; border-radius: 4px; padding: 1px 4px; }
+.cond-item.hl { background: #ffe28a; outline: 2px solid #e8a000; }
+
+/* Sketch canvas */
+#sketchWrap { margin: 6px 0; }
+#sketchWrap canvas { display: block; border: 1px solid #ccc; border-radius: 4px;
+  background: #fff; max-width: 100%; }
+
+/* Quiz area */
+#quizArea { border: 1.5px solid #4a9a4a; border-radius: 7px; padding: 10px 14px;
+  margin: 8px 0 6px 0; background: #f8fff8; }
+.qz-stage { font-weight: bold; font-size: .97em; color: #1a4a1a; margin-bottom: 6px; }
+.qz-sub   { color: #444; font-size: .88em; margin: 3px 0 5px 0; }
+.qz-btns  { display: flex; flex-wrap: wrap; gap: 6px; margin: 5px 0; }
+.qz-btn {
+  padding: 8px 14px; border: 1.5px solid #aaa; border-radius: 20px;
+  background: #f7f7f7; cursor: pointer; font-family: inherit; font-size: .93em;
+  color: #222 !important; line-height: 1.3;
+  transition: background .15s, border-color .15s;
+}
+.qz-btn:hover:not(.qc):not(.qw) { background: #e8f0e8; border-color: #888; }
+.qc { background: #c8f0c8 !important; border-color: #4a9a4a !important;
+  color: #1a4a1a !important; font-weight: bold; pointer-events: none; }
+.qw { background: #f8d8d8 !important; border-color: #c04040 !important; color: #6a0000 !important; }
+.qz-inp-row { display: flex; align-items: stretch; gap: 6px; flex-wrap: wrap; margin: 5px 0; }
+.qz-inp { font-family: monospace; font-size: 1em; padding: 8px; border: 1.5px solid #aaa;
+  border-radius: 4px; width: 220px; box-sizing: border-box; }
+.qz-inp:focus { outline: none; border-color: #4a9a4a; }
+.qz-inp.ok  { border-color: #4a9a4a; background: #f4fff4; }
+.qz-inp.err { border-color: #c04040; background: #fff4f4; }
+.qz-inp-row button { padding: 8px 14px; } /* same height as input */
+.qz-fb { font-size: .87em; margin: 2px 0 4px 0; min-height: 1.1em; }
+.qz-fb.ok  { color: #1a6a1a; }
+.qz-fb.err { color: #9a1010; }
+.qz-done-cond { border: 1px solid #b8d8b8; border-radius: 5px; padding: 5px 10px;
+  margin: 4px 0; background: #f4fdf4; }
+.qz-cur-cond  { border: 1.5px solid #4a9a4a; border-radius: 5px; padding: 7px 12px;
+  margin: 5px 0; background: #fff; }
+.qz-cond-title { font-weight: bold; font-size: .9em; color: #1a4a1a; margin-bottom: 4px; }
+.qz-done-eq { font-size: .85em; color: #1a6a1a; margin: 2px 0 1px 8px; }
+.qz-sep { border: none; border-top: 1px dashed #ccc; margin: 8px 0; }
+.qz-lgs-box { overflow-x: auto; margin: 4px 0; }
+.qz-progress { font-size: .8em; color: #666; margin-bottom: 6px; }
+
+/* Solution */
+#solutionContent { color: #c00000; font-size: 1.1em; text-align: center; padding: 8px 10px; }
+#solutionPathContent { color: #000077; font-size: .93em; padding: 8px 14px; }
+.sol-sec { margin: 10px 0; }
+.sol-sec > b { color: #222; }
+.sol-eq { margin: 3px 0 3px 12px; overflow-x: auto; }
+
+#lobby-spacer { 
+    flex: 1 1 0; 
+    min-height: 0; 
+}
+.site-footer {
+    width: 100%; box-sizing: border-box; padding: 15px 15px;
+    border-top: 1px solid #ccc; margin-top: 4px; margin-bottom: 0px;
+    font-family: sans-serif; font-size: 0.6em; color: #333333d8;
+}
+.footer-content {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    margin: 0 auto;
+    max-width: 800px;
+}
+.footer-content > :first-child {
+    justify-self: start;
+}
+.footer-content > :nth-child(2) {
+    justify-self: center;
+}
+.footer-content > :last-child {
+    justify-self: end;
+}
+.footer-topic a { 
+    color: inherit; 
+    text-decoration: underline; 
+}
+</style>
+</head>
+<body>
+<h1 style="margin-bottom:4px;">Polynomfunktionen rekonstruieren – Übung</h1>
+
+<!-- ===== EINSTELLUNGEN ===== -->
+<details id="settingsDetails">
+<summary>Einstellungen</summary>
+
+<div class="form-block">
+  <b>Grad des Polynoms &nbsp;<span class="slider-cur" id="degLabel">3</span></b>
+  <div class="slider-wrap">
+    <div class="slider-vals"><span>1</span><span>2</span><span>3</span><span>4</span></div>
+    <input type="range" id="degree" min="1" max="4" step="1" value="3"
+      oninput="document.getElementById('degLabel').textContent=this.value;updateURL()">
+  </div>
+  <div style="margin:4px 0 0 8px;">
+    <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:.93em;">
+      <input type="checkbox" id="alsoLower">
+      Auch kleinerer Grad möglich (Grad muss selbst erschlossen werden)
+    </label>
+  </div>
+</div>
+
+<div class="form-block">
+  <b>Maximale LGS-Größe &nbsp;<span class="slider-cur" id="lgsLabel">3</span>
+    <span style="font-weight:normal;font-size:.82em;color:#555;"> Gleichungen</span></b>
+  <span style="display:block;font-size:.82em;color:#555;margin-bottom:2px;">
+    (ohne direkt auflösbare wie f(0)=3)</span>
+  <div class="slider-wrap">
+    <div class="slider-vals"><span>1</span><span>2</span><span>3</span></div>
+    <input type="range" id="maxLGS" min="1" max="3" step="1" value="3"
+      oninput="document.getElementById('lgsLabel').textContent=this.value;updateURL()">
+  </div>
+</div>
+
+<div class="form-block">
+  <b>Koeffizienten</b>
+  <div class="radio-row">
+    <label><input type="radio" name="coeffType" value="int" checked> Nur ganzzahlig</label>
+    <label><input type="radio" name="coeffType" value="rat"> Auch einfache Brüche</label>
+  </div>
+</div>
+
+<div class="form-block">
+  <b>Stellen und Werte in den Bedingungen</b>
+  <div class="radio-row">
+    <label><input type="radio" name="valueType" value="int" checked> Ganzzahlig</label>
+    <label><input type="radio" name="valueType" value="frac"> Einfache Brüche möglich</label>
+  </div>
+</div>
+
+<div class="form-block">
+  <b>Aufgabe gegeben als</b>
+  <div class="radio-row">
+    <label><input type="radio" name="presMode" value="text" checked> Nur textuell</label>
+    <label><input type="radio" name="presMode" value="skiz"> Nur Skizze</label>
+    <label><input type="radio" name="presMode" value="rand"> Zufällig</label>
+  </div>
+</div>
+
+<div class="form-block">
+  <b>Mögliche Aufgabentypen</b>
+  <div class="type-block">
+    <div class="type-block-header"><label><input type="checkbox" id="useYAchse" checked> y-Achsenabschnitt gegeben</label></div>
+  </div>
+  <div class="type-block">
+    <div class="type-block-header"><label><input type="checkbox" id="useNullstelle" checked> Nullstelle gegeben</label></div>
+  </div>
+  <div class="type-block">
+    <div class="type-block-header"><label><input type="checkbox" id="usePunkt" checked> Beliebiger Punkt gegeben</label></div>
+  </div>
+  <div class="type-block">
+    <div class="type-block-header">
+      <label><input type="checkbox" id="useSteigung" checked onchange="syncBlocks()"> Steigung an einer Stelle</label>
+    </div>
+    <div class="type-block-body" id="bSteigung">
+      <label><input type="checkbox" id="useTangente"> auch: Tangente gegeben</label>
+    </div>
+  </div>
+  <div class="type-block">
+    <div class="type-block-header">
+      <label><input type="checkbox" id="useExtremstelle" checked onchange="syncBlocks()"> Extremstelle gegeben</label>
+    </div>
+    <div class="type-block-body" id="bExtrem">
+      <label><input type="checkbox" id="useExtrempunkt"> auch: Extrempunkt gegeben</label>
+    </div>
+  </div>
+  <div class="type-block">
+    <div class="type-block-header">
+      <label><input type="checkbox" id="useWendestelle" checked onchange="syncBlocks()"> Wendestelle gegeben</label>
+    </div>
+    <div class="type-block-body" id="bWende">
+      <label><input type="checkbox" id="useWendepunkt"> auch: Wendepunkt gegeben</label>
+    </div>
+  </div>
+  <div class="type-block">
+    <div class="type-block-header">
+      <label><input type="checkbox" id="useSymmetrie" onchange="syncBlocks()"> Symmetrie gegeben</label>
+    </div>
+    <div class="type-block-body" id="bSym">
+      <label><input type="checkbox" id="useSymPunkt"> Punktsymmetrie zum Ursprung</label>
+      <label><input type="checkbox" id="useSymAchse"> Achsensymmetrie zur y-Achse</label>
+    </div>
+  </div>
+</div>
+
+<div class="form-block">
+  <b>Lösungsweg-Optionen</b>
+  <div style="display:flex;flex-direction:column;gap:4px;margin-top:4px;">
+    <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:.93em;">
+      <input type="checkbox" id="showMidStep" checked>
+      Zwischenschritt anzeigen (direkte Einsetzung vor Vereinfachung)
+    </label>
+    <label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:.93em;">
+      <input type="checkbox" id="vereinfFirst" checked>
+      Im Quiz: erst einfach lösbare Gleichungen identifizieren
+    </label>
+  </div>
+</div>
+</details>
+
+<button onclick="newTask()">&#x27F3;&nbsp;Neue Aufgabe</button>
+
+<!-- ===== AUFGABE ===== -->
+<div id="taskArea" style="display:none;margin-top:4px;">
+  <h2>Aufgabe</h2>
+
+  <!-- Sketch (shown or hidden depending on mode) -->
+  <div id="sketchDetails" style="margin-bottom:4px;"></div>
+  <!-- Task text (shown or hidden depending on mode) -->
+  <div id="textDetails" style="margin-bottom:4px;"></div>
+
+  <!-- Quiz toggle -->
+  <div style="margin:12px 0 6px;display:flex;flex-direction:column;align-items:center;text-align:center;">
+    <div style="font-size:.93em;font-weight:bold;margin-bottom:5px;">Quiz als Hilfestellung?</div>
+    <label class="switch-quiz">
+      <input type="checkbox" id="quizMode" onchange="toggleQuiz()">
+      <span class="sl"></span>
+      <span class="lbs"><span>Nein</span><span>Ja</span></span>
+    </label>
+  </div>
+
+  <div id="quizArea" style="display:none;"></div>
+
+  <details id="solutionDetails" style="margin-top:6px;">
+    <summary>Lösung</summary>
+    <div id="solutionContent"></div>
+    <details id="solutionPathDetails">
+      <summary>Vollständiger Lösungsweg</summary>
+      <div id="solutionPathContent"></div>
+    </details>
+  </details>
+</div>
+
+<!-- <footer class="site-footer">
+  <div class="footer-content">
+    M.&nbsp;Koch &nbsp;|&nbsp; <a href="./index.html">Mathe-Tools</a>
+    <span id="last-update"></span>
+  </div>
+</footer> -->
+<div id="lobby-spacer"></div>
+<footer class="site-footer">
+<div class="footer-content">
+    M.&nbsp;Koch
+    <span class="footer-topic"><a href="./index.html">Mathe-Tools</a></span>
+    <span class="footer-update">Last updated:&nbsp;<span id="last-update">...</span></span>
+</div>
+</footer>
+<script src="last-update.js" defer></script>
+
+<script>
+'use strict';
+// ============================================================
+// §1  MATH UTILS
+// ============================================================
+function gcd(a,b){a=Math.abs(a);b=Math.abs(b);while(b){var t=b;b=a%b;a=t;}return a||1;}
+function mkFrac(n,d){d=d||1;if(d<0){n=-n;d=-d;}var g=gcd(Math.abs(n),d);return{n:n/g,d:d/g};}
+function fracTex(f){if(f.d===1)return''+f.n;return(f.n<0?'-':'')+'\\frac{'+Math.abs(f.n)+'}{'+f.d+'}';}
+function numTex(x){
+  var r=Math.round(x*1e9)/1e9;
+  if(Number.isInteger(r))return''+r;
+  for(var d=2;d<=12;d++){var n=Math.round(x*d);if(Math.abs(n/d-x)<1e-9)return fracTex(mkFrac(n,d));}
+  return r.toFixed(2);
+}
+function isNiceInt(x){return Number.isInteger(Math.round(x*1e9)/1e9)&&Math.abs(x)<=50;}
+function isNiceFrac(x){
+  if(isNiceInt(x))return true;
+  for(var d=2;d<=4;d++){var n=Math.round(x*d);if(Math.abs(n/d-x)<1e-9&&Math.abs(n)<=50)return true;}
+  return false;
+}
+
+// ============================================================
+// §2  POLYNOMIAL UTILS
+// ============================================================
+function polyEval(c,x){return c.reduce(function(a,v){return a*x+v;},0);}
+function polyDeriv(c){var n=c.length-1;if(n<=0)return[0];return c.slice(0,-1).map(function(v,i){return v*(n-i);});}
+function poly2D(c){return polyDeriv(polyDeriv(c));}
+function poly3D(c){return polyDeriv(poly2D(c));}
+var CL='abcde';
+
+function polyTex(c){
+  var n=c.length-1,parts=[];
+  c.forEach(function(coef,i){
+    if(Math.abs(coef)<1e-11)return;
+    var pow=n-i,first=parts.length===0;
+    var sgn=first?(coef<0?'-':''):(coef<0?'-':'+');
+    var ac=Math.abs(coef),ct=numTex(ac);
+    var s;
+    if(pow===0)       s=sgn+ct;
+    else if(pow===1)  s=sgn+(ac===1?'x':ct+'x');
+    else              s=sgn+(ac===1?'x^{'+pow+'}':ct+'x^{'+pow+'}');
+    parts.push(s);
+  });
+  return parts.length?parts.join(''):'0';
+}
+
+function ansatzTex(deg){
+  var p=[];
+  for(var pow=deg;pow>=0;pow--){
+    var l=CL[deg-pow],f=p.length===0;
+    if(pow===0)      p.push((f?'':'+')+l);
+    else if(pow===1) p.push((f?'':'+')+l+'x');
+    else             p.push((f?'':'+')+l+'x^{'+pow+'}');
+  }
+  return p.join('').replace(/\+-/g,'-');
+}
+
+function ansatzDerivTex(deg,der){
+  if(der>deg)return'0';
+  var parts=[];
+  for(var pow=deg;pow>=0;pow--){
+    if(pow<der)continue;
+    var np=pow-der,mult=1;
+    for(var k=0;k<der;k++)mult*=(pow-k);
+    var l=CL[deg-pow],f=parts.length===0;
+    var c=mult===1?'':numTex(mult);
+    var s;
+    if(np===0)       s=c+l;
+    else if(np===1)  s=c+l+'x';
+    else             s=c+l+'x^{'+np+'}';
+    parts.push((f?'':'+')+s);
+  }
+  return parts.join('').replace(/\+-/g,'-')||'0';
+}
+
+// Derivative ansatz evaluated at x0 (symbolic letters + numeric x0, unsimplified)
+function ansatzSubRaw(deg,der,x0){
+  var parts=[], x0t=x0<0?'('+numTex(x0)+')':numTex(x0);
+  for(var pow=deg;pow>=0;pow--){
+    if(pow<der)continue;
+    var np=pow-der,mult=1;
+    for(var k=0;k<der;k++)mult*=(pow-k);
+    var l=CL[deg-pow],f=parts.length===0;
+    var c=mult===1?'':numTex(mult);
+    var xp='';
+    if(np===1)      xp='\\cdot '+x0t;
+    else if(np>1)   xp='\\cdot '+x0t+'^{'+np+'}';
+    parts.push((f?'':'+')+c+l+xp);
+  }
+  return parts.join('')||'0';
+}
+
+// Derivative ansatz at x0 substituted with knownMap values (mixed)
+function ansatzSubMixed(deg,der,x0,km){
+  km=km||new Map();
+  var parts=[], x0t=x0<0?'('+numTex(x0)+')':numTex(x0);
+  for(var pow=deg;pow>=0;pow--){
+    if(pow<der)continue;
+    var np=pow-der,mult=1;
+    for(var k=0;k<der;k++)mult*=(pow-k);
+    var idx=deg-pow,l=CL[idx];
+    var f=parts.length===0;
+    if(km.has(idx)){
+      var contrib=Math.round(mult*Math.pow(x0,np)*km.get(idx)*1e9)/1e9;
+      if(Math.abs(contrib)<1e-9)continue;
+      parts.push((!f&&contrib>0?'+':'')+numTex(contrib));
+    } else {
+      var c=mult===1?'':numTex(mult),xp='';
+      if(np===1)      xp='\\cdot '+x0t;
+      else if(np>1)   xp='\\cdot '+x0t+'^{'+np+'}';
+      parts.push((f?'':'+')+c+l+xp);
+    }
+  }
+  return parts.join('')||'0';
+}
+
+// LGS line: substituting known values into lhs
+function lgsLineTex(deg,der,x0,y0,km,aligned){
+  var lhsP=[],rhs=y0;
+  for(var pow=deg;pow>=0;pow--){
+    if(pow<der)continue;
+    var np=pow-der,mult=1;
+    for(var k=0;k<der;k++)mult*=(pow-k);
+    var tm=Math.round(mult*Math.pow(x0,np)*1e9)/1e9;
+    if(Math.abs(tm)<1e-9)continue;
+    var idx=deg-pow;
+    if(km.has(idx)){rhs-=tm*km.get(idx);}
+    else{
+      var l=CL[idx],f=lhsP.length===0;
+      var s=f?(tm<0?'-':''):(tm<0?'-':'+');
+      var at=Math.abs(tm);
+      lhsP.push(s+(at===1?l:numTex(at)+l));
+    }
+  }
+  var eq=aligned?' &= ':' = ';
+  return (lhsP.join('')||'0')+eq+numTex(Math.round(rhs*1e9)/1e9);
+}
+
+// Properly aligned LGS using \begin{array} with column-aligned variables
+function lgsArrayTex(deg,lgsEqs,symGs,km){
+  var unknIdxs=[];
+  for(var i=0;i<=deg;i++) if(!km.has(i)) unknIdxs.push(i);
+  var n=unknIdxs.length; if(n===0)return'';
+
+  function getC(eq,idx){
+    var pow=deg-idx; if(pow<eq.derOrder)return 0;
+    var np=pow-eq.derOrder,m=1;
+    for(var k=0;k<eq.derOrder;k++)m*=(pow-k);
+    return Math.round(m*Math.pow(eq.x0,np)*1e9)/1e9;
+  }
+  function getRHS(eq){
+    var rhs=eq.y0;
+    for(var i=0;i<=deg;i++) if(km.has(i)) rhs-=getC(eq,i)*km.get(i);
+    return Math.round(rhs*1e9)/1e9;
+  }
+
+  // Build row as array of cells, then join with &
+  function buildRow(coeffs,rhs){
+    var cells=[];
+    var firstNZ=true;
+    // j=0: r-col only (no preceding sign column)
+    var c0=coeffs[0],at0=Math.abs(c0);
+    if(Math.abs(c0)<1e-9){
+      cells.push(''); // empty r-col
+    } else {
+      cells.push((c0<0?'-':'')+(at0===1?'':numTex(at0))+CL[unknIdxs[0]]);
+      firstNZ=false;
+    }
+    // j>0: c-col (sign) + r-col (coef+var)
+    for(var j=1;j<n;j++){
+      var cj=coeffs[j],atj=Math.abs(cj),lj=CL[unknIdxs[j]];
+      if(Math.abs(cj)<1e-9){
+        cells.push(''); cells.push(''); // empty sign + empty coef
+      } else {
+        var sign=firstNZ?(cj<0?'-':''):(cj>0?'+':'-');
+        cells.push(sign);
+        cells.push((atj===1?'':numTex(atj))+lj);
+        firstNZ=false;
+      }
+    }
+    // = column + rhs column
+    cells.push('=');
+    cells.push(numTex(rhs));
+    return cells.join(' & ')+' \\\\ ';
+  }
+
+  // Column spec: r  [c r]*(n-1)  c r
+  // n=1: just r c r  (one var, =, rhs)
+  var spec='r';
+  for(var j=1;j<n;j++) spec+=' c r';
+  spec+=' c r';
+  var tex='\\begin{array}{'+spec+'}';
+  lgsEqs.forEach(function(eq){
+    tex+=buildRow(unknIdxs.map(function(idx){return getC(eq,idx);}),getRHS(eq));
+  });
+  symGs.forEach(function(sg){
+    sg.eqs.forEach(function(e){
+      if(e.derOrder!=='sym')return;
+      var si=deg-e.pow; if(km.has(si))return;
+      tex+=buildRow(unknIdxs.map(function(idx){return idx===si?1:0;}),0);
+    });
+  });
+  tex+='\\end{array}';
+  return tex;
+}
+
+// LGS solution display (aligned a=... b=... etc)
+function lgsResultTex(deg,coeffs,km){
+  var lines=[];
+  for(var i=0;i<=deg;i++){
+    if(!km.has(i)) lines.push(CL[i]+' &= '+numTex(coeffs[i]));
+  }
+  if(!lines.length)return'';
+  return'\\begin{aligned}'+lines.join('\\\\')+' \\end{aligned}';
+}
+
+function fnName(d){return['f',"f'","f''","f'''","f^{(4)}"][d]||'f^{('+d+')}';}
+function tangentTex(m,b){
+  if(Math.abs(m)<1e-12)return numTex(b);
+  var am=Math.abs(m),s=am===1?(m<0?'-x':'x'):numTex(m)+'x';
+  if(b>1e-12)s+='+'+numTex(b); else if(b<-1e-12)s+=numTex(b);
+  return s;
+}
+
+// ============================================================
+// §3  RANK CHECK
+// ============================================================
+function checkRank(deg,eqs){
+  var n=deg+1; if(eqs.length!==n)return false;
+  var M=eqs.map(function(e){
+    var row=new Array(n).fill(0);
+    for(var pow=deg;pow>=0;pow--){
+      if(pow<e.derOrder)continue;
+      var np=pow-e.derOrder,m=1;
+      for(var k=0;k<e.derOrder;k++)m*=(pow-k);
+      row[deg-pow]=m*Math.pow(e.x0,np);
+    }
+    return row;
+  });
+  var rank=0;
+  for(var col=0;col<n&&rank<n;col++){
+    var piv=-1;for(var r=rank;r<n;r++)if(Math.abs(M[r][col])>1e-9){piv=r;break;}
+    if(piv<0)continue;
+    var tmp=M[rank];M[rank]=M[piv];M[piv]=tmp;
+    var p=M[rank][col];
+    for(var r2=0;r2<n;r2++){
+      if(r2===rank)continue;
+      var f=M[r2][col]/p;
+      for(var c=col;c<n;c++)M[r2][c]-=f*M[rank][c];
+    }
+    rank++;
+  }
+  return rank===n;
+}
+
+// ============================================================
+// §4  TASK GENERATION
+// ============================================================
+function RI(a,b){return Math.floor(Math.random()*(b-a+1))+a;}
+function pick(a){return a[RI(0,a.length-1)];}
+function shuffle(a){return[].concat(a).sort(function(){return Math.random()-.5;});}
+
+function genPoly(deg,intCoeffs){
+  if(deg===1){
+    return[pick(intCoeffs?[-3,-2,-1,1,2,3]:[-2,-1.5,-1,-.5,.5,1,1.5,2]),RI(-6,6)];
+  }
+  if(deg===2){
+    // Vertex form: a(x-xv)^2 + c
+    var xv=RI(-4,4),a=pick(intCoeffs?[-3,-2,-1,1,2,3]:[-.5,.5,-1,1,-2,2]);
+    var b=Math.round(-2*a*xv*1e9)/1e9;
+    if(intCoeffs&&!Number.isInteger(b))return null;
+    var c=intCoeffs?RI(-8,8):pick([-4,-3,-2,-1.5,-1,-.5,0,.5,1,1.5,2,3,4]);
+    return[a,b,c];
+  }
+  if(deg===3){
+    // f'=3a(x-x1)(x-x2), same parity for integer b
+    var odds=shuffle([-3,-2,-1,1,2,3]),evens=shuffle([-4,-2,0,2,4]);
+    var pool=Math.random()<.5?odds.slice(0,4):evens.slice(0,4);
+    if(pool.length<2)return null;
+    var x1=pool[0],x2=pool[1]; if(x1===x2)return null;
+    var a=pick(intCoeffs?[-2,-1,1,2]:[-.5,.5,-1,1,-2,2]);
+    var b=-3*a*(x1+x2)/2,c=3*a*x1*x2;
+    if(intCoeffs&&(!Number.isInteger(b)||!Number.isInteger(c)))return null;
+    var d=intCoeffs?RI(-8,8):pick([-4,-3,-2,-1.5,-1,-.5,0,.5,1,1.5,2,3,4]);
+    return[a,b,c,d];
+  }
+  if(deg===4){
+    // a*x^4 + b*x^3 + c*x^2 + d*x + e with small coefficients
+    var a=pick(intCoeffs?[-2,-1,1,2]:[-.5,.5,-1,1,-2,2]);
+    var bv=pick(intCoeffs?[-3,-2,-1,0,1,2,3]:[-2,-1.5,-1,-.5,0,.5,1,1.5,2]);
+    var cv=pick(intCoeffs?[-4,-3,-2,-1,0,1,2,3,4]:[-3,-2,-1.5,-1,-.5,0,.5,1,1.5,2,3]);
+    var dv=pick(intCoeffs?[-3,-2,-1,0,1,2,3]:[-2,-1.5,-1,-.5,0,.5,1,1.5,2]);
+    var ev=intCoeffs?RI(-8,8):pick([-4,-3,-2,-1,0,1,2,3,4]);
+    return[a,bv,cv,dv,ev];
+  }
+  return null;
+}
+
+function xValsForDeg(deg){
+  if(deg<=2)return[-5,-4,-3,-2,-1,1,2,3,4,5];
+  if(deg===3)return[-4,-3,-2,-1,1,2,3,4];
+  return[-3,-2,-1,1,2,3];
+}
+
+function collectConds(deg,coeffs,s){
+  var iv=s.intValues;
+  var d1=polyDeriv(coeffs),d2=poly2D(coeffs);
+  var conds=[];
+  // --- Direct (x0=0) ---
+  var y0_0=polyEval(coeffs,0),dy_0=deg>=1?polyEval(d1,0):0;
+  if(s.useYAchse)
+    conds.push({type:'yAchse',isDirect:true,eqCount:1,
+      text:'Der y-Achsenabschnitt beträgt \\('+numTex(y0_0)+'\\).',
+      eqs:[{derOrder:0,x0:0,y0:y0_0}],dSolvedIdx:deg,dSolvedVal:y0_0});
+  if(s.useSteigung&&deg>=1&&isNiceInt(dy_0))
+    conds.push({type:'steigung0',isDirect:true,eqCount:1,
+      text:'Die Steigung an der Stelle \\(x=0\\) beträgt \\('+numTex(dy_0)+'\\).',
+      eqs:[{derOrder:1,x0:0,y0:dy_0}],dSolvedIdx:deg-1,dSolvedVal:dy_0});
+
+  // --- LGS (x0 ≠ 0) ---
+  var xVals=xValsForDeg(deg);
+  xVals.forEach(function(x0){
+    var yv=Math.round(polyEval(coeffs,x0)*1e9)/1e9;
+    var dv=deg>=1?Math.round(polyEval(d1,x0)*1e9)/1e9:0;
+    var ddv=deg>=2?Math.round(polyEval(d2,x0)*1e9)/1e9:0;
+    var ny=iv?isNiceInt(yv):isNiceFrac(yv);
+    var nd=iv?isNiceInt(dv):isNiceFrac(dv);
+
+    if(s.useNullstelle&&Math.abs(yv)<1e-9)
+      conds.push({type:'nullstelle',isDirect:false,eqCount:1,
+        text:'Der Graph hat eine Nullstelle bei \\(x='+numTex(x0)+'\\).',
+        eqs:[{derOrder:0,x0:x0,y0:0}]});
+
+    if(s.usePunkt&&ny&&Math.abs(yv)>1e-9)
+      conds.push({type:'punkt',isDirect:false,eqCount:1,
+        text:'Der Graph verläuft durch \\(P('+numTex(x0)+'\\,|\\,'+numTex(yv)+')\\).',
+        eqs:[{derOrder:0,x0:x0,y0:yv}]});
+
+    if(s.useSteigung&&deg>=1&&nd)
+      conds.push({type:'steigung',isDirect:false,eqCount:1,
+        text:'Die Steigung an der Stelle \\(x='+numTex(x0)+'\\) beträgt \\('+numTex(dv)+'\\).',
+        eqs:[{derOrder:1,x0:x0,y0:dv}]});
+
+    if(s.useTangente&&deg>=1&&ny&&nd){
+      var bt=Math.round((yv-dv*x0)*1e9)/1e9;
+      if(iv?isNiceInt(bt):isNiceFrac(bt))
+        conds.push({type:'tangente',isDirect:false,eqCount:2,
+          text:'An \\(x='+numTex(x0)+'\\) hat der Graph die Tangente \\(t(x)='+tangentTex(dv,bt)+'\\).',
+          eqs:[{derOrder:1,x0:x0,y0:dv},{derOrder:0,x0:x0,y0:yv}]});
+    }
+
+    if(s.useExtremstelle&&deg>=2&&Math.abs(dv)<1e-9)
+      conds.push({type:'extremstelle',isDirect:false,eqCount:1,
+        text:'Die Funktion hat eine Extremstelle bei \\(x='+numTex(x0)+'\\).',
+        eqs:[{derOrder:1,x0:x0,y0:0}]});
+
+    if(s.useExtrempunkt&&deg>=2&&Math.abs(dv)<1e-9&&ny)
+      conds.push({type:'extrempunkt',isDirect:false,eqCount:2,
+        text:'Der Graph hat einen Extrempunkt \\(E('+numTex(x0)+'\\,|\\,'+numTex(yv)+')\\).',
+        eqs:[{derOrder:1,x0:x0,y0:0},{derOrder:0,x0:x0,y0:yv}]});
+
+    if(s.useWendestelle&&deg>=3&&Math.abs(ddv)<1e-9)
+      conds.push({type:'wendestelle',isDirect:false,eqCount:1,
+        text:'Die Funktion hat eine Wendestelle bei \\(x='+numTex(x0)+'\\).',
+        eqs:[{derOrder:2,x0:x0,y0:0}]});
+
+    if(s.useWendepunkt&&deg>=3&&Math.abs(ddv)<1e-9&&ny)
+      conds.push({type:'wendepunkt',isDirect:false,eqCount:2,
+        text:'Der Graph hat einen Wendepunkt \\(W('+numTex(x0)+'\\,|\\,'+numTex(yv)+')\\).',
+        eqs:[{derOrder:2,x0:x0,y0:0},{derOrder:0,x0:x0,y0:yv}]});
+  });
+
+  // --- Symmetrie ---
+  // Punktsymmetrie zum Ursprung: even powers = 0 (needs odd deg: 1 or 3)
+  if(s.useSymmetrie&&s.useSymPunkt&&(deg===1||deg===3)){
+    var isOrig=coeffs.every(function(c,i){return(deg-i)%2===1||Math.abs(c)<1e-11;})&&Math.abs(coeffs[0])>1e-11;
+    if(isOrig){
+      var evenPows=[];for(var p=deg;p>=0;p--)if(p%2===0)evenPows.push(p);
+      var sEl=evenPows.map(function(p){return CL[deg-p];}).join('=');
+      conds.push({type:'symPunkt',isDirect:false,eqCount:evenPows.length,
+        isSymmetry:true,symType:'punkt',
+        text:'Der Graph ist punktsymmetrisch zum Ursprung.',
+        symLabel:'\\('+sEl+'=0\\)',
+        eqs:evenPows.map(function(p){return{derOrder:'sym',pow:p,y0:0,x0:0};})});
+    }
+  }
+  // Achsensymmetrie zur y-Achse: odd powers = 0 (needs even deg: 2 or 4)
+  if(s.useSymmetrie&&s.useSymAchse&&(deg===2||deg===4)){
+    var isAxis=coeffs.every(function(c,i){return(deg-i)%2===0||Math.abs(c)<1e-11;})&&Math.abs(coeffs[0])>1e-11;
+    if(isAxis){
+      var oddPows=[];for(var p=deg-1;p>=0;p-=2)oddPows.push(p);
+      var sEl=oddPows.map(function(p){return CL[deg-p];}).join('=');
+      conds.push({type:'symAchse',isDirect:false,eqCount:oddPows.length,
+        isSymmetry:true,symType:'achse',
+        text:'Der Graph ist achsensymmetrisch zur y-Achse.',
+        symLabel:'\\('+sEl+'=0\\)',
+        eqs:oddPows.map(function(p){return{derOrder:'sym',pow:p,y0:0,x0:0};})});
+    }
+  }
+  return conds;
+}
+
+function tryBuildTask(s){
+  var deg=s.alsoLower?RI(1,s.degree):s.degree;
+  var coeffs=genPoly(deg,s.intCoeffs);
+  if(!coeffs)return null;
+
+  var nU=deg+1;
+  var allConds=collectConds(deg,coeffs,s);
+  var dirCands=allConds.filter(function(c){return c.isDirect;});
+  var lgsCands=allConds.filter(function(c){return!c.isDirect;});
+
+  var nDirect=Math.max(0,nU-s.maxLGS),totalDE=0,usedDirect=[];
+  dirCands.forEach(function(dc){if(totalDE+dc.eqCount<=nDirect){usedDirect.push(dc);totalDE+=dc.eqCount;}});
+  nDirect=totalDE;
+  var nLGS=nU-nDirect;if(nLGS<0)return null;
+
+  var dirEqs=usedDirect.reduce(function(a,c){return a.concat(c.eqs.filter(function(e){return e.derOrder!=='sym';}));},[]);
+  var usedLGS=[],totalLE=0;
+  shuffle(lgsCands).forEach(function(cg){
+    if(totalLE>=nLGS||cg.eqCount>nLGS-totalLE)return;
+    var cgRE=cg.eqs.filter(function(e){return e.derOrder!=='sym';});
+    var used=dirEqs.concat(usedLGS.reduce(function(a,c){return a.concat(c.eqs.filter(function(e){return e.derOrder!=='sym';}));},[]) );
+    if(cgRE.some(function(e){return used.some(function(u){return u.derOrder===e.derOrder&&Math.abs(u.x0-e.x0)<1e-9;});}))return;
+    usedLGS.push(cg);totalLE+=cg.eqCount;
+  });
+  if(totalLE!==nLGS)return null;
+
+  var allReg=dirEqs.concat(usedLGS.reduce(function(a,c){return a.concat(c.eqs.filter(function(e){return e.derOrder!=='sym';}));},[]) );
+  var symCount=usedLGS.reduce(function(s,c){return s+(c.isSymmetry?c.eqCount:0);},0);
+  if(allReg.length+symCount!==nU)return null;
+  if(symCount===0&&!checkRank(deg,allReg))return null;
+
+  var km=new Map();
+  usedDirect.forEach(function(dc){if(dc.dSolvedIdx!==undefined)km.set(dc.dSolvedIdx,dc.dSolvedVal);});
+
+  var allGroups=shuffle(usedDirect.concat(usedLGS));
+  allGroups.forEach(function(g,i){g.id='cg'+i;});
+  return{deg:deg,coeffs:coeffs,allGroups:allGroups,usedDirect:usedDirect,usedLGS:usedLGS,knownMap:km,settings:s};
+}
+
+// ============================================================
+// §5  SETTINGS / URL
+// ============================================================
+function getSettings(){
+  return{
+    degree:   parseInt(document.getElementById('degree').value),
+    alsoLower:gcb('alsoLower'),
+    maxLGS:   parseInt(document.getElementById('maxLGS').value),
+    intCoeffs:document.querySelector('input[name="coeffType"]:checked').value==='int',
+    intValues:document.querySelector('input[name="valueType"]:checked').value==='int',
+    presMode: document.querySelector('input[name="presMode"]:checked').value,
+    showMidStep:  gcb('showMidStep'),
+    vereinfFirst: gcb('vereinfFirst'),
+    useYAchse:gcb('useYAchse'),useNullstelle:gcb('useNullstelle'),usePunkt:gcb('usePunkt'),
+    useSteigung:gcb('useSteigung'),useTangente:gcb('useTangente'),
+    useExtremstelle:gcb('useExtremstelle'),useExtrempunkt:gcb('useExtrempunkt'),
+    useWendestelle:gcb('useWendestelle'),useWendepunkt:gcb('useWendepunkt'),
+    useSymmetrie:gcb('useSymmetrie'),useSymPunkt:gcb('useSymPunkt'),useSymAchse:gcb('useSymAchse'),
+  };
+}
+function gcb(id){return document.getElementById(id).checked;}
+
+function syncBlocks(){
+  [['useSteigung',['useTangente']],
+   ['useExtremstelle',['useExtrempunkt']],
+   ['useWendestelle',['useWendepunkt']],
+   ['useSymmetrie',['useSymPunkt','useSymAchse']]
+  ].forEach(function(p){
+    var on=gcb(p[0]);
+    p[1].forEach(function(id){
+      var el=document.getElementById(id);
+      el.disabled=!on;
+      el.closest('label').classList.toggle('disabled',!on);
+    });
+  });
+}
+
+function updateURL(){
+  var u=new URL(window.location),s=getSettings();
+  u.searchParams.set('deg',s.degree);u.searchParams.set('low',s.alsoLower?'1':'0');
+  u.searchParams.set('lgs',s.maxLGS);u.searchParams.set('coef',s.intCoeffs?'int':'rat');
+  u.searchParams.set('val',s.intValues?'int':'frac');u.searchParams.set('pres',s.presMode);
+  u.searchParams.set('mid',s.showMidStep?'1':'0');u.searchParams.set('vf',s.vereinfFirst?'1':'0');
+  ['useYAchse','useNullstelle','usePunkt','useSteigung','useTangente',
+   'useExtremstelle','useExtrempunkt','useWendestelle','useWendepunkt',
+   'useSymmetrie','useSymPunkt','useSymAchse'
+  ].forEach(function(id){u.searchParams.set(id,gcb(id)?'1':'0');});
+  history.replaceState({},'',u);
+}
+function loadURL(){
+  var u=new URL(window.location);
+  var g=function(k,d){return u.searchParams.has(k)?u.searchParams.get(k):d;};
+  var setR=function(n,v){var e=document.querySelector('input[name="'+n+'"][value="'+v+'"]');if(e)e.checked=true;};
+  var dv=g('deg','3');document.getElementById('degree').value=dv;document.getElementById('degLabel').textContent=dv;
+  gcbSet('alsoLower',g('low','0')==='1');
+  var lv=g('lgs','3');document.getElementById('maxLGS').value=lv;document.getElementById('lgsLabel').textContent=lv;
+  setR('coeffType',g('coef','int'));setR('valueType',g('val','int'));
+  setR('presMode',g('pres','text'));
+  gcbSet('showMidStep',g('mid','1')==='1');gcbSet('vereinfFirst',g('vf','1')==='1');
+  ['useYAchse','useNullstelle','usePunkt','useSteigung','useTangente',
+   'useExtremstelle','useExtrempunkt','useWendestelle','useWendepunkt',
+   'useSymmetrie','useSymPunkt','useSymAchse'
+  ].forEach(function(id){if(u.searchParams.has(id))gcbSet(id,u.searchParams.get(id)==='1');});
+}
+function gcbSet(id,v){var el=document.getElementById(id);if(el)el.checked=v;}
+
+// ============================================================
+// §6  NEW TASK
+// ============================================================
+var currentTask=null,quizState=null;
+
+function newTask(){
+  var s=getSettings();
+  // Resolve presentation mode
+  var pres=s.presMode==='rand'?(Math.random()<.5?'text':'skiz'):s.presMode;
+  s._pres=pres;
+
+  var task=null;
+  for(var t=0;t<900&&!task;t++) task=tryBuildTask(s);
+  if(!task){alert('Keine passende Aufgabe gefunden – bitte Einstellungen anpassen.');return;}
+  currentTask=task;
+  document.getElementById('settingsDetails').removeAttribute('open');
+  document.getElementById('taskArea').style.display='';
+  document.getElementById('quizMode').checked=false;
+  document.getElementById('quizArea').style.display='none';
+  document.getElementById('solutionDetails').removeAttribute('open');
+  document.getElementById('solutionPathDetails').removeAttribute('open');
+  quizState=null;
+  renderPresentation(task,pres);
+  renderSolution(task);
+  updateURL();
+  document.getElementById('taskArea').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+// ============================================================
+// §7  RENDER TASK PRESENTATION
+// ============================================================
+function renderPresentation(task,pres){
+  var sd=document.getElementById('sketchDetails');
+  var td=document.getElementById('textDetails');
+  sd.innerHTML='';td.innerHTML='';
+
+  var sketchDiv='<div id="sketchWrap"><canvas id="sketchCanvas"></canvas></div>';
+  var taskHtml=buildTaskHtml(task);
+
+  if(pres==='text'){
+    // Text directly shown, then sketch collapsible below
+    td.innerHTML=taskHtml
+      +'<details style="border:1px solid #c8d8c8;border-radius:6px;margin:6px 0 4px 0;">'
+      +'<summary style="padding:5px 10px;font-weight:bold;color:#1a4a1a;font-size:.93em;">Skizze anzeigen</summary>'
+      +sketchDiv+'</details>';
+    sd.innerHTML='';
+  } else {
+    // Sketch shown directly, text collapsible below
+    sd.innerHTML=sketchDiv;
+    td.innerHTML='<details style="border:1px solid #c8d8c8;border-radius:6px;margin:4px 0;">'
+      +'<summary style="padding:5px 10px;font-weight:bold;color:#1a4a1a;font-size:.93em;">Bedingungen als Text anzeigen</summary>'
+      +taskHtml+'</details>';
+  }
+
+  MathJax.typesetPromise([td,sd]).then(function(){
+    drawSketch(task,-1);
+  });
+}
+
+function buildTaskHtml(task){
+  var deg=task.deg,groups=task.allGroups,s=task.settings;
+  var nm=['','ersten','zweiten','dritten','vierten'];
+  var header=s.alsoLower
+    ?'Bestimme eine Polynomfunktion, für die gilt:'
+    :'Bestimme eine Polynomfunktion <b>'+nm[deg]+' Grades</b>, für die gilt:';
+  var html='<div id="taskText"><p style="margin:4px 0 2px;">'+header+'</p><ol>';
+  groups.forEach(function(g,i){
+    html+='<li id="ci_'+i+'" class="cond-item">'+g.text+'</li>';
+  });
+  html+='</ol></div>';
+  return html;
+}
+
+// ============================================================
+// §8  GRAPH SKETCH
+// ============================================================
+function drawSketch(task,highlightIdx){
+  var canvas=document.getElementById('sketchCanvas');
+  if(!canvas)return;
+  var dpr=window.devicePixelRatio||1;
+  var w=Math.min(580,Math.max(280,(canvas.parentElement||document.body).clientWidth-20));
+  var h=Math.round(w*0.46);
+  canvas.style.width=w+'px';canvas.style.height=h+'px';
+  canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);
+  var ctx=canvas.getContext('2d');
+  ctx.scale(dpr,dpr);
+
+  var deg=task.deg,coeffs=task.coeffs,groups=task.allGroups;
+
+  // ── x-range: 0.5 past outermost condition, always include 0±0.5 ──
+  var condXs=[];
+  groups.forEach(function(g){
+    g.eqs.forEach(function(e){if(e.derOrder!=='sym'&&typeof e.x0==='number')condXs.push(e.x0);});
+  });
+  if(!condXs.length)condXs=[0];
+  var xLow=Math.min.apply(null,condXs),xHigh=Math.max.apply(null,condXs);
+  // Always include y-axis region
+  xLow=Math.min(xLow,-0.5); xHigh=Math.max(xHigh,0.5);
+  var xlo=xLow-0.5, xhi=xHigh+0.5;
+
+  // ── Evaluate curve ──
+  var N=300,xs=[],ys=[];
+  for(var i=0;i<=N;i++){var xi=xlo+(xhi-xlo)*i/N;xs.push(xi);ys.push(polyEval(coeffs,xi));}
+
+  // y-range: clip outliers via 5th/95th percentile
+  var sorted=[].concat(ys).sort(function(a,b){return a-b;});
+  var p05=sorted[Math.floor(sorted.length*0.04)],p95=sorted[Math.floor(sorted.length*0.96)];
+  var yr0=p95-p05||4;
+  var ylo=p05-yr0*0.18, yhi=p95+yr0*0.18;
+  var yr=yhi-ylo; if(yr<4){ylo-=(4-yr)/2;yhi+=(4-yr)/2;yr=4;}
+  // Ensure all condition y-values are visible
+  condXs.forEach(function(x){
+    var y=polyEval(coeffs,x);
+    if(y<ylo)ylo=y-yr*0.1;
+    if(y>yhi)yhi=y+yr*0.1;
+  });
+  if(ylo>-0.5)ylo=Math.min(ylo,-0.5);
+  if(yhi<0.5) yhi=Math.max(yhi,0.5);
+  yr=yhi-ylo;
+
+  var fs=w<400?11:13; // base font size for labels
+  var pl=Math.round(fs*3.4),pr=16,pt=14,pb=Math.round(fs*2.2);
+  var pw=w-pl-pr,ph=h-pt-pb;
+  function cx(wx){return pl+(wx-xlo)/(xhi-xlo)*pw;}
+  function cy(wy){return pt+(1-(wy-ylo)/yr)*ph;}
+
+  ctx.clearRect(0,0,w,h);
+
+  // ── Grid steps: x always = 1, y dynamic ──
+  var xStep=1;
+  var yStep=niceStep(yr/5);
+
+  // ── Grid ──
+  ctx.save();
+  ctx.strokeStyle='#dde8dd';ctx.lineWidth=0.8;
+  for(var gx=Math.ceil(xlo/xStep)*xStep;gx<=xhi+1e-9;gx=Math.round((gx+xStep)*1e9)/1e9){
+    ctx.beginPath();ctx.moveTo(cx(gx),pt);ctx.lineTo(cx(gx),pt+ph);ctx.stroke();
+  }
+  for(var gy=Math.ceil(ylo/yStep)*yStep;gy<=yhi+1e-9;gy=Math.round((gy+yStep)*1e9)/1e9){
+    ctx.beginPath();ctx.moveTo(pl,cy(gy));ctx.lineTo(pl+pw,cy(gy));ctx.stroke();
+  }
+  ctx.restore();
+
+  // ── Axes ──
+  ctx.save();
+  ctx.strokeStyle='#555';ctx.lineWidth=1.5;
+  var ax0=cx(0),ay0=cy(0);
+  if(xlo<=0&&xhi>=0){
+    ctx.beginPath();ctx.moveTo(ax0,pt-2);ctx.lineTo(ax0,pt+ph+2);ctx.stroke();
+    // Arrow
+    ctx.beginPath();ctx.moveTo(ax0-4,pt+2);ctx.lineTo(ax0,pt-4);ctx.lineTo(ax0+4,pt+2);
+    ctx.fillStyle='#555';ctx.fill();
+  }
+  if(ylo<=0&&yhi>=0){
+    ctx.beginPath();ctx.moveTo(pl-2,ay0);ctx.lineTo(pl+pw+2,ay0);ctx.stroke();
+    // Arrow
+    ctx.beginPath();ctx.moveTo(pl+pw-2,ay0-4);ctx.lineTo(pl+pw+4,ay0);ctx.lineTo(pl+pw-2,ay0+4);
+    ctx.fillStyle='#555';ctx.fill();
+  }
+  ctx.restore();
+
+  // ── Tick labels ──
+  ctx.save();
+  ctx.font='bold '+fs+'px Calibri,sans-serif';
+  ctx.fillStyle='#333';
+  // x ticks — label every 1, but skip odd numbers if range is large
+  var xLabelStep=Math.ceil((xhi-xlo)/8); // skip labels when many ticks
+  ctx.textAlign='center';ctx.textBaseline='top';
+  for(var tx=Math.ceil(xlo/xStep)*xStep;tx<=xhi+1e-9;tx=Math.round((tx+xStep)*1e9)/1e9){
+    if(Math.abs(tx)<xStep*0.01)continue;
+    var tcx=cx(tx);
+    ctx.strokeStyle='#555';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(tcx,ay0-4);ctx.lineTo(tcx,ay0+4);ctx.stroke();
+    if(tx%xLabelStep===0||xLabelStep===1){
+      var lbl=Number.isInteger(Math.round(tx*100)/100)?(''+Math.round(tx)):tx.toFixed(1);
+      ctx.fillText(lbl,tcx,ay0+6);
+    }
+  }
+  // y ticks
+  ctx.textAlign='right';ctx.textBaseline='middle';
+  for(var ty=Math.ceil(ylo/yStep)*yStep;ty<=yhi+1e-9;ty=Math.round((ty+yStep)*1e9)/1e9){
+    if(Math.abs(ty)<yStep*0.01)continue;
+    var tcy=cy(ty);
+    ctx.strokeStyle='#555';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(ax0-4,tcy);ctx.lineTo(ax0+4,tcy);ctx.stroke();
+    var ylbl=Number.isInteger(Math.round(ty*100)/100)?(''+Math.round(ty)):ty.toFixed(1);
+    ctx.fillText(ylbl,ax0-6,tcy);
+  }
+  // Axis name labels
+  ctx.font='bold '+(fs+2)+'px Calibri,sans-serif';ctx.fillStyle='#333';
+  ctx.textAlign='left';ctx.textBaseline='middle';
+  ctx.fillText('x',pl+pw+5,ay0);
+  ctx.textAlign='center';ctx.textBaseline='bottom';
+  ctx.fillText('y',ax0,pt-2);
+  // Origin label
+  ctx.font=(fs-1)+'px Calibri,sans-serif';ctx.fillStyle='#666';
+  ctx.textAlign='right';ctx.textBaseline='top';
+  if(xlo<=0&&xhi>=0&&ylo<=0&&yhi>=0) ctx.fillText('0',ax0-4,ay0+4);
+  ctx.restore();
+
+  // ── Polynomial curve ──
+  ctx.save();
+  ctx.strokeStyle='#2244aa';ctx.lineWidth=2.5;ctx.lineJoin='round';
+  ctx.beginPath();
+  var started=false;
+  for(var i=0;i<=N;i++){
+    var px=cx(xs[i]),py=cy(ys[i]);
+    // Skip points way out of canvas
+    if(py<pt-60||py>pt+ph+60){started=false;continue;}
+    if(!started){ctx.moveTo(px,py);started=true;}else ctx.lineTo(px,py);
+  }
+  ctx.stroke();
+  ctx.restore();
+
+  // ── Condition markers ──
+  groups.forEach(function(g,gi){
+    drawCondMarker(ctx,g,coeffs,deg,cx,cy,gi===highlightIdx,ylo,yhi,fs,xStep,yStep);
+  });
+}
+
+function niceStep(rough){
+  var p=Math.pow(10,Math.floor(Math.log10(rough)));
+  var r=rough/p;
+  if(r<1.5)return p;if(r<3)return 2*p;if(r<7)return 5*p;return 10*p;
+}
+
+function drawCondMarker(ctx,g,coeffs,deg,cx,cy,isHL,ylo,yhi,fs,xStep,yStep){
+  var d1=polyDeriv(coeffs);
+  fs=fs||12;
+  var dotR=isHL?7:5.5;
+  var labelFs=(fs+1)+'px';
+  var labelFsBold='bold '+(fs+1)+'px';
+
+  function dot(x0,y0,col){
+    if(isHL){
+      ctx.save();ctx.beginPath();ctx.arc(cx(x0),cy(y0),dotR+4,0,2*Math.PI);
+      ctx.strokeStyle='rgba(255,180,0,0.7)';ctx.lineWidth=4;ctx.stroke();ctx.restore();
+    }
+    ctx.beginPath();ctx.arc(cx(x0),cy(y0),dotR,0,2*Math.PI);
+    ctx.fillStyle=col||'#cc2200';ctx.fill();
+    ctx.strokeStyle='#fff';ctx.lineWidth=1.5;ctx.stroke();
+  }
+  function labelAt(txt,x0,y0,dx,dy){
+    ctx.save();
+    ctx.font=labelFsBold+' Calibri,sans-serif';
+    ctx.fillStyle=isHL?'#cc4400':'#882200';
+    ctx.strokeStyle='rgba(255,255,255,0.85)';ctx.lineWidth=3;
+    ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.strokeText(txt,cx(x0)+(dx||0),cy(y0)+(dy||0));
+    ctx.fillText(txt,cx(x0)+(dx||0),cy(y0)+(dy||0));
+    ctx.restore();
+  }
+
+  var t=g.type;
+  if(t==='yAchse'){
+    var y0=polyEval(coeffs,0);
+    dot(0,y0,'#1155cc');
+    labelAt('(0|'+numTex(y0)+')',0,y0,-18,-14);
+  } else if(t==='nullstelle'){
+    var x0=g.eqs[0].x0;
+    dot(x0,0,'#cc2200');
+    labelAt(numTex(x0),x0,0,0,-14);
+  } else if(t==='punkt'){
+    var eq=g.eqs[0];
+    var fy=polyEval(coeffs,eq.x0);
+    dot(eq.x0,fy,'#cc2200');
+    labelAt('P('+numTex(eq.x0)+'|'+numTex(fy)+')',eq.x0,fy,0,polyEval(d1,eq.x0)>=0?-14:14);
+  } else if(t==='steigung0'){
+    var fy=polyEval(coeffs,0);
+    dot(0,fy,'#1155cc');
+    drawSlopeMarker(ctx,cx,cy,0,fy,polyEval(d1,0),isHL,xStep||1);
+    labelAt("m="+numTex(polyEval(d1,0)),0,fy,26,-10);
+  } else if(t==='steigung'){
+    var eq=g.eqs[0],fy=polyEval(coeffs,eq.x0);
+    dot(eq.x0,fy,'#cc2200');
+    drawSlopeMarker(ctx,cx,cy,eq.x0,fy,eq.y0,isHL,xStep||1);
+    labelAt("m="+numTex(eq.y0),eq.x0,fy,26,-12);
+  } else if(t==='tangente'){
+    var eq0=g.eqs[0],eq1=g.eqs[1];
+    dot(eq0.x0,eq0.y0,'#cc2200');
+    drawSlopeMarker(ctx,cx,cy,eq0.x0,eq0.y0,eq1.y0,isHL,xStep||1);
+  } else if(t==='extremstelle'||t==='extrempunkt'){
+    var x0=g.eqs[0].x0,fy=polyEval(coeffs,x0);
+    dot(x0,fy,'#007744');
+    var dw=Math.max(xStep*0.4,0.3);
+    ctx.save();ctx.strokeStyle=isHL?'#cc8800':'#005533';ctx.lineWidth=isHL?3:2.5;
+    ctx.beginPath();ctx.moveTo(cx(x0-dw),cy(fy));ctx.lineTo(cx(x0+dw),cy(fy));ctx.stroke();
+    ctx.restore();
+    if(t==='extrempunkt') labelAt('E('+numTex(x0)+'|'+numTex(fy)+')',x0,fy,0,-15);
+    else labelAt('E',x0,fy,16,-10);
+  } else if(t==='wendestelle'||t==='wendepunkt'){
+    var weq=g.eqs.find(function(e){return e.derOrder===2;})||g.eqs[0];
+    var x0=weq.x0,fy=polyEval(coeffs,x0);
+    dot(x0,fy,'#7722bb');
+    // S-curve inflection indicator
+    var r=8;
+    ctx.save();ctx.strokeStyle=isHL?'#994400':'#5511aa';ctx.lineWidth=isHL?2.5:2;
+    ctx.beginPath();ctx.arc(cx(x0)-r,cy(fy)-r,r,0.3*Math.PI,1.2*Math.PI,false);ctx.stroke();
+    ctx.beginPath();ctx.arc(cx(x0)+r,cy(fy)+r,r,-0.7*Math.PI,0.2*Math.PI,false);ctx.stroke();
+    ctx.restore();
+    if(t==='wendepunkt') labelAt('W('+numTex(x0)+'|'+numTex(fy)+')',x0,fy,0,-15);
+    else labelAt('W',x0,fy,18,-10);
+  } else if(t==='symPunkt'){
+    ctx.save();ctx.strokeStyle=isHL?'#ff8800':'#884400';ctx.lineWidth=2;ctx.setLineDash([3,3]);
+    ctx.beginPath();ctx.arc(cx(0),cy(0),10,0,2*Math.PI);ctx.stroke();
+    ctx.restore();
+    ctx.save();ctx.font=labelFsBold+' Calibri,sans-serif';ctx.fillStyle=isHL?'#cc5500':'#663300';
+    ctx.textAlign='left';ctx.textBaseline='middle';
+    ctx.fillText('PS:O',cx(0)+14,cy(0));ctx.restore();
+  } else if(t==='symAchse'){
+    ctx.save();ctx.strokeStyle=isHL?'#ff8800':'#884400';ctx.lineWidth=2;ctx.setLineDash([5,4]);
+    ctx.beginPath();ctx.moveTo(cx(0),pt+4);ctx.lineTo(cx(0),pt+ph-4);ctx.stroke();
+    ctx.restore();
+    ctx.save();ctx.font=labelFsBold+' Calibri,sans-serif';ctx.fillStyle=isHL?'#cc5500':'#663300';
+    ctx.textAlign='left';ctx.textBaseline='top';
+    ctx.fillText('AS:y',cx(0)+6,pt+6);ctx.restore();
+  }
+}
+
+function drawSlopeMarker(ctx,cx,cy,x0,y0,m,isHL,xStep){
+  var dx=Math.min((xStep||1)*0.45,0.6);
+  var dy=m*dx;
+  ctx.save();
+  ctx.strokeStyle=isHL?'#ff5500':'#bb2200';ctx.lineWidth=isHL?2.5:2;
+  ctx.beginPath();ctx.moveTo(cx(x0-dx),cy(y0-dy));ctx.lineTo(cx(x0+dx),cy(y0+dy));ctx.stroke();
+  // Slope triangle
+  ctx.setLineDash([2,3]);ctx.lineWidth=1.2;ctx.strokeStyle='#994400';
+  ctx.beginPath();
+  ctx.moveTo(cx(x0),cy(y0));ctx.lineTo(cx(x0+dx),cy(y0));ctx.lineTo(cx(x0+dx),cy(y0+dy));
+  ctx.stroke();
+  ctx.restore();
+}
+
+// ============================================================
+// §9  QUIZ
+// ============================================================
+function toggleQuiz(){
+  var on=gcb('quizMode'),qa=document.getElementById('quizArea');
+  updateURL();
+  if(on){qa.style.display='';if(!quizState)startQuiz();else renderQS();}
+  else{qa.style.display='none';clearHL();}
+}
+function clearHL(){
+  document.querySelectorAll('.cond-item.hl').forEach(function(el){el.classList.remove('hl');});
+  drawSketch(currentTask,-1);
+}
+function startQuiz(){
+  quizState={
+    stage: currentTask.settings.alsoLower?'grad':'ansatz',
+    // ansatz sub-stages: 'write'|'mc'
+    ansatzStage:'write',
+    confirmedAnsatz:null,  // set after ansatz confirmed — shown as sticky banner
+    condIdx:0, eqIdx:0,
+    condStage:'write_eq',  // write_eq → write_simplified
+    helpLevel:0,           // 0=none 1=highlight/unsimpl-mc 2=full-mc
+    confirmedEq:null,
+    unsimplCorrectIdx:-1,
+    cachedUnsimplOpts:null, cachedSimplOpts:null,
+    vereinfFound:[],
+  };
+  renderQS();
+}
+function qStep(base){return currentTask.settings.alsoLower?base:base-1;}
+
+function renderQS(){
+  if(!currentTask||!quizState)return;
+  clearHL();
+  var qa=document.getElementById('quizArea'),st=quizState.stage;
+
+  // Render stage content
+  if(st==='grad')        renderQGrad(qa);
+  else if(st==='ansatz') renderQAnsatz(qa);
+  else if(st==='vereinf')renderQVereinf(qa);
+  else if(st==='cond')   renderQCond(qa);
+  else if(st==='lgs_hint')renderQLGSHint(qa);
+  else if(st==='lgs')    renderQLGS(qa);
+  else if(st==='solve')  renderQSolve(qa);
+  else if(st==='done')   renderQDone(qa);
+
+  // Sticky ansatz banner for stages after ansatz is confirmed
+  var showAnsatz=['vereinf','cond','lgs_hint','lgs','solve'];
+  var banner=document.getElementById('qz_ansatz_banner');
+  if(quizState.confirmedAnsatz&&showAnsatz.indexOf(st)>=0){
+    var deg=currentTask.deg,km=currentTask.knownMap;
+    var bannerTex=confirmedAnsatzTex();
+    if(!banner){
+      banner=document.createElement('div');
+      banner.id='qz_ansatz_banner';
+      banner.style.cssText='background:#f0f8f0;border:1px solid #a8d0a8;border-radius:5px;'
+        +'padding:5px 12px;margin-bottom:8px;font-size:.85em;color:#1a4a1a;line-height:1.6;';
+      qa.insertBefore(banner,qa.firstChild);
+    }
+    banner.innerHTML='<b>Ansatz:</b>'
+      +'<div style="display:flex;flex-direction:column;gap:1px;margin-top:2px;">'
+      +'<div>\\(f(x)='+bannerTex+'\\)</div>'
+      +(deg>=1?'<div>\\(f\'(x)='+ansatzDerivSubTex(deg,1,km)+'\\)</div>':'')
+      +(deg>=2?'<div>\\(f\'\'(x)='+ansatzDerivSubTex(deg,2,km)+'\\)</div>':'')
+      +'</div>';
+    MathJax.typesetPromise([banner]);
+  } else if(banner){
+    banner.remove();
+  }
+
+  // Update check marks in task text
+  if(st==='cond') updateCondChecks();
+
+  // Restore condition highlight
+  if(st==='cond'&&quizState.helpLevel>=1){
+    applyPartialHL(quizState.condIdx, quizState.eqIdx);
+  }
+}
+
+// ── GRAD ──
+function renderQGrad(qa){
+  var deg=currentTask.deg;
+  qa.innerHTML='<div class="qz-stage">Schritt 1: Welchen Grad hat die gesuchte Funktion?</div>'
+    +'<div class="qz-btns">'
+    +shuffle([1,2,3,4]).map(function(d){
+      return'<button class="qz-btn" onclick="checkGrad('+d+',this)">Grad&nbsp;'+d+'</button>';
+    }).join('')+'</div>';
+}
+function checkGrad(d,btn){
+  var ok=d===currentTask.deg;btn.classList.add(ok?'qc':'qw');
+  if(ok){btn.parentElement.querySelectorAll('.qz-btn').forEach(function(b){b.onclick=null;});
+    setTimeout(function(){quizState.stage='ansatz';quizState.ansatzSub=0;renderQS();},600);}
+}
+
+// ── ANSATZ ──
+var _ansatzOpts=[];
+
+function renderQAnsatz(qa){
+  var stage=quizState.ansatzStage,deg=currentTask.deg;
+  var nm=['','ersten','zweiten','dritten','vierten'];
+  var sn=qStep(2);
+  if(stage==='write'){
+    qa.innerHTML='<div class="qz-stage">Schritt&nbsp;'+sn+': Ansatz aufstellen</div>'
+      +'<div class="qz-sub">Gib den allgemeinen Ansatz für eine Polynomfunktion <b>'+nm[deg]+' Grades</b> ein:</div>'
+      +'<div class="qz-sub" style="font-size:.82em;color:#888;">z.\u202fB. <code>f(x)=ax²+bx+c</code></div>'
+      +'<div class="qz-inp-row">'
+      +'<input class="qz-inp" id="qz_inp" type="text" autofocus style="width:270px;" placeholder="f(x)=..."'
+      +' onkeydown="if(event.key===\'Enter\')checkAnsatzText()">'
+      +'<button onclick="checkAnsatzText()">Prüfen</button>'
+      +'<button class="btn-orange" onclick="ansatzHint()">Hilfe</button>'
+      +'</div><div id="qz_fb" class="qz-fb"></div>';
+  } else {
+    // MC stage (after help)
+    _ansatzOpts=genAnsatzMC(deg);
+    qa.innerHTML='<div class="qz-stage">Schritt&nbsp;'+sn+': Ansatz aufstellen</div>'
+      +'<div class="qz-sub">Wähle den allgemeinen Ansatz für eine Polynomfunktion <b>'+nm[deg]+' Grades</b>:</div>'
+      +'<div class="qz-btns">'
+      +_ansatzOpts.map(function(o,i){
+        return'<button class="qz-btn" onclick="pickAnsatzMC('+i+',this)">\\(f(x)='+o.v+'\\)</button>';
+      }).join('')+'</div>';
+    MathJax.typesetPromise([qa]);
+  }
+}
+function checkAnsatzText(){
+  var inp=document.getElementById('qz_inp');if(!inp)return;
+  if(validateAnsatz(inp.value.trim(),currentTask.deg)){
+    inp.classList.add('ok');setFb('&#10003; Richtig!','ok');
+    quizState.confirmedAnsatz=ansatzTex(currentTask.deg);
+    setTimeout(advanceFromAnsatz,500);
+  } else {
+    inp.classList.add('err');inp.classList.remove('ok');
+    setFb('Nicht korrekt – z.\u202fB. für Grad 3: <code>f(x)=ax³+bx²+cx+d</code>','err');
+  }
+}
+function ansatzHint(){quizState.ansatzStage='mc';renderQS();}
+function pickAnsatzMC(i,btn){
+  var o=_ansatzOpts[i];if(!o)return;
+  if(o.ok){
+    btn.parentElement.querySelectorAll('.qz-btn').forEach(function(b){b.onclick=null;});
+    btn.classList.add('qc');
+    quizState.confirmedAnsatz=ansatzTex(currentTask.deg);
+    setTimeout(advanceFromAnsatz,600);
+  } else {btn.classList.add('qw');}
+}
+function advanceFromAnsatz(){
+  var s=currentTask.settings;
+  if(s.vereinfFirst&&currentTask.usedDirect.length>0){
+    quizState.stage='vereinf';quizState.vereinfFound=[];
+  } else {
+    quizState.stage='cond';quizState.condIdx=0;quizState.eqIdx=0;
+    quizState.condStage='write_eq';quizState.helpLevel=0;quizState.confirmedEq=null;
+  }
+  renderQS();
+}
+
+// Build ansatz MC options
+// Always show all four possible ansätze (Grad 1–4), shuffled
+function genAnsatzMC(deg){
+  return shuffle([1,2,3,4].map(function(d){
+    return{v:ansatzTex(d), ok:d===deg};
+  }));
+}
+
+// 6 unsimplified MC options: substituted form only (no fn(x)=y prefix)
+function genUnsimplSubMC(deg,corrDer,x0,y0,km){
+  km=km||new Map();
+  var opts=[],seen={},maxD=Math.min(2,deg);
+  for(var d=0;d<=maxD;d++){
+    // Use ansatzSubMixed: substitutes known values, leaves unknowns as letters
+    var sa=ansatzSubMixed(deg,d,x0,km);
+    var sb=ansatzSubMixed(deg,d,y0,new Map()); // wrong ordering: swap x0/y0
+    var t1=sa+'='+numTex(y0);
+    var t2=sb+'='+numTex(x0);
+    if(!seen[t1]){seen[t1]=1;opts.push({tex:t1,isOk:d===corrDer});}
+    if(x0!==y0&&!seen[t2]){seen[t2]=1;opts.push({tex:t2,isOk:false});}
+  }
+  return shuffle(opts).slice(0,6);
+}
+
+function validateAnsatz(input,deg){
+  var s=input.replace(/\s+/g,'').replace(/f\(x\)=/i,'')
+    .replace(/\u00b3/g,'^3').replace(/\u00b2/g,'^2').replace(/\u00b9/g,'^1')
+    .replace(/\^{(\d+)}/g,'^$1');
+  if(deg===1) return s.indexOf('x')>=0&&s.indexOf('a')>=0&&s.indexOf('b')>=0;
+  var hasTop=s.indexOf('x^'+deg)>=0;
+  var letters='abcde'.slice(0,deg+1);
+  for(var i=0;i<letters.length;i++) if(s.indexOf(letters[i])<0) return false;
+  return hasTop;
+}
+
+// km-aware simplified MC - correct option uses the SAME formula as checkWriteSimpl
+function genSubMCKm(deg,der,x0,y0,km){
+  km=km||new Map();
+  // Correct: substitute km into ansatz at x0
+  var correct=lgsLineTex(deg,der,x0,y0,km,false);
+  // Build plausible wrong options (also km-reduced for consistency)
+  var wrongs=[];
+  // Wrong 1: negate the RHS
+  var rhs_correct=parseFloat(correct.split('=')[1]);
+  var rhs_wrong1=-rhs_correct;
+  if(!isNaN(rhs_correct)&&rhs_wrong1!==rhs_correct){
+    var lhs=correct.split('=')[0];
+    wrongs.push(lhs+'='+numTex(rhs_wrong1));
+  }
+  // Wrong 2: different x0
+  var wx0=x0>0?-x0:(x0<0?-x0:x0+1);
+  var w2=lgsLineTex(deg,der,wx0,y0,km,false); if(w2!==correct) wrongs.push(w2);
+  // Wrong 3: different derOrder
+  var wd=(der+1)%(Math.min(2,deg)+1);
+  var w3=lgsLineTex(deg,wd,x0,y0,km,false); if(w3!==correct) wrongs.push(w3);
+  // Wrong 4: y0 shifted
+  var w4=lgsLineTex(deg,der,x0,y0+1,km,false); if(w4!==correct) wrongs.push(w4);
+  // Deduplicate and assemble
+  var seen={};seen[correct]=true;
+  var opts=[{tex:correct,isOk:true}];
+  wrongs.forEach(function(t){if(!seen[t]){seen[t]=true;opts.push({tex:t,isOk:false});}});
+  return shuffle(opts).slice(0,4);
+}
+
+// ── VEREINF ──
+function renderQVereinf(qa){
+  var groups=currentTask.allGroups;
+  var found=quizState.vereinfFound||[];
+  var directIds=currentTask.usedDirect.map(function(d){return d.id;});
+
+  var html='<div class="qz-stage">Schritt&nbsp;'+qStep(3)+': Direkt lösbare Bedingungen</div>'
+    +'<div class="qz-sub">Klicke alle Bedingungen an, die sich sofort nach einer Variablen auflösen lassen (z.\u202fB. \\(f(0)=d\\)):</div>'
+    +'<div id="vereinfList">';
+
+  groups.forEach(function(g,i){
+    var isDirect=directIds.indexOf(g.id)>=0;
+    var isFound=found.indexOf(i)>=0;
+    var style=isFound?'background:#c8f0c8;border-color:#4a9a4a;':'';
+    html+='<div style="margin:3px 0;padding:5px 10px;border:1.5px solid #aaa;border-radius:8px;cursor:pointer;'
+      +style+'" onclick="pickVereinf('+i+','+isDirect+',this)">'
+      +'<b>'+(i+1)+'.</b> '+g.text+'</div>';
+  });
+  html+='</div>';
+
+  var needed=currentTask.usedDirect.length;
+  if(found.length>=needed&&found.length>0){
+    html+='<div style="margin-top:6px;font-size:.88em;color:#1a6a1a;"><b>&#10003; Direkt bestimmbar:</b>';
+    currentTask.usedDirect.forEach(function(dc){
+      var eq=dc.eqs[0];
+      html+='<div style="margin-left:12px;">\\('+fnName(eq.derOrder)+'('+numTex(eq.x0)+')='+numTex(eq.y0)+'\\) &ensp;&#8658;&ensp; <b>\\('+CL[dc.dSolvedIdx]+'='+numTex(dc.dSolvedVal)+'\\)</b></div>';
+    });
+    html+='</div><div style="margin-top:8px;"><button onclick="advanceFromVereinf()">Weiter &#8594;</button></div>';
+  }
+  qa.innerHTML=html;
+  MathJax.typesetPromise([qa]);
+}
+
+function pickVereinf(idx,isDirect,el){
+  var found=quizState.vereinfFound;
+  if(isDirect){
+    if(found.indexOf(idx)<0){
+      found.push(idx);
+      el.style.background='#c8f0c8';el.style.borderColor='#4a9a4a';
+      // Add check to task text immediately
+      var ci=document.getElementById('ci_'+idx);
+      if(ci){
+        var base=ci.getAttribute('data-base')||ci.innerHTML;
+        ci.setAttribute('data-base',base);
+        ci.innerHTML=base+' <span style="color:#1a6a1a;font-weight:bold;">&#10003;</span>';
+        MathJax.typesetPromise([ci]);
+      }
+    }
+  } else {
+    el.style.background='#f8d8d8';el.style.borderColor='#c04040';
+    setTimeout(function(){el.style.background='';el.style.borderColor='#aaa';},800);
+  }
+  quizState.vereinfFound=found;
+  if(found.length>=currentTask.usedDirect.length) renderQS();
+}
+
+function advanceFromVereinf(){
+  quizState.stage='cond';quizState.condIdx=0;quizState.eqIdx=0;
+  quizState.condStage='write_eq';quizState.helpLevel=0;
+  quizState.confirmedAnsatz=confirmedAnsatzTex(); // update with known values
+  renderQS();
+}
+
+// ── BEDINGUNGEN (2-stage per equation) ──
+var _enterOpts=[], _unsimplOpts=[], _simplOpts=[];
+
+function renderQCond(qa){
+  var groups=currentTask.allGroups,deg=currentTask.deg,km=currentTask.knownMap;
+  var total=groups.length;
+  var sn=currentTask.settings.vereinfFirst&&currentTask.usedDirect.length>0?qStep(4):qStep(3);
+
+  // Auto-skip direct conditions when vereinfFirst is on
+  if(currentTask.settings.vereinfFirst&&km.size>0){
+    while(quizState.condIdx<total&&groups[quizState.condIdx]&&groups[quizState.condIdx].isDirect){
+      quizState.condIdx++;quizState.eqIdx=0;
+      quizState.condStage='write_eq';quizState.helpLevel=0;
+      quizState.confirmedEq=null;quizState.unsimplCorrectIdx=-1;
+      quizState.cachedUnsimplOpts=null;quizState.cachedSimplOpts=null;
+    }
+    if(quizState.condIdx>=total){quizState.stage='lgs_hint';renderQS();return;}
+  }
+
+  var ci=quizState.condIdx,ei=quizState.eqIdx;
+  // If all done, show all conditions ticked then switch
+  if(ci>=total){
+    var html2='<div class="qz-progress">Schritt&nbsp;'+sn+': Alle Bedingungen formalisiert &#10003;</div>';
+    for(var i=0;i<total;i++) html2+=buildDoneCondHtml(groups[i],i,deg,km);
+    html2+='<div style="margin-top:8px;"><button onclick="quizState.stage=\'lgs_hint\';renderQS()">Weiter &#8594;</button></div>';
+    qa.innerHTML=html2;MathJax.typesetPromise([qa]);
+    return;
+  }
+  var html='<div class="qz-progress">Schritt&nbsp;'+sn+': Bedingungen formalisieren &ensp;('+(ci+1)+'\u202f/\u202f'+total+')</div>';
+
+  // All completed groups (index < ci)
+  for(var i=0;i<ci;i++) html+=buildDoneCondHtml(groups[i],i,deg,km);
+
+  // Current group
+  if(ci<total){
+    var g=groups[ci],re=g.eqs.filter(function(e){return e.derOrder!=='sym';});
+    var eqLbl=re.length>1?' <span style="font-size:.8em;">(Gl.&nbsp;'+(ei+1)+')</span>':'';
+    html+='<div class="qz-cur-cond"><div class="qz-cond-title">Bedingung&nbsp;'+(ci+1)+eqLbl+':</div>';
+    if(g.isSymmetry) html+=renderQSymBlock(g);
+    else{
+      var eq=re[ei];
+      if(quizState.condStage==='write_eq')    html+=renderCondWriteEq(eq,quizState.helpLevel,deg);
+      else                                    html+=renderCondWriteSimpl(eq,quizState.helpLevel,deg);
+    }
+    html+='</div>';
+  }
+  qa.innerHTML=html;
+  MathJax.typesetPromise([qa]);
+}
+
+// Build the done-cond HTML block for a completed condition group
+function buildDoneCondHtml(g,i,deg,km){
+  var re=g.eqs.filter(function(e){return e.derOrder!=='sym';});
+  var html='<div class="qz-done-cond"><div class="qz-cond-title">&#10003; '+(i+1)+'. '+g.text+'</div>';
+  if(g.isSymmetry){
+    html+='<div class="qz-done-eq">'+g.symLabel+'</div>';
+  } else {
+    var isMulti=re.length>1;
+    if(isMulti){
+      // Aligned block: all equations in one LaTeX environment so \Rightarrow lines up
+      html+='<div class="qz-done-eq">$$\\begin{aligned}';
+      re.forEach(function(eq,k){
+        var fn=fnName(eq.derOrder);
+        var sim=ansatzSubTex2(deg,eq.derOrder,eq.x0);
+        html+=(k>0?'\\\\':'')
+          +fn+'('+numTex(eq.x0)+') &= '+numTex(eq.y0)
+          +' &\\Rightarrow& \\quad '+sim+' &= '+numTex(eq.y0);
+        // Orange reduced form if known values differ
+        if(km.size>0){
+          var reduced=lgsLineTex(deg,eq.derOrder,eq.x0,eq.y0,km,false);
+          if(ansatzSubTex2Km(deg,eq.derOrder,eq.x0,km)!==sim){
+            html+='\\\\&&\\Rightarrow& \\quad '+reduced;
+          }
+        }
+      });
+      html+='\\end{aligned}$$</div>';
+    } else {
+      // Single equation: inline display
+      re.forEach(function(eq){
+        var fn=fnName(eq.derOrder);
+        var sim=ansatzSubTex2(deg,eq.derOrder,eq.x0);
+        html+='<div class="qz-done-eq">\\('+fn+'('+numTex(eq.x0)+')='+numTex(eq.y0)
+          +'\\qquad\\Rightarrow\\qquad '+sim+'='+numTex(eq.y0)+'\\)</div>';
+        if(km.size>0){
+          var reduced=lgsLineTex(deg,eq.derOrder,eq.x0,eq.y0,km,false);
+          if(ansatzSubTex2Km(deg,eq.derOrder,eq.x0,km)!==sim){
+            html+='<div class="qz-done-eq" style="color:#884400;">&ensp;&#8658;&ensp;eingesetzt:&ensp;\\('+reduced+'\\)</div>';
+          }
+        }
+      });
+    }
+    // If direct: show immediate solution
+    if(g.isDirect){
+      html+='<div class="qz-done-eq" style="color:#884400;font-weight:bold;">&ensp;&#8658;&ensp;\\('
+        +CL[g.dSolvedIdx]+'='+numTex(g.dSolvedVal)+'\\)</div>';
+    }
+  }
+  html+='</div>';
+  return html;
+}
+
+// Stage A: write the equation (e.g. f'(3)=0)
+function renderCondWriteEq(eq,hl,deg){
+  var fn=fnName(eq.derOrder);
+  var g=currentTask.allGroups[quizState.condIdx];
+  var isMulti=g.eqs.filter(function(e){return e.derOrder!=='sym';}).length>1;
+  var ex1=eq.derOrder===0?'f(3)=1':(eq.derOrder===1?"f'(2)=0":"f''(1)=-2");
+  var ex2=eq.derOrder===0?'f(-2)=-5':"f'(-1)=3";
+  var html='<div class="qz-sub">Formuliere diese Bedingung als Gleichung '
+    +'<span style="font-size:.84em;color:#888;">z.\u202fB. <code>'+ex1+'</code> oder <code>'+ex2+'</code></span>:</div>'
+    +'<div class="qz-inp-row">'
+    +'<input class="qz-inp" id="qz_inp" type="text" autofocus placeholder="'+fn+'(...)=..."'
+    +' onkeydown="if(event.key===\'Enter\')checkWriteEq()">'
+    +'<button onclick="checkWriteEq()">Prüfen</button>';
+  // Hilfe buttons: up to 3 levels for multi-eq, up to 2 for single
+  var maxHL=isMulti?3:2;
+  if(hl<maxHL) html+='<button class="btn-orange" onclick="condHelp()">Hilfe ('+Math.min(hl+1,maxHL)+')</button>';
+  html+='<button class="btn-grey" onclick="skipToSimpl()" style="background:#888;">Überspringen</button>';
+  html+='</div><div id="qz_fb" class="qz-fb"></div>';
+  // hl>=2 for single OR hl>=3 for multi: show MC
+  if((isMulti&&hl>=3)||(!isMulti&&hl>=2)){
+    _enterOpts=gen6MC(eq.x0,eq.y0,eq.derOrder,deg);
+    html+='<div class="qz-sub" style="margin-top:6px;">Wähle die richtige Gleichung:</div>'
+      +'<div class="qz-btns">'
+      +_enterOpts.map(function(o,i){return'<button class="qz-btn" onclick="pickWriteEqMC('+i+',this)">\\('+o.tex+'\\)</button>';}).join('')
+      +'</div>';
+  }
+  return html;
+}
+
+// Stage B: write the simplified equation
+function renderCondWriteSimpl(eq,hl,deg){
+  var fn=fnName(eq.derOrder);
+  var km=currentTask.knownMap;
+
+  // Generate and cache MC options
+  if(!quizState.cachedUnsimplOpts) quizState.cachedUnsimplOpts=genUnsimplSubMC(deg,eq.derOrder,eq.x0,eq.y0,km);
+  if(!quizState.cachedSimplOpts)   quizState.cachedSimplOpts=genSubMCKm(deg,eq.derOrder,eq.x0,eq.y0,km);
+  _unsimplOpts=quizState.cachedUnsimplOpts;
+  _simplOpts=quizState.cachedSimplOpts;
+
+  var kmHint=km.size>0?' <span style="font-size:.83em;color:#666;">(bekannte Variablen bereits eingesetzt)</span>':'';
+  var html='<div class="qz-sub">&#10003;\u00a0<b>\\('+fn+'('+numTex(eq.x0)+')='+numTex(eq.y0)+'\\)</b>'
+    +' \u2013 Schreibe die vereinfachte Gleichung:'+kmHint+'</div>'
+    +'<div class="qz-sub" style="font-size:.84em;color:#888;">z.\u202fB. <code>8a+4b+2c=6</code></div>'
+    +'<div class="qz-inp-row">'
+    +'<input class="qz-inp" id="qz_inp2" type="text" autofocus placeholder="...=..."'
+    +' onkeydown="if(event.key===\'Enter\')checkWriteSimpl()">'
+    +'<button onclick="checkWriteSimpl()">Pr\u00fcfen</button>';
+  // Hilfe only when ① not yet shown
+  if(hl===0) html+='<button class="btn-orange" onclick="condHelp()">Hilfe</button>';
+  // Überspringen: show answer directly
+  html+='<button class="btn-grey" onclick="skipConditionDirect()" style="background:#888;">\u00dcberspringen</button>';
+  html+='</div><div id="qz_fb2" class="qz-fb"></div>';
+
+  // ① shown after Hilfe (hl>=1)
+  if(hl>=1){
+    var corrIdx=quizState.unsimplCorrectIdx;
+    html+='<div class="qz-sub" style="margin-top:6px;">&#9312;\u00a0Direkt eingesetzt:</div>'
+      +'<div class="qz-btns">';
+    _unsimplOpts.forEach(function(o,i){
+      var cls='qz-btn'+(corrIdx===i?' qc':'');
+      var onclick=corrIdx>=0?'':' onclick="pickUnsimplMC('+i+',this)"';
+      html+='<button class="'+cls+'"'+onclick+'>\\('+o.tex+'\\)</button>';
+    });
+    html+='</div>';
+    // ② appears automatically after ① solved (corrIdx set)
+    if(corrIdx>=0){
+      html+='<div class="qz-sub" style="margin-top:8px;">&#9313;\u00a0Vereinfacht:</div>'
+        +'<div class="qz-btns">'
+        +_simplOpts.map(function(o,i){return'<button class="qz-btn" onclick="pickSimplMC('+i+',this)">\\('+o.tex+'\\)</button>';}).join('')
+        +'</div>';
+    }
+  }
+  return html;
+}
+
+// Show correct answer for current equation, then advance to next equation (not whole group)
+function skipConditionDirect(){
+  var eq=quizState.confirmedEq||currentTask.allGroups[quizState.condIdx].eqs.filter(function(e){return e.derOrder!=='sym';})[quizState.eqIdx||0];
+  var deg=currentTask.deg,km=currentTask.knownMap;
+  var correct=lgsLineTex(deg,eq.derOrder,eq.x0,eq.y0,km,false);
+  var fb=document.getElementById('qz_fb2');
+  if(fb){fb.className='qz-fb ok';fb.innerHTML='L\u00f6sung: \\('+correct+'\\)';MathJax.typesetPromise([fb]);}
+  setTimeout(function(){advanceCond();},1500);
+}
+
+function renderQSymBlock(g){
+  var deg=currentTask.deg;
+  var correct=g.symLabel.replace(/\\/g,'').replace(/[()]/g,'');
+  var opts=buildSymOpts(g);
+  return'<div class="qz-sub">Was gilt für die Koeffizienten aufgrund der Symmetrie?</div>'
+    +'<div class="qz-btns">'
+    +opts.map(function(o,i){return'<button class="qz-btn" onclick="pickSymMC('+o.ok+',this)">\\('+o.tex+'\\)</button>';}).join('')
+    +'</div>';
+}
+function buildSymOpts(g){
+  var correct=g.symLabel.replace(/\\\(/g,'').replace(/\\\)/g,'');
+  // Extract from symLabel
+  var label=g.symLabel;
+  var opts=[{tex:label.replace(/\\\(/,'').replace(/\\\)/,''),ok:true}];
+  var deg=currentTask.deg;
+  opts.push({tex:CL[0]+'=0',ok:false});
+  opts.push({tex:CL[deg]+'=0',ok:false});
+  opts.push({tex:CL[0]+'='+CL[deg],ok:false});
+  return shuffle(opts).slice(0,4);
+}
+
+function ansatzSubTex2(deg,der,x0){
+  var p=[];
+  for(var pow=deg;pow>=0;pow--){
+    if(pow<der)continue;
+    var np=pow-der,mult=1;
+    for(var k=0;k<der;k++)mult*=(pow-k);
+    var tm=Math.round(mult*Math.pow(x0,np)*1e9)/1e9;
+    if(Math.abs(tm)<1e-9)continue;
+    var l=CL[deg-pow],f=p.length===0;
+    var s=f?(tm<0?'-':''):(tm<0?'-':'+');
+    p.push(s+(Math.abs(tm)===1?l:numTex(Math.abs(tm))+l));
+  }
+  return p.join('')||'0';
+}
+
+function condHelp(){
+  var g=currentTask.allGroups[quizState.condIdx];
+  var isMulti=g&&g.eqs.filter(function(e){return e.derOrder!=='sym';}).length>1;
+  var maxHL=isMulti?3:2;
+  quizState.helpLevel=Math.min(maxHL,quizState.helpLevel+1);
+  renderQS();
+  var el=document.getElementById('ci_'+quizState.condIdx);
+  if(el) el.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+// Check the written equation (f'(x0)=y0)
+function checkWriteEq(){
+  var inp=document.getElementById('qz_inp');if(!inp)return;
+  var parsed=parseEq(inp.value);
+  var g=currentTask.allGroups[quizState.condIdx];
+  var re=g.eqs.filter(function(e){return e.derOrder!=='sym';});
+  if(!parsed){setFb('Format: z.\u202fB. <code>f\'(3)=0</code>','err');inp.classList.add('err');return;}
+  var matchIdx=-1;
+  re.forEach(function(eq,i){
+    if(matchIdx<0&&eq.derOrder===parsed.derOrder&&Math.abs(eq.x0-parsed.x0)<1e-9&&Math.abs(eq.y0-parsed.y0)<1e-9) matchIdx=i;
+  });
+  if(matchIdx<0){setFb('Nicht korrekt – überprüfe Funktion, Stelle und Wert.','err');inp.classList.add('err');return;}
+  inp.classList.add('ok');inp.classList.remove('err');setFb('&#10003; Richtig!','ok');
+  quizState.eqIdx=matchIdx;quizState.confirmedEq=re[matchIdx];
+  quizState.condStage='write_simplified';quizState.helpLevel=0;
+  quizState.unsimplCorrectIdx=-1;quizState.cachedUnsimplOpts=null;quizState.cachedSimplOpts=null;
+  setTimeout(function(){renderQS();},500);
+}
+function pickWriteEqMC(i,btn){
+  var o=_enterOpts[i];if(!o)return;
+  if(o.isOk){
+    btn.closest('.qz-btns').querySelectorAll('.qz-btn').forEach(function(b){b.onclick=null;});
+    btn.classList.add('qc');
+    var g=currentTask.allGroups[quizState.condIdx];
+    var re=g.eqs.filter(function(e){return e.derOrder!=='sym';});
+    var matchIdx=-1;
+    re.forEach(function(eq,idx){
+      if(matchIdx<0&&eq.derOrder===o.eq.derOrder&&Math.abs(eq.x0-o.eq.x0)<1e-9&&Math.abs(eq.y0-o.eq.y0)<1e-9) matchIdx=idx;
+    });
+    quizState.eqIdx=matchIdx<0?0:matchIdx;
+    quizState.confirmedEq=re[quizState.eqIdx];
+    quizState.condStage='write_simplified';quizState.helpLevel=0;
+    quizState.unsimplCorrectIdx=-1;quizState.cachedUnsimplOpts=null;quizState.cachedSimplOpts=null;
+    setTimeout(function(){renderQS();},600);
+  } else {btn.classList.add('qw');}
+}
+
+function checkWriteSimpl(){
+  var inp=document.getElementById('qz_inp2');if(!inp)return;
+  var eq=quizState.confirmedEq||currentTask.allGroups[quizState.condIdx].eqs.filter(function(e){return e.derOrder!=='sym';})[quizState.eqIdx||0];
+  var deg=currentTask.deg,km=currentTask.knownMap;
+  var correct=lgsLineTex(deg,eq.derOrder,eq.x0,eq.y0,km,false);
+  var val=normEqStr(inp.value);
+  if(val===normEqStr(correct)){
+    inp.classList.add('ok');inp.classList.remove('err');setFb2('&#10003; Richtig!','ok');
+    setTimeout(function(){advanceCond();},500);
+  } else {
+    inp.classList.add('err');setFb2('Nicht korrekt. Erwartete Form: <code>'+correct+'</code>','err');
+  }
+}
+function normEqStr(s){
+  // Normalize a simplified equation string for comparison
+  return s.replace(/\s/g,'').replace(/\+/g,'+').replace(/--/g,'+');
+}
+function setFb2(msg,cls){var el=document.getElementById('qz_fb2');if(el){el.className='qz-fb '+cls;el.innerHTML=msg;}}
+
+function pickUnsimplMC(i,btn){
+  var o=_unsimplOpts[i];if(!o)return;
+  if(o.isOk){
+    // Lock all buttons, store which index was correct for re-render persistence
+    btn.closest('.qz-btns').querySelectorAll('.qz-btn').forEach(function(b){b.onclick=null;});
+    btn.classList.add('qc');
+    quizState.unsimplCorrectIdx=i;
+    if(quizState.helpLevel<2) quizState.helpLevel=2;
+    setTimeout(function(){renderQS();},600);
+  } else {
+    btn.classList.add('qw');
+  }
+}
+function pickSimplMC(i,btn){
+  var o=_simplOpts[i];if(!o)return;
+  if(o.isOk){
+    btn.closest('.qz-btns').querySelectorAll('.qz-btn').forEach(function(b){b.onclick=null;});
+    btn.classList.add('qc');setTimeout(function(){advanceCond();},600);
+  } else {btn.classList.add('qw');}
+}
+function pickSymMC(ok,btn){
+  if(ok){
+    btn.closest('.qz-btns').querySelectorAll('.qz-btn').forEach(function(b){b.onclick=null;});
+    btn.classList.add('qc');setTimeout(function(){advanceCond();},600);
+  } else {btn.classList.add('qw');}
+}
+function gen6MC(A,B,corrDer,deg){
+  var maxD=Math.min(2,deg),opts=[],seen={};
+  for(var d=0;d<=maxD;d++){
+    var fn=fnName(d);
+    var t1=fn+'('+numTex(A)+')='+numTex(B);
+    var t2=fn+'('+numTex(B)+')='+numTex(A);
+    if(!seen[t1]){seen[t1]=1;opts.push({tex:t1,isOk:d===corrDer,eq:{derOrder:d,x0:A,y0:B}});}
+    if(A!==B&&!seen[t2]){seen[t2]=1;opts.push({tex:t2,isOk:false,eq:{derOrder:d,x0:B,y0:A}});}
+  }
+  return shuffle(opts).slice(0,6);
+}
+function setFb(msg,cls){var el=document.getElementById('qz_fb');if(el){el.className='qz-fb '+cls;el.innerHTML=msg;}}
+
+// Skip equation-writing step → go directly to write_simplified for current equation
+function skipToSimpl(){
+  var g=currentTask.allGroups[quizState.condIdx];
+  var re=g.eqs.filter(function(e){return e.derOrder!=='sym';});
+  if(g.isSymmetry){advanceCond();return;}
+  var ei=quizState.eqIdx;
+  quizState.confirmedEq=re[ei]||re[0];
+  quizState.condStage='write_simplified';
+  quizState.helpLevel=0;
+  quizState.unsimplCorrectIdx=-1;quizState.cachedUnsimplOpts=null;quizState.cachedSimplOpts=null;
+  renderQS();
+}
+
+// Skip simplified-equation step → skip remaining equations in this group, go to next condition
+function skipCondition(){
+  var g=currentTask.allGroups[quizState.condIdx];
+  var re=g.eqs.filter(function(e){return e.derOrder!=='sym';});
+  var deg=currentTask.deg;
+  var eq=re[quizState.eqIdx]||re[0];
+  var simTex=ansatzSubTex2(deg,eq.derOrder,eq.x0)+'='+numTex(eq.y0);
+  var fb=document.getElementById('qz_fb2')||document.getElementById('qz_fb');
+  if(fb){fb.className='qz-fb ok';fb.innerHTML='Lösung: \\('+simTex+'\\)';MathJax.typesetPromise([fb]);}
+  // Skip the ENTIRE group (jump to next condition, not just next equation)
+  setTimeout(function(){skipEntireGroup();},1200);
+}
+
+// Skip the whole current condition group
+function skipEntireGroup(){
+  if(quizState.condIdx+1<currentTask.allGroups.length){
+    quizState.condIdx++;quizState.eqIdx=0;quizState.condStage='write_eq';quizState.helpLevel=0;
+    quizState.confirmedEq=null;quizState.unsimplCorrectIdx=-1;
+    quizState.cachedUnsimplOpts=null;quizState.cachedSimplOpts=null;
+  } else {
+    quizState.stage='lgs_hint';
+  }
+  renderQS();
+}
+
+function advanceCond(){
+  var g=currentTask.allGroups[quizState.condIdx];
+  var re=g.eqs.filter(function(e){return e.derOrder!=='sym';});
+  // Move to next equation in this group or next group
+  if(!g.isSymmetry&&quizState.eqIdx+1<re.length){
+    quizState.eqIdx++;quizState.condStage='write_eq';quizState.helpLevel=0;
+    quizState.confirmedEq=null;quizState.unsimplCorrectIdx=-1;
+    quizState.cachedUnsimplOpts=null;quizState.cachedSimplOpts=null;
+    renderQS();
+  } else if(quizState.condIdx+1<currentTask.allGroups.length){
+    quizState.condIdx++;quizState.eqIdx=0;quizState.condStage='write_eq';quizState.helpLevel=0;
+    quizState.confirmedEq=null;quizState.unsimplCorrectIdx=-1;
+    quizState.cachedUnsimplOpts=null;quizState.cachedSimplOpts=null;
+    renderQS();
+  } else {
+    // Last condition done: bump condIdx so it shows as ticked, then switch to lgs_hint
+    quizState.condIdx=currentTask.allGroups.length;
+    // Briefly show all-done state then switch
+    renderQS(); // will auto-switch via renderQCond when condIdx>=total
+  }
+}
+
+// Build ansatz for banner: substitutes km values only after vereinf is done
+function confirmedAnsatzTex(){
+  var deg=currentTask.deg,km=currentTask.knownMap;
+  var st=quizState?quizState.stage:'';
+  // During vereinf, show plain ansatz (no substitution yet)
+  if(st==='vereinf') return ansatzTex(deg);
+  if(!currentTask.settings.vereinfFirst||km.size===0) return ansatzTex(deg);
+  // Substitute known values into the ansatz
+  var parts=[];
+  for(var pow=deg;pow>=0;pow--){
+    var idx=deg-pow,l=CL[idx];
+    var f=parts.length===0;
+    if(km.has(idx)){
+      var v=km.get(idx);
+      if(Math.abs(v)<1e-11)continue; // skip zero terms
+      // Show as numeric coefficient
+      var pref=f?(v<0?'-':''):(v<0?'-':'+');
+      var av=Math.abs(v),vt=numTex(av);
+      var s;
+      if(pow===0)      s=pref+vt;
+      else if(pow===1) s=pref+(av===1?'x':vt+'x');
+      else             s=pref+(av===1?'x^{'+pow+'}':vt+'x^{'+pow+'}');
+      parts.push(s);
+    } else {
+      var pref=f?'':'+';
+      if(pow===0)      parts.push(pref+l);
+      else if(pow===1) parts.push(pref+l+'x');
+      else             parts.push(pref+l+'x^{'+pow+'}');
+    }
+  }
+  return (parts.join('')||'0').replace(/\+-/g,'-');
+}
+
+// Update the sticky ansatz banner text (called after vereinf step)
+function refreshAnsatzBanner(){
+  quizState.confirmedAnsatz=confirmedAnsatzTex();
+  var banner=document.getElementById('qz_ansatz_banner');
+  if(banner){
+    banner.innerHTML='<b>Ansatz:</b>&ensp;\\(f(x)='+quizState.confirmedAnsatz+'\\)';
+    MathJax.typesetPromise([banner]);
+  }
+}
+
+// Update task text: add green check marks after completed equations
+function updateCondChecks(){
+  var groups=currentTask.allGroups;
+  var ci=quizState.condIdx,ei=quizState.eqIdx,cs=quizState.condStage;
+  groups.forEach(function(g,i){
+    var el=document.getElementById('ci_'+i);if(!el)return;
+    // Count how many equations in this group are done
+    var re=g.eqs.filter(function(e){return e.derOrder!=='sym';});
+    var doneCt=0;
+    if(i<ci){
+      doneCt=g.isSymmetry?1:re.length;
+    } else if(i===ci){
+      if(g.isSymmetry&&cs==='write_eq'){doneCt=0;}
+      else if(cs==='write_simplified'){doneCt=ei;}         // eq ei is confirmed, simplified not yet
+      else if(cs==='write_eq'&&ei>0){doneCt=ei;}           // equations 0..ei-1 done
+    }
+    // Build check marks
+    var checks='';
+    for(var k=0;k<doneCt;k++) checks+=' <span style="color:#1a6a1a;font-weight:bold;">&#10003;</span>';
+    // Set: replace previous checks
+    var base=el.getAttribute('data-base')||el.innerHTML;
+    el.setAttribute('data-base',base.replace(/<span[^>]*>&#10003;<\/span>/g,'').trim());
+    el.innerHTML=el.getAttribute('data-base')+checks;
+    if(doneCt>0) MathJax.typesetPromise([el]);
+  });
+}
+
+// Partial highlight for combined conditions
+// For condition i, equation eqIdx: highlight different parts
+function applyPartialHL(condIdx,eqIdx){
+  document.querySelectorAll('.cond-item.hl').forEach(function(e){e.classList.remove('hl');});
+  var el=document.getElementById('ci_'+condIdx);if(!el)return;
+  var g=currentTask.allGroups[condIdx];
+  var re=g?g.eqs.filter(function(e){return e.derOrder!=='sym';}):[]; 
+  var isMulti=re.length>1;
+  var hl=quizState.helpLevel;
+
+  el.classList.add('hl');
+
+  // Remove old partial hint
+  var old=document.getElementById('qz_partial_hint');if(old)old.remove();
+
+  if(isMulti&&hl>=2){
+    // Level 2: add inline partial hint
+    var eq=re[eqIdx]||re[0];
+    var hint=document.createElement('span');
+    hint.id='qz_partial_hint';
+    hint.style.cssText='font-size:.82em;color:#aa3300;background:#fff0cc;border-radius:3px;'
+      +'padding:1px 6px;margin-left:6px;display:inline;';
+    var label;
+    var gtype=g?g.type:'';
+    if(gtype==='tangente'&&eq.derOrder===1){
+      // Slope equation of tangent: plain text, no equation
+      label='\\(\\rightarrow\\) Steigung bei \\(x='+numTex(eq.x0)+'\\) betr\\"{a}gt \\(m='+numTex(eq.y0)+'\\)';
+      // Actually use HTML text to avoid LaTeX Umlaut issues:
+      label='&rarr; Steigung bei \\(x='+numTex(eq.x0)+'\\) betr&auml;gt \\(m='+numTex(eq.y0)+'\\)';
+    } else if(gtype==='tangente'&&eq.derOrder===0){
+      label='&rarr; Punkt \\(('+numTex(eq.x0)+'\\,|\\,'+numTex(eq.y0)+')\\) liegt auf dem Graphen';
+    } else if(eq.derOrder===1&&Math.abs(eq.y0)<1e-9){
+      label='\\(\\rightarrow\\) Extremstelle: \\(x='+numTex(eq.x0)+'\\)';
+    } else if(eq.derOrder===2&&Math.abs(eq.y0)<1e-9){
+      label='\\(\\rightarrow\\) Wendestelle: \\(x='+numTex(eq.x0)+'\\)';
+    } else if(eq.derOrder===0){
+      label='\\(\\rightarrow\\) Punkt \\(('+numTex(eq.x0)+'\\,|\\,'+numTex(eq.y0)+')\\)';
+    } else {
+      label='\\(\\rightarrow\\) \\('+fnName(eq.derOrder)+'('+numTex(eq.x0)+')='+numTex(eq.y0)+'\\)';
+    }
+    hint.innerHTML=label;
+    el.appendChild(hint);
+    MathJax.typesetPromise([hint]);
+  }
+  drawSketch(currentTask,condIdx);
+}
+// Symbolic derivative of degree deg with known values substituted
+function ansatzDerivSubTex(deg,der,km){
+  km=km||new Map();
+  var parts=[];
+  for(var pow=deg;pow>=0;pow--){
+    if(pow<der)continue;
+    var np=pow-der,mult=1;
+    for(var k=0;k<der;k++)mult*=(pow-k);
+    var idx=deg-pow,l=CL[idx];
+    var f=parts.length===0;
+    if(km.has(idx)){
+      var contrib=Math.round(mult*km.get(idx)*1e9)/1e9;
+      if(Math.abs(contrib)<1e-11)continue;
+      var ac=Math.abs(contrib),ct=numTex(ac),pref=f?(contrib<0?'-':''):(contrib<0?'-':'+');
+      if(np===0)      parts.push(pref+ct);
+      else if(np===1) parts.push(pref+(ac===1?'x':ct+'x'));
+      else            parts.push(pref+(ac===1?'x^{'+np+'}':ct+'x^{'+np+'}'));
+    } else {
+      var c=mult===1?'':numTex(mult),pref=f?'':'+';
+      if(np===0)      parts.push(pref+c+l);
+      else if(np===1) parts.push(pref+c+l+'x');
+      else            parts.push(pref+c+l+'x^{'+np+'}');
+    }
+  }
+  return(parts.join('')||'0').replace(/\+-/g,'-');
+}
+
+function renderQLGSHint(qa){
+  var sn=qStep(4);
+  var deg=currentTask.deg,km=currentTask.knownMap,groups=currentTask.allGroups;
+  var html='<div class="qz-stage">Schritt&nbsp;'+sn+': Gleichungssystem aufstellen</div>';
+
+  // Show conditions in done-cond style (reuse existing CSS)
+  groups.forEach(function(g,i){
+    var re=g.eqs.filter(function(e){return e.derOrder!=='sym';});
+    html+='<div class="qz-done-cond"><div class="qz-cond-title">&#10003; '+(i+1)+'. '+g.text+'</div>';
+    if(g.isSymmetry){
+      html+='<div class="qz-done-eq">'+g.symLabel+'</div>';
+    } else {
+      re.forEach(function(eq){
+        var sim=ansatzSubTex2(deg,eq.derOrder,eq.x0);
+        html+='<div class="qz-done-eq">\\('+fnName(eq.derOrder)+'('+numTex(eq.x0)+')='+numTex(eq.y0)
+          +'\\qquad\\Rightarrow\\qquad '+sim+'='+numTex(eq.y0)+'\\)</div>';
+        // If this equation has known variables, also show the substituted (reduced) form
+        if(km.size>0){
+          var reduced=lgsLineTex(deg,eq.derOrder,eq.x0,eq.y0,km,false);
+          var simFull=ansatzSubTex2(deg,eq.derOrder,eq.x0);
+          var simReduced=ansatzSubTex2Km(deg,eq.derOrder,eq.x0,km);
+          if(simReduced!==simFull){
+            html+='<div class="qz-done-eq" style="color:#664400;">&ensp;(eingesetzt: \\('+reduced+'\\))</div>';
+          }
+        }
+      });
+    }
+    html+='</div>';
+  });
+
+  html+='<div style="border:1px solid #c8d8a8;border-radius:6px;background:#f8fff0;padding:8px 14px;margin:10px 0 8px 0;">'
+    +'<b>Aufgabe:</b> Schreibe alle Gleichungen als lineares Gleichungssystem auf.<br>'
+    +'<span style="font-size:.9em;color:#555;">&#128161;&nbsp;Tipp: Die Variablen genau untereinander ausrichten.</span>'
+    +'</div>';
+  html+='<button onclick="quizState.stage=\'lgs\';renderQS()">Weiter zum LGS &#8594;</button>';
+
+  qa.innerHTML=html;
+  MathJax.typesetPromise([qa]);
+}
+
+// ansatzSubTex2 with known map applied (replaces known vars with values)
+function ansatzSubTex2Km(deg,der,x0,km){
+  var p=[];
+  for(var pow=deg;pow>=0;pow--){
+    if(pow<der)continue;
+    var np=pow-der,mult=1;
+    for(var k=0;k<der;k++)mult*=(pow-k);
+    var tm=Math.round(mult*Math.pow(x0,np)*1e9)/1e9;
+    if(Math.abs(tm)<1e-9)continue;
+    var idx=deg-pow;
+    if(km.has(idx)){
+      var contrib=Math.round(tm*km.get(idx)*1e9)/1e9;
+      if(Math.abs(contrib)<1e-9)continue;
+      var f=p.length===0;
+      p.push((!f&&contrib>0?'+':'')+numTex(contrib));
+    } else {
+      var l=CL[idx],f=p.length===0;
+      var s=f?(tm<0?'-':''):(tm<0?'-':'+');
+      p.push(s+(Math.abs(tm)===1?l:numTex(Math.abs(tm))+l));
+    }
+  }
+  return p.join('')||'0';
+}
+
+// ── LGS ──
+function renderQLGS(qa){
+  var t=currentTask,deg=t.deg,km=t.knownMap;
+  var sn=t.settings.vereinfFirst&&t.usedDirect.length>0?qStep(5):qStep(4);
+  var html='<div class="qz-stage">Schritt&nbsp;'+sn+': LGS aufstellen und lösen</div>';
+  if(t.usedDirect.length>0){
+    html+='<div class="qz-sub">Direkt bestimmt:</div>';
+    t.usedDirect.forEach(function(dc){
+      var eq=dc.eqs[0];
+      html+='<div style="margin-left:10px;font-size:.92em;">\\('+fnName(eq.derOrder)+'('+numTex(eq.x0)+')='+numTex(eq.y0)+'\\) &ensp;&#8658;&ensp; <b>\\('+CL[dc.dSolvedIdx]+'='+numTex(dc.dSolvedVal)+'\\)</b></div>';
+    });
+    html+='<hr class="qz-sep">';
+  }
+  // Use allGroups order for LGS (matches discovery order shown to user)
+  var lgsEqs=currentTask.allGroups.reduce(function(a,c){
+    if(!c.isDirect) return a.concat(c.eqs.filter(function(e){return e.derOrder!=='sym';}));
+    return a;
+  },[]);
+  var symGs=currentTask.allGroups.filter(function(c){return c.isSymmetry;});
+  var nE=lgsEqs.length+symGs.reduce(function(s,c){return s+c.eqCount;},0);
+  if(nE>0){
+    var unkns=[];for(var i=0;i<=deg;i++)if(!km.has(i))unkns.push('\\('+CL[i]+'\\)');
+    html+='<div class="qz-sub">Verbleibendes LGS ('+nE+' '+(nE===1?'Gleichung':'Gleichungen')+')'+(unkns.length?' – Gesucht: '+unkns.join(', '):'')+':</div>';
+    html+='<div class="qz-lgs-box">$$'+lgsArrayTex(deg,lgsEqs,symGs,km)+'$$</div>';
+    html+='<div class="qz-sub">Löse das LGS. Überprüfe dein Ergebnis unter <em>Lösung</em>.</div>';
+  } else {
+    html+='<div class="qz-sub">Alle Koeffizienten direkt bestimmbar!</div>';
+  }
+  html+='<div style="margin-top:8px;"><button onclick="quizState.stage=\'solve\';renderQS()">Weiter &#8594;</button></div>';
+  qa.innerHTML=html;MathJax.typesetPromise([qa]);
+}
+
+// ── SOLVE: enter the final function ──
+function renderQSolve(qa){
+  var t=currentTask,deg=t.deg,coeffs=t.coeffs,km=t.knownMap;
+  var sn=t.settings.vereinfFirst&&t.usedDirect.length>0?qStep(6):qStep(5);
+
+  // Build the solutions list (all coefficients)
+  var allSols=[];
+  for(var i=0;i<=deg;i++){
+    allSols.push('\\('+CL[i]+'='+numTex(coeffs[i])+'\\)');
+  }
+
+  var html='<div class="qz-stage">Schritt&nbsp;'+sn+': Funktionsgleichung aufstellen</div>';
+  html+='<div class="qz-sub">Lösungen der Koeffizienten:</div>';
+  html+='<div style="margin:4px 0 8px 12px;font-size:.97em;">'+allSols.join(',&ensp;')+'</div>';
+  html+='<div class="qz-sub">Setze die Lösungen in den Ansatz ein, um die Funktionsgleichung zu erhalten:</div>';
+  html+='<div class="qz-inp-row">'
+    +'<input class="qz-inp" id="qz_finp" type="text" autofocus style="width:280px;" placeholder="f(x)=..."'
+    +' onkeydown="if(event.key===\'Enter\')checkFinalFunc()">'
+    +'<button onclick="checkFinalFunc()">Prüfen</button>'
+    +'<button class="btn-grey" onclick="skipFinalFunc()" style="background:#888;">Überspringen</button>'
+    +'</div>'
+    +'<div id="qz_ffb" class="qz-fb"></div>';
+
+  qa.innerHTML=html;
+  MathJax.typesetPromise([qa]);
+}
+
+function checkFinalFunc(){
+  var inp=document.getElementById('qz_finp');if(!inp)return;
+  if(normFuncInput(inp.value)===normFuncInput('f(x)='+polyTex(currentTask.coeffs))){
+    inp.classList.add('ok');inp.classList.remove('err');
+    var fb=document.getElementById('qz_ffb');
+    if(fb){fb.className='qz-fb ok';fb.innerHTML='&#10003; Richtig!';}
+    setTimeout(function(){quizState.stage='done';renderQS();},700);
+  } else {
+    inp.classList.add('err');inp.classList.remove('ok');
+    var fb=document.getElementById('qz_ffb');
+    if(fb){fb.className='qz-fb err';fb.innerHTML='Nicht korrekt – überprüfe Vorzeichen und Koeffizienten.';}
+  }
+}
+
+// Normalize a function string for lenient comparison
+function normFuncInput(s){
+  return s
+    .trim()
+    .replace(/\s+/g,'')           // remove all spaces
+    .replace(/f\(x\)=/i,'')       // remove optional f(x)=
+    .replace(/\*/g,'')            // remove multiplication signs
+    .replace(/\u00b2/g,'^2')      // ²→^2
+    .replace(/\u00b3/g,'^3')      // ³→^3
+    .replace(/\^{(\d+)}/g,'^$1')  // ^{n}→^n
+    .replace(/\(-(\d+)\)/g,'-$1') // (-3)→-3
+    .replace(/\+\-/g,'-')         // +-→-
+    .toLowerCase();
+}
+
+function skipFinalFunc(){
+  var fb=document.getElementById('qz_ffb');
+  var tex='f(x)='+polyTex(currentTask.coeffs);
+  if(fb){fb.className='qz-fb ok';fb.innerHTML='Lösung: \\('+tex+'\\)';MathJax.typesetPromise([fb]);}
+  setTimeout(function(){quizState.stage='done';renderQS();},1200);
+}
+
+function renderQDone(qa){
+  document.getElementById('solutionDetails').open=true;
+  qa.innerHTML='<div style="text-align:center;padding:10px;">'
+    +'<span style="color:#1a6a1a;font-size:1.1em;font-weight:bold;">&#10003;&nbsp;Quiz abgeschlossen!</span><br>'
+    +'<span style="font-size:.9em;color:#444;">Lösung wurde aufgeklappt.</span>'
+    +'<div style="margin-top:8px;"><button onclick="newTask()">&#x27F3;&nbsp;Neue Aufgabe</button></div>'
+    +'</div>';
+}
+
+// ============================================================
+// §10  EQUATION PARSER
+// ============================================================
+function parseEq(raw){
+  var s=(raw||'').trim().replace(/\s+/g,'').replace(/[´′ʼ'']/g,"'").replace(/[−–]/g,'-');
+  var m=s.match(/^f(['']{0,4})\(([^)]+)\)=(.+)$/i);
+  if(!m)return null;
+  var x0=parseNum(m[2]),y0=parseNum(m[3]);
+  if(x0===null||y0===null)return null;
+  return{derOrder:m[1].length,x0:x0,y0:y0};
+}
+function parseNum(s){
+  s=(s||'').trim().replace(/[−–]/g,'-');
+  if(/^-?\d+$/.test(s))return parseInt(s,10);
+  var fm=s.match(/^(-?)(\d+)\/(\d+)$/);
+  if(fm)return(fm[1]?-1:1)*parseInt(fm[2],10)/parseInt(fm[3],10);
+  if(/^-?\d*\.\d+$/.test(s))return parseFloat(s);
+  return null;
+}
+
+// ============================================================
+// §11  RENDER SOLUTION
+// ============================================================
+function renderSolution(task){
+  if(!task)return;
+  var deg=task.deg,coeffs=task.coeffs,km=task.knownMap;
+  var usedDirect=task.usedDirect,usedLGS=task.usedLGS;
+  var showMid=gcb('showMidStep');
+
+  // Short answer
+  var sc=document.getElementById('solutionContent');
+  sc.innerHTML='$$f(x)='+polyTex(coeffs)+'$$';
+  MathJax.typesetPromise([sc]);
+
+  // Full path
+  var sp=document.getElementById('solutionPathContent');
+  var html='';
+
+  // 1. Ansatz
+  html+='<div class="sol-sec"><b>1.&nbsp;Ansatz:</b>'
+    +'<div class="sol-eq">$$\\begin{aligned}f(x) &= '+ansatzTex(deg);
+  if(deg>=1) html+='\\\\ f\'(x) &= '+ansatzDerivTex(deg,1);
+  if(deg>=2) html+='\\\\ f\'\'(x) &= '+ansatzDerivTex(deg,2);
+  if(deg>=3) html+='\\\\ f\'\'\'(x) &= '+ansatzDerivTex(deg,3);
+  html+='\\end{aligned}$$</div></div>';
+
+  // 2. Bedingungen (direct first, then LGS)
+  var orderedGroups=usedDirect.concat(usedLGS);
+  var progressKM=new Map();
+  html+='<div class="sol-sec"><b>2.&nbsp;Bedingungen aufstellen:</b>';
+  orderedGroups.forEach(function(g,i){
+    html+='<div style="margin:7px 0 3px 12px;"><b>('+(i+1)+')</b>&ensp;'+g.text;
+    if(g.isSymmetry){
+      var evenOrOdd=g.eqs.map(function(e){return CL[deg-e.pow];}).join('=');
+      html+='<div class="sol-eq">\\('+evenOrOdd+'=0\\)</div>';
+    } else if(g.isDirect){
+      var eq=g.eqs[0],fn=fnName(eq.derOrder);
+      if(showMid){
+        var raw=ansatzSubRaw(deg,eq.derOrder,eq.x0);
+        var sim=ansatzSubTex2(deg,eq.derOrder,eq.x0);
+        html+='<div class="sol-eq">$$\\begin{aligned}'+fn+'('+numTex(eq.x0)+') &= '+numTex(eq.y0)
+          +'\\\\ \\Longrightarrow\\quad '+raw+' &= '+numTex(eq.y0)
+          +'\\\\ \\Longrightarrow\\quad '+sim+' &= '+numTex(eq.y0)
+          +'\\end{aligned}$$</div>';
+      } else {
+        html+='<div class="sol-eq">$$'+fn+'('+numTex(eq.x0)+')='+numTex(eq.y0)
+          +'\\quad\\Longrightarrow\\quad '+ansatzSubTex2(deg,eq.derOrder,eq.x0)+'='+numTex(eq.y0)+'$$</div>';
+      }
+      html+='<div class="sol-eq" style="margin-left:6px;">&#8658;&ensp;<b>\\('+CL[g.dSolvedIdx]+'='+numTex(g.dSolvedVal)+'\\)</b></div>';
+      progressKM.set(g.dSolvedIdx,g.dSolvedVal);
+    } else {
+      // For tangente: show derivation of y0 from tangent equation before the formal conditions
+      var isTangente=g.type==='tangente';
+      var tangPrelude='';
+      if(isTangente){
+        // Extract slope and intercept from tangent condition
+        // eqs[0] = slope eq {derOrder:1, x0, y0:m}, eqs[1] = point eq {derOrder:0, x0, y0:yv}
+        var slopeEq=g.eqs.find(function(e){return e.derOrder===1;});
+        var pointEq=g.eqs.find(function(e){return e.derOrder===0;});
+        if(slopeEq&&pointEq){
+          var m=slopeEq.y0,x0t=slopeEq.x0,yv=pointEq.y0;
+          var bt=Math.round((yv-m*x0t)*1e9)/1e9;
+          var tVal=tangentTex(m,bt);
+          // Show: t(x0) = m·x0+b = y0 to explain where y0 came from
+          var tEval=''; // compute t(x0) step by step
+          var mPart=m===1?'':numTex(m)+'\\cdot';
+          var bPart=bt>=0?'+'+numTex(bt):(bt<0?numTex(bt):'');
+          tEval='t('+numTex(x0t)+') = '+mPart+numTex(x0t)+bPart+' = '+numTex(yv);
+          tangPrelude='<div class="sol-eq" style="font-size:.9em;color:#555;">'
+            +'Schnittpunkt: \\('+tEval+'\\), also \\(f('+numTex(x0t)+')='+numTex(yv)+'\\)'
+            +'</div>';
+        }
+      }
+      if(tangPrelude) html+=tangPrelude;
+
+      g.eqs.filter(function(e){return e.derOrder!=='sym';}).forEach(function(eq){
+        var fn=fnName(eq.derOrder);
+        var raw=ansatzSubMixed(deg,eq.derOrder,eq.x0,progressKM);
+        var sim=lgsLineTex(deg,eq.derOrder,eq.x0,eq.y0,progressKM,true);
+        if(showMid){
+          html+='<div class="sol-eq">$$\\begin{aligned}'+fn+'('+numTex(eq.x0)+') &= '+numTex(eq.y0)
+            +'\\\\ \\Longrightarrow\\quad '+raw+' &= '+numTex(eq.y0)
+            +'\\\\ \\Longrightarrow\\quad '+sim
+            +'\\end{aligned}$$</div>';
+        } else {
+          html+='<div class="sol-eq">$$'+fn+'('+numTex(eq.x0)+')='+numTex(eq.y0)
+            +'\\quad\\Longrightarrow\\quad '+lgsLineTex(deg,eq.derOrder,eq.x0,eq.y0,progressKM,false)+'$$</div>';
+        }
+      });
+    }
+    html+='</div>';
+  });
+  html+='</div>';
+
+  // Direct solutions
+  var step=3;
+  if(usedDirect.length>0){
+    html+='<div class="sol-sec"><b>'+step+'.&nbsp;Direkt auflösbare Gleichungen:</b>';
+    usedDirect.forEach(function(dc){
+      var eq=dc.eqs[0];
+      html+='<div class="sol-eq">\\('+fnName(eq.derOrder)+'('+numTex(eq.x0)+')='+numTex(eq.y0)+'\\)'
+        +' &ensp;&#8658;&ensp; <b>\\('+CL[dc.dSolvedIdx]+'='+numTex(dc.dSolvedVal)+'\\)</b></div>';
+    });
+    html+='</div>';step++;
+  }
+
+  // LGS
+  var lgsEqs=usedLGS.reduce(function(a,c){return a.concat(c.eqs.filter(function(e){return e.derOrder!=='sym';}));},[]);
+  var symGs=usedLGS.filter(function(c){return c.isSymmetry;});
+  if(lgsEqs.length>0||symGs.length>0){
+    html+='<div class="sol-sec"><b>'+step+'.&nbsp;Lineares Gleichungssystem:</b>'
+      +'<div class="sol-eq">$$'+lgsArrayTex(deg,lgsEqs,symGs,km)+'$$</div></div>';
+    step++;
+    html+='<div class="sol-sec"><b>'+step+'.&nbsp;Lösung des LGS:</b>'
+      +'<div class="sol-eq">$$'+lgsResultTex(deg,coeffs,km)+'$$</div></div>';
+    step++;
+  } else if(usedDirect.length===0){
+    html+='<div class="sol-sec"><b>'+step+'.&nbsp;Alle Koeffizienten direkt bestimmt.</b></div>';step++;
+  }
+
+  html+='<div class="sol-sec"><b>Ergebnis:</b>'
+    +'<div class="sol-eq">$$f(x)='+polyTex(coeffs)+'$$</div></div>';
+
+  sp.innerHTML=html;
+}
+
+document.getElementById('solutionPathDetails').addEventListener('toggle',function(){
+  if(this.open) MathJax.typesetPromise([document.getElementById('solutionPathContent')]);
+});
+
+// Also redraw sketch when sketch details opened
+document.getElementById('settingsDetails').addEventListener('toggle',function(){});
+
+// ============================================================
+// §12  INIT
+// ============================================================
+document.querySelectorAll('#settingsDetails input').forEach(function(el){
+  el.addEventListener('change',function(){syncBlocks();updateURL();});
+});
+// Redraw sketch on resize
+window.addEventListener('resize',function(){
+  if(currentTask) drawSketch(currentTask, quizState&&quizState.stage==='cond'?quizState.condIdx:-1);
+});
+// Redraw when sketch details opened
+document.getElementById('textDetails').addEventListener('toggle',function(e){
+  if(e.target.tagName==='DETAILS'&&currentTask) setTimeout(function(){drawSketch(currentTask,-1);},50);
+},true);
+document.getElementById('sketchDetails').addEventListener('toggle',function(e){
+  if(e.target.tagName==='DETAILS'&&currentTask) setTimeout(function(){drawSketch(currentTask,-1);},50);
+},true);
+
+loadURL();syncBlocks();
+MathJax.startup.promise.then(function(){newTask();});
+</script>
+</body>
+</html>

@@ -80,6 +80,14 @@ const cardsData = [
     "link": "polynom-ableitung.html"
   },
   {
+    "id": "polynom-reko",
+    "title": "Polynome Rekonstruieren",
+    "desc": "Finden einer Polynomfunktion mit bestimmten Eigenschaften ('Steckbriefaufgaben')",
+    "types": ["learn"],
+    "mobilefriendly": true,
+    "link": "polynom_rekonstruieren.html"
+  },
+  {
     "id": "ableitungen",
     "title": "Weitere Ableitungen",
     "desc": "Ableitungen weiterer Standardfunktionen festigen",
