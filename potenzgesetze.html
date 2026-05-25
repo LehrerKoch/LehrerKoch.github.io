@@ -1,0 +1,1128 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script>
+    window.MathJax = { tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] } };
+  </script>
+  <script id="MathJax-script" async
+    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <title>Potenzgesetze üben</title>
+  <link rel="stylesheet" type="text/css" href="styles.css" />
+  <style>
+    body {
+      font-family: sans-serif;
+      -webkit-user-select: none; user-select: none;
+      overflow-x: hidden;
+    }
+    *:focus { outline: none; }
+
+    .site-footer {
+      width: 100%; box-sizing: border-box; padding: 12px 40px;
+      border-top: 1px solid #ccc; margin-top: 20px; margin-bottom: 10px;
+      font-family: sans-serif; font-size: 0.6em; color: #333333d8;
+    }
+    .footer-content {
+      display: flex; justify-content: center; align-items: center;
+      gap: 1.5rem; max-width: 1200px; margin: 0 auto; flex-wrap: wrap; text-align: center;
+    }
+    @media (max-width: 600px) { .footer-content { flex-direction: column; gap: 6px; } }
+
+    #toast {
+      position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+      background: #333; color: #fff; padding: 12px 24px; border-radius: 10px;
+      font-size: 0.95em; opacity: 0; pointer-events: none;
+      transition: opacity 0.4s; z-index: 999; white-space: nowrap;
+    }
+    #toast.show { opacity: 1; }
+
+    #taskWrap {
+      position: relative; width: 100%; min-height: 130px; margin-top: 16px;
+      border: 1px solid #eee; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      background: white; box-sizing: border-box; padding: 18px 24px;
+      z-index: 1;
+    }
+    #taskCard {
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      width: 100%;
+    }
+    .scale-wrapper {
+      overflow: visible; width: 90%; padding: 0.3em 0.5em;
+      display: flex; justify-content: center; align-items: center; flex-shrink: 0;
+      pointer-events: none;
+    }
+    .scale-el {
+      display: inline-block; transform-origin: center center;
+      white-space: nowrap; font-size: 1.6em; pointer-events: none;
+    }
+    .card-sub {
+      font-size: 0.72em; color: #888; margin-top: 6px; text-align: center; flex-shrink: 0;
+    }
+
+    #inputArea {
+      display: flex; flex-direction: column;
+      align-items: center; gap: 8px; margin: 12px 0 0 0; width: 100%;
+    }
+    #answerInput {
+      width: min(380px, 90vw); padding: 8px 12px; font-size: 1.1em;
+      border: 2px solid #ccc; border-radius: 8px; text-align: center;
+      outline: none; transition: border-color 0.2s, background 0.2s;
+      -webkit-user-select: text; user-select: text;
+    }
+    #answerInput:focus { border-color: #4CAF50; }
+    #answerInput.correct { border-color: #28a745; background: #d4edda; color: #155724; }
+    #answerInput.wrong   { border-color: #dc3545; background: #f8d7da; color: #721c24; }
+
+    #checkBtn {
+      padding: 9px 24px; font-size: 1em; border-radius: 8px;
+      border: 2px solid #4CAF50; background: #e8f5e9; color: #1b5e20;
+      cursor: pointer; font-weight: bold;
+      transition: background 0.15s, border-color 0.15s; letter-spacing: 0.02em;
+    }
+    #checkBtn:hover { background: #c8e6c9; border-color: #388e3c; }
+
+    #answerHint {
+      font-size: 0.84em; color: #555; background: #fff3cd;
+      border: 1px solid #e0a800; border-radius: 6px;
+      padding: 6px 14px; text-align: center;
+      display: none; max-width: min(380px, 90vw);
+    }
+    #answerHint.visible { display: block; }
+
+    .btn-row {
+      display: flex; justify-content: center; gap: 8px; margin-top: 10px; flex-wrap: wrap;
+    }
+    #revealBtn {
+      padding: 9px 18px; font-size: 1em; border-radius: 8px;
+      border: 2px solid #ddd; background: #fafafa; color: #666;
+      cursor: pointer; transition: background 0.15s;
+    }
+    #revealBtn:hover { background: #f0eeee; border-color: #bbb; }
+    #nextBtn {
+      padding: 9px 24px; font-size: 1em; border-radius: 8px;
+      border: 2px solid #aaa; background: #f5f5f5; color: #333;
+      cursor: pointer; transition: background 0.15s;
+    }
+    #nextBtn:hover { background: #e0e0e0; }
+
+    #counter { text-align: center; font-weight: bold; margin-top: 12px; }
+
+    .slider-row { display: flex; align-items: center; gap: 8px; font-size: 0.82em; margin: 4px 0 4px 0; }
+    .slider-row input[type=range] { width: 110px; }
+  </style>
+</head>
+<body>
+<div id="toast"></div>
+
+<h1>Potenzgesetze üben</h1>
+
+<details>
+  <summary>Einstellungen</summary>
+  <form id="settingsForm">
+
+    <div class="form-block">
+      <b>Potenzgesetze:</b>
+      <button type="button" class="section-toggle-btn" id="toggleAllLawsBtn">alle</button><br>
+      <label style="font-size:0.82em;cursor:pointer;display:inline-block;margin:2px 0">
+        <input type="checkbox" class="law-cb" value="product" checked>
+        Produktregel &nbsp;<span style="font-family:monospace">aⁿ·aᵐ = aⁿ⁺ᵐ</span>
+      </label><br>
+      <label style="font-size:0.82em;cursor:pointer;display:inline-block;margin:2px 0">
+        <input type="checkbox" class="law-cb" value="quotient" checked>
+        Quotientenregel &nbsp;<span style="font-family:monospace">aⁿ:aᵐ = aⁿ⁻ᵐ</span>
+      </label><br>
+      <label style="font-size:0.82em;cursor:pointer;display:inline-block;margin:2px 0">
+        <input type="checkbox" class="law-cb" value="power" checked>
+        Potenzregel &nbsp;<span style="font-family:monospace">(aⁿ)ᵐ = aⁿ·ᵐ</span>
+      </label><br>
+      <label style="font-size:0.82em;cursor:pointer;display:inline-block;margin:2px 0">
+        <input type="checkbox" class="law-cb" value="productPower" checked>
+        Produkt-Potenzregel &nbsp;<span style="font-family:monospace">(a·b)ⁿ = aⁿ·bⁿ</span>
+      </label><br>
+      <label style="font-size:0.82em;cursor:pointer;display:inline-block;margin:2px 0">
+        <input type="checkbox" class="law-cb" value="quotientPower" checked>
+        Quotienten-Potenzregel &nbsp;<span style="font-family:monospace">(a/b)ⁿ = aⁿ/bⁿ</span>
+      </label><br>
+      <label style="font-size:0.82em;cursor:pointer;display:inline-block;margin:2px 0">
+        <input type="checkbox" class="law-cb" value="sqrt">
+        Wurzeln &nbsp;<span style="font-family:monospace">√(aⁿ), (√a)ⁿ</span>
+      </label><br>
+      <label style="font-size:0.82em;cursor:pointer;display:inline-block;margin:2px 0">
+        <input type="checkbox" class="law-cb" value="binom1">
+        1. Bin. Formel &nbsp;<span style="font-family:monospace">(a+b)² = a²+2ab+b²</span>
+      </label><br>
+      <label style="font-size:0.82em;cursor:pointer;display:inline-block;margin:2px 0">
+        <input type="checkbox" class="law-cb" value="binom2">
+        2. Bin. Formel &nbsp;<span style="font-family:monospace">(a−b)² = a²−2ab+b²</span>
+      </label><br>
+      <label style="font-size:0.82em;cursor:pointer;display:inline-block;margin:2px 0">
+        <input type="checkbox" class="law-cb" value="binom3">
+        3. Bin. Formel &nbsp;<span style="font-family:monospace">(a+b)(a−b) = a²−b²</span>
+      </label>
+    </div>
+
+    <div class="form-block">
+      <b>Optionen:</b><br>
+      <label style="font-size:0.82em;cursor:pointer;display:inline-block;margin:2px 0">
+        <input type="checkbox" id="withNumbers">
+        Zahlen als Koeffizienten
+        &nbsp;<span style="font-family:monospace">z.B. (15x³)²</span>
+      </label><br>
+      <label style="font-size:0.82em;cursor:pointer;display:inline-block;margin:2px 0">
+        <input type="checkbox" id="withRoots">
+        Wurzeln (2.–5. Ordnung)
+        &nbsp;<span style="font-family:monospace">z.B. ∛(a⁶·b³)</span>
+      </label>
+    </div>
+
+    <div class="form-block">
+      <b>Schwierigkeitsgrad der Exponenten:</b><br>
+      <div class="radio-group">
+        <label style="font-size:0.82em">
+          <input type="radio" name="expMode" value="simple" checked>
+          Einfach &nbsp;<span style="font-family:monospace;color:#888">exp. 2–4, ausrechenbar</span>
+        </label>
+        <label style="font-size:0.82em">
+          <input type="radio" name="expMode" value="hard">
+          Schwer &nbsp;<span style="font-family:monospace;color:#888">exp. 5–12, Gesetze nötig</span>
+        </label>
+      </div>
+    </div>
+
+    <div class="form-block">
+      <b>Vorzeichen &amp; besondere Exponenten:</b>
+      <button type="button" class="section-toggle-btn" onclick="toggleSection(['negExp','negBase'])">alle</button><br>
+      <label style="font-size:0.82em;cursor:pointer;display:inline-block;margin:2px 0">
+        <input type="checkbox" id="negExp">
+        Negative Exponenten im Ergebnis
+        &nbsp;<span style="font-family:monospace">z.B. a²:a⁵ = a⁻³</span>
+      </label><br>
+      <label style="font-size:0.82em;cursor:pointer;display:inline-block;margin:2px 0">
+        <input type="checkbox" id="negBase">
+        Negative Basen
+        &nbsp;<span style="font-family:monospace">z.B. (−a)⁴ = a⁴</span>
+      </label>
+    </div>
+
+    <div class="form-block">
+      <b>Kombinierte Aufgaben: <span id="comboLabel">50 %</span></b><br>
+      <span style="font-size:0.75em;color:#888;display:block;margin-bottom:4px">
+        Anteil kombinierter Aufgaben – höhere Werte bedeuten auch längere und mehr-variable Aufgaben
+      </span>
+      <div class="slider-row">
+        <span style="font-size:0.8em">nie</span>
+        <input id="comboSlider" type="range" min="0" max="100" step="5" value="50">
+        <span style="font-size:0.8em">immer</span>
+      </div>
+    </div>
+
+    <div class="form-block">
+      <b>Maximale Variablenanzahl: <span id="varCountLabel">2</span></b><br>
+      <div class="slider-row">
+        <span>1</span>
+        <input id="varCount" type="range" min="1" max="3" value="2">
+        <span>3</span>
+      </div>
+    </div>
+
+    <div class="form-block">
+      <b>Variablenstil:</b><br>
+      <div class="radio-group">
+        <label><input type="radio" name="varStyle" value="abc" checked> a, b, c</label>
+        <label><input type="radio" name="varStyle" value="xyz"> x, y, z</label>
+        <label><input type="radio" name="varStyle" value="random"> zufällig</label>
+      </div>
+    </div>
+
+  </form>
+</details>
+
+<p style="font-size:0.82em;color:#555;margin:8px 0 4px 2px;">
+  <em>Hinweis: Alle Variablen sind positiv.</em>
+</p>
+
+<details id="lawReminder">
+  <summary>Zur Erinnerung: Potenzgesetze</summary>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:6px 18px;padding:10px 4px;font-size:0.87em;">
+    <div>
+      <strong>Produktregel</strong><br>
+      $a^n \cdot a^m = a^{n+m}$
+    </div>
+    <div>
+      <strong>Quotientenregel</strong><br>
+      $a^n : a^m = a^{n-m}$
+    </div>
+    <div>
+      <strong>Potenzregel</strong><br>
+      $(a^n)^m = a^{n \cdot m}$
+    </div>
+    <div>
+      <strong>Produkt-Potenzregel</strong><br>
+      $(a \cdot b)^n = a^n \cdot b^n$
+    </div>
+    <div>
+      <strong>Quotienten-Potenzregel</strong><br>
+      $\left(\dfrac{a}{b}\right)^n = \dfrac{a^n}{b^n}$
+    </div>
+    <div>
+      <strong>Negativer Exponent</strong><br>
+      $a^{-n} = \dfrac{1}{a^n}$
+    </div>
+    <div>
+      <strong>Nullter Exponent</strong><br>
+      $a^0 = 1$
+    </div>
+    <div>
+      <strong>Wurzel als Potenz (Quadrat)</strong><br>
+      $\sqrt{a} = a^{1/2},\quad \sqrt{a^n} = a^{n/2}$
+    </div>
+    <div>
+      <strong>Wurzel als Potenz (allgemein)</strong><br>
+      $\sqrt[k]{a} = a^{1/k},\quad \sqrt[k]{a^n} = a^{n/k}$
+    </div>
+    <div>
+      <strong>1. Binomische Formel</strong><br>
+      $(a+b)^2 = a^2 + 2ab + b^2$
+    </div>
+    <div>
+      <strong>2. Binomische Formel</strong><br>
+      $(a-b)^2 = a^2 - 2ab + b^2$
+    </div>
+    <div>
+      <strong>3. Binomische Formel</strong><br>
+      $(a+b)(a-b) = a^2 - b^2$
+    </div>
+  </div>
+</details>
+
+<p id="counter">Richtig: 0 / 0</p>
+
+<div class="btn-row" style="margin-top:10px;margin-bottom:6px;">
+  <button id="nextBtn">Neue Aufgabe</button>
+</div>
+
+<div id="taskWrap">
+  <div id="taskCard">
+    <div class="scale-wrapper">
+      <div id="taskText" class="scale-el"></div>
+    </div>
+    <div class="card-sub" id="taskSub"></div>
+  </div>
+</div>
+
+<div id="inputArea">
+  <input type="text" id="answerInput"
+    autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+    placeholder="Vereinfachten Term eingeben">
+  <div id="answerHint"></div>
+  <button id="checkBtn">Lösung überprüfen</button>
+</div>
+
+<div class="btn-row">
+  <button id="revealBtn">Lösung anzeigen</button>
+</div>
+
+<footer class="site-footer">
+  <div class="footer-content">
+    M.&nbsp;Koch
+    <span class="footer-topic">Mathe-Tools</span>
+    <span class="footer-update">Zuletzt aktualisiert:&nbsp;<span id="last-update">...</span></span>
+  </div>
+</footer>
+<script src="last-update.js" defer></script>
+
+<script>
+/* ════════════════════════════════════════════════
+   MathJax + scaling helpers
+   ════════════════════════════════════════════════ */
+let _mjPending = false, _mjElements = new Set();
+function typesetMath(el) {
+  if (!window.MathJax) return;
+  if (el) _mjElements.add(el);
+  if (_mjPending) return;
+  _mjPending = true;
+  requestAnimationFrame(() => {
+    _mjPending = false;
+    const targets = _mjElements.size > 0 ? [..._mjElements] : null;
+    _mjElements = new Set();
+    if (!MathJax.typesetPromise) return;
+    if (targets && MathJax.typesetClear) MathJax.typesetClear(targets);
+    MathJax.typesetPromise(targets).catch(() => {});
+  });
+}
+
+let _scalePending = false;
+function scheduleScale() {
+  if (_scalePending) return;
+  _scalePending = true;
+  setTimeout(() => { _scalePending = false; scaleAllElements(); }, 50);
+}
+function scaleToFit(el) {
+  if (!el) return;
+  el.style.transform = 'none';
+  const wrapper = el.parentElement;
+  if (!wrapper) return;
+  requestAnimationFrame(() => {
+    const available = wrapper.clientWidth
+      - parseFloat(getComputedStyle(wrapper).paddingLeft || 0)
+      - parseFloat(getComputedStyle(wrapper).paddingRight || 0);
+    const natural = el.scrollWidth;
+    if (natural > available && available > 0) {
+      const scale = available / natural;
+      el.style.transform = `scale(${scale})`;
+      wrapper.style.height = (el.scrollHeight * scale) + 'px';
+    } else {
+      wrapper.style.height = '';
+    }
+  });
+}
+function scaleAllElements() {
+  document.querySelectorAll('.scale-el').forEach(scaleToFit);
+}
+window.addEventListener('resize', scaleAllElements);
+
+/* ════════════════════════════════════════════════
+   Helpers
+   ════════════════════════════════════════════════ */
+function randomInt(min, max) { return min + Math.floor(Math.random() * (max - min + 1)); }
+function randomChoice(arr)   { return arr[Math.floor(Math.random() * arr.length)]; }
+
+function showToast(msg, dur = 1800) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), dur);
+}
+
+/* ════════════════════════════════════════════════
+   Answer normalisation & comparison
+   ════════════════════════════════════════════════ */
+function preprocess(s) {
+  return String(s).trim()
+    .replace(/·/g, '*').replace(/×/g, '*')
+    .replace(/²/g, '^2').replace(/³/g, '^3').replace(/⁴/g, '^4')
+    .replace(/⁵/g, '^5').replace(/⁶/g, '^6').replace(/⁷/g, '^7')
+    .replace(/⁸/g, '^8').replace(/⁹/g, '^9').replace(/⁻/g, '^-')
+    .replace(/\^\{(-?\d+)\}/g, '^$1')
+    .replace(/\s+/g, '').toLowerCase();
+}
+
+/* Parse monomial → {coeff, vars}. Supports negative exponents a^-3. */
+function parseMono(raw) {
+  let s = preprocess(raw);
+  let coeff = 1;
+  const vars = {};
+  if (s.startsWith('-')) { coeff = -1; s = s.slice(1); }
+  else if (s.startsWith('+')) { s = s.slice(1); }
+
+  for (const f of s.split('*')) {
+    if (!f) return null;
+    if (/^-?\d+(\.\d+)?$/.test(f)) {
+      coeff *= parseFloat(f);
+    } else {
+      let rest = f;
+      const numM = rest.match(/^(-?\d+(?:\.\d+)?)/);
+      if (numM) { coeff *= parseFloat(numM[1]); rest = rest.slice(numM[1].length); }
+      if (!rest) continue;
+      const varRe = /([a-z])(?:\^(-?\d+))?/g;
+      let m, consumed = 0;
+      while ((m = varRe.exec(rest)) !== null) {
+        vars[m[1]] = (vars[m[1]] || 0) + (m[2] ? parseInt(m[2]) : 1);
+        consumed = varRe.lastIndex;
+      }
+      if (consumed !== rest.length) return null;
+    }
+  }
+  return { coeff, vars };
+}
+
+function monosEqual(aStr, bStr) {
+  const a = parseMono(aStr), b = parseMono(bStr);
+  if (!a || !b) return preprocess(aStr) === preprocess(bStr);
+  if (Math.abs(a.coeff - b.coeff) > 1e-9) return false;
+  const all = new Set([...Object.keys(a.vars), ...Object.keys(b.vars)]);
+  for (const v of all) if ((a.vars[v] || 0) !== (b.vars[v] || 0)) return false;
+  return true;
+}
+
+function parsePoly(str) {
+  const s = preprocess(str), terms = [];
+  const re = /[+\-]?[^+\-]+/g;
+  let m;
+  while ((m = re.exec(s)) !== null) {
+    let tok = m[0], neg = false;
+    if (tok.startsWith('-')) { neg = true; tok = tok.slice(1); }
+    else if (tok.startsWith('+')) { tok = tok.slice(1); }
+    const mono = parseMono(tok);
+    if (!mono) return null;
+    terms.push({ coeff: neg ? -mono.coeff : mono.coeff, vars: mono.vars });
+  }
+  return terms;
+}
+
+function polyCanonical(str) {
+  const terms = parsePoly(str);
+  if (!terms) return preprocess(str);
+  terms.sort((a, b) => {
+    const ka = Object.keys(a.vars).sort().map(v => `${v}${a.vars[v]}`).join('');
+    const kb = Object.keys(b.vars).sort().map(v => `${v}${b.vars[v]}`).join('');
+    return ka < kb ? -1 : ka > kb ? 1 : 0;
+  });
+  return terms.map((t, i) => {
+    const absC = Math.abs(t.coeff);
+    const vKeys = Object.keys(t.vars).filter(v => t.vars[v] !== 0).sort();
+    const parts = [];
+    if (absC !== 1 || vKeys.length === 0) parts.push(String(absC));
+    vKeys.forEach(v => { const e = t.vars[v]; parts.push(e === 1 ? v : `${v}^${e}`); });
+    const sign = t.coeff < 0 ? '-' : (i > 0 ? '+' : '');
+    return sign + parts.join('');
+  }).join('');
+}
+
+function answersEqual(userRaw, expectedRaw, solType) {
+  const u = preprocess(userRaw), e = preprocess(expectedRaw);
+  if (u === e) return true;
+  if (solType === 'poly') return polyCanonical(u) === polyCanonical(e);
+  if (solType === 'frac' || u.includes('/') || e.includes('/')) {
+    const sf = s => { const i = s.indexOf('/'); return i < 0 ? [s,'1'] : [s.slice(0,i), s.slice(i+1)]; };
+    const [un,ud] = sf(u), [en,ed] = sf(e);
+    return monosEqual(un,en) && monosEqual(ud,ed);
+  }
+  return monosEqual(u, e);
+}
+
+function solToLatex(sol, solType) {
+  let s = sol.replace(/\*/g, '');
+  s = s.replace(/\^(-\d+)/g, '^{$1}');    // a^-3  → a^{-3}
+  s = s.replace(/\^(\d{2,})/g, '^{$1}');  // x^12  → x^{12}
+  if (solType === 'frac') {
+    const idx = s.indexOf('/');
+    if (idx >= 0) s = `\\frac{${s.slice(0,idx)}}{${s.slice(idx+1)}}`;
+  }
+  return s;
+}
+
+/* ════════════════════════════════════════════════
+   Settings
+   ════════════════════════════════════════════════ */
+function getSelectedLaws() { return [...document.querySelectorAll('.law-cb:checked')].map(cb => cb.value); }
+function getVarCount()    { return parseInt(document.getElementById('varCount').value)||2; }
+function getComboProb()   { return parseInt(document.getElementById('comboSlider').value)||0; }
+function isWithNumbers()  { return document.getElementById('withNumbers').checked; }
+function isWithRoots()    { return document.getElementById('withRoots').checked; }
+function isNegExp()       { return document.getElementById('negExp').checked; }
+function isNegBase()      { return document.getElementById('negBase').checked; }
+function isHardMode()     { return document.querySelector('input[name="expMode"]:checked')?.value === 'hard'; }
+
+/**
+ * Random exponent.
+ * Simple mode (default): 2–4, small enough to expand by hand.
+ * Hard mode: 5–12, power laws genuinely needed.
+ */
+function randExp() { return isHardMode() ? randomInt(9, 40) : randomInt(2, 8); }
+
+function toggleSection(ids) {
+  const cbs = ids.map(id => document.getElementById(id)).filter(Boolean);
+  if (!cbs.length) return;
+  const allOn = cbs.every(cb => cb.checked);
+  cbs.forEach(cb => { cb.checked = !allOn; });
+}
+
+/**
+ * Pick n variable names.
+ * force=true: always use exactly n (for structurally 2-var laws).
+ * force=false: cap at slider value.
+ */
+function pickVars(n, force = false) {
+  const count = force ? n : Math.max(1, Math.min(n, getVarCount()));
+  const style = document.querySelector('input[name="varStyle"]:checked').value;
+  if (style === 'abc') return ['a','b','c'].slice(0, count);
+  if (style === 'xyz') return ['x','y','z'].slice(0, count);
+  const pool = [], alpha = 'abcdefghijklmnopqrstuvwxyz'.split('');
+  while (pool.length < count) { const c = randomChoice(alpha); if (!pool.includes(c)) pool.push(c); }
+  return pool;
+}
+
+/* ════════════════════════════════════════════════
+   Numeric coefficient pool
+   Quadratzahlen bis 20 + wichtige Potenzen
+   ════════════════════════════════════════════════ */
+// For outer exponent 2: bases 1–20 are all fine (15² = 225 is still manageable)
+const COEFF_POOL_EXP2  = [2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20];
+// For outer exponent 3+: keep bases small so results stay reasonable
+const COEFF_POOL_LARGE = [2,3,4,5,6,7,8,9,10,12];
+
+function pickCoeff(outerExp) {
+  if (!isWithNumbers()) return null;
+  const pool = (outerExp && outerExp >= 3) ? COEFF_POOL_LARGE : COEFF_POOL_EXP2;
+  return randomChoice(pool);
+}
+
+/* ════════════════════════════════════════════════
+   Negative-base helper
+   Returns {baseLatex, negSign} where negSign is true when
+   the outer exponent is odd → result gets a leading minus.
+   ════════════════════════════════════════════════ */
+function maybeNegBase(v, outerExp) {
+  if (!isNegBase() || Math.random() < 0.5) return { baseLatex: v, negSign: false };
+  return { baseLatex: `(-${v})`, negSign: (outerExp % 2 !== 0) };
+}
+
+/* ════════════════════════════════════════════════
+   Task generation
+   ════════════════════════════════════════════════ */
+const LAW_LABELS = {
+  product:       'Produktregel (aⁿ·aᵐ = aⁿ⁺ᵐ)',
+  quotient:      'Quotientenregel (aⁿ:aᵐ = aⁿ⁻ᵐ)',
+  power:         'Potenzregel ((aⁿ)ᵐ = aⁿ·ᵐ)',
+  productPower:  'Produkt-Potenzregel ((ab)ⁿ = aⁿbⁿ)',
+  quotientPower: 'Quotienten-Potenzregel ((a/b)ⁿ = aⁿ/bⁿ)',
+  sqrt:          'Wurzeln',
+  binom1:        '1. Bin. Formel  (a+b)² = a²+2ab+b²',
+  binom2:        '2. Bin. Formel  (a−b)² = a²−2ab+b²',
+  binom3:        '3. Bin. Formel  (a+b)(a−b) = a²−b²',
+  multi:         'Mehrere Gesetze kombiniert',
+};
+
+const PLACEHOLDERS = {
+  mono: 'z.B. a^7 + 2^3/b^3 + sqrt(3)',
+  frac: 'z.B. a^7 + 2^3/b^3 + sqrt(3)',
+  poly: 'z.B. a^7 + 2^3/b^3 + sqrt(3)',
+};
+
+function generateSingleTask(law, vars) {
+  const v = vars[0], w = vars[1] || 'b';
+  const n = randExp();
+  // Outer exponent: always 2–4 regardless of mode (it's the *structure* exp, not the one being simplified).
+  // When a numeric coefficient is involved, cap at 2 so c^m stays reasonable.
+  const m     = randomInt(2, 4);
+  const mCoeff = 2;
+
+  switch (law) {
+
+    // ── Produktregel ────────────────────────────────
+    case 'product': {
+      // Negative-exp variant: v^n · v^{-m} = v^{n-m}
+      if (isNegExp() && Math.random() < 0.4) {
+        const negM = -m, resExp = n + negM;
+        const expStr = resExp === 0 ? '' : resExp === 1 ? '' : `^${resExp}`;
+        const sol = resExp === 0 ? '1' : resExp === 1 ? v : `${v}${expStr}`;
+        return {
+          latex:    `${v}^{${n}} \\cdot ${v}^{${negM}}`,
+          solution: sol, solType: 'mono', law,
+        };
+      }
+      const { baseLatex, negSign } = maybeNegBase(v, n + m);
+      const resExp = n + m;
+      const sign = negSign ? '-' : '';
+      return {
+        latex:    `${baseLatex}^{${n}} \\cdot ${baseLatex}^{${m}}`,
+        solution: `${sign}${v}^${resExp}`,
+        solType: 'mono', law,
+      };
+    }
+
+    // ── Quotientenregel ──────────────────────────────
+    case 'quotient': {
+      // Negative-exp variant: small : big → negative exponent
+      if (isNegExp() && Math.random() < 0.45) {
+        return {
+          latex:    `${v}^{${n}} : ${v}^{${n + m}}`,
+          solution: `${v}^${-m}`,
+          solType: 'mono', law,
+        };
+      }
+      // Normal: (n+m) : m = n
+      const { baseLatex, negSign } = maybeNegBase(v, n);
+      const sign = negSign ? '-' : '';
+      const expStr = n === 1 ? '' : `^${n}`;
+      return {
+        latex:    `${baseLatex}^{${n + m}} : ${baseLatex}^{${m}}`,
+        solution: `${sign}${v}${expStr}`,
+        solType: 'mono', law,
+      };
+    }
+
+    // ── Potenzregel ──────────────────────────────────
+    case 'power': {
+      const { baseLatex, negSign } = maybeNegBase(v, n * m);
+      const sign = negSign ? '-' : '';
+      return {
+        latex:    `\\left(${baseLatex}^{${n}}\\right)^{${m}}`,
+        solution: `${sign}${v}^${n * m}`,
+        solType: 'mono', law,
+      };
+    }
+
+    // ── Produkt-Potenzregel ──────────────────────────
+    case 'productPower': {
+      const c = pickCoeff(mCoeff);
+      if (c) {
+        const cn = Math.round(Math.pow(c, mCoeff));
+        return {
+          latex:    `\\left(${c} \\cdot ${v} \\cdot ${w}\\right)^{${mCoeff}}`,
+          solution: `${cn}*${v}^${mCoeff}*${w}^${mCoeff}`,
+          solType: 'mono', law,
+        };
+      }
+      return {
+        latex:    `\\left(${v} \\cdot ${w}\\right)^{${m}}`,
+        solution: `${v}^${m}*${w}^${m}`,
+        solType: 'mono', law,
+      };
+    }
+
+    // ── Quotienten-Potenzregel ───────────────────────
+    case 'quotientPower':
+      return {
+        latex:    `\\left(\\frac{${v}}{${w}}\\right)^{${n}}`,
+        solution: `${v}^${n}/${w}^${n}`,
+        solType: 'frac', law,
+      };
+
+    case 'sqrt': return generateSqrtTask(vars);
+
+    // ── Binomische Formeln ───────────────────────────
+    case 'binom1': {
+      const ca = pickCoeff(2), cb = pickCoeff(2);
+      if (ca || cb) {
+        const a = ca||1, b = cb||1;
+        const vp = a > 1 ? `${a}${v}` : v, wp = b > 1 ? `${b}${w}` : w;
+        return {
+          latex:    `(${vp} + ${wp})^2`,
+          solution: `${a*a}*${v}^2+${2*a*b}*${v}*${w}+${b*b}*${w}^2`,
+          solType: 'poly', law,
+        };
+      }
+      return { latex:`(${v} + ${w})^2`, solution:`${v}^2+2*${v}*${w}+${w}^2`, solType:'poly', law };
+    }
+
+    case 'binom2': {
+      const ca = pickCoeff(2), cb = pickCoeff(2);
+      if (ca || cb) {
+        const a = ca||1, b = cb||1;
+        const vp = a > 1 ? `${a}${v}` : v, wp = b > 1 ? `${b}${w}` : w;
+        return {
+          latex:    `(${vp} - ${wp})^2`,
+          solution: `${a*a}*${v}^2-${2*a*b}*${v}*${w}+${b*b}*${w}^2`,
+          solType: 'poly', law,
+        };
+      }
+      return { latex:`(${v} - ${w})^2`, solution:`${v}^2-2*${v}*${w}+${w}^2`, solType:'poly', law };
+    }
+
+    case 'binom3': {
+      const ca = pickCoeff(2), cb = pickCoeff(2);
+      if (ca || cb) {
+        const a = ca||1, b = cb||1;
+        const vp = a > 1 ? `${a}${v}` : v, wp = b > 1 ? `${b}${w}` : w;
+        return {
+          latex:    `(${vp} + ${wp})(${vp} - ${wp})`,
+          solution: `${a*a}*${v}^2-${b*b}*${w}^2`,
+          solType: 'poly', law,
+        };
+      }
+      return { latex:`(${v} + ${w})(${v} - ${w})`, solution:`${v}^2-${w}^2`, solType:'poly', law };
+    }
+  }
+  return null;
+}
+
+function generateSqrtTask(vars) {
+  const v = vars[0], w = vars[1] || 'b';
+  // Root order: simple mode → √ only; hard mode → all orders
+  const r = isHardMode() ? randomChoice([2,2,3,3,4,5]) : 2;
+  const rootLatex = r === 2 ? '\\sqrt' : `\\sqrt[${r}]`;
+  // exponent multiplier k: for hard mode allow larger k
+  const k = randomInt(1, isHardMode() ? 4 : 3);
+  const type = randomInt(1, 4);
+
+  if (type === 1) {
+    return {
+      latex:    `${rootLatex}{${v}^{${k*r}}}`,
+      solution: k===1 ? v : `${v}^${k}`,
+      solType: 'mono', law: 'sqrt',
+    };
+  }
+  if (type === 2) {
+    return {
+      latex:    `\\left(${rootLatex}{${v}}\\right)^{${k*r}}`,
+      solution: k===1 ? v : `${v}^${k}`,
+      solType: 'mono', law: 'sqrt',
+    };
+  }
+  if (type === 3) {
+    const j = randomInt(1, isHardMode() ? 4 : 3);
+    const sol = (k===1?v:`${v}^${k}`) + '*' + (j===1?w:`${w}^${j}`);
+    return {
+      latex:    `${rootLatex}{${v}^{${k*r}} \\cdot ${w}^{${j*r}}}`,
+      solution: sol,
+      solType: 'mono', law: 'sqrt',
+    };
+  }
+  // type 4: √v · √v = v  (only meaningful for r=2)
+  if (r === 2) {
+    return { latex:`\\sqrt{${v}} \\cdot \\sqrt{${v}}`, solution:v, solType:'mono', law:'sqrt' };
+  }
+  // fallback for higher r: just type 1 variant
+  return {
+    latex:    `${rootLatex}{${v}^{${k*r}}}`,
+    solution: k===1 ? v : `${v}^${k}`,
+    solType: 'mono', law: 'sqrt',
+  };
+}
+
+/* ════════════════════════════════════════════════
+   Compositional combo generator
+   ════════════════════════════════════════════════
+   An expression is a chain of "atoms" joined by · or :
+   Each atom applies one law and contributes a {coeff, varMap}.
+   The chain is evaluated left-to-right symbolically, then
+   rendered as LaTeX and solution string.
+
+   Atom types:
+     SIMPLE       v^n                           (product rule appears between atoms)
+     POW_POW      (v^n)^m                       (power rule)
+     COEFF_POW    (c·v^n)^m                     (power + productPower)
+     NEG_BASE     (−v)^n                        (negative base)
+     PROD_2V      (v^n·w^p)^m                   (productPower, 2 vars)
+     COEFF_2V     (c·v^n·w^p)^m                 (productPower + coeff, 2 vars)
+     PROD_3V      (v^n·w^p·u^q)^m               (productPower, 3 vars)
+     COEFF_3V     (c·v^n·w^p·u^q)^m             (productPower + coeff, 3 vars)
+
+   Chain operators · and : produce product/quotient rules between atoms.
+   ════════════════════════════════════════════════ */
+
+/* ════════════════════════════════════════════════
+   Root-wrapping helper
+   Picks root order r ∈ {2,3,4,5}, generates inner
+   expression whose exponents are all multiples of r,
+   wraps in \sqrt[r]{...}, returns {latex, coeff, varMap}
+   with exponents divided by r.
+   ════════════════════════════════════════════════ */
+function makeRootAtom(vars, can2, can3) {
+  const [v, w, u] = vars;
+  const r = randomChoice([2, 2, 2, 3, 3, 4, 5]); // weight towards √
+  // Multiplier k so exponent inside = k*r
+  const k  = randomInt(1, isHardMode() ? 4 : 2);
+  const k2 = randomInt(1, isHardMode() ? 4 : 2);
+  const k3 = randomInt(1, isHardMode() ? 4 : 2);
+
+  const rootLatex = r === 2 ? '\\sqrt' : `\\sqrt[${r}]`;
+
+  // Optionally include an outer coefficient raised to r-th power inside root
+  const c = isWithNumbers() && Math.random() < 0.4 ? pickCoeff(r) : null;
+  const coeffInside = c ? `${c}^{${r}} \\cdot ` : '';
+  const coeffOutside = c ? c : 1; // c^r inside → c outside
+
+  const type = can3 && Math.random() < 0.25 ? '3v'
+             : can2 && Math.random() < 0.5  ? '2v' : '1v';
+
+  if (type === '1v') {
+    return {
+      latex: `${rootLatex}{${coeffInside}${v}^{${k*r}}}`,
+      coeff: coeffOutside,
+      varMap: {[v]: k},
+    };
+  }
+  if (type === '2v') {
+    return {
+      latex: `${rootLatex}{${coeffInside}${v}^{${k*r}} \\cdot ${w}^{${k2*r}}}`,
+      coeff: coeffOutside,
+      varMap: {[v]: k, [w]: k2},
+    };
+  }
+  // 3v
+  return {
+    latex: `${rootLatex}{${coeffInside}${v}^{${k*r}} \\cdot ${w}^{${k2*r}} \\cdot ${u}^{${k3*r}}}`,
+    coeff: coeffOutside,
+    varMap: {[v]: k, [w]: k2, [u]: k3},
+  };
+}
+
+/**
+ * Build one atom. Returns {latex, coeff, varMap}.
+ * vars is shuffled per atom so all variables get used as primaries.
+ */
+function makeAtom(vars, can2, can3) {
+  const [v, w, u] = vars;
+  const n = randExp();
+  // Outer exponent m stays small (2–4) so results stay manageable;
+  // when a numeric coefficient c is involved, cap m at 2 so c^m doesn't explode.
+  const mFull  = randomInt(2, 4);  // for atom types without numeric coefficient
+  const mCoeff = 2;                // for atom types with numeric coefficient
+
+  // Build weighted type pool
+  const pool = [
+    'SIMPLE','SIMPLE','SIMPLE',
+    'POW_POW','POW_POW','POW_POW',
+    ...(isWithNumbers() ? ['COEFF_POW','COEFF_POW','COEFF_POW'] : []),
+    ...(isNegBase()     ? ['NEG_BASE','NEG_BASE']                : []),
+    ...(can2            ? ['PROD_2V','PROD_2V','PROD_2V','PROD_2V']       : []),
+    ...(can2 && isWithNumbers() ? ['COEFF_2V','COEFF_2V','COEFF_2V']     : []),
+    ...(can3            ? ['PROD_3V','PROD_3V','PROD_3V']                 : []),
+    ...(can3 && isWithNumbers() ? ['COEFF_3V','COEFF_3V']                : []),
+    ...(isWithRoots()   ? ['ROOT','ROOT','ROOT','ROOT']                   : []),
+  ];
+
+  switch (randomChoice(pool)) {
+
+    case 'SIMPLE':
+      return { latex: `${v}^{${n}}`, coeff: 1, varMap: {[v]: n} };
+
+    case 'POW_POW':
+      return { latex: `\\left(${v}^{${n}}\\right)^{${mFull}}`, coeff: 1, varMap: {[v]: n*mFull} };
+
+    case 'COEFF_POW': {
+      const c = pickCoeff(mCoeff) || randomInt(2,5);
+      const cm = Math.round(Math.pow(c,mCoeff));
+      return { latex: `\\left(${c}${v}^{${n}}\\right)^{${mCoeff}}`, coeff: cm, varMap: {[v]: n*mCoeff} };
+    }
+
+    case 'NEG_BASE':
+      return { latex: `\\left(-${v}\\right)^{${n}}`, coeff: n%2===0?1:-1, varMap: {[v]: n} };
+
+    case 'PROD_2V': {
+      const p = randExp();
+      return {
+        latex: `\\left(${v}^{${n}} \\cdot ${w}^{${p}}\\right)^{${mFull}}`,
+        coeff: 1, varMap: {[v]: n*mFull, [w]: p*mFull},
+      };
+    }
+
+    case 'COEFF_2V': {
+      const p = randExp(), c = pickCoeff(mCoeff)||randomInt(2,4), cm = Math.round(Math.pow(c,mCoeff));
+      return {
+        latex: `\\left(${c} \\cdot ${v}^{${n}} \\cdot ${w}^{${p}}\\right)^{${mCoeff}}`,
+        coeff: cm, varMap: {[v]: n*mCoeff, [w]: p*mCoeff},
+      };
+    }
+
+    case 'PROD_3V': {
+      const p = randExp(), q = randExp();
+      return {
+        latex: `\\left(${v}^{${n}} \\cdot ${w}^{${p}} \\cdot ${u}^{${q}}\\right)^{${mFull}}`,
+        coeff: 1, varMap: {[v]: n*mFull, [w]: p*mFull, [u]: q*mFull},
+      };
+    }
+
+    case 'COEFF_3V': {
+      const p = randExp(), q = randExp(), c = pickCoeff(mCoeff)||randomInt(2,4), cm = Math.round(Math.pow(c,mCoeff));
+      return {
+        latex: `\\left(${c} \\cdot ${v}^{${n}} \\cdot ${w}^{${p}} \\cdot ${u}^{${q}}\\right)^{${mCoeff}}`,
+        coeff: cm, varMap: {[v]: n*mCoeff, [w]: p*mCoeff, [u]: q*mCoeff},
+      };
+    }
+
+    case 'ROOT':
+      return makeRootAtom(vars, can2, can3);
+  }
+}
+
+/**
+ * Generate a composite task.
+ * comboProb controls chain length and multi-variable density:
+ *   1–33  → chain 2,   1 var
+ *   34–66 → chain 2–3, up to 2 vars
+ *   67–100 → chain 2–4, up to 3 vars (if varCount slider allows)
+ */
+function generateComboTask(comboProb) {
+  const tier = comboProb <= 33 ? 1 : comboProb <= 66 ? 2 : 3;
+  const maxLen     = [2, 3, 4][tier-1];
+  const maxVarsCap = [1, 2, 3][tier-1];
+  const varCount   = Math.min(getVarCount(), maxVarsCap);
+  const allVars    = pickVars(varCount, true);
+
+  // chain length: bias towards longer chains at higher comboProb
+  // e.g. tier3: 20% chance of 2, 40% of 3, 40% of 4
+  const lenWeights = tier===1 ? [1] : tier===2 ? [2,3] : [2,2,3,3,4,4,4];
+  const chainLen = randomChoice(lenWeights);
+
+  // For each atom, shuffle the vars so different atoms use different primaries.
+  // This ensures all vars appear in the task when varCount > 1.
+  const atoms = [];
+  const ops   = [];
+
+  for (let i = 0; i < chainLen; i++) {
+    // Rotate-shuffle: atom i starts from allVars[i % allVars.length]
+    const rotated = [
+      ...allVars.slice(i % allVars.length),
+      ...allVars.slice(0, i % allVars.length),
+    ];
+    const can2 = varCount >= 2;
+    const can3 = varCount >= 3;
+    atoms.push(makeAtom(rotated, can2, can3));
+
+    if (i < chainLen - 1) {
+      // Use · most of the time; : only between single-var atoms to avoid messy fractions
+      const bothSingleVar = true; // we'll check after, just bias heavily toward ·
+      ops.push(Math.random() < 0.78 ? '·' : ':');
+    }
+  }
+
+  // Evaluate chain left-to-right
+  let coeff = atoms[0].coeff;
+  const varMap = { ...atoms[0].varMap };
+
+  for (let i = 0; i < ops.length; i++) {
+    const a = atoms[i+1];
+    if (ops[i] === '·') {
+      coeff *= a.coeff;
+      for (const [v,e] of Object.entries(a.varMap)) varMap[v] = (varMap[v]||0) + e;
+    } else {
+      if (a.coeff === 0) return null;
+      coeff /= a.coeff;
+      for (const [v,e] of Object.entries(a.varMap)) varMap[v] = (varMap[v]||0) - e;
+    }
+  }
+
+  // Validate: coeff must be non-zero integer; negative exps only if enabled
+  if (!Number.isInteger(coeff) || coeff === 0) return null;
+  const hasNegExp = Object.values(varMap).some(e => e < 0);
+  if (hasNegExp && !isNegExp()) return null;
+  // Avoid trivial "= 1" or "= -1" with no variables
+  const activeVars = Object.keys(varMap).filter(v => varMap[v] !== 0);
+  if (activeVars.length === 0 && Math.abs(coeff) <= 1) return null;
+
+  // Build solution string
+  const sign = coeff < 0 ? '-' : '';
+  const absC = Math.abs(coeff);
+  const parts = [];
+  if (absC !== 1 || activeVars.length === 0) parts.push(String(absC));
+  for (const v of activeVars.sort()) {
+    const e = varMap[v];
+    parts.push(e === 1 ? v : `${v}^${e}`);
+  }
+  const solution = sign + parts.join('*');
+
+  // Build LaTeX string
+  const latexParts = [atoms[0].latex];
+  for (let i = 0; i < ops.length; i++) {
+    latexParts.push(ops[i] === '·' ? '\\cdot' : ':');
+    latexParts.push(atoms[i+1].latex);
+  }
+  const latex = latexParts.join(' ');
+
+  return { latex, solution, solType: 'mono', law: 'multi' };
+}
+
+/* ════════════════════════════════════════════════
+   Game state
+   ════════════════════════════════════════════════ */
+let current = null, scoreOk = 0, scoreTotal = 0, answered = false;
+
+function updateCounter() {
+  document.getElementById('counter').textContent = `Richtig: ${scoreOk} / ${scoreTotal}`;
+}
+
+function generateTask() {
+  const laws = getSelectedLaws();
+  if (!laws.length) { showToast('Bitte mindestens ein Potenzgesetz auswählen.'); return; }
+
+  const comboProb = getComboProb();
+  const algebraicLaws = laws.filter(l => !l.startsWith('binom') && l !== 'sqrt');
+  const tryCombo = comboProb > 0 && algebraicLaws.length >= 1 && Math.random() * 100 < comboProb;
+
+  let task = null;
+  if (tryCombo) {
+    // Retry up to 8 times (some combos produce invalid results and return null)
+    for (let attempt = 0; attempt < 8 && !task; attempt++) {
+      task = generateComboTask(comboProb);
+    }
+  }
+  if (!task) {
+    const law = randomChoice(laws);
+    // Laws that structurally need 2 distinct variables: force=true ignores slider for them
+    const force2 = ['productPower','quotientPower','binom1','binom2','binom3'].includes(law);
+    task = generateSingleTask(law, pickVars(2, force2));
+  }
+  if (!task) { generateTask(); return; }
+
+  current = task; answered = false;
+
+  const taskEl = document.getElementById('taskText');
+  taskEl.innerHTML = `\\(${task.latex} = {}\\)`;
+  document.getElementById('taskSub').textContent = LAW_LABELS[task.law] || '';
+
+  const input = document.getElementById('answerInput');
+  input.value = ''; input.className = '';
+  input.placeholder = PLACEHOLDERS[task.solType] || 'Term eingeben';
+  const hint = document.getElementById('answerHint');
+  hint.className = ''; hint.innerHTML = '';
+
+  typesetMath(taskEl);
+  if (window.MathJax && MathJax.typesetPromise) {
+    MathJax.typesetPromise([taskEl]).then(() => scheduleScale());
+  }
+  input.focus();
+}
+
+function checkAnswer() {
+  if (!current) return;
+  const input = document.getElementById('answerInput');
+  const hint  = document.getElementById('answerHint');
+  const val   = input.value.trim();
+  if (!val) { input.focus(); return; }
+
+  const correct = answersEqual(val, current.solution, current.solType);
+  if (!answered) { scoreTotal++; if (correct) scoreOk++; updateCounter(); answered = true; }
+
+  if (correct) {
+    input.className = 'correct'; hint.className = '';
+  } else {
+    input.className = 'wrong';
+    hint.innerHTML  = `Richtige Antwort: \\(${solToLatex(current.solution, current.solType)}\\)`;
+    hint.className  = 'visible';
+    typesetMath(hint);
+  }
+}
+
+function revealAnswer() {
+  if (!current) return;
+  const hint = document.getElementById('answerHint');
+  hint.innerHTML = `Lösung: \\(${solToLatex(current.solution, current.solType)}\\)`;
+  hint.className = 'visible';
+  document.getElementById('answerInput').className = '';
+  typesetMath(hint);
+}
+
+/* ════════════════════════════════════════════════
+   Event listeners
+   ════════════════════════════════════════════════ */
+document.getElementById('checkBtn') .addEventListener('click', checkAnswer);
+document.getElementById('nextBtn')  .addEventListener('click', generateTask);
+document.getElementById('revealBtn').addEventListener('click', revealAnswer);
+document.getElementById('answerInput').addEventListener('keydown', e => { if (e.key==='Enter') checkAnswer(); });
+
+document.getElementById('varCount').addEventListener('input', function() {
+  document.getElementById('varCountLabel').textContent = this.value;
+});
+
+document.getElementById('comboSlider').addEventListener('input', function() {
+  document.getElementById('comboLabel').textContent = this.value + ' %';
+});
+
+document.getElementById('toggleAllLawsBtn').addEventListener('click', () => {
+  const cbs = [...document.querySelectorAll('.law-cb')];
+  const allOn = cbs.every(cb => cb.checked);
+  cbs.forEach(cb => { cb.checked = !allOn; });
+});
+
+document.addEventListener('keydown', e => {
+  if (document.activeElement === document.getElementById('answerInput')) return;
+  if (e.code === 'Space') { e.preventDefault(); generateTask(); }
+});
+
+/* ════════════════════════════════════════════════
+   Init
+   ════════════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', () => {
+  updateCounter();
+  generateTask();
+});
+</script>
+</body>
+</html>
