@@ -197,7 +197,15 @@ const cardsData = [
     "desc": "Quiz: Ankathete, Gegenkathete, Hypotenuse benennen",
     "types": ["quiz"],
     "mobilefriendly": true,
-    "link": "seiten_benennung.html"
+    "link": "seiten_benennung.html?t1=1&t2=1&t3=0&t4=0"
+  },
+  {
+    "id": "trig-aufstellen",
+    "title": "Winkelbeziehungen im rechtwinkligen Dreieck aufstellen und angeben",
+    "desc": "Quiz: Winkelbeziehungen (Sinus, Kosinus, Tangens) aufstellen und angeben",
+    "types": ["quiz"],
+    "mobilefriendly": true,
+    "link": "seiten_benennung.html?t1=0&t2=0&t3=1&t4=1"
   },
   {
     "id": "trigonometrie",

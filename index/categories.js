@@ -61,7 +61,7 @@ const categoriesData = [
     "icon": "△",
     "iconType": "text",
     "tooltip": "Trigonometrie im rechtwinkligen und beliebigen Dreieck",
-    "cards": ["kongruenzsatz", "seiten-benennung", "trigonometrie", "sinuskosinussatz"]
+    "cards": ["kongruenzsatz", "seiten-benennung", "trig-aufstellen", "trigonometrie", "sinuskosinussatz"]
   },
   {
     "id": "trigfunc",
