@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Polynomfunktionen rekonstruieren – Übung</title>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<link rel="stylesheet" href="scale.css">
 <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-5K8WYYXDL2"></script>
     <script>
@@ -132,7 +133,8 @@ input[type=range] { display: block; width: 170px; accent-color: #4CAF50; cursor:
 #solutionPathContent { color: #000077; font-size: .93em; padding: 8px 14px; }
 .sol-sec { margin: 10px 0; }
 .sol-sec > b { color: #222; }
-.sol-eq { margin: 3px 0 3px 12px; overflow-x: auto; }
+.sol-eq { margin: 3px 0 3px 12px; }
+.sol-eq > .scale-wrapper { margin: 0; width: 100%; }
 
 #lobby-spacer { 
     flex: 1 1 0; 
@@ -221,6 +223,18 @@ input[type=range] { display: block; width: 170px; accent-color: #4CAF50; cursor:
     <label><input type="radio" name="presMode" value="text" checked> Nur textuell</label>
     <label><input type="radio" name="presMode" value="skiz"> Nur Skizze</label>
     <label><input type="radio" name="presMode" value="rand"> Zufällig</label>
+  </div>
+</div>
+
+<div class="form-block">
+  <b>Formulierung der Bedingungen</b>
+  <div class="radio-row">
+    <label><input type="radio" name="formulierung" value="einfach" checked> Einfach</label>
+    <label><input type="radio" name="formulierung" value="fortgeschritten"> Fortgeschritten</label>
+  </div>
+  <div style="font-size:.82em;color:#555;margin:3px 0 1px 10px;">
+    <i>Fortgeschritten</i>: Bedingungen werden in wechselnden Formulierungen gestellt
+    (z.&nbsp;B. „die Höhe an Stelle …" statt Punkt-Notation).
   </div>
 </div>
 
@@ -333,6 +347,7 @@ input[type=range] { display: block; width: 170px; accent-color: #4CAF50; cursor:
 </div>
 </footer>
 <script src="last-update.js" defer></script>
+<script src="scale.js" defer></script>
 
 <script>
 'use strict';
@@ -638,19 +653,93 @@ function xValsForDeg(deg){
   return[-3,-2,-1,1,2,3];
 }
 
+// ============================================================
+// §4b  PHRASINGS
+// ============================================================
+var PHRASINGS={
+  yAchse:function(yv){return[
+    'Der y-Achsenabschnitt beträgt \\('+numTex(yv)+'\\).',
+    'Der Graph schneidet die y-Achse bei \\('+numTex(yv)+'\\).',
+    'An der Stelle \\(0\\) soll der Graph die Höhe \\('+numTex(yv)+'\\) haben.'
+  ];},
+  nullstelle:function(x0){return[
+    'Der Graph hat eine Nullstelle bei \\(x='+numTex(x0)+'\\).',
+    'Die Funktion hat an der Stelle \\('+numTex(x0)+'\\) eine Nullstelle.',
+    'An der Stelle \\('+numTex(x0)+'\\) soll der Graph die Höhe \\(0\\) haben.'
+  ];},
+  punkt:function(x0,yv){return[
+    'Der Graph verläuft durch \\(P('+numTex(x0)+'\\,|\\,'+numTex(yv)+')\\).',
+    'An der Stelle \\('+numTex(x0)+'\\) soll der Graph die Höhe \\('+numTex(yv)+'\\) haben.',
+    'Der Graph hat bei \\(x='+numTex(x0)+'\\) den Wert \\('+numTex(yv)+'\\).'
+  ];},
+  steigung0:function(dv){return[
+    'Die Steigung an der Stelle \\(x=0\\) beträgt \\('+numTex(dv)+'\\).',
+    'Die Funktion hat an der Stelle \\(0\\) die Steigung \\('+numTex(dv)+'\\).',
+    'Die Ableitung hat an der Stelle \\(0\\) den Wert \\('+numTex(dv)+'\\).'
+  ];},
+  steigung:function(x0,dv){return[
+    'Die Steigung an der Stelle \\(x='+numTex(x0)+'\\) beträgt \\('+numTex(dv)+'\\).',
+    'An der Stelle \\('+numTex(x0)+'\\) hat der Graph die Steigung \\('+numTex(dv)+'\\).',
+    'Die Ableitung hat an der Stelle \\('+numTex(x0)+'\\) den Wert \\('+numTex(dv)+'\\).'
+  ];},
+  tangente:function(x0,dv,bt){return[
+    'An \\(x='+numTex(x0)+'\\) hat der Graph die Tangente \\(t(x)='+tangentTex(dv,bt)+'\\).',
+    'Die Tangente des Graphen an der Stelle \\('+numTex(x0)+'\\) lautet \\(t(x)='+tangentTex(dv,bt)+'\\).',
+    'An der Stelle \\('+numTex(x0)+'\\) berührt der Graph die Gerade \\(t(x)='+tangentTex(dv,bt)+'\\).'
+  ];},
+  extremstelle:function(x0){return[
+    'Die Funktion hat eine Extremstelle bei \\(x='+numTex(x0)+'\\).',
+    'An der Stelle \\('+numTex(x0)+'\\) liegt ein lokales Extremum.',
+    'Der Graph hat bei \\(x='+numTex(x0)+'\\) einen Hoch- oder Tiefpunkt.',
+    'Die Ableitung hat bei \\(x='+numTex(x0)+'\\) eine Nullstelle.'
+  ];},
+  extrempunkt:function(x0,yv){return[
+    'Der Graph hat einen Extrempunkt \\(E('+numTex(x0)+'\\,|\\,'+numTex(yv)+')\\).',
+    'An der Stelle \\('+numTex(x0)+'\\) hat der Graph einen Extremwert von \\('+numTex(yv)+'\\).',
+    'Der Hoch- oder Tiefpunkt liegt bei \\(('+numTex(x0)+'|'+numTex(yv)+')\\).'
+  ];},
+  wendestelle:function(x0){return[
+    'Die Funktion hat eine Wendestelle bei \\(x='+numTex(x0)+'\\).',
+    'An der Stelle \\('+numTex(x0)+'\\) wechselt der Graph seine Krümmung.',
+    'Bei \\(x='+numTex(x0)+'\\) liegt ein Wendepunkt.'
+  ];},
+  wendepunkt:function(x0,yv){return[
+    'Der Graph hat einen Wendepunkt \\(W('+numTex(x0)+'\\,|\\,'+numTex(yv)+')\\).',
+    'An der Stelle \\('+numTex(x0)+'\\) hat der Wendepunkt die Höhe \\('+numTex(yv)+'\\).',
+    'Der Wendepunkt des Graphen liegt bei \\(('+numTex(x0)+'|'+numTex(yv)+')\\).'
+  ];},
+  symPunkt:function(){return[
+    'Der Graph ist punktsymmetrisch zum Ursprung.',
+    'Die Funktion ist ungerade: Es gilt \\(f(-x)=-f(x)\\) für alle \\(x\\).',
+    'Der Graph ist punktsymmetrisch bezüglich \\((0|0)\\).'
+  ];},
+  symAchse:function(){return[
+    'Der Graph ist achsensymmetrisch zur y-Achse.',
+    'Die Funktion ist gerade: Es gilt \\(f(-x)=f(x)\\) für alle \\(x\\).',
+    'Der Graph ist spiegelsymmetrisch zur y-Achse.'
+  ];}
+};
+function pickPhrasing(type,args,fortgeschritten){
+  var opts=PHRASINGS[type]?PHRASINGS[type].apply(null,args):null;
+  if(!opts)return'';
+  if(!fortgeschritten)return opts[0];
+  return opts[Math.floor(Math.random()*opts.length)];
+}
+
 function collectConds(deg,coeffs,s){
   var iv=s.intValues;
+  var fort=s.formulierung==='fortgeschritten';
   var d1=polyDeriv(coeffs),d2=poly2D(coeffs);
   var conds=[];
   // --- Direct (x0=0) ---
   var y0_0=polyEval(coeffs,0),dy_0=deg>=1?polyEval(d1,0):0;
   if(s.useYAchse)
     conds.push({type:'yAchse',isDirect:true,eqCount:1,
-      text:'Der y-Achsenabschnitt beträgt \\('+numTex(y0_0)+'\\).',
+      text:pickPhrasing('yAchse',[y0_0],fort),
       eqs:[{derOrder:0,x0:0,y0:y0_0}],dSolvedIdx:deg,dSolvedVal:y0_0});
   if(s.useSteigung&&deg>=1&&isNiceInt(dy_0))
     conds.push({type:'steigung0',isDirect:true,eqCount:1,
-      text:'Die Steigung an der Stelle \\(x=0\\) beträgt \\('+numTex(dy_0)+'\\).',
+      text:pickPhrasing('steigung0',[dy_0],fort),
       eqs:[{derOrder:1,x0:0,y0:dy_0}],dSolvedIdx:deg-1,dSolvedVal:dy_0});
 
   // --- LGS (x0 ≠ 0) ---
@@ -664,45 +753,45 @@ function collectConds(deg,coeffs,s){
 
     if(s.useNullstelle&&Math.abs(yv)<1e-9)
       conds.push({type:'nullstelle',isDirect:false,eqCount:1,
-        text:'Der Graph hat eine Nullstelle bei \\(x='+numTex(x0)+'\\).',
+        text:pickPhrasing('nullstelle',[x0],fort),
         eqs:[{derOrder:0,x0:x0,y0:0}]});
 
     if(s.usePunkt&&ny&&Math.abs(yv)>1e-9)
       conds.push({type:'punkt',isDirect:false,eqCount:1,
-        text:'Der Graph verläuft durch \\(P('+numTex(x0)+'\\,|\\,'+numTex(yv)+')\\).',
+        text:pickPhrasing('punkt',[x0,yv],fort),
         eqs:[{derOrder:0,x0:x0,y0:yv}]});
 
     if(s.useSteigung&&deg>=1&&nd)
       conds.push({type:'steigung',isDirect:false,eqCount:1,
-        text:'Die Steigung an der Stelle \\(x='+numTex(x0)+'\\) beträgt \\('+numTex(dv)+'\\).',
+        text:pickPhrasing('steigung',[x0,dv],fort),
         eqs:[{derOrder:1,x0:x0,y0:dv}]});
 
     if(s.useTangente&&deg>=1&&ny&&nd){
       var bt=Math.round((yv-dv*x0)*1e9)/1e9;
       if(iv?isNiceInt(bt):isNiceFrac(bt))
         conds.push({type:'tangente',isDirect:false,eqCount:2,
-          text:'An \\(x='+numTex(x0)+'\\) hat der Graph die Tangente \\(t(x)='+tangentTex(dv,bt)+'\\).',
+          text:pickPhrasing('tangente',[x0,dv,bt],fort),
           eqs:[{derOrder:1,x0:x0,y0:dv},{derOrder:0,x0:x0,y0:yv}]});
     }
 
     if(s.useExtremstelle&&deg>=2&&Math.abs(dv)<1e-9)
       conds.push({type:'extremstelle',isDirect:false,eqCount:1,
-        text:'Die Funktion hat eine Extremstelle bei \\(x='+numTex(x0)+'\\).',
+        text:pickPhrasing('extremstelle',[x0],fort),
         eqs:[{derOrder:1,x0:x0,y0:0}]});
 
     if(s.useExtrempunkt&&deg>=2&&Math.abs(dv)<1e-9&&ny)
       conds.push({type:'extrempunkt',isDirect:false,eqCount:2,
-        text:'Der Graph hat einen Extrempunkt \\(E('+numTex(x0)+'\\,|\\,'+numTex(yv)+')\\).',
+        text:pickPhrasing('extrempunkt',[x0,yv],fort),
         eqs:[{derOrder:1,x0:x0,y0:0},{derOrder:0,x0:x0,y0:yv}]});
 
     if(s.useWendestelle&&deg>=3&&Math.abs(ddv)<1e-9)
       conds.push({type:'wendestelle',isDirect:false,eqCount:1,
-        text:'Die Funktion hat eine Wendestelle bei \\(x='+numTex(x0)+'\\).',
+        text:pickPhrasing('wendestelle',[x0],fort),
         eqs:[{derOrder:2,x0:x0,y0:0}]});
 
     if(s.useWendepunkt&&deg>=3&&Math.abs(ddv)<1e-9&&ny)
       conds.push({type:'wendepunkt',isDirect:false,eqCount:2,
-        text:'Der Graph hat einen Wendepunkt \\(W('+numTex(x0)+'\\,|\\,'+numTex(yv)+')\\).',
+        text:pickPhrasing('wendepunkt',[x0,yv],fort),
         eqs:[{derOrder:2,x0:x0,y0:0},{derOrder:0,x0:x0,y0:yv}]});
   });
 
@@ -715,7 +804,7 @@ function collectConds(deg,coeffs,s){
       var sEl=evenPows.map(function(p){return CL[deg-p];}).join('=');
       conds.push({type:'symPunkt',isDirect:false,eqCount:evenPows.length,
         isSymmetry:true,symType:'punkt',
-        text:'Der Graph ist punktsymmetrisch zum Ursprung.',
+        text:pickPhrasing('symPunkt',[],fort),
         symLabel:'\\('+sEl+'=0\\)',
         eqs:evenPows.map(function(p){return{derOrder:'sym',pow:p,y0:0,x0:0};})});
     }
@@ -728,7 +817,7 @@ function collectConds(deg,coeffs,s){
       var sEl=oddPows.map(function(p){return CL[deg-p];}).join('=');
       conds.push({type:'symAchse',isDirect:false,eqCount:oddPows.length,
         isSymmetry:true,symType:'achse',
-        text:'Der Graph ist achsensymmetrisch zur y-Achse.',
+        text:pickPhrasing('symAchse',[],fort),
         symLabel:'\\('+sEl+'=0\\)',
         eqs:oddPows.map(function(p){return{derOrder:'sym',pow:p,y0:0,x0:0};})});
     }
@@ -786,6 +875,7 @@ function getSettings(){
     intCoeffs:document.querySelector('input[name="coeffType"]:checked').value==='int',
     intValues:document.querySelector('input[name="valueType"]:checked').value==='int',
     presMode: document.querySelector('input[name="presMode"]:checked').value,
+    formulierung: document.querySelector('input[name="formulierung"]:checked').value,
     showMidStep:  gcb('showMidStep'),
     vereinfFirst: gcb('vereinfFirst'),
     useYAchse:gcb('useYAchse'),useNullstelle:gcb('useNullstelle'),usePunkt:gcb('usePunkt'),
@@ -817,6 +907,7 @@ function updateURL(){
   u.searchParams.set('deg',s.degree);u.searchParams.set('low',s.alsoLower?'1':'0');
   u.searchParams.set('lgs',s.maxLGS);u.searchParams.set('coef',s.intCoeffs?'int':'rat');
   u.searchParams.set('val',s.intValues?'int':'frac');u.searchParams.set('pres',s.presMode);
+  u.searchParams.set('form',s.formulierung||'einfach');
   u.searchParams.set('mid',s.showMidStep?'1':'0');u.searchParams.set('vf',s.vereinfFirst?'1':'0');
   ['useYAchse','useNullstelle','usePunkt','useSteigung','useTangente',
    'useExtremstelle','useExtrempunkt','useWendestelle','useWendepunkt',
@@ -832,7 +923,7 @@ function loadURL(){
   gcbSet('alsoLower',g('low','0')==='1');
   var lv=g('lgs','3');document.getElementById('maxLGS').value=lv;document.getElementById('lgsLabel').textContent=lv;
   setR('coeffType',g('coef','int'));setR('valueType',g('val','int'));
-  setR('presMode',g('pres','text'));
+  setR('presMode',g('pres','text'));setR('formulierung',g('form','einfach'));
   gcbSet('showMidStep',g('mid','1')==='1');gcbSet('vereinfFirst',g('vf','1')==='1');
   ['useYAchse','useNullstelle','usePunkt','useSteigung','useTangente',
    'useExtremstelle','useExtrempunkt','useWendestelle','useWendepunkt',
@@ -897,6 +988,7 @@ function renderPresentation(task,pres){
 
   MathJax.typesetPromise([td,sd]).then(function(){
     drawSketch(task,-1);
+    if(typeof scaleAllElements==='function') scaleAllElements();
   });
 }
 
@@ -2178,6 +2270,11 @@ function parseNum(s){
 // ============================================================
 // §11  RENDER SOLUTION
 // ============================================================
+// Helper: wrap display math in a scale container
+function swrap(content){
+  return '<div class="scale-wrapper"><div class="scale-el">'+content+'</div></div>';
+}
+
 function renderSolution(task){
   if(!task)return;
   var deg=task.deg,coeffs=task.coeffs,km=task.knownMap;
@@ -2186,20 +2283,21 @@ function renderSolution(task){
 
   // Short answer
   var sc=document.getElementById('solutionContent');
-  sc.innerHTML='$$f(x)='+polyTex(coeffs)+'$$';
-  MathJax.typesetPromise([sc]);
+  sc.innerHTML=swrap('$$f(x)='+polyTex(coeffs)+'$$');
+  MathJax.typesetPromise([sc]).then(function(){if(typeof scaleAllElements==='function')scaleAllElements();});
 
   // Full path
   var sp=document.getElementById('solutionPathContent');
   var html='';
 
   // 1. Ansatz
+  var ansatzBody='$$\\begin{aligned}f(x) &= '+ansatzTex(deg);
+  if(deg>=1) ansatzBody+='\\\\ f\'(x) &= '+ansatzDerivTex(deg,1);
+  if(deg>=2) ansatzBody+='\\\\ f\'\'(x) &= '+ansatzDerivTex(deg,2);
+  if(deg>=3) ansatzBody+='\\\\ f\'\'\'(x) &= '+ansatzDerivTex(deg,3);
+  ansatzBody+='\\end{aligned}$$';
   html+='<div class="sol-sec"><b>1.&nbsp;Ansatz:</b>'
-    +'<div class="sol-eq">$$\\begin{aligned}f(x) &= '+ansatzTex(deg);
-  if(deg>=1) html+='\\\\ f\'(x) &= '+ansatzDerivTex(deg,1);
-  if(deg>=2) html+='\\\\ f\'\'(x) &= '+ansatzDerivTex(deg,2);
-  if(deg>=3) html+='\\\\ f\'\'\'(x) &= '+ansatzDerivTex(deg,3);
-  html+='\\end{aligned}$$</div></div>';
+    +'<div class="sol-eq">'+swrap(ansatzBody)+'</div></div>';
 
   // 2. Bedingungen (direct first, then LGS)
   var orderedGroups=usedDirect.concat(usedLGS);
@@ -2215,13 +2313,13 @@ function renderSolution(task){
       if(showMid){
         var raw=ansatzSubRaw(deg,eq.derOrder,eq.x0);
         var sim=ansatzSubTex2(deg,eq.derOrder,eq.x0);
-        html+='<div class="sol-eq">$$\\begin{aligned}'+fn+'('+numTex(eq.x0)+') &= '+numTex(eq.y0)
+        html+='<div class="sol-eq">'+swrap('$$\\begin{aligned}'+fn+'('+numTex(eq.x0)+') &= '+numTex(eq.y0)
           +'\\\\ \\Longrightarrow\\quad '+raw+' &= '+numTex(eq.y0)
           +'\\\\ \\Longrightarrow\\quad '+sim+' &= '+numTex(eq.y0)
-          +'\\end{aligned}$$</div>';
+          +'\\end{aligned}$$')+'</div>';
       } else {
-        html+='<div class="sol-eq">$$'+fn+'('+numTex(eq.x0)+')='+numTex(eq.y0)
-          +'\\quad\\Longrightarrow\\quad '+ansatzSubTex2(deg,eq.derOrder,eq.x0)+'='+numTex(eq.y0)+'$$</div>';
+        html+='<div class="sol-eq">'+swrap('$$'+fn+'('+numTex(eq.x0)+')='+numTex(eq.y0)
+          +'\\quad\\Longrightarrow\\quad '+ansatzSubTex2(deg,eq.derOrder,eq.x0)+'='+numTex(eq.y0)+'$$')+'</div>';
       }
       html+='<div class="sol-eq" style="margin-left:6px;">&#8658;&ensp;<b>\\('+CL[g.dSolvedIdx]+'='+numTex(g.dSolvedVal)+'\\)</b></div>';
       progressKM.set(g.dSolvedIdx,g.dSolvedVal);
@@ -2255,13 +2353,13 @@ function renderSolution(task){
         var raw=ansatzSubMixed(deg,eq.derOrder,eq.x0,progressKM);
         var sim=lgsLineTex(deg,eq.derOrder,eq.x0,eq.y0,progressKM,true);
         if(showMid){
-          html+='<div class="sol-eq">$$\\begin{aligned}'+fn+'('+numTex(eq.x0)+') &= '+numTex(eq.y0)
+          html+='<div class="sol-eq">'+swrap('$$\\begin{aligned}'+fn+'('+numTex(eq.x0)+') &= '+numTex(eq.y0)
             +'\\\\ \\Longrightarrow\\quad '+raw+' &= '+numTex(eq.y0)
             +'\\\\ \\Longrightarrow\\quad '+sim
-            +'\\end{aligned}$$</div>';
+            +'\\end{aligned}$$')+'</div>';
         } else {
-          html+='<div class="sol-eq">$$'+fn+'('+numTex(eq.x0)+')='+numTex(eq.y0)
-            +'\\quad\\Longrightarrow\\quad '+lgsLineTex(deg,eq.derOrder,eq.x0,eq.y0,progressKM,false)+'$$</div>';
+          html+='<div class="sol-eq">'+swrap('$$'+fn+'('+numTex(eq.x0)+')='+numTex(eq.y0)
+            +'\\quad\\Longrightarrow\\quad '+lgsLineTex(deg,eq.derOrder,eq.x0,eq.y0,progressKM,false)+'$$')+'</div>';
         }
       });
     }
@@ -2286,23 +2384,24 @@ function renderSolution(task){
   var symGs=usedLGS.filter(function(c){return c.isSymmetry;});
   if(lgsEqs.length>0||symGs.length>0){
     html+='<div class="sol-sec"><b>'+step+'.&nbsp;Lineares Gleichungssystem:</b>'
-      +'<div class="sol-eq">$$'+lgsArrayTex(deg,lgsEqs,symGs,km)+'$$</div></div>';
+      +'<div class="sol-eq">'+swrap('$$'+lgsArrayTex(deg,lgsEqs,symGs,km)+'$$')+'</div></div>';
     step++;
     html+='<div class="sol-sec"><b>'+step+'.&nbsp;Lösung des LGS:</b>'
-      +'<div class="sol-eq">$$'+lgsResultTex(deg,coeffs,km)+'$$</div></div>';
+      +'<div class="sol-eq">'+swrap('$$'+lgsResultTex(deg,coeffs,km)+'$$')+'</div></div>';
     step++;
   } else if(usedDirect.length===0){
     html+='<div class="sol-sec"><b>'+step+'.&nbsp;Alle Koeffizienten direkt bestimmt.</b></div>';step++;
   }
 
   html+='<div class="sol-sec"><b>Ergebnis:</b>'
-    +'<div class="sol-eq">$$f(x)='+polyTex(coeffs)+'$$</div></div>';
+    +'<div class="sol-eq">'+swrap('$$f(x)='+polyTex(coeffs)+'$$')+'</div></div>';
 
   sp.innerHTML=html;
 }
 
 document.getElementById('solutionPathDetails').addEventListener('toggle',function(){
-  if(this.open) MathJax.typesetPromise([document.getElementById('solutionPathContent')]);
+  if(this.open) MathJax.typesetPromise([document.getElementById('solutionPathContent')])
+    .then(function(){if(typeof scaleAllElements==='function')scaleAllElements();});
 });
 
 // Also redraw sketch when sketch details opened
