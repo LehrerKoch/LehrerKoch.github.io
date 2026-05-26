@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zahlbereiche – Übung</title>
+<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="scale.css">
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-5K8WYYXDL2"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-5K8WYYXDL2');</script>
+<script>window.MathJax={tex:{inlineMath:[['$','$'],['\\(','\\)']],displayMath:[]},startup:{ready(){MathJax.startup.defaultReady();if(typeof newTask==='function')newTask();}}};</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+<style>
+/* ── Header (wird nicht von styles.css abgedeckt) ── */
+header { background:#2e7d32; color:#fff; padding:12px 16px 10px;
+  margin: 0 -2% 10px; }
+.site-title    { font-size:1.5em; font-weight:bold; }
+.site-subtitle { font-size:.9em; opacity:.88; margin-top:2px; }
+
+/* ── Button-Ergänzungen (Basis kommt von styles.css: grün, weiße Schrift) ── */
+button { border-radius:8px !important; transition:filter .15s; }
+button:hover { filter:brightness(.88); }
+button:disabled { opacity:.45; cursor:default !important; filter:none !important; }
+.btn-row { display:flex; flex-wrap:wrap; gap:8px; margin:8px 0 4px; }
+
+/* ── form-block: styles.css hat bereits border+padding, hier nur Ergänzung ── */
+.form-block > b { display:block; margin-bottom:4px; font-size:.97em; }
+
+/* ── Radio row ── */
+.radio-row { display:flex; flex-wrap:wrap; gap:5px; margin:4px 0 2px 0; }
+.radio-row label { display:flex; align-items:center; gap:4px;
+  padding:3px 12px; border:1.5px solid #bbb; border-radius:20px;
+  cursor:pointer; font-size:.93em; user-select:none; color:#222; }
+.radio-row label.active { background:#d6ecd7; border-color:#3a8a3a; font-weight:bold; }
+.radio-row input[type=radio] { margin:0 0 0 0 !important; }
+
+/* ── Checkbox-Label ── */
+.cb-label { display:flex; align-items:center; gap:6px; cursor:pointer;
+  color:#222; padding:2px 0; }
+.cb-label.disabled { opacity:.45; cursor:default; }
+.cb-label input[type=checkbox] { margin:0 !important; }
+
+/* ── Slider ── */
+.slider-wrap { margin:6px 0 0 0; max-width:340px; }
+.slider-wrap input[type=range] { width:100%; cursor:pointer; }
+.slider-lbl { display:flex; justify-content:space-between;
+  font-size:.82em; color:#555; padding:0 3px; margin-top:2px; }
+
+/* ── Note ── */
+.convention-note { font-size:.82em; color:#666; font-style:italic;
+  margin:2px 0 6px 4px; }
+
+/* ── TABLE MODE ── */
+.task-table-wrap { margin:4px 0 2px; overflow:visible; }
+.task-table { border-collapse:collapse; width:100%; table-layout:auto; overflow:visible; }
+.task-table thead { overflow:visible; }
+.task-table th,.task-table td { border:1.5px solid #aaa;
+  padding:6px 8px; text-align:center; vertical-align:middle; white-space:nowrap; }
+.task-table th { background:#eaf2ea; font-size:.95em; overflow:visible; }
+/* Feste Höhe für Aufgabenzeile – Brüche/Exponenten verschieben nichts */
+.task-table tbody tr { height:64px; }
+.task-table .cell-task { text-align:center; font-size:1.1em;
+  white-space:normal; width:30%; max-width:160px; }
+.task-table input[type=checkbox] {
+  width:22px !important; height:22px !important; cursor:pointer;
+  accent-color:#2e7d32; margin:0 !important; }
+.task-table input[type=checkbox]:disabled { opacity:.4; cursor:default; }
+.task-table td.ok  { background:#c5f0c5; }
+.task-table td.err { background:#f0c5c5; }
+
+/* ── Table-Top: Aufgabe-Label + Tmode-Kippschalter ── */
+.table-top { display:flex; align-items:center; justify-content:flex-end;
+  flex-wrap:wrap; gap:6px; margin-bottom:5px; }
+.tmode-wrap { display:flex; align-items:center; gap:5px; font-size:.8em; color:#555; }
+.tmode-toggle { display:inline-flex; border:1.5px solid #888;
+  border-radius:6px; overflow:hidden; }
+.tmode-toggle label { padding:3px 8px; cursor:pointer;
+  background:#f5f5f5; border-right:1px solid #aaa; color:#333;
+  white-space:nowrap; font-size:.82em; line-height:1.7; user-select:none; }
+.tmode-toggle label:last-child { border-right:none; }
+.tmode-toggle input[type=radio] { display:none; }
+.tmode-toggle label.active { background:#d6ecd7; font-weight:bold; color:#1a4a1a; }
+
+/* ── Feedback-Boxen ── */
+.feedback { margin:8px 0 4px; padding:8px 12px;
+  border-radius:6px; display:none; }
+.feedback.ok   { background:#c5f0c5; border:1.5px solid #3a8a3a; color:#0c3c0c; }
+.feedback.err  { background:#f0c5c5; border:1.5px solid #a03030; color:#4a0c0c; }
+.feedback.info { background:#d0e8ff; border:1.5px solid #3070b0; color:#0c2a4a; }
+
+/* ── VENN MODE ── */
+.venn-outer { display:flex; flex-direction:column; align-items:center; }
+.venn-task-text { font-size:1.3em; text-align:center;
+  margin:8px 0 6px; min-height:2.4em; color:#222; }
+.venn-svg-wrap { width:100%; max-width:520px; }
+.venn-svg-wrap svg { width:100%; height:auto; display:block; touch-action:manipulation; }
+.venn-ring { cursor:pointer; transition:filter .12s; }
+.venn-ring:hover { filter:brightness(.82); }
+.venn-ring.answered { cursor:default; }
+
+/* ── IN/NOTIN MODE ── */
+.innotin-task { font-size:1.75em; text-align:center;
+  margin:18px 0 10px; min-height:2.4em; color:#222;
+  display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:.35em; }
+.innotin-btns { display:flex; gap:18px; justify-content:center; margin:8px 0; }
+.innotin-btns button { font-size:1.5em !important; padding:10px 28px !important; min-width:88px; }
+.btn-show-ok { background:#4e9a52 !important; color:#fff !important; }
+.btn-show-err { background:#c0392b !important; color:#fff !important; }
+
+/* ── Lösung-Button: zweiter Stil (outline) ── */
+.btn-solution {
+  background:#fff !important; color:#2e7d32 !important;
+  border:2px solid #2e7d32 !important; }
+.btn-solution:hover { background:#eaf2ea !important; }
+/* ── Tooltips auf Tabellenköpfen ── */
+.th-tip { position:relative; cursor:default; overflow:visible; }
+.th-tip .tip { visibility:hidden; opacity:0; position:absolute;
+  bottom:calc(100% + 7px); left:50%; transform:translateX(-50%);
+  background:#333; color:#fff; font-size:.78em; font-weight:normal;
+  white-space:nowrap; padding:3px 8px; border-radius:4px;
+  pointer-events:none; transition:opacity .15s; z-index:100; }
+.th-tip .tip::after { content:''; position:absolute; top:100%; left:50%;
+  transform:translateX(-50%); border:5px solid transparent; border-top-color:#333; }
+.th-tip:hover .tip { visibility:visible; opacity:1; }
+
+.hide { display:none !important; }
+
+@media (max-width:480px) {
+  header { padding:9px 12px 8px; }
+  .site-title { font-size:1.2em; }
+  .task-table th,.task-table td { padding:5px 6px; font-size:.85em; }
+  .task-table tbody tr { height:54px; }
+  .innotin-task { font-size:1.3em; }
+  .innotin-btns button { font-size:1.15em !important; padding:8px 18px !important; }
+  .tmode-toggle label { padding:3px 5px; font-size:.76em; }
+}
+@media (max-width:360px) {
+  .tmode-wrap { flex-direction:column; align-items:flex-end; gap:2px; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="site-title">Zahlbereiche</div>
+  <div class="site-subtitle">Übung: Welchen Mengen gehört eine Zahl an?</div>
+</header>
+
+<!-- ═══════════════════ EINSTELLUNGEN ═══════════════════ -->
+<details id="settingsBox">
+<summary>Einstellungen</summary>
+
+<div class="form-block">
+  <b>Spielmodus</b>
+  <div class="radio-row" id="modeRow">
+    <label><input type="radio" name="spielmodus" value="tabelle"> Tabelle</label>
+    <label><input type="radio" name="spielmodus" value="venn"> Venn-Diagramm</label>
+    <label><input type="radio" name="spielmodus" value="innotin">$\in\,/\,\notin$</label>
+  </div>
+</div>
+
+<div class="form-block">
+  <b>Maximaler Zahlbereich</b>
+  <div class="slider-wrap">
+    <input type="range" id="maxSetSlider" min="0" max="4" step="1" value="3">
+    <div class="slider-lbl">
+      <span>$\mathbb{N}$</span>
+      <span>$\mathbb{Z}$</span>
+      <span>$\mathbb{Q}$</span>
+      <span>$\mathbb{R}$</span>
+      <span>$\mathbb{C}$</span>
+    </div>
+  </div>
+</div>
+
+<div class="form-block" id="showIBlock">
+  <label class="cb-label" id="cbShowILabel">
+    <input type="checkbox" id="cbShowI">
+    Irrationale Zahlen ($\mathbb{R}{\setminus}\mathbb{Q}$) als eigene Spalte anzeigen
+  </label>
+  <span id="cbShowINote" style="font-size:.8em;color:#999;font-style:italic;margin-left:2px;display:none;">(nur im Tabellemodus ab $\mathbb{R}$)</span>
+</div>
+
+</details>
+<p class="convention-note">Hinweis: Hier gilt $\mathbb{N} = \{0, 1, 2, 3, \ldots\}$ (mit der&nbsp;0).</p>
+
+<!-- ═══════════════════ MODUS: TABELLE ═══════════════════ -->
+<div id="modeTabelle">
+  <div class="btn-row">
+    <button onclick="newTask()">&#x27F3;&nbsp;Neue Aufgabe</button>
+  </div>
+
+  <div id="tableArea">
+    <div class="table-top">
+      <span style="font-weight:bold;">Aufgabe</span>
+      <div class="tmode-wrap">
+        <span>Antwort-Modus:</span>
+        <div class="tmode-toggle" id="tmodeToggle">
+          <label><input type="radio" name="tmode" value="single" checked> Einzeln</label>
+          <label><input type="radio" name="tmode" value="auto"> Automatisch</label>
+          <label><input type="radio" name="tmode" value="random"> Zufällig</label>
+        </div>
+      </div>
+    </div>
+
+    <div class="task-table-wrap">
+      <table class="task-table" id="taskTable"></table>
+    </div>
+
+    <div class="btn-row" style="margin-top:10px;flex-direction:column;align-items:flex-start;gap:6px;">
+      <button onclick="checkTableAnswer()">✓&nbsp;Überprüfen</button>
+      <button class="btn-solution" onclick="revealTableAnswer()">Lösung anzeigen</button>
+    </div>
+    <div id="fbTabelle" class="feedback"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════ MODUS: VENN ═══════════════════ -->
+<div id="modeVenn" class="hide">
+  <div class="btn-row">
+    <button onclick="newTask()">&#x27F3;&nbsp;Neue Aufgabe</button>
+  </div>
+  <div class="venn-outer">
+    <div class="venn-task-text" id="vennTaskText">
+      <span style="color:#888;font-size:.75em;">Klicke auf „Neue Aufgabe", um zu beginnen.</span>
+    </div>
+    <div class="venn-svg-wrap">
+      <svg id="vennSvg" viewBox="0 0 500 330" xmlns="http://www.w3.org/2000/svg"></svg>
+    </div>
+    <div id="fbVenn" class="feedback"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════ MODUS: IN/NOTIN ═══════════════════ -->
+<div id="modeInNotin" class="hide">
+  <div class="btn-row">
+    <button onclick="newTask()">&#x27F3;&nbsp;Neue Aufgabe</button>
+  </div>
+  <div id="innotinTask" class="innotin-task">
+    <span style="color:#888;font-size:.55em;">Klicke auf „Neue Aufgabe", um zu beginnen.</span>
+  </div>
+  <div class="innotin-btns">
+    <button id="btnIn"    onclick="answerInNotin(true)">$\in$</button>
+    <button id="btnNotIn" onclick="answerInNotin(false)">$\notin$</button>
+  </div>
+  <div id="fbInNotin" class="feedback"></div>
+</div>
+
+<div id="lobby-spacer"></div>
+<footer class="site-footer">
+  <div class="footer-content">
+    M.&nbsp;Koch
+    <span class="footer-topic"><a href="./index.html">Mathe-Tools</a></span>
+    <span class="footer-update">Last updated:&nbsp;<span id="last-update">…</span></span>
+  </div>
+</footer>
+<script src="scale.js"></script>
+
+<!-- ═══════════════════ JAVASCRIPT ═══════════════════ -->
+<script>
+'use strict';
+
+/* ════════════════════════════════════════════════════════
+   KONSTANTEN
+   ════════════════════════════════════════════════════════ */
+
+// Reihenfolge und Ordinalzahlen der Zahlbereiche
+const SET_ORDER = { N:0, Z:1, Q:2, I:2.5, R:3, C:4 };
+// Slider-Index → Zahlbereich-Schlüssel
+const SLIDER_KEYS = ['N','Z','Q','R','C'];
+
+// LaTeX-Darstellung
+const SET_TEX = {
+  N: '\\mathbb{N}',
+  Z: '\\mathbb{Z}',
+  Q: '\\mathbb{Q}',
+  I: '\\mathbb{R}\\setminus\\mathbb{Q}',
+  R: '\\mathbb{R}',
+  C: '\\mathbb{C}'
+};
+// Unicode-Label fürs Venn-Diagramm
+const SET_LABEL = { N:'ℕ', Z:'ℤ', Q:'ℚ', I:'ℝ\\ℚ', R:'ℝ', C:'ℂ' };
+
+// Welchen Mengen gehört eine Zahl der Kategorie X an?
+const BELONGS_TO = {
+  N:      ['N','Z','Q','R','C'],
+  Z:      ['Z','Q','R','C'],
+  Q:      ['Q','R','C'],
+  I:      ['I','R','C'],
+  C_only: ['C'],
+  none:   []
+};
+
+// Obere Mengen (Obermengen im Sinne der Inklusion)
+// X in Y ⟹ Y ist Obermenge von X
+const SUPERSETS = {
+  N: ['Z','Q','R','C'],
+  Z: ['Q','R','C'],
+  Q: ['R','C'],
+  I: ['R','C'],
+  R: ['C'],
+  C: []
+};
+
+// Untere Mengen (Teilmengen)
+const SUBSETS = {
+  N: [],
+  Z: ['N'],
+  Q: ['Z','N'],
+  I: [],          // I (Irrational) hat keine Teilmenge in unserem System
+  R: ['I','Q','Z','N'],
+  C: ['R','I','Q','Z','N']
+};
+
+// Farben für Venn-Ringe
+const RING_COLOR = {
+  N:'#8ee8aa', Z:'#8ec8e8', Q:'#f0d070', I:'#d8a8f0', R:'#f8f080', C:'#f0a888',
+  none:'#ddd'
+};
+
+// Feste Ellipsen-Radien im Venn-Diagramm pro Zahlbereich
+const RING_SIZE = {
+  N: [48,33], Z:[88,60], Q:[128,87], I:[160,109], R:[192,130], C:[224,152]
+};
+
+/* ════════════════════════════════════════════════════════
+   DYNAMISCHE AUFGABEN-GENERIERUNG
+   ════════════════════════════════════════════════════════ */
+function gcd(a,b){a=Math.abs(a);b=Math.abs(b);while(b){const t=b;b=a%b;a=t;}return a||1;}
+function simplifyFrac(n,d){if(d<0){n=-n;d=-d;}const g=gcd(Math.abs(n),d);return{n:n/g,d:d/g};}
+
+const PERFECT_SQ=[0,1,4,9,16,25,36,49,64,81,100];
+const NONSQ=[2,3,5,6,7,8,10,11,12,13,14,15,17,18,19,20,21,23,24];
+
+function generateTask(){
+  const mo=maxOrder();
+  const pool=[];
+  pool.push('N','N','N');
+  if(mo>=SET_ORDER['Z']) pool.push('Z','Z');
+  if(mo>=SET_ORDER['Q']) pool.push('Q','Q');
+  if(mo>=SET_ORDER['R']) pool.push('I','I','none');
+  if(mo>=SET_ORDER['C']) pool.push('C_only','C_only');
+  return buildTask(pick(pool));
+}
+
+function buildTask(cat){
+  switch(cat){
+    case 'N':      return buildN();
+    case 'Z':      return buildZ();
+    case 'Q':      return buildQ();
+    case 'I':      return buildI();
+    case 'C_only': return buildC();
+    case 'none':   return buildNone();
+    default:       return buildN();
+  }
+}
+
+function buildN(){
+  const form=pick(['direct','direct','direct','sqrt_ps','frac_simp','power','neg_sq','zero']);
+  if(form==='zero')
+    return {tex:'0', cat:'N'};
+  if(form==='direct')
+    return {tex:`${randInt(1,20)}`, cat:'N'};
+  if(form==='sqrt_ps'){
+    const sq=pick([0,1,4,9,16,25,36,49]);
+    return {tex:`\\sqrt{${sq}}`, cat:'N', hint:`\\sqrt{${sq}}=${Math.round(Math.sqrt(sq))}`};
+  }
+  if(form==='frac_simp'){
+    const d=randInt(2,6), v=randInt(1,9);
+    return {tex:`\\dfrac{${d*v}}{${d}}`, cat:'N', hint:`\\frac{${d*v}}{${d}}=${v}`};
+  }
+  if(form==='power'){
+    const b=randInt(2,5), e=randInt(2,3);
+    return {tex:`${b}^{${e}}`, cat:'N', hint:`${b}^{${e}}=${Math.pow(b,e)}`};
+  }
+  if(form==='neg_sq'){
+    const b=randInt(2,7);
+    return {tex:`(-${b})^2`, cat:'N', hint:`(-${b})^2=${b*b}`};
+  }
+  return {tex:`${randInt(0,15)}`, cat:'N'};
+}
+
+function buildZ(){
+  const form=pick(['direct','direct','frac_neg','power_neg','diff']);
+  if(form==='direct')
+    return {tex:`${randInt(-15,-1)}`, cat:'Z'};
+  if(form==='frac_neg'){
+    const d=randInt(2,5), v=randInt(1,7);
+    return {tex:`-\\dfrac{${d*v}}{${d}}`, cat:'Z', hint:`-\\frac{${d*v}}{${d}}=${-v}`};
+  }
+  if(form==='power_neg'){
+    const b=randInt(2,5);
+    return {tex:`-${b}^2`, cat:'Z', hint:`-${b}^2=${-(b*b)}`};
+  }
+  if(form==='diff'){
+    const a=randInt(1,10), b=randInt(a+1,a+12);
+    return {tex:`${a}-${b}`, cat:'Z', hint:`${a}-${b}=${a-b}`};
+  }
+  return {tex:`${randInt(-10,-1)}`, cat:'Z'};
+}
+
+function buildQ(){
+  for(let t=0;t<30;t++){
+    const d=randInt(2,9), raw=randInt(1,d*3-1);
+    const f=simplifyFrac(raw,d);
+    if(f.d===1) continue; // ganzzahlig → verwerfen
+    const neg=Math.random()<0.4;
+    const tex=neg?`-\\dfrac{${f.n}}{${f.d}}`:`\\dfrac{${f.n}}{${f.d}}`;
+    return {tex, cat:'Q'};
+  }
+  return {tex:`\\dfrac{1}{3}`, cat:'Q'};
+}
+
+function buildI(){
+  const form=pick(['sqrt','sqrt','pi','e','cbrt','pi_sq','sum_sqrt']);
+  if(form==='sqrt')   return {tex:`\\sqrt{${pick(NONSQ)}}`, cat:'I'};
+  if(form==='pi')     return {tex:'\\pi', cat:'I'};
+  if(form==='e')      return {tex:'e', cat:'I'};
+  if(form==='cbrt'){
+    const r=pick([2,3,4,5,6,7]);
+    return {tex:`\\sqrt[3]{${r}}`, cat:'I'};
+  }
+  if(form==='pi_sq')  return {tex:'\\pi^2', cat:'I'};
+  if(form==='sum_sqrt'){
+    const r=pick(NONSQ), a=randInt(1,5);
+    return {tex:`${a}+\\sqrt{${r}}`, cat:'I'};
+  }
+  return {tex:'\\sqrt{2}', cat:'I'};
+}
+
+function buildC(){
+  const form=pick(['sqrt_neg','sqrt_neg','complex_sum','pure_imag']);
+  if(form==='sqrt_neg'){
+    const r=randInt(1,9);
+    return {tex:`\\sqrt{-${r}}`, cat:'C_only'};
+  }
+  if(form==='complex_sum'){
+    const a=randInt(1,6), b=randInt(1,5);
+    return {tex:`${a}+${b}\\,\\mathrm{i}`, cat:'C_only'};
+  }
+  if(form==='pure_imag'){
+    const b=randInt(2,7);
+    return {tex:`${b}\\,\\mathrm{i}`, cat:'C_only'};
+  }
+  return {tex:'\\mathrm{i}', cat:'C_only'};
+}
+
+function buildNone(){
+  const nums=[-3,-2,-1,0,1,2,3];
+  const n=pick(nums);
+  const nTex=n<0?`(${n})`:String(n);
+  return {tex:`\\dfrac{${nTex}}{0}`, cat:'none'};
+}
+
+/* ════════════════════════════════════════════════════════
+   ZUSTAND
+   ════════════════════════════════════════════════════════ */
+const st = {
+  mode:   'tabelle',
+  maxIdx: 3,
+  showI:  false,
+  tmode:  'single',   // Default: Einzeln
+};
+let currentTask   = null;
+let taskAnswered  = false;
+let tableColOrder = [];
+let innotinSet    = null;
+let innotinIsIn   = null;
+
+/* ════════════════════════════════════════════════════════
+   HILFSFUNKTIONEN
+   ════════════════════════════════════════════════════════ */
+const randInt = (a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+const pick    = arr=>arr[Math.floor(Math.random()*arr.length)];
+function shuffle(arr){
+  const a=[...arr];
+  for(let i=a.length-1;i>0;i--){const j=randInt(0,i);[a[i],a[j]]=[a[j],a[i]];}
+  return a;
+}
+const maxKey   = ()=>SLIDER_KEYS[st.maxIdx];
+const maxOrder = ()=>SET_ORDER[maxKey()];
+
+function getShownSets(){
+  const mo=maxOrder();
+  return ['N','Z','Q','I','R','C'].filter(k=>{
+    if(k==='I') return st.showI && mo>=SET_ORDER['R'];
+    return SET_ORDER[k]<=mo;
+  });
+}
+const belongsTo = t=>BELONGS_TO[t.cat]||[];
+
+function correctRing(task,shownSets){
+  const PREF={N:['N','Z','Q','R','C'],Z:['Z','Q','R','C'],Q:['Q','R','C'],
+    I:['I','R','C'],C_only:['C'],none:[]};
+  for(const p of (PREF[task.cat]||[]))
+    if(shownSets.includes(p)) return p;
+  return 'none';
+}
+
+function texify(el){ if(window.MathJax) MathJax.typesetPromise([el]).catch(()=>{}); }
+
+function showFeedback(id,type,html){
+  const el=document.getElementById(id);
+  el.className='feedback '+type;
+  el.innerHTML=html;
+  el.style.display='block';
+  texify(el);
+}
+function hideFeedback(id){
+  const el=document.getElementById(id);
+  if(el){el.style.display='none';el.className='feedback';}
+}
+
+function newTask(){
+  // Settings schließen
+  const sbox=document.getElementById('settingsBox');
+  if(sbox) sbox.removeAttribute('open');
+
+  taskAnswered=false;
+  let task=generateTask();
+  // Kurze Schleife um Wiederholung zu vermeiden
+  for(let i=0;i<8&&currentTask&&task.tex===currentTask.tex;i++) task=generateTask();
+  currentTask=task;
+  tableColOrder=(st.tmode==='random')?shuffle([...getShownSets()]):[...getShownSets()];
+  if(st.mode==='tabelle')       renderTableTask();
+  else if(st.mode==='venn')     renderVennTask();
+  else                          renderInNotinTask();
+}
+
+const SET_NAME = {
+  N:'Natürliche Zahlen', Z:'Ganze Zahlen', Q:'Rationale Zahlen',
+  I:'Irrationale Zahlen', R:'Reelle Zahlen', C:'Komplexe Zahlen'
+};
+
+/* ════════════════════════════════════════════════════════
+   MODUS: TABELLE
+   ════════════════════════════════════════════════════════ */
+function renderTableTask(){
+  hideFeedback('fbTabelle');
+  document.getElementById('tableArea').classList.remove('hide');
+  const cols=tableColOrder;
+
+  let h='<thead><tr><th>Aufgabe</th>';
+  for(const c of cols)
+    h+=`<th class="th-tip">$${SET_TEX[c]}$<span class="tip">${SET_NAME[c]}</span></th>`;
+  h+='<th class="th-tip">keiner<span class="tip">Keiner der angezeigten Bereiche</span></th>';
+  h+='</tr></thead><tbody><tr>';
+  h+=`<td class="cell-task" id="tcell-task">$${currentTask.tex}$</td>`;
+  for(const c of cols)
+    h+=`<td id="tcell-${c}"><input type="checkbox" id="cb-${c}" onchange="onCbChange('${c}')"></td>`;
+  h+=`<td id="tcell-none"><input type="checkbox" id="cb-none" onchange="onCbChange('none')"></td>`;
+  h+='</tr></tbody>';
+  document.getElementById('taskTable').innerHTML=h;
+  texify(document.getElementById('taskTable'));
+}
+
+const getCb = k=>document.getElementById('cb-'+k);
+
+function onCbChange(key){
+  if(taskAnswered) return;
+  if(st.tmode!=='auto') return;
+
+  const cb=getCb(key);
+  if(!cb) return;
+  const isChecked=cb.checked;
+
+  if(key==='none'){
+    if(isChecked) for(const c of tableColOrder){const el=getCb(c);if(el)el.checked=false;}
+    return;
+  }
+
+  if(isChecked){
+    const noneEl=getCb('none'); if(noneEl) noneEl.checked=false;
+    for(const sup of (SUPERSETS[key]||[])){
+      const el=getCb(sup); if(el) el.checked=true;
+    }
+  } else {
+    for(const sub of (SUBSETS[key]||[])){
+      const el=getCb(sub); if(el) el.checked=false;
+    }
+  }
+}
+
+function expectedChecks(task, cols){
+  const bt=belongsTo(task);
+  const res={};
+  for(const c of cols) res[c]=bt.includes(c);
+  res['none']=cols.every(c=>!res[c]);
+  return res;
+}
+
+function hintSuffix(task){
+  return task.hint ? ` <em style="color:#555;font-weight:normal;">(vereinfacht: $${task.hint}$)</em>` : '';
+}
+
+function checkTableAnswer(){
+  if(!currentTask||taskAnswered) return;
+  taskAnswered=true;
+  const cols=tableColOrder;
+  const exp=expectedChecks(currentTask,cols);
+  let allOk=true;
+  for(const k of [...cols,'none']){
+    const cb=getCb(k); const td=document.getElementById('tcell-'+k);
+    if(!cb||!td) continue;
+    cb.disabled=true;
+    if(cb.checked===exp[k]) td.classList.add('ok');
+    else { td.classList.add('err'); allOk=false; }
+  }
+  if(allOk) showFeedback('fbTabelle','ok','✓ Richtig!'+hintSuffix(currentTask));
+  else showFeedback('fbTabelle','err','✗ Nicht ganz – die Markierungen zeigen die Lösung.'+hintSuffix(currentTask));
+}
+
+function revealTableAnswer(){
+  if(!currentTask) return;
+  taskAnswered=true;
+  const cols=tableColOrder;
+  const exp=expectedChecks(currentTask,cols);
+  for(const k of [...cols,'none']){
+    const cb=getCb(k); const td=document.getElementById('tcell-'+k);
+    if(!cb||!td) continue;
+    cb.checked=exp[k]; cb.disabled=true;
+    if(exp[k]) td.classList.add('ok');
+  }
+  const bt=belongsTo(currentTask);
+  const rightCols=cols.filter(c=>bt.includes(c));
+  const sol = rightCols.length===0
+    ? 'keiner der angezeigten Zahlbereiche'
+    : rightCols.map(c=>`$${SET_TEX[c]}$`).join(', ');
+  showFeedback('fbTabelle','info',
+    `Lösung:&nbsp;$${currentTask.tex}$ liegt in ${sol}.${hintSuffix(currentTask)}`);
+}
+
+/* ════════════════════════════════════════════════════════
+   MODUS: VENN-DIAGRAMM
+   ════════════════════════════════════════════════════════ */
+function buildVennSvg(shownSets){
+  const svg=document.getElementById('vennSvg');
+  const cx=250, cy=162, W=500, H=330;
+
+  // Ringe von außen nach innen: C, R, I, Q, Z, N — nur die angezeigten
+  const ringOrder=['C','R','I','Q','Z','N'].filter(k=>shownSets.includes(k));
+  const drawn=ringOrder.map(k=>({key:k,rx:RING_SIZE[k][0],ry:RING_SIZE[k][1]}));
+
+  let defs='<defs>';
+  for(let i=0;i<drawn.length;i++){
+    const {key,rx,ry}=drawn[i];
+    const inn=drawn[i+1];
+    defs+=`<mask id="mk-${key}">
+      <ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="white"/>
+      ${inn?`<ellipse cx="${cx}" cy="${cy}" rx="${inn.rx}" ry="${inn.ry}" fill="black"/>`:''}
+    </mask>`;
+  }
+  if(drawn.length>0){
+    const out=drawn[0];
+    defs+=`<mask id="mk-none">
+      <rect x="0" y="0" width="${W}" height="${H}" fill="white"/>
+      <ellipse cx="${cx}" cy="${cy}" rx="${out.rx}" ry="${out.ry}" fill="black"/>
+    </mask>`;
+  }
+  defs+='</defs>';
+
+  let shapes='';
+  // keiner-Hintergrund
+  const hasOut=drawn.length>0;
+  shapes+=`<rect class="venn-ring" id="vr-none" data-ring="none"
+    x="0" y="0" width="${W}" height="${H}"
+    fill="${RING_COLOR.none}" ${hasOut?`mask="url(#mk-none)"`:''}
+    pointer-events="visibleFill" onclick="vennClick('none')"/>`;
+
+  for(const {key,rx,ry} of drawn){
+    shapes+=`<ellipse class="venn-ring" id="vr-${key}" data-ring="${key}"
+      cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}"
+      fill="${RING_COLOR[key]}" stroke="#777" stroke-width="1.5"
+      mask="url(#mk-${key})"
+      pointer-events="visibleFill"
+      onclick="vennClick('${key}')"/>`;
+  }
+
+  // Labels
+  let labels='';
+  // keiner-Label: oben links, innerhalb des Hintergrundbereichs
+  const offX = hasOut ? cx - drawn[0].rx + 12 : 10;
+  labels+=`<text x="${offX}" y="18" font-size="13" font-weight="bold"
+    fill="#777" pointer-events="none" font-family="sans-serif">keiner</text>`;
+
+  for(let i=0;i<drawn.length;i++){
+    const {key,ry}=drawn[i];
+    const inn=drawn[i+1];
+    const midRy = inn ? (ry+inn.ry)/2 : ry*0.55;
+    const labelY = Math.max(14, cy-midRy+1);
+    labels+=`<text x="${cx}" y="${labelY}"
+      font-size="${inn?'13':'14'}" font-weight="bold"
+      fill="#333" text-anchor="middle" pointer-events="none"
+      font-family="sans-serif">${SET_LABEL[key]}</text>`;
+  }
+
+  svg.innerHTML=defs+shapes+labels;
+}
+
+function renderVennTask(){
+  const shownSets=getShownSets();
+  buildVennSvg(shownSets);
+  const d=document.getElementById('vennTaskText');
+  d.innerHTML=`<strong>In welchen Bereich gehört:</strong>&ensp;$${currentTask.tex}$`;
+  hideFeedback('fbVenn');
+  texify(d);
+}
+
+function vennClick(ringKey){
+  if(!currentTask||taskAnswered) return;
+  taskAnswered=true;
+
+  // Hover deaktivieren
+  document.querySelectorAll('.venn-ring').forEach(el=>{
+    el.classList.add('answered');
+    el.classList.remove('venn-ring');
+  });
+
+  const shownSets=getShownSets();
+  const cr=correctRing(currentTask,shownSets);
+
+  const clickedEl=document.getElementById('vr-'+ringKey);
+  const correctEl=document.getElementById('vr-'+cr);
+  const task=currentTask;
+  const cLabel = cr==='none' ? 'keiner der angezeigten Bereiche' : `$${SET_TEX[cr]}$`;
+
+  if(ringKey===cr){
+    if(clickedEl){clickedEl.style.stroke='#1f6b24';clickedEl.style.strokeWidth='3';}
+    showFeedback('fbVenn','ok',`✓ Richtig! $${task.tex}$ liegt in ${cLabel}.${hintSuffix(task)}`);
+  } else {
+    if(clickedEl){clickedEl.style.fill='#f0a0a0';clickedEl.style.stroke='#cc0000';clickedEl.style.strokeWidth='2.5';}
+    if(correctEl){correctEl.style.fill='#a0f0a0';correctEl.style.stroke='#007700';correctEl.style.strokeWidth='2.5';}
+    showFeedback('fbVenn','err',`✗ $${task.tex}$ gehört in ${cLabel}.${hintSuffix(task)}`);
+  }
+}
+
+/* ════════════════════════════════════════════════════════
+   MODUS: ∈ / ∉
+   ════════════════════════════════════════════════════════ */
+function renderInNotinTask(){
+  const shownSets=getShownSets();
+  innotinSet=pick(shownSets);
+  innotinIsIn=belongsTo(currentTask).includes(innotinSet);
+
+  const d=document.getElementById('innotinTask');
+  d.innerHTML=`$${currentTask.tex}$<span style="color:#bbb;margin:0 .1em;">?</span>$${SET_TEX[innotinSet]}$`;
+
+  const bi=document.getElementById('btnIn');
+  const bn=document.getElementById('btnNotIn');
+  bi.disabled=false; bn.disabled=false;
+  bi.className=''; bn.className='';
+  hideFeedback('fbInNotin');
+  texify(d);
+  // Re-typeset buttons (they contain $\in$ / $\notin$)
+  texify(bi); texify(bn);
+}
+
+function answerInNotin(isIn){
+  if(taskAnswered) return;
+  taskAnswered=true;
+  const bi=document.getElementById('btnIn');
+  const bn=document.getElementById('btnNotIn');
+  bi.disabled=true; bn.disabled=true;
+  const task=currentTask;
+  const sym=innotinIsIn?'\\in':'\\notin';
+
+  if(isIn===innotinIsIn){
+    (isIn?bi:bn).className='btn-show-ok';
+    showFeedback('fbInNotin','ok',
+      `✓ Richtig! Es gilt $${task.tex}${innotinIsIn?' \\in ':' \\notin '}${SET_TEX[innotinSet]}$.${hintSuffix(task)}`);
+  } else {
+    (isIn?bi:bn).className='btn-show-err';
+    (innotinIsIn?bi:bn).className='btn-show-ok';
+    showFeedback('fbInNotin','err',
+      `✗ Falsch. Es gilt $${task.tex} ${sym} ${SET_TEX[innotinSet]}$.${hintSuffix(task)}`);
+  }
+}
+
+/* ════════════════════════════════════════════════════════
+   MODUSWECHSEL & EINSTELLUNGEN
+   ════════════════════════════════════════════════════════ */
+function switchMode(mode){
+  st.mode=mode;
+  document.getElementById('modeTabelle').classList.toggle('hide',mode!=='tabelle');
+  document.getElementById('modeVenn').classList.toggle('hide',mode!=='venn');
+  document.getElementById('modeInNotin').classList.toggle('hide',mode!=='innotin');
+  updateShowIVisibility();
+  if(mode==='venn') buildVennSvg(getShownSets());
+  updateURL();
+  newTask();
+}
+
+function updateShowIVisibility(){
+  // Checkbox immer sichtbar, aber ausgegraut wenn nicht anwendbar
+  const applicable = st.mode==='tabelle' && maxOrder()>=SET_ORDER['R'];
+  const lbl=document.getElementById('cbShowILabel');
+  const note=document.getElementById('cbShowINote');
+  const cb=document.getElementById('cbShowI');
+  if(lbl) lbl.classList.toggle('disabled',!applicable);
+  if(cb)  cb.disabled=!applicable;
+  if(note) note.style.display=applicable?'none':'inline';
+}
+
+/* ════════════════════════════════════════════════════════
+   URL-PERSISTENZ
+   ════════════════════════════════════════════════════════ */
+function updateURL(){
+  const u=new URL(window.location);
+  u.searchParams.set('mode', st.mode);
+  u.searchParams.set('max',  st.maxIdx);
+  u.searchParams.set('showI',st.showI?'1':'0');
+  const tm=document.querySelector('input[name="tmode"]:checked');
+  if(tm) u.searchParams.set('tmode',tm.value);
+  history.replaceState({},'',u);
+}
+
+function loadURL(){
+  const u=new URL(window.location);
+  const g=(k,d)=>u.searchParams.has(k)?u.searchParams.get(k):d;
+
+  st.mode  = g('mode','tabelle');
+  st.maxIdx= Math.min(4,Math.max(0,parseInt(g('max','3'))||3));
+  st.showI = g('showI','0')==='1';
+  const tmVal=g('tmode','single');
+
+  // DOM-Elemente setzen
+  const mEl=document.querySelector(`input[name="spielmodus"][value="${st.mode}"]`);
+  if(mEl) mEl.checked=true;
+  document.getElementById('maxSetSlider').value=st.maxIdx;
+  document.getElementById('cbShowI').checked=st.showI;
+  const tmEl=document.querySelector(`input[name="tmode"][value="${tmVal}"]`);
+  if(tmEl) tmEl.checked=true;
+  st.tmode=tmVal;
+
+  // Aktive Labels hervorheben
+  refreshActiveLabels();
+}
+
+function refreshActiveLabels(){
+  // radio-row Labels
+  document.querySelectorAll('.radio-row').forEach(row=>{
+    row.querySelectorAll('label').forEach(lbl=>{
+      const inp=lbl.querySelector('input[type=radio]');
+      lbl.classList.toggle('active', inp&&inp.checked);
+    });
+  });
+  // tmode-toggle Labels
+  document.querySelectorAll('.tmode-toggle').forEach(tog=>{
+    tog.querySelectorAll('label').forEach(lbl=>{
+      const inp=lbl.querySelector('input[type=radio]');
+      lbl.classList.toggle('active', inp&&inp.checked);
+    });
+  });
+}
+
+/* ════════════════════════════════════════════════════════
+   INIT
+   ════════════════════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', ()=>{
+  loadURL();
+  updateShowIVisibility();
+
+  // Modus-UI aufbauen ohne nochmals newTask aufzurufen (kommt gleich danach)
+  document.getElementById('modeTabelle').classList.toggle('hide',st.mode!=='tabelle');
+  document.getElementById('modeVenn').classList.toggle('hide',st.mode!=='venn');
+  document.getElementById('modeInNotin').classList.toggle('hide',st.mode!=='innotin');
+  if(st.mode==='venn') buildVennSvg(getShownSets());
+
+  // Spielmodus-Umschalten → neue Aufgabe
+  document.querySelectorAll('input[name="spielmodus"]').forEach(el=>
+    el.addEventListener('change',()=>{ st.mode=el.value; switchMode(el.value); refreshActiveLabels(); })
+  );
+
+  // Slider: maximaler Zahlbereich
+  document.getElementById('maxSetSlider').addEventListener('input',function(){
+    st.maxIdx=parseInt(this.value);
+    updateShowIVisibility();
+    if(st.mode==='venn') buildVennSvg(getShownSets());
+    updateURL();
+  });
+
+  // Irrationale Zahlen → Tabelle sofort neu rendern
+  document.getElementById('cbShowI').addEventListener('change',function(){
+    st.showI=this.checked;
+    if(st.mode==='venn') buildVennSvg(getShownSets());
+    if(st.mode==='tabelle'&&currentTask){ tableColOrder=[...getShownSets()]; renderTableTask(); }
+    updateURL();
+  });
+
+  // Tabellenantwort-Modus
+  document.querySelectorAll('input[name="tmode"]').forEach(el=>
+    el.addEventListener('change',()=>{
+      st.tmode=el.value;
+      if(st.mode==='tabelle'&&currentTask){
+        if(el.value==='random') tableColOrder=shuffle([...getShownSets()]);
+        else tableColOrder=[...getShownSets()];
+        renderTableTask();
+      }
+      updateURL(); refreshActiveLabels();
+    })
+  );
+
+  // Statische MathJax-Inhalte typesetten (Settings, Note, Buttons)
+  // Der erste newTask()-Aufruf kommt vom MathJax startup.ready-Hook (im <head>)
+  // Falls MathJax schon bereit ist (z.B. gecacht), direkt aufrufen:
+  if(window.MathJax&&MathJax.typesetPromise){
+    MathJax.typesetPromise([
+      document.getElementById('settingsBox'),
+      document.querySelector('.convention-note'),
+      document.getElementById('btnIn'),
+      document.getElementById('btnNotIn'),
+    ]).catch(()=>{});
+    newTask();
+  }
+  // sonst übernimmt startup.ready den newTask()-Aufruf
+});
+</script>
+<script src="last-update.js" defer></script>
+</body>
+</html>

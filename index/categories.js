@@ -5,7 +5,7 @@ const categoriesData = [
     "icon": "±",
     "iconType": "text",
     "tooltip": "Grundlegende Algebra, Gleichungen und Gleichungssysteme",
-    "cards": ["potenzen", "graphen", "gleichungart", "lgs"]
+    "cards": ["potenzen", "zahlbereiche", "graphen", "gleichungart", "lgs"]
   },
   {
     "id": "quadratisch",

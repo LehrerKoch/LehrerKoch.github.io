@@ -1,5 +1,13 @@
 const cardsData = [
   {
+    "id": "zahlbereiche",
+    "title": "Zahlbereiche",
+    "desc": "Ordne den Zahlbereichen (Natürliche Zahlen, Ganze Zahlen, ...) Zahlen zu.",
+    "types": ["quiz"],
+    "mobilefriendly": true,
+    "link": "zahlbereiche.html"
+  },
+  {
     "id": "potenzen",
     "title": "Quadratzahlen, Potenzen und Wurzeln",
     "desc": "Übe Quadratzahlen, andere Potenzen und Wurzeln",
