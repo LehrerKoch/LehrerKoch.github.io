@@ -16,6 +16,14 @@ const cardsData = [
     "link": "potenzen.html"
   },
   {
+    "id": "sciNot",
+    "title": "Wissenschaftliche Schreibweise",
+    "desc": "Übe die wissenschaftliche Schreibweise mit abgetrennter Zehnerpotenz",
+    "types": ["quiz"],
+    "mobilefriendly": true,
+    "link": "wissenschaftliche_schreibweise.html"
+  },
+  {
     "id": "gleichungart",
     "title": "Gleichungsart erkennen",
     "desc": "Welche Gleichungsart liegt vor und wie löst man sie?",
