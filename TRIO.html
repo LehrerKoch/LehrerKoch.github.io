@@ -10,7 +10,6 @@
         window.dataLayer = window.dataLayer || [];
         function gtag(){dataLayer.push(arguments);}
         gtag('js', new Date());
-
         gtag('config', 'G-5K8WYYXDL2');
     </script>
 
@@ -25,10 +24,47 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  height: 100vh;
+  min-height: 100vh;
   background-color: #f4f4f4;
-  overflow: hidden; /* Verhindert zusätzliches Scrollen */
+  overflow-y: scroll;
 }
+
+/* ── Spielregeln ─────────────────────────────── */
+#rules-section {
+  width: min(90vw, 70vh);
+  margin-top: 8px;
+  border: 1px solid #bbb;
+  border-radius: 6px;
+  background: #fff;
+  font-size: 0.87em;
+  color: #444;
+}
+#rules-section summary {
+  font-weight: bold;
+  padding: 7px 11px;
+  cursor: pointer;
+  user-select: none;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+#rules-section summary::-webkit-details-marker { display: none; }
+#rules-section summary::before {
+  content: '▶';
+  font-size: 0.72em;
+  display: inline-block;
+  transition: transform 0.2s;
+}
+#rules-section[open] summary::before {
+  transform: rotate(90deg);
+}
+#rules-section .rules-body {
+  padding: 2px 12px 10px;
+  line-height: 1.6;
+}
+
+/* ── Buttons ─────────────────────────────────── */
 .button-container {
   display: flex;
   justify-content: center;
@@ -42,48 +78,105 @@ button {
   cursor: pointer;
   border-radius: 5px;
 }
-#neu-button {
-  background-color: hsl(60, 100%, 80%); /* Gelb */
-}
-#zufallszahl-button {
-  background-color: hsl(240, 100%, 80%); /* Blau */
-}
+#neu-button         { background-color: hsl(60, 100%, 80%); }
+#zufallszahl-button { background-color: hsl(240, 100%, 80%); }
+
+/* ── Grid ────────────────────────────────────── */
 #trio-container {
   display: grid;
   grid-template-columns: repeat(10, 1fr);
   grid-template-rows: repeat(10, 1fr);
   gap: 1px;
   border: 1px solid #999;
-  margin-top: 30px;
-  width: min(90vw, 70vh); /* Container skaliert basierend auf Viewport */
-  aspect-ratio: 1 / 1;    /* Hält die Tabelle quadratisch */
+  margin-top: 8px;
+  width: min(90vw, 70vh);
+  aspect-ratio: 1 / 1;
 }
 .trio-cell {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: clamp(12px, 4cqi, 40px); /* Schriftgröße skaliert relativ zur Containerbreite */
+  font-size: clamp(12px, 4cqi, 40px);
   font-weight: bold;
   border: 1px solid #999;
   color: #333;
-  container-type: size; /* Ermöglicht cqi-Einheiten */
+  container-type: size;
+  position: relative;
+  transition: opacity 0.15s, filter 0.1s;
 }
-.label-cell {
-  background-color: #f0f0f0;
+.label-cell { background-color: #f0f0f0; }
+.data-cell  { cursor: pointer; user-select: none; }
+.data-cell:not(.grayed):hover { filter: brightness(0.88); }
+
+/* ── Interaktionszustände ────────────────────── */
+.trio-cell.grayed {
+  opacity: 0.15;
+  pointer-events: none;
 }
+.trio-cell.selected {
+  outline: 3px solid #1a56ff;
+  outline-offset: -3px;
+  z-index: 2;
+}
+.trio-cell.correct {
+  background-color: #43a047 !important;
+  color: #fff !important;
+  outline: none !important;
+}
+.trio-cell.no-sol {
+  background-color: #fff8e1 !important;
+  outline: 2px solid #ffc107 !important;
+  outline-offset: -2px;
+  color: #333 !important;
+}
+
+/* ── Zufallszahl & Ergebnis-Panel ────────────── */
 #random-number {
   margin-top: 5px;
-  margin-bottom: 5px;
+  margin-bottom: 3px;
   font-size: 1.6rem;
 }
-  
-#lobby-spacer { 
-  flex: 1 1 0; 
-  min-height: 0; 
+#result-panel {
+  display: none;
+  margin-top: 5px;
+  padding: 8px 18px 10px;
+  border-radius: 6px;
+  text-align: center;
+  width: min(84vw, 64vh);
+  box-sizing: border-box;
+}
+#result-panel.ok  { background: #e8f5e9; border: 2px solid #43a047; }
+#result-panel.err { background: #ffebee; border: 2px solid #e53935; }
+.result-title { font-weight: bold; font-size: 1.05rem; }
+#result-panel.err .result-title { color: #c62828; }
+#reveal-btn {
+  display: none;
+  margin-top: 7px;
+  background: #43a047;
+  color: #fff;
+  border: none;
+  padding: 5px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.88rem;
+}
+#solutions-list {
+  display: none;
+  margin-top: 7px;
+  font-family: monospace;
+  font-size: 0.97rem;
+  line-height: 2;
+  text-align: left;
+}
+
+/* ── Footer ──────────────────────────────────── */
+#lobby-spacer {
+  flex: 1 1 0;
+  min-height: 0;
 }
 .site-footer {
   width: 100%; box-sizing: border-box; padding: 15px 15px;
-  border-top: 1px solid #ccc; margin-top: 4px; margin-bottom: 0px;
+  border-top: 1px solid #ccc; margin-top: 4px; margin-bottom: 0;
   font-family: sans-serif; font-size: 0.6em; color: #333333d8;
 }
 .footer-content {
@@ -93,99 +186,348 @@ button {
   margin: 0 auto;
   max-width: min(90vw, 70vh);
 }
-.footer-content > :first-child {
-  justify-self: start;
-}
-.footer-content > :nth-child(2) {
-  justify-self: center;
-}
-.footer-content > :last-child {
-  justify-self: end;
-}
-.footer-topic a { 
-  color: inherit; 
-  text-decoration: underline; 
-}
+.footer-content > :first-child  { justify-self: start; }
+.footer-content > :nth-child(2) { justify-self: center; }
+.footer-content > :last-child   { justify-self: end; }
+.footer-topic a { color: inherit; text-decoration: underline; }
+
 </style>
 </head>
 <body>
 
+<details id="rules-section" open>
+  <summary>Spielregeln</summary>
+  <div class="rules-body">
+    Finde genau 3 Zahlen in einer geraden Linie (horizontal, vertikal, diagonal) mit beliebigen
+    Rechenoperationen dazwischen (Plus, Minus, Mal, Geteilt), um auf die gesuchte Zufallszahl zu kommen.
+    Z.&thinsp;B. kann man, um auf 14 zu kommen, die 3 Zahlen 3,&thinsp;5,&thinsp;1 (in dieser Reihenfolge)
+    auswählen, denn 3&thinsp;&middot;&thinsp;5&thinsp;&minus;&thinsp;1&thinsp;=&thinsp;14.
+    Beachte Punkt- vor Strichrechnung.
+  </div>
+</details>
+
 <div id="trio-container"></div>
+
 <div class="button-container">
-  <button id="neu-button">Neu</button>
-  <button id="zufallszahl-button">Zufallszahl</button>
+  <button id="zufallszahl-button">Neue Zufallszahl</button>
+  <button id="neu-button">Neue Anordnung</button>
 </div>
 <div id="random-number"></div>
+<div id="result-panel">
+  <div class="result-title" id="result-title"></div>
+  <button id="reveal-btn">Lösungen anzeigen</button>
+  <div id="solutions-list"></div>
+</div>
 
 <script>
-  const neuButton = document.getElementById('neu-button');
-  const zufallszahlButton = document.getElementById('zufallszahl-button');
-  const trioContainer = document.getElementById('trio-container');
-  const randomNumberDisplay = document.getElementById('random-number');
+/* ════════════════════════════════════════════════
+   Zustand
+════════════════════════════════════════════════ */
+let gameState  = 'idle'; // 'idle' | 'first_selected' | 'showing_result'
+let firstCell  = null;   // { r, c }
+let cellEls    = [];     // cellEls[r][c], 0-indexiert (9×9 Datenzellen)
+let gridNums   = [];     // gridNums[r][c]
+let targetNum  = 0;
+let solutions  = [];
+let numberPool = [];     // gewichteter Pool, wird bei Neuer Anordnung neu befüllt
 
-  neuButton.addEventListener('click', generateTrio);
-  zufallszahlButton.addEventListener('click', generateRandomNumber);
+/* ════════════════════════════════════════════════
+   DOM-Referenzen
+════════════════════════════════════════════════ */
+const neuBtn      = document.getElementById('neu-button');
+const zufBtn      = document.getElementById('zufallszahl-button');
+const container   = document.getElementById('trio-container');
+const numDisplay  = document.getElementById('random-number');
+const resultPanel = document.getElementById('result-panel');
+const resultTitle = document.getElementById('result-title');
+const revealBtn   = document.getElementById('reveal-btn');
+const solList     = document.getElementById('solutions-list');
 
-  function shuffle(array) {
-  for (let i = array.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1)); // Zufälliger Index von 0 bis i
-    [array[i], array[j]] = [array[j], array[i]];   // Elemente tauschen
+/* ════════════════════════════════════════════════
+   Event-Listener
+════════════════════════════════════════════════ */
+neuBtn.addEventListener('click', generateTrio);
+zufBtn.addEventListener('click', () => { generateRandomNumber(); resetState(); });
+revealBtn.addEventListener('click', revealSolutions);
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' || e.key === ' ') {
+    e.preventDefault();
+    generateRandomNumber();
+    resetState();
+  }
+});
+
+/* ════════════════════════════════════════════════
+   Gitter erzeugen
+════════════════════════════════════════════════ */
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
   }
 }
 
-  function generateTrio() {
-  trioContainer.innerHTML = '';
-  const gridSize = 9;
-  const labels = 'ABCDEFGHI'.split('');
+function generateTrio() {
+  resetState();
+  numberPool = buildPool(); // Pool zurücksetzen: alle Zahlen wieder verfügbar
+  container.innerHTML = '';
+  cellEls  = Array.from({ length: 9 }, () => Array(9).fill(null));
+  gridNums = Array.from({ length: 9 }, () => Array(9).fill(0));
 
-  // Platz für Buttons und Ränder abziehen (~150px für obere Leiste, Buttons etc.)
-  const availableHeight = window.innerHeight - 150;
-  const availableWidth = window.innerWidth - 20;
-
-  const maxCellSize = Math.min(availableHeight, availableWidth) / 10 - 2;
-
-  const cellSize = Math.floor(maxCellSize); // Damit es ganzzahlig bleibt
-
+  const labels  = 'ABCDEFGHI'.split('');
   const numbers = Array.from({ length: 9 }, (_, i) => i + 1).flatMap(x => Array(9).fill(x));
   shuffle(numbers);
 
-  for (let row = 0; row <= gridSize; row++) {
-    for (let col = 0; col <= gridSize; col++) {
+  for (let row = 0; row <= 9; row++) {
+    for (let col = 0; col <= 9; col++) {
       const cell = document.createElement('div');
       cell.classList.add('trio-cell');
-      // cell.style.width = cellSize + 'px';
-      // cell.style.height = cellSize + 'px';
-      // cell.style.fontSize = (cellSize * 0.6) + 'px'; // Dynamisch skalieren
 
-      if (row === 0 && col > 0) {
+      if (row === 0 && col === 0) {
+        cell.classList.add('label-cell');
+      } else if (row === 0) {
         cell.textContent = labels[col - 1];
         cell.classList.add('label-cell');
-      } else if (col === 0 && row > 0) {
+      } else if (col === 0) {
         cell.textContent = row + ':';
         cell.classList.add('label-cell');
-      } else if (row === 0 && col === 0) {
-        cell.classList.add('label-cell');
       } else {
-        const number = numbers[(row - 1) * 9 + (col - 1)];
-        cell.textContent = number;
-        cell.style.backgroundColor = getCellColor(number);
+        const r = row - 1, c = col - 1;
+        const n = numbers[r * 9 + c];
+        cell.textContent = n;
+        cell.style.backgroundColor = cellColor(n);
+        cell.dataset.row = r;
+        cell.dataset.col = c;
+        cell.classList.add('data-cell');
+        gridNums[r][c] = n;
+        cellEls[r][c]  = cell;
+        cell.addEventListener('click', onCellClick);
       }
-
-      trioContainer.appendChild(cell);
+      container.appendChild(cell);
     }
   }
 }
 
-  function getCellColor(number) {
-    const hue = (number - 1) / 8 * 240; // 1 -> 0° (red), 9 -> 240° (blue)
-    return `hsl(${hue}, 100%, 90%)`; // Very light colors
+function cellColor(n) {
+  return `hsl(${(n - 1) / 8 * 240}, 100%, 90%)`;
+}
+
+/* ════════════════════════════════════════════════
+   Zufallszahl
+   Jede Zahl kommt genau einmal pro Zyklus vor,
+   aber höher gewichtete Zahlen werden mit höherer
+   Wahrscheinlichkeit früher gezogen.
+   Algorithmus: Efraimidis-Spirakis (gewichtetes
+   Zufalls-Sampling ohne Zurücklegen):
+   Schlüssel = Zufall^(1/Gewicht), absteigend sortiert.
+   Häufigkeiten: 0–14 ×1, 15–29 ×2, 30–59 ×3,
+                 60–79 ×2, 80–99 ×1
+════════════════════════════════════════════════ */
+function weight(n) {
+  if (n <= 14) return 1;
+  if (n <= 29) return 2;
+  if (n <= 59) return 3;
+  if (n <= 79) return 2;
+  return 1;
+}
+
+function buildPool() {
+  const entries = [];
+  for (let n = 0; n <= 99; n++)
+    entries.push({ n, key: Math.random() ** (1 / weight(n)) });
+  entries.sort((a, b) => a.key - b.key); // aufsteigend → pop() zieht höchsten Schlüssel
+  return entries.map(e => e.n);
+}
+
+function generateRandomNumber() {
+  if (numberPool.length === 0) numberPool = buildPool();
+  targetNum = numberPool.pop();
+  numDisplay.textContent = 'Zufallszahl: ' + targetNum;
+}
+
+/* ════════════════════════════════════════════════
+   Zustand zurücksetzen
+════════════════════════════════════════════════ */
+function resetState() {
+  gameState = 'idle';
+  firstCell = null;
+  solutions = [];
+
+  for (let r = 0; r < 9; r++) {
+    for (let c = 0; c < 9; c++) {
+      const el = cellEls[r] && cellEls[r][c];
+      if (!el) continue;
+      el.classList.remove('grayed', 'selected', 'correct', 'no-sol');
+      el.style.backgroundColor = cellColor(gridNums[r][c]);
+      el.style.color = '';
+    }
   }
 
-  function generateRandomNumber() {
-    const randomNum = Math.floor(Math.random() * 50) + 51;
-    randomNumberDisplay.textContent = 'Zufallszahl: ' + randomNum;
+  resultPanel.style.display = 'none';
+  resultPanel.className     = '';
+  resultTitle.textContent   = '';
+  revealBtn.style.display   = 'none';
+  solList.style.display     = 'none';
+  solList.innerHTML         = '';
+}
+
+/* ════════════════════════════════════════════════
+   Geometrie-Hilfsfunktionen
+   Nach Klick auf eine Zelle bleiben nur die Zellen
+   aktiv, die genau 2 Schritte entfernt in einer
+   geraden Linie liegen (Endpunkte eines Trios).
+   Die mittlere Zelle wird automatisch bestimmt.
+════════════════════════════════════════════════ */
+const DELTAS2 = [
+  [0, 2], [0, -2], [2, 0], [-2, 0],
+  [2, 2], [-2, -2], [2, -2], [-2, 2]
+];
+
+function activeNeighbors(r, c) {
+  return DELTAS2
+    .map(([dr, dc]) => [r + dr, c + dc])
+    .filter(([nr, nc]) => nr >= 0 && nr < 9 && nc >= 0 && nc < 9);
+}
+
+/* ════════════════════════════════════════════════
+   Klick-Handler (Zustandsmaschine)
+════════════════════════════════════════════════ */
+function onCellClick() {
+  const r = +this.dataset.row;
+  const c = +this.dataset.col;
+
+  /* Nach Ergebnis-Anzeige: Reset und sofort neue Auswahl starten */
+  if (gameState === 'showing_result') {
+    resetState();
+    // fall-through zu 'idle'
   }
-  generateTrio();
+
+  /* Idle: erste Zelle auswählen */
+  if (gameState === 'idle') {
+    // Fehlermeldung aus vorherigem Versuch ausblenden
+    resultPanel.style.display = 'none';
+    resultPanel.className     = '';
+
+    const nbrs = activeNeighbors(r, c);
+    if (nbrs.length === 0) return;
+
+    firstCell = { r, c };
+    gameState = 'first_selected';
+    this.classList.add('selected');
+
+    const nbrSet = new Set(nbrs.map(([nr, nc]) => `${nr},${nc}`));
+    for (let i = 0; i < 9; i++) {
+      for (let j = 0; j < 9; j++) {
+        if (i === r && j === c) continue;
+        if (!nbrSet.has(`${i},${j}`)) cellEls[i][j].classList.add('grayed');
+      }
+    }
+    return;
+  }
+
+  /* Erste Zelle gewählt: zweite Zelle wählen */
+  if (gameState === 'first_selected') {
+
+    /* Gleiche Zelle nochmal → Auswahl aufheben */
+    if (r === firstCell.r && c === firstCell.c) {
+      resetState();
+      return;
+    }
+
+    const r1 = firstCell.r, c1 = firstCell.c;
+    const r2 = r,          c2 = c;
+    const rM = (r1 + r2) / 2,  cM = (c1 + c2) / 2;  // mittlere Zelle
+
+    const a = gridNums[r1][c1];
+    const m = gridNums[rM][cM];
+    const b = gridNums[r2][c2];
+
+    solutions = findSolutions(a, m, b, targetNum);
+
+    /* Alle Zellen wieder sichtbar machen */
+    for (let i = 0; i < 9; i++)
+      for (let j = 0; j < 9; j++)
+        cellEls[i][j].classList.remove('grayed');
+
+    cellEls[r1][c1].classList.remove('selected');
+
+    const triple = [cellEls[r1][c1], cellEls[rM][cM], cellEls[r2][c2]];
+
+    if (solutions.length > 0) {
+      triple.forEach(el => el.classList.add('correct'));
+      resultPanel.className    = 'ok';
+      resultTitle.textContent  = `✓ Korrekt!  (${a} · ${m} · ${b})`;
+      revealBtn.style.display  = 'inline-block';
+      resultPanel.style.display = 'block';
+      gameState = 'showing_result';
+    } else {
+      // Keine Hervorhebung der Zellen – Spieler kann sofort neu wählen
+      resultPanel.className    = 'err';
+      resultTitle.textContent  = `Keine Lösung für ${a}, ${m}, ${b}.`;
+      revealBtn.style.display  = 'none';
+      resultPanel.style.display = 'block';
+      gameState = 'idle';
+    }
+  }
+}
+
+/* ════════════════════════════════════════════════
+   Brute-Force-Löser
+   Probiert nur die Reihenfolge der Tabelle (a→m→b)
+   und die umgekehrte Richtung (b→m→a),
+   je mit allen 16 Operatorkombinationen.
+════════════════════════════════════════════════ */
+function applyOp(a, op, b) {
+  if (op === '+') return a + b;
+  if (op === '-') return a - b;
+  if (op === '*') return a * b;
+  if (op === '/') return b !== 0 ? a / b : NaN;
+  return NaN;
+}
+
+/* Wertet  a op1 b op2 c  mit Punkt vor Strich aus */
+function evalExpr(a, op1, b, op2, c) {
+  const hi = op => op === '*' || op === '/';
+  // op1 niedrig, op2 hoch: a +/- (b mal/div c)
+  if (!hi(op1) && hi(op2)) return applyOp(a, op1, applyOp(b, op2, c));
+  // sonst: (a op1 b) op2 c
+  return applyOp(applyOp(a, op1, b), op2, c);
+}
+
+function findSolutions(a, m, b, target) {
+  const OPS = ['+', '-', '*', '/'];
+  const SYM = { '+': '+', '-': '−', '*': '·', '/': '÷' };
+  const found = new Set();
+
+  // Nur Tabellenreihenfolge und Umkehrung erlaubt
+  for (const [x, y, z] of [[a, m, b], [b, m, a]]) {
+    for (const op1 of OPS) {
+      for (const op2 of OPS) {
+        const val = evalExpr(x, op1, y, op2, z);
+        if (Number.isFinite(val) && Math.abs(val - target) < 1e-9) {
+          found.add(`${x} ${SYM[op1]} ${y} ${SYM[op2]} ${z} = ${target}`);
+        }
+      }
+    }
+  }
+  return [...found];
+}
+
+/* ════════════════════════════════════════════════
+   Lösungen anzeigen
+════════════════════════════════════════════════ */
+function revealSolutions() {
+  solList.innerHTML      = solutions.map(s => `<div>${s}</div>`).join('');
+  solList.style.display  = 'block';
+  revealBtn.style.display = 'none';
+}
+
+/* ════════════════════════════════════════════════
+   Initialisierung
+════════════════════════════════════════════════ */
+generateTrio();
+generateRandomNumber();
 </script>
 
 <div id="lobby-spacer"></div>
