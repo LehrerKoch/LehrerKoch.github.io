@@ -180,11 +180,39 @@
       display: none; max-width: min(320px, 90vw);
     }
     #answerHint.visible { display: block; }
+
+    #nextTaskBtn:hover { background: #c8e6c9 !important; border-color: #2e7d32 !important; }
+
+    /* Top toast — points to settings */
+    #toastTop {
+      position: fixed; top: 18px; left: 50%; transform: translateX(-50%);
+      background: #e65100; color: #fff; padding: 9px 18px;
+      border-radius: 10px; font-size: 0.9em; font-weight: bold;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.4s; z-index: 999; white-space: nowrap;
+      box-shadow: 0 3px 14px rgba(0,0,0,0.3);
+    }
+    #toastTop::after {
+      content: '';
+      position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
+      border: 8px solid transparent;
+      border-top-color: #e65100;
+    }
+    #toastTop.show { opacity: 1; }
+
+    /* Brief glow pulse on the details element */
+    @keyframes settingsGlow {
+      0%,100% { box-shadow: none; }
+      30%      { box-shadow: 0 0 0 3px #e65100, 0 0 12px 3px rgba(230,81,0,0.4); }
+      60%      { box-shadow: 0 0 0 3px #e65100, 0 0 12px 3px rgba(230,81,0,0.4); }
+    }
+    details.settings-glow { animation: settingsGlow 1.8s ease 2; border-radius: 4px; }
   </style>
 </head>
 <body>
   <div id="flashOverlay"></div>
   <div id="toast"></div>
+  <div id="toastTop"></div>
   <div style="position:relative; z-index:1;">
 
   <h1>Potenzen Übungsaufgaben</h1>
@@ -295,6 +323,7 @@
   </div>
 
   <button id="showSolutionBtn" class="btn">L&ouml;sung anzeigen</button>
+  <button id="nextTaskBtn" style="display:none; width:100%; margin-top:8px; padding:10px; cursor:pointer; border:2px solid #388e3c; border-radius:8px; font-size:1em; background:#e8f5e9; color:#1b5e20; font-weight:bold; transition:background 0.15s, border-color 0.15s;" onclick="document.getElementById('nextTaskBtn').style.display='none'; _suppressFocus=false; generateTask();">Neue Aufgabe &#8594;</button>
 
   </div>
 
@@ -361,6 +390,25 @@ function showToast(msg, duration = 1800) {
   t.textContent = msg;
   t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), duration);
+}
+
+function showSettingsHint() {
+  // Top toast with downward arrow pointing toward settings
+  const t = document.getElementById('toastTop');
+  if (t) {
+    t.textContent = '⚙️ Hier mehr Aufgabentypen aktivieren';
+    t.classList.add('show');
+    clearTimeout(t._hideTimeout);
+    t._hideTimeout = setTimeout(() => t.classList.remove('show'), 5000);
+  }
+  // Brief orange glow on the details element
+  const det = document.querySelector('details');
+  if (det) {
+    det.classList.remove('settings-glow');
+    void det.offsetHeight; // restart animation
+    det.classList.add('settings-glow');
+    setTimeout(() => det.classList.remove('settings-glow'), 4000);
+  }
 }
 
 function flashResult(color) {
@@ -587,6 +635,7 @@ function onSettingsChange() {
   korrekteAntworten = 0;
   anzahlAufgaben = 0;
   updateCounterDisplay();
+  document.getElementById('toastTop')?.classList.remove('show');
   // document.getElementById('taskLabel').textContent = '';
   document.getElementById('taskText').innerHTML = '';
   document.getElementById('loesung').innerHTML = '';
@@ -752,7 +801,7 @@ function refillPool() {
   let pool = entries;
   if (wurzelMode === 'only') {
     pool = entries.filter(e =>
-      e.type === 'normal' ||
+      (e.type === 'normal' && e.exp >= 2) ||
       (e.type === 'negBase' && e.exp >= 2 && e.exp % 2 === 0) ||
       (e.type === 'fraction' && e.exp >= 2) ||
       (e.type === 'fracNegBase' && e.exp >= 2 && e.exp % 2 === 0)
@@ -847,7 +896,8 @@ function buildTaskAndSolution(entry) {
   const { type, base, exp, mult, den } = entry;
   const wurzelMode = document.querySelector('input[name="wurzelmode"]:checked').value;
   const canInverse = ['normal','negBase','fraction','fracNegBase'].includes(type);
-  const isInverse  = canInverse && ((wurzelMode === 'only') || (wurzelMode === 'both' && Math.random() < 0.5));
+  // exp >= 2 required: sqrt[0]{...} is undefined, sqrt[1]{x}=x is trivial/misleading
+  const isInverse  = canInverse && exp >= 2 && ((wurzelMode === 'only') || (wurzelMode === 'both' && Math.random() < 0.5));
 
   let aufgabeTex, loesungTex, hinweisText = '';
   // isInverse is needed by computeAnswerHint — expose it via return value
@@ -1093,6 +1143,7 @@ function updateSpielmodusUI(focusOnSwitch = false) {
 
 /* ── Task generation ─────────────────────────────── */
 function generateTask() {
+  document.getElementById('nextTaskBtn').style.display = 'none';
   if (taskPool.length === 0) {
     const anyChecked = document.querySelectorAll('input[name=task]:checked').length > 0;
     if (!anyChecked) {
@@ -1102,6 +1153,7 @@ function generateTask() {
     }
     refillPool(); // already shuffles
     showToast('🎉 Alle Aufgaben geschafft! Stapel wird neu gemischt…');
+    showSettingsHint();
   }
 
   const entry = taskPool[0];
@@ -1163,6 +1215,8 @@ function generateTask() {
     setAnswerHint(null);
     if (!_suppressFocus) {
       setTimeout(() => {
+        const details = document.querySelector('details');
+        if (details && details.open) return; // never steal focus from open settings
         inp.focus();
         setTimeout(scrollToInputArea, 250);
       }, sa ? 50 : 700);
@@ -1724,7 +1778,8 @@ function revealAnswer() {
   setAnswerHint(null);
   _suppressFocus = false; // next task should auto-focus
   flipToSolution();
-  setTimeout(generateTask, 1500);
+  // In Eingabe-Modus: show "Neue Aufgabe" button instead of auto-advancing
+  document.getElementById('nextTaskBtn').style.display = 'block';
 }
 
 function markAnswer(correct) {
@@ -1847,6 +1902,9 @@ document.getElementById('correctBtn').onclick = () => markAnswer(true);
 
 /* ── Init ────────────────────────────────────────── */
 document.addEventListener('DOMContentLoaded', () => {
+  // Capture BEFORE updateURLParams() writes defaults into the URL
+  const isFreshVisit = !window.location.search;
+
   Object.keys(GROUPS).forEach(makeCheckboxes);
 
   const params = getParams();
@@ -1942,6 +2000,11 @@ document.addEventListener('DOMContentLoaded', () => {
   refillPool();
   updateCounterDisplay();
   setTimeout(generateTask, 0);
+
+  // Show settings hint on first visit (no URL params = no configured settings yet)
+  if (isFreshVisit) {
+    setTimeout(showSettingsHint, 800);
+  }
 });
 </script>
 
