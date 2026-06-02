@@ -72,6 +72,14 @@ const categoriesData = [
     "cards": ["geo-sinus-herleitung", "geo-arkussinus", "geo-sinus-ablesen", "geo-sinus-veraendern", , "geo-parameter-einheit", "sinus-toene", "geo-fourier"]
   },
   {
+    "id": "stochastik",
+    "title": "Stochastik",
+    "icon": "🎲",
+    "iconType": "text",
+    "tooltip": "Wahrscheinlichkeitsrechnung, Kombinatorik und Statistik",
+    "cards": ["differenz_trifft", "baumdiagramm_auswahl"]
+  },
+  {
     "id": "mathematik-sonstiges",
     "title": "Mathematik-Sonstiges",
     "icon": "🔢",
@@ -98,9 +106,9 @@ const categoriesData = [
   {
     "id": "spiele",
     "title": "Spiele",
-    "icon": "🎲",
+    "icon": "🕹️",
     "iconType": "emoji",
     "tooltip": "Spielerische mathematische Aktivitäten",
-    "cards": ["trio", "annomathematica"]
+    "cards": ["annomathematica","trio", "differenz_trifft"]
   }
 ];

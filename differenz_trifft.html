@@ -1,0 +1,1460 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Differenz trifft – Mathe-Tools</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    html {
+  scrollbar-gutter: stable;
+}
+/* ═══ GAME HEADER ═══════════════════════════════════════════════ */
+.game-header {
+  background: linear-gradient(135deg,#e8f5e9 0%,#c8e6c9 50%,#e8f5e9 100%);
+  border-bottom: 2px solid #4CAF50;
+  padding: 8px 2%; margin: 0 -2% 8px;
+  text-align: center;
+}
+.game-header h1 { margin: 0; font-size: 1.5em; color: #2e7d32; }
+.game-header p  { margin: 1px 0 0; font-size: 12px; color: #666; }
+
+/* ═══ RULES PANEL ═══════════════════════════════════════════════ */
+#rules-panel {
+  border: 2px solid #81c784; border-radius: 12px;
+  margin: 0 0 10px; overflow: hidden;
+  background: linear-gradient(135deg,#f1f8e9,#e8f5e9);
+}
+.rules-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px; padding: 6px 12px 12px;
+}
+@media (max-width: 520px) {
+  .rules-grid { grid-template-columns: repeat(2, 1fr); }
+}
+.rule-step {
+  background: #fff; border-radius: 10px; padding: 11px 10px;
+  text-align: center; box-shadow: 0 1px 5px rgba(0,0,0,.07);
+}
+.rule-step.s0 { border-top: 3px solid #1565c0; }
+.rule-step.s1 { border-top: 3px solid #e67e22; }
+.rule-step.s2 { border-top: 3px solid #e74c3c; }
+.rule-step.s3 { border-top: 3px solid #27ae60; }
+.rule-icon  { font-size: 1.6em; margin-bottom: 4px; }
+.rule-title { font-weight: bold; font-size: 13px; color: #333; margin-bottom: 3px; }
+.rule-text  { font-size: 12px; color: #666; line-height: 1.4; }
+
+/* ═══ PILL TOGGLES ══════════════════════════════════════════════ */
+.sw { display:inline-flex; background:#e0e0e0; border-radius:24px; padding:3px; gap:0; }
+.sw button, .sw3 button {
+  background:transparent; border:none; padding:7px 18px;
+  border-radius:21px; cursor:pointer; font:14px Calibri,sans-serif;
+  color:#777; transition:.18s; margin:0; white-space:nowrap;
+}
+.sw button.on {
+  background:#fff; color:#333; font-weight:bold;
+  box-shadow:0 1px 4px rgba(0,0,0,.22);
+}
+#am-sw button { padding:5px 14px; font-size:13px; }
+.sw3 { display:inline-flex; background:#e0e0e0; border-radius:24px; padding:3px; gap:0; }
+.sw3 button { padding:6px 13px; font-size:13px; }
+.sw3 button.on { background:#fff; color:#333; font-weight:bold; box-shadow:0 1px 4px rgba(0,0,0,.22); }
+
+/* ═══ TOOLTIPS ══════════════════════════════════════════════════ */
+.tip {
+  display:inline-flex; align-items:center; justify-content:center;
+  width:17px; height:17px; border-radius:50%;
+  background:#d5d5d5; color:#666; font-size:10px;
+  cursor:help; margin-left:6px; vertical-align:middle;
+  position:relative; user-select:none; flex-shrink:0; font-weight:bold;
+}
+.tip::after {
+  content: attr(data-tip);
+  display:none; position:absolute;
+  bottom:calc(100% + 8px); left:50%; transform:translateX(-50%);
+  background:rgba(30,30,30,.92); color:#fff;
+  padding:8px 11px; border-radius:8px; font-size:12px; line-height:1.5;
+  width:220px; z-index:300; pointer-events:none;
+  box-shadow:0 3px 12px rgba(0,0,0,.3); font-weight:normal;
+}
+.tip::before {
+  content:''; display:none; position:absolute;
+  bottom:calc(100% + 2px); left:50%; transform:translateX(-50%);
+  border:6px solid transparent; border-top-color:rgba(30,30,30,.92); z-index:301;
+}
+.tip:hover::after,.tip:hover::before,.tip.open::after,.tip.open::before { display:block; }
+
+/* ═══ SETTINGS ══════════════════════════════════════════════════ */
+.start-wrap { max-width:640px; margin:0 auto; }
+.sc { background:#f9f9f9; border:1px solid #ddd; border-radius:10px; padding:11px 14px; margin-bottom:8px; }
+.sc-head { display:flex; align-items:center; margin-bottom:8px; }
+.sc-lbl  { font-weight:bold; font-size:13px; color:#444; flex:1; }
+.exp-badge { font-size:10px; background:#ff9800; color:#fff; border-radius:8px;
+             padding:1px 7px; margin-left:8px; font-weight:bold; }
+/* Ana-sub: animated slide-in, compact */
+#ana-sub {
+  max-height: 0; opacity: 0; overflow: hidden;
+  transition: max-height .32s ease, opacity .28s ease, padding-top .32s ease;
+  padding-top: 0; border-top: 1px solid #e8e8e8; margin-top: 10px;
+}
+#ana-sub.open { max-height: 150px; opacity: 1; padding-top: 8px; }
+.sub-sc { /* layout wrapper only */ }
+.sel-grp { display:flex; gap:6px; flex-wrap:wrap; }
+.sel-btn { background:#e4e4e4; color:#333; border:2px solid #ccc; padding:8px 24px;
+           border-radius:8px; cursor:pointer; font:bold 15px Calibri,sans-serif;
+           margin:0; transition:.13s; }
+.sel-btn.on { background:#4CAF50; color:#fff; border-color:#388e3c; }
+.sel-btn:hover:not(.on) { background:#d0d0d0; }
+.start-btn-wrap { text-align:center; margin:14px 0 6px; }
+.start-btn { padding:14px 44px !important; font-size:17px !important;
+             letter-spacing:1px; background:#2e7d32 !important;
+             border-radius:12px !important; font-weight:bold !important; }
+.wtype-btn { background:#e0e0e0; color:#333; border:2px solid #ccc;
+             padding:6px 13px; border-radius:6px; cursor:pointer;
+             font:13px Calibri,sans-serif; margin:0 3px 4px 0; transition:.12s; }
+.wtype-btn.on { background:#1565c0; color:#fff; border-color:#0d47a1; }
+.custom-inp { width:180px; padding:4px 8px; font-size:13px; border:1px solid #ccc; border-radius:4px; font-family:Calibri,sans-serif; }
+
+/* ═══ MODAL ═════════════════════════════════════════════════════ */
+#modal-ov { display:none; position:fixed; inset:0; background:rgba(0,0,0,.55);
+            z-index:500; align-items:center; justify-content:center; }
+#modal-ov.open { display:flex; }
+.modal-box { background:#fff; border-radius:14px; padding:22px; max-width:480px;
+             width:92%; max-height:82vh; overflow-y:auto; box-shadow:0 8px 32px rgba(0,0,0,.3); }
+.modal-box h3 { margin:0 0 12px; }
+.net-grid { display:inline-grid; gap:5px; margin:8px auto; }
+.net-cell { display:flex; flex-direction:column; align-items:center; }
+.net-cell input { width:46px; height:46px; font-size:18px; text-align:center;
+                  border:2px solid #888; border-radius:6px; font:bold 18px Calibri,sans-serif; }
+.net-cell input:focus { border-color:#1565c0; outline:none; }
+.net-label { font-size:10px; color:#999; margin-top:2px; }
+.modal-tabs { display:flex; gap:6px; margin-bottom:12px; }
+
+/* ═══ SETUP ═════════════════════════════════════════════════════ */
+.cover-box { border:2px solid #ccc; border-radius:12px; padding:26px;
+             text-align:center; max-width:400px; margin:20px auto; background:#f9f9f9; }
+.cover-box h2 { margin:6px 0 4px; font-size:1.4em; }
+
+/* diff input rows – improved visual design */
+.diff-input-block {
+  border: 1px solid #e0e0e0; border-radius: 10px;
+  overflow: hidden; background: #fff;
+}
+.diff-irow {
+  display: grid;
+  grid-template-columns: 90px 30px 1fr 30px 54px;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 10px;
+  border-bottom: 1px solid #f0f0f0;
+  transition: background .12s;
+}
+.diff-irow:last-child { border-bottom: none; }
+.diff-irow:hover { background: #f8fff8; }
+.dlbl { font-size: 13px; font-weight: bold; color: #444; }
+.dlbl .prob { font-size: 11px; color: #9ccc65; font-weight: normal; margin-left: 4px; }
+.adj {
+  width:30px; height:30px; font-size:18px; padding:0; margin:0;
+  background:#e8e8e8; color:#444; border:none; border-radius:6px;
+  cursor:pointer; font-family:Calibri,sans-serif; line-height:1;
+  transition: background .1s;
+}
+.adj:hover { background:#4CAF50; color:#fff; }
+.adj:active { background:#2e7d32; color:#fff; }
+.diff-slider {
+  width:100%; cursor:pointer; accent-color:#4CAF50;
+  -webkit-appearance:none; appearance:none;
+  height:6px; border-radius:3px; background:#ddd; outline:none;
+}
+.diff-slider::-webkit-slider-thumb {
+  -webkit-appearance:none; appearance:none;
+  width:26px; height:26px; border-radius:50%;
+  background:#4CAF50; cursor:pointer;
+  box-shadow:0 1px 5px rgba(0,0,0,.25);
+}
+.diff-slider::-moz-range-thumb {
+  width:24px; height:24px; border-radius:50%;
+  background:#4CAF50; cursor:pointer; border:none;
+  box-shadow:0 1px 5px rgba(0,0,0,.25);
+}
+.diff-numinp {
+  width:100%; font-size:14px; font-weight:bold; text-align:center;
+  border:1px solid #ccc; border-radius:6px; padding:4px 2px;
+  font-family:Calibri,sans-serif; background:#f5f5f5;
+  transition: border-color .15s, background .15s;
+}
+.diff-numinp:focus { border-color:#4CAF50; background:#fff; outline:none; }
+
+.rem { padding:8px 12px; border-radius:8px; font-size:14px;
+       background:#f0f0f0; border:1px solid #ddd; margin-top:10px;
+       display:flex; align-items:center; gap:8px; }
+.rem.ok { background:#d5f5e3; color:#1e8449; font-weight:bold; border-color:#abebc6; }
+.rem-icon { font-size:16px; }
+.name-inp { margin-left:8px; padding:5px 9px; font-size:14px;
+            border:1px solid #ccc; border-radius:6px; font-family:Calibri,sans-serif; width:200px; }
+.name-inp:focus { border-color:#4CAF50; outline:none; }
+.setup-btns { display:flex; gap:6px; flex-wrap:wrap; margin-top:10px; }
+
+/* Done button: clearly greyed vs active */
+#done-btn {
+  background:#bbb !important; color:#ddd !important;
+  cursor:not-allowed; transition:.25s;
+}
+#done-btn:not([disabled]) {
+  background:#27ae60 !important; color:#fff !important;
+  cursor:pointer; box-shadow:0 2px 8px rgba(39,174,96,.4);
+  transform:none;
+}
+#done-btn:not([disabled]):hover { background:#1e8449 !important; }
+#opt-btn { display:none; background:#7b1fa2 !important; }
+
+/* ═══ GAME ══════════════════════════════════════════════════════ */
+#status { text-align:center; padding:7px 12px; border:1px solid #ddd;
+          border-radius:8px; background:#f5f5f5; margin:6px 0; font-size:14px; }
+.catchup-banner { background:#fff3cd; border:1px solid #ffc107; border-radius:8px;
+                  padding:6px 12px; margin:5px 0; text-align:center; font-size:14px; }
+/* Dice */
+#dice-area { margin:8px 0; }
+#dice-row  { display:flex; align-items:center; justify-content:center; gap:14px; flex-wrap:wrap; }
+.die { width:88px; height:88px; border:3px solid #333; border-radius:16px;
+       background:#fff; font-size:62px;
+       display:inline-flex; align-items:center; justify-content:center;
+       box-shadow:3px 4px 10px rgba(0,0,0,.2); user-select:none; }
+.die.num { font-size:32px; font-weight:bold; }
+.die.spin { animation:dspin .44s ease-out; }
+@keyframes dspin { 0%{transform:rotate(0)scale(1)} 40%{transform:rotate(170deg)scale(.75)} 100%{transform:rotate(360deg)scale(1)} }
+.diff-box { padding:10px 20px; background:#2c3e50; color:#fff;
+            border-radius:10px; text-align:center; min-width:68px; }
+.diff-box small { font-size:11px; opacity:.7; display:block; margin-bottom:1px; }
+.diff-box .dnum { font-size:34px; font-weight:bold; line-height:1; }
+.show-diff-row {
+  display:flex; align-items:center; justify-content:center; gap:6px;
+  margin:5px 0; font-size:13px; color:#888;
+}
+.show-diff-row label { cursor:pointer; display:flex; align-items:center; gap:5px; }
+/* Analog */
+#abtn-row { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin:8px 0; }
+.adiff { width:52px; height:52px; font-size:21px; font-weight:bold;
+         border-radius:9px; background:#e4e4e4; color:#333;
+         border:2px solid #ccc; cursor:pointer; font-family:Calibri,sans-serif;
+         margin:0; transition:.15s; }
+.adiff:hover { background:#4CAF50; color:#fff; border-color:#388e3c; }
+.adiff:disabled { background:#e4e4e4 !important; color:#ccc !important; cursor:default; }
+/* Die value buttons */
+.die-btns-row { display:flex; flex-wrap:wrap; gap:4px; justify-content:center; max-width:220px; }
+.die-val-btn { width:40px; height:40px; font-size:16px; font-weight:bold;
+               border-radius:8px; cursor:pointer; border:2px solid transparent;
+               transition:.15s; font-family:Calibri,sans-serif; margin:0;
+               display:flex; align-items:center; justify-content:center;
+               line-height:1; padding:0; }
+.dv-a { background:#bbdefb; color:#1565c0; border-color:#90caf9; }
+.dv-a:hover,.dv-a.sel { background:#1565c0; color:#fff; border-color:#0d47a1; }
+.dv-b { background:#ffcdd2; color:#b71c1c; border-color:#ef9a9a; }
+.dv-b:hover,.dv-b.sel { background:#b71c1c; color:#fff; border-color:#7f0000; }
+.die-label { font-size:12px; color:#888; text-align:center; margin-bottom:5px; font-weight:bold; }
+/* Table */
+#tbl-wrap { overflow-x:auto; margin:8px 0; }
+#gtbl { border-collapse:collapse; min-width:100%; }
+#gtbl th, #gtbl td { border:2px solid #444; padding:5px 6px; text-align:center; vertical-align:middle; }
+#gtbl th { background:#eee; font-weight:bold; font-size:13px; }
+.dth { background:#333 !important; color:#fff !important; min-width:38px; }
+.cur-th { outline:3px solid #e67e22; outline-offset:-3px; }
+.done-badge { display:inline-block; background:#27ae60; color:#fff; border-radius:10px;
+              font-size:10px; padding:1px 5px; margin-left:3px; }
+.turns-inf { font-size:11px; color:#888; display:block; }
+.freq-lbl  { font-size:10px; color:#aaa; font-weight:normal; display:block; }
+/* Colors */
+.pc0{color:#1a6fa8} .pb0{background:#d6eaf8} .pk0{background:#ebf5fb}
+.pc1{color:#b03a2e} .pb1{background:#fadbd8} .pk1{background:#fdedec}
+.pc2{color:#1e8449} .pb2{background:#d5f5e3} .pk2{background:#eafaf1}
+.pc3{color:#b7770d} .pb3{background:#fdebd0} .pk3{background:#fef9e7}
+/* Circles */
+.circles { display:flex; flex-wrap:wrap; gap:3px; justify-content:center; min-height:26px; padding:2px; }
+.o { width:27px; height:27px; border-radius:50%; border:2px solid #999; background:#fff;
+     display:inline-flex; align-items:center; justify-content:center;
+     font:bold 11px Calibri,sans-serif; box-sizing:border-box; user-select:none; }
+.o.hit    { background:#e74c3c; border-color:#c0392b; color:#fff; }
+.o.tap    { cursor:pointer; border:3px solid #27ae60; background:#eafaf1; animation:puls .65s infinite alternate; }
+.o.clk    { cursor:pointer; }
+.o.ring-g { box-shadow:0 0 0 3px #27ae60, 0 0 0 5px rgba(39,174,96,.25); border-color:#c0392b; }
+.cell-miss-now { background:#fff0f0 !important; outline:2px solid #e74c3c; outline-offset:-2px; }
+@keyframes puls { to{transform:scale(1.22)} }
+.kein-treffer { text-align:center; font-size:13px; color:#e74c3c; padding:4px 0; }
+/* Win screen */
+.win-box { border:3px solid #f39c12; border-radius:18px; padding:26px;
+           background:linear-gradient(135deg,#fef9e7,#fdebd0);
+           text-align:center; max-width:430px; margin:12px auto; }
+.win-box .troph { font-size:56px; margin-bottom:4px; }
+.win-box h2 { color:#d35400; font-size:1.7em; margin:6px 0; }
+.rank-table { margin:8px auto; font-size:14px; border-collapse:collapse; }
+.rank-table td { padding:3px 12px; }
+/* Prob explanation – subtle, below buttons */
+#prob-explain {
+  border: 1px solid #e0e0e0; border-radius:8px;
+  margin-top:10px; font-size:13px;
+}
+#prob-explain > summary { color:#999; font-size:13px; padding:4px 8px; font-weight:normal; }
+#prob-explain > summary::before { font-size:9px; }
+/* probability chart in game */
+.prob-chart-wrap { display:flex; align-items:flex-end; gap:6px; padding:12px 8px 4px; justify-content:center; flex-wrap:wrap; background:#fafafa; border-radius:8px; }
+.prob-col { text-align:center; display:flex; flex-direction:column; align-items:center; }
+.prob-pct  { font-size:11px; color:#2e7d32; font-weight:bold; margin-bottom:3px; }
+.prob-bar  { width:34px; background:linear-gradient(to top,#2e7d32,#66bb6a); border-radius:4px 4px 0 0; min-height:3px; }
+.prob-bar.peak { background:linear-gradient(to top,#1a237e,#42a5f5); }
+.prob-dlbl { font-size:13px; font-weight:bold; color:#333; border-top:2px solid #555; width:34px; margin-top:2px; padding-top:2px; }
+.prob-frac { font-size:10px; color:#bbb; margin-top:1px; }
+/* Misc */
+.btn-row { display:flex; gap:6px; justify-content:flex-end; flex-wrap:wrap; margin-top:8px; }
+.btn-sm  { font-size:11px !important; padding:6px 12px !important; margin:0 !important; }
+/* Toast */
+#toast {
+  position:fixed; bottom:24px; left:50%;
+  transform:translateX(-50%) translateY(80px);
+  background:rgba(30,30,30,.92); color:#fff;
+  padding:10px 22px; border-radius:26px; font-size:14px;
+  transition:transform .3s ease, opacity .3s ease;
+  opacity:0; z-index:1000; pointer-events:none;
+  box-shadow:0 4px 16px rgba(0,0,0,.35);
+}
+#toast.show { transform:translateX(-50%) translateY(0); opacity:1; }
+@media(max-width:480px){
+  .die{width:70px;height:70px;font-size:50px} .die.num{font-size:26px}
+  .o{width:23px;height:23px;font-size:10px}
+  .sw button,.sw3 button{padding:6px 11px;font-size:13px}
+  .diff-irow { grid-template-columns: 80px 28px 1fr 28px 48px; gap:5px; }
+}
+  </style>
+</head>
+<body>
+
+<div class="game-header">
+  <h1>🎲 Differenz trifft 🎲</h1>
+  <p>Kreuz als Erster alle deine Ziele ab und gewinne!</p>
+</div>
+
+<details id="rules-panel" open>
+  <summary>📋 Spielregeln</summary>
+  <div class="rules-grid">
+    <div class="rule-step s0">
+      <div class="rule-icon">📌</div>
+      <div class="rule-title">Ziele festlegen</div>
+      <div class="rule-text">Jeder verteilt seine Ziele (z.&nbsp;B.&nbsp;10) auf die möglichen Augendifferenzen.</div>
+    </div>
+    <div class="rule-step s1">
+      <div class="rule-icon">🎲</div>
+      <div class="rule-title">Würfeln</div>
+      <div class="rule-text">Zwei Würfel werden geworfen. Die Differenz |W₁&nbsp;−&nbsp;W₂| zählt.</div>
+    </div>
+    <div class="rule-step s2">
+      <div class="rule-icon">✕</div>
+      <div class="rule-title">Abkreuzen</div>
+      <div class="rule-text">Passende Differenz noch als Ziel? Genau einmal abkreuzen!</div>
+    </div>
+    <div class="rule-step s3">
+      <div class="rule-icon">🏆</div>
+      <div class="rule-title">Sieg</div>
+      <div class="rule-text">Wer zuerst alle Ziele abgekreuzt hat, gewinnt!</div>
+    </div>
+  </div>
+</details>
+
+<main>
+
+<!-- ════ START ═══════════════════════════════════════════════════ -->
+<div id="ph-start">
+  <div class="start-wrap">
+
+    <div class="sc">
+      <div class="sc-head">
+        <span class="sc-lbl">Spieleranzahl</span>
+        <span class="tip" data-tip="Wie viele Personen spielen? Jeder Spieler legt eigene Zielvorgaben fest.">ℹ</span>
+      </div>
+      <div class="sel-grp" id="np-grp">
+        <button class="sel-btn" data-n="1" onclick="setNP(1)">1</button>
+        <button class="sel-btn on" data-n="2" onclick="setNP(2)">2</button>
+        <button class="sel-btn" data-n="3" onclick="setNP(3)">3</button>
+        <button class="sel-btn" data-n="4" onclick="setNP(4)">4</button>
+      </div>
+    </div>
+
+    <div class="sc">
+      <div class="sc-head">
+        <span class="sc-lbl">Ziele pro Spieler: <strong id="tgt-lbl">10</strong></span>
+        <span class="tip" data-tip="Wie viele Kreuze muss jeder Spieler insgesamt setzen, um zu gewinnen? Mehr Ziele = längeres Spiel.">ℹ</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <input type="range" id="tgt-sl" min="5" max="30" value="10" style="flex:1"
+               oninput="document.getElementById('tgt-lbl').textContent=this.value;saveToURL()">
+        <span style="font-size:12px;color:#999">5–30</span>
+      </div>
+    </div>
+
+    <div class="sc">
+      <div class="sc-head">
+        <span class="sc-lbl">Würfelmodus</span>
+        <span class="tip" data-tip="Digital: Der Computer würfelt animiert. Analog: Ihr verwendet echte Würfel und gebt das Ergebnis ein.">ℹ</span>
+      </div>
+      <div class="sw" id="dm-sw">
+        <button class="on" onclick="setDM('dig')">🎲 Digital</button>
+        <button onclick="setDM('ana')">🎲 Analog</button>
+      </div>
+      <div id="ana-sub" class="sub-sc">
+        <div class="sc-head">
+          <span class="sc-lbl" style="font-size:13px;font-weight:normal;color:#666">Eingabemodus</span>
+          <span class="tip" data-tip="Differenz klicken: Du klickst direkt auf die gewürfelte Differenz. Würfelwerte klicken: Du wählst beide Einzelwerte – die Differenz wird auto. berechnet.">ℹ</span>
+        </div>
+        <div class="sw" id="am-sw">
+          <button class="on" onclick="setAnaMode('diff')">Differenz klicken</button>
+          <button onclick="setAnaMode('die')">Würfelwerte klicken</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="sc" id="mark-card">
+      <div class="sc-head">
+        <span class="sc-lbl">Abkreuzen</span>
+        <span class="tip" data-tip="Automatisch: Ziele werden sofort markiert. Mit Hinweis: Klickbare Kreise werden grün hervorgehoben. Ohne Hinweis: Du entscheidest selbst – kein visueller Hinweis.">ℹ</span>
+      </div>
+      <div class="sw3" id="mm-sw">
+        <button class="on" onclick="setMM('auto')">⚡ Automatisch</button>
+        <button onclick="setMM('hint')">👆 Mit Hinweis</button>
+        <button onclick="setMM('nohint')">🙈 Ohne Hinweis</button>
+      </div>
+    </div>
+
+    <div class="sc">
+      <div class="sc-head">
+        <span class="sc-lbl">Spielreihenfolge</span>
+        <span class="tip" data-tip="Gleichzeitig: Jeder Wurf gilt für alle Spieler gleichzeitig. Einzeln: Jeder würfelt separat – wer nicht dran ist, wartet. Am Ende können alle noch ausgleichen.">ℹ</span>
+      </div>
+      <div class="sw" id="rm-sw">
+        <button class="on" onclick="setRM('sim')">👥 Gleichzeitig</button>
+        <button onclick="setRM('ind')">👤 Einzeln</button>
+      </div>
+    </div>
+
+    <details>
+      <summary>🎲 Würfeltyp <span class="exp-badge">experimentell</span>
+        <span class="tip" style="margin-left:8px" data-tip="Verschiedene Würfeltypen verändern die möglichen Differenzen. Diese Funktion ist noch experimentell.">ℹ</span>
+      </summary>
+      <div class="sc" style="margin-top:6px;border-radius:6px">
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:10px;flex-wrap:wrap">
+          <label style="font-size:13px;cursor:pointer">
+            <input type="radio" name="sd" value="same" checked onchange="onSameDice()"> Beide gleich
+          </label>
+          <label style="font-size:13px;cursor:pointer">
+            <input type="radio" name="sd" value="diff" onchange="onSameDice()"> Unterschiedlich
+          </label>
+        </div>
+        <div id="dice-a-row">
+          <div style="font-size:13px;color:#777;font-weight:bold;margin-bottom:5px" id="die-a-lbl">Würfel:</div>
+          <div id="btns-a"></div>
+          <div id="custom-a-row" style="display:none;margin-top:6px">
+            <input class="custom-inp" id="custom-a-inp" placeholder="z.B. 1,2,3,4,5,6"
+                   onchange="setCustomFaces('A',this.value)">
+            <span style="font-size:12px;color:#999"> (kommagetrennt)</span>
+          </div>
+        </div>
+        <div id="dice-b-row" style="display:none;margin-top:10px;border-top:1px solid #e0e0e0;padding-top:10px">
+          <div style="font-size:13px;color:#777;font-weight:bold;margin-bottom:5px">Würfel B:</div>
+          <div id="btns-b"></div>
+          <div id="custom-b-row" style="display:none;margin-top:6px">
+            <input class="custom-inp" id="custom-b-inp" placeholder="z.B. 1,2,3,4,5,6"
+                   onchange="setCustomFaces('B',this.value)">
+          </div>
+        </div>
+        <button class="btn-sm" style="margin-top:10px;background:#555" onclick="openNetModal()">🔲 Netz bearbeiten</button>
+      </div>
+    </details>
+
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-top:14px">
+      <button class="btn-sm" style="background:#1565c0" onclick="shareSettings()">🔗 Einstellungen teilen</button>
+      <button class="start-btn" onclick="toSetup(false)">▶ Spiel starten</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ════ SETUP ═══════════════════════════════════════════════════ -->
+<div id="ph-setup" style="display:none">
+  <div id="setup-cover" class="cover-box">
+    <div style="font-size:2.2em">🙈</div>
+    <p style="margin:6px 0 8px">Alle anderen schauen bitte weg!</p>
+    <h2 id="cov-name">Spieler 1</h2>
+    <p style="color:#888;font-size:13px">Lege jetzt deine Zielvorgaben fest.</p>
+    <button onclick="showSetupForm()" style="margin-top:12px">Bereit →</button>
+  </div>
+  <div id="setup-form" style="display:none">
+    <h2 id="setup-title"></h2>
+    <p style="font-size:14px">Verteile genau <strong id="setup-n"></strong> Ziele auf die möglichen Differenzen.</p>
+    <div class="form-block">
+      <div style="margin-bottom:12px;display:flex;align-items:center">
+        <strong>Name:</strong>
+        <input type="text" id="nm-inp" class="name-inp" oninput="onNmChange(this.value)">
+      </div>
+      <div id="diff-rows" class="diff-input-block"></div>
+    </div>
+    <div class="rem" id="rem-info">
+      <span class="rem-icon">⏳</span>
+      <span id="rem-txt">Noch 0 Ziele zu verteilen</span>
+    </div>
+    <div class="setup-btns">
+      <button onclick="randomDistrib()" style="background:#e67e22">🎲 Zufällig</button>
+      <button id="opt-btn" onclick="optimalDistrib()">⭐ Optimal</button>
+      <button id="done-btn" onclick="finSetup()" disabled>Fertig ✓</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════ GAME ════════════════════════════════════════════════════ -->
+<div id="ph-game" style="display:none">
+  <div id="catchup-banner" style="display:none" class="catchup-banner"></div>
+  <div id="status"></div>
+
+  <div id="dig-ui" style="display:none">
+    <div id="dice-area">
+      <div id="dice-row">
+        <div class="die" id="d1">⚀</div>
+        <span style="font-size:20px;color:#aaa;font-weight:bold">−</span>
+        <div class="die" id="d2">⚀</div>
+        <div class="diff-box" id="diff-box-wrap">
+          <small>Differenz</small>
+          <div class="dnum" id="diff-val">?</div>
+        </div>
+      </div>
+    </div>
+    <div style="text-align:center;margin-top:8px">
+      <button id="roll-btn" onclick="doRoll()">🎲 Würfeln</button>
+    </div>
+    <div class="show-diff-row">
+      <label>
+        <input type="checkbox" id="show-diff-cb" checked onchange="onShowDiff(this.checked)">
+        Differenz anzeigen
+      </label>
+    </div>
+    <div id="mark-msg" style="text-align:center;font-size:13px;margin:4px 0"></div>
+  </div>
+
+  <div id="ana-ui" style="display:none">
+    <div id="diff-mode-ui">
+      <p style="text-align:center;font-size:13px;color:#888;margin:6px 0">Welche Differenz wurde gewürfelt?</p>
+      <div id="abtn-row"></div>
+    </div>
+    <div id="die-mode-ui" style="display:none">
+      <div style="display:flex;gap:20px;justify-content:center;flex-wrap:wrap;align-items:flex-start;margin:8px 0">
+        <div style="text-align:center">
+          <div class="die-label" id="dv-lbl-a">Würfel A</div>
+          <div class="die-btns-row" id="dieA-btns"></div>
+        </div>
+        <div style="display:flex;align-items:center;padding-top:20px;font-size:20px;color:#bbb">−</div>
+        <div style="text-align:center">
+          <div class="die-label" id="dv-lbl-b">Würfel B</div>
+          <div class="die-btns-row" id="dieB-btns"></div>
+        </div>
+        <div>
+          <div class="die-label">Differenz</div>
+          <div class="diff-box" id="die-diff-box" style="opacity:.4;min-width:54px">
+            <div class="dnum" id="die-sel-diff">?</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="ana-msg" style="text-align:center;font-size:13px;margin:4px 0"></div>
+  </div>
+
+  <div id="tbl-wrap"><table id="gtbl"></table></div>
+
+  <div class="btn-row">
+    <button class="btn-sm" onclick="flipTbl()"    style="background:#666">⟲ Drehen</button>
+    <button class="btn-sm" onclick="replay()"     style="background:#555">↺ Gleiche Ziele</button>
+    <button class="btn-sm" onclick="toNewSetup()" style="background:#888">📋 Neue Ziele</button>
+    <button class="btn-sm" onclick="showPhase('start')" style="background:#c0392b">⚙ Einstellungen</button>
+  </div>
+
+  <details id="prob-explain">
+    <summary>📊 Wahrscheinlichkeiten (theoretisch)</summary>
+    <div id="prob-content" style="padding:8px 4px"></div>
+  </details>
+</div>
+
+<!-- ════ END ══════════════════════════════════════════════════════ -->
+<div id="ph-end" style="display:none">
+  <div id="win-wrap"></div>
+  <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:14px">
+    <button onclick="replay()">↺ Nochmal</button>
+    <button onclick="toNewSetup()" style="background:#555">📋 Neue Zielvorgaben</button>
+    <button onclick="showPhase('start')" style="background:#888">⚙ Einstellungen</button>
+  </div>
+</div>
+
+<!-- ════ MODAL ═══════════════════════════════════════════════════ -->
+<div id="modal-ov">
+  <div class="modal-box">
+    <h3 id="modal-title">Würfel-Netz bearbeiten</h3>
+    <div class="modal-tabs" id="net-tabs"></div>
+    <div id="net-content"></div>
+    <p style="font-size:12px;color:#999;margin:10px 0 8px">Beim W6 ergänzen sich gegenüberliegende Seiten zu 7.</p>
+    <div style="text-align:right"><button onclick="closeNetModal()">Schließen ✓</button></div>
+  </div>
+</div>
+
+<!-- ════ TOAST ═══════════════════════════════════════════════════ -->
+<div id="toast"></div>
+
+</main>
+<div id="lobby-spacer"></div>
+<footer class="site-footer">
+  <div class="footer-content">
+      M.&nbsp;Koch
+      <span class="footer-topic"><a href="./index.html">Mathe-Tools</a></span>
+      <span class="footer-update">Last updated:&nbsp;<span id="last-update">...</span></span>
+  </div>
+</footer>
+<script src="last-update.js" defer></script>
+
+<script>
+// ════════════════════════════════════════════════════════════════
+//  CONSTANTS
+// ════════════════════════════════════════════════════════════════
+const WFACES = {
+  W4:  [1,2,3,4],
+  W6:  [2,4,1,3,6,5],   // net order: Top,Left,Front,Right,Back,Bottom → opp. pairs sum 7
+  W8:  [1,2,3,4,5,6,7,8],
+  W12: Array.from({length:12},(_,i)=>i+1),
+  W20: Array.from({length:20},(_,i)=>i+1),
+};
+const DICE_SYMS = ['⚀','⚁','⚂','⚃','⚄','⚅'];
+const PCOL = ['#1a6fa8','#b03a2e','#1e8449','#b7770d'];
+const PBG  = ['pb0','pb1','pb2','pb3'];
+const PCL  = ['pk0','pk1','pk2','pk3'];
+const PTXT = ['pc0','pc1','pc2','pc3'];
+const MEDAL = ['🥇','🥈','🥉','4️⃣'];
+const W6_NET_LABELS = ['Oben','Links','Vorne','Rechts','Hinten','Unten'];
+const W6_NET_GRID   = [[0,1],[1,0],[1,1],[1,2],[1,3],[2,1]];
+
+// ════════════════════════════════════════════════════════════════
+//  STATE
+// ════════════════════════════════════════════════════════════════
+let cfg = {
+  numPlayers:   2,
+  totalTargets: 10,
+  diceMode:  'dig',
+  anaMode:   'diff',
+  markMode:  'auto',
+  rollMode:  'sim',
+  sameDice:  true,
+  showDiff:  true,
+  typeA: 'W6', typeB: 'W6',
+  facesA: [...WFACES.W6],
+  facesB: [...WFACES.W6],
+};
+
+let players     = [];
+let setupIdx    = 0;
+let setupV      = {};
+let activeDiffs = [];
+
+let gs = {
+  curP:0, over:false, winOrder:[], winTurn:null, tblMode:'portrait',
+  pendDiff:null, pendMarked:null, pendResolved:null,
+  lastHits:[], lastMiss:null,
+  dieSelA:null, dieSelB:null,
+  diffHist:{}, rollCount:0,
+};
+
+// ════════════════════════════════════════════════════════════════
+//  DICE / DIFF HELPERS
+// ════════════════════════════════════════════════════════════════
+function effFacesB()  { return cfg.sameDice ? cfg.facesA : cfg.facesB; }
+function rollDie(fa)  { return fa[Math.floor(Math.random()*fa.length)]; }
+
+function computeActiveDiffs() {
+  const s = new Set();
+  for (const a of cfg.facesA) for (const b of effFacesB()) s.add(Math.abs(a-b));
+  return [...s].sort((a,b)=>a-b);
+}
+
+function getDiffFreq() {
+  const fa = cfg.facesA, fb = effFacesB();
+  const freq = {};
+  activeDiffs.forEach(d=>freq[d]=0);
+  for (const a of fa) for (const b of fb) { const d=Math.abs(a-b); if(d in freq) freq[d]++; }
+  return { freq, total: fa.length*fb.length };
+}
+
+function roundToIntSum(arr, target) {
+  const fl=arr.map(Math.floor), fr=arr.map((v,i)=>v-fl[i]);
+  let r=target-fl.reduce((a,b)=>a+b,0);
+  fr.map((_,i)=>i).sort((a,b)=>fr[b]-fr[a]).forEach((i,j)=>{ if(j<r)fl[i]++; });
+  return fl;
+}
+
+// ════════════════════════════════════════════════════════════════
+//  URL PERSISTENCE
+// ════════════════════════════════════════════════════════════════
+function saveToURL() {
+  const p = new URLSearchParams();
+  p.set('n',  cfg.numPlayers);
+  p.set('t',  document.getElementById('tgt-sl').value);
+  p.set('dm', cfg.diceMode);
+  p.set('am', cfg.anaMode);
+  p.set('mm', cfg.markMode);
+  p.set('rm', cfg.rollMode);
+  p.set('sd', cfg.sameDice?'1':'0');
+  p.set('ta', cfg.typeA);
+  if (!cfg.sameDice) p.set('tb', cfg.typeB);
+  if (cfg.typeA==='Individuell') p.set('cfa', cfg.facesA.join(','));
+  if (!cfg.sameDice && cfg.typeB==='Individuell') p.set('cfb', cfg.facesB.join(','));
+  p.set('shd', cfg.showDiff?'1':'0');
+  const url = location.pathname + '?' + p.toString();
+  history.replaceState(null,'',url);
+}
+
+function loadFromURL() {
+  const p = new URLSearchParams(location.search);
+  if (!p.toString()) return; // nothing to load
+  if (p.has('n'))  setNP(+p.get('n'));
+  if (p.has('t'))  { const v=+p.get('t'); document.getElementById('tgt-sl').value=v; document.getElementById('tgt-lbl').textContent=v; }
+  if (p.has('dm')) setDM(p.get('dm'));
+  if (p.has('am')) setAnaMode(p.get('am'));
+  if (p.has('mm')) setMM(p.get('mm'));
+  if (p.has('rm')) setRM(p.get('rm'));
+  if (p.has('sd')) {
+    const same = p.get('sd')==='1';
+    const radios = document.querySelectorAll('[name=sd]');
+    radios.forEach(r=>r.checked = (r.value==='same')===same);
+    cfg.sameDice=same; onSameDice();
+  }
+  if (p.has('ta')) selectWType('A',p.get('ta'));
+  if (p.has('tb')) selectWType('B',p.get('tb'));
+  if (p.has('cfa')) { document.getElementById('custom-a-inp').value=p.get('cfa'); setCustomFaces('A',p.get('cfa')); }
+  if (p.has('cfb')) { document.getElementById('custom-b-inp').value=p.get('cfb'); setCustomFaces('B',p.get('cfb')); }
+  if (p.has('shd')) {
+    cfg.showDiff = p.get('shd')!=='0';
+    // checkbox in game UI updated when game starts
+  }
+}
+
+function shareSettings() {
+  saveToURL();
+  const url = location.href;
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(url).then(()=>showToast('📋 Link kopiert!')).catch(()=>showToast('Link: '+url));
+  } else {
+    showToast('Link: '+url);
+  }
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2800);
+}
+
+// ════════════════════════════════════════════════════════════════
+//  START SCREEN
+// ════════════════════════════════════════════════════════════════
+function swActivate(swEl, btn) {
+  swEl.querySelectorAll('button').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+}
+
+function setNP(n) {
+  cfg.numPlayers=n;
+  document.querySelectorAll('#np-grp .sel-btn').forEach(b=>b.classList.toggle('on',+b.dataset.n===n));
+  saveToURL();
+}
+
+function setDM(m) {
+  cfg.diceMode=m;
+  const sw=document.getElementById('dm-sw');
+  swActivate(sw, sw.querySelector(`button:${m==='dig'?'first':'last'}-child`));
+  document.getElementById('ana-sub').classList.toggle('open', m==='ana');
+  // mark-card always visible
+  saveToURL();
+}
+
+function setAnaMode(m) {
+  cfg.anaMode=m;
+  const sw=document.getElementById('am-sw');
+  swActivate(sw, sw.querySelector(`button:${m==='diff'?'first':'last'}-child`));
+  saveToURL();
+}
+
+function setMM(m) {
+  cfg.markMode=m;
+  const btns=document.getElementById('mm-sw').querySelectorAll('button');
+  btns.forEach(b=>b.classList.remove('on'));
+  btns[{auto:0,hint:1,nohint:2}[m]].classList.add('on');
+  saveToURL();
+}
+
+function setRM(m) {
+  cfg.rollMode=m;
+  const sw=document.getElementById('rm-sw');
+  swActivate(sw, sw.querySelector(`button:${m==='sim'?'first':'last'}-child`));
+  saveToURL();
+}
+
+function onSameDice() {
+  cfg.sameDice=document.querySelector('[name=sd]:checked').value==='same';
+  document.getElementById('dice-b-row').style.display=cfg.sameDice?'none':'';
+  document.getElementById('die-a-lbl').textContent=cfg.sameDice?'Würfel:':'Würfel A:';
+  saveToURL();
+}
+
+function onShowDiff(checked) {
+  cfg.showDiff=checked;
+  document.getElementById('diff-box-wrap').style.display=checked?'':'none';
+  saveToURL();
+}
+
+const W_TYPES=['W4','W6','W8','W12','W20','Individuell'];
+function buildDiceButtons() {
+  ['a','b'].forEach(ab=>{
+    const AB=ab.toUpperCase();
+    const el=document.getElementById(`btns-${ab}`); if(!el) return;
+    el.innerHTML=W_TYPES.map(t=>
+      `<button class="wtype-btn${cfg['type'+AB]===t?' on':''}" onclick="selectWType('${AB}','${t}')">${t}</button>`
+    ).join('');
+  });
+}
+
+function selectWType(AB, type) {
+  cfg['type'+AB]=type;
+  const ab=AB.toLowerCase();
+  document.querySelectorAll(`#btns-${ab} .wtype-btn`).forEach(b=>b.classList.toggle('on',b.textContent===type));
+  document.getElementById(`custom-${ab}-row`).style.display=type==='Individuell'?'':'none';
+  if (type!=='Individuell') { cfg['faces'+AB]=[...WFACES[type]]; document.getElementById(`custom-${ab}-inp`).value=''; }
+  saveToURL();
+}
+
+function setCustomFaces(AB,val) {
+  const nums=val.split(',').map(s=>+s.trim()).filter(n=>!isNaN(n)&&Number.isFinite(n));
+  if (nums.length>0) { cfg['faces'+AB]=nums; activeDiffs=computeActiveDiffs(); }
+  saveToURL();
+}
+
+// ════════════════════════════════════════════════════════════════
+//  NET MODAL
+// ════════════════════════════════════════════════════════════════
+let _netAB='A';
+function openNetModal()  { document.getElementById('modal-ov').classList.add('open'); renderNetModal('A'); }
+function closeNetModal() { document.getElementById('modal-ov').classList.remove('open'); }
+
+function renderNetModal(AB) {
+  _netAB=AB;
+  const showBoth=!cfg.sameDice;
+  const tabs=document.getElementById('net-tabs');
+  tabs.innerHTML = showBoth?['A','B'].map(ab=>
+    `<button class="btn-sm" style="background:${ab===AB?'#1565c0':'#888'}" onclick="renderNetModal('${ab}')">${cfg['type'+ab]} (${ab})</button>`
+  ).join(''):'';
+  document.getElementById('modal-title').textContent=`Würfel-Netz: ${cfg['type'+AB]}${showBoth?' ('+AB+')':''}`;
+  buildNetContent(AB);
+}
+
+function buildNetContent(AB) {
+  const type=cfg['type'+AB], faces=cfg['faces'+AB];
+  const cont=document.getElementById('net-content');
+  if (type==='W6') {
+    let html=`<div style="display:grid;grid-template-columns:repeat(4,56px);grid-template-rows:repeat(3,66px);gap:5px">`;
+    W6_NET_GRID.forEach(([r,c],i)=>{
+      html+=`<div class="net-cell" style="grid-row:${r+1};grid-column:${c+1}">
+        <input type="number" value="${faces[i]}" onchange="updateNetFace('${AB}',${i},this.value)">
+        <div class="net-label">${W6_NET_LABELS[i]}</div>
+      </div>`;
+    });
+    html+='</div>';
+    cont.innerHTML=html;
+  } else {
+    const cols=Math.min(5,faces.length<=4?faces.length:faces.length<=8?4:5);
+    let html=`<p style="font-size:13px;color:#888;margin:0 0 8px">Seiten von ${type}:</p>
+      <div style="display:grid;grid-template-columns:repeat(${cols},56px);gap:5px">`;
+    faces.forEach((v,i)=>{ html+=`<div class="net-cell"><input type="number" value="${v}" onchange="updateNetFace('${AB}',${i},this.value)"><div class="net-label">Seite ${i+1}</div></div>`; });
+    html+='</div>';
+    cont.innerHTML=html;
+  }
+}
+
+function updateNetFace(AB,idx,val) {
+  const n=parseFloat(val);
+  if (!isNaN(n)) { cfg['faces'+AB][idx]=n; activeDiffs=computeActiveDiffs(); }
+}
+
+// ════════════════════════════════════════════════════════════════
+//  SETUP
+// ════════════════════════════════════════════════════════════════
+function readCfg() {
+  cfg.totalTargets=+document.getElementById('tgt-sl').value;
+  activeDiffs=computeActiveDiffs();
+}
+
+function toSetup(keepNames) {
+  readCfg();
+  if (!keepNames) {
+    players=Array.from({length:cfg.numPlayers},(_,i)=>({name:`Spieler ${i+1}`,targets:{},crossed:{},done:false,turns:0,rank:null}));
+  } else {
+    players.forEach(p=>{activeDiffs.forEach(d=>{p.targets[d]=0;p.crossed[d]=0;}); p.done=false;p.turns=0;p.rank=null;});
+  }
+  setupIdx=0; showPhase('setup');
+  document.getElementById('setup-n').textContent=cfg.totalTargets;
+  beginSetupFor(0);
+}
+function toNewSetup() { toSetup(true); }
+
+function beginSetupFor(idx) {
+  document.getElementById('cov-name').textContent=players[idx].name;
+  document.getElementById('setup-cover').style.display='';
+  document.getElementById('setup-form').style.display='none';
+  if (cfg.numPlayers===1) showSetupForm();
+}
+
+function showSetupForm() {
+  document.getElementById('setup-cover').style.display='none';
+  document.getElementById('setup-form').style.display='';
+  const p=players[setupIdx];
+  setupV={}; activeDiffs.forEach(d=>setupV[d]=0);
+  document.getElementById('setup-title').textContent=`${p.name} – Zielvorgaben`;
+  document.getElementById('nm-inp').value=p.name;
+  document.getElementById('done-btn').disabled=true;
+  document.getElementById('opt-btn').style.display='none';
+  buildDiffRows(false);
+  refreshRem();
+}
+
+function isPF(v) {
+  const lc=v.trim().toLowerCase();
+  return lc==='blaise pascal'||lc==='pierre de fermat'||
+         (lc.includes('blaise')&&lc.includes('pascal'))||
+         (lc.includes('pierre')&&lc.includes('fermat'));
+}
+
+function onNmChange(v) {
+  const name=v.trim()||`Spieler ${setupIdx+1}`;
+  players[setupIdx].name=name;
+  document.getElementById('setup-title').textContent=`${name} – Zielvorgaben`;
+  const egg=isPF(v);
+  document.getElementById('opt-btn').style.display=egg?'':'none';
+  document.querySelectorAll('.prob').forEach(el=>el.style.display=egg?'':'none');
+  if (egg) optimalDistrib();
+}
+
+function buildDiffRows(showProbs) {
+  const {freq,total}=getDiffFreq();
+  let h='';
+  activeDiffs.forEach(d=>{
+    const pct=((freq[d]/total)*100).toFixed(1);
+    h+=`<div class="diff-irow">
+      <span class="dlbl">Diff&nbsp;<strong>${d}</strong>
+        <span class="prob" style="display:${showProbs?'':'none'}">${pct}%</span>
+      </span>
+      <button class="adj" onclick="adjV(${d},-1)">−</button>
+      <input type="range" class="diff-slider" id="sl${d}" min="0" max="${cfg.totalTargets}" value="0"
+             oninput="syncV(${d},+this.value,'slider')">
+      <button class="adj" onclick="adjV(${d},+1)">+</button>
+      <input type="number" class="diff-numinp" id="ni${d}" min="0" max="${cfg.totalTargets}" value="0"
+             oninput="syncV(${d},+this.value,'input')" onblur="syncV(${d},+this.value,'input')">
+    </div>`;
+  });
+  document.getElementById('diff-rows').innerHTML=h;
+}
+
+function syncV(diff,val,src) {
+  const others=activeDiffs.reduce((s,d)=>d===diff?s:s+(setupV[d]||0),0);
+  const maxV=cfg.totalTargets-others;
+  val=Math.max(0,Math.min(maxV,isNaN(val)||val===''?0:+val));
+  setupV[diff]=val;
+  const sl=document.getElementById(`sl${diff}`), ni=document.getElementById(`ni${diff}`);
+  if(sl){ sl.value=val; }                // always snap to clamped; max stays fixed at totalTargets
+  if(ni){ ni.max=maxV; ni.value=val; }
+  // no sl.max update – slider range is always 0 … totalTargets
+  refreshRem();
+}
+function adjV(diff,delta){syncV(diff,(setupV[diff]||0)+delta,'adj');}
+
+function refreshRem() {
+  const sum=activeDiffs.reduce((s,d)=>s+(setupV[d]||0),0);
+  const left=cfg.totalTargets-sum;
+  const el=document.getElementById('rem-info');
+  const txt=document.getElementById('rem-txt');
+  const btn=document.getElementById('done-btn');
+  if(left===0){
+    el.querySelector('.rem-icon').textContent='✅';
+    txt.textContent=`Alle ${cfg.totalTargets} Ziele verteilt!`;
+    el.className='rem ok'; btn.disabled=false;
+  } else {
+    el.querySelector('.rem-icon').textContent='⏳';
+    txt.textContent=`Noch ${left} Ziel${left!==1?'e':''} zu verteilen  (${sum}\u2009/\u2009${cfg.totalTargets})`;
+    el.className='rem'; btn.disabled=true;
+  }
+}
+
+function randomDistrib() {
+  const {freq,total}=getDiffFreq();
+  const v={}; activeDiffs.forEach(d=>v[d]=0);
+  for(let i=0;i<cfg.totalTargets;i++){
+    const r=Math.random()*total; let cum=0;
+    for(const d of activeDiffs){cum+=freq[d];if(r<cum){v[d]++;break;}}
+  }
+  activeDiffs.forEach(d=>{setupV[d]=v[d]||0;});
+  activeDiffs.forEach(d=>syncV(d,setupV[d],'adj'));
+  refreshRem();
+}
+
+function optimalDistrib() {
+  const {freq,total}=getDiffFreq();
+  const raw=activeDiffs.map(d=>(freq[d]/total)*cfg.totalTargets);
+  const rounded=roundToIntSum(raw,cfg.totalTargets);
+  activeDiffs.forEach((d,i)=>{ setupV[d]=rounded[i]; });
+  activeDiffs.forEach(d=>syncV(d,setupV[d],'adj'));
+  refreshRem();
+}
+
+function finSetup() {
+  const p=players[setupIdx];
+  activeDiffs.forEach(d=>{p.targets[d]=setupV[d]||0;p.crossed[d]=0;});
+  setupIdx++;
+  if(setupIdx<cfg.numPlayers) beginSetupFor(setupIdx);
+  else startGame();
+}
+
+// ════════════════════════════════════════════════════════════════
+//  GAME START
+// ════════════════════════════════════════════════════════════════
+function startGame() {
+  players.forEach(p=>{ activeDiffs.forEach(d=>p.crossed[d]=0); p.done=false;p.turns=0;p.rank=null; });
+  gs={
+    curP:0,over:false,winOrder:[],winTurn:null,
+    tblMode:gs.tblMode||'portrait',
+    pendDiff:null,pendMarked:new Set(),pendResolved:new Set(),
+    lastHits:[],lastMiss:new Set(),
+    dieSelA:null,dieSelB:null,
+    diffHist:{},rollCount:0,
+  };
+  activeDiffs.forEach(d=>gs.diffHist[d]=0);
+  gs.tblMode=window.innerWidth>window.innerHeight?'landscape':'portrait';
+  showPhase('game');
+  document.getElementById('catchup-banner').style.display='none';
+  setupGameUI();
+  buildProbExplanation();
+  renderTbl(); refreshStatus();
+}
+
+function setupGameUI() {
+  const dig=cfg.diceMode==='dig';
+  document.getElementById('dig-ui').style.display=dig?'':'none';
+  document.getElementById('ana-ui').style.display=dig?'none':'';
+  if (dig) {
+    const isW6A=cfg.typeA==='W6', isW6B=(cfg.sameDice?cfg.typeA:cfg.typeB)==='W6';
+    document.getElementById('d1').className='die'+(isW6A?'':' num');
+    document.getElementById('d2').className='die'+(isW6B?'':' num');
+    document.getElementById('d1').textContent=isW6A?'⚀':'?';
+    document.getElementById('d2').textContent=isW6B?'⚀':'?';
+    document.getElementById('diff-val').textContent='?';
+    document.getElementById('roll-btn').disabled=false;
+    document.getElementById('mark-msg').innerHTML='';
+    // Show-diff checkbox
+    const cb=document.getElementById('show-diff-cb');
+    cb.checked=cfg.showDiff;
+    document.getElementById('diff-box-wrap').style.display=cfg.showDiff?'':'none';
+  } else {
+    const isDiff=cfg.anaMode==='diff';
+    document.getElementById('diff-mode-ui').style.display=isDiff?'':'none';
+    document.getElementById('die-mode-ui').style.display=isDiff?'none':'';
+    if(isDiff){
+      document.getElementById('abtn-row').innerHTML=activeDiffs.map(d=>
+        `<button class="adiff" onclick="submitDiff(${d})">${d}</button>`).join('');
+    } else {
+      buildDieButtons();
+    }
+    document.getElementById('ana-msg').innerHTML='';
+  }
+}
+
+function buildDieButtons() {
+  const fa=[...cfg.facesA].sort((a,b)=>a-b), fb=[...effFacesB()].sort((a,b)=>a-b);
+  const ta=cfg.typeA, tb=cfg.sameDice?ta:cfg.typeB;
+  document.getElementById('dv-lbl-a').textContent=ta;
+  document.getElementById('dv-lbl-b').textContent=tb;
+  document.getElementById('dieA-btns').innerHTML=
+    fa.map(v=>`<button class="die-val-btn dv-a" data-val="${v}" onclick="selDieA(${v})">${v}</button>`).join('');
+  document.getElementById('dieB-btns').innerHTML=
+    fb.map(v=>`<button class="die-val-btn dv-b" data-val="${v}" onclick="selDieB(${v})">${v}</button>`).join('');
+}
+
+// ════════════════════════════════════════════════════════════════
+//  ROLL / INPUT
+// ════════════════════════════════════════════════════════════════
+function doRoll() {
+  if (gs.over) return;
+  // If pendDiff is set (hint mode waiting for marks): block rolling
+  if (gs.pendDiff!==null && cfg.markMode==='hint') return;
+  // If pendDiff set but nohint: clear it and roll fresh
+  if (gs.pendDiff!==null) { gs.pendDiff=null; gs.lastHits=[]; gs.lastMiss=new Set(); }
+
+  const a=rollDie(cfg.facesA), b=rollDie(effFacesB());
+  const diff=Math.abs(a-b);
+  const isW6A=cfg.typeA==='W6', isW6B=(cfg.sameDice?cfg.typeA:cfg.typeB)==='W6';
+  const e1=document.getElementById('d1'), e2=document.getElementById('d2');
+  e1.classList.add('spin'); e2.classList.add('spin');
+  document.getElementById('roll-btn').disabled=true;
+  document.getElementById('diff-val').textContent='?';
+  setTimeout(()=>{
+    e1.textContent=isW6A?DICE_SYMS[a-1]:a;
+    e2.textContent=isW6B?DICE_SYMS[b-1]:b;
+    e1.classList.remove('spin'); e2.classList.remove('spin');
+    document.getElementById('diff-val').textContent=diff;
+    if (!cfg.showDiff) document.getElementById('diff-box-wrap').style.display='none';
+    applyDiff(diff);
+  },440);
+}
+
+function submitDiff(diff) {
+  if (gs.over) return;
+  if (gs.pendDiff!==null && cfg.markMode==='hint') return;
+  if (gs.pendDiff!==null) { gs.pendDiff=null; gs.lastHits=[]; gs.lastMiss=new Set(); }
+  applyDiff(diff);
+}
+
+function selDieA(v) {
+  gs.dieSelA=v;
+  document.querySelectorAll('.dv-a').forEach(b=>b.classList.toggle('sel',+b.dataset.val===v));
+  checkDieSel();
+}
+function selDieB(v) {
+  gs.dieSelB=v;
+  document.querySelectorAll('.dv-b').forEach(b=>b.classList.toggle('sel',+b.dataset.val===v));
+  checkDieSel();
+}
+function checkDieSel() {
+  if (gs.dieSelA===null||gs.dieSelB===null) return;
+  if (gs.pendDiff!==null && cfg.markMode==='hint') return;
+  const diff=Math.abs(gs.dieSelA-gs.dieSelB);
+  document.getElementById('die-sel-diff').textContent=diff;
+  document.getElementById('die-diff-box').style.opacity='1';
+  setTimeout(()=>{
+    gs.dieSelA=gs.dieSelB=null;
+    document.querySelectorAll('.dv-a,.dv-b').forEach(b=>b.classList.remove('sel'));
+    document.getElementById('die-diff-box').style.opacity='.4';
+    document.getElementById('die-sel-diff').textContent='?';
+    if (gs.pendDiff!==null) { gs.pendDiff=null; gs.lastHits=[]; gs.lastMiss=new Set(); }
+    applyDiff(diff);
+  },600);
+}
+
+// ════════════════════════════════════════════════════════════════
+//  APPLY DIFF
+// ════════════════════════════════════════════════════════════════
+function applyDiff(diff) {
+  gs.lastHits=[]; gs.lastMiss=new Set();
+  gs.rollCount++;
+  gs.diffHist[diff]=(gs.diffHist[diff]||0)+1;
+  gs.pendDiff=diff;
+  gs.pendMarked=new Set(); gs.pendResolved=new Set();
+
+  const idxs=cfg.rollMode==='sim'?players.map((_,i)=>i):[gs.curP];
+
+  if (cfg.markMode==='auto') {
+    idxs.forEach(pi=>{
+      const p=players[pi];
+      if(!p.done&&(p.targets[diff]||0)>(p.crossed[diff]||0)){
+        const pos=p.crossed[diff]||0;
+        p.crossed[diff]=pos+1;
+        checkPlayerDone(pi);
+        gs.lastHits.push({pi,diff,pos});
+      } else if(!p.done) {
+        gs.lastMiss.add(`${pi}-${diff}`);
+      }
+    });
+    gs.pendDiff=null;
+    renderTbl(); refreshStatus();
+    if(cfg.rollMode==='ind') { finishTurn(); }
+    else { if(players.some(p=>p.done)){endGame();return;} enableNextRoll(); }
+  } else {
+    // manual
+    idxs.forEach(pi=>{
+      const p=players[pi];
+      if(p.done||(p.targets[diff]||0)<=(p.crossed[diff]||0)) gs.pendResolved.add(pi);
+    });
+    renderTbl(); refreshStatus();
+    // hint: if nothing to mark anywhere → auto-proceed
+    if(cfg.markMode==='hint') {
+      const allBlocked=idxs.every(pi=>gs.pendResolved.has(pi));
+      if(allBlocked) {
+        idxs.forEach(pi=>{if(!players[pi].done)gs.lastMiss.add(`${pi}-${diff}`);});
+        gs.pendDiff=null;
+        renderTbl(); refreshStatus();
+        showMarkMsg('Kein Treffer – weiter würfeln!', 'miss');
+        if(cfg.rollMode==='ind'){finishTurn();}
+        else{if(players.some(p=>p.done)){endGame();return;}enableNextRoll();}
+      }
+      // else: wait for clicks
+    } else {
+      // nohint: re-enable immediately, player can still click circles before next roll
+      gs.pendDiff=null;
+      if(cfg.rollMode==='ind'){finishTurn();}
+      else{if(players.some(p=>p.done)){endGame();return;}enableNextRoll();}
+    }
+  }
+}
+
+function handleClick(pi, diff) {
+  if(gs.over||gs.pendDiff!==diff) return;
+  if(gs.pendMarked.has(pi)) return;
+  if(cfg.rollMode==='ind'&&pi!==gs.curP) return;
+  const p=players[pi];
+  if(p.done||(p.targets[diff]||0)<=(p.crossed[diff]||0)) return;
+  const pos=p.crossed[diff]||0;
+  p.crossed[diff]=pos+1;
+  gs.pendMarked.add(pi); gs.pendResolved.add(pi);
+  gs.lastHits.push({pi,diff,pos});
+  checkPlayerDone(pi);
+  renderTbl(); refreshStatus();
+  const idxs=cfg.rollMode==='sim'?players.map((_,i)=>i):[gs.curP];
+  const allResolved=idxs.every(pi2=>gs.pendResolved.has(pi2)||gs.pendMarked.has(pi2));
+  if(allResolved) {
+    gs.pendDiff=null;
+    if(players.some(p=>p.done)&&cfg.rollMode==='sim'){endGame();return;}
+    if(cfg.rollMode==='ind'){finishTurn();return;}
+    enableNextRoll();
+  }
+}
+
+function showMarkMsg(msg, type) {
+  const id = cfg.diceMode==='dig'?'mark-msg':'ana-msg';
+  const el = document.getElementById(id);
+  if (el) el.innerHTML = `<span class="${type==='miss'?'kein-treffer':''}">${msg}</span>`;
+  setTimeout(()=>{ if(el) el.innerHTML=''; }, 2500);
+}
+
+function enableNextRoll() {
+  if(cfg.diceMode==='dig') document.getElementById('roll-btn').disabled=false;
+}
+
+// ════════════════════════════════════════════════════════════════
+//  TURN MANAGEMENT
+// ════════════════════════════════════════════════════════════════
+function checkPlayerDone(pi) {
+  const p=players[pi];
+  const tot=activeDiffs.reduce((s,d)=>s+(p.targets[d]||0),0);
+  const crx=activeDiffs.reduce((s,d)=>s+(p.crossed[d]||0),0);
+  if(crx>=tot) p.done=true;
+}
+
+function finishTurn() {
+  const p=players[gs.curP];
+  p.turns++;
+  if(p.done&&!gs.winOrder.find(w=>w.pi===gs.curP)){
+    gs.winOrder.push({pi:gs.curP,turns:p.turns});
+    if(gs.winTurn===null){gs.winTurn=p.turns; showCatchupBanner();}
+  }
+  if(gs.winTurn!==null){
+    const anyMore=players.some((_,pi)=>!players[pi].done&&players[pi].turns<gs.winTurn);
+    if(!anyMore){endGame();return;}
+  }
+  let next=gs.curP;
+  for(let i=1;i<=cfg.numPlayers;i++){
+    const pi=(gs.curP+i)%cfg.numPlayers;
+    if(!players[pi].done&&(gs.winTurn===null||players[pi].turns<gs.winTurn)){next=pi;break;}
+  }
+  gs.curP=next;
+  renderTbl(); refreshStatus(); enableNextRoll();
+}
+
+function showCatchupBanner() {
+  const b=document.getElementById('catchup-banner');
+  b.innerHTML=`🏆 <strong>${players[gs.winOrder[0].pi].name}</strong> hat gewonnen! Die anderen Spieler dürfen noch nachziehen.`;
+  b.style.display='';
+}
+
+// ════════════════════════════════════════════════════════════════
+//  END GAME
+// ════════════════════════════════════════════════════════════════
+function endGame() {
+  gs.over=true; gs.pendDiff=null;
+  players.forEach((p,i)=>{if(p.done&&!gs.winOrder.find(w=>w.pi===i))gs.winOrder.push({pi:i,turns:p.turns});});
+  gs.winOrder.sort((a,b)=>a.turns-b.turns||a.pi-b.pi);
+  gs.winOrder.forEach((w,r)=>players[w.pi].rank=r+1);
+  if(cfg.diceMode==='dig') document.getElementById('roll-btn').disabled=true;
+  renderTbl(); refreshStatus();
+  setTimeout(()=>{
+    showPhase('end');
+    const first=gs.winOrder[0], coWin=gs.winOrder.filter(w=>w.turns===first.turns);
+    let inner=coWin.length===1
+      ?`<div class="troph">🏆</div><h2>${players[first.pi].name} gewinnt!</h2><p style="color:#888">nach ${first.turns} ${first.turns===1?'Wurf':'Würfen'}!</p>`
+      :`<div class="troph">🤝</div><h2>Unentschieden!</h2><p>${coWin.map(w=>`<strong>${players[w.pi].name}</strong>`).join(' &amp; ')}</p>`;
+    inner+='<table class="rank-table">';
+    gs.winOrder.forEach((w,i)=>{ inner+=`<tr><td>${MEDAL[i]||''}</td><td>${players[w.pi].name}</td><td style="color:#888">${w.turns} ${w.turns===1?'Wurf':'Würfe'}</td></tr>`; });
+    players.forEach((p,i)=>{ if(!gs.winOrder.find(w=>w.pi===i)) inner+=`<tr><td>—</td><td>${p.name}</td><td style="color:#ccc">nicht fertig</td></tr>`; });
+    inner+='</table>';
+    document.getElementById('win-wrap').innerHTML=`<div class="win-box">${inner}</div>`;
+  },600);
+}
+
+// ════════════════════════════════════════════════════════════════
+//  STATUS
+// ════════════════════════════════════════════════════════════════
+function refreshStatus() {
+  const el=document.getElementById('status');
+  const rc=gs.rollCount;
+  const wurfStr=rc>0?` · ${rc} ${rc===1?'Wurf':'Würfe'}`:'' ;
+  if(gs.over){el.textContent='Spiel beendet!'+wurfStr;return;}
+  if(cfg.rollMode==='ind'){
+    const p=players[gs.curP];
+    el.innerHTML=`<span style="color:${PCOL[gs.curP]};font-weight:bold">${p.name}</span> ist am Zug · Runde ${p.turns+1}${wurfStr}`;
+  } else {
+    el.textContent=rc>0?`${rc} ${rc===1?'Wurf':'Würfe'}`:' Bereit';
+  }
+}
+
+// ════════════════════════════════════════════════════════════════
+//  TABLE
+// ════════════════════════════════════════════════════════════════
+function flipTbl(){gs.tblMode=gs.tblMode==='portrait'?'landscape':'portrait';renderTbl();}
+function renderTbl(){gs.tblMode==='portrait'?drawPortrait(document.getElementById('gtbl')):drawLandscape(document.getElementById('gtbl'));}
+
+function playerTH(i) {
+  const p=players[i];
+  const act=cfg.rollMode==='ind'&&i===gs.curP&&!gs.over;
+  const bg=PBG[i]+(act?' cur-th':'');
+  const ranks=['#f39c12','#999','#cd7f32'];
+  const rankBadge=p.rank?`<span style="background:${ranks[p.rank-1]||'#888'};color:#fff;border-radius:10px;font-size:10px;padding:1px 5px;margin-left:3px">${MEDAL[p.rank-1]||''}</span>`:'';
+  const doneBadge=p.done&&!p.rank?'<span class="done-badge">✓</span>':'';
+  const turns=cfg.rollMode==='ind'?`<span class="turns-inf">${p.turns} Runde${p.turns!==1?'n':''}</span>`:'';
+  return `<th class="${bg}"><span class="${PTXT[i]}" style="font-weight:bold">${p.name}</span>${rankBadge}${doneBadge}${turns}</th>`;
+}
+
+function drawPortrait(t) {
+  let h='<thead><tr><th class="dth">Diff</th>';
+  players.forEach((_,i)=>h+=playerTH(i));
+  h+='</tr></thead><tbody>';
+  activeDiffs.forEach(d=>{
+    const cnt=gs.diffHist[d]||0;
+    const freq=gs.rollCount>0&&cnt>0?`<span class="freq-lbl">${cnt}×</span>`:'';
+    const isPend=gs.pendDiff===d;
+    h+=`<tr><td class="dth">${isPend?`<strong>${d}</strong>`:d}${freq}</td>`;
+    players.forEach((_,i)=>{
+      const miss=gs.lastMiss&&gs.lastMiss.has(`${i}-${d}`);
+      h+=`<td class="${PCL[i]}${miss?' cell-miss-now':''}">${circ(i,d)}</td>`;
+    });
+    h+='</tr>';
+  });
+  t.innerHTML=h+'</tbody>';
+}
+
+function drawLandscape(t) {
+  let h='<thead><tr><th>Spieler</th>';
+  activeDiffs.forEach(d=>{
+    const cnt=gs.diffHist[d]||0;
+    const freq=gs.rollCount>0&&cnt>0?`<span class="freq-lbl">${cnt}×</span>`:'';
+    h+=`<th class="dth">${gs.pendDiff===d?`<strong>${d}</strong>`:d}${freq}</th>`;
+  });
+  h+='</tr></thead><tbody>';
+  players.forEach((p,i)=>{
+    const act=cfg.rollMode==='ind'&&i===gs.curP&&!gs.over;
+    const bg=PBG[i]+(act?' cur-th':'');
+    const ranks=['#f39c12','#999','#cd7f32'];
+    const rankBadge=p.rank?`<span style="background:${ranks[p.rank-1]||'#888'};color:#fff;border-radius:10px;font-size:10px;padding:1px 5px;margin-left:3px">${MEDAL[p.rank-1]||''}</span>`:'';
+    const doneBadge=p.done&&!p.rank?'<span class="done-badge">✓</span>':'';
+    const turns=cfg.rollMode==='ind'?`<span class="turns-inf">${p.turns} Rd.</span>`:( gs.rollCount>0?`<span class="turns-inf">${p.turns} Rd.</span>`:'');
+    h+=`<tr><td class="${bg}"><span class="${PTXT[i]}" style="font-weight:bold">${p.name}</span>${rankBadge}${doneBadge}${turns}</td>`;
+    activeDiffs.forEach(d=>{
+      const miss=gs.lastMiss&&gs.lastMiss.has(`${i}-${d}`);
+      h+=`<td class="${PCL[i]}${miss?' cell-miss-now':''}">${circ(i,d)}</td>`;
+    });
+    h+='</tr>';
+  });
+  t.innerHTML=h+'</tbody>';
+}
+
+function circ(pi,diff) {
+  const p=players[pi], tot=p.targets[diff]||0;
+  if(!tot) return '<span style="color:#ccc;font-size:12px">–</span>';
+  const crx=p.crossed[diff]||0;
+  const canClick=gs.pendDiff===diff&&(cfg.markMode==='hint'||cfg.markMode==='nohint')&&
+    !p.done&&crx<tot&&!gs.pendMarked.has(pi)&&(cfg.rollMode==='sim'||pi===gs.curP);
+  const showHint=canClick&&cfg.markMode==='hint';
+  let h='<div class="circles">';
+  for(let k=0;k<tot;k++){
+    const isCx=k<crx;
+    const isHit=gs.lastHits.some(lh=>lh.pi===pi&&lh.diff===diff&&lh.pos===k);
+    const isNext=canClick&&k===crx;
+    let cls='o';
+    if(isCx) cls+=' hit';
+    if(isHit) cls+=' ring-g';
+    if(isNext&&showHint) cls+=' tap';
+    else if(isNext&&cfg.markMode==='nohint') cls+=' clk';
+    const ev=isNext?` onclick="handleClick(${pi},${diff})"`:'';
+    h+=`<span class="${cls}"${ev}>${isCx?'✕':''}</span>`;
+  }
+  return h+'</div>';
+}
+
+// ════════════════════════════════════════════════════════════════
+//  PROBABILITY EXPLANATION
+// ════════════════════════════════════════════════════════════════
+function buildProbExplanation() {
+  const fa=cfg.facesA, fb=effFacesB(), total=fa.length*fb.length;
+  const {freq}=getDiffFreq();
+  const nameA=cfg.typeA, nameB=cfg.sameDice?nameA:cfg.typeB;
+  const maxF=Math.max(...activeDiffs.map(d=>freq[d]||0));
+
+  let html=`<div style="background:#f0f7f0;border-radius:8px;padding:7px 12px;margin-bottom:10px;font-size:13px">
+    <strong>${nameA}</strong> × <strong>${nameB}</strong>: 
+    ${fa.length}×${fb.length} = <strong>${total}</strong> gleichwahrscheinliche Paare
+  </div>`;
+
+  if(cfg.sameDice&&fa.length===fb.length){
+    const n=fa.length;
+    html+=`<p style="font-size:12px;color:#777;margin:0 0 10px;line-height:1.5">
+      <strong>Formel:</strong>
+      P(Diff&nbsp;= 0) = <strong>${n}/${total}</strong> &nbsp;|&nbsp;
+      P(Diff&nbsp;= d&gt;0) = <strong>2·(${n}−d)/${total}</strong>
+    </p>`;
+  }
+
+  // Visual bar chart
+  html+=`<div class="prob-chart-wrap">`;
+  activeDiffs.forEach(d=>{
+    const f=freq[d]||0, p=f/total, pct=(p*100).toFixed(1);
+    const barH=maxF>0?Math.max(4,Math.round((f/maxF)*72)):4;
+    const isPeak=f===maxF&&maxF>0;
+    html+=`<div class="prob-col">
+      <span class="prob-pct">${pct}%</span>
+      <div class="prob-bar${isPeak?' peak':''}" style="height:${barH}px"></div>
+      <div class="prob-dlbl">${d}</div>
+      <div class="prob-frac">${f}/${total}</div>
+    </div>`;
+  });
+  html+=`</div>`;
+
+  const el=document.getElementById('prob-content'); if(el)el.innerHTML=html;
+}
+
+// ════════════════════════════════════════════════════════════════
+//  NAVIGATION
+// ════════════════════════════════════════════════════════════════
+function showPhase(ph){
+  ['start','setup','game','end'].forEach(p=>document.getElementById(`ph-${p}`).style.display=ph===p?'':'none');
+}
+function replay(){startGame();}
+
+// ════════════════════════════════════════════════════════════════
+//  TOOLTIPS
+// ════════════════════════════════════════════════════════════════
+document.addEventListener('click',e=>{
+  const t=e.target.closest('.tip');
+  if(t){e.stopPropagation();const w=t.classList.contains('open');document.querySelectorAll('.tip.open').forEach(el=>el.classList.remove('open'));if(!w)t.classList.add('open');}
+  else{document.querySelectorAll('.tip.open').forEach(el=>el.classList.remove('open'));}
+});
+
+// ════════════════════════════════════════════════════════════════
+//  INIT
+// ════════════════════════════════════════════════════════════════
+buildDiceButtons();
+activeDiffs=computeActiveDiffs();
+loadFromURL();
+</script>
+</body>
+</html>

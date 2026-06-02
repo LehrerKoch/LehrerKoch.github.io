@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Baumdiagramm-Trainer</title>
+  <link rel="stylesheet" href="styles.css">
+  <script>MathJax = { tex:{ inlineMath:[['\\(','\\)']] }, svg:{ fontCache:'global' } };</script>
+  <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+  <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-5K8WYYXDL2');
+    </script>
+  <style>
+    html, body { height: 100%; }
+    body {
+      display: flex; flex-direction: column;
+      min-height: 100svh;
+      box-sizing: border-box; overflow-x: hidden;
+    }
+
+    /* ── Header ───────────────────────────────────────── */
+    #header-row {
+      padding: 10px 0 4px; flex-shrink: 0;
+    }
+    #header-row h1 { margin: 0; font-size: 1.35em; }
+
+    /* ── Neue-Aufgabe-Zeile (zwischen Aufgabe und Baum) ── */
+    #neu-row {
+      flex-shrink: 0;
+      padding: 4px 0 3px;
+    }
+
+    /* ── Segmented Controls ───────────────────────────── */
+    .seg { display: inline-flex; }
+    .seg button {
+      background: #ddd; color: #333;
+      padding: 5px 12px; font-size: 11px;
+      border: 1px solid #bbb; border-radius: 0; margin: 0;
+    }
+    .seg button:first-child { border-radius: 4px 0 0 4px; }
+    .seg button:last-child  { border-radius: 0 4px 4px 0; }
+    .seg button.on          { background: #4CAF50; color:#fff; border-color:#388e3c; }
+    .seg button:disabled    { opacity:.35; cursor:not-allowed; }
+    .srow.dimmed            { opacity:.42; pointer-events:none; }
+
+    /* ── Einstellungen ────────────────────────────────── */
+    #settings { flex-shrink: 0; }
+    #settings > div { padding: 6px 0 4px 14px; }
+    .srow {
+      display: flex; align-items: center;
+      gap: 12px; margin: 6px 0; flex-wrap: wrap;
+    }
+    .srow > label { font-weight:bold; min-width:220px; font-size:.88em; }
+
+    /* ── Aufgabenbereich ─────────────────────────────── */
+    #task-area {
+      flex-shrink: 0;
+      border: 2px solid #000; border-radius: 5px;
+      padding: 10px 14px; margin: 6px 0 5px;
+      background: #fafafa;
+    }
+    #task-header {
+      display: flex; justify-content: space-between; align-items: baseline;
+      gap: 8px;
+    }
+    #task-q { 
+      font-size: 1.1em; 
+      font-weight: bold; 
+      
+      /* Ändere min-height auf einen Wert, der groß genug für deine höchsten Formeln ist */
+      min-height: 40px; 
+      
+      /* Aktiviert Flexbox */
+      display: flex; 
+      
+      /* Zentriert den Inhalt vertikal */
+      align-items: center; 
+      
+      /* Falls der Text standardmäßig linksbündig sein soll (optional) */
+      justify-content: flex-start; 
+      
+      /* Erlaubt dem Text/den Formeln umzubrechen, falls sie zu lang werden */
+      flex-wrap: wrap; 
+      
+      /* Verhindert, dass die Flexbox das Layout an anderer Stelle verzerrt */
+      flex: 1; 
+    }
+    #progress  {
+      font-size:.78em; color:#777; white-space:nowrap; flex-shrink:0;
+    }
+    #progress .p-rem { font-weight:bold; color:#333; }
+    #task-hint {
+      display: none;
+      font-size:.85em; color:#555; margin-top:7px;
+      padding: 5px 10px; border-radius:4px;
+      background:#fff8e1; border-left:3px solid #FF9800;
+    }
+    #task-btns {
+      display: flex; gap:7px; align-items:center;
+      flex-wrap:wrap; margin-top:9px;
+    }
+
+    /* ── Baumdiagramm ─────────────────────────────────── */
+    #tree-wrap {
+      flex: 1 1 auto; min-height: 160px;
+      display: flex; align-items:center; justify-content:center;
+      overflow: hidden;
+    }
+    #baum { display: block; }
+
+    /* ── Bestätigen-Button, zentriert unter Baum ─────── */
+    #btn-row {
+      flex-shrink: 0;
+      display: flex; flex-direction: column; align-items: center;
+      padding: 8px 0 4px;
+    }
+    #ergebnis {
+      height: 1.4em; margin-top: 4px;
+      font-weight: bold; font-size: 1em; text-align: center;
+      visibility: hidden;
+    }
+    #ergebnis.ok  { color:#28a745; }
+    #ergebnis.nok { color:#dc3545; }
+    #btn-ok       { background:#2196F3; }
+    #btn-hint-btn { background:#FF9800; }
+    #btn-show     { background:#7b1fa2; }
+
+    /* ── Wahrscheinlichkeitsfelder ────────────────────── */
+    .pf-g       { cursor:pointer; }
+    .pf-g:focus { outline:none; }
+    .pf-g:focus .pf-rect { stroke:#0077cc !important; stroke-width:2.5 !important; }
+    .pf-rect    { fill:white; stroke:#b0b0b0; stroke-width:1.8; }
+    .pf-g:hover .pf-rect { stroke:#4CAF50;  stroke-width:2.2; }
+    .pf-g.sel  .pf-rect  { fill:#cce5ff;   stroke:#0077cc; stroke-width:2.4; }
+    .pf-g.ok   .pf-rect  { fill:#d4edda;   stroke:#28a745; stroke-width:2.4; }
+    .pf-g.nok  .pf-rect  { fill:#f8d7da;   stroke:#dc3545; stroke-width:2.4; }
+    .pf-g.show .pf-rect  { fill:#fff3cd;   stroke:#c07800; stroke-width:2.4; }
+
+    /* ── Toast ────────────────────────────────────────── */
+    #toast {
+      position: fixed; bottom: 72px; left: 50%;
+      transform: translateX(-50%) translateY(12px);
+      background: #2e7d32; color: #fff;
+      padding: 12px 28px; border-radius: 10px;
+      font-size: 1.05em; font-weight: bold;
+      box-shadow: 0 4px 16px rgba(0,0,0,.3);
+      opacity: 0; pointer-events: none;
+      transition: opacity .35s ease, transform .35s ease;
+      z-index: 200; white-space: nowrap;
+    }
+    #toast.show {
+      opacity: 1; transform: translateX(-50%) translateY(0);
+    }
+
+    .site-footer { flex-shrink:0; }
+  </style>
+</head>
+<body>
+
+<div id="header-row">
+  <h1>Baumdiagramm – Felder erkennen</h1>
+</div>
+
+<details id="settings">
+  <summary>Einstellungen</summary>
+  <div>
+    <div class="srow">
+      <label>Stufen:</label>
+      <div class="seg" id="s-stufen">
+        <button data-v="2" class="on">2</button>
+        <button data-v="3">3</button>
+      </div>
+    </div>
+    <div class="srow">
+      <label>Äste pro Knoten:</label>
+      <div class="seg" id="s-aeste">
+        <button data-v="2" class="on">2</button>
+        <button data-v="3">3</button>
+        <button data-v="4">4</button>
+      </div>
+    </div>
+    <div class="srow" id="row-neg">
+      <label>Beschriftung (2 Äste):</label>
+      <div class="seg" id="s-neg">
+        <button data-v="1" class="on">Negiert (A&thinsp;/&thinsp;Ā)</button>
+        <button data-v="0">Verschieden (A&thinsp;/&thinsp;B)</button>
+      </div>
+    </div>
+    <div class="srow">
+      <label>Bedingte-W.-Aufgaben:</label>
+      <div class="seg" id="s-cond">
+        <button data-v="1" class="on">Ja</button>
+        <button data-v="0">Nein</button>
+      </div>
+    </div>
+    <div class="srow" id="row-cstyle">
+      <label>Notation bedingte W-keit:</label>
+      <div class="seg" id="s-cstyle">
+        <button data-v="sub" class="on">P<sub>B</sub>(A)</button>
+        <button data-v="bar">P(A|B)</button>
+      </div>
+    </div>
+    <div class="srow">
+      <label>Notation Schnitt:</label>
+      <div class="seg" id="s-inter">
+        <button data-v="cap" class="on">P(A&#8745;B)</button>
+        <button data-v="con">P(AB)</button>
+      </div>
+    </div>
+  </div>
+</details>
+
+<div id="task-area">
+  <div id="task-header">
+    <div id="task-q">Aufgabe wird geladen&hellip;</div>
+    <span id="progress"></span>
+  </div>
+  <div id="task-hint"></div>
+  <div id="task-btns">
+    <button id="btn-hint-btn" disabled>? Hinweis</button>
+    <button id="btn-show"     disabled>&#8594; Lösung zeigen</button>
+  </div>
+</div>
+
+<div id="neu-row">
+  <button id="btn-neu">&#9654; Neue Aufgabe</button>
+</div>
+
+<div id="tree-wrap">
+  <svg id="baum" xmlns="http://www.w3.org/2000/svg"></svg>
+</div>
+
+<div id="btn-row">
+  <button id="btn-ok" disabled>&#10003; Bestätigen</button>
+</div>
+<div id="ergebnis"></div>
+
+<div id="toast"></div>
+
+<div id="lobby-spacer"></div>
+<footer class="site-footer">
+  <div class="footer-content">
+      M.&nbsp;Koch
+      <span class="footer-topic"><a href="./index.html">Mathe-Tools</a></span>
+      <span class="footer-update">Last updated:&nbsp;<span id="last-update">...</span></span>
+  </div>
+</footer>
+<script src="last-update.js" defer></script>
+
+<script>
+// ═══════════════════════════════════════════════════
+//  EINSTELLUNGS-STATE
+// ═══════════════════════════════════════════════════
+const S = { stufen:2, aeste:2, neg:true, cond:true, cStyle:'sub', inter:'cap' };
+
+// ═══════════════════════════════════════════════════
+//  URL-PERSISTENZ (Einstellungen im Hash)
+// ═══════════════════════════════════════════════════
+function saveSettings() {
+  const p = new URLSearchParams();
+  p.set('stufen', S.stufen);
+  p.set('aeste',  S.aeste);
+  p.set('neg',    S.neg  ? '1' : '0');
+  p.set('cond',   S.cond ? '1' : '0');
+  p.set('cStyle', S.cStyle);
+  p.set('inter',  S.inter);
+  history.replaceState(null, '', '#' + p.toString());
+}
+
+function loadSettings() {
+  const hash = location.hash.slice(1);
+  if (!hash) return;
+  try {
+    const p = new URLSearchParams(hash);
+    if (p.has('stufen')) S.stufen = +p.get('stufen');
+    if (p.has('aeste'))  S.aeste  = +p.get('aeste');
+    if (p.has('neg'))    S.neg    = p.get('neg')    === '1';
+    if (p.has('cond'))   S.cond   = p.get('cond')   === '1';
+    if (p.has('cStyle')) S.cStyle = p.get('cStyle');
+    if (p.has('inter'))  S.inter  = p.get('inter');
+  } catch(e) { /* ungültiger Hash → ignorieren */ }
+}
+
+function syncControls() {
+  // Segmented-Controls auf S-Werte setzen
+  const setOn = (id, v) => {
+    document.getElementById(id).querySelectorAll('button').forEach(b => {
+      b.classList.toggle('on', b.dataset.v === String(v));
+    });
+  };
+  setOn('s-stufen', S.stufen);
+  setOn('s-aeste',  S.aeste);
+  setOn('s-neg',    S.neg ? '1' : '0');
+  setOn('s-cond',   S.cond ? '1' : '0');
+  setOn('s-cstyle', S.cStyle);
+  setOn('s-inter',  S.inter);
+}
+
+// ═══════════════════════════════════════════════════
+//  BAUM- & AUFGABEN-STATE
+// ═══════════════════════════════════════════════════
+let nodes = [], task = null, sel = new Set(), fieldStateMap = {}, phase = 'idle';
+
+// ═══════════════════════════════════════════════════
+//  AUFGABEN-QUEUE
+//  taskQueue:   noch offene Aufgaben (Array, Front = aktuelle)
+//  lastCorrect: null (Erststart) | true | false
+//  queueTotal:  Gesamtzahl Aufgaben beim letzten Aufbau
+// ═══════════════════════════════════════════════════
+let taskQueue   = [];
+let lastCorrect = null;
+let queueTotal  = 0;
+
+// ═══════════════════════════════════════════════════
+//  LAYOUT-KONSTANTEN
+// ═══════════════════════════════════════════════════
+const NODE_R  = 28;
+const MX      = 18;
+const MT      = 54;
+const LEVEL_H = 168;
+const JO      = 84;
+const FH      = 34;
+const BOT     = 38;
+
+// ═══════════════════════════════════════════════════
+//  BESCHRIFTUNGS-HELFER
+// ═══════════════════════════════════════════════════
+const NEG_PAIRS  = [['A','\\overline{A}'],['B','\\overline{B}'],['C','\\overline{C}']];
+const DIFF_PAIRS = [['A','B'],['C','D'],['E','F']];
+const STG_LTR    = ['A','B','C'];
+
+function evtLbl(lv, bi) {
+  if (S.aeste === 2) return S.neg ? NEG_PAIRS[lv-1][bi] : DIFF_PAIRS[lv-1][bi];
+  return `${STG_LTR[lv-1]}_{${bi+1}}`;
+}
+function fmtP(l)       { return `P\\!\\left(${l}\\right)`; }
+function fmtC(ev, giv) {
+  return S.cStyle === 'sub' ? `P_{${giv}}\\!\\left(${ev}\\right)` : `P\\!\\left(${ev}\\mid ${giv}\\right)`;
+}
+function fmtI(lbls) {
+  return S.inter === 'cap' ? `P\\!\\left(${lbls.join(' \\cap ')}\\right)` : `P\\!\\left(${lbls.join('')}\\right)`;
+}
+function pathLbls(nd) {
+  const r = []; let c = nd;
+  while (c.parentId !== null) { r.unshift(c.label); c = byId(c.parentId); }
+  return r;
+}
+function byId(id) { return nodes.find(n => n.id === id); }
+
+// ═══════════════════════════════════════════════════
+//  BAUMSTRUKTUR aufbauen
+// ═══════════════════════════════════════════════════
+function buildNodes() {
+  nodes = [];
+  const nL = Math.pow(S.aeste, S.stufen);
+  function add(lv, ls, lc, pid, bi, path) {
+    const id = `n${nodes.length}`;
+    const lb = lv === 0 ? null : evtLbl(lv, bi);
+    nodes.push({ id, xRel:ls+lc/2, level:lv, parentId:pid, branchIdx:bi, label:lb, path:[...path] });
+    if (lv < S.stufen)
+      for (let i = 0; i < S.aeste; i++)
+        add(lv+1, ls+i*lc/S.aeste, lc/S.aeste, id, i, [...path, i]);
+  }
+  add(0, 0, nL, null, -1, []);
+}
+
+// ═══════════════════════════════════════════════════
+//  AUFGABEN-QUEUE aufbauen
+//  Alle möglichen Aufgaben werden einmal erstellt und
+//  gemischt. Typen: eL1, cond, leaf, marg
+// ═══════════════════════════════════════════════════
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function buildTaskQueue() {
+  const leaves = nodes.filter(n => n.level === S.stufen);
+  const q = [];
+
+  // eL1: P(A) für jeden Knoten der ersten Stufe
+  nodes.filter(n => n.level === 1).forEach(nd => {
+    const leavesUnder = leaves.filter(l => l.path[0] === nd.branchIdx);
+    q.push({
+      type: 'eL1', nd,
+      hint:    'Diese Wahrscheinlichkeit steht an einem Ast der ersten Stufe.',
+      correct: [`e_${nd.id}`],
+      correctSets: [
+        new Set([`e_${nd.id}`]),
+        new Set(leavesUnder.map(l => `j_${l.id}`))
+      ]
+    });
+  });
+
+  // cond: bedingte W-keit für jeden Knoten ab Stufe 2
+  if (S.cond && S.stufen > 1) {
+    nodes.filter(n => n.level > 1).forEach(nd => {
+      const par = byId(nd.parentId);
+      q.push({
+        type: 'cond', nd, par,
+        hint:    'Bedingte Wahrscheinlichkeiten stehen an den Ästen der Folgestufe.',
+        correct: [`e_${nd.id}`],
+        correctSets: [new Set([`e_${nd.id}`])]
+      });
+    });
+  }
+
+  // leaf: Pfadwahrscheinlichkeit für jedes Blatt
+  leaves.forEach(lf => {
+    q.push({
+      type: 'leaf', lf,
+      hint:    'Pfadwahrscheinlichkeiten stehen im Feld ganz unten am Ende des Pfades.',
+      correct: [`j_${lf.id}`],
+      correctSets: [new Set([`j_${lf.id}`])]
+    });
+  });
+
+  // marg: Gesamtwahrscheinlichkeit für jedes (lv, bi)-Paar, lv ∈ [2..stufen]
+  if (S.stufen > 1) {
+    for (let lv = 2; lv <= S.stufen; lv++) {
+      for (let bi = 0; bi < S.aeste; bi++) {
+        const exNd = nodes.find(n => n.level === lv && n.branchIdx === bi);
+        if (!exNd) continue;
+        const cLeaves = leaves.filter(l => l.path[lv-1] === bi);
+        const n = cLeaves.length;
+        q.push({
+          type: 'marg', exNd, lv, bi,
+          hint:    `Gesamtwahrscheinlichkeit: Summe aus ${n} Pfad-Feld${n>1?'ern':''}.`,
+          correct: cLeaves.map(l => `j_${l.id}`),
+          correctSets: [new Set(cLeaves.map(l => `j_${l.id}`))]
+        });
+      }
+    }
+  }
+
+  return shuffle(q);
+}
+
+function initQueue() {
+  taskQueue   = buildTaskQueue();
+  queueTotal  = taskQueue.length;
+  lastCorrect = null;
+}
+
+// ═══════════════════════════════════════════════════
+//  FORTSCHRITTSANZEIGE
+// ═══════════════════════════════════════════════════
+function updateProgress() {
+  const el = document.getElementById('progress');
+  if (!el) return;
+  const rem = taskQueue.length;
+  el.innerHTML = `<span class="p-rem">${rem}</span>&thinsp;/&thinsp;${queueTotal} offen`;
+}
+
+// ═══════════════════════════════════════════════════
+//  TOAST
+// ═══════════════════════════════════════════════════
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3200);
+}
+
+// ═══════════════════════════════════════════════════
+//  AUFGABEN-BESCHREIBUNG (notations-abhängig)
+// ═══════════════════════════════════════════════════
+function getTaskDesc(t) {
+  if (t.type === 'eL1')  return `Wo findest du \\(~${fmtP(t.nd.label)}~\\) im Baumdiagramm?`;
+  if (t.type === 'cond') return `Wo findest du \\(~${fmtC(t.nd.label, t.par.label)}~\\) im Baumdiagramm?`;
+  if (t.type === 'leaf') return `Wo findest du \\(~${fmtI(pathLbls(t.lf))}~\\) im Baumdiagramm?`;
+  if (t.type === 'marg') return `Wo findest du \\(~${fmtP(t.exNd.label)}~\\) im Baumdiagramm?`;
+  return '';
+}
+
+function refreshTaskDesc() {
+  if (!task) return;
+  const qEl = document.getElementById('task-q');
+  qEl.innerHTML = getTaskDesc(task);
+  if (window.MathJax) MathJax.typesetPromise([qEl]);
+}
+
+// ═══════════════════════════════════════════════════
+//  ADAPTIVES LAYOUT
+// ═══════════════════════════════════════════════════
+function computeLayout(availW, availH) {
+  const nL        = Math.pow(S.aeste, S.stufen);
+  const minLeafSp = Math.max(2*NODE_R + 34, 88);
+  const minW      = Math.max(400, nL*minLeafSp + 2*MX);
+  const logW      = Math.max(minW, availW);
+  const logH      = MT + S.stufen*LEVEL_H + JO + FH/2 + BOT;
+  const scale     = Math.min(availW/logW, availH/logH);
+  const leafSp    = (logW - 2*MX) / nL;
+  const FW_E      = Math.min(72, Math.max(46, leafSp * 0.46));
+  const FW_J      = FW_E + 14;
+  return { logW, logH, scale, svgW:Math.round(logW*scale), svgH:Math.round(logH*scale),
+           nL, FW_E, FW_J, leafSp };
+}
+
+// ═══════════════════════════════════════════════════
+//  SVG ZEICHNEN
+// ═══════════════════════════════════════════════════
+const NS = 'http://www.w3.org/2000/svg';
+const mk = t     => document.createElementNS(NS, t);
+const sa = (e,o) => { for (const [k,v] of Object.entries(o)) e.setAttribute(k,v); };
+
+function renderSVG() {
+  const wrap   = document.getElementById('tree-wrap');
+  const availW = Math.max(80,  wrap.clientWidth);
+  const availH = Math.max(120, wrap.clientHeight);
+  const L      = computeLayout(availW, availH);
+
+  const svg = document.getElementById('baum');
+  sa(svg, { viewBox:`0 0 ${L.logW} ${L.logH}`, width:L.svgW, height:L.svgH });
+  svg.innerHTML = '';
+
+  const C = {};
+  nodes.forEach(nd => {
+    C[nd.id] = { x: MX + nd.xRel*(L.logW-2*MX)/L.nL, y: MT + nd.level*LEVEL_H };
+  });
+
+  // Kanten
+  nodes.forEach(nd => {
+    if (!nd.parentId) return;
+    const pc = C[nd.parentId], nc = C[nd.id];
+    const dx = nc.x-pc.x, dy = nc.y-pc.y, d = Math.hypot(dx,dy);
+    const r0 = nd.level === 1 ? 13 : NODE_R;
+    const ln = mk('line');
+    sa(ln, { x1:pc.x+r0*dx/d, y1:pc.y+r0*dy/d, x2:nc.x-NODE_R*dx/d, y2:nc.y-NODE_R*dy/d,
+              stroke:'#555', 'stroke-width':2.2 });
+    svg.appendChild(ln);
+  });
+
+  // Ast-Felder
+  nodes.forEach(nd => {
+    if (!nd.parentId) return;
+    const pc = C[nd.parentId], nc = C[nd.id];
+    mkField(svg, (pc.x+nc.x)/2-L.FW_E/2, (pc.y+nc.y)/2-FH/2, L.FW_E, FH, `e_${nd.id}`);
+  });
+
+  // Gestrichelte Linie + Verbund-Felder
+  nodes.filter(n => n.level === S.stufen).forEach(nd => {
+    const {x, y} = C[nd.id];
+    const fy = y + JO;
+    const dash = mk('line');
+    sa(dash, { x1:x, y1:y+NODE_R+4, x2:x, y2:fy-FH/2-2,
+               stroke:'#ccc', 'stroke-width':1.6, 'stroke-dasharray':'5,3' });
+    svg.appendChild(dash);
+    mkField(svg, x-L.FW_J/2, fy-FH/2, L.FW_J, FH, `j_${nd.id}`);
+  });
+
+  // Knotenkreise
+  nodes.forEach(nd => {
+    const {x, y} = C[nd.id];
+    if (nd.level === 0) {
+      const c = mk('circle');
+      sa(c, { cx:x, cy:y, r:13, fill:'#333' });
+      svg.appendChild(c);
+    } else {
+      const g = mk('g');
+      const circ = mk('circle');
+      sa(circ, { cx:x, cy:y, r:NODE_R, fill:'#fff', stroke:'#333', 'stroke-width':2.5 });
+      g.appendChild(circ);
+      drawNodeLbl(g, x, y, nd.label, 20);
+      svg.appendChild(g);
+    }
+  });
+
+  reapplyFieldStates();
+}
+
+function drawNodeLbl(parent, cx, cy, lbl, fs) {
+  if (!lbl) return;
+  const isOver = lbl.startsWith('\\overline{');
+  const isSub  = !isOver && lbl.includes('_{');
+  if (isOver) {
+    const letter = lbl.slice(10,-1);
+    const txt = mk('text');
+    sa(txt, { x:cx, y:cy, 'text-anchor':'middle', 'dominant-baseline':'middle',
+               'font-family':'serif', 'font-size':fs, fill:'#111' });
+    txt.textContent = letter;
+    parent.appendChild(txt);
+    const bw = fs * 0.62;
+    const bar = mk('line');
+    sa(bar, { x1:cx-bw/2, y1:cy-fs*0.60, x2:cx+bw/2, y2:cy-fs*0.60,
+               stroke:'#111', 'stroke-width':1.9 });
+    parent.appendChild(bar);
+  } else if (isSub) {
+    const m = lbl.match(/^(.+)_\{(.+)\}$/);
+    if (m) {
+      const fsS = Math.round(fs*0.68);
+      const tM = mk('text');
+      sa(tM, { x:cx-fsS*0.38, y:cy+fs*0.10,
+                'text-anchor':'middle', 'dominant-baseline':'middle',
+                'font-family':'serif', 'font-size':fs, fill:'#111' });
+      tM.textContent = m[1];
+      parent.appendChild(tM);
+      const tS = mk('text');
+      sa(tS, { x:cx+fs*0.34, y:cy+fs*0.46,
+                'text-anchor':'start', 'dominant-baseline':'middle',
+                'font-family':'serif', 'font-size':fsS, fill:'#111' });
+      tS.textContent = m[2];
+      parent.appendChild(tS);
+    }
+  } else {
+    const txt = mk('text');
+    sa(txt, { x:cx, y:cy, 'text-anchor':'middle', 'dominant-baseline':'middle',
+               'font-family':'serif', 'font-size':fs, fill:'#111' });
+    txt.textContent = lbl;
+    parent.appendChild(txt);
+  }
+}
+
+function mkField(svg, x, y, w, h, fid) {
+  const g = mk('g');
+  g.classList.add('pf-g');
+  g.dataset.fid = fid;
+  sa(g, { tabindex:'0', role:'button', 'aria-label':'Wahrscheinlichkeitsfeld' });
+  const r = mk('rect');
+  r.classList.add('pf-rect');
+  sa(r, { x, y, width:w, height:h, rx:5, ry:5 });
+  g.appendChild(r);
+  g.addEventListener('click',   () => toggleFld(fid, g));
+  g.addEventListener('keydown', e => {
+    if (e.key==='Enter'||e.key===' ') { e.preventDefault(); toggleFld(fid, g); }
+  });
+  svg.appendChild(g);
+}
+
+function reapplyFieldStates() {
+  Object.entries(fieldStateMap).forEach(([fid, cls]) => {
+    const g = document.querySelector(`[data-fid="${fid}"]`);
+    if (g) { g.classList.remove('sel','ok','nok','show'); g.classList.add(cls); }
+  });
+}
+
+// ═══════════════════════════════════════════════════
+//  RESPONSIVES LAYOUT
+// ═══════════════════════════════════════════════════
+function adjustAndRender() {
+  const wrap   = document.getElementById('tree-wrap');
+  const footer = document.querySelector('.site-footer');
+  const btnRow = document.getElementById('btn-row');
+  const footH  = (footer ? footer.offsetHeight : 0) + (btnRow ? btnRow.offsetHeight : 0) + 6;
+  const rect   = wrap.getBoundingClientRect();
+  const vh     = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+  const avail  = vh - rect.top - footH - 6;
+  wrap.style.height = Math.max(160, avail) + 'px';
+  renderSVG();
+}
+
+let _rzTimer;
+window.addEventListener('resize', () => {
+  clearTimeout(_rzTimer);
+  _rzTimer = setTimeout(adjustAndRender, 100);
+});
+document.getElementById('settings').addEventListener('toggle', () =>
+  requestAnimationFrame(adjustAndRender));
+
+// ═══════════════════════════════════════════════════
+//  FELD-INTERAKTION
+// ═══════════════════════════════════════════════════
+function toggleFld(fid, g) {
+  if (phase !== 'active') return;
+  if (sel.has(fid)) {
+    sel.delete(fid); g.classList.remove('sel'); delete fieldStateMap[fid];
+  } else {
+    sel.add(fid); g.classList.add('sel'); fieldStateMap[fid] = 'sel';
+  }
+  document.getElementById('btn-ok').disabled = sel.size === 0;
+}
+
+function markFld(fid, cls) {
+  const g = document.querySelector(`[data-fid="${fid}"]`);
+  if (g) { g.classList.remove('sel','ok','nok','show'); if (cls) g.classList.add(cls); }
+  if (cls) fieldStateMap[fid] = cls; else delete fieldStateMap[fid];
+}
+
+function resetFlds() {
+  document.querySelectorAll('.pf-g').forEach(g =>
+    g.classList.remove('sel','ok','nok','show'));
+  fieldStateMap = {};
+}
+
+// ═══════════════════════════════════════════════════
+//  AUFGABEN-ABLAUF
+// ═══════════════════════════════════════════════════
+function newTask() {
+  // 1. Queue-Fortschritt verbuchen
+  if (lastCorrect === true) {
+    // Richtig beantwortet → aus Queue entfernen
+    taskQueue.shift();
+    if (taskQueue.length === 0) {
+      // Alle geschafft!
+      showToast('🎉 Alle Aufgaben richtig gelöst! Neustart…');
+      initQueue();  // neu aufbauen und neu mischen
+    }
+  } else if (lastCorrect === false) {
+    // Falsch/Lösung gezeigt → Queue neu mischen, gleiche Frage nicht direkt wiederholen
+    const prev = taskQueue[0];
+    taskQueue = shuffle(taskQueue);
+    if (taskQueue.length > 1 && taskQueue[0] === prev) {
+      const j = 1 + Math.floor(Math.random() * (taskQueue.length - 1));
+      [taskQueue[0], taskQueue[j]] = [taskQueue[j], taskQueue[0]];
+    }
+  }
+  lastCorrect = null;
+
+  // 2. Aktuelle Aufgabe laden
+  task = taskQueue[0];
+  sel.clear(); resetFlds(); phase = 'active';
+
+  const qEl = document.getElementById('task-q');
+  qEl.innerHTML = getTaskDesc(task);
+  const hEl = document.getElementById('task-hint');
+  hEl.textContent   = task.hint;
+  hEl.style.display = 'none';
+  setResult('','');
+  document.getElementById('btn-ok')      .disabled = true;
+  document.getElementById('btn-hint-btn').disabled = false;
+  document.getElementById('btn-show')    .disabled = false;
+  updateProgress();
+  if (window.MathJax) MathJax.typesetPromise([qEl]);
+}
+
+function evaluate() {
+  if (phase !== 'active') return;
+  phase = 'done';
+  // Welche gültige Lösungsmenge wurde gewählt?
+  const matchedSet = task.correctSets.find(cs =>
+    sel.size === cs.size && [...sel].every(f => cs.has(f))
+  );
+  const right = matchedSet !== undefined;
+  lastCorrect = right;
+  if (right) {
+    // Alle gewählten Felder grün – sie gehören zur gematchten Menge
+    sel.forEach(f => markFld(f, 'ok'));
+  } else {
+    // Felder der primären Lösung als Referenz für die Fehleranzeige
+    const primarySet = new Set(task.correct);
+    sel.forEach(f => markFld(f, primarySet.has(f) ? 'ok' : 'nok'));
+    primarySet.forEach(f => { if (!sel.has(f)) markFld(f, 'show'); });
+  }
+  setResult(right ? '✓ Richtig!' : '✗ Leider falsch.', right ? 'ok' : 'nok');
+  ['btn-ok','btn-hint-btn','btn-show'].forEach(id =>
+    document.getElementById(id).disabled = true);
+}
+
+function showHint() {
+  if (phase !== 'active') return;
+  const hEl = document.getElementById('task-hint');
+  hEl.style.display = hEl.style.display === 'none' ? 'block' : 'none';
+}
+
+function showSolution() {
+  if (phase !== 'active') return;
+  phase = 'done';
+  lastCorrect = false;  // Lösung gezeigt = nicht gelöst
+  task.correct.forEach(f => markFld(f,'show'));
+  setResult('→ Lösung angezeigt.','');
+  ['btn-ok','btn-hint-btn','btn-show'].forEach(id =>
+    document.getElementById(id).disabled = true);
+}
+
+function setResult(text, cls) {
+  const el = document.getElementById('ergebnis');
+  el.textContent = text;
+  el.className = cls;
+  el.style.visibility = text ? 'visible' : 'hidden';
+}
+
+// ═══════════════════════════════════════════════════
+//  EINSTELLUNGS-UI
+// ═══════════════════════════════════════════════════
+function segCtrl(id, cb) {
+  document.getElementById(id).querySelectorAll('button').forEach(btn =>
+    btn.addEventListener('click', () => {
+      if (btn.disabled) return;
+      document.getElementById(id).querySelectorAll('button').forEach(b => b.classList.remove('on'));
+      btn.classList.add('on'); cb(btn.dataset.v);
+    })
+  );
+}
+
+function setDimmed(rowId, dimmed) {
+  const row = document.getElementById(rowId);
+  if (row) row.classList.toggle('dimmed', dimmed);
+}
+
+function updateUI() {
+  setDimmed('row-neg',    S.aeste !== 2);
+  setDimmed('row-cstyle', !S.cond);
+  const btn4 = document.querySelector('#s-aeste [data-v="4"]');
+  btn4.disabled = S.stufen === 3;
+  if (S.stufen === 3 && S.aeste > 3) {
+    document.querySelector('#s-aeste [data-v="4"]').classList.remove('on');
+    document.querySelector('#s-aeste [data-v="3"]').classList.add('on');
+    S.aeste = 3;
+  }
+}
+
+// Struktur-Änderung → Neuaufbau alles
+function rebuild() { buildNodes(); initQueue(); adjustAndRender(); newTask(); }
+
+segCtrl('s-stufen', v => { S.stufen = +v;     updateUI(); saveSettings(); rebuild(); });
+segCtrl('s-aeste',  v => { S.aeste  = +v;     updateUI(); saveSettings(); rebuild(); });
+segCtrl('s-neg',    v => { S.neg    = v==='1'; saveSettings(); rebuild(); });
+segCtrl('s-cond',   v => { S.cond   = v==='1'; updateUI(); saveSettings(); rebuild(); });
+
+// Nur Notation → Beschreibung neu rendern, Queue bleibt
+segCtrl('s-cstyle', v => { S.cStyle = v; saveSettings(); refreshTaskDesc(); });
+segCtrl('s-inter',  v => { S.inter  = v; saveSettings(); refreshTaskDesc(); });
+
+document.getElementById('btn-neu').addEventListener('click', () => {
+  // Ohne Antwort weggeklickt → wie "falsch" behandeln (bleibt in Queue)
+  if (phase === 'active') lastCorrect = false;
+  newTask();
+});
+document.getElementById('btn-ok')      .addEventListener('click', evaluate);
+document.getElementById('btn-hint-btn').addEventListener('click', showHint);
+document.getElementById('btn-show')    .addEventListener('click', showSolution);
+
+// ═══════════════════════════════════════════════════
+//  INITIALISIERUNG
+// ═══════════════════════════════════════════════════
+loadSettings();   // URL-Hash → S
+syncControls();   // S → UI-Buttons
+buildNodes();
+updateUI();
+initQueue();
+requestAnimationFrame(() => {
+  adjustAndRender();
+  newTask();
+});
+</script>
+</body>
+</html>

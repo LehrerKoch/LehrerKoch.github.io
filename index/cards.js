@@ -297,6 +297,22 @@ const cardsData = [
     "link": "https://t1p.de/geogebra-fourier"
   },
   {
+    "id": "differenz_trifft",
+    "title": "Differenz trifft",
+    "desc": "Spielerisch Wahrscheinlichkeiten einschätzen",
+    "types": ["game"],
+    "mobilefriendly": true,
+    "link": "differenz_trifft.html"
+  },
+  {
+    "id": "baumdiagramm_auswahl",
+    "title": "Felder im Baumdiagramm zuordnen",
+    "desc": "Ordne zu, an welcher Stelle welche Ereignisse im Baumdiagramm eingetragen werden müssen",
+    "types": ["quiz"],
+    "mobilefriendly": true,
+    "link": "baumdiagramm_felder.html"
+  },
+  {
     "id": "graphen",
     "title": "Graph erkennen",
     "desc": "Welche Standard-Funktion wird dargestellt?",
