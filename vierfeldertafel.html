@@ -1,0 +1,2081 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vierfeldertafel – Übung</title>
+  <link rel="stylesheet" href="styles.css">
+<script>MathJax = { tex: { inlineMath: [['$','$']] }, startup: { typeset: false } };</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
+<!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-5K8WYYXDL2"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-5K8WYYXDL2');
+    </script>
+<style>
+:root {
+  --primary:#3b5bdb; --primary-light:#eef2ff; --primary-dark:#2f4ac0;
+  --success:#2f9e44; --success-light:#ebfbee;
+  --error:#c92a2a;   --error-light:#fff5f5;
+  --warn:#e67700;    --warn-light:#fff9db;
+  --gray1:#f8f9fa; --gray2:#e9ecef; --gray3:#dee2e6; --gray6:#868e96; --gray8:#343a40;
+  --radius:10px; --shadow:0 2px 12px rgba(0,0,0,.09); --font:'Segoe UI',system-ui,sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scrollbar-gutter:stable}  /* prevent layout shift when scrollbar appears */
+body{font-family:var(--font);background:var(--gray1);color:var(--gray8);min-height:100vh;
+  display:block;padding:0}   /* override styles.css flex/padding */
+header{background:var(--primary);color:#fff;padding:18px 24px 16px;text-align:center}
+header h1{font-size:1.45rem;font-weight:700;letter-spacing:-.3px}
+header p{font-size:.88rem;opacity:.85;margin-top:4px}
+
+/* ── Settings bar ── */
+.settings-bar{background:#fff;border-bottom:1px solid var(--gray3);padding:11px 16px;
+  display:flex;flex-wrap:wrap;gap:14px;justify-content:center;align-items:center}
+.settings-group{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.settings-label{font-size:.76rem;color:var(--gray6);font-weight:600;text-transform:uppercase;letter-spacing:.4px;white-space:nowrap}
+.divider{width:1px;height:22px;background:var(--gray3)}
+.chip{padding:5px 13px;border-radius:20px;border:1.5px solid var(--gray3);background:#fff;color:var(--gray8);
+  font-size:.83rem;cursor:pointer;transition:all .15s;font-family:var(--font);font-weight:500;line-height:1.4}
+.chip:hover{border-color:var(--primary);color:var(--primary)}
+.chip.active{background:var(--primary);border-color:var(--primary);color:#fff}
+
+/* ── Advanced settings – visually distinct from main settings ── */
+.adv-wrap{margin:0;border:none!important;background:var(--gray2);border-bottom:2px solid var(--gray3)!important}
+.adv-wrap>summary{font-weight:normal!important;font-size:.78rem;color:var(--gray6);
+  text-align:center;padding:5px 16px!important}
+.adv-wrap>summary::before{font-size:.65rem;margin-right:.4ch!important}
+.adv-inner{padding:10px 20px 14px;display:flex;flex-wrap:wrap;gap:18px;
+  justify-content:center;align-items:flex-start}
+.adv-group{display:flex;flex-direction:column;gap:7px;min-width:145px}
+.adv-group-label{font-size:.72rem;color:var(--gray6);font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+.scenario-check{display:flex;align-items:center;gap:7px;font-size:.85rem;cursor:pointer}
+.scenario-check input{accent-color:var(--primary);width:14px;height:14px;cursor:pointer}
+
+/* ── Scenario collapsible – full-width bar like adv-wrap ── */
+.sc-wrap{margin:0;border:none!important;background:var(--gray2);border-bottom:2px solid var(--gray3)!important}
+.sc-wrap>summary{font-weight:normal!important;font-size:.78rem;color:var(--gray6);
+  text-align:center;padding:5px 16px!important}
+.sc-wrap>summary::before{font-size:.65rem;margin-right:.4ch!important}
+.sc-inner-wrap{max-width:720px;margin:0 auto;padding:6px 14px 12px}
+.sc-table{width:100%;border-collapse:collapse;font-size:.82rem}
+.sc-table th{background:var(--gray2);padding:4px 8px;text-align:left;font-weight:600;
+  font-size:.72rem;color:var(--gray8);border-bottom:1px solid var(--gray3)}
+.sc-table td{padding:3px 8px;vertical-align:middle}
+.sc-table tr:hover td{background:var(--primary-light)}
+.sc-group-hdr td{background:var(--gray2);font-weight:700;font-size:.72rem;
+  text-transform:uppercase;letter-spacing:.4px;color:var(--gray6);padding:5px 8px}
+.sc-group-btns{display:inline-flex;gap:4px;margin-left:6px}
+.sc-mini-btn{padding:1px 7px;font-size:.69rem;border-radius:4px;border:1px solid var(--gray3);
+  background:#fff;cursor:pointer;color:var(--gray8);font-family:var(--font);line-height:1.6}
+.sc-mini-btn:hover{border-color:var(--primary);color:var(--primary)}
+.sc-mini-btn.active{background:var(--primary-light);border-color:var(--primary);color:var(--primary);font-weight:600}
+.sc-table input[type="checkbox"]{accent-color:var(--primary);width:13px;height:13px;cursor:pointer;
+  vertical-align:middle}
+
+/* ── Main layout ── */
+main{max-width:720px;margin:0 auto;padding:22px 14px 60px}
+.card{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);padding:22px;margin-bottom:20px}
+.card-title{font-size:1rem;font-weight:700;color:var(--primary);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.badge{background:var(--primary-light);color:var(--primary);font-size:.72rem;font-weight:700;
+  padding:2px 8px;border-radius:12px;text-transform:uppercase;letter-spacing:.4px}
+
+/* ── Sticky phase-1 card ── */
+#phase1-card.sticky-mode{
+  position:sticky;top:0;z-index:100;
+  border-radius:0 0 var(--radius) var(--radius);
+  border-top:3px solid var(--primary);
+  box-shadow:0 3px 18px rgba(0,0,0,.15);
+  padding:10px 22px 14px;margin-bottom:0}
+#phase1-card.sticky-mode .scenario-info,
+#phase1-card.sticky-mode .fliesstext-block,
+#phase1-card.sticky-mode #hint1-box,
+#phase1-card.sticky-mode .btn-row{display:none!important}
+#phase1-card.sticky-mode .card-title-row{margin-bottom:6px}
+/* Keep Neue-Aufgabe button visible in sticky mode, but shrink it */
+#phase1-card.sticky-mode .card-title-row .btn{font-size:.72rem;padding:5px 10px}
+#phase1-card.sticky-mode .card-title{margin-bottom:0;font-size:.88rem}
+#phase1-card.sticky-mode .table-wrap{margin-bottom:0}
+
+/* ── Scenario info ── */
+.scenario-info{background:var(--primary-light);border-left:3px solid var(--primary);
+  border-radius:6px;padding:10px 14px;font-size:.88rem;margin-bottom:14px;line-height:1.6}
+
+/* ── Fließtext block ── */
+.fliesstext-block{display:none;background:#faf8f0;border:1.5px solid #ddd4a8;
+  border-left:4px solid var(--primary);border-radius:8px;padding:14px 18px;margin-bottom:16px}
+.fliesstext-block.show{display:block}
+.ft-label{font-size:.71rem;font-weight:700;text-transform:uppercase;letter-spacing:.6px;
+  color:var(--primary);margin-bottom:8px}
+#fliesstext-content{font-size:.93rem;line-height:2;color:var(--gray8)}
+.ft-hint{font-size:.8rem;color:var(--gray6);font-style:italic;margin-bottom:8px}
+
+/* ── Table ── */
+.table-wrap{overflow-x:auto;margin-bottom:14px}
+table.vft{border-collapse:collapse;width:100%;font-size:.88rem}
+table.vft th,table.vft td{border:1.5px solid var(--gray3);padding:9px 12px;text-align:center;min-width:82px}
+table.vft thead th{background:var(--gray2);font-weight:600}
+table.vft tbody th{background:var(--gray2);font-weight:600;text-align:left;min-width:100px}
+table.vft td.given{background:var(--primary-light);font-weight:600;color:var(--primary-dark)}
+table.vft td.total-cell{background:#f0f4ff;font-weight:700}
+table.vft td.correct{background:var(--success-light);color:var(--success);font-weight:600}
+table.vft td.filled-in{background:#fff8e1;color:var(--warn);font-weight:600}
+table.vft input[type="text"]{width:76px;border:1.5px solid var(--gray3);border-radius:5px;
+  padding:4px 6px;font-size:.87rem;font-family:var(--font);text-align:center;outline:none;
+  transition:border-color .15s;background:#fff}
+table.vft input:focus{border-color:var(--primary)}
+table.vft input.inp-correct{border-color:var(--success);background:var(--success-light);color:var(--success)}
+table.vft input.inp-wrong{border-color:var(--error);background:var(--error-light);color:var(--error)}
+
+/* ── Hint box (Phase 1) ── */
+.hint-box{background:var(--warn-light);border:1.5px solid #ffe066;border-radius:8px;
+  padding:12px 14px;font-size:.86rem;line-height:1.75;margin-bottom:14px;display:none}
+.hint-box.show{display:block}
+
+/* ── Buttons ── */
+.btn-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.btn{padding:8px 18px;border-radius:7px;border:none;font-family:var(--font);font-size:.88rem;font-weight:600;cursor:pointer;transition:all .15s}
+.btn-primary{background:var(--primary);color:#fff}
+.btn-primary:hover{background:var(--primary-dark)}
+.btn-outline{background:#fff;color:var(--primary);border:1.5px solid var(--primary)}
+.btn-outline:hover{background:var(--primary-light)}
+.btn-gray{background:var(--gray2);color:var(--gray8);border:1.5px solid var(--gray3)}
+.btn-gray:hover{background:var(--gray3)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+
+/* ── Phase 2 ── */
+#phase2-section{display:none}
+.progress-bar-wrap{background:var(--gray2);border-radius:6px;height:7px;margin-bottom:16px;overflow:hidden}
+.progress-bar{background:var(--primary);height:100%;border-radius:6px;transition:width .3s}
+
+.question-card{border:1.5px solid var(--gray3);border-radius:8px;padding:15px 17px;margin-bottom:13px;transition:border-color .2s}
+.question-card.answered{border-color:var(--success)}
+.question-card.answered-wrong{border-color:var(--error)}
+.q-header{font-size:.8rem;color:var(--gray6);margin-bottom:7px;font-weight:600}
+.q-text{font-size:.92rem;margin-bottom:7px;line-height:1.55}
+.q-formula{font-size:1rem;margin-bottom:11px;font-weight:600;color:var(--primary-dark)}
+.q-input-row{display:flex;gap:9px;align-items:center;flex-wrap:wrap}
+.q-input{flex:1;min-width:170px;max-width:260px;border:1.5px solid var(--gray3);border-radius:6px;
+  padding:7px 11px;font-size:.88rem;font-family:var(--font);outline:none;transition:border-color .15s}
+.q-input:focus{border-color:var(--primary)}
+.q-input.inp-correct{border-color:var(--success);background:var(--success-light)}
+.q-input.inp-wrong{border-color:var(--error);background:var(--error-light)}
+.q-feedback{font-size:.84rem;margin-top:6px;color:var(--gray6);line-height:1.5}
+.q-feedback.ok{color:var(--success);font-weight:600}
+.q-feedback.err{color:var(--error)}
+
+.indep-row{display:flex;gap:9px;flex-wrap:wrap}
+.indep-btn{padding:6px 16px;border-radius:7px;border:1.5px solid var(--gray3);background:#fff;
+  font-family:var(--font);font-size:.86rem;font-weight:600;cursor:pointer;transition:all .15s;color:var(--gray8)}
+.indep-btn:hover{border-color:var(--primary);color:var(--primary)}
+.indep-btn.chosen-correct{border-color:var(--success);background:var(--success-light);color:var(--success)}
+.indep-btn.chosen-wrong{border-color:var(--error);background:var(--error-light);color:var(--error)}
+.indep-btn:disabled{opacity:.5;cursor:not-allowed}
+
+/* ── Progressive hints ── */
+.hint-ctrl{display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap}
+.hint-step-btn{font-size:.79rem;padding:4px 11px;border-radius:5px;border:1.5px dashed var(--gray3);
+  background:#fff;cursor:pointer;color:var(--gray6);font-family:var(--font);transition:all .15s}
+.hint-step-btn:hover{border-color:var(--warn);color:var(--warn)}
+.hint-step-btn:disabled{opacity:.35;cursor:not-allowed}
+.hint-steps{margin-top:7px}
+.hint-step{background:var(--warn-light);border:1.5px solid #ffe066;border-radius:6px;
+  padding:10px 13px;font-size:.84rem;line-height:1.8}
+.hint-step+.hint-step{border-top-width:.5px;border-radius:0}
+.hint-step:first-child{border-radius:6px 6px 0 0}
+.hint-step:last-child{border-radius:0 0 6px 6px}
+.hint-step:only-child{border-radius:6px}
+.hint-step-lbl{font-size:.69rem;font-weight:700;text-transform:uppercase;color:var(--warn);letter-spacing:.4px;margin-bottom:5px}
+.quiz-btns{display:flex;gap:7px;flex-wrap:wrap;margin-top:7px}
+.quiz-btn{padding:5px 13px;border-radius:6px;border:1.5px solid var(--gray3);background:#fff;
+  font-family:var(--font);font-size:.83rem;cursor:pointer;transition:all .15s;color:var(--gray8)}
+.quiz-btn:hover:not(:disabled){border-color:var(--primary);color:var(--primary)}
+.quiz-btn.q-correct{border-color:var(--success);background:var(--success-light);color:var(--success);font-weight:600}
+.quiz-btn.q-wrong{border-color:var(--error);background:var(--error-light);color:var(--error)}
+.quiz-btn:disabled{cursor:not-allowed}
+.quiz-result{margin-top:6px;font-size:.84rem}
+
+/* ── Result ── */
+.result-box{background:var(--success-light);border:1.5px solid #69db7c;border-radius:8px;
+  padding:18px 20px;text-align:center;font-size:.95rem;color:var(--success);font-weight:600;display:none;margin-top:4px}
+.result-box.show{display:block}
+.result-emoji{font-size:2rem;margin-bottom:6px}
+
+@media(max-width:500px){
+  table.vft th,table.vft td{padding:6px 7px;font-size:.8rem;min-width:62px}
+  table.vft input[type="text"]{width:56px;font-size:.8rem}
+  .card{padding:14px}
+}
+
+/* scroll offset for sticky phase-1 card */
+#phase2-section{scroll-margin-top:72px}
+/* given values pre-filled by hint (ft mode) */
+table.vft input.inp-given-hint{background:#fff8e1;border-color:#ffe066;color:var(--warn);font-weight:600}
+/* card-title row with neue-aufgabe right-aligned */
+.card-title-row{display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.card-title-row .card-title{margin-bottom:0;flex:1}
+/* disabled hint button in ft mode */
+.btn-outline:disabled{opacity:.45;cursor:not-allowed}
+
+/* ── Tooltips ── */
+#tt{position:fixed;z-index:9999;background:#1e2230;color:#f0f2f7;font-size:.74rem;
+  padding:6px 11px;border-radius:7px;max-width:230px;line-height:1.45;
+  pointer-events:none;opacity:0;transition:opacity .15s;white-space:normal;
+  box-shadow:0 4px 14px rgba(0,0,0,.25)}
+#tt.show{opacity:1}
+.settings-label[data-tip]{cursor:help;text-decoration:underline dotted;
+  text-underline-offset:2px;text-decoration-color:var(--gray4)}
+</style>
+</head>
+<body>
+<header>
+  <h1>Vierfeldertafel &amp; Bedingte Wahrscheinlichkeit</h1>
+  <p>Fülle die Tabelle aus und berechne Wahrscheinlichkeiten</p>
+</header>
+
+<details class="adv-wrap" id="adv-details">
+  <summary>⚙ Erweiterte Einstellungen</summary>
+  <div class="adv-inner">
+    <div class="adv-group">
+      <div class="adv-group-label">Schreibweise Bed. Wahrscheinlichkeit</div>
+      <button class="chip" data-key="notation" data-val="cond" onclick="setSetting('notation','cond')">P(A|B)</button>
+      <button class="chip active" data-key="notation" data-val="sub" onclick="setSetting('notation','sub')">P_B(A)</button>
+    </div>
+    <div class="adv-group">
+      <div class="adv-group-label">Ereignisbezeichnung</div>
+      <button class="chip" data-key="kurzform" data-val="lang" onclick="setSetting('kurzform','lang')">Ausgeschrieben</button>
+      <button class="chip active" data-key="kurzform" data-val="abk" onclick="setSetting('kurzform','abk')">Abkürzung (R, K, …)</button>
+    </div>
+    <div class="adv-group">
+      <div class="adv-group-label">Negierung</div>
+      <button class="chip" data-key="negation" data-val="text" onclick="setSetting('negation','text')">Ausgeschrieben</button>
+      <button class="chip active" data-key="negation" data-val="overline" onclick="setSetting('negation','overline')">Querstrich (<span style="text-decoration:overline;font-weight:bold">R</span>)</button>
+    </div>
+    <div class="adv-group">
+      <div class="adv-group-label">Stochastische Unabhängigkeit</div>
+      <label class="scenario-check">
+        <input type="checkbox" id="chk-approx-indep" onchange="setSetting('approxIndep',this.checked)">
+        Näherungsweise erlauben
+      </label>
+    </div>
+  </div>
+</details>
+
+<div class="settings-bar">
+  <div class="settings-group">
+    <span class="settings-label" data-tip="Abstrakt (A, B) oder aus konkreten Alltagsszenarien?">Typ</span>
+    <button class="chip" data-key="typ" data-val="allgemein" data-tip="Abstrakte Ereignisse A und B – ideal zum Üben der Formeln" onclick="setSetting('typ','allgemein')">Allgemein (A, B)</button>
+    <button class="chip active" data-key="typ" data-val="beispiel" data-tip="Konkrete Szenarien (Rauchen, Impfung, …) mit Satztext" onclick="setSetting('typ','beispiel')">Aus Beispielen</button>
+  </div>
+  <div class="divider"></div>
+  <div class="settings-group">
+    <span class="settings-label" data-tip="Bestimmt die Gesamtzahl n und die Darstellungsform der Werte">Schwierigkeit</span>
+    <button class="chip" data-key="diff" data-val="einfach" data-tip="n = 100, ganze Häufigkeiten – ideal zum Einstieg" onclick="setSetting('diff','einfach')">Einfach</button>
+    <button class="chip active" data-key="diff" data-val="mittel" data-tip="n variabel (50–250), ganze Häufigkeiten" onclick="setSetting('diff','mittel')">Mittel</button>
+    <button class="chip" data-key="diff" data-val="schwer" data-tip="Alles als Wahrscheinlichkeiten (0–1 bzw. %) – kein n gegeben" onclick="setSetting('diff','schwer')">Schwer</button>
+  </div>
+  <div class="divider"></div>
+  <div class="settings-group">
+    <span class="settings-label" data-tip="Wie werden die Ausgangswerte in Phase 1 präsentiert?">Einleitung</span>
+    <button class="chip active" data-key="ftIntro" data-val="ft" data-tip="Werte stehen in einem Text – du musst sie selbst der Tabelle zuordnen" onclick="setSetting('ftIntro','ft')">Fließtext</button>
+    <button class="chip" data-key="ftIntro" data-val="table" data-tip="Fehlende Felder direkt in der Tabelle ausfüllen" onclick="setSetting('ftIntro','table')">Tabelle</button>
+    <button class="chip" data-key="ftIntro" data-val="skip" data-tip="Tabelle wird automatisch ausgefüllt – direkt zu den Aufgaben" onclick="setSetting('ftIntro','skip')">Überspringen</button>
+  </div>
+  <div class="divider"></div>
+  <div class="settings-group">
+    <span class="settings-label" data-tip="Wie werden die Fragen in Phase 2 formuliert?">Aufgaben</span>
+    <button class="chip active" data-key="ftTasks" data-val="1" data-tip="Fragen in natürlicher Sprache – Formel erst auf Hinweis" onclick="setSetting('ftTasks','1')">Fließtext</button>
+    <button class="chip" data-key="ftTasks" data-val="0" data-tip="Gesuchte Wahrscheinlichkeit direkt als Formel angezeigt" onclick="setSetting('ftTasks','0')">Mit Formel</button>
+  </div>
+</div>
+
+<details class="sc-wrap" id="sc-details">
+  <summary>🎭 Aktive Szenarien (Aus Beispielen)</summary>
+  <div class="sc-inner-wrap">
+    <table class="sc-table">
+      <tbody id="sc-tbody"></tbody>
+    </table>
+  </div>
+</details>
+
+<main>
+
+  <div id="task-area">
+    <div class="card" id="phase1-card">
+      <div class="card-title-row">
+        <div class="card-title">
+          <span>Phase 1: Vierfeldertafel ausfüllen</span>
+          <span class="badge" id="diff-badge">Mittel</span>
+        </div>
+        <button class="btn btn-gray" onclick="newTask()">🔀 Neue Aufgabe</button>
+      </div>
+      <div class="scenario-info" id="scenario-info"></div>
+      <div class="fliesstext-block" id="fliesstext-block">
+        <div class="ft-label">📖 Aufgabentext</div>
+        <div id="fliesstext-content"></div>
+      </div>
+      <div class="table-wrap"><table class="vft" id="vft-table"></table></div>
+      <div class="btn-row">
+        <button class="btn btn-outline" onclick="toggleHint1()">💡 Hinweis</button>
+        <button class="btn btn-primary" id="check-btn" onclick="checkPhase1()">Prüfen</button>
+        <button class="btn btn-gray" id="weiter-btn" onclick="nextPhase()" style="display:none">Weiter →</button>
+        <button class="btn btn-gray" onclick="skipTask()" style="margin-left:auto">↩ Überspringen</button>
+      </div>
+      <div class="hint-box" id="hint1-box"></div>
+    </div>
+
+    <div class="card" id="phase2-section">
+      <div class="card-title" style="justify-content:space-between">
+        <span>Phase 2: Wahrscheinlichkeiten berechnen</span>
+        <button class="btn btn-gray" onclick="newTask()" style="font-size:.75rem;padding:5px 11px;margin:0">🔀 Neue Aufgabe</button>
+      </div>
+      <div class="progress-bar-wrap"><div class="progress-bar" id="prog-bar" style="width:0%"></div></div>
+      <div id="questions-list"></div>
+      <div class="result-box" id="result-box">
+        <div class="result-emoji">🎉</div>
+        <div>Alle Aufgaben gelöst!</div>
+        <div style="margin-top:10px"><button class="btn btn-primary" onclick="newTask()">Neue Aufgabe</button></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+// ── CONSTANTS ──────────────────────────────────────────────────────────────
+const N_EINFACH = 100;
+const N_MITTEL  = [50,60,80,120,150,200,250];
+
+// Metadata: which cells are numerator/denominator, is it conditional?
+const QTYPES_META = {
+  PA:        {isConditional:false, num:'ra',  den:'total'},
+  PB:        {isConditional:false, num:'cb',  den:'total'},
+  PnA:       {isConditional:false, num:'rna', den:'total'},
+  PnB:       {isConditional:false, num:'cnb', den:'total'},
+  PAB:       {isConditional:false, num:'ab',  den:'total'},
+  PAgivenB:  {isConditional:true,  num:'ab',  den:'cb'},
+  PBgivenA:  {isConditional:true,  num:'ab',  den:'ra'},
+  PnAgivenB: {isConditional:true,  num:'nab', den:'cb'},
+  PBgivennA: {isConditional:true,  num:'nab', den:'rna'},
+  PAgivennB: {isConditional:true,  num:'anb', den:'cnb'},
+};
+const QPOOL_OPTIONAL = ['PA','PB','PnA','PnB','PAB','PnAgivenB','PBgivennA','PAgivennB'];
+
+const SCENARIOS = [
+  {
+    id:'rauchen', lA:'Raucher', lnA:'Nichtraucher', lB:'Krank', lnB:'Gesund',
+    short:{A:'R',B:'K'}, dependent:true,
+    sentences:{
+      count:{
+        total: n=>`In einer Studie wurden ${n} Personen auf ihren Raucherstatus und Gesundheitszustand untersucht.`,
+        ra:   v=>`${v} der Personen sind Raucher.`,
+        rna:  v=>`${v} Personen sind Nichtraucher.`,
+        cb:   v=>`${v} Personen sind krank.`,
+        cnb:  v=>`${v} Personen sind gesund.`,
+        ab:   v=>`Unter den Rauchern sind ${v} krank.`,
+        anb:  v=>`Unter den Rauchern sind ${v} gesund.`,
+        nab:  v=>`Unter den Nichtrauchern sind ${v} krank.`,
+        nanb: v=>`Unter den Nichtrauchern sind ${v} gesund.`,
+      },
+      prob:{
+        intro:()=>`Eine Studie untersucht den Zusammenhang zwischen Raucherstatus und Erkrankungsrisiko.`,
+        ra:   v=>`${v} der Personen sind Raucher.`,
+        rna:  v=>`${v} der Personen sind Nichtraucher.`,
+        cb:   v=>`${v} aller Personen sind krank.`,
+        cnb:  v=>`${v} aller Personen sind gesund.`,
+        ab:   v=>`${v} der Personen sind Raucher und krank.`,
+        anb:  v=>`${v} der Personen sind Raucher und gesund.`,
+        nab:  v=>`${v} der Personen sind Nichtraucher und krank.`,
+        nanb: v=>`${v} der Personen sind Nichtraucher und gesund.`,
+      },
+    },
+    qTexts:{
+      PA:        'Wie hoch ist die Wahrscheinlichkeit, dass eine beliebige Person Raucher ist?',
+      PB:        'Wie hoch ist die Wahrscheinlichkeit, dass eine beliebige Person krank ist?',
+      PnA:       'Wie hoch ist die Wahrscheinlichkeit, dass eine beliebige Person Nichtraucher ist?',
+      PnB:       'Wie hoch ist die Wahrscheinlichkeit, dass eine beliebige Person gesund ist?',
+      PAB:       'Wie hoch ist die Wahrscheinlichkeit, dass eine beliebige Person Raucher und gleichzeitig krank ist?',
+      PAgivenB:  'Wie hoch ist die Wahrscheinlichkeit, dass eine beliebige <em>kranke</em> Person Raucher ist?',
+      PBgivenA:  'Wie hoch ist die Wahrscheinlichkeit, dass ein beliebiger Raucher krank ist?',
+      PnAgivenB: 'Wie hoch ist die Wahrscheinlichkeit, dass eine beliebige kranke Person Nichtraucher ist?',
+      PBgivennA: 'Wie hoch ist die Wahrscheinlichkeit, dass ein beliebiger Nichtraucher krank ist?',
+      PAgivennB: 'Wie hoch ist die Wahrscheinlichkeit, dass eine beliebige gesunde Person Raucher ist?',
+      indep:     'Sind Rauchen und Erkrankung statistisch voneinander unabhängig?',
+    },
+    condLabels:{
+      PAgivenB:'kranken Personen', PBgivenA:'Raucher',
+      PnAgivenB:'kranken Personen', PBgivennA:'Nichtraucher', PAgivennB:'gesunden Personen',
+    },
+    indepQText:'Hat der Raucherstatus einen Einfluss auf die Erkrankungswahrscheinlichkeit?',
+    indepYes:'Ja, Rauchen und Krankheit hängen zusammen',
+    indepNo:'Nein, kein Zusammenhang',
+  },
+  {
+    id:'intelligenz', lA:'Männlich', lnA:'Weiblich', lB:'Hochbegabt', lnB:'Nicht hochbegabt',
+    short:{A:'M',B:'H'}, dependent:false,
+    sentences:{
+      count:{
+        total: n=>`An einer Begabungsuntersuchung nahmen ${n} Personen teil.`,
+        ra:   v=>`${v} Personen sind männlich.`,
+        rna:  v=>`${v} Personen sind weiblich.`,
+        cb:   v=>`${v} Personen wurden als hochbegabt eingestuft.`,
+        cnb:  v=>`${v} Personen sind nicht hochbegabt.`,
+        ab:   v=>`Unter den männlichen Teilnehmenden sind ${v} hochbegabt.`,
+        anb:  v=>`Unter den Männern sind ${v} nicht hochbegabt.`,
+        nab:  v=>`Unter den weiblichen Teilnehmenden sind ${v} hochbegabt.`,
+        nanb: v=>`Unter den Frauen sind ${v} nicht hochbegabt.`,
+      },
+      prob:{
+        intro:()=>`Eine Studie untersucht den Zusammenhang zwischen Geschlecht und Hochbegabung.`,
+        ra:   v=>`${v} der Personen sind männlich.`,
+        rna:  v=>`${v} der Personen sind weiblich.`,
+        cb:   v=>`${v} aller Personen sind hochbegabt.`,
+        cnb:  v=>`${v} aller Personen sind nicht hochbegabt.`,
+        ab:   v=>`${v} der Personen sind männlich und hochbegabt.`,
+        anb:  v=>`${v} der Personen sind männlich und nicht hochbegabt.`,
+        nab:  v=>`${v} der Personen sind weiblich und hochbegabt.`,
+        nanb: v=>`${v} der Personen sind weiblich und nicht hochbegabt.`,
+      },
+    },
+    qTexts:{
+      PA:        'Wie hoch ist die Wahrscheinlichkeit, dass eine beliebige Person männlich ist?',
+      PB:        'Wie hoch ist die Wahrscheinlichkeit, dass eine beliebige Person hochbegabt ist?',
+      PnA:       'Wie hoch ist die Wahrscheinlichkeit, dass eine beliebige Person weiblich ist?',
+      PnB:       'Wie hoch ist die Wahrscheinlichkeit, dass eine beliebige Person nicht hochbegabt ist?',
+      PAB:       'Wie hoch ist die Wahrscheinlichkeit, dass eine beliebige Person männlich und hochbegabt ist?',
+      PAgivenB:  'Wie hoch ist die Wahrscheinlichkeit, dass eine beliebige <em>hochbegabte</em> Person männlich ist?',
+      PBgivenA:  'Wie hoch ist die Wahrscheinlichkeit, dass ein beliebiger Mann hochbegabt ist?',
+      PnAgivenB: 'Wie hoch ist die Wahrscheinlichkeit, dass eine beliebige hochbegabte Person weiblich ist?',
+      PBgivennA: 'Wie hoch ist die Wahrscheinlichkeit, dass eine beliebige Frau hochbegabt ist?',
+      PAgivennB: 'Wie hoch ist die Wahrscheinlichkeit, dass eine beliebige nicht hochbegabte Person männlich ist?',
+      indep:     'Sind Geschlecht und Hochbegabung statistisch voneinander unabhängig?',
+    },
+    condLabels:{
+      PAgivenB:'hochbegabten Personen', PBgivenA:'Männer',
+      PnAgivenB:'hochbegabten Personen', PBgivennA:'Frauen', PAgivennB:'nicht hochbegabten Personen',
+    },
+    indepQText:'Hat das Geschlecht einen Einfluss darauf, ob jemand hochbegabt ist?',
+    indepYes:'Ja, Geschlecht und Hochbegabung hängen zusammen',
+    indepNo:'Nein, kein Zusammenhang',
+  },
+  {
+    id:'medikament', lA:'Medikament', lnA:'Kein Medikament', lB:'Gesundet', lnB:'Nicht gesundet',
+    short:{A:'M',B:'G'}, dependent:null,
+    sentences:{
+      count:{
+        total: n=>`In einer klinischen Studie wurden ${n} Patienten beobachtet.`,
+        ra:   v=>`${v} Patienten erhielten das Medikament.`,
+        rna:  v=>`${v} Patienten erhielten kein Medikament (Kontrollgruppe).`,
+        cb:   v=>`Insgesamt wurden ${v} Patienten wieder gesund.`,
+        cnb:  v=>`${v} Patienten wurden nicht wieder gesund.`,
+        ab:   v=>`Unter den behandelten Patienten wurden ${v} wieder gesund.`,
+        anb:  v=>`Unter den behandelten Patienten wurden ${v} nicht wieder gesund.`,
+        nab:  v=>`Aus der Kontrollgruppe wurden ${v} Patienten trotzdem wieder gesund.`,
+        nanb: v=>`Aus der Kontrollgruppe blieben ${v} Patienten krank.`,
+      },
+      prob:{
+        intro:()=>`Eine klinische Studie untersucht die Wirksamkeit eines Medikaments.`,
+        ra:   v=>`${v} der Patienten erhielten das Medikament.`,
+        rna:  v=>`${v} der Patienten gehörten zur Kontrollgruppe.`,
+        cb:   v=>`${v} aller Patienten wurden wieder gesund.`,
+        cnb:  v=>`${v} aller Patienten wurden nicht wieder gesund.`,
+        ab:   v=>`${v} der Patienten erhielten das Medikament und wurden wieder gesund.`,
+        anb:  v=>`${v} der Patienten erhielten das Medikament und wurden nicht wieder gesund.`,
+        nab:  v=>`${v} der Patienten ohne Medikament wurden trotzdem wieder gesund.`,
+        nanb: v=>`${v} der Patienten ohne Medikament wurden nicht wieder gesund.`,
+      },
+    },
+    qTexts:{
+      PA:        'Wie hoch ist die Wahrscheinlichkeit, dass ein beliebiger Patient das Medikament erhalten hat?',
+      PB:        'Wie hoch ist die Wahrscheinlichkeit, dass ein beliebiger Patient wieder gesund wurde?',
+      PnA:       'Wie hoch ist die Wahrscheinlichkeit, dass ein beliebiger Patient kein Medikament erhalten hat?',
+      PnB:       'Wie hoch ist die Wahrscheinlichkeit, dass ein beliebiger Patient nicht wieder gesund wurde?',
+      PAB:       'Wie hoch ist die Wahrscheinlichkeit, dass ein beliebiger Patient das Medikament bekam und wieder gesund wurde?',
+      PAgivenB:  'Wie hoch ist die Wahrscheinlichkeit, dass ein beliebiger <em>wieder gesunder</em> Patient das Medikament erhalten hatte?',
+      PBgivenA:  'Wie hoch ist die Wahrscheinlichkeit, dass ein beliebiger Patient, der das Medikament bekam, wieder gesund wird?',
+      PnAgivenB: 'Wie hoch ist die Wahrscheinlichkeit, dass ein beliebiger wieder gesunder Patient kein Medikament erhalten hatte?',
+      PBgivennA: 'Wie hoch ist die Wahrscheinlichkeit, dass ein Patient ohne Medikament trotzdem wieder gesund wird?',
+      PAgivennB: 'Wie hoch ist die Wahrscheinlichkeit, dass ein nicht geheilter Patient das Medikament erhalten hatte?',
+      indep:     'Sind Medikamenteneinnahme und Genesungserfolg statistisch voneinander unabhängig?',
+    },
+    condLabels:{
+      PAgivenB:'geheilten Patienten', PBgivenA:'Patienten mit Medikament',
+      PnAgivenB:'geheilten Patienten', PBgivennA:'Patienten ohne Medikament', PAgivennB:'nicht geheilten Patienten',
+    },
+    indepQText:'Hat die Einnahme des Medikaments einen Einfluss auf den Genesungserfolg?',
+    indepYes:'Ja, das Medikament hat einen Einfluss',
+    indepNo:'Nein, kein Einfluss',
+  },
+  {
+    id:'impfung', lA:'Geimpft', lnA:'Nicht geimpft', lB:'Erkrankt', lnB:'Nicht erkrankt',
+    short:{A:'G',B:'E'}, dependent:true,
+    sentences:{
+      count:{
+        total: n=>`An einer Gesundheitsstudie nahmen ${n} Personen teil.`,
+        ra:   v=>`${v} Personen waren geimpft.`,
+        rna:  v=>`${v} Personen waren nicht geimpft.`,
+        cb:   v=>`Insgesamt erkrankten ${v} Personen.`,
+        cnb:  v=>`${v} Personen blieben gesund.`,
+        ab:   v=>`Unter den Geimpften erkrankten ${v} Personen.`,
+        anb:  v=>`Unter den Geimpften blieben ${v} Personen gesund.`,
+        nab:  v=>`Unter den Nicht-Geimpften erkrankten ${v} Personen.`,
+        nanb: v=>`Unter den Nicht-Geimpften blieben ${v} Personen gesund.`,
+      },
+      prob:{
+        intro:()=>`Eine Studie untersucht den Zusammenhang zwischen Impfstatus und Erkrankungsrisiko.`,
+        ra:   v=>`${v} der Personen waren geimpft.`,
+        rna:  v=>`${v} der Personen waren nicht geimpft.`,
+        cb:   v=>`${v} aller Personen erkrankten.`,
+        cnb:  v=>`${v} aller Personen blieben gesund.`,
+        ab:   v=>`${v} der Personen waren geimpft und erkrankten trotzdem.`,
+        anb:  v=>`${v} der Personen waren geimpft und blieben gesund.`,
+        nab:  v=>`${v} der Personen waren nicht geimpft und erkrankten.`,
+        nanb: v=>`${v} der Personen waren nicht geimpft und blieben gesund.`,
+      },
+    },
+    qTexts:{
+      PA:       'Wie hoch ist die Wahrscheinlichkeit, dass eine zufällig gewählte Person geimpft ist?',
+      PB:       'Wie hoch ist die Wahrscheinlichkeit, dass eine zufällig gewählte Person erkrankt?',
+      PnA:      'Wie hoch ist die Wahrscheinlichkeit, dass eine zufällig gewählte Person nicht geimpft ist?',
+      PnB:      'Wie hoch ist die Wahrscheinlichkeit, dass eine zufällig gewählte Person gesund bleibt?',
+      PAB:      'Wie hoch ist die Wahrscheinlichkeit, dass eine Person geimpft ist und dennoch erkrankt?',
+      PAgivenB: 'Wie hoch ist die Wahrscheinlichkeit, dass eine <em>erkrankte</em> Person geimpft war?',
+      PBgivenA: 'Wie hoch ist die Wahrscheinlichkeit, dass eine <em>geimpfte</em> Person erkrankt?',
+      PnAgivenB:'Wie hoch ist die Wahrscheinlichkeit, dass eine erkrankte Person nicht geimpft war?',
+      PBgivennA:'Wie hoch ist die Wahrscheinlichkeit, dass eine nicht geimpfte Person erkrankt?',
+      PAgivennB:'Wie hoch ist die Wahrscheinlichkeit, dass eine gesund gebliebene Person geimpft war?',
+      indep:    'Sind Impfstatus und Erkrankung statistisch voneinander unabhängig?',
+    },
+    condLabels:{
+      PAgivenB:'erkrankten Personen', PBgivenA:'Geimpften',
+      PnAgivenB:'erkrankten Personen', PBgivennA:'Nicht-Geimpften', PAgivennB:'gesund gebliebenen Personen',
+    },
+    indepQText:'Schützt die Impfung vor der Erkrankung, oder erkranken Geimpfte genauso häufig?',
+    indepYes:'Ja, Geimpfte erkranken seltener (Zusammenhang)',
+    indepNo:'Nein, die Impfung macht keinen Unterschied',
+  },
+  {
+    id:'sport', lA:'Sportlich aktiv', lnA:'Nicht sportlich', lB:'Normalgewicht', lnB:'Übergewicht',
+    short:{A:'S',B:'N'}, dependent:null,
+    sentences:{
+      count:{
+        total: n=>`In einer Umfrage wurden ${n} Erwachsene zu Sport und Gewicht befragt.`,
+        ra:   v=>`${v} Personen treiben regelmäßig Sport.`,
+        rna:  v=>`${v} Personen sind nicht sportlich aktiv.`,
+        cb:   v=>`${v} Personen haben Normalgewicht.`,
+        cnb:  v=>`${v} Personen haben Übergewicht.`,
+        ab:   v=>`Unter den Sportlichen haben ${v} Normalgewicht.`,
+        anb:  v=>`Unter den Sportlichen haben ${v} Übergewicht.`,
+        nab:  v=>`Unter den Nicht-Sportlichen haben ${v} Normalgewicht.`,
+        nanb: v=>`Unter den Nicht-Sportlichen haben ${v} Übergewicht.`,
+      },
+      prob:{
+        intro:()=>`Eine Studie untersucht den Zusammenhang zwischen sportlicher Aktivität und Körpergewicht.`,
+        ra:   v=>`${v} der Befragten sind sportlich aktiv.`,
+        rna:  v=>`${v} der Befragten treiben keinen Sport.`,
+        cb:   v=>`${v} aller Befragten haben Normalgewicht.`,
+        cnb:  v=>`${v} aller Befragten haben Übergewicht.`,
+        ab:   v=>`${v} der Befragten sind sportlich aktiv und haben Normalgewicht.`,
+        anb:  v=>`${v} der Befragten sind sportlich aktiv, haben aber Übergewicht.`,
+        nab:  v=>`${v} der nicht sportlichen Befragten haben Normalgewicht.`,
+        nanb: v=>`${v} der nicht sportlichen Befragten haben Übergewicht.`,
+      },
+    },
+    qTexts:{
+      PA:       'Wie hoch ist die Wahrscheinlichkeit, dass eine zufällig gewählte Person sportlich aktiv ist?',
+      PB:       'Wie hoch ist die Wahrscheinlichkeit, dass eine zufällig gewählte Person Normalgewicht hat?',
+      PnA:      'Wie hoch ist die Wahrscheinlichkeit, dass eine Person nicht sportlich aktiv ist?',
+      PnB:      'Wie hoch ist die Wahrscheinlichkeit, dass eine Person Übergewicht hat?',
+      PAB:      'Wie hoch ist die Wahrscheinlichkeit, dass eine Person sportlich aktiv ist und Normalgewicht hat?',
+      PAgivenB: 'Wie hoch ist die Wahrscheinlichkeit, dass eine Person mit <em>Normalgewicht</em> sportlich aktiv ist?',
+      PBgivenA: 'Wie hoch ist die Wahrscheinlichkeit, dass eine <em>sportlich aktive</em> Person Normalgewicht hat?',
+      PnAgivenB:'Wie hoch ist die Wahrscheinlichkeit, dass eine Person mit Normalgewicht nicht sportlich aktiv ist?',
+      PBgivennA:'Wie hoch ist die Wahrscheinlichkeit, dass eine nicht sportliche Person Normalgewicht hat?',
+      PAgivennB:'Wie hoch ist die Wahrscheinlichkeit, dass eine Person mit Übergewicht sportlich aktiv ist?',
+      indep:    'Sind sportliche Aktivität und Körpergewicht statistisch voneinander unabhängig?',
+    },
+    condLabels:{
+      PAgivenB:'Normalgewichtigen', PBgivenA:'Sportlichen',
+      PnAgivenB:'Normalgewichtigen', PBgivennA:'Nicht-Sportlichen', PAgivennB:'Personen mit Übergewicht',
+    },
+    indepQText:'Hat sportliche Aktivität einen Einfluss darauf, ob jemand Normalgewicht hat?',
+    indepYes:'Ja, Sport und Gewicht hängen zusammen',
+    indepNo:'Nein, kein Zusammenhang',
+  },
+  {
+    id:'haende', lA:'Linkshänder', lnA:'Rechtshänder', lB:'Kreativ', lnB:'Weniger kreativ',
+    short:{A:'L',B:'K'}, dependent:false,
+    sentences:{
+      count:{
+        total: n=>`An einer Kreativitätsstudie nahmen ${n} Schülerinnen und Schüler teil.`,
+        ra:   v=>`${v} Schülerinnen und Schüler sind Linkshänder.`,
+        rna:  v=>`${v} Schülerinnen und Schüler sind Rechtshänder.`,
+        cb:   v=>`${v} Schülerinnen und Schüler wurden als kreativ eingestuft.`,
+        cnb:  v=>`${v} Schülerinnen und Schüler wurden als weniger kreativ eingestuft.`,
+        ab:   v=>`Unter den Linkshändern wurden ${v} als kreativ eingestuft.`,
+        anb:  v=>`Unter den Linkshändern wurden ${v} als weniger kreativ eingestuft.`,
+        nab:  v=>`Unter den Rechtshändern wurden ${v} als kreativ eingestuft.`,
+        nanb: v=>`Unter den Rechtshändern wurden ${v} als weniger kreativ eingestuft.`,
+      },
+      prob:{
+        intro:()=>`Eine Studie untersucht den Zusammenhang zwischen Händigkeit und Kreativität.`,
+        ra:   v=>`${v} der Schülerinnen und Schüler sind Linkshänder.`,
+        rna:  v=>`${v} der Schülerinnen und Schüler sind Rechtshänder.`,
+        cb:   v=>`${v} der Schülerinnen und Schüler wurden als kreativ eingestuft.`,
+        cnb:  v=>`${v} der Schülerinnen und Schüler wurden als weniger kreativ eingestuft.`,
+        ab:   v=>`${v} der Schülerinnen und Schüler sind Linkshänder und kreativ.`,
+        anb:  v=>`${v} der Schülerinnen und Schüler sind Linkshänder und weniger kreativ.`,
+        nab:  v=>`${v} der Schülerinnen und Schüler sind Rechtshänder und kreativ.`,
+        nanb: v=>`${v} der Schülerinnen und Schüler sind Rechtshänder und weniger kreativ.`,
+      },
+    },
+    qTexts:{
+      PA:       'Wie hoch ist die Wahrscheinlichkeit, dass eine zufällig gewählte Person Linkshänder ist?',
+      PB:       'Wie hoch ist die Wahrscheinlichkeit, dass eine zufällig gewählte Person kreativ ist?',
+      PnA:      'Wie hoch ist die Wahrscheinlichkeit, dass eine Person Rechtshänder ist?',
+      PnB:      'Wie hoch ist die Wahrscheinlichkeit, dass eine Person weniger kreativ ist?',
+      PAB:      'Wie hoch ist die Wahrscheinlichkeit, dass eine Person Linkshänder und kreativ ist?',
+      PAgivenB: 'Wie hoch ist die Wahrscheinlichkeit, dass eine <em>kreative</em> Person Linkshänder ist?',
+      PBgivenA: 'Wie hoch ist die Wahrscheinlichkeit, dass ein <em>Linkshänder</em> kreativ ist?',
+      PnAgivenB:'Wie hoch ist die Wahrscheinlichkeit, dass eine kreative Person Rechtshänder ist?',
+      PBgivennA:'Wie hoch ist die Wahrscheinlichkeit, dass ein Rechtshänder kreativ ist?',
+      PAgivennB:'Wie hoch ist die Wahrscheinlichkeit, dass eine weniger kreative Person Linkshänder ist?',
+      indep:    'Sind Händigkeit und Kreativität statistisch voneinander unabhängig?',
+    },
+    condLabels:{
+      PAgivenB:'kreativen Personen', PBgivenA:'Linkshänder',
+      PnAgivenB:'kreativen Personen', PBgivennA:'Rechtshänder', PAgivennB:'weniger kreativen Personen',
+    },
+    indepQText:'Hat die Händigkeit einen Einfluss darauf, ob jemand kreativ ist?',
+    indepYes:'Ja, Linkshänder sind häufiger kreativ',
+    indepNo:'Nein, kein Zusammenhang',
+  },
+  {
+    id:'nachhilfe', lA:'Mit Nachhilfe', lnA:'Ohne Nachhilfe', lB:'Versetzt', lnB:'Nicht versetzt',
+    short:{A:'N',B:'V'}, dependent:null,
+    sentences:{
+      count:{
+        total: n=>`In einer Schulklassenstudie wurden ${n} Schülerinnen und Schüler erfasst.`,
+        ra:   v=>`${v} Schülerinnen und Schüler hatten Nachhilfe erhalten.`,
+        rna:  v=>`${v} Schülerinnen und Schüler erhielten keine Nachhilfe.`,
+        cb:   v=>`${v} Schülerinnen und Schüler wurden versetzt.`,
+        cnb:  v=>`${v} Schülerinnen und Schüler wurden nicht versetzt.`,
+        ab:   v=>`Unter denen mit Nachhilfe wurden ${v} versetzt.`,
+        anb:  v=>`Unter denen mit Nachhilfe wurden ${v} nicht versetzt.`,
+        nab:  v=>`Ohne Nachhilfe wurden ${v} Schülerinnen und Schüler versetzt.`,
+        nanb: v=>`Ohne Nachhilfe wurden ${v} Schülerinnen und Schüler nicht versetzt.`,
+      },
+      prob:{
+        intro:()=>`Eine Studie untersucht den Zusammenhang zwischen Nachhilfe und Schulerfolg.`,
+        ra:   v=>`${v} der Schülerinnen und Schüler erhielten Nachhilfe.`,
+        rna:  v=>`${v} der Schülerinnen und Schüler erhielten keine Nachhilfe.`,
+        cb:   v=>`${v} aller Schülerinnen und Schüler wurden versetzt.`,
+        cnb:  v=>`${v} aller Schülerinnen und Schüler wurden nicht versetzt.`,
+        ab:   v=>`${v} der Schülerinnen und Schüler erhielten Nachhilfe und wurden versetzt.`,
+        anb:  v=>`${v} der Schülerinnen und Schüler erhielten Nachhilfe, wurden aber nicht versetzt.`,
+        nab:  v=>`${v} der Schülerinnen und Schüler ohne Nachhilfe wurden versetzt.`,
+        nanb: v=>`${v} der Schülerinnen und Schüler ohne Nachhilfe wurden nicht versetzt.`,
+      },
+    },
+    qTexts:{
+      PA:       'Wie hoch ist die Wahrscheinlichkeit, dass eine zufällig gewählte Person Nachhilfe hatte?',
+      PB:       'Wie hoch ist die Wahrscheinlichkeit, dass eine zufällig gewählte Person versetzt wurde?',
+      PnA:      'Wie hoch ist die Wahrscheinlichkeit, dass eine Person keine Nachhilfe hatte?',
+      PnB:      'Wie hoch ist die Wahrscheinlichkeit, dass eine Person nicht versetzt wurde?',
+      PAB:      'Wie hoch ist die Wahrscheinlichkeit, dass eine Person Nachhilfe hatte und versetzt wurde?',
+      PAgivenB: 'Wie hoch ist die Wahrscheinlichkeit, dass eine <em>versetzte</em> Person Nachhilfe hatte?',
+      PBgivenA: 'Wie hoch ist die Wahrscheinlichkeit, dass eine Person <em>mit Nachhilfe</em> versetzt wird?',
+      PnAgivenB:'Wie hoch ist die Wahrscheinlichkeit, dass eine versetzte Person keine Nachhilfe hatte?',
+      PBgivennA:'Wie hoch ist die Wahrscheinlichkeit, dass eine Person ohne Nachhilfe versetzt wird?',
+      PAgivennB:'Wie hoch ist die Wahrscheinlichkeit, dass eine nicht versetzte Person Nachhilfe hatte?',
+      indep:    'Sind Nachhilfe und Versetzungserfolg statistisch voneinander unabhängig?',
+    },
+    condLabels:{
+      PAgivenB:'Versetzten', PBgivenA:'Nachhilfe-Schülern',
+      PnAgivenB:'Versetzten', PBgivennA:'Schülern ohne Nachhilfe', PAgivennB:'Nicht-Versetzten',
+    },
+    indepQText:'Hat Nachhilfe einen Einfluss auf die Versetzungswahrscheinlichkeit?',
+    indepYes:'Ja, Nachhilfe und Versetzungserfolg hängen zusammen',
+    indepNo:'Nein, kein Zusammenhang',
+  },
+  {
+    id:'fahrrad', lA:'Helm getragen', lnA:'Kein Helm', lB:'Verletzt', lnB:'Unverletzt',
+    short:{A:'H',B:'V'}, dependent:true,
+    sentences:{
+      count:{
+        total: n=>`Bei einer Untersuchung von ${n} Fahrradunfällen wurden die Daten erfasst.`,
+        ra:   v=>`${v} Personen trugen zum Unfallzeitpunkt einen Helm.`,
+        rna:  v=>`${v} Personen trugen keinen Helm.`,
+        cb:   v=>`Insgesamt wurden ${v} Personen verletzt.`,
+        cnb:  v=>`${v} Personen blieben unverletzt.`,
+        ab:   v=>`Unter den Helmträgern wurden ${v} Personen verletzt.`,
+        anb:  v=>`Unter den Helmträgern blieben ${v} Personen unverletzt.`,
+        nab:  v=>`Unter den Personen ohne Helm wurden ${v} verletzt.`,
+        nanb: v=>`Unter den Personen ohne Helm blieben ${v} unverletzt.`,
+      },
+      prob:{
+        intro:()=>`Eine Studie untersucht den Zusammenhang zwischen Helmtragen und Verletzungsrisiko bei Fahrradunfällen.`,
+        ra:   v=>`${v} der Unfallbeteiligten trugen einen Helm.`,
+        rna:  v=>`${v} der Unfallbeteiligten trugen keinen Helm.`,
+        cb:   v=>`${v} aller Unfallbeteiligten wurden verletzt.`,
+        cnb:  v=>`${v} aller Unfallbeteiligten blieben unverletzt.`,
+        ab:   v=>`${v} der Unfallbeteiligten trugen einen Helm und wurden verletzt.`,
+        anb:  v=>`${v} der Unfallbeteiligten trugen einen Helm und blieben unverletzt.`,
+        nab:  v=>`${v} der Unfallbeteiligten ohne Helm wurden verletzt.`,
+        nanb: v=>`${v} der Unfallbeteiligten ohne Helm blieben unverletzt.`,
+      },
+    },
+    qTexts:{
+      PA:       'Wie hoch ist die Wahrscheinlichkeit, dass eine zufällig gewählte Person einen Helm trug?',
+      PB:       'Wie hoch ist die Wahrscheinlichkeit, dass eine zufällig gewählte Person verletzt wurde?',
+      PnA:      'Wie hoch ist die Wahrscheinlichkeit, dass eine Person keinen Helm trug?',
+      PnB:      'Wie hoch ist die Wahrscheinlichkeit, dass eine Person unverletzt blieb?',
+      PAB:      'Wie hoch ist die Wahrscheinlichkeit, dass eine Person einen Helm trug und dennoch verletzt wurde?',
+      PAgivenB: 'Wie hoch ist die Wahrscheinlichkeit, dass eine <em>verletzte</em> Person einen Helm getragen hatte?',
+      PBgivenA: 'Wie hoch ist die Wahrscheinlichkeit, dass eine Person <em>mit Helm</em> verletzt wird?',
+      PnAgivenB:'Wie hoch ist die Wahrscheinlichkeit, dass eine verletzte Person keinen Helm trug?',
+      PBgivennA:'Wie hoch ist die Wahrscheinlichkeit, dass eine Person ohne Helm verletzt wird?',
+      PAgivennB:'Wie hoch ist die Wahrscheinlichkeit, dass eine unverletzte Person einen Helm trug?',
+      indep:    'Sind Helmtragen und Verletzungsrisiko statistisch voneinander unabhängig?',
+    },
+    condLabels:{
+      PAgivenB:'verletzten Personen', PBgivenA:'Helmträgern',
+      PnAgivenB:'verletzten Personen', PBgivennA:'Personen ohne Helm', PAgivennB:'unverletzte Personen',
+    },
+    indepQText:'Reduziert das Tragen eines Helms das Verletzungsrisiko bei einem Fahrradunfall?',
+    indepYes:'Ja, Helmtragen verringert das Verletzungsrisiko',
+    indepNo:'Nein, kein Zusammenhang',
+  },
+  {
+    id:'handy', lA:'Smartphone ≥3h/Tag', lnA:'Smartphone <3h/Tag', lB:'Schlafprobleme', lnB:'Kein Schlafproblem',
+    short:{A:'S',B:'P'}, dependent:null,
+    sentences:{
+      count:{
+        total: n=>`An einer Jugendstudie nahmen ${n} Schülerinnen und Schüler teil.`,
+        ra:   v=>`${v} Schülerinnen und Schüler nutzten ihr Smartphone täglich mindestens 3 Stunden.`,
+        rna:  v=>`${v} Schülerinnen und Schüler nutzten ihr Smartphone weniger als 3 Stunden täglich.`,
+        cb:   v=>`${v} Schülerinnen und Schüler berichteten von Schlafproblemen.`,
+        cnb:  v=>`${v} Schülerinnen und Schüler hatten keine Schlafprobleme.`,
+        ab:   v=>`Unter den Vielnutzern berichteten ${v} von Schlafproblemen.`,
+        anb:  v=>`Unter den Vielnutzern hatten ${v} keine Schlafprobleme.`,
+        nab:  v=>`Unter den Wenignutzern berichteten ${v} von Schlafproblemen.`,
+        nanb: v=>`Unter den Wenignutzern hatten ${v} keine Schlafprobleme.`,
+      },
+      prob:{
+        intro:()=>`Eine Studie untersucht den Zusammenhang zwischen Smartphonenutzung und Schlafqualität.`,
+        ra:   v=>`${v} der Befragten nutzen ihr Smartphone täglich ≥3 Stunden.`,
+        rna:  v=>`${v} der Befragten nutzen ihr Smartphone täglich <3 Stunden.`,
+        cb:   v=>`${v} aller Befragten haben Schlafprobleme.`,
+        cnb:  v=>`${v} aller Befragten haben keine Schlafprobleme.`,
+        ab:   v=>`${v} der Befragten sind Vielnutzer und haben Schlafprobleme.`,
+        anb:  v=>`${v} der Befragten sind Vielnutzer, haben aber keine Schlafprobleme.`,
+        nab:  v=>`${v} der Befragten sind Wenignutzer und haben Schlafprobleme.`,
+        nanb: v=>`${v} der Befragten sind Wenignutzer und haben keine Schlafprobleme.`,
+      },
+    },
+    qTexts:{
+      PA:'Wie hoch ist die Wahrscheinlichkeit, dass eine zufällig gewählte Person das Smartphone ≥3h/Tag nutzt?',
+      PB:'Wie hoch ist die Wahrscheinlichkeit, dass eine zufällig gewählte Person Schlafprobleme hat?',
+      PnA:'Wie hoch ist die Wahrscheinlichkeit, dass eine Person das Smartphone <3h/Tag nutzt?',
+      PnB:'Wie hoch ist die Wahrscheinlichkeit, dass eine Person keine Schlafprobleme hat?',
+      PAB:'Wie hoch ist die Wahrscheinlichkeit, dass eine Person Vielnutzer ist und Schlafprobleme hat?',
+      PAgivenB:'Wie hoch ist die Wahrscheinlichkeit, dass eine Person mit <em>Schlafproblemen</em> Vielnutzer ist?',
+      PBgivenA:'Wie hoch ist die Wahrscheinlichkeit, dass ein <em>Vielnutzer</em> Schlafprobleme hat?',
+      PnAgivenB:'Wie hoch ist die Wahrscheinlichkeit, dass eine Person mit Schlafproblemen Wenignutzer ist?',
+      PBgivennA:'Wie hoch ist die Wahrscheinlichkeit, dass ein Wenignutzer Schlafprobleme hat?',
+      PAgivennB:'Wie hoch ist die Wahrscheinlichkeit, dass eine Person ohne Schlafprobleme Vielnutzer ist?',
+      indep:'Sind Smartphonenutzung und Schlafqualität statistisch voneinander unabhängig?',
+    },
+    condLabels:{PAgivenB:'Personen mit Schlafproblemen',PBgivenA:'Vielnutzer',
+      PnAgivenB:'Personen mit Schlafproblemen',PBgivennA:'Wenignutzer',PAgivennB:'Personen ohne Schlafprobleme'},
+    indepQText:'Hat intensive Smartphonenutzung einen Einfluss auf die Schlafqualität?',
+    indepYes:'Ja, Vielnutzer schlafen schlechter',
+    indepNo:'Nein, kein Zusammenhang',
+  },
+  {
+    id:'bio', lA:'Bio-Käufer', lnA:'Kein Bio', lB:'Selten krank', lnB:'Häufig krank',
+    short:{A:'B',B:'G'}, dependent:null,
+    sentences:{
+      count:{
+        total: n=>`In einer Ernährungsstudie wurden ${n} Erwachsene befragt.`,
+        ra:   v=>`${v} Personen kauften überwiegend Bio-Lebensmittel.`,
+        rna:  v=>`${v} Personen kauften keine Bio-Lebensmittel.`,
+        cb:   v=>`${v} Personen waren im vergangenen Jahr selten krank.`,
+        cnb:  v=>`${v} Personen waren häufig krank.`,
+        ab:   v=>`Unter den Bio-Käufern waren ${v} selten krank.`,
+        anb:  v=>`Unter den Bio-Käufern waren ${v} häufig krank.`,
+        nab:  v=>`Unter den Nicht-Bio-Käufern waren ${v} selten krank.`,
+        nanb: v=>`Unter den Nicht-Bio-Käufern waren ${v} häufig krank.`,
+      },
+      prob:{
+        intro:()=>`Eine Studie untersucht den Zusammenhang zwischen Bio-Ernährung und Gesundheit.`,
+        ra:   v=>`${v} der Befragten kaufen überwiegend Bio.`,
+        rna:  v=>`${v} der Befragten kaufen kein Bio.`,
+        cb:   v=>`${v} aller Befragten waren selten krank.`,
+        cnb:  v=>`${v} aller Befragten waren häufig krank.`,
+        ab:   v=>`${v} der Befragten sind Bio-Käufer und selten krank.`,
+        anb:  v=>`${v} der Befragten sind Bio-Käufer, aber häufig krank.`,
+        nab:  v=>`${v} der Nicht-Bio-Käufer waren selten krank.`,
+        nanb: v=>`${v} der Nicht-Bio-Käufer waren häufig krank.`,
+      },
+    },
+    qTexts:{
+      PA:'Wie hoch ist die Wahrscheinlichkeit, dass eine zufällig gewählte Person Bio kauft?',
+      PB:'Wie hoch ist die Wahrscheinlichkeit, dass eine Person selten krank ist?',
+      PnA:'Wie hoch ist die Wahrscheinlichkeit, dass eine Person kein Bio kauft?',
+      PnB:'Wie hoch ist die Wahrscheinlichkeit, dass eine Person häufig krank ist?',
+      PAB:'Wie hoch ist die Wahrscheinlichkeit, dass eine Person Bio kauft und selten krank ist?',
+      PAgivenB:'Wie hoch ist die Wahrscheinlichkeit, dass eine Person, die <em>selten krank</em> ist, Bio kauft?',
+      PBgivenA:'Wie hoch ist die Wahrscheinlichkeit, dass ein <em>Bio-Käufer</em> selten krank ist?',
+      PnAgivenB:'Wie hoch ist die Wahrscheinlichkeit, dass eine selten kranke Person kein Bio kauft?',
+      PBgivennA:'Wie hoch ist die Wahrscheinlichkeit, dass ein Nicht-Bio-Käufer selten krank ist?',
+      PAgivennB:'Wie hoch ist die Wahrscheinlichkeit, dass eine häufig kranke Person Bio kauft?',
+      indep:'Sind Bio-Ernährung und Krankheitshäufigkeit statistisch voneinander unabhängig?',
+    },
+    condLabels:{PAgivenB:'selten Kranken',PBgivenA:'Bio-Käufern',
+      PnAgivenB:'selten Kranken',PBgivennA:'Nicht-Bio-Käufern',PAgivennB:'häufig Kranken'},
+    indepQText:'Hat der Kauf von Bio-Lebensmitteln einen Einfluss auf die Krankheitshäufigkeit?',
+    indepYes:'Ja, Bio-Käufer sind seltener krank',
+    indepNo:'Nein, kein Zusammenhang',
+  },
+  {
+    id:'schlaf', lA:'Schlaf <7h', lnA:'Schlaf ≥7h', lB:'Tagsüber müde', lnB:'Tagsüber wach',
+    short:{A:'K',B:'M'}, dependent:null,
+    sentences:{
+      count:{
+        total: n=>`In einer Schlafstudie wurden ${n} Erwachsene untersucht.`,
+        ra:   v=>`${v} Personen schlafen regelmäßig weniger als 7 Stunden pro Nacht.`,
+        rna:  v=>`${v} Personen schlafen mindestens 7 Stunden pro Nacht.`,
+        cb:   v=>`${v} Personen fühlen sich tagsüber häufig müde.`,
+        cnb:  v=>`${v} Personen sind tagsüber in der Regel wach und konzentriert.`,
+        ab:   v=>`Unter den Kurzschläfern fühlen sich ${v} tagsüber müde.`,
+        anb:  v=>`Unter den Kurzschläfern sind ${v} tagsüber wach.`,
+        nab:  v=>`Unter den Langschläfern fühlen sich ${v} tagsüber müde.`,
+        nanb: v=>`Unter den Langschläfern sind ${v} tagsüber wach.`,
+      },
+      prob:{
+        intro:()=>`Eine Studie untersucht den Zusammenhang zwischen Schlafdauer und Tagesmüdigkeit.`,
+        ra:   v=>`${v} der Befragten schlafen regelmäßig weniger als 7 Stunden.`,
+        rna:  v=>`${v} der Befragten schlafen mindestens 7 Stunden.`,
+        cb:   v=>`${v} aller Befragten sind tagsüber häufig müde.`,
+        cnb:  v=>`${v} aller Befragten sind tagsüber wach.`,
+        ab:   v=>`${v} der Befragten schlafen wenig und sind tagsüber müde.`,
+        anb:  v=>`${v} der Befragten schlafen wenig, sind aber tagsüber wach.`,
+        nab:  v=>`${v} der Befragten schlafen ausreichend, sind aber dennoch müde.`,
+        nanb: v=>`${v} der Befragten schlafen ausreichend und sind tagsüber wach.`,
+      },
+    },
+    qTexts:{
+      PA:'Wie hoch ist die Wahrscheinlichkeit, dass eine zufällig gewählte Person weniger als 7h schläft?',
+      PB:'Wie hoch ist die Wahrscheinlichkeit, dass eine Person tagsüber müde ist?',
+      PnA:'Wie hoch ist die Wahrscheinlichkeit, dass eine Person mindestens 7h schläft?',
+      PnB:'Wie hoch ist die Wahrscheinlichkeit, dass eine Person tagsüber wach ist?',
+      PAB:'Wie hoch ist die Wahrscheinlichkeit, dass eine Person kurz schläft und tagsüber müde ist?',
+      PAgivenB:'Wie hoch ist die Wahrscheinlichkeit, dass eine <em>müde</em> Person weniger als 7h schläft?',
+      PBgivenA:'Wie hoch ist die Wahrscheinlichkeit, dass ein <em>Kurzschläfer</em> tagsüber müde ist?',
+      PnAgivenB:'Wie hoch ist die Wahrscheinlichkeit, dass eine müde Person mindestens 7h schläft?',
+      PBgivennA:'Wie hoch ist die Wahrscheinlichkeit, dass ein Langschläfer tagsüber müde ist?',
+      PAgivennB:'Wie hoch ist die Wahrscheinlichkeit, dass eine wache Person weniger als 7h schläft?',
+      indep:'Sind Schlafdauer und Tagesmüdigkeit statistisch voneinander unabhängig?',
+    },
+    condLabels:{PAgivenB:'Müden',PBgivenA:'Kurzschläfer',
+      PnAgivenB:'Müden',PBgivennA:'Langschläfer',PAgivennB:'tagsüber Wachen'},
+    indepQText:'Hat die Schlafdauer einen Einfluss auf die Tagesmüdigkeit?',
+    indepYes:'Ja, Kurzschläfer sind häufiger müde',
+    indepNo:'Nein, kein Zusammenhang',
+  },
+  {
+    id:'sonnencreme', lA:'Sonnencreme täglich', lnA:'Keine Sonnencreme', lB:'Sonnenbrand', lnB:'Kein Sonnenbrand',
+    short:{A:'C',B:'S'}, dependent:null,
+    sentences:{
+      count:{
+        total: n=>`An einer Sommerstudie nahmen ${n} Personen teil.`,
+        ra:   v=>`${v} Personen trugen im Sommer täglich Sonnencreme auf.`,
+        rna:  v=>`${v} Personen verwendeten keine Sonnencreme.`,
+        cb:   v=>`${v} Personen bekamen mindestens einmal einen Sonnenbrand.`,
+        cnb:  v=>`${v} Personen bekamen keinen Sonnenbrand.`,
+        ab:   v=>`Unter den Sonnencreme-Nutzern bekamen ${v} trotzdem einen Sonnenbrand.`,
+        anb:  v=>`Unter den Sonnencreme-Nutzern blieben ${v} ohne Sonnenbrand.`,
+        nab:  v=>`Unter den Nicht-Nutzern bekamen ${v} einen Sonnenbrand.`,
+        nanb: v=>`Unter den Nicht-Nutzern blieben ${v} ohne Sonnenbrand.`,
+      },
+      prob:{
+        intro:()=>`Eine Studie untersucht den Zusammenhang zwischen Sonnencreme-Nutzung und Sonnenbrand.`,
+        ra:   v=>`${v} der Befragten nutzten täglich Sonnencreme.`,
+        rna:  v=>`${v} der Befragten nutzten keine Sonnencreme.`,
+        cb:   v=>`${v} aller Befragten bekamen einen Sonnenbrand.`,
+        cnb:  v=>`${v} aller Befragten bekamen keinen Sonnenbrand.`,
+        ab:   v=>`${v} der Befragten nutzten Sonnencreme und bekamen trotzdem einen Sonnenbrand.`,
+        anb:  v=>`${v} der Befragten nutzten Sonnencreme und bekamen keinen Sonnenbrand.`,
+        nab:  v=>`${v} der Nicht-Nutzer bekamen einen Sonnenbrand.`,
+        nanb: v=>`${v} der Nicht-Nutzer bekamen keinen Sonnenbrand.`,
+      },
+    },
+    qTexts:{
+      PA:'Wie hoch ist die Wahrscheinlichkeit, dass eine Person täglich Sonnencreme verwendet?',
+      PB:'Wie hoch ist die Wahrscheinlichkeit, dass eine Person einen Sonnenbrand bekommt?',
+      PnA:'Wie hoch ist die Wahrscheinlichkeit, dass eine Person keine Sonnencreme verwendet?',
+      PnB:'Wie hoch ist die Wahrscheinlichkeit, dass eine Person keinen Sonnenbrand bekommt?',
+      PAB:'Wie hoch ist die Wahrscheinlichkeit, dass eine Person Sonnencreme verwendet und trotzdem einen Sonnenbrand bekommt?',
+      PAgivenB:'Wie hoch ist die Wahrscheinlichkeit, dass eine Person mit <em>Sonnenbrand</em> Sonnencreme verwendet hatte?',
+      PBgivenA:'Wie hoch ist die Wahrscheinlichkeit, dass ein <em>Sonnencreme-Nutzer</em> einen Sonnenbrand bekommt?',
+      PnAgivenB:'Wie hoch ist die Wahrscheinlichkeit, dass eine Person mit Sonnenbrand keine Sonnencreme verwendet hatte?',
+      PBgivennA:'Wie hoch ist die Wahrscheinlichkeit, dass eine Person ohne Sonnencreme einen Sonnenbrand bekommt?',
+      PAgivennB:'Wie hoch ist die Wahrscheinlichkeit, dass eine Person ohne Sonnenbrand Sonnencreme verwendet hatte?',
+      indep:'Sind Sonnencreme-Nutzung und Sonnenbrand statistisch voneinander unabhängig?',
+    },
+    condLabels:{PAgivenB:'Personen mit Sonnenbrand',PBgivenA:'Sonnencreme-Nutzern',
+      PnAgivenB:'Personen mit Sonnenbrand',PBgivennA:'Personen ohne Sonnencreme',PAgivennB:'Personen ohne Sonnenbrand'},
+    indepQText:'Schützt täglich aufgetragene Sonnencreme vor Sonnenbrand?',
+    indepYes:'Ja, Sonnencreme reduziert das Sonnenbrand-Risiko',
+    indepNo:'Nein, kein Zusammenhang',
+  },
+];
+
+const GENERAL_SENTENCES = {
+  count:{
+    total: n=>`Bei einem Zufallsexperiment wurden ${n} Personen befragt.`,
+    ra:   v=>`${v} Personen gehören zu Ereignis $A$.`,
+    rna:  v=>`${v} Personen gehören nicht zu $A$ (also $\\overline{A}$).`,
+    cb:   v=>`Ereignis $B$ trifft auf ${v} Personen zu.`,
+    cnb:  v=>`Bei ${v} Personen tritt $B$ nicht auf.`,
+    ab:   v=>`${v} Personen erfüllen sowohl $A$ als auch $B$.`,
+    anb:  v=>`${v} Personen gehören zu $A$, aber nicht zu $B$.`,
+    nab:  v=>`${v} Personen erfüllen $B$, aber nicht $A$.`,
+    nanb: v=>`${v} Personen erfüllen weder $A$ noch $B$.`,
+  },
+  prob:{
+    intro:()=>`Es werden die Wahrscheinlichkeiten der Ereignisse $A$ und $B$ untersucht.`,
+    ra:   v=>`$P(A) = ${v}$.`,
+    rna:  v=>`$P(\\overline{A}) = ${v}$.`,
+    cb:   v=>`$P(B) = ${v}$.`,
+    cnb:  v=>`$P(\\overline{B}) = ${v}$.`,
+    ab:   v=>`$P(A \\cap B) = ${v}$.`,
+    anb:  v=>`$P(A \\cap \\overline{B}) = ${v}$.`,
+    nab:  v=>`$P(\\overline{A} \\cap B) = ${v}$.`,
+    nanb: v=>`$P(\\overline{A} \\cap \\overline{B}) = ${v}$.`,
+  },
+};
+
+const QTEXTS_GENERAL = {
+  PA:        'Wie hoch ist die Wahrscheinlichkeit, dass Ereignis $A$ eintritt?',
+  PB:        'Wie hoch ist die Wahrscheinlichkeit, dass Ereignis $B$ eintritt?',
+  PnA:       'Wie hoch ist die Wahrscheinlichkeit, dass $\\overline{A}$ eintritt (also $A$ nicht eintritt)?',
+  PnB:       'Wie hoch ist die Wahrscheinlichkeit, dass $\\overline{B}$ eintritt?',
+  PAB:       'Wie hoch ist die Wahrscheinlichkeit, dass sowohl $A$ als auch $B$ eintreten?',
+  PAgivenB:  'Wie hoch ist die Wahrscheinlichkeit, dass $A$ eintritt, wenn $B$ bereits eingetreten ist?',
+  PBgivenA:  'Wie hoch ist die Wahrscheinlichkeit, dass $B$ eintritt, wenn $A$ bereits eingetreten ist?',
+  PnAgivenB: 'Wie hoch ist die Wahrscheinlichkeit, dass $A$ nicht eintritt, wenn $B$ eingetreten ist?',
+  PBgivennA: 'Wie hoch ist die Wahrscheinlichkeit, dass $B$ eintritt, wenn $A$ nicht eingetreten ist?',
+  PAgivennB: 'Wie hoch ist die Wahrscheinlichkeit, dass $A$ eintritt, wenn $B$ nicht eingetreten ist?',
+  indep:     'Sind die Ereignisse $A$ und $B$ stochastisch voneinander unabhängig?',
+};
+
+// ── STATE ──────────────────────────────────────────────────────────────────
+const S = {
+  typ:'beispiel', diff:'mittel', ftIntro:'ft', ftTasks:true,
+  notation:'sub', kurzform:'abk', negation:'overline',
+  activeScenarios:['rauchen','intelligenz','medikament','impfung','sport','haende','nachhilfe','fahrrad','handy','bio','schlaf','sonnencreme'],
+  approxIndep:false,
+  cells:null, given:null, scenario:null,
+  questions:[], qAnswered:[], qHints:[],
+  p1checked:false, hint1Level:0,
+};
+
+// ── SETTINGS ───────────────────────────────────────────────────────────────
+function setSetting(key, val) {
+  if (key==='ftIntro') S.ftIntro=val;
+  else if (key==='ftTasks') S.ftTasks=(val==='1');
+  else if(key==='approxIndep') S.approxIndep=!!val;
+  else S[key]=val;
+  if(!['approxIndep'].includes(key))
+    document.querySelectorAll(`.chip[data-key="${key}"]`)
+      .forEach(b=>b.classList.toggle('active',b.dataset.val===val));
+  saveURL();
+  if (['notation','kurzform','negation'].includes(key)) reRenderNotation();
+  else if (key==='ftIntro') reRenderIntro();
+  else if (key==='ftTasks') reRenderTasks();
+  else {S.hint1Level=0;newTask();}
+}
+
+// Auto-fill table and go to Phase 2 when ftIntro='skip'
+function autoSkipIntro(){
+  const isPM=S.diff==='schwer',c=S.cells,g=S.given;
+  // Fill all cells (table mode, so given cells are fixed, fill inputs)
+  ['ab','anb','nab','nanb','ra','rna','cb','cnb'].filter(k=>!g.has(k)).forEach(k=>{
+    const inp=document.getElementById('inp-'+k);
+    if(!inp)return;
+    const td=inp.closest('td');
+    td.innerHTML=fmtCell(c[k],c.total,isPM);
+    td.classList.add('filled-in');
+  });
+  // Proceed to Phase 2
+  document.getElementById('phase1-card').classList.add('sticky-mode');
+  document.getElementById('phase2-section').style.display='block';
+  buildPhase2();
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    const card=document.getElementById('phase1-card');
+    document.getElementById('phase2-section').style.scrollMarginTop=(card.getBoundingClientRect().height+4)+'px';
+    document.getElementById('phase2-section').scrollIntoView({behavior:'smooth',block:'start'});
+  }));
+}
+
+// Re-render Phase 1 intro without regenerating task
+function reRenderIntro(){
+  S.hint1Level=0;
+  document.getElementById('hint1-box').classList.remove('show');
+  document.getElementById('hint1-box').innerHTML='';
+  updateHint1Btn();
+  renderScenarioInfo();renderFliesstextBlock();renderTable();
+  typeset();
+  if(S.ftIntro==='skip')requestAnimationFrame(()=>autoSkipIntro());
+}
+
+// Re-render Phase 2 questions without regenerating task
+function reRenderTasks(){
+  if(document.getElementById('phase2-section').style.display!=='none'){
+    renderQuestions();typeset();
+  }
+}
+
+// Re-render only display/notation without generating a new task
+function reRenderNotation() {
+  // Update table headers (th cells only — data cells untouched)
+  const tbl=document.getElementById('vft-table');
+  if (tbl) {
+    const sym=getSymbols();
+    const hThs=tbl.querySelectorAll('thead th');
+    if(hThs[1])hThs[1].innerHTML=sym.dB;
+    if(hThs[2])hThs[2].innerHTML=sym.dnB;
+    tbl.querySelectorAll('tbody tr').forEach((row,i)=>{
+      const th=row.querySelector('th');
+      if(th)[sym.dA,sym.dnA,'$\\Sigma$'].forEach((lbl,j)=>{if(i===j)th.innerHTML=lbl;});
+    });
+  }
+  // Update Phase 1 hint if visible
+  if(document.getElementById('hint1-box').classList.contains('show')){
+    if(S.ftIntro==='ft')renderHint1Ft(); else renderHint1();
+  }
+  // Update Phase 2 if visible
+  if(document.getElementById('phase2-section').style.display!=='none') {
+    S.questions.forEach((q,i)=>{
+      q.notation=getQNotation(q.key);
+      const card=document.getElementById('qcard-'+i);
+      if(!card)return;
+      const fEl=card.querySelector('.q-formula');
+      if(fEl)fEl.innerHTML=`$${q.notation}$`;
+      if(S.qHints[i]&&S.qHints[i].level>0) renderQHints(i);
+    });
+  }
+  typeset();
+}
+function buildScenarioTable(){
+  const tbody=document.getElementById('sc-tbody');
+  if(!tbody)return;
+  const groups=[
+    {key:'dep',   label:'Immer abhängig',   filter:sc=>sc.dependent===true},
+    {key:'indep', label:'Immer unabhängig',  filter:sc=>sc.dependent===false},
+    {key:'var',   label:'Variabel',          filter:sc=>sc.dependent===null},
+  ];
+  let html='';
+  groups.forEach(g=>{
+    const scs=SCENARIOS.filter(g.filter);
+    const allActive=scs.every(sc=>S.activeScenarios.includes(sc.id));
+    const btnLbl=allActive?'✓ Alle':'○ Alle';
+    html+=`<tr class="sc-group-hdr"><td colspan="2">
+      ${g.label}
+      <span class="sc-group-btns">
+        <button class="sc-mini-btn${allActive?' active':''}" onclick="toggleScenarioGroup('${g.key}')">${btnLbl}</button>
+      </span>
+    </td></tr>`;
+    scs.forEach(sc=>{
+      const chk=S.activeScenarios.includes(sc.id)?'checked':'';
+      html+=`<tr><td><label style="cursor:pointer;display:flex;align-items:center;gap:6px">
+        <input type="checkbox" id="sc-${sc.id}" ${chk} onchange="toggleScenario('${sc.id}')">
+        ${sc.lA} &amp; ${sc.lB}
+      </label></td></tr>`;
+    });
+  });
+  tbody.innerHTML=html;
+}
+function toggleScenarioGroup(groupKey){
+  const filterMap={
+    dep:sc=>sc.dependent===true,
+    indep:sc=>sc.dependent===false,
+    var:sc=>sc.dependent===null,
+  };
+  const filter=filterMap[groupKey];
+  if(!filter)return;
+  const scs=SCENARIOS.filter(filter);
+  const allActive=scs.every(sc=>S.activeScenarios.includes(sc.id));
+  // If all active → deactivate all (keep at least 1 total); else → activate all
+  scs.forEach(sc=>{
+    const idx=S.activeScenarios.indexOf(sc.id);
+    if(allActive&&idx>=0&&S.activeScenarios.length>1)S.activeScenarios.splice(idx,1);
+    else if(!allActive&&idx<0)S.activeScenarios.push(sc.id);
+  });
+  buildScenarioTable();
+  if(S.typ==='beispiel'){saveURL();newTask();}
+  else saveURL();
+}
+function toggleScenario(id) {
+  const el=document.getElementById('sc-'+id);
+  const idx=S.activeScenarios.indexOf(id);
+  if (idx>=0) {
+    if (S.activeScenarios.length<=1){el.checked=true;return;}
+    S.activeScenarios.splice(idx,1);
+  } else S.activeScenarios.push(id);
+  if (S.typ==='beispiel'){saveURL();newTask();}
+  else saveURL();
+}
+function saveURL() {
+  const p=new URLSearchParams({typ:S.typ,diff:S.diff,
+    ftIntro:S.ftIntro,ftTasks:S.ftTasks?'1':'0',
+    notation:S.notation,kurzform:S.kurzform,negation:S.negation,
+    sc:S.activeScenarios.join(','),approxIndep:S.approxIndep?'1':'0'});
+  history.replaceState(null,'','?'+p);
+}
+function loadURL() {
+  const p=new URLSearchParams(location.search);
+  if(p.get('typ'))S.typ=p.get('typ');
+  if(p.get('diff'))S.diff=p.get('diff');
+  if(p.get('ftIntro'))S.ftIntro=p.get('ftIntro');
+  else if(p.get('ft'))S.ftIntro=p.get('ft')==='1'?'ft':'table'; // legacy
+  if(p.get('ftTasks'))S.ftTasks=p.get('ftTasks')==='1';
+  if(p.get('notation'))S.notation=p.get('notation');
+  if(p.get('kurzform'))S.kurzform=p.get('kurzform');
+  if(p.get('negation'))S.negation=p.get('negation');
+  if(p.get('sc'))S.activeScenarios=p.get('sc').split(',').filter(Boolean);
+  if(p.get('approxIndep'))S.approxIndep=p.get('approxIndep')==='1';
+  for(const key of ['typ','diff','notation','kurzform','negation']){
+    document.querySelectorAll(`.chip[data-key="${key}"]`)
+      .forEach(b=>b.classList.toggle('active',b.dataset.val===S[key]));
+  }
+  document.querySelectorAll('.chip[data-key="ftIntro"]')
+    .forEach(b=>b.classList.toggle('active',b.dataset.val===S.ftIntro));
+  document.querySelectorAll('.chip[data-key="ftTasks"]')
+    .forEach(b=>b.classList.toggle('active',b.dataset.val===(S.ftTasks?'1':'0')));
+  const chkApprox=document.getElementById('chk-approx-indep');
+  if(chkApprox)chkApprox.checked=S.approxIndep;
+  buildScenarioTable();
+}
+
+// ── SYMBOL HELPERS ─────────────────────────────────────────────────────────
+// Returns mA/mnA/mB/mnB: safe for embedding INSIDE $...$ (no outer $ here!)
+// Returns dA/dnA/dB/dnB: for table headers (include $ if needed)
+function getSymbols() {
+  const sc=S.scenario, isAbk=S.kurzform==='abk', isOver=S.negation==='overline';
+  if(!sc||S.typ==='allgemein') return {
+    mA:'A',mnA:'\\overline{A}',mB:'B',mnB:'\\overline{B}',
+    dA:'$A$',dnA:'$\\overline{A}$',dB:'$B$',dnB:'$\\overline{B}$',
+  };
+  const sh=sc.short;
+  const mA  = isAbk ? sh.A : `\\text{${sc.lA}}`;
+  const mB  = isAbk ? sh.B : `\\text{${sc.lB}}`;
+  const mnA = isOver ? `\\overline{${mA}}` : `\\text{${sc.lnA}}`;
+  const mnB = isOver ? `\\overline{${mB}}` : `\\text{${sc.lnB}}`;
+  const dA  = isAbk ? `$${mA}$` : sc.lA;
+  const dB  = isAbk ? `$${mB}$` : sc.lB;
+  const dnA = isOver ? `$${mnA}$` : sc.lnA;
+  const dnB = isOver ? `$${mnB}$` : sc.lnB;
+  return {mA,mnA,mB,mnB,dA,dnA,dB,dnB};
+}
+
+function pNotation(cond,given) {
+  return S.notation==='sub' ? `P_{${given}}(${cond})` : `P(${cond}\\mid ${given})`;
+}
+
+function getQNotation(key) {
+  const {mA,mnA,mB,mnB}=getSymbols();
+  switch(key){
+    case 'PA':        return `P(${mA})`;
+    case 'PB':        return `P(${mB})`;
+    case 'PnA':       return `P(${mnA})`;
+    case 'PnB':       return `P(${mnB})`;
+    case 'PAB':       return `P(${mA}\\cap ${mB})`;
+    case 'PAgivenB':  return pNotation(mA,mB);
+    case 'PBgivenA':  return pNotation(mB,mA);
+    case 'PnAgivenB': return pNotation(mnA,mB);
+    case 'PBgivennA': return pNotation(mB,mnA);
+    case 'PAgivennB': return pNotation(mA,mnB);
+    case 'indep':     return `${pNotation(mA,mB)}\\stackrel{?}{=}P(${mA})`;
+    default: return '';
+  }
+}
+
+function getQText(key) {
+  if(S.typ==='allgemein'||!S.scenario) return QTEXTS_GENERAL[key]||'';
+  return (S.scenario.qTexts&&S.scenario.qTexts[key]) || QTEXTS_GENERAL[key]||'';
+}
+
+// Returns LaTeX for a table cell (without outer $)
+function cellSym(key,sym,isPM) {
+  const {mA,mnA,mB,mnB}=sym;
+  if(isPM) switch(key){
+    case 'ab':   return `P(${mA}\\cap ${mB})`;
+    case 'anb':  return `P(${mA}\\cap ${mnB})`;
+    case 'nab':  return `P(${mnA}\\cap ${mB})`;
+    case 'nanb': return `P(${mnA}\\cap ${mnB})`;
+    case 'ra':   return `P(${mA})`;
+    case 'rna':  return `P(${mnA})`;
+    case 'cb':   return `P(${mB})`;
+    case 'cnb':  return `P(${mnB})`;
+    case 'total':return '1';
+  }
+  switch(key){
+    case 'ab':   return `|${mA}\\cap ${mB}|`;
+    case 'anb':  return `|${mA}\\cap ${mnB}|`;
+    case 'nab':  return `|${mnA}\\cap ${mB}|`;
+    case 'nanb': return `|${mnA}\\cap ${mnB}|`;
+    case 'ra':   return `|${mA}|`;
+    case 'rna':  return `|${mnA}|`;
+    case 'cb':   return `|${mB}|`;
+    case 'cnb':  return `|${mnB}|`;
+    case 'total':return 'n';
+  }
+  return key;
+}
+
+// ── UTILITIES ──────────────────────────────────────────────────────────────
+const rnd=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+const pick=arr=>arr[rnd(0,arr.length-1)];
+function parseInput(s){
+  if(!s||!s.trim())return NaN;
+  s=s.trim().replace(',','.');
+  if(s.endsWith('%')){const v=parseFloat(s.slice(0,-1));return isNaN(v)?NaN:v/100;}
+  if(s.includes('/')){const[a,b]=s.split('/').map(Number);return(isNaN(a)||isNaN(b)||b===0)?NaN:a/b;}
+  return parseFloat(s);
+}
+function fmtCell(n,total,isPM){return isPM?Math.round(n/total*100)+'\u202f%':String(n);}
+function fmtTeX(n,total,isPM){return isPM?Math.round(n/total*100)+'\\%':String(n);}
+
+// ── CELL GENERATION ────────────────────────────────────────────────────────
+// Generate cells with guaranteed exact integer independence (ab*n === ra*cb)
+function generateExactIndep(n){
+  const configs=[];
+  const raMin=Math.ceil(n*.25),raMax=Math.floor(n*.72);
+  const cbMin=Math.round(n*.12),cbMax=Math.round(n*.40);
+  for(let ra=raMin;ra<=raMax;ra++){
+    const rna=n-ra;
+    for(let cb=cbMin;cb<=cbMax;cb++){
+      if((ra*cb)%n===0){
+        const ab=(ra*cb)/n,nab=cb-ab,anb=ra-ab,nanb=rna-nab;
+        if(ab>=2&&anb>=2&&nab>=2&&nanb>=2)
+          configs.push({ab,anb,nab,nanb,ra,rna,cb,cnb:n-cb,total:n});
+      }
+    }
+  }
+  return configs.length>0?pick(configs):null;
+}
+
+function generateCells(n,isDependent,scId){
+  // For independent scenarios with exactIndep mode, try to find exact solution first
+  if(!isDependent&&!S.approxIndep){
+    const exact=generateExactIndep(n);
+    if(exact)return exact;
+  }
+  for(let t=0;t<200;t++){
+    const ra=rnd(Math.ceil(n*.25),Math.floor(n*.72)),rna=n-ra;
+    let ab,nab;
+    if(isDependent){
+      const hi=rnd(50,78)/100,lo=rnd(8,32)/100;
+      const[p1,p2]=scId==='rauchen'?[rnd(40,72)/100,rnd(8,28)/100]:[hi,lo];
+      ab=clamp(Math.round(ra*p1),2,ra-2);
+      nab=clamp(Math.round(rna*p2),2,rna-2);
+    }else{
+      const pB=rnd(14,38)/100;
+      ab=clamp(Math.round(ra*pB),2,ra-2);
+      nab=clamp(Math.round(rna*pB),2,rna-2);
+    }
+    const anb=ra-ab,nanb=rna-nab;
+    if(ab>=2&&anb>=2&&nab>=2&&nanb>=2)
+      return{ab,anb,nab,nanb,ra,rna,cb:ab+nab,cnb:anb+nanb,total:n};
+  }
+  const ra=Math.round(n*.5),rna=n-ra,ab=Math.round(ra*.4),nab=Math.round(rna*.2);
+  return{ab,anb:ra-ab,nab,nanb:rna-nab,ra,rna,cb:ab+nab,cnb:(ra-ab)+(rna-nab),total:n};
+}
+const PATTERNS=[['ab','ra','cb'],['ab','anb','nab'],['ab','nanb','ra'],
+  ['nab','rna','cnb'],['ab','anb','nanb'],['anb','nab','nanb']];
+function selectGiven(){return new Set(['total',...pick(PATTERNS)]);}
+
+// ── RENDERING – PHASE 1 ────────────────────────────────────────────────────
+function renderTable(){
+  const isPM=S.diff==='schwer',c=S.cells,g=S.given,ft=(S.ftIntro==='ft');
+  const sym=getSymbols();
+  const rows=[[sym.dA,'ab','anb','ra'],[sym.dnA,'nab','nanb','rna'],['$\\Sigma$','cb','cnb','total']];
+  let html=`<thead><tr><th></th><th>${sym.dB}</th><th>${sym.dnB}</th><th>$\\Sigma$</th></tr></thead><tbody>`;
+  rows.forEach(([lbl,k1,k2,k3])=>{
+    html+=`<tr><th>${lbl}</th>`;
+    [k1,k2,k3].forEach(k=>{
+      if(k==='total'){
+        html+=`<td class="total-cell" data-key="${k}">${fmtCell(c[k],c.total,isPM)}</td>`;
+      }else if(!ft&&g.has(k)){
+        html+=`<td class="given" data-key="${k}">${fmtCell(c[k],c.total,isPM)}</td>`;
+      }else{
+        html+=`<td data-key="${k}"><input type="text" id="inp-${k}" placeholder="?" autocomplete="off"></td>`;
+      }
+    });
+    html+='</tr>';
+  });
+  document.getElementById('vft-table').innerHTML=html+'</tbody>';
+  typeset();
+}
+
+function renderScenarioInfo(){
+  const isPM=S.diff==='schwer',c=S.cells,el=document.getElementById('scenario-info');
+  if(S.ftIntro==='ft'&&S.typ==='beispiel'&&S.scenario){
+    const sc=S.scenario;
+    el.innerHTML=`<strong>${sc.lA} / ${sc.lnA}</strong> &nbsp;×&nbsp; <strong>${sc.lB} / ${sc.lnB}</strong>`;
+  }else if(S.ftIntro==='ft'){
+    el.innerHTML=isPM?'Lies den Text und trage alle Wahrscheinlichkeiten in die leere Tabelle ein.'
+      :'Lies den Text und trage alle Werte in die leere Tabelle ein.';
+  }else if(S.typ==='allgemein'){
+    el.innerHTML=isPM
+      ?`Wahrscheinlichkeitsaufgabe – Ereignisse <strong>$A$</strong> und <strong>$B$</strong>.`
+      :`Es werden <strong>${c.total} Personen</strong> mit Merkmalen $A$ und $B$ untersucht.`;
+  }else{
+    const sc=S.scenario;
+    el.innerHTML=`<strong>${sc.lA} / ${sc.lnA}</strong> &nbsp;×&nbsp; <strong>${sc.lB} / ${sc.lnB}</strong>${isPM?' – Wahrscheinlichkeiten':` – ${c.total} Personen`}`;
+  }
+}
+
+function buildFliesstextHTML(){
+  const c=S.cells,g=S.given,isPM=S.diff==='schwer';
+  const sc=(S.scenario&&S.typ==='beispiel')?S.scenario:null;
+  const tpls=sc?sc.sentences:GENERAL_SENTENCES;
+  const mode=isPM?'prob':'count';
+  const fmt=k=>fmtCell(c[k],c.total,isPM);
+  const sentences=[];
+  if(isPM){const intro=tpls[mode].intro?tpls[mode].intro():'';if(intro)sentences.push(intro);}
+  else sentences.push(tpls[mode].total(c.total));
+  [...g].filter(k=>k!=='total').forEach(k=>{const fn=tpls[mode][k];if(fn)sentences.push(fn(fmt(k)));});
+  return sentences.map(s=>`<span>${s}</span>`).join(' ');
+}
+
+function renderFliesstextBlock(){
+  const ftBlock=document.getElementById('fliesstext-block');
+  if(S.ftIntro==='ft'){
+    const hint=`<div class="ft-hint">${S.diff==='schwer'?'Alle Wahrscheinlichkeiten':'Alle Zahlenwerte'} sind im Text enthalten – trage sie in die leere Tabelle ein.</div>`;
+    document.getElementById('fliesstext-content').innerHTML=hint+buildFliesstextHTML();
+    ftBlock.classList.add('show');
+  }else{
+    ftBlock.classList.remove('show');
+  }
+  typeset();
+}
+
+// ── HINT – PHASE 1 ────────────────────────────────────────────────────────
+function toggleHint1(){
+  if(S.ftIntro==='table'){
+    // Table mode: simple toggle
+    renderHint1();
+    document.getElementById('hint1-box').classList.toggle('show');
+    typeset();
+  }else{
+    // Fließtext mode: advance through 4 levels
+    if(S.hint1Level>=4)return;
+    S.hint1Level++;
+    renderHint1Ft();
+    document.getElementById('hint1-box').classList.add('show');
+    if(S.hint1Level>=2)fillGivenInTable();
+    if(S.hint1Level>=4)fillAllCells();
+    updateHint1Btn();
+    typeset();
+  }
+}
+
+function updateHint1Btn(){
+  const btn=document.querySelector('#phase1-card .btn-outline[onclick="toggleHint1()"]');
+  if(!btn||S.ftIntro!=='ft')return;
+  const labels=[
+    '💡 Hinweis 1 (Größen identifizieren)',
+    '💡 Hinweis 2 (Werte eintragen)',
+    '💡 Hinweis 3 (Ableitungen zeigen)',
+    '💡 Hinweis 4 (Alles auflösen)',
+    '💡 Vollständige Lösung gezeigt',
+  ];
+  btn.textContent=labels[S.hint1Level]||labels[4];
+  btn.disabled=S.hint1Level>=4;
+}
+
+// Fill given values into the table inputs (ft mode, Hint 2)
+function fillGivenInTable(){
+  const isPM=S.diff==='schwer',c=S.cells,g=S.given;
+  [...g].filter(k=>k!=='total').forEach(k=>{
+    const inp=document.getElementById('inp-'+k);
+    if(!inp||inp.value.trim())return;
+    inp.value=fmtCell(c[k],c.total,isPM);
+    inp.classList.add('inp-given-hint');
+  });
+}
+
+// Fill ALL cells (ft mode, Hint 4)
+function fillAllCells(){
+  const isPM=S.diff==='schwer',c=S.cells;
+  ['ab','anb','nab','nanb','ra','rna','cb','cnb'].forEach(k=>{
+    const inp=document.getElementById('inp-'+k);
+    if(!inp||inp.value.trim())return;
+    inp.value=fmtCell(c[k],c.total,isPM);
+    inp.classList.add('inp-given-hint');
+  });
+}
+
+// Fließtext mode: render cumulative hints up to S.hint1Level
+function renderHint1Ft(){
+  const isPM=S.diff==='schwer',c=S.cells,g=S.given;
+  const {mA,mnA,mB,mnB}=getSymbols();
+  const sc=(S.scenario&&S.typ==='beispiel')?S.scenario:null;
+  const tpls=sc?sc.sentences:GENERAL_SENTENCES;
+  const mode=isPM?'prob':'count';
+  const fmt=k=>fmtCell(c[k],c.total,isPM);
+  const fmtT=k=>fmtTeX(c[k],c.total,isPM);
+
+  // Cardinality symbol map for count mode; P() notation for prob mode
+  const cardMap={
+    total: isPM?'$n$':'$n$',
+    ab:   isPM?`$P(${mA}\\cap ${mB})$`:`$\\left|${mA}\\cap ${mB}\\right|$`,
+    anb:  isPM?`$P(${mA}\\cap ${mnB})$`:`$\\left|${mA}\\cap ${mnB}\\right|$`,
+    nab:  isPM?`$P(${mnA}\\cap ${mB})$`:`$\\left|${mnA}\\cap ${mB}\\right|$`,
+    nanb: isPM?`$P(${mnA}\\cap ${mnB})$`:`$\\left|${mnA}\\cap ${mnB}\\right|$`,
+    ra:   isPM?`$P(${mA})$`:`$\\left|${mA}\\right|$`,
+    rna:  isPM?`$P(${mnA})$`:`$\\left|${mnA}\\right|$`,
+    cb:   isPM?`$P(${mB})$`:`$\\left|${mB}\\right|$`,
+    cnb:  isPM?`$P(${mnB})$`:`$\\left|${mnB}\\right|$`,
+  };
+
+  // Helper: get one sentence text for key k (with value)
+  const getSent=k=>{
+    if(k==='total')return tpls[mode].total?tpls[mode].total(c.total):'';
+    const fn=tpls[mode][k];
+    return fn?fn(fmt(k)):'';
+  };
+
+  let html='';
+
+  // ── Hint 1: identify cells ──────────────────────────────────────────────
+  if(S.hint1Level>=1){
+    const totalSent=getSent('total');
+    const givenSents=[...g].map(k=>{
+      const sent=getSent(k);
+      const sym=cardMap[k]||k;
+      return `&bull;&ensp;${sent}&ensp;→&ensp;${sym}`;
+    });
+    const allItems=[
+      totalSent?`&bull;&ensp;${totalSent}&ensp;→&ensp;${cardMap.total}`:null,
+      ...givenSents,
+    ].filter(Boolean);
+    html+=`<div class="hint-step">
+      <div class="hint-step-lbl">Hinweis 1 – Größen identifizieren</div>
+      Ordne den Sätzen im Text die entsprechenden Felder zu:<br><br>
+      ${allItems.join('<br>')}
+    </div>`;
+  }
+
+  // ── Hint 2: values filled into table ────────────────────────────────────
+  if(S.hint1Level>=2){
+    html+=`<div class="hint-step">
+      <div class="hint-step-lbl">Hinweis 2 – Werte eintragen</div>
+      Die aus dem Text ablesbaren Werte wurden${isPM?' (als Prozentzahlen)':''} in die Tabelle eingetragen (gelb markiert).
+    </div>`;
+  }
+
+  // ── Hint 3: derivable values ─────────────────────────────────────────────
+  if(S.hint1Level>=3){
+    // explain function – uses cardinality notation
+    const explainCard=k=>{
+      switch(k){
+        case 'ab':   return `$\\left|${mA}\\cap ${mB}\\right| = ${fmtT('ra')} - ${fmtT('anb')} = ${fmtT('ab')}$`;
+        case 'anb':  return `$\\left|${mA}\\cap ${mnB}\\right| = ${fmtT('ra')} - ${fmtT('ab')} = ${fmtT('anb')}$`;
+        case 'nab':  return `$\\left|${mnA}\\cap ${mB}\\right| = ${fmtT('cb')} - ${fmtT('ab')} = ${fmtT('nab')}$`;
+        case 'nanb': return `$\\left|${mnA}\\cap ${mnB}\\right| = ${fmtT('rna')} - ${fmtT('nab')} = ${fmtT('nanb')}$`;
+        case 'ra':   return `$\\left|${mA}\\right| = ${fmtT('ab')} + ${fmtT('anb')} = ${fmtT('ra')}$`;
+        case 'rna':  return `$\\left|${mnA}\\right| = ${fmtT('nab')} + ${fmtT('nanb')} = ${fmtT('rna')}$`;
+        case 'cb':   return `$\\left|${mB}\\right| = ${fmtT('ab')} + ${fmtT('nab')} = ${fmtT('cb')}$`;
+        case 'cnb':  return `$\\left|${mnB}\\right| = ${fmtT('anb')} + ${fmtT('nanb')} = ${fmtT('cnb')}$`;
+      }
+      return '';
+    };
+    const missing=['ab','anb','nab','nanb','ra','rna','cb','cnb'].filter(k=>!g.has(k));
+    const examples=missing.map(k=>'&bull;&ensp;'+explainCard(k)).join('<br>');
+    html+=`<div class="hint-step">
+      <div class="hint-step-lbl">Hinweis 3 – Fehlende Werte ableiten</div>
+      Die übrigen Felder lassen sich durch Subtraktion der Zeilen- und Spaltenränder ermitteln:<br><br>
+      ${examples}
+    </div>`;
+  }
+
+  // ── Hint 4: all filled ───────────────────────────────────────────────────
+  if(S.hint1Level>=4){
+    html+=`<div class="hint-step">
+      <div class="hint-step-lbl">Hinweis 4 – Vollständige Lösung</div>
+      Alle fehlenden Werte wurden in die Tabelle eingetragen.
+    </div>`;
+  }
+
+  document.getElementById('hint1-box').innerHTML=html;
+}
+
+function renderHint1(){
+  const isPM=S.diff==='schwer',c=S.cells,g=S.given,ft=(S.ftIntro==='ft');
+  const {mA,mnA,mB,mnB}=getSymbols();
+  const fmt=k=>fmtTeX(c[k],c.total,isPM);
+
+  // Build explanation for one missing cell (LaTeX embedded inside single $…$)
+  const explain=k=>{
+    switch(k){
+      case 'ab':   return `$${mA}\\cap ${mB}\\colon\\;${fmt('ra')}-${fmt('anb')}=${fmt('ab')}$`;
+      case 'anb':  return `$${mA}\\cap ${mnB}\\colon\\;${fmt('ra')}-${fmt('ab')}=${fmt('anb')}$`;
+      case 'nab':  return `$${mnA}\\cap ${mB}\\colon\\;${fmt('cb')}-${fmt('ab')}=${fmt('nab')}$`;
+      case 'nanb': return `$${mnA}\\cap ${mnB}\\colon\\;${fmt('rna')}-${fmt('nab')}=${fmt('nanb')}$`;
+      case 'ra':   return `Zeilensumme $${mA}$: $${fmt('ab')}+${fmt('anb')}=${fmt('ra')}$`;
+      case 'rna':  return `Zeilensumme $${mnA}$: $${fmt('nab')}+${fmt('nanb')}=${fmt('rna')}$`;
+      case 'cb':   return `Spaltensumme $${mB}$: $${fmt('ab')}+${fmt('nab')}=${fmt('cb')}$`;
+      case 'cnb':  return `Spaltensumme $${mnB}$: $${fmt('anb')}+${fmt('nanb')}=${fmt('cnb')}$`;
+    }
+    return '';
+  };
+
+  let html;
+  if(ft){
+    const symMap={ab:`$${mA}\\cap ${mB}$`,anb:`$${mA}\\cap ${mnB}$`,
+      nab:`$${mnA}\\cap ${mB}$`,nanb:`$${mnA}\\cap ${mnB}$`,
+      ra:`$${mA}$`,rna:`$${mnA}$`,cb:`$${mB}$`,cnb:`$${mnB}$`};
+    const givenList=[...g].filter(k=>k!=='total')
+      .map(k=>`${symMap[k]||k}&thinsp;=&thinsp;${fmtCell(c[k],c.total,isPM)}`).join(',&ensp;');
+    const totalLine=isPM?'':`;&ensp;Gesamt = ${c.total}`;
+    const derivable=['ab','anb','nab','nanb','ra','rna','cb','cnb'].filter(k=>!g.has(k));
+    const examples=derivable.slice(0,2).map(k=>'&bull;&ensp;'+explain(k)).join('<br>');
+    html=`<strong>Aus dem Text entnommene Werte:</strong><br>${givenList}${totalLine}.<br><br>`
+        +`<strong>Ableitbare Werte (Beispiele):</strong><br>${examples}`;
+  }else{
+    const missing=['ab','anb','nab','nanb','ra','rna','cb','cnb'].filter(k=>!g.has(k));
+    const examples=missing.slice(0,2).map(k=>'&bull;&ensp;'+explain(k)).join('<br>');
+    html='<strong>Hinweis:</strong> Jede Zeile und Spalte summiert sich zur Randsumme. Fehlende Werte durch Subtraktion:<br>'+examples;
+  }
+  document.getElementById('hint1-box').innerHTML=html;
+}
+
+// ── PHASE 1 CHECK / NEXT ───────────────────────────────────────────────────
+function checkPhase1(){
+  const isPM=S.diff==='schwer',c=S.cells,g=S.given,ft=(S.ftIntro==='ft');
+  const keys=['ab','anb','nab','nanb','ra','rna','cb','cnb'];
+  let allOk=true;
+  keys.filter(k=>ft?true:!g.has(k)).forEach(k=>{
+    const inp=document.getElementById('inp-'+k);
+    if(!inp)return;
+    const raw=inp.value.trim();
+    if(!raw){inp.classList.add('inp-wrong');allOk=false;return;}
+    let ok;
+    if(isPM){
+      let v=parseInput(raw);
+      if(v>1&&!raw.includes('%')&&!raw.includes('/'))v=v/c.total;
+      ok=!isNaN(v)&&Math.abs(v-c[k]/c.total)<0.006;
+    }else{
+      const v=parseFloat(raw.replace(',','.'));
+      ok=!isNaN(v)&&Math.round(v)===c[k];
+    }
+    inp.classList.remove('inp-correct','inp-wrong');
+    inp.classList.add(ok?'inp-correct':'inp-wrong');
+    if(!ok)allOk=false;
+  });
+  S.p1checked=true;
+  document.getElementById('weiter-btn').style.display='inline-block';
+  return allOk;
+}
+
+function nextPhase(){
+  const isPM=S.diff==='schwer',c=S.cells,g=S.given,ft=(S.ftIntro==='ft');
+  ['ab','anb','nab','nanb','ra','rna','cb','cnb'].filter(k=>ft?true:!g.has(k)).forEach(k=>{
+    const inp=document.getElementById('inp-'+k);
+    if(!inp)return;
+    const td=inp.closest('td'),isOk=inp.classList.contains('inp-correct');
+    td.innerHTML=fmtCell(c[k],c.total,isPM);
+    td.classList.add(isOk?'correct':'filled-in');
+  });
+  if(ft)[...g].filter(k=>k!=='total').forEach(k=>{
+    const td=document.querySelector(`[data-key="${k}"]`);
+    if(td&&td.tagName==='TD')td.classList.add('given');
+  });
+  document.getElementById('phase1-card').classList.add('sticky-mode');
+  document.getElementById('phase2-section').style.display='block';
+  buildPhase2();
+  // Scroll so phase2 appears right below the now-shrunken sticky card
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    const card=document.getElementById('phase1-card');
+    const cardH=card.getBoundingClientRect().height;
+    document.getElementById('phase2-section').style.scrollMarginTop=(cardH+4)+'px';
+    document.getElementById('phase2-section').scrollIntoView({behavior:'smooth',block:'start'});
+  }));
+}
+
+// ── PHASE 2 – QUESTIONS ────────────────────────────────────────────────────
+function buildQuestions(){
+  const c=S.cells;
+  const isExact=c.ab*c.total===c.ra*c.cb;
+  const isApprox=Math.abs(c.ab*c.total-c.ra*c.cb)<=Math.max(1,c.total*0.015);
+  const isIndep=S.approxIndep?isApprox:isExact;
+  const pool=[...QPOOL_OPTIONAL];
+  for(let i=pool.length-1;i>0;i--){const j=rnd(0,i);[pool[i],pool[j]]=[pool[j],pool[i]];}
+  const qKeys=[...pool.slice(0,2),'PAgivenB','PBgivenA'];
+  const sc=S.scenario;
+  const indepQText=sc&&sc.indepQText?sc.indepQText
+    :'Gibt es einen statistischen Zusammenhang zwischen den Ereignissen $A$ und $B$?';
+  const indepYes=sc&&sc.indepYes?sc.indepYes:'Ja, es gibt einen Zusammenhang';
+  const indepNo=sc&&sc.indepNo?sc.indepNo:'Nein, kein Zusammenhang';
+  return qKeys.map(key=>({
+    type:'prob',key,
+    text:getQText(key),
+    notation:getQNotation(key),
+    ans:c[QTYPES_META[key].num]/c[QTYPES_META[key].den],
+    meta:QTYPES_META[key],
+  })).concat([{
+    type:'indep',key:'indep',
+    text:indepQText,
+    notation:getQNotation('indep'),
+    ans:!isIndep,
+    yesText:indepYes, noText:indepNo,
+    isIndep, isExact, isApprox,
+  }]);
+}
+
+function buildPhase2(){
+  S.questions=buildQuestions();
+  S.qAnswered=S.questions.map(()=>false);
+  S.qHints=S.questions.map(()=>({level:0,quizDone:false,quizCorrect:null,
+    subgroupQuizDone:false,subgroupQuizCorrect:null,subgroupOpts:null}));
+  renderQuestions();
+  updateProgress();
+}
+
+function renderQuestions(){
+  const qs=S.questions;
+  let html='';
+  qs.forEach((q,i)=>{
+    const inputRow=q.type==='prob'
+      ?`<div class="q-input-row">
+          <input type="text" class="q-input" id="qinp-${i}"
+            placeholder="z.B. 3/10 oder 0,3 oder 30 %"
+            onkeydown="if(event.key==='Enter')checkQ(${i})">
+          <button class="btn btn-primary" onclick="checkQ(${i})">Prüfen</button>
+        </div>`
+      :`<div class="indep-row">
+          <button class="indep-btn" id="qibtn-y-${i}" onclick="checkIndep(${i},true)">${q.yesText||'Ja'}</button>
+          <button class="indep-btn" id="qibtn-n-${i}" onclick="checkIndep(${i},false)">${q.noText||'Nein'}</button>
+        </div>`;
+    html+=`<div class="question-card" id="qcard-${i}">
+      <div class="q-header">Aufgabe ${i+1} von ${qs.length}</div>
+      <div class="q-text">${q.text}</div>
+      ${!S.ftTasks && q.type!=='indep' ? `<div class="q-formula">$${q.notation}$</div>` : ''}
+      ${inputRow}
+      <div class="q-feedback" id="qfb-${i}"></div>
+      <div class="hint-ctrl">
+        <button class="hint-step-btn" id="qhbtn-${i}" onclick="showNextHint(${i})">💡 Hinweis</button>
+      </div>
+      <div class="hint-steps" id="qhints-${i}"></div>
+    </div>`;
+  });
+  document.getElementById('questions-list').innerHTML=html;
+  typeset();
+}
+
+// ── PROGRESSIVE HINTS ──────────────────────────────────────────────────────
+const MAX_HINT={prob:4,indep:3};
+
+function showNextHint(i){
+  const state=S.qHints[i],q=S.questions[i];
+  const maxL=MAX_HINT[q.type]||4;
+  if(state.level===0){state.level=1;}
+  else if(state.level===1&&(!state.quizDone||(q.meta&&q.meta.isConditional&&state.quizCorrect&&!state.subgroupQuizDone)))return;
+  else state.level=Math.min(state.level+1,maxL);
+  renderQHints(i);typeset();
+}
+
+function answerHintQuiz(i,userConditional){
+  const state=S.qHints[i],q=S.questions[i];
+  if(state.quizDone)return;
+  state.quizDone=true;
+  state.quizCorrect=(userConditional===q.meta.isConditional);
+  renderQHints(i);updateHintBtn(i);typeset();
+}
+
+function buildSubgroupOptions(q,sym){
+  const {mA,mnA,mB,mnB}=sym;
+  const sc=S.scenario;
+  const G=(label,id)=>({label,id,correct:false});
+  // Always show all 4 groups
+  const groups=sc?[
+    G(`Gruppe der ${sc.lA}`,'A'),
+    G(`Gruppe der ${sc.lnA}`,'nA'),
+    G(`Gruppe der ${sc.lB}`,'B'),
+    G(`Gruppe der ${sc.lnB}`,'nB'),
+  ]:[
+    G(`$${mA}$-Gruppe`,'A'),
+    G(`$${mnA}$-Gruppe`,'nA'),
+    G(`$${mB}$-Gruppe`,'B'),
+    G(`$${mnB}$-Gruppe`,'nB'),
+  ];
+  const correctId={PAgivenB:'B',PBgivenA:'A',PnAgivenB:'B',PBgivennA:'nA',PAgivennB:'nB'}[q.key]||'B';
+  const tagged=groups.map(g=>({...g,correct:g.id===correctId}));
+  return tagged.sort(()=>Math.random()-.5);
+}
+
+function answerSubgroupQuiz(i,optIdx){
+  const state=S.qHints[i];
+  if(state.subgroupQuizDone)return;
+  state.subgroupQuizDone=true;
+  state.subgroupQuizCorrect=!!(state.subgroupOpts&&state.subgroupOpts[optIdx]&&state.subgroupOpts[optIdx].correct);
+  renderQHints(i);updateHintBtn(i);typeset();
+}
+
+function updateHintBtn(i){
+  const state=S.qHints[i],q=S.questions[i],btn=document.getElementById('qhbtn-'+i);
+  if(!btn)return;
+  const maxL=MAX_HINT[q.type]||4;
+  const subgroupPending=state.level===1&&state.quizDone&&q.meta&&q.meta.isConditional&&state.quizCorrect&&!state.subgroupQuizDone;
+  if(state.level===0){btn.textContent='💡 Hinweis';btn.disabled=false;}
+  else if((state.level===1&&!state.quizDone)||subgroupPending){btn.textContent='💡 Hinweis (Quiz beantworten…)';btn.disabled=true;}
+  else if(state.level>=maxL){btn.textContent='💡 Vollständige Lösung gezeigt';btn.disabled=true;}
+  else{
+    const labels=['','','💡 Nächster Hinweis (Notation)','💡 Nächster Hinweis (Formel)','💡 Nächster Hinweis (Lösung)'];
+    btn.textContent=labels[state.level]||'💡 Nächster Hinweis';btn.disabled=false;
+  }
+}
+
+function renderQHints(i){
+  const q=S.questions[i],state=S.qHints[i],c=S.cells;
+  const sym=getSymbols(),{mA,mnA,mB,mnB}=sym,isPM=S.diff==='schwer';
+  const fmt=k=>fmtTeX(c[k],c.total,isPM);
+  let html='';
+
+  if(state.level>=1){
+    if(q.type==='indep'){
+      html+=`<div class="hint-step">
+        <div class="hint-step-lbl">Hinweis 1 – Unabhängigkeit</div>
+        $${mA}$ und $${mB}$ sind unabhängig, wenn gilt: $${pNotation(mA,mB)} = P(${mA})$ –
+        also wenn die Bedingung $${mB}$ die Wahrscheinlichkeit für $${mA}$ <em>nicht</em> verändert.
+      </div>`;
+    }else{
+      const meta=q.meta;
+      if(!state.quizDone){
+        html+=`<div class="hint-step">
+          <div class="hint-step-lbl">Hinweis 1 – Frage</div>
+          Werden bei dieser Wahrscheinlichkeit <strong>alle Personen</strong> betrachtet,
+          oder nur eine <strong>bestimmte Teilgruppe</strong>?
+          <div class="quiz-btns">
+            <button class="quiz-btn" onclick="answerHintQuiz(${i},false)">Alle Personen</button>
+            <button class="quiz-btn" onclick="answerHintQuiz(${i},true)">Nur eine Teilgruppe</button>
+          </div>
+        </div>`;
+      }else if(meta.isConditional&&state.quizCorrect&&!state.subgroupQuizDone){
+        // Follow-up: which subgroup?
+        if(!state.subgroupOpts)state.subgroupOpts=buildSubgroupOptions(q,sym);
+        const optBtns=state.subgroupOpts.map((o,oi)=>
+          `<button class="quiz-btn" onclick="answerSubgroupQuiz(${i},${oi})">${o.label}</button>`
+        ).join('');
+        html+=`<div class="hint-step">
+          <div class="hint-step-lbl">Hinweis 1 – Welche Gruppe?</div>
+          ✓ Richtig – es wird nur eine Teilgruppe betrachtet.<br><br>
+          Welche Gruppe ist das genau?
+          <div class="quiz-btns">${optBtns}</div>
+        </div>`;
+      }else{
+        const sc=S.scenario,key=q.key;
+        let condTxt='';
+        if(meta.isConditional){
+          if(sc&&sc.condLabels&&sc.condLabels[key])condTxt=sc.condLabels[key];
+          else{const m={PAgivenB:`$${mB}$-Gruppe`,PBgivenA:`$${mA}$-Gruppe`,
+            PnAgivenB:`$${mB}$-Gruppe`,PBgivennA:`$${mnA}$-Gruppe`,PAgivennB:`$${mnB}$-Gruppe`};
+            condTxt=m[key]||'Teilgruppe';}
+        }
+        const emo=state.quizCorrect?'✓':'✗';
+        let msg;
+        if(meta.isConditional){
+          msg=`${emo} Es wird nur die Gruppe der <strong>${condTxt}</strong> betrachtet.`;
+          if(state.subgroupQuizDone)
+            msg+=`<br>${state.subgroupQuizCorrect?'✓ Gruppe korrekt erkannt.':'✗ Gruppe falsch – s.o.'}`;
+        }else{
+          msg=`${emo} Alle ${c.total} Personen werden betrachtet – keine Einschränkung.`;
+        }
+        html+=`<div class="hint-step">
+          <div class="hint-step-lbl">Hinweis 1 – Auflösung</div>
+          <div class="quiz-result">${msg}</div>
+        </div>`;
+      }
+    }
+  }
+
+  if(state.level>=2){
+    if(q.type==='indep'){
+      html+=`<div class="hint-step">
+        <div class="hint-step-lbl">Hinweis 2 – Vorgehen</div>
+        Berechne $${pNotation(mA,mB)}$ und $P(${mA})$ separat und vergleiche beide Werte.
+      </div>`;
+    }else{
+      html+=`<div class="hint-step">
+        <div class="hint-step-lbl">Hinweis 2 – Formale Notation</div>
+        Die gesuchte Wahrscheinlichkeit lautet: $${q.notation}$
+      </div>`;
+    }
+  }
+
+  if(state.level>=3){
+    const sym2=sym,meta=q.meta;
+    if(q.type==='indep'){
+      const pac=pNotation(mA,mB);
+      const diff=Math.abs(c.ab/c.cb-c.ra/c.total);
+      const isExact=q.isExact,isApprox=q.isApprox;
+      const equalSign=isExact?'=':'\\approx';
+      const neqSign='\\neq';
+      const isActuallyIndep=S.approxIndep?isApprox:isExact;
+      const approxSign=isActuallyIndep?equalSign:neqSign;
+      const depWord=isActuallyIndep?'unabhängig':'abhängig';
+      // Qualifier for approximate case
+      let qualifier='';
+      if(!isExact&&isApprox&&isActuallyIndep)
+        qualifier=`<br><small style="color:var(--gray6)">(Näherungsweise: $|${(c.ab/c.cb).toFixed(3)} - ${(c.ra/c.total).toFixed(3)}| = ${diff.toFixed(3)} < 0.015$)</small>`;
+      else if(isExact&&isActuallyIndep)
+        qualifier=`<br><small style="color:var(--gray6)">(Exakt: $${(c.ab/c.cb).toFixed(3)} = ${(c.ra/c.total).toFixed(3)}$, d.h. $${cellSym('ab',sym2,isPM)} \\cdot n = ${cellSym('ra',sym2,isPM)} \\cdot ${cellSym('cb',sym2,isPM)}$)</small>`;
+      // Thematic explanation based on scenario
+      let thematic='';
+      if(S.scenario&&S.typ==='beispiel'){
+        const sc=S.scenario;
+        const pWithA=(c.ab/c.cb*100).toFixed(1),pWithoutA=(c.nab/c.cnb*100).toFixed(1);
+        // pWithA = P(B|A) = Wahrsch. von B wenn A gilt
+        // We compare P(B|A) and P(B|notA)
+        const pBA=(c.ab/c.ra*100).toFixed(1), pBnA=(c.nab/c.rna*100).toFixed(1);
+        thematic=diff<0.015
+          ?`<br><em>Inhaltlich: ${sc.lB} tritt bei ${sc.lA} (${pBA}\u202f%) und bei ${sc.lnA} (${pBnA}\u202f%) mit ähnlicher Häufigkeit auf – kein Einfluss des Merkmals.</em>`
+          :`<br><em>Inhaltlich: ${sc.lB} tritt bei ${sc.lA} (${pBA}\u202f%) und bei ${sc.lnA} (${pBnA}\u202f%) unterschiedlich häufig auf – es gibt einen statistischen Zusammenhang.</em>`;
+      }
+      html+=`<div class="hint-step">
+        <div class="hint-step-lbl">Erklärung</div>
+        $${pac} = \\dfrac{${cellSym('ab',sym2,isPM)}}{${cellSym('cb',sym2,isPM)}}
+        = \\dfrac{${fmt('ab')}}{${fmt('cb')}} \\approx ${(c.ab/c.cb).toFixed(3)}$<br>
+        $P(${mA}) = \\dfrac{${cellSym('ra',sym2,isPM)}}{${cellSym('total',sym2,isPM)}}
+        = \\dfrac{${fmt('ra')}}{${isPM?'1':c.total}} \\approx ${(c.ra/c.total).toFixed(3)}$<br>
+        <strong>Da $${pac} ${approxSign} P(${mA})$, sind $${mA}$ und $${mB}$ <em>${depWord}</em>.</strong>${qualifier}${thematic}
+      </div>`;
+    }else{
+      const numS=cellSym(meta.num,sym2,isPM),denS=cellSym(meta.den,sym2,isPM);
+      html+=`<div class="hint-step">
+        <div class="hint-step-lbl">Hinweis 3 – Formel</div>
+        $${q.notation} = \\dfrac{${numS}}{${denS}}$
+      </div>`;
+    }
+  }
+
+  if(state.level>=4&&q.type!=='indep'){
+    const meta=q.meta;
+    const numV=isPM?(meta.den==='total'?fmt(meta.num):fmtTeX(c[meta.num],c.total,true)):c[meta.num];
+    const denV=isPM?(meta.den==='total'?'1':fmtTeX(c[meta.den],c.total,true)):c[meta.den];
+    const numS=cellSym(meta.num,sym,isPM),denS=cellSym(meta.den,sym,isPM);
+    html+=`<div class="hint-step">
+      <div class="hint-step-lbl">Hinweis 4 – Zähler und Nenner</div>
+      $${q.notation} = \\dfrac{${numS}}{${denS}} = \\dfrac{${numV}}{${denV}}$
+    </div>`;
+  }
+
+  document.getElementById('qhints-'+i).innerHTML=html;
+  updateHintBtn(i);
+}
+
+// ── ANSWER CHECKING – PHASE 2 ──────────────────────────────────────────────
+function checkQ(i){
+  if(S.qAnswered[i])return;
+  const q=S.questions[i],inp=document.getElementById('qinp-'+i),fb=document.getElementById('qfb-'+i);
+  const raw=inp.value.trim();
+  if(!raw){fb.textContent='Bitte eine Antwort eingeben.';fb.className='q-feedback';return;}
+  let v=parseInput(raw);
+  if(v>1&&!raw.includes('%')&&!raw.includes('/'))v=v/S.cells.total;
+  const ok=!isNaN(v)&&Math.abs(v-q.ans)<0.006;
+  inp.classList.add(ok?'inp-correct':'inp-wrong');
+  if(ok){fb.textContent='✓ Richtig!';fb.className='q-feedback ok';document.getElementById('qcard-'+i).classList.add('answered');}
+  else{
+    const pct=(q.ans*100).toFixed(1).replace('.0','');
+    fb.innerHTML=`✗ Nicht ganz. Richtige Antwort: ${pct}\u202f% ≈ ${q.ans.toFixed(4)}`;
+    fb.className='q-feedback err';document.getElementById('qcard-'+i).classList.add('answered-wrong');
+  }
+  inp.disabled=true;
+  const btn=document.querySelector(`#qcard-${i} .btn-primary`);if(btn)btn.disabled=true;
+  S.qAnswered[i]=true;updateProgress();
+}
+
+function checkIndep(i,userAns){
+  if(S.qAnswered[i])return;
+  const q=S.questions[i],ok=(userAns===q.ans);
+  // q.ans=true → "Ja, Zusammenhang" is correct (= abhängig); false → "Nein" is correct
+  const y=document.getElementById('qibtn-y-'+i),n=document.getElementById('qibtn-n-'+i);
+  y.disabled=n.disabled=true;
+  (userAns?y:n).classList.add(ok?'chosen-correct':'chosen-wrong');
+  const fb=document.getElementById('qfb-'+i);
+  if(ok){
+    fb.textContent='✓ Richtig!';fb.className='q-feedback ok';
+    document.getElementById('qcard-'+i).classList.add('answered');
+  }else{
+    const correctBtn=q.ans?(q.yesText||'Ja, Zusammenhang'):(q.noText||'Nein, kein Zusammenhang');
+    fb.innerHTML=`✗ Nicht ganz – richtig wäre: <em>${correctBtn}</em>`;
+    fb.className='q-feedback err';
+    document.getElementById('qcard-'+i).classList.add('answered-wrong');
+  }
+  S.qAnswered[i]=true;updateProgress();
+  const state=S.qHints[i];state.level=3;state.quizDone=true;state.quizCorrect=ok;
+  renderQHints(i);typeset();
+}
+
+function updateProgress(){
+  const done=S.qAnswered.filter(Boolean).length,total=S.questions.length;
+  document.getElementById('prog-bar').style.width=(total>0?done/total*100:0)+'%';
+  if(done===total&&total>0)document.getElementById('result-box').classList.add('show');
+}
+
+// ── TASK GENERATION ────────────────────────────────────────────────────────
+function resetPhase1UI(){
+  S.p1checked=false;
+  S.hint1Level=0;
+  document.getElementById('weiter-btn').style.display='none';
+  document.getElementById('hint1-box').classList.remove('show');
+  document.getElementById('hint1-box').innerHTML='';
+  document.getElementById('phase2-section').style.display='none';
+  document.getElementById('result-box').classList.remove('show');
+  document.getElementById('phase1-card').classList.remove('sticky-mode');
+  updateHint1Btn();
+}
+
+function newTask(){
+  resetPhase1UI();
+  const n=S.diff==='einfach'?N_EINFACH:pick(N_MITTEL);
+  if(S.typ==='beispiel'){
+    const avail=SCENARIOS.filter(sc=>S.activeScenarios.includes(sc.id));
+    S.scenario=pick(avail.length>0?avail:SCENARIOS);
+    let dep=S.scenario.dependent;
+    if(dep===null)dep=Math.random()<.5;
+    S.cells=generateCells(n,dep,S.scenario.id);
+  }else{
+    S.scenario=null;
+    S.cells=generateCells(n,Math.random()<.6,'generic');
+  }
+  S.given=selectGiven();
+  renderScenarioInfo();renderFliesstextBlock();renderTable();
+  document.getElementById('diff-badge').textContent={einfach:'Einfach',mittel:'Mittel',schwer:'Schwer'}[S.diff];
+  window.scrollTo(0,0);
+  saveURL();
+  if(S.ftIntro==='skip')requestAnimationFrame(()=>autoSkipIntro());
+}
+
+// Skip: fill complete table solution, then proceed to Phase 2 questions
+function skipTask(){
+  const isPM=S.diff==='schwer',c=S.cells,g=S.given,ft=(S.ftIntro==='ft');
+  // Resolve all input cells into display cells (filled-in style)
+  ['ab','anb','nab','nanb','ra','rna','cb','cnb'].filter(k=>ft?true:!g.has(k)).forEach(k=>{
+    const inp=document.getElementById('inp-'+k);
+    if(!inp)return;
+    const td=inp.closest('td');
+    td.innerHTML=fmtCell(c[k],c.total,isPM);
+    td.classList.add('filled-in');
+  });
+  // For ft mode, also highlight the given cells
+  if(ft)[...g].filter(k=>k!=='total').forEach(k=>{
+    const td=document.querySelector(`[data-key="${k}"]`);
+    if(td&&td.tagName==='TD')td.classList.add('given');
+  });
+  // Go to Phase 2
+  document.getElementById('weiter-btn').style.display='none';
+  document.getElementById('phase1-card').classList.add('sticky-mode');
+  document.getElementById('phase2-section').style.display='block';
+  buildPhase2();
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    const card=document.getElementById('phase1-card');
+    const cardH=card.getBoundingClientRect().height;
+    document.getElementById('phase2-section').style.scrollMarginTop=(cardH+4)+'px';
+    document.getElementById('phase2-section').scrollIntoView({behavior:'smooth',block:'start'});
+  }));
+}
+
+// ── TOOLTIPS ───────────────────────────────────────────────────────────────
+function initTooltips(){
+  const box=document.createElement('div');
+  box.id='tt';
+  document.body.appendChild(box);
+
+  let hideTimer=null;
+  let activeLabelTip=null; // for touch toggle on labels
+
+  function show(el,e){
+    const tip=el.dataset.tip;
+    if(!tip)return;
+    clearTimeout(hideTimer);
+    box.textContent=tip;
+    box.classList.add('show');
+    positionTip(el);
+  }
+  function hide(){
+    hideTimer=setTimeout(()=>box.classList.remove('show'),120);
+  }
+  function positionTip(el){
+    const r=el.getBoundingClientRect();
+    const bw=box.offsetWidth||200;
+    let left=r.left+r.width/2-bw/2;
+    let top=r.bottom+7;
+    // Keep within viewport
+    left=Math.max(6,Math.min(left,window.innerWidth-bw-6));
+    if(top+70>window.innerHeight)top=r.top-52; // flip up
+    box.style.left=left+'px';
+    box.style.top=top+'px';
+  }
+
+  // Chip buttons: hover only (no touch)
+  document.querySelectorAll('.chip[data-tip]').forEach(el=>{
+    el.addEventListener('mouseenter',e=>show(el,e));
+    el.addEventListener('mouseleave',hide);
+    el.addEventListener('focus',e=>show(el,e));
+    el.addEventListener('blur',hide);
+  });
+
+  // Labels: hover + touch toggle
+  document.querySelectorAll('.settings-label[data-tip]').forEach(el=>{
+    el.addEventListener('mouseenter',e=>show(el,e));
+    el.addEventListener('mouseleave',hide);
+    el.addEventListener('touchstart',e=>{
+      e.preventDefault();
+      if(activeLabelTip===el&&box.classList.contains('show')){
+        box.classList.remove('show');
+        activeLabelTip=null;
+      }else{
+        activeLabelTip=el;
+        show(el,e);
+        // keep visible until next touch elsewhere
+        clearTimeout(hideTimer);
+      }
+    },{passive:false});
+  });
+
+  // Hide on touch outside
+  document.addEventListener('touchstart',e=>{
+    if(activeLabelTip&&!activeLabelTip.contains(e.target)){
+      box.classList.remove('show');
+      activeLabelTip=null;
+    }
+  });
+}
+function typeset(){if(window.MathJax?.typesetPromise)window.MathJax.typesetPromise();}
+function initWhenReady(){
+  if(window.MathJax?.startup?.promise)window.MathJax.startup.promise.then(()=>{newTask();updateHint1Btn();});
+  else setTimeout(initWhenReady,80);
+}
+loadURL();buildScenarioTable();initTooltips();initWhenReady();
+</script>
+
+<div id="lobby-spacer"></div>
+<footer class="site-footer">
+  <div class="footer-content">
+      M.&nbsp;Koch
+      <span class="footer-topic"><a href="./index.html">Mathe-Tools</a></span>
+      <span class="footer-update">Last updated:&nbsp;<span id="last-update">...</span></span>
+  </div>
+</footer>
+<script src="last-update.js" defer></script>
+</body>
+</html>

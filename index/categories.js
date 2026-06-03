@@ -77,7 +77,7 @@ const categoriesData = [
     "icon": "🎲",
     "iconType": "text",
     "tooltip": "Wahrscheinlichkeitsrechnung, Kombinatorik und Statistik",
-    "cards": ["differenz_trifft", "baumdiagramm_auswahl"]
+    "cards": ["differenz_trifft", "baumdiagramm_auswahl", "vierfeldertafel"]
   },
   {
     "id": "mathematik-sonstiges",

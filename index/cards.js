@@ -313,6 +313,14 @@ const cardsData = [
     "link": "baumdiagramm_felder.html"
   },
   {
+    "id": "vierfeldertafel",
+    "title": "Vierfeldertafel",
+    "desc": "Fülle die Felder der Vierfeldertafel aus, um damit Wahrscheinlichkeiten (auch bedingte) zu berechnen",
+    "types": ["quiz"],
+    "mobilefriendly": true,
+    "link": "vierfeldertafel.html"
+  },
+  {
     "id": "graphen",
     "title": "Graph erkennen",
     "desc": "Welche Standard-Funktion wird dargestellt?",
