@@ -210,6 +210,13 @@
         <button data-v="con">P(AB)</button>
       </div>
     </div>
+    <div class="srow" id="row-union">
+      <label>Vereinigungs-Aufgaben (2&thinsp;Äste):</label>
+      <div class="seg" id="s-union">
+        <button data-v="0" class="on">Nein</button>
+        <button data-v="1">Ja</button>
+      </div>
+    </div>
   </div>
 </details>
 
@@ -254,7 +261,7 @@
 // ═══════════════════════════════════════════════════
 //  EINSTELLUNGS-STATE
 // ═══════════════════════════════════════════════════
-const S = { stufen:2, aeste:2, neg:true, cond:true, cStyle:'sub', inter:'cap' };
+const S = { stufen:2, aeste:2, neg:true, cond:true, cStyle:'sub', inter:'cap', union:false };
 
 // ═══════════════════════════════════════════════════
 //  URL-PERSISTENZ (Einstellungen im Hash)
@@ -267,6 +274,7 @@ function saveSettings() {
   p.set('cond',   S.cond ? '1' : '0');
   p.set('cStyle', S.cStyle);
   p.set('inter',  S.inter);
+  p.set('union',  S.union ? '1' : '0');
   history.replaceState(null, '', '#' + p.toString());
 }
 
@@ -281,6 +289,7 @@ function loadSettings() {
     if (p.has('cond'))   S.cond   = p.get('cond')   === '1';
     if (p.has('cStyle')) S.cStyle = p.get('cStyle');
     if (p.has('inter'))  S.inter  = p.get('inter');
+    if (p.has('union'))  S.union  = p.get('union') === '1';
   } catch(e) { /* ungültiger Hash → ignorieren */ }
 }
 
@@ -297,6 +306,7 @@ function syncControls() {
   setOn('s-cond',   S.cond ? '1' : '0');
   setOn('s-cstyle', S.cStyle);
   setOn('s-inter',  S.inter);
+  setOn('s-union',  S.union ? '1' : '0');
 }
 
 // ═══════════════════════════════════════════════════
@@ -343,6 +353,10 @@ function fmtC(ev, giv) {
 function fmtI(lbls) {
   return S.inter === 'cap' ? `P\\!\\left(${lbls.join(' \\cap ')}\\right)` : `P\\!\\left(${lbls.join('')}\\right)`;
 }
+// Schnittmenge als String (ohne P(…)-Wrapper) – für Vereinigungs-Ausdrücke
+function fmtIntersect(lbls) {
+  return S.inter === 'cap' ? lbls.join(' \\cap ') : lbls.join('');
+}
 function pathLbls(nd) {
   const r = []; let c = nd;
   while (c.parentId !== null) { r.unshift(c.label); c = byId(c.parentId); }
@@ -381,6 +395,106 @@ function shuffle(arr) {
   return a;
 }
 
+// ═══════════════════════════════════════════════════
+//  VEREINIGUNGS-AUFGABEN aufbauen (nur aeste=2)
+// ═══════════════════════════════════════════════════
+function buildUnionTasks(leaves) {
+  const tasks = [];
+
+  if (S.stufen === 2) {
+    // 1. Stufe 1 fest, Stufe 2 frei: P(A∩B ∪ A∩B̄) = P(A)
+    //    Auch das einfache Ast-Feld P(A) der 1. Stufe wird als korrekt akzeptiert.
+    for (let bi1 = 0; bi1 < 2; bi1++) {
+      const cLv = leaves.filter(l => l.path[0] === bi1);
+      if (cLv.length < 2) continue;
+      const l1nd = nodes.find(n => n.level === 1 && n.branchIdx === bi1);
+      tasks.push({
+        type:'union', subtype:'fixN', unionLeaves:cLv,
+        hint: 'Vereinigung: Markiere alle Pfad-Felder, die zu diesem Ereignis der 1. Stufe gehören.',
+        correct: cLv.map(l => `j_${l.id}`),
+        correctSets: [
+          new Set(cLv.map(l => `j_${l.id}`)),
+          ...(l1nd ? [new Set([`e_${l1nd.id}`])] : [])
+        ]
+      });
+    }
+    // 2. Stufe 2 fest, Stufe 1 frei: P(A∩B ∪ Ā∩B)
+    for (let bi2 = 0; bi2 < 2; bi2++) {
+      const cLv = leaves.filter(l => l.path[1] === bi2);
+      if (cLv.length < 2) continue;
+      tasks.push({
+        type:'union', subtype:'fixN', unionLeaves:cLv,
+        hint: 'Vereinigung: Markiere alle Pfad-Felder, die zu diesem Ereignis der 2. Stufe gehören.',
+        correct: cLv.map(l => `j_${l.id}`),
+        correctSets: [new Set(cLv.map(l => `j_${l.id}`))]
+      });
+    }
+    // 3. P(A∪B)-Typ: alle Blätter außer dem negiert-negiert-Blatt (nur neg=true)
+    if (S.neg) {
+      for (let bi1 = 0; bi1 < 2; bi1++) {
+        for (let bi2 = 0; bi2 < 2; bi2++) {
+          const cLv = leaves.filter(l => !(l.path[0] === 1-bi1 && l.path[1] === 1-bi2));
+          const lbl1 = evtLbl(1, bi1), lbl2 = evtLbl(2, bi2);
+          tasks.push({
+            type:'union', subtype:'or', lbl1, lbl2, unionLeaves:cLv,
+            hint: 'Vereinigung zweier Ereignisse: Markiere alle Pfad-Felder außer dem, das keines der beiden Ereignisse enthält.',
+            correct: cLv.map(l => `j_${l.id}`),
+            correctSets: [new Set(cLv.map(l => `j_${l.id}`))]
+          });
+        }
+      }
+    }
+  }
+
+  if (S.stufen === 3) {
+    // 1. Stufen 1+2 fest, Stufe 3 frei: P(A∩B∩C ∪ A∩B∩C̄)
+    for (let bi1 = 0; bi1 < 2; bi1++) {
+      for (let bi2 = 0; bi2 < 2; bi2++) {
+        const cLv = leaves.filter(l => l.path[0] === bi1 && l.path[1] === bi2);
+        if (cLv.length < 2) continue;
+        tasks.push({
+          type:'union', subtype:'fixN', unionLeaves:cLv,
+          hint: 'Vereinigung: Markiere alle Pfad-Felder unter diesem Ereignispaar (1.+2. Stufe).',
+          correct: cLv.map(l => `j_${l.id}`),
+          correctSets: [new Set(cLv.map(l => `j_${l.id}`))]
+        });
+      }
+    }
+    // 2. Nur Stufe 1 fest, Stufen 2+3 frei: P(A∩B∩C ∪ … ∪ A∩B̄∩C̄) = P(A)
+    //    Auch das einfache Ast-Feld P(A) der 1. Stufe wird akzeptiert.
+    for (let bi1 = 0; bi1 < 2; bi1++) {
+      const cLv = leaves.filter(l => l.path[0] === bi1);
+      if (cLv.length < 2) continue;
+      const l1nd = nodes.find(n => n.level === 1 && n.branchIdx === bi1);
+      tasks.push({
+        type:'union', subtype:'fixN', unionLeaves:cLv,
+        hint: 'Vereinigung: Markiere alle Pfad-Felder unter diesem Ereignis der 1. Stufe.',
+        correct: cLv.map(l => `j_${l.id}`),
+        correctSets: [
+          new Set(cLv.map(l => `j_${l.id}`)),
+          ...(l1nd ? [new Set([`e_${l1nd.id}`])] : [])
+        ]
+      });
+    }
+    // 3. Nur Stufe 3 fest, Stufen 1+2 frei: P(A∩B∩C ∪ A∩B̄∩C ∪ Ā∩B∩C ∪ Ā∩B̄∩C)
+    for (let bi3 = 0; bi3 < 2; bi3++) {
+      const cLv = leaves.filter(l => l.path[2] === bi3);
+      if (cLv.length < 2) continue;
+      tasks.push({
+        type:'union', subtype:'fixN', unionLeaves:cLv,
+        hint: 'Vereinigung: Markiere alle Pfad-Felder mit diesem Ereignis auf der letzten Stufe.',
+        correct: cLv.map(l => `j_${l.id}`),
+        correctSets: [new Set(cLv.map(l => `j_${l.id}`))]
+      });
+    }
+  }
+
+  return tasks;
+}
+
+// ═══════════════════════════════════════════════════
+//  AUFGABEN-QUEUE aufbauen
+// ═══════════════════════════════════════════════════
 function buildTaskQueue() {
   const leaves = nodes.filter(n => n.level === S.stufen);
   const q = [];
@@ -399,17 +513,42 @@ function buildTaskQueue() {
     });
   });
 
-  // cond: bedingte W-keit für jeden Knoten ab Stufe 2
+  // cond: konkrete bedingte W-keit – bei lv > 2 mit Schnitt-Bedingung P_{A∩B}(C)
   if (S.cond && S.stufen > 1) {
     nodes.filter(n => n.level > 1).forEach(nd => {
-      const par = byId(nd.parentId);
+      const condLbls = pathLbls(nd).slice(0, -1);   // Pfad-Labels bis zum Elternknoten
+      const multiCond = condLbls.length > 1;
       q.push({
-        type: 'cond', nd, par,
-        hint:    'Bedingte Wahrscheinlichkeiten stehen an den Ästen der Folgestufe.',
+        type: 'cond', nd, condLbls,
+        hint: multiCond
+          ? 'Bedingte W-keit mit Schnitt-Bedingung: ein einzelnes Ast-Feld auf der letzten Stufe.'
+          : 'Bedingte Wahrscheinlichkeiten stehen an den Ästen der Folgestufe.',
         correct: [`e_${nd.id}`],
         correctSets: [new Set([`e_${nd.id}`])]
       });
     });
+  }
+
+  // condMarg: einstufige bedingte W-keit P_B(C) in 3-stufigen Bäumen –
+  //           ALLE Äste von B-Knoten nach C (unabhängig vom Pfad davor)
+  if (S.cond && S.stufen === 3) {
+    for (let lv2bi = 0; lv2bi < S.aeste; lv2bi++) {
+      for (let lv3bi = 0; lv3bi < S.aeste; lv3bi++) {
+        const condLabel = evtLbl(2, lv2bi);
+        const evtLabel  = evtLbl(3, lv3bi);
+        const targetNds = nodes.filter(n =>
+          n.level === 3 && n.branchIdx === lv3bi &&
+          byId(n.parentId).branchIdx === lv2bi
+        );
+        const cnt = targetNds.length;
+        q.push({
+          type: 'condMarg', condLabel, evtLabel, targetNds,
+          hint: `Bedingte W-keit mit einfacher Bedingung: Es gibt ${cnt} passende Ast-Felder auf der letzten Stufe – markiere alle!`,
+          correct: targetNds.map(nd2 => `e_${nd2.id}`),
+          correctSets: [new Set(targetNds.map(nd2 => `e_${nd2.id}`))]
+        });
+      }
+    }
   }
 
   // leaf: Pfadwahrscheinlichkeit für jedes Blatt
@@ -438,6 +577,11 @@ function buildTaskQueue() {
         });
       }
     }
+  }
+
+  // union: Vereinigungs-Aufgaben (nur 2-Ast-Bäume)
+  if (S.union && S.aeste === 2) {
+    q.push(...buildUnionTasks(leaves));
   }
 
   return shuffle(q);
@@ -474,9 +618,21 @@ function showToast(msg) {
 // ═══════════════════════════════════════════════════
 function getTaskDesc(t) {
   if (t.type === 'eL1')  return `Wo findest du \\(~${fmtP(t.nd.label)}~\\) im Baumdiagramm?`;
-  if (t.type === 'cond') return `Wo findest du \\(~${fmtC(t.nd.label, t.par.label)}~\\) im Baumdiagramm?`;
+  if (t.type === 'cond') {
+    const givStr = t.condLbls.join(' \\cap ');
+    return `Wo findest du \\(~${fmtC(t.nd.label, givStr)}~\\) im Baumdiagramm?`;
+  }
+  if (t.type === 'condMarg')
+    return `Markiere alle Felder für \\(~${fmtC(t.evtLabel, t.condLabel)}~\\) im Baumdiagramm!`;
   if (t.type === 'leaf') return `Wo findest du \\(~${fmtI(pathLbls(t.lf))}~\\) im Baumdiagramm?`;
   if (t.type === 'marg') return `Wo findest du \\(~${fmtP(t.exNd.label)}~\\) im Baumdiagramm?`;
+  if (t.type === 'union') {
+    if (t.subtype === 'or')
+      return `Markiere alle Felder für \\(~P\\!\\left(${t.lbl1} \\cup ${t.lbl2}\\right)~\\)!`;
+    // fixN: Vereinigung der Pfad-Schnittmengen – Klammern um jeden Schnitt
+    const parts = t.unionLeaves.map(l => `(${fmtIntersect(pathLbls(l))})`);
+    return `Markiere alle Felder für \\(~P\\!\\left(${parts.join(' \\cup ')}\\right)~\\)!`;
+  }
   return '';
 }
 
@@ -797,6 +953,7 @@ function setDimmed(rowId, dimmed) {
 function updateUI() {
   setDimmed('row-neg',    S.aeste !== 2);
   setDimmed('row-cstyle', !S.cond);
+  setDimmed('row-union',  S.aeste !== 2);
   const btn4 = document.querySelector('#s-aeste [data-v="4"]');
   btn4.disabled = S.stufen === 3;
   if (S.stufen === 3 && S.aeste > 3) {
@@ -817,6 +974,9 @@ segCtrl('s-cond',   v => { S.cond   = v==='1'; updateUI(); saveSettings(); rebui
 // Nur Notation → Beschreibung neu rendern, Queue bleibt
 segCtrl('s-cstyle', v => { S.cStyle = v; saveSettings(); refreshTaskDesc(); });
 segCtrl('s-inter',  v => { S.inter  = v; saveSettings(); refreshTaskDesc(); });
+
+// Struktur/Aufgabenart → Neuaufbau
+segCtrl('s-union',  v => { S.union  = v==='1'; updateUI(); saveSettings(); rebuild(); });
 
 document.getElementById('btn-neu').addEventListener('click', () => {
   // Ohne Antwort weggeklickt → wie "falsch" behandeln (bleibt in Queue)
