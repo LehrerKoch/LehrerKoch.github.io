@@ -96,6 +96,14 @@ const categoriesData = [
     "cards": ["binary", "rsa", "RAM", "annoinformatica"]
   },
   {
+    "id": "ki",
+    "title": "Künstliche Intelligenz",
+    "icon": "🤖",
+    "iconType": "emoji",
+    "tooltip": "Grundlagen der Künstlichen Intelligenz",
+    "cards": ["unsupervised-learning"]
+  },
+  {
     "id": "sprachen",
     "title": "Sprachen",
     "icon": "🌐",

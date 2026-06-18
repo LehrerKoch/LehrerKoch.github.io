@@ -361,6 +361,14 @@ const cardsData = [
     "link": "anno.html?subject=informatik"
   },
   {
+    "id": "unsupervised-learning",
+    "title": "Unüberwachtes Lernen",
+    "desc": "Visualisiere die Funktionsweise von Algorithmen (LVQ, k-means) zum unüberwachtem Lernen (unsupervised learning) an Beispielen",
+    "types": ["uebung"],
+    "mobilefriendly": false,
+    "link": "unsupervised_learning.html"
+  },
+  {
     "id": "buchstaben-trainer",
     "title": "Buchstaben kennenlernen",
     "desc": "Wie heißen die griechischen (hebräischen, kyrillischen) Buchstaben und wie werden sie geschrieben?",
