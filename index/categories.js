@@ -101,7 +101,7 @@ const categoriesData = [
     "icon": "🤖",
     "iconType": "emoji",
     "tooltip": "Grundlagen der Künstlichen Intelligenz",
-    "cards": ["unsupervised-learning"]
+    "cards": ["supervised-learning","unsupervised-learning"]
   },
   {
     "id": "sprachen",

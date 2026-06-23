@@ -1,0 +1,1002 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Supervised Learning – k-Nearest Neighbors</title>
+<script>MathJax={tex:{inlineMath:[["\\(","\\)"]],displayMath:[["\\[","\\]"]],tags:"none"},options:{skipHtmlTags:["script","noscript","style","textarea","pre"]}};</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<style>
+*{box-sizing:border-box}
+body{font-family:Calibri,sans-serif;display:flex;flex-direction:column;padding:0 2%;max-width:1400px;margin:0 auto}
+h1{color:#222;margin-bottom:10px}
+button{background:#4CAF50;color:#fff;border:none;padding:8px 16px;font-size:12px;margin:3px 2px;border-radius:20px;cursor:pointer;font-family:Calibri,sans-serif}
+button:hover:not(:disabled){filter:brightness(.9)}
+button:disabled{background:#b0b0b0;cursor:not-allowed}
+.btn-blue{background:#1976d2}.btn-red{background:#e53935}.btn-sm{padding:5px 10px;font-size:11px}
+details{border:2px solid #000;margin-bottom:8px;padding:5px 10px;border-radius:4px}
+details details{border:1px solid #bbb;margin:4px 0 2px}
+summary{font-weight:bold;display:block;cursor:pointer;user-select:none;padding:3px 0}
+summary::before{content:"▶ ";display:inline-block;transition:transform .2s}
+details[open]>summary::before{transform:rotate(90deg)}
+.pill-group{display:inline-flex;border:1.5px solid #4CAF50;border-radius:20px;overflow:hidden}
+.pill-opt input[type=radio]{display:none}
+.pill-opt span{display:block;padding:5px 14px;font-size:12px;cursor:pointer;background:#fff;color:#555;transition:background .15s,color .15s;white-space:nowrap}
+.pill-opt input:checked+span{background:#4CAF50;color:#fff}
+.pill-opt:not(:last-child) span{border-right:1.5px solid #c8e6c9}
+.pill-opt input:disabled+span{opacity:0.4;cursor:not-allowed}
+.tog{display:inline-flex;align-items:center;gap:6px;cursor:pointer;user-select:none;font-size:12px;color:#333}
+.tog input{display:none}
+.tog-t{width:28px;height:16px;background:#ccc;border-radius:8px;position:relative;transition:background .2s;flex-shrink:0}
+.tog input:checked~.tog-t{background:#4CAF50}
+.tog-t::after{content:"";position:absolute;width:12px;height:12px;background:#fff;border-radius:50%;top:2px;left:2px;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.tog input:checked~.tog-t::after{left:14px}
+.sc{background:#fafafa;border:1px solid #e8e8e8;border-radius:6px;padding:10px 12px;margin:5px 0}
+.srow{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;margin:4px 0}
+.slbl{font-size:12px;color:#555;font-weight:600}
+input[type=number]{width:58px;padding:2px 5px;border:1px solid #ccc;border-radius:4px;font-family:Calibri,sans-serif;font-size:12px}
+input[type=range]{vertical-align:middle;accent-color:#4CAF50}
+select{padding:3px 7px;border:1px solid #ccc;border-radius:4px;font-family:Calibri,sans-serif;font-size:12px;background:#fff}
+textarea{width:100%;font-family:monospace;font-size:12px;resize:vertical;border:1px solid #ccc;border-radius:4px;padding:4px}
+.smode-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;background:#f9f9f9;border:1px solid #ddd;border-radius:4px;padding:7px 12px;margin-bottom:5px;font-size:13px}
+.ctrl-row{display:flex;flex-wrap:wrap;align-items:center;gap:5px;padding:6px 0;border-top:1px solid #e0e0e0;margin:0 0 4px}
+.autoplay-grp{display:inline-flex;align-items:center;gap:8px;background:#eef7ee;border:1px solid #a5d6a7;border-radius:20px;padding:4px 12px;margin-left:6px}
+.speed-w{display:flex;align-items:center;gap:4px;font-size:12px}
+.speed-w input{width:80px}
+.prog-row{display:flex;align-items:center;gap:6px;margin:2px 0 5px}
+.prog-row input{flex:1;cursor:pointer;accent-color:#4CAF50}
+.prog-lbl{font-size:12px;color:#888;white-space:nowrap;min-width:28px}
+#info{display:flex;align-items:flex-start;border:1px solid #4CAF50;border-left:4px solid #4CAF50;border-radius:4px;background:#f1faf1;min-height:60px;padding:8px 12px;font-size:14px;margin:4px 0 5px;overflow:hidden}
+#info-msg{flex:1;overflow:hidden;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical}
+#info-ctr{white-space:nowrap;font-weight:bold;color:#555;font-size:13px;margin-left:12px;border-left:1px solid #c8e6c9;padding-left:12px;min-width:80px;text-align:right}
+#cv-wrap{overflow:auto;border:1px solid #bbb;border-radius:4px;background:#f9f9f9;margin:4px 0}
+canvas{display:block}
+#cv3d-wrap{border:1px solid #bbb;border-radius:4px;background:#f2f2f2;margin:4px 0;display:none;position:relative}
+#cv3d-wrap .axis3d-hint{position:absolute;bottom:8px;left:10px;font-size:10px;color:#888;pointer-events:none}
+#rechenweg{border:1px solid #ccc;border-radius:4px;padding:12px 16px;margin:4px 0;font-size:13px;line-height:1.7;overflow-y:auto;max-height:540px;background:#fff;display:none}
+#rechenweg table{border-collapse:collapse;margin:4px 0;width:100%}
+#rechenweg td,#rechenweg th{padding:3px 10px;text-align:left;vertical-align:middle}
+#rechenweg tr:nth-child(even){background:#f5f5f5}
+#legend{display:flex;flex-wrap:wrap;gap:5px;font-size:13px;margin:3px 0 5px}
+.lgd{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:12px;background:#f5f5f5;border:1px solid #ddd}
+.ldot{width:12px;height:12px;border-radius:50%;display:inline-block;flex-shrink:0}
+.lstar{font-size:13px;line-height:1}
+.ppos-box{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.ppos-item{display:flex;align-items:center;gap:4px;border:1px solid #c5cae9;padding:3px 8px;border-radius:4px;background:#fff}
+.site-footer{width:100%;padding:14px;border-top:1px solid #ccc;margin-top:12px}
+.footer-content{display:grid;grid-template-columns:1fr auto 1fr}
+.warn-box{background:#fff3e0;border:1px solid #ffcc80;border-radius:4px;padding:6px 10px;font-size:12px;color:#e65100;margin:4px 0}
+/* Testpunkt card */
+.tp-card{border:2px solid #1565c0;border-radius:6px;padding:9px 14px;margin-bottom:8px;background:#e8f0fe}
+.tp-card .tp-title{font-weight:bold;color:#1565c0;font-size:13px;margin-bottom:6px}
+.tp-card .pill-group{border-color:#1565c0}
+.tp-card .pill-opt input:checked+span{background:#1565c0}
+.tp-card .pill-opt:not(:last-child) span{border-right-color:#90caf9}
+.btn-klass{background:#1565c0}
+[title]{cursor:help}
+</style>
+</head>
+<body>
+<h1>Supervised Learning – k-Nearest Neighbors (kNN) Visualisierung</h1>
+
+<details open>
+  <summary>Trainingsdaten</summary>
+  <div class="srow" style="margin-top:6px">
+    <div class="pill-group">
+      <label class="pill-opt"><input type="radio" name="dsrc" value="text" checked onchange="showDS(this)"><span>Manuell</span></label>
+      <label class="pill-opt"><input type="radio" name="dsrc" value="file" onchange="showDS(this)"><span>Datei</span></label>
+      <label class="pill-opt"><input type="radio" name="dsrc" value="random" onchange="showDS(this)"><span>Zufällig</span></label>
+      <label class="pill-opt"><input type="radio" name="dsrc" value="example" onchange="showDS(this)"><span>Beispiel</span></label>
+    </div>
+  </div>
+  <div id="d-text">
+    <p style="font-size:12px;color:#888;margin:3px 0">Format: <code>x;y;Klasse</code> pro Zeile — letzte Spalte = Klassenbezeichnung</p>
+    <textarea id="ta" rows="9">2;8;A
+3;9;A
+4;7;A
+2;11;A
+5;8;A
+8;2;B
+9;4;B
+7;3;B
+10;2;B
+15;8;C
+14;9;C
+16;7;C
+13;10;C</textarea>
+    <br><button onclick="loadText()">Daten übernehmen</button>
+    <button onclick="saveCSV()" class="btn-sm btn-blue">⬇ CSV</button>
+  </div>
+  <div id="d-file" style="display:none">
+    <div class="sc" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <label style="display:inline-flex;align-items:center;gap:6px;cursor:pointer;background:#4CAF50;color:#fff;border-radius:20px;padding:7px 14px;font-size:12px;user-select:none">
+        📂 Datei wählen
+        <input type="file" id="fileIn" accept=".csv,.txt" style="display:none"
+               onchange="document.getElementById('fileInName').textContent=this.files[0]?.name||'Keine Datei'">
+      </label>
+      <span id="fileInName" style="font-size:12px;color:#777;font-style:italic">Keine Datei ausgewählt</span>
+      <button onclick="loadFile()">Laden</button>
+    </div>
+  </div>
+  <div id="d-random" style="display:none">
+    <div class="sc">
+      <div class="srow">
+        <label class="slbl">Punkte: <input type="number" id="rn" value="30" min="4" max="300"></label>
+        <label class="slbl">Klassen: <input type="number" id="rcl" value="3" min="2" max="8"></label>
+        <label class="slbl">Anziehung: <input type="range" id="rstr" min="1" max="10" value="6" style="width:80px" oninput="rstr_lbl.textContent=this.value"><span id="rstr_lbl">6</span></label>
+      </div>
+      <div class="srow">
+        <label class="slbl">Dimensionen:
+          <input type="range" id="rdim" min="2" max="5" value="2" step="1" style="width:80px" oninput="document.getElementById('rdim-lbl').textContent=this.value">
+          <span id="rdim-lbl" style="font-weight:700;min-width:18px;display:inline-block">2</span>
+        </label>
+        <label class="tog"><input type="checkbox" id="rint" checked><span class="tog-t"></span>Ganzzahlig</label>
+      </div>
+      <button onclick="loadRandom()">Generieren</button>
+    </div>
+  </div>
+  <div id="d-example" style="display:none">
+    <div class="srow">
+      <span class="slbl">Datensatz:</span>
+      <select id="exSel">
+        <option value="1">#1 Schlangen – 2D, 2 Klassen S/N (10 Punkte)</option>
+        <option value="2">#2 Datensatz U/G – 2D, 2 Klassen (9 Punkte)</option>
+        <option value="3">#3 Blumenarten – 2D, 3 Klassen (15 Punkte)</option>
+        <option value="4">#4 Tierarten – 2D, 3 Klassen (14 Punkte)</option>
+        <option value="5">#5 Wettertypen – 2D, 4 Klassen (16 Punkte)</option>
+        <option value="6">#6 Schulerfolg – 3D, 3 Klassen (12 Punkte)</option>
+      </select>
+      <button onclick="loadExample()">Laden</button>
+    </div>
+  </div>
+  <div id="dstat" style="color:#2e7d32;font-size:13px;margin-top:3px;min-height:17px"></div>
+</details>
+
+<details>
+  <summary>Einstellungen</summary>
+  <div class="sc">
+    <div class="srow">
+      <label class="slbl" title="Anzahl der Nachbarn für die Abstimmung">k (Nachbarn): <input type="number" id="kk" value="3" min="1" max="20" oninput="onKChange()"></label>
+      <label class="slbl" title="L₂: Luftlinie · L₁: Manhattan · L∞: Chebyshev">Metrik:
+        <select id="metric" onchange="onMetricChange()">
+          <option value="eu">Euklidisch (L₂)</option>
+          <option value="ma">Manhattan (L₁)</option>
+          <option value="ch">Chebyshev (L∞)</option>
+        </select>
+      </label>
+    </div>
+    <div class="srow">
+      <label class="tog" title="Nähergelegene Punkte erhalten Gewicht 1/d²"><input type="checkbox" id="weighted" onchange="onRecompute()"><span class="tog-t"></span>Gewichtete Abstimmung (1/d²)</label>
+      <label class="tog" title="Hintergrundfarbe zeigt Entscheidungsklasse (nur 2D)"><input type="checkbox" id="boundary" onchange="if(trainPts.length)render()"><span class="tog-t"></span>Entscheidungsgrenze</label>
+      <label class="tog"><input type="checkbox" id="showLabels" checked onchange="if(trainPts.length)render()"><span class="tog-t"></span>Klassenbuchstabe im Punkt</label>
+    </div>
+  </div>
+  <details>
+    <summary>Koordinatensystem &amp; Grid</summary>
+    <div class="sc">
+      <div class="srow">
+        <label class="slbl">Y-Achse: <select id="ydir" onchange="onGridChange()"><option value="up">↑ nach oben</option><option value="down">↓ nach unten</option></select></label>
+        <label class="tog"><input type="checkbox" id="showgrid" checked onchange="if(trainPts.length)render()"><span class="tog-t"></span>Grid anzeigen</label>
+        <label class="slbl">Schrittweite: <input type="range" id="gstep-slider" min="0" max="7" value="3" step="1" style="width:80px" oninput="onGStepChange()"> <span id="gstep-lbl" style="min-width:28px;display:inline-block;font-weight:600;font-size:13px">1</span></label>
+      </div>
+      <div class="srow">
+        <span class="slbl">Achsenbeschriftungen:</span>
+        <span style="font-size:12px;color:#555">1:</span><input type="text" id="axlbl0" value="x" maxlength="12" style="width:64px;text-align:center;padding:2px 4px" onchange="if(trainPts.length)render()">
+        <span style="font-size:12px;color:#555">2:</span><input type="text" id="axlbl1" value="y" maxlength="12" style="width:64px;text-align:center;padding:2px 4px" onchange="if(trainPts.length)render()">
+      </div>
+    </div>
+  </details>
+</details>
+
+<!-- ══ TESTPUNKT – direkt über der Visualisierung ══ -->
+<div class="tp-card">
+  <div class="tp-title">🎯 Testpunkt (zu klassifizieren)</div>
+  <div class="srow">
+    <div class="pill-group">
+      <label class="pill-opt"><input type="radio" name="tpmode" value="manual" checked onchange="refreshTPUI()"><span>Manuell</span></label>
+      <label class="pill-opt"><input type="radio" name="tpmode" value="random" onchange="refreshTPUI()"><span>Zufällig</span></label>
+      <label class="pill-opt" id="tp-click-lbl" title="Nur für 2D verfügbar"><input type="radio" name="tpmode" value="click" onchange="refreshTPUI()"><span>Klicken (2D)</span></label>
+    </div>
+    <button class="btn-klass" onclick="klassifizieren()" id="bKlass">▶ Klassifizieren</button>
+    <span id="tp-click-hint" style="display:none;font-size:12px;color:#1565c0;font-style:italic">→ Klicke auf die Karte unten</span>
+  </div>
+  <div id="tp-inputs" class="ppos-box"></div>
+</div>
+
+<div class="smode-row">
+  <span class="slbl">Schritt-Modus:</span>
+  <div class="pill-group">
+    <label class="pill-opt" title="4 Phasen: Testpunkt → Distanzen → k-Nachbarn → Ergebnis"><input type="radio" name="smode" value="phase" checked><span>Phasenweise</span></label>
+    <label class="pill-opt" title="Ein Schritt pro Trainingspunkt"><input type="radio" name="smode" value="pt"><span>Punkt für Punkt</span></label>
+  </div>
+</div>
+<div class="ctrl-row">
+  <button id="bStep" onclick="step()" disabled>⏭ Schritt</button>
+  <button id="bEnd" onclick="runEnd()" disabled class="btn-blue">⏩ Bis Ende</button>
+  <button id="bReset" onclick="doReset()" disabled class="btn-red">↺ Reset</button>
+  <button onclick="clearHistory()" class="btn-sm" style="background:#8d6e63;color:#fff" title="Alle klassifizierten Testpunkte löschen">🗑 Verlauf löschen</button>
+  <div class="autoplay-grp">
+    <button id="bAuto" onclick="toggleAuto()" disabled>⏯ Auto-Play</button>
+    <div class="speed-w"><span style="font-size:11px">🐢</span><input type="range" id="spd" min="1" max="10" value="5" oninput="onSpeedChange()"><span style="font-size:11px">🐇</span></div>
+  </div>
+</div>
+<div class="prog-row">
+  <span class="prog-lbl">0</span>
+  <input type="range" id="progress" min="0" max="0" value="0" disabled>
+  <span class="prog-lbl" id="prog-max">0</span>
+</div>
+<div id="info"><div id="info-msg"><em>Trainingsdaten laden, dann Testpunkt eingeben und ▶ Klassifizieren klicken.</em></div><span id="info-ctr"></span></div>
+
+<div id="cv-wrap"><canvas id="cv"></canvas></div>
+
+<div id="cv3d-wrap"></div>
+
+<div id="rechenweg"></div>
+<div id="legend"></div>
+<div id="highdim-warn" class="warn-box" style="display:none">⚠️ Für Dimensionen &gt; 3 ist nur der Rechenweg verfügbar (keine Visualisierung).</div>
+
+<div class="site-footer"><div class="footer-content"><span></span><span style="text-align:center;color:#aaa;font-size:12px">Supervised Learning (kNN) Visualizer · M. Koch</span><span></span></div></div>
+
+<script>
+'use strict';
+const CLR  = ['#e74c3c','#3498db','#2ecc71','#f39c12','#9b59b6','#e91e63','#795548','#00bcd4'];
+const CLRL = ['#fde8e7','#dbeeff','#d5f5e3','#fef3e2','#ede6f7','#fce4ec','#efebe9','#e0f7fa'];
+const CLR3 = [0xe74c3c,0x3498db,0x2ecc71,0xf39c12,0x9b59b6,0xe91e63,0x795548,0x00bcd4];
+const PAD  = {t:34,r:16,b:28,l:40};
+const GSTEPS = [0.1,0.25,0.5,1,2,3,5,10];
+
+// ═══ STATE ═══
+let trainPts=[],trainLabels=[],classes=[],origPts=[],origLabels=[],dim=2;
+let queryHistory=[];
+let st=null,autoTimer=null,autoRunning=false,placing=false,skipRender=false;
+const cv=document.getElementById('cv'),ctx=cv.getContext('2d');
+let xMn,xMx,yMn,yMx,cs,cvW=0,cvH=0;
+
+// 3D
+let renderer3=null,camera3=null,controls3=null,animId3=null,scene3=null;
+let dimRanges=[],scene3CamSet=false;
+
+// ═══ EXAMPLES ═══
+const EXDATA={
+  1:{pts:[[1,1],[6,1],[9,1],[10,2],[8,3],[1,2],[2,4],[3,5],[5,3],[7,5]],
+     labels:['S','S','S','S','S','N','N','N','N','N'],
+     axlbls:['Länge','Breite'],testpt:[7,3],k:3},
+  2:{pts:[[40,30],[5,1],[80,0],[2,1],[15,7],[20,30],[7,34],[30,50],[5,25]],
+     labels:['U','G','U','G','G','U','U','U','G'],
+     axlbls:['x','y'],testpt:[12,26],k:3},
+  3:{pts:[[2,8],[3,10],[4,9],[2,11],[5,8],[3,9],[7,3],[8,2],[9,4],[7,2],[8,4],[14,8],[15,7],[13,9],[14,10]],
+     labels:['Rose','Rose','Rose','Rose','Rose','Rose','Tulpe','Tulpe','Tulpe','Tulpe','Tulpe','Sonnenblume','Sonnenblume','Sonnenblume','Sonnenblume'],
+     axlbls:['Blütenbreite (cm)','Stiellänge (cm)']},
+  4:{pts:[[3,12],[4,15],[2,10],[5,14],[3,11],[8,3],[9,2],[7,4],[10,3],[9,4],[18,8],[20,7],[17,9],[19,8]],
+     labels:['Katze','Katze','Katze','Katze','Katze','Hund','Hund','Hund','Hund','Hund','Pferd','Pferd','Pferd','Pferd'],
+     axlbls:['Körperlänge (dm)','Schulterhöhe (dm)']},
+  5:{pts:[[25,30],[28,35],[22,25],[30,20],[35,15],[20,80],[18,85],[22,90],[15,75],[25,52],[30,47],[28,55],[32,50],[-5,60],[-8,55],[-3,63]],
+     labels:['Sonnig','Sonnig','Sonnig','Sonnig','Sonnig','Regnerisch','Regnerisch','Regnerisch','Regnerisch','Bewölkt','Bewölkt','Bewölkt','Bewölkt','Schnee','Schnee','Schnee'],
+     axlbls:['Temperatur (°C)','Luftfeuchtigkeit (%)']},
+  6:{pts:[[80,75,85],[90,85,80],[75,70,90],[85,80,75],[50,55,60],[45,50,55],[60,55,50],[55,60,45],[20,30,25],[15,25,20],[30,20,30],[25,15,25]],
+     labels:['Gut','Gut','Gut','Gut','Befriedigend','Befriedigend','Befriedigend','Befriedigend','Mangelhaft','Mangelhaft','Mangelhaft','Mangelhaft'],
+     axlbls:['Mathe','Deutsch','Englisch']}
+};
+
+// ═══ DATA INPUT ═══
+function parseTxt(raw){
+  const rows=raw.trim().split('\n').map(l=>l.trim()).filter(l=>l&&!l.startsWith('#'));
+  const result=[];
+  for(const row of rows){
+    const parts=row.split(/[;,\t]+/).filter(s=>s);
+    if(parts.length<2)continue;
+    const label=parts[parts.length-1].trim();
+    const coords=parts.slice(0,-1).map(Number);
+    if(coords.some(isNaN)||!coords.length)continue;
+    result.push({coords,label});
+  }
+  return result;
+}
+
+function applyData(data){
+  if(!data.length){setInfo('⚠️ Keine gültigen Datenpunkte.');return;}
+  const d0=data[0].coords.length;
+  if(!data.every(p=>p.coords.length===d0)){setInfo('⚠️ Inkonsistente Dimensionsanzahl!');return;}
+  origPts=data.map(d=>[...d.coords]);origLabels=data.map(d=>d.label);
+  trainPts=origPts.map(p=>[...p]);trainLabels=[...origLabels];
+  classes=[...new Set(trainLabels)].sort();dim=d0;
+  document.getElementById('ta').value=data.map(d=>d.coords.join(';')+';'+d.label).join('\n');
+  document.getElementById('dstat').textContent=`✓ ${trainPts.length} Trainingspunkte, ${dim}D, ${classes.length} Klassen: ${classes.join(', ')}`;
+  document.getElementById('highdim-warn').style.display=dim>3?'':'none';
+  st=null;queryHistory=[];scene3CamSet=false;
+  // Reset 3D scene so init3D() runs fresh on next dim=3 render
+  if(animId3){cancelAnimationFrame(animId3);animId3=null;}
+  scene3=null;renderer3=null;controls3=null;camera3=null;
+  render._3dPending=false;
+  if(dim<=2){computeRange();setupCanvas();}else computeDimRanges();
+  updateLegend();refreshTPUI();render();buildRechenweg();
+  setInfo(`<strong>${trainPts.length} Trainingspunkte</strong>, ${classes.length} Klassen (${classes.join(', ')}). Testpunkt eingeben und ▶ Klassifizieren klicken.`);
+}
+
+function loadText(){applyData(parseTxt(document.getElementById('ta').value));}
+function loadFile(){const f=document.getElementById('fileIn').files[0];if(!f)return;const r=new FileReader();r.onload=e=>applyData(parseTxt(e.target.result));r.readAsText(f);}
+function loadExample(){
+  const id=+document.getElementById('exSel').value,ex=EXDATA[id];
+  if(ex.axlbls){document.getElementById('axlbl0').value=ex.axlbls[0]||'x';document.getElementById('axlbl1').value=ex.axlbls[1]||'y';}
+  if(ex.k)document.getElementById('kk').value=ex.k;
+  applyData(ex.pts.map((p,i)=>({coords:[...p],label:ex.labels[i]})));
+  // Vorgeschlagenen Testpunkt in manuelle Eingabe schreiben
+  if(ex.testpt){
+    document.querySelector('input[name="tpmode"][value="manual"]').checked=true;
+    refreshTPUI();
+    ex.testpt.forEach((v,j)=>{const el=document.getElementById(`tpx${j}`);if(el)el.value=v;});
+  }
+}
+function loadRandom(){
+  const n=+document.getElementById('rn').value,k=+document.getElementById('rcl').value,
+        str=+document.getElementById('rstr').value,isInt=document.getElementById('rint').checked,
+        rdim=+document.getElementById('rdim').value;
+  const clsNames='ABCDEFGH'.split('').slice(0,k);
+  const mn=1,mx=20,range=mx-mn;
+  function gauss(){return Math.sqrt(-2*Math.log(Math.random()))*Math.cos(2*Math.PI*Math.random());}
+  function snap(v){const c=Math.min(mx,Math.max(mn,v));return isInt?Math.round(c):Math.round(c*100)/100;}
+  const sig=range*Math.max(0.06,0.50-str*0.044);
+  const centers=[];
+  const rndC=()=>Array.from({length:rdim},()=>mn+0.15*range+Math.random()*0.70*range);
+  centers.push(rndC());
+  for(let c=1;c<k;c++){let best=null,bestD=-1;for(let t=0;t<60;t++){const cand=rndC();const md=Math.min(...centers.map(ce=>Math.sqrt(ce.reduce((s,v,j)=>s+(v-cand[j])**2,0))));if(md>bestD){bestD=md;best=cand;}}centers.push(best);}
+  const arr=[];const pc=Math.floor(n/k);
+  for(let c=0;c<k;c++){const cnt=c<k-1?pc:n-arr.length;for(let i=0;i<cnt;i++)arr.push({coords:centers[c].map(v=>snap(v+gauss()*sig)),label:clsNames[c]});}
+  document.getElementById('axlbl0').value='x';document.getElementById('axlbl1').value='y';
+  applyData(arr);
+}
+function saveCSV(){if(!origPts.length)return;const b=new Blob([origPts.map((p,i)=>p.join(';')+';'+origLabels[i]).join('\n')],{type:'text/csv'});const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download='trainingsdaten.csv';a.click();URL.revokeObjectURL(u);}
+function showDS(r){['text','file','random','example'].forEach(s=>document.getElementById('d-'+s).style.display=s===r.value?'':'none');}
+
+// ═══ TESTPUNKT UI ═══
+function refreshTPUI(){
+  // Klicken-Option für dim>=3 sperren
+  const clLbl=document.getElementById('tp-click-lbl');
+  if(clLbl){
+    const ci=clLbl.querySelector('input');
+    const disabled=dim>=3;
+    ci.disabled=disabled;
+    if(disabled&&ci.checked)document.querySelector('input[name="tpmode"][value="manual"]').checked=true;
+  }
+  const mode=document.querySelector('input[name="tpmode"]:checked')?.value||'manual';
+  const box=document.getElementById('tp-inputs');
+  const hint=document.getElementById('tp-click-hint');
+  box.style.display=mode==='manual'?'flex':'none';
+  if(hint)hint.style.display=mode==='click'?'':'none';
+  if(mode==='manual'){
+    const d=Math.min(Math.max(dim,2),5);
+    const axLbls=getAxisLabels();
+    const defVals=trainPts.length
+      ?Array.from({length:d},(_,j)=>{const mn=Math.min(...trainPts.map(p=>p[j])),mx=Math.max(...trainPts.map(p=>p[j]));return Math.round((mn+mx)/2*10)/10;})
+      :Array(d).fill(0);
+    box.innerHTML=defVals.map((v,j)=>{
+      const lbl=j<2?(axLbls[j]||['x','y'][j]):`x${j+1}`;
+      return `<div class="ppos-item"><span style="font-size:11px;font-weight:600;color:#1565c0">${lbl}:</span><input type="number" id="tpx${j}" value="${v}" step="0.5" style="width:64px"></div>`;
+    }).join('');
+  }
+}
+
+function klassifizieren(){
+  if(!trainPts.length){alert('Bitte zuerst Trainingsdaten laden!');return;}
+  doReset();
+  const mode=document.querySelector('input[name="tpmode"]:checked')?.value||'manual';
+  if(mode==='click'){
+    placing=true;cv.style.cursor='crosshair';
+    setInfo('🖱️ Auf die Karte unten klicken, um den Testpunkt zu setzen…');
+    cv.addEventListener('click',onCvClick,{once:true});
+    return;
+  }
+  let query;
+  if(mode==='random'){
+    query=Array.from({length:dim},(_,j)=>{
+      const mn=trainPts.length?Math.min(...trainPts.map(p=>p[j])):0;
+      const mx=trainPts.length?Math.max(...trainPts.map(p=>p[j])):10;
+      return Math.round((mn+(0.1+Math.random()*0.8)*(mx-mn))*100)/100;
+    });
+    // Zur Manuell-Ansicht wechseln und Werte zeigen
+    document.querySelector('input[name="tpmode"][value="manual"]').checked=true;
+    refreshTPUI();
+    query.forEach((v,j)=>{const el=document.getElementById(`tpx${j}`);if(el)el.value=v;});
+  }else{
+    query=Array.from({length:dim},(_,j)=>+(document.getElementById(`tpx${j}`)?.value||0));
+  }
+  initKNNAlgo(query);
+}
+
+// ═══ SETTINGS UI ═══
+function onKChange(){onRecompute();}
+function onMetricChange(){onRecompute();}
+function onRecompute(){
+  if(st&&!st.done){
+    const k=Math.min(+document.getElementById('kk').value,trainPts.length);
+    const q=st.query,weighted=document.getElementById('weighted').checked;
+    const allDists=trainPts.map((p,i)=>({idx:i,d:dist(q,p),label:trainLabels[i]}));
+    const sortedDists=[...allDists].sort((a,b)=>a.d-b.d);
+    const kNeighbors=sortedDists.slice(0,k);
+    const votes=computeVotes(kNeighbors,weighted);
+    const result=topVote(votes);
+    Object.assign(st,{k,allDists,sortedDists,kNeighbors,votes,result,weighted});
+  }
+  if(trainPts.length)render();buildRechenweg();
+}
+function onGridChange(){if(trainPts.length&&dim<=2){computeRange();setupCanvas();render();}}
+function onGStepChange(){syncGStepLbl();if(trainPts.length&&dim<=2){computeRange();setupCanvas();render();}}
+function syncGStepLbl(){const v=+document.getElementById('gstep-slider').value;document.getElementById('gstep-lbl').textContent=GSTEPS[Math.min(v,7)];}
+function getGStep(){return GSTEPS[Math.min(+document.getElementById('gstep-slider').value,7)];}
+function getAxisLabels(){return[document.getElementById('axlbl0')?.value||'x',document.getElementById('axlbl1')?.value||'y'];}
+
+// ═══ KOORDINATENSYSTEM 2D ═══
+function computeRange(){
+  if(!trainPts.length){xMn=0;xMx=10;yMn=0;yMx=10;return;}
+  const gS=getGStep();
+  const xs=[...trainPts.map(p=>p[0]),...queryHistory.map(q=>q.query[0])];
+  const ys=[...trainPts.map(p=>p[1]),...queryHistory.map(q=>q.query[1])];
+  if(st&&st.query){xs.push(st.query[0]);ys.push(st.query[1]);}
+  const mnX=Math.min(...xs),mxX=Math.max(...xs),mnY=Math.min(...ys),mxY=Math.max(...ys);
+  xMn=Math.floor(mnX/gS-0.8)*gS;xMx=Math.ceil(mxX/gS+0.8)*gS;
+  yMn=Math.floor(mnY/gS-0.8)*gS;yMx=Math.ceil(mxY/gS+0.8)*gS;
+  if(xMx-xMn<gS*2)xMx=xMn+gS*2;if(yMx-yMn<gS*2)yMx=yMn+gS*2;
+}
+
+function setupCanvas(){
+  const vw=document.documentElement.clientWidth,bodyW=Math.min(vw,1400);
+  const hPad=Math.max(4,bodyW*0.02),availTot=Math.max(280,bodyW-2*hPad-6);
+  const mW=availTot-PAD.l-PAD.r;
+  const mH=640;
+  const cols=xMx-xMn,rows=yMx-yMn;
+  cs=Math.min(Math.floor(mW/cols),Math.floor((mH-PAD.t-PAD.b)/rows));
+  cs=Math.max(cs,10);
+  cv.width=PAD.l+cols*cs+PAD.r;cv.height=PAD.t+rows*cs+PAD.b;
+  cvW=cv.width;cvH=cv.height;
+}
+
+function tc(x,y){const yUp=document.getElementById('ydir').value==='up';return[PAD.l+(x-xMn)*cs,yUp?PAD.t+(yMx-y)*cs:PAD.t+(y-yMn)*cs];}
+function fc(px,py){const yUp=document.getElementById('ydir').value==='up';return{x:(px-PAD.l)/cs+xMn,y:yUp?yMx-(py-PAD.t)/cs:(py-PAD.t)/cs+yMn};}
+
+// ═══ DISTANZ ═══
+function dist(a,b){
+  const m=document.getElementById('metric').value;
+  const diffs=a.map((v,i)=>Math.abs(v-(b[i]||0)));
+  switch(m){case'ma':return diffs.reduce((s,d)=>s+d,0);case'ch':return Math.max(...diffs);default:return Math.sqrt(diffs.reduce((s,d)=>s+d*d,0));}
+}
+function metricName(){return{eu:'Euklidisch (L₂)',ma:'Manhattan (L₁)',ch:'Chebyshev (L∞)'}[document.getElementById('metric').value]||'?';}
+function metricSym(){return{eu:'L_2',ma:'L_1',ch:'L_\\infty'}[document.getElementById('metric').value]||'L_2';}
+function computeVotes(kNeighbors,weighted){const votes={};classes.forEach(c=>votes[c]=0);kNeighbors.forEach(n=>{const w=weighted?1/(n.d*n.d+1e-9):1;votes[n.label]=(votes[n.label]||0)+w;});return votes;}
+function topVote(votes){return Object.entries(votes).sort((a,b)=>b[1]-a[1])[0][0];}
+function predictKNN(query,k){
+  const dsts=trainPts.map((p,i)=>({d:dist(query,p),label:trainLabels[i]}));
+  dsts.sort((a,b)=>a.d-b.d);
+  const votes={};dsts.slice(0,k).forEach(n=>votes[n.label]=(votes[n.label]||0)+1);
+  return Object.entries(votes).sort((a,b)=>b[1]-a[1])[0][0];
+}
+
+// ═══ 2D RENDER ═══
+function render(){
+  if(skipRender)return;
+  const cvWrap=document.getElementById('cv-wrap'),cv3Wrap=document.getElementById('cv3d-wrap');
+  const rwDiv=document.getElementById('rechenweg');
+  if(dim>3){cvWrap.style.display='none';cv3Wrap.style.display='none';rwDiv.style.display=(st||queryHistory.length)?'block':'none';buildRechenweg();return;}
+  if(dim===3){
+    cvWrap.style.display='none';cv3Wrap.style.display='block';
+    rwDiv.style.display=(st||queryHistory.length)?'block':'none';
+    if(!scene3&&!render._3dPending){render._3dPending=true;setTimeout(()=>{render._3dPending=false;if(!scene3)init3D();},30);}
+    else if(scene3)build3DScene();
+    buildRechenweg();return;
+  }
+  cvWrap.style.display='';cv3Wrap.style.display='none';
+  if(!trainPts.length)return;
+  ctx.clearRect(0,0,cvW,cvH);
+  ctx.fillStyle='#fff';ctx.fillRect(0,0,cvW,cvH);
+  if(document.getElementById('boundary').checked)drawDecisionBoundary();
+  drawGrid();
+  // k-Ball
+  if(st&&st.query&&(st.phase==='show_knn'||st.phase==='show_result')){
+    const kd=st.kNeighbors[st.kNeighbors.length-1]?.d;
+    if(kd!=null&&kd>0){
+      const[qx,qy]=tc(st.query[0],st.query[1]),m=document.getElementById('metric').value,r=kd*cs;
+      ctx.strokeStyle='rgba(50,50,50,0.3)';ctx.lineWidth=1.5;ctx.setLineDash([6,4]);
+      if(m==='eu'){ctx.beginPath();ctx.arc(qx,qy,r,0,Math.PI*2);ctx.stroke();}
+      else if(m==='ma'){ctx.beginPath();ctx.moveTo(qx,qy-r);ctx.lineTo(qx+r,qy);ctx.lineTo(qx,qy+r);ctx.lineTo(qx-r,qy);ctx.closePath();ctx.stroke();}
+      else{ctx.strokeRect(qx-r,qy-r,2*r,2*r);}
+      ctx.setLineDash([]);
+    }
+  }
+  // Distanzlinien
+  if(st&&st.query&&st.phase!=='show_query'){
+    const sMode=getStepMode();const showKNN=st.phase==='show_knn'||st.phase==='show_result';
+    const nShow=sMode==='pt'?st.showDistCount:trainPts.length;
+    for(let i=0;i<nShow;i++){
+      const entry=st.allDists[i];const isKNN=showKNN&&st.kNeighbors.some(n=>n.idx===entry.idx);
+      const ci=classes.indexOf(entry.label);
+      if(isKNN)drawDistLine(st.query,trainPts[entry.idx],CLR[ci%CLR.length],false,2.5);
+      else drawDistLine(st.query,trainPts[entry.idx],'rgba(170,170,170,0.5)',true,1);
+    }
+  }
+  drawTrainPts();
+  if(st&&st.query)drawQueryStar(st.query);
+  queryHistory.forEach(qh=>drawQueryDiamond(qh));
+  drawAxisNames();
+  rwDiv.style.display=(st||queryHistory.length)?'block':'none';
+  buildRechenweg();
+}
+
+function drawDecisionBoundary(){
+  const k=Math.min(+document.getElementById('kk').value,trainPts.length);
+  if(classes.length<2)return;
+  const step=Math.max(2,Math.min(9,Math.floor(cs*.55)));
+  for(let px=PAD.l;px<cvW-PAD.r;px+=step){
+    for(let py=PAD.t;py<cvH-PAD.b;py+=step){
+      const dp=fc(px+step*.5,py+step*.5);
+      const pred=predictKNN([dp.x,dp.y],k);
+      const ci=classes.indexOf(pred);
+      ctx.fillStyle=CLRL[ci%CLRL.length];ctx.fillRect(px,py,step+.5,step+.5);
+    }
+  }
+}
+
+function drawGrid(){
+  const gS=getGStep();if(!document.getElementById('showgrid').checked)return;
+  const fsz=Math.max(10,Math.min(14,cs*gS*.4));
+  ctx.strokeStyle='rgba(0,0,0,0.08)';ctx.lineWidth=.5;
+  for(let gx=xMn;gx<=xMx+gS*.001;gx+=gS){const[px]=tc(gx,yMn);ctx.beginPath();ctx.moveTo(px,PAD.t);ctx.lineTo(px,cvH-PAD.b);ctx.stroke();}
+  for(let gy=yMn;gy<=yMx+gS*.001;gy+=gS){const[,py]=tc(xMn,gy);ctx.beginPath();ctx.moveTo(PAD.l,py);ctx.lineTo(cvW-PAD.r,py);ctx.stroke();}
+  ctx.fillStyle='#666';ctx.font=`${fsz}px Calibri`;
+  const xCnt=Math.round((xMx-xMn)/gS)+1,yCnt=Math.round((yMx-yMn)/gS)+1;
+  const minGap=fsz*2.2;
+  const xEvery=Math.max(1,Math.ceil(xCnt*minGap/(cvW-PAD.l-PAD.r)));
+  const yEvery=Math.max(1,Math.ceil(yCnt*minGap/(cvH-PAD.t-PAD.b)));
+  const yUp=document.getElementById('ydir').value==='up';
+  ctx.textAlign='center';let xi=0;
+  for(let gx=xMn;gx<=xMx+gS*.001;gx+=gS){
+    if(xi%xEvery===0){const[px]=tc(gx,yMn);if(yUp){ctx.textBaseline='top';ctx.fillText(fmtN(gx),px,cvH-PAD.b+5);}else{ctx.textBaseline='bottom';ctx.fillText(fmtN(gx),px,PAD.t-5);}}xi++;
+  }
+  ctx.textAlign='right';ctx.textBaseline='middle';let yi=0;
+  for(let gy=yMn;gy<=yMx+gS*.001;gy+=gS){if(yi%yEvery===0){const[,py]=tc(xMn,gy);ctx.fillText(fmtN(gy),PAD.l-5,py);}yi++;}
+}
+
+function drawAxisNames(){
+  const[lx,ly]=getAxisLabels();
+  ctx.fillStyle='#333';ctx.font=`bold 13px Calibri`;
+  ctx.textAlign='center';ctx.textBaseline='bottom';
+  ctx.fillText(lx,(PAD.l+cvW-PAD.r)/2,cvH-2);
+  ctx.save();ctx.translate(16,(PAD.t+cvH-PAD.b)/2);ctx.rotate(-Math.PI/2);ctx.textBaseline='middle';ctx.fillText(ly,0,0);ctx.restore();
+}
+
+function drawTrainPts(){
+  const r=Math.max(8,Math.min(cs*.34,15));
+  const showLbl=document.getElementById('showLabels').checked;
+  trainPts.forEach((p,i)=>{
+    const[px,py]=tc(p[0],p[1]);const ci=classes.indexOf(trainLabels[i]);
+    const isKNN=st&&(st.phase==='show_knn'||st.phase==='show_result')&&st.kNeighbors.some(n=>n.idx===i);
+    if(isKNN){ctx.beginPath();ctx.arc(px,py,r+7,0,Math.PI*2);ctx.strokeStyle=CLR[ci%CLR.length];ctx.lineWidth=3;ctx.stroke();}
+    ctx.beginPath();ctx.arc(px,py,r,0,Math.PI*2);
+    ctx.fillStyle=CLR[ci%CLR.length];ctx.fill();ctx.strokeStyle='rgba(0,0,0,0.3)';ctx.lineWidth=1;ctx.stroke();
+    if(showLbl&&r>=7){ctx.fillStyle='#fff';ctx.font=`bold ${Math.max(10,Math.round(r*.9))}px Calibri`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(trainLabels[i][0].toUpperCase(),px,py);}
+    if(isKNN&&st.sortedDists){
+      const rank=st.sortedDists.findIndex(d=>d.idx===i)+1;
+      ctx.fillStyle=CLR[ci%CLR.length];ctx.font=`bold ${Math.max(9,Math.round(r*.82))}px Calibri`;ctx.textAlign='center';ctx.textBaseline='bottom';
+      ctx.fillText(`#${rank}`,px,py-r-5);
+    }
+  });
+}
+
+function drawQueryStar(q){
+  const[px,py]=tc(q[0],q[1]),s=Math.max(10,Math.min(cs*.40,16)),n=5;
+  ctx.beginPath();
+  for(let i=0;i<2*n;i++){const rad=i%2===0?s:s*.42,ang=(i*Math.PI/n)-Math.PI/2;const xx=px+rad*Math.cos(ang),yy=py+rad*Math.sin(ang);i===0?ctx.moveTo(xx,yy):ctx.lineTo(xx,yy);}
+  ctx.closePath();ctx.fillStyle='#fff';ctx.fill();ctx.strokeStyle='#111';ctx.lineWidth=2.5;ctx.stroke();
+}
+
+function drawQueryDiamond(qh){
+  const[px,py]=tc(qh.query[0],qh.query[1]);
+  const ci=classes.indexOf(qh.label),s=Math.max(7,Math.min(cs*.24,11));
+  ctx.beginPath();ctx.moveTo(px,py-s);ctx.lineTo(px+s,py);ctx.lineTo(px,py+s);ctx.lineTo(px-s,py);ctx.closePath();
+  ctx.fillStyle=CLR[ci%CLR.length];ctx.fill();ctx.strokeStyle='#222';ctx.lineWidth=1.5;ctx.stroke();
+}
+
+function drawDistLine(p1,p2,color,dashed,w){
+  const m=document.getElementById('metric').value;
+  const[x1,y1]=tc(p1[0],p1[1]),[x2,y2]=tc(p2[0],p2[1]);
+  ctx.strokeStyle=color;ctx.lineWidth=w||1.5;ctx.setLineDash(dashed?[5,4]:[]);
+  if(m==='ma'){const[cx,cy]=tc(p2[0],p1[1]);ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(cx,cy);ctx.lineTo(x2,y2);ctx.stroke();if(!dashed){ctx.beginPath();ctx.arc(cx,cy,2.5,0,Math.PI*2);ctx.fillStyle=color;ctx.fill();}}
+  else if(m==='ch'){const dx=p2[0]-p1[0],dy=p2[1]-p1[1],diag=Math.min(Math.abs(dx),Math.abs(dy)),sx=dx>=0?1:-1,sy=dy>=0?1:-1;const[mx,my]=tc(p1[0]+sx*diag,p1[1]+sy*diag);ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(mx,my);ctx.lineTo(x2,y2);ctx.stroke();if(!dashed&&Math.abs(dx)!==Math.abs(dy)){ctx.beginPath();ctx.arc(mx,my,2.5,0,Math.PI*2);ctx.fillStyle=color;ctx.fill();}}
+  else{ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();}
+  ctx.setLineDash([]);
+}
+
+// ═══ 3D VISUALISIERUNG (Three.js) ═══
+function computeDimRanges(){
+  dimRanges=Array.from({length:Math.min(dim,3)},(_,i)=>{
+    const vals=trainPts.map(p=>p[i]);
+    const mn=Math.min(...vals),mx=Math.max(...vals);
+    return{mn,mx,rng:Math.max(mx-mn,0.01)};
+  });
+}
+
+function dw3(p){
+  // Uniform-Scale: größte Achsenrange bestimmt den Maßstab → Abstände bleiben proportional
+  const S=6,maxRng=Math.max(...dimRanges.map(d=>d.rng));
+  const cx=(dimRanges[0].mn+dimRanges[0].mx)/2;
+  const cy=(dimRanges[1].mn+dimRanges[1].mx)/2;
+  const cz=dimRanges.length>2?(dimRanges[2].mn+dimRanges[2].mx)/2:0;
+  const pz=p.length>2?p[2]:0;
+  return new THREE.Vector3(
+    (p[0]-cx)/maxRng*S,
+    (pz-cz)/maxRng*S,   // 3. Dimension → Y (oben)
+    (p[1]-cy)/maxRng*S  // 2. Dimension → Z (Tiefe)
+  );
+}
+
+function init3D(){
+  if(animId3){cancelAnimationFrame(animId3);animId3=null;}
+  const wrap=document.getElementById('cv3d-wrap');
+  const W=wrap.offsetWidth||Math.min(Math.max(400,window.innerWidth-44),1380);
+  const H=Math.min(560,Math.max(360,window.innerHeight*.58));
+  wrap.style.height=H+'px';
+
+  scene3=new THREE.Scene();
+  scene3.background=new THREE.Color(0xf0f0f0);
+  camera3=new THREE.PerspectiveCamera(60,W/H,0.01,10000);
+  renderer3=new THREE.WebGLRenderer({antialias:true});
+  renderer3.setPixelRatio(Math.min(window.devicePixelRatio,2));
+  renderer3.setSize(W,H);
+  wrap.innerHTML='';
+  wrap.appendChild(renderer3.domElement);
+  controls3=new THREE.OrbitControls(camera3,renderer3.domElement);
+  controls3.enableDamping=true;controls3.enablePan=true;
+
+  scene3.add(new THREE.AmbientLight(0xffffff,0.8));
+  const dl=new THREE.DirectionalLight(0xffffff,0.45);dl.position.set(6,9,5);scene3.add(dl);
+
+  build3DScene();
+
+  function anim3loop(){
+    animId3=requestAnimationFrame(anim3loop);
+    controls3.update();
+    renderer3.render(scene3,camera3);
+  }
+  anim3loop();
+}
+
+function build3DScene(){
+  if(!window.THREE||!renderer3||!scene3)return;
+  // Remove all non-light objects (keep AmbientLight + DirectionalLight)
+  const toRemove=[];scene3.traverse(o=>{if(!(o instanceof THREE.Light)&&o!==scene3)toRemove.push(o);});
+  toRemove.forEach(o=>scene3.remove(o));
+
+  const S=6,ptR=0.19;
+  // Referenz-Box (Drahtgitter)
+  scene3.add(new THREE.LineSegments(
+    new THREE.EdgesGeometry(new THREE.BoxGeometry(S,S,S)),
+    new THREE.LineBasicMaterial({color:0xcccccc,transparent:true,opacity:0.28})
+  ));
+  // Achsen
+  function axLine(from,to,c){const g=new THREE.BufferGeometry().setFromPoints([from,to]);scene3.add(new THREE.Line(g,new THREE.LineBasicMaterial({color:c})));}
+  axLine(new THREE.Vector3(-S/2,0,0),new THREE.Vector3(S/2,0,0),0xcc3333);  // x1 → rot
+  axLine(new THREE.Vector3(0,0,-S/2),new THREE.Vector3(0,0,S/2),0x3366cc);  // x2 → blau
+  axLine(new THREE.Vector3(0,-S/2,0),new THREE.Vector3(0,S/2,0),0x33aa33);  // x3 → grün
+
+  // Achsen-Sprites
+  function mkSprite(text,color,pos){
+    const c=document.createElement('canvas');c.width=192;c.height=56;
+    const g=c.getContext('2d');g.clearRect(0,0,192,56);
+    g.font='bold 34px Arial';g.fillStyle=color;g.textAlign='center';g.textBaseline='middle';g.fillText(text,96,28);
+    const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c),transparent:true,depthTest:false,depthWrite:false}));
+    sp.renderOrder=999;sp.scale.set(S*0.28,S*0.09,1);sp.position.copy(pos);scene3.add(sp);
+  }
+  const axLbls=getAxisLabels();
+  mkSprite(axLbls[0]||'x₁','#cc3333',new THREE.Vector3(S/2+0.55,0,0));
+  mkSprite(axLbls[1]||'x₂','#3366cc',new THREE.Vector3(0,0,S/2+0.55));
+  mkSprite('x₃','#33aa33',new THREE.Vector3(0,S/2+0.42,0));
+
+  // Prüft ob Punkt zum kNN gehört
+  const isKNN=i=>st&&(st.phase==='show_knn'||st.phase==='show_result')&&st.kNeighbors.some(n=>n.idx===i);
+
+  // Trainingspunkte
+  trainPts.forEach((p,i)=>{
+    const ci=classes.indexOf(trainLabels[i]);
+    const c3=parseInt(CLR[ci%CLR.length].slice(1),16);
+    const isN=isKNN(i);
+    const r=isN?ptR*1.85:ptR;
+    const m=new THREE.Mesh(new THREE.SphereGeometry(r,10,8),new THREE.MeshStandardMaterial({color:c3,roughness:0.5}));
+    m.position.copy(dw3(p));scene3.add(m);
+    if(isN){
+      const h=new THREE.Mesh(new THREE.SphereGeometry(r*1.7,8,6),new THREE.MeshBasicMaterial({color:c3,wireframe:true,transparent:true,opacity:0.5}));
+      h.position.copy(dw3(p));scene3.add(h);
+    }
+  });
+
+  // Testpunkt + Distanzlinien
+  if(st&&st.query){
+    const qw=dw3(st.query);
+    // Weiße Kugel mit gelbem Halo
+    const qm=new THREE.Mesh(new THREE.SphereGeometry(ptR*2.3,12,10),new THREE.MeshStandardMaterial({color:0xffffff,roughness:0.18,metalness:0.15}));
+    qm.position.copy(qw);scene3.add(qm);
+    const qh=new THREE.Mesh(new THREE.SphereGeometry(ptR*3.5,8,6),new THREE.MeshBasicMaterial({color:0xffcc00,wireframe:true,transparent:true,opacity:0.65}));
+    qh.position.copy(qw);scene3.add(qh);
+
+    if(st.phase!=='show_query'){
+      const showKNN=st.phase==='show_knn'||st.phase==='show_result';
+      const nShow=getStepMode()==='pt'?st.showDistCount:trainPts.length;
+      for(let i=0;i<nShow;i++){
+        const entry=st.allDists[i];
+        const pw=dw3(trainPts[entry.idx]);
+        const isN=showKNN&&st.kNeighbors.some(n=>n.idx===entry.idx);
+        const ci=classes.indexOf(entry.label);
+        const c3=parseInt(CLR[ci%CLR.length].slice(1),16);
+        const g=new THREE.BufferGeometry().setFromPoints([qw.clone(),pw.clone()]);
+        scene3.add(new THREE.Line(g,new THREE.LineBasicMaterial({color:isN?c3:0xbbbbbb,transparent:true,opacity:isN?0.92:0.28})));
+      }
+    }
+    // k-Ball (nur Euklidisch)
+    if((st.phase==='show_knn'||st.phase==='show_result')&&document.getElementById('metric').value==='eu'){
+      const kd=st.kNeighbors[st.kNeighbors.length-1]?.d;
+      if(kd>0){
+        const maxRng=Math.max(...dimRanges.map(d=>d.rng));
+        const kdr=kd/maxRng*S;
+        const ball=new THREE.Mesh(new THREE.SphereGeometry(kdr,28,18),new THREE.MeshBasicMaterial({color:0x555555,wireframe:true,transparent:true,opacity:0.13}));
+        ball.position.copy(qw);scene3.add(ball);
+      }
+    }
+  }
+
+  // Verlauf (Oktaeder-Marker)
+  queryHistory.forEach(qh=>{
+    const ci=classes.indexOf(qh.label);
+    const c3=parseInt(CLR[ci%CLR.length].slice(1),16);
+    const m=new THREE.Mesh(new THREE.OctahedronGeometry(ptR*1.5,0),new THREE.MeshStandardMaterial({color:c3}));
+    m.position.copy(dw3(qh.query));scene3.add(m);
+  });
+
+  // Kamera initial setzen
+  if(!scene3CamSet&&trainPts.length){
+    const ctr=dw3(trainPts.reduce((acc,p)=>p.map((v,i)=>acc[i]+v/trainPts.length),Array(Math.min(dim,3)).fill(0)));
+    if(controls3)controls3.target.copy(ctr);
+    camera3.position.set(ctr.x-3,ctr.y+4,ctr.z+9);
+    if(controls3)controls3.update();
+    scene3CamSet=true;
+  }
+}
+
+// ═══ KNN ALGORITHMUS ═══
+function initKNNAlgo(query){
+  if(!trainPts.length){alert('Bitte Trainingsdaten laden!');return;}
+  const k=Math.min(+document.getElementById('kk').value,trainPts.length);
+  const weighted=document.getElementById('weighted').checked;
+  const allDists=trainPts.map((p,i)=>({idx:i,d:dist(query,p),label:trainLabels[i]}));
+  const sortedDists=[...allDists].sort((a,b)=>a.d-b.d);
+  const kNeighbors=sortedDists.slice(0,k);
+  const votes=computeVotes(kNeighbors,weighted);
+  const result=topVote(votes);
+  st={type:'knn',query,k,weighted,allDists,sortedDists,kNeighbors,result,votes,phase:'show_query',showDistCount:0,hlPt:-1,steps:0,done:false};
+  if(dim<=2){computeRange();setupCanvas();}else computeDimRanges();
+  setButtons(true);updateLegend();render();
+  const qStr=query.slice(0,dim).map(fmtN4).join(', ');
+  setInfo(`Testpunkt <strong>(${qStr})</strong> gesetzt. k=${k}. ⏭ Schritt oder ⏩ Bis Ende.`);
+  setCounter();
+}
+
+function stepKNN(){
+  if(!st||st.done)return true;
+  const s=st,sMode=getStepMode();
+  if(sMode==='pt'){
+    if(s.phase==='show_query'){
+      s.phase='show_dists';s.showDistCount=1;s.hlPt=s.allDists[0].idx;s.steps++;
+      const e=s.allDists[0];const ci=classes.indexOf(e.label);
+      setInfo(`Distanz zu <span style="color:${CLR[ci%CLR.length]};font-weight:bold">Punkt 1</span> (${trainPts[e.idx].map(fmtN4).join(', ')} | ${e.label}): <strong>${e.d.toFixed(3)}</strong>`);
+      render();setCounter();return false;
+    }
+    if(s.phase==='show_dists'&&s.showDistCount<trainPts.length){
+      s.showDistCount++;s.hlPt=s.allDists[s.showDistCount-1].idx;s.steps++;
+      const e=s.allDists[s.showDistCount-1];const ci=classes.indexOf(e.label);
+      setInfo(`Distanz zu <span style="color:${CLR[ci%CLR.length]};font-weight:bold">Punkt ${s.showDistCount}</span> (${trainPts[e.idx].map(fmtN4).join(', ')} | ${e.label}): <strong>${e.d.toFixed(3)}</strong>`);
+      render();setCounter();
+      if(s.showDistCount>=trainPts.length)s.phase='show_knn_ready';
+      return false;
+    }
+    if(s.phase==='show_knn_ready'||s.phase==='show_dists'){
+      s.phase='show_knn';s.hlPt=-1;s.steps++;
+      const knnStr=s.kNeighbors.map(n=>`<span style="color:${CLR[classes.indexOf(n.label)%CLR.length]}">${n.label}</span>(${n.d.toFixed(2)})`).join(', ');
+      setInfo(`<strong>k=${s.k} nächste Nachbarn:</strong> ${knnStr}`);
+      render();setCounter();return false;
+    }
+    if(s.phase==='show_knn'){finishKNN();return true;}
+    return false;
+  }
+  // Phasenweise
+  if(s.phase==='show_query'){
+    s.phase='show_dists';s.showDistCount=trainPts.length;s.steps++;
+    setInfo(`Alle <strong>${trainPts.length} Distanzen</strong> berechnet (${metricName()}).`);
+    render();setCounter();return false;
+  }
+  if(s.phase==='show_dists'){
+    s.phase='show_knn';s.steps++;
+    const knnStr=s.kNeighbors.map(n=>`<span style="color:${CLR[classes.indexOf(n.label)%CLR.length]}">${n.label}</span>(${n.d.toFixed(2)})`).join(', ');
+    setInfo(`<strong>k=${s.k} nächste Nachbarn:</strong> ${knnStr}`);
+    render();setCounter();return false;
+  }
+  if(s.phase==='show_knn'){finishKNN();return true;}
+  return false;
+}
+
+function finishKNN(){
+  const s=st;
+  s.phase='show_result';s.done=true;s.steps++;
+  queryHistory.push({query:s.query,label:s.result,k:s.k,votes:{...s.votes},sortedDists:[...s.sortedDists],weighted:s.weighted});
+  stopAuto();updateLegend();
+  if(dim<=2){computeRange();setupCanvas();}
+  render();
+  const ci=classes.indexOf(s.result);
+  const vStr=Object.entries(s.votes).sort((a,b)=>b[1]-a[1]).map(([l,v])=>`<span style="color:${CLR[classes.indexOf(l)%CLR.length]};font-weight:600">${l}: ${s.weighted?v.toFixed(3):v}</span>`).join(' · ');
+  setInfo(`✅ Klasse: <strong style="color:${CLR[ci%CLR.length]}">${s.result}</strong> — Abstimmung: ${vStr}`);
+  setCounter();
+  document.getElementById('bStep').disabled=true;document.getElementById('bEnd').disabled=true;
+}
+
+// ═══ RECHENWEG ═══
+function buildRechenweg(){
+  if(skipRender)return;
+  const div=document.getElementById('rechenweg');if(!div)return;
+  if(!st&&!queryHistory.length){div.style.display='none';div.innerHTML='';return;}
+  div.style.display='block';
+  if(!st){div.innerHTML=buildHistoryHTML();if(window.MathJax)MathJax.typesetPromise([div]).catch(()=>{});return;}
+  const s=st;
+  const showDists=s.phase!=='show_query';
+  const showKNN=s.phase==='show_knn'||s.phase==='show_result';
+  const sMode=getStepMode();
+  const nShow=showDists?(sMode==='pt'?s.showDistCount:trainPts.length):0;
+
+  let h=`<div style="margin-bottom:8px;font-size:13px"><strong>k-Nearest Neighbors</strong> · k=${s.k} · ${metricName()}${s.weighted?' · Gewichtet (1/d²)':''}</div>`;
+  h+=`<div style="font-size:12px;color:#555;margin-bottom:6px">Testpunkt: <strong>\\(x=(${s.query.slice(0,dim).map(fmtN4).join(',\\ ')})\\)</strong></div>`;
+
+  if(nShow>0){
+    const displaySorted=showKNN;
+    const displayDists=displaySorted?s.sortedDists.slice(0,nShow):s.allDists.slice(0,nShow);
+    const rankMap={};s.sortedDists.forEach((d,i)=>rankMap[d.idx]=i+1);
+    h+=`<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px">`;
+    h+=`<thead><tr style="background:#e8f5e9;border-bottom:2px solid #4CAF50">`;
+    h+=`<th style="padding:5px 8px;text-align:center">${displaySorted?'Rang':'#'}</th>`;
+    h+=`<th style="padding:5px 8px">Punkt \\(x_i\\)</th>`;
+    h+=`<th style="padding:5px 8px;text-align:center">Klasse</th>`;
+    h+=`<th style="padding:5px 8px;text-align:center">Distanz \\(d_{${metricSym()}}\\)</th>`;
+    if(s.weighted)h+=`<th style="padding:5px 8px;text-align:center">Gewicht</th>`;
+    h+=`</tr></thead><tbody>`;
+    displayDists.forEach((entry,rowIdx)=>{
+      const{idx,d,label}=entry;const ci=classes.indexOf(label);
+      const rank=rankMap[idx];const isN=rank<=s.k;
+      const bg=isN&&showKNN?CLRL[ci%CLRL.length]:(rowIdx%2===0?'#fafafa':'#fff');
+      const bc=isN&&showKNN?CLR[ci%CLR.length]:'#ddd';
+      const w=s.weighted?1/(d*d+1e-9):1;
+      h+=`<tr style="background:${bg};border-bottom:1px solid ${bc}${isN&&showKNN?';font-weight:bold':''}">`;
+      h+=`<td style="padding:3px 8px;text-align:center;border-left:4px solid ${isN&&showKNN?CLR[ci%CLR.length]:'#e8e8e8'}">${displaySorted?rank:(idx+1)}</td>`;
+      h+=`<td style="padding:3px 8px">(${trainPts[idx].map(fmtN4).join(', ')})</td>`;
+      h+=`<td style="padding:3px 8px;text-align:center;color:${CLR[ci%CLR.length]};font-weight:bold">${label}</td>`;
+      if(rowIdx===0&&dim<=4){
+        const q=s.query.slice(0,dim),p=trainPts[idx];let formula='';
+        const m=document.getElementById('metric').value;
+        if(m==='eu'&&dim<=3){const terms=p.map((pv,j)=>`(${fmtN4(q[j])}{-}${fmtN4(pv)})^2`).join('+');formula=`\\(\\sqrt{${terms}}\\approx ${d.toFixed(3)}\\)`;}
+        else if(m==='ma'&&dim<=4){const terms=p.map((pv,j)=>`|${fmtN4(q[j])}{-}${fmtN4(pv)}|`).join('+');formula=`\\(${terms}=${d.toFixed(3)}\\)`;}
+        else formula=fmtN4(d);
+        h+=`<td style="padding:3px 8px;text-align:center">${formula}</td>`;
+      }else h+=`<td style="padding:3px 8px;text-align:center">${fmtN4(d)}</td>`;
+      if(s.weighted)h+=`<td style="padding:3px 8px;text-align:center">${w.toFixed(4)}</td>`;
+      h+=`</tr>`;
+    });
+    h+=`</tbody></table></div>`;
+    if(displaySorted&&sMode==='pt')h+=`<p style="font-size:11px;color:#888;margin:4px 0">↑ nach Distanz sortiert</p>`;
+  }
+
+  if(showKNN){
+    h+=`<div style="margin-top:8px;padding:8px 12px;background:#f3e5f5;border-radius:4px;font-size:12px;border-left:4px solid #9b59b6">`;
+    h+=`<strong>Abstimmung (k=${s.k}):</strong><br>`;
+    Object.entries(s.votes).sort((a,b)=>b[1]-a[1]).forEach(([lbl,v])=>{
+      const ci=classes.indexOf(lbl);
+      h+=`<div style="display:flex;align-items:center;gap:8px;margin:3px 0">`;
+      h+=`<span style="min-width:80px;color:${CLR[ci%CLR.length]};font-weight:bold">${lbl}</span>`;
+      h+=`<div style="flex:1;background:#e0e0e0;border-radius:4px;height:14px"><div style="background:${CLR[ci%CLR.length]};width:${Math.min(100,Math.round(v*100/s.k))}%;height:14px;border-radius:4px"></div></div>`;
+      h+=`<span style="min-width:55px;font-variant-numeric:tabular-nums">${s.weighted?v.toFixed(3):v} Stmm.</span></div>`;
+    });
+    if(s.phase==='show_result'){
+      const ci=classes.indexOf(s.result);
+      h+=`<div style="margin-top:6px;font-size:13px">\\(\\Rightarrow\\) Klasse: <strong style="color:${CLR[ci%CLR.length]}">${s.result}</strong></div>`;
+    }
+    h+=`</div>`;
+  }
+
+  if(queryHistory.length>0)h+=buildHistoryHTML();
+  div.innerHTML=h;
+  if(window.MathJax)MathJax.typesetPromise([div]).catch(()=>{});
+}
+
+function buildHistoryHTML(){
+  let h=`<hr style="border:0;border-top:1px solid #e0e0e0;margin:10px 0">`;
+  h+=`<div style="font-size:12px;font-weight:bold;margin-bottom:4px">Bisherige Testpunkte (${queryHistory.length}):</div>`;
+  h+=`<table style="border-collapse:collapse;font-size:12px;width:100%"><thead><tr style="background:#f5f5f5"><th style="padding:3px 8px">#</th><th>Testpunkt</th><th>k</th><th style="text-align:center">Klasse</th></tr></thead><tbody>`;
+  queryHistory.forEach((qh,i)=>{
+    const ci=classes.indexOf(qh.label);
+    h+=`<tr style="border-bottom:1px solid #eee"><td style="padding:2px 8px;color:#888">${i+1}</td>`;
+    h+=`<td style="padding:2px 8px">(${qh.query.slice(0,dim).map(fmtN4).join(', ')})</td>`;
+    h+=`<td style="padding:2px 8px;text-align:center">${qh.k}</td>`;
+    h+=`<td style="padding:2px 8px;text-align:center;color:${CLR[ci%CLR.length]};font-weight:bold">⬩ ${qh.label}</td></tr>`;
+  });
+  return h+`</tbody></table>`;
+}
+
+// ═══ STEUERUNG ═══
+function onCvClick(e){
+  placing=false;cv.style.cursor='default';
+  const rect=cv.getBoundingClientRect();
+  const scaleX=cvW/rect.width,scaleY=cvH/rect.height;
+  const dp=fc((e.clientX-rect.left)*scaleX,(e.clientY-rect.top)*scaleY);
+  const query=[dp.x,dp.y,...Array(Math.max(0,dim-2)).fill(0)].slice(0,dim);
+  // Koordinaten in manuelle Eingabe schreiben
+  document.querySelector('input[name="tpmode"][value="manual"]').checked=true;
+  refreshTPUI();
+  query.forEach((v,j)=>{const el=document.getElementById(`tpx${j}`);if(el)el.value=Math.round(v*100)/100;});
+  initKNNAlgo(query);
+}
+function step(){if(!st)return;const done=stepKNN();if(done)stopAuto();}
+function toggleAuto(){autoRunning?stopAuto():startAuto();}
+function startAuto(){autoRunning=true;document.getElementById('bAuto').textContent='⏸ Pause';const delay=2200-(+document.getElementById('spd').value)*200;autoTimer=setInterval(()=>{const done=stepKNN();if(done)stopAuto();},delay);}
+function stopAuto(){if(autoTimer)clearInterval(autoTimer);autoTimer=null;autoRunning=false;const b=document.getElementById('bAuto');if(b)b.textContent='⏯ Auto-Play';}
+function onSpeedChange(){if(autoRunning){stopAuto();startAuto();}}
+function runEnd(){
+  stopAuto();if(!st)return;
+  skipRender=true;let safety=50000;while(!st.done&&safety-->0)stepKNN();
+  skipRender=false;render();setCounter();
+}
+function doReset(){
+  stopAuto();
+  if(placing){cv.removeEventListener('click',onCvClick);cv.style.cursor='default';placing=false;}
+  st=null;setButtons(false);setInfo('Reset. Testpunkt eingeben und ▶ Klassifizieren klicken.');setCounter();
+  if(trainPts.length){
+    if(dim<=2){computeRange();setupCanvas();}else computeDimRanges();
+    render();
+  }
+  buildRechenweg();
+}
+function clearHistory(){
+  queryHistory=[];
+  if(trainPts.length){if(dim<=2){computeRange();setupCanvas();}else computeDimRanges();render();}
+  updateLegend();buildRechenweg();
+}
+function getStepMode(){return document.querySelector('input[name="smode"]:checked')?.value||'phase';}
+
+// ═══ UI HELPERS ═══
+function setButtons(a){['bStep','bAuto','bEnd','bReset'].forEach(id=>{const el=document.getElementById(id);if(el)el.disabled=!a;});}
+function setInfo(html){const el=document.getElementById('info-msg');if(el)el.innerHTML=html;}
+function setCounter(){
+  const el=document.getElementById('info-ctr'),slider=document.getElementById('progress'),maxEl=document.getElementById('prog-max');
+  if(!st){el.textContent='';slider.value=0;slider.max=0;slider.disabled=true;maxEl.textContent='0';return;}
+  slider.disabled=false;
+  const sMode=getStepMode();const total=sMode==='pt'?trainPts.length+3:4;
+  el.textContent=`${st.steps}/${total}`;slider.max=total;slider.value=Math.min(st.steps,total);maxEl.textContent=total;
+}
+function updateLegend(){
+  const el=document.getElementById('legend');let html='';
+  classes.forEach((c,i)=>html+=`<span class="lgd"><span class="ldot" style="background:${CLR[i%CLR.length]}"></span>${c}</span>`);
+  if(queryHistory.length)html+=`<span class="lgd"><span class="lstar">⬩</span> Klassifiziert</span>`;
+  if(st&&!st.done)html+=`<span class="lgd"><span class="lstar">★</span> Aktueller Testpunkt</span>`;
+  el.innerHTML=html;
+}
+function fmtN(v){const s=(Math.round(v*1000)/1000).toString();return s==='0'?'0':s;}
+function fmtN4(v){if(v==null||isNaN(v))return'0';if(Math.abs(v)<1e-9)return'0';return(Math.round(v*10000)/10000).toString();}
+
+// ═══ INIT ═══
+['file','random','example'].forEach(s=>document.getElementById('d-'+s).style.display='none');
+syncGStepLbl();refreshTPUI();loadText();
+window.addEventListener('resize',()=>{
+  if(trainPts.length&&dim<=2){computeRange();setupCanvas();render();}
+  if(trainPts.length&&dim===3&&renderer3&&scene3){
+    const wrap=document.getElementById('cv3d-wrap');
+    const W=wrap.offsetWidth||Math.min(Math.max(400,window.innerWidth-44),1380);
+    const H=Math.min(560,Math.max(360,window.innerHeight*.58));
+    wrap.style.height=H+'px';
+    renderer3.setSize(W,H);camera3.aspect=W/H;camera3.updateProjectionMatrix();
+  }
+});
+</script>
+</body>
+</html>

@@ -361,11 +361,19 @@ const cardsData = [
     "link": "anno.html?subject=informatik"
   },
   {
+    "id": "supervised-learning",
+    "title": "Überwachtes Lernen",
+    "desc": "Visualisiere die Funktionsweise von k-nearest neighbors (k-NN) zum überwachtem Lernen (supervised learning) an Beispielen",
+    "types": ["uebung"],
+    "mobilefriendly": true,
+    "link": "supervised_learning.html"
+  },
+  {
     "id": "unsupervised-learning",
     "title": "Unüberwachtes Lernen",
     "desc": "Visualisiere die Funktionsweise von Algorithmen (LVQ, k-means) zum unüberwachtem Lernen (unsupervised learning) an Beispielen",
     "types": ["uebung"],
-    "mobilefriendly": false,
+    "mobilefriendly": true,
     "link": "unsupervised_learning.html"
   },
   {
