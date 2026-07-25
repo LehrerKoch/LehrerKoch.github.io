@@ -5,7 +5,49 @@ const cardsData = [
     "desc": "Ordne den Zahlbereichen (Natürliche Zahlen, Ganze Zahlen, ...) Zahlen zu.",
     "types": ["quiz"],
     "mobilefriendly": true,
-    "link": "zahlbereiche.html"
+    "link": "zahlbereiche.html",
+    "fach": "Mathematik",
+    "stufe": [7, 9],
+    "wichtig": false,
+    "added": "2026-05-26"
+  },
+  {
+    "id": "groessen_umrechnen",
+    "title": "Größen umrechnen",
+    "desc": "Übe das Umrechnen von Größen in verschiedenen Einheiten.",
+    "types": ["learn"],
+    "mobilefriendly": true,
+    "link": "groessen_umrechnen.html",
+    "fach": "Mathematik",
+    "stufe": [7,8],
+    "wichtig": false,
+    "added": "2026-07-25",
+    "wip": true
+  },
+  {
+    "id": "waage",
+    "title": "Lineare Gleichungen lösen (mit Waagen-Modell)",
+    "desc": "Ordne den Zahlbereichen (Natürliche Zahlen, Ganze Zahlen, ...) Zahlen zu.",
+    "types": ["uebung"],
+    "mobilefriendly": true,
+    "link": "waage.html",
+    "fach": "Mathematik",
+    "stufe": [7,8],
+    "wichtig": true,
+    "added": "2026-07-25"
+  },
+  {
+    "id": "potenzgesetze",
+    "title": "Potenzgesetze",
+    "desc": "Übe die Potenzgesetze an verschiedenen Beispielen.",
+    "types": ["learn"],
+    "mobilefriendly": true,
+    "link": "potenzgesetze.html",
+    "fach": "Mathematik",
+    "stufe": [8,9],
+    "wichtig": false,
+    "added": "2026-05-25",
+    "wip": true
   },
   {
     "id": "potenzen",
@@ -13,7 +55,13 @@ const cardsData = [
     "desc": "Übe Quadratzahlen, andere Potenzen und Wurzeln",
     "types": ["flash", "quiz"],
     "mobilefriendly": true,
-    "link": "potenzen.html"
+    "link": "potenzen.html",
+    "fach": "Mathematik",   // mathematik | informatik | sonstiges (optional)
+    "stufe": [8, 9],       // Zahlen oder Strings, [..] für Doppeljahrgänge (optional)
+    "wichtig": true,        // rotes "! Wichtig", dauerhaft (optional)
+    "added": "2025-09-17",  // "Neu"-Fähnchen im Highlight-Zeitraum (optional)
+    "major": "2026-04-14",  // "Update"-Fähnchen im Highlight-Zeitraum (optional)
+    "extra": false           // grauer Titel + Stern, über den Schulstoff hinaus (optional)
   },
   {
     "id": "sciNot",
@@ -21,7 +69,12 @@ const cardsData = [
     "desc": "Übe die wissenschaftliche Schreibweise mit abgetrennter Zehnerpotenz",
     "types": ["quiz"],
     "mobilefriendly": true,
-    "link": "wissenschaftliche_schreibweise.html"
+    "link": "wissenschaftliche_schreibweise.html",
+    "fach": "Mathematik",
+    "stufe": [8, 9],
+    "wichtig": false,
+    "added": "2026-05-30",
+    "extra": false
   },
   {
     "id": "gleichungart",
@@ -29,7 +82,13 @@ const cardsData = [
     "desc": "Welche Gleichungsart liegt vor und wie löst man sie?",
     "types": ["quiz"],
     "mobilefriendly": true,
-    "link": "gleichungart.html"
+    "link": "gleichungart.html",
+    "fach": "Mathematik",
+    "stufe": [10, "Abi"],
+    "wichtig": true,
+    "added": "2025-10-09",
+    // "major": "2026-04-14",
+    "extra": false
   },
   {
     "id": "lgs",
@@ -37,7 +96,13 @@ const cardsData = [
     "desc": "LGS mit 2 oder 3 Gleichungen lösen",
     "types": ["learn"],
     "mobilefriendly": true,
-    "link": "lgs.html"
+    "link": "lgs.html",
+    "fach": "Mathematik",
+    "stufe": [8],
+    "wichtig": true,
+    "added": "2025-09-03",
+    "major": "2026-07-25",
+    "extra": false
   },
   {
     "id": "scheitelpunktform",
@@ -45,7 +110,13 @@ const cardsData = [
     "desc": "Umwandeln der Scheitelpunktform üben",
     "types": ["learn"],
     "mobilefriendly": true,
-    "link": "scheitelpunktform.html"
+    "link": "scheitelpunktform.html",
+    "fach": "Mathematik",
+    "stufe": [9],
+    "wichtig": false,
+    "added": "2025-12-15",
+    // "major": "2026-04-14",
+    "extra": false
   },
   {
     "id": "geo-scheitelpunkt",
@@ -53,7 +124,10 @@ const cardsData = [
     "desc": "Ablesen und Einzeichnen in Scheitelpunktform",
     "types": ["geo"],
     "mobilefriendly": false,
-    "link": "https://t1p.de/geogebraScheitelpunkt"
+    "link": "https://t1p.de/geogebraScheitelpunkt",
+    "fach": "Mathematik",
+    "stufe": [9],
+    "wichtig": true
   },
   {
     "id": "pq",
@@ -61,7 +135,13 @@ const cardsData = [
     "desc": "Anwendung der p-q-Formel trainieren",
     "types": ["learn"],
     "mobilefriendly": true,
-    "link": "pq.html"
+    "link": "pq.html",
+    "fach": "Mathematik",
+    "stufe": [9],
+    "wichtig": true,
+    "added": "2025-09-03",
+    // "major": "2026-04-14",
+    "extra": false
   },
   {
     "id": "geo-potparam",
@@ -69,7 +149,11 @@ const cardsData = [
     "desc": "Ablesen/Einzeichnen lineartransformierter Potenzfunktionen",
     "types": ["geo"],
     "mobilefriendly": false,
-    "link": "https://t1p.de/potparam"
+    "link": "https://t1p.de/potparam",
+    "fach": "Mathematik",
+    "stufe": [9,10],
+    "wichtig": false,
+    "extra": false
   },
   {
     "id": "geo-koSymm",
@@ -77,7 +161,11 @@ const cardsData = [
     "desc": "Symmetrie am Graphen oder der Funktionsgleichung erkennen",
     "types": ["geo"],
     "mobilefriendly": false,
-    "link": "https://t1p.de/koSymm"
+    "link": "https://t1p.de/koSymm",
+    "fach": "Mathematik",
+    "stufe": [10, "Abi"],
+    "wichtig": false,
+    "extra": false
   },
   {
     "id": "grenzverhalten-poly",
@@ -85,7 +173,13 @@ const cardsData = [
     "desc": "Grenzverhalten von Polynomen und Potenzfunktionen bestimmen",
     "types": ["quiz"],
     "mobilefriendly": true,
-    "link": "grenzverhalten-poly.html"
+    "link": "grenzverhalten-poly.html",
+    "fach": "Mathematik",
+    "stufe": [10, "Abi"],
+    "wichtig": false,
+    "added": "2026-03-20",
+    // "major": "2026-04-14",
+    "extra": false
   },
   {
     "id": "polynom-ableitung",
@@ -93,7 +187,13 @@ const cardsData = [
     "desc": "Ableitungen von Polynomen und Potenzfunktionen",
     "types": ["learn"],
     "mobilefriendly": true,
-    "link": "polynom-ableitung.html"
+    "link": "polynom-ableitung.html",
+    "fach": "Mathematik",
+    "stufe": ["Abi"],
+    "wichtig": true,
+    "added": "2026-02-23",
+    // "major": "2026-04-14",
+    "extra": false
   },
   {
     "id": "polynom-reko",
@@ -101,7 +201,13 @@ const cardsData = [
     "desc": "Finden einer Polynomfunktion mit bestimmten Eigenschaften ('Steckbriefaufgaben')",
     "types": ["learn"],
     "mobilefriendly": true,
-    "link": "polynom_rekonstruieren.html"
+    "link": "polynom_rekonstruieren.html",
+    "fach": "Mathematik",
+    "stufe": ["Abi"],
+    "wichtig": false,
+    "added": "2026-05-21",
+    // "major": "2026-04-14",
+    "extra": false
   },
   {
     "id": "ableitungen",
@@ -109,7 +215,13 @@ const cardsData = [
     "desc": "Ableitungen weiterer Standardfunktionen festigen",
     "types": ["flash"],
     "mobilefriendly": true,
-    "link": "ableitungen.html"
+    "link": "ableitungen.html",
+    "fach": "Mathematik",
+    "stufe": ["Abi"],
+    "wichtig": false,
+    "added": "2026-01-15",
+    // "major": "2026-04-14",
+    "extra": false
   },
   {
     "id": "kettenregel",
@@ -117,7 +229,13 @@ const cardsData = [
     "desc": "Kettenregel sicher anwenden",
     "types": ["learn"],
     "mobilefriendly": true,
-    "link": "kettenregel.html"
+    "link": "kettenregel.html",
+    "fach": "Mathematik",
+    "stufe": ["Abi"],
+    "wichtig": false,
+    "added": "2026-01-15",
+    // "major": "2026-04-14",
+    "extra": false
   },
   {
     "id": "produktregel",
@@ -125,7 +243,13 @@ const cardsData = [
     "desc": "Produktregel sicher anwenden",
     "types": ["learn"],
     "mobilefriendly": true,
-    "link": "produktregel.html"
+    "link": "produktregel.html",
+    "fach": "Mathematik",
+    "stufe": ["Abi"],
+    "wichtig": false,
+    "added": "2026-01-20",
+    // "major": "2026-04-14",
+    "extra": false
   },
   {
     "id": "e-fkt",
@@ -133,7 +257,13 @@ const cardsData = [
     "desc": "Ableiten der e-Funktion und Terme zusammenfassen",
     "types": ["learn"],
     "mobilefriendly": true,
-    "link": "e-fkt.html"
+    "link": "e-fkt.html",
+    "fach": "Mathematik",
+    "stufe": ["Abi"],
+    "wichtig": true,
+    "added": "2026-01-22",
+    // "major": "2026-04-14",
+    "extra": false
   },
   {
     "id": "grenzverhalten-e",
@@ -141,7 +271,13 @@ const cardsData = [
     "desc": "Grenzverhalten der e-Funktion bestimmen",
     "types": ["quiz"],
     "mobilefriendly": true,
-    "link": "grenzverhalten-e.html"
+    "link": "grenzverhalten-e.html",
+    "fach": "Mathematik",
+    "stufe": ["Abi"],
+    "wichtig": false,
+    "added": "2026-01-23",
+    "major": "2026-03-20",
+    "extra": false
   },
   {
     "id": "integral",
@@ -149,7 +285,13 @@ const cardsData = [
     "desc": "Stammfunktionen von Polynomen finden",
     "types": ["learn"],
     "mobilefriendly": true,
-    "link": "integral_uebung.html"
+    "link": "integral_uebung.html",
+    "fach": "Mathematik",
+    "stufe": ["Abi"],
+    "wichtig": true,
+    "added": "2026-02-19",
+    // "major": "2026-04-14",
+    "extra": false
   },
   {
     "id": "bestimmtes-integral",
@@ -157,7 +299,13 @@ const cardsData = [
     "desc": "Bestimmte Integrale berechnen",
     "types": ["learn"],
     "mobilefriendly": true,
-    "link": "bestimmtes_integral_uebung.html"
+    "link": "bestimmtes_integral_uebung.html",
+    "fach": "Mathematik",
+    "stufe": ["Abi"],
+    "wichtig": true,
+    "added": "2026-02-26",
+    // "major": "2026-04-14",
+    "extra": false
   },
   {
     "id": "geo-integral",
@@ -165,7 +313,11 @@ const cardsData = [
     "desc": "Visualisierung bestimmter Integrale",
     "types": ["geo"],
     "mobilefriendly": false,
-    "link": "https://www.geogebra.org/calculator/ftgpxxzx"
+    "link": "https://www.geogebra.org/calculator/ftgpxxzx",
+    "fach": "Mathematik",
+    "stufe": ["Abi"],
+    "wichtig": false,
+    "extra": false
   },
   {
     "id": "aufg-flaechen-integrale",
@@ -173,7 +325,13 @@ const cardsData = [
     "desc": "Flächeninhalte unter Graphen von Polynomen mit bestimmten Integralen",
     "types": ["learn"],
     "mobilefriendly": true,
-    "link": "flaeche_polynom_uebung.html"
+    "link": "flaeche_polynom_uebung.html",
+    "fach": "Mathematik",
+    "stufe": ["Abi"],
+    "wichtig": true,
+    "added": "2026-04-27",
+    // "major": "2026-04-14",
+    "extra": false
   },
   {
     "id": "aufg-schnittflaechen-integrale",
@@ -181,7 +339,13 @@ const cardsData = [
     "desc": "Schnittflächen zwischen Graphen von Polynomen mit bestimmten Integralen üben",
     "types": ["learn"],
     "mobilefriendly": true,
-    "link": "schnittflaeche_polynome.html"
+    "link": "schnittflaeche_polynome.html",
+    "fach": "Mathematik",
+    "stufe": ["Abi"],
+    "wichtig": false,
+    "added": "2026-05-12",
+    // "major": "2026-04-14",
+    "extra": false
   },
   {
     "id": "geo-3DKoord",
@@ -189,7 +353,11 @@ const cardsData = [
     "desc": "Visualisierung des 3-dimensionalen Koordinatensystems",
     "types": ["geo"],
     "mobilefriendly": false,
-    "link": "https://t1p.de/3DKoord"
+    "link": "https://t1p.de/3DKoord",
+    "fach": "Mathematik",
+    "stufe": [10, "Abi"],
+    "wichtig": false,
+    "extra": false
   },
   {
     "id": "geo-koBasis",
@@ -197,7 +365,11 @@ const cardsData = [
     "desc": "Visualisierung der Basistransformation",
     "types": ["geo"],
     "mobilefriendly": false,
-    "link": "https://t1p.de/koBasis"
+    "link": "https://t1p.de/koBasis",
+    "fach": "Mathematik",
+    "stufe": ["Abi"],
+    "wichtig": false,
+    "extra": true
   },
   {
     "id": "kongruenzsatz",
@@ -205,7 +377,12 @@ const cardsData = [
     "desc": "Kongruenzsätze sicher erkennen und zeichnen können",
     "types": ["uebung", "quiz"],
     "mobilefriendly": true,
-    "link": "kongruenzsatz.html"
+    "link": "kongruenzsatz.html",
+    "fach": "Mathematik",
+    "stufe": [7, 9],
+    "wichtig": false,
+    "added": "2026-05-12",
+    "extra": false
   },
   {
     "id": "seiten-benennung",
@@ -213,7 +390,13 @@ const cardsData = [
     "desc": "Quiz: Ankathete, Gegenkathete, Hypotenuse benennen",
     "types": ["quiz"],
     "mobilefriendly": true,
-    "link": "seiten_benennung.html?t1=1&t2=1&t3=0&t4=0"
+    "link": "seiten_benennung.html?t1=1&t2=1&t3=0&t4=0",
+    "fach": "Mathematik",
+    "stufe": [8, 9],
+    "wichtig": false,
+    "added": "2026-03-09",
+    // "major": "2026-04-14",
+    "extra": false
   },
   {
     "id": "trig-aufstellen",
@@ -221,7 +404,13 @@ const cardsData = [
     "desc": "Quiz: Winkelbeziehungen (Sinus, Kosinus, Tangens) aufstellen und angeben",
     "types": ["quiz"],
     "mobilefriendly": true,
-    "link": "seiten_benennung.html?t1=0&t2=0&t3=1&t4=1"
+    "link": "seiten_benennung.html?t1=0&t2=0&t3=1&t4=1",
+    "fach": "Mathematik",
+    "stufe": [9],
+    "wichtig": false,
+    "added": "2026-05-25",
+    // "major": "2026-05-25",
+    "extra": false
   },
   {
     "id": "trigonometrie",
@@ -229,7 +418,13 @@ const cardsData = [
     "desc": "Trigonometrie im <b>rechtwinkligen</b> Dreieck: Sinus, Kosinus, Tangens &amp; Pythagoras anwenden",
     "types": ["learn"],
     "mobilefriendly": true,
-    "link": "trigonometrie_uebung.html"
+    "link": "trigonometrie_uebung.html",
+    "fach": "Mathematik",
+    "stufe": [8, 9],
+    "wichtig": true,
+    "added": "2026-03-05",
+    // "major": "2026-04-14",
+    "extra": false
   },
   {
     "id": "sinuskosinussatz",
@@ -237,7 +432,13 @@ const cardsData = [
     "desc": "Trigonometrie im <b>beliebigen</b> Dreieck: Sinus- und Kosinussatz anwenden",
     "types": ["learn"],
     "mobilefriendly": true,
-    "link": "sinuskosinussatz_uebung.html"
+    "link": "sinuskosinussatz_uebung.html",
+    "fach": "Mathematik",
+    "stufe": [9],
+    "wichtig": true,
+    "added": "2026-03-09",
+    // "major": "2026-04-14",
+    "extra": false
   },
   {
     "id": "geo-sinus-herleitung",
@@ -245,7 +446,11 @@ const cardsData = [
     "desc": "Visualisierung der Herleitung der Sinusfunktion",
     "types": ["geo"],
     "mobilefriendly": false,
-    "link": "https://t1p.de/geogebra-herleitung-sinusfunktion"
+    "link": "https://t1p.de/geogebra-herleitung-sinusfunktion",
+    "fach": "Mathematik",
+    "stufe": [9,10],
+    "wichtig": true,
+    "extra": false
   },
   {
     "id": "geo-arkussinus",
@@ -253,7 +458,11 @@ const cardsData = [
     "desc": "Visualisierung der Arkussinus-Funktion und ihrer Herleitung",
     "types": ["geo"],
     "mobilefriendly": false,
-    "link": "https://t1p.de/geogebra-arkussinus"
+    "link": "https://t1p.de/geogebra-arkussinus",
+    "fach": "Mathematik",
+    "stufe": [10],
+    "wichtig": false,
+    "extra": true
   },
   {
     "id": "geo-sinus-ablesen",
@@ -261,7 +470,11 @@ const cardsData = [
     "desc": "Parameter der allgemeinen Sinusfunktion üben",
     "types": ["geo"],
     "mobilefriendly": false,
-    "link": "https://t1p.de/geogebra-sinus-parameter-ueben"
+    "link": "https://t1p.de/geogebra-sinus-parameter-ueben",
+    "fach": "Mathematik",
+    "stufe": [10],
+    "wichtig": true,
+    "extra": false
   },
   {
     "id": "geo-sinus-veraendern",
@@ -269,7 +482,11 @@ const cardsData = [
     "desc": "Auswirkungen der Lineartransformations-Parameter verstehen",
     "types": ["geo"],
     "mobilefriendly": false,
-    "link": "https://t1p.de/geogebra-sinus-parameter-veraendern"
+    "link": "https://t1p.de/geogebra-sinus-parameter-veraendern",
+    "fach": "Mathematik",
+    "stufe": [10],
+    "wichtig": true,
+    "extra": false
   },
   {
     "id": "geo-parameter-einheit",
@@ -277,7 +494,13 @@ const cardsData = [
     "desc": "Herleitung der Parameter über Einheitskreis. Auch: Summe zweier Sinus-Funktionen",
     "types": ["geo"],
     "mobilefriendly": false,
-    "link": "https://t1p.de/ko-sinparam-einheit"
+    "link": "https://t1p.de/ko-sinparam-einheit",
+    "fach": "Mathematik",
+    "stufe": [10],
+    "wichtig": false,
+    "added": "2026-05-30",
+    "major": "2026-04-14",
+    "extra": false
   },
   {
     "id": "sinus-toene",
@@ -286,7 +509,13 @@ const cardsData = [
     Wieso haben die Noten genau diese Frequenzen und was bewirken Akkorde",
     "types": ["uebung"],
     "mobilefriendly": true,
-    "link": "sinus-toene.html"
+    "link": "sinus-toene.html",
+    "fach": "Mathematik",
+    "stufe": [10],
+    "wichtig": false,
+    "added": "2026-04-27",
+    // "major": "2026-04-14",
+    "extra": true
   },
   {
     "id": "geo-fourier",
@@ -294,7 +523,11 @@ const cardsData = [
     "desc": "Visualisierung der Fourierreihe",
     "types": ["geo"],
     "mobilefriendly": false,
-    "link": "https://t1p.de/geogebra-fourier"
+    "link": "https://t1p.de/geogebra-fourier",
+    "fach": "Mathematik",
+    "stufe": [10],
+    "wichtig": false,
+    "extra": true
   },
   {
     "id": "differenz_trifft",
@@ -302,7 +535,13 @@ const cardsData = [
     "desc": "Spielerisch Wahrscheinlichkeiten einschätzen",
     "types": ["game"],
     "mobilefriendly": true,
-    "link": "differenz_trifft.html"
+    "link": "differenz_trifft.html",
+    "fach": "Mathematik",
+    "stufe": [8, 9],
+    "wichtig": false,
+    "added": "2026-06-02",
+    // "major": "2026-04-14",
+    "extra": true
   },
   {
     "id": "baumdiagramm_auswahl",
@@ -310,7 +549,13 @@ const cardsData = [
     "desc": "Ordne zu, an welcher Stelle welche Ereignisse im Baumdiagramm eingetragen werden müssen",
     "types": ["quiz"],
     "mobilefriendly": true,
-    "link": "baumdiagramm_felder.html"
+    "link": "baumdiagramm_felder.html",
+    "fach": "Mathematik",
+    "stufe": [8, "Abi"],
+    "wichtig": false,
+    "added": "2026-06-02",
+    // "major": "2026-04-14",
+    "extra": false
   },
   {
     "id": "vierfeldertafel",
@@ -318,7 +563,28 @@ const cardsData = [
     "desc": "Fülle die Felder der Vierfeldertafel aus, um damit Wahrscheinlichkeiten (auch bedingte) zu berechnen",
     "types": ["quiz"],
     "mobilefriendly": true,
-    "link": "vierfeldertafel.html"
+    "link": "vierfeldertafel.html",
+    "fach": "Mathematik",
+    "stufe": [10, "Abi"],
+    "wichtig": true,
+    "added": "2026-06-03",
+    // "major": "2026-04-14",
+    "extra": false
+  },
+  {
+    "id": "ziegenproblem",
+    "title": "Ziegenproblem",
+    "desc": "Löse das klassische Ziegenproblem zur Veranschaulichung von Wahrscheinlichkeiten",
+    "types": ["quiz"],
+    "mobilefriendly": true,
+    "link": "ziegenproblem.html",
+    "fach": "Mathematik",
+    // "stufe": [10, "Abi"],
+    "wichtig": false,
+    "added": "2026-06-06",
+    // "major": "2026-04-14",
+    "extra": true,
+    "wip": true
   },
   {
     "id": "graphen",
@@ -326,7 +592,13 @@ const cardsData = [
     "desc": "Welche Standard-Funktion wird dargestellt?",
     "types": ["flash"],
     "mobilefriendly": true,
-    "link": "graphen.html"
+    "link": "graphen.html",
+    "fach": "Mathematik",
+    "stufe": [10],
+    "wichtig": true,
+    "added": "2026-01-15",
+    // "major": "2026-04-14",
+    "extra": false
   },
   {
     "id": "binary",
@@ -334,7 +606,13 @@ const cardsData = [
     "desc": "Umrechnung zwischen Binär- und Dezimalzahlen üben",
     "types": ["uebung"],
     "mobilefriendly": true,
-    "link": "binary.html"
+    "link": "binary.html",
+    "fach": "Informatik",
+    "stufe": [8],
+    "wichtig": true,
+    "added": "2026-09-13",
+    // "major": "2026-04-14",
+    "extra": false
   },
   {
     "id": "rsa",
@@ -342,7 +620,13 @@ const cardsData = [
     "desc": "RSA-Verschlüsselung Schritt für Schritt üben",
     "types": ["uebung"],
     "mobilefriendly": true,
-    "link": "rsa_interaktiv.html"
+    "link": "rsa_interaktiv.html",
+    "fach": "Informatik",
+    "stufe": ["Abi"],
+    "wichtig": true,
+    "added": "2026-03-20",
+    // "major": "2026-04-14",
+    "extra": false
   },
   {
     "id": "RAM",
@@ -350,7 +634,13 @@ const cardsData = [
     "desc": "Visualisierung des Speicherverhaltens in einem Computer",
     "types": ["uebung"],
     "mobilefriendly": true,
-    "link": "ram_viewer.html"
+    "link": "ram_viewer.html",
+    "fach": "Informatik",
+    "stufe": [10, "Abi"],
+    "wichtig": false,
+    "added": "2026-05-05",
+    // "major": "2026-04-14",
+    "extra": false
   },
   {
     "id": "annoinformatica",
@@ -358,7 +648,12 @@ const cardsData = [
     "desc": "Ordne informatische und Computer-geschichtliche Ereignisse am Zeitstrahl",
     "types": ["game"],
     "mobilefriendly": true,
-    "link": "anno.html?subject=informatik"
+    "link": "anno.html?subject=informatik",
+    "fach": "Informatik",
+    "wichtig": false,
+    "added": "2026-05-18",
+    // "major": "2026-04-14",
+    "extra": true
   },
   {
     "id": "supervised-learning",
@@ -366,7 +661,13 @@ const cardsData = [
     "desc": "Visualisiere die Funktionsweise von k-nearest neighbors (k-NN) zum überwachtem Lernen (supervised learning) an Beispielen",
     "types": ["uebung"],
     "mobilefriendly": true,
-    "link": "supervised_learning.html"
+    "link": "supervised_learning.html",
+    "fach": "Informatik",
+    "stufe": ["Abi"],
+    "wichtig": false,
+    "added": "2026-06-23",
+    // "major": "2026-04-14",
+    "extra": false
   },
   {
     "id": "unsupervised-learning",
@@ -374,7 +675,13 @@ const cardsData = [
     "desc": "Visualisiere die Funktionsweise von Algorithmen (LVQ, k-means) zum unüberwachtem Lernen (unsupervised learning) an Beispielen",
     "types": ["uebung"],
     "mobilefriendly": true,
-    "link": "unsupervised_learning.html"
+    "link": "unsupervised_learning.html",
+    "fach": "Informatik",
+    "stufe": ["Abi"],
+    "wichtig": false,
+    "added": "2026-06-18",
+    // "major": "2026-04-14",
+    "extra": false
   },
   {
     "id": "buchstaben-trainer",
@@ -382,7 +689,13 @@ const cardsData = [
     "desc": "Wie heißen die griechischen (hebräischen, kyrillischen) Buchstaben und wie werden sie geschrieben?",
     "types": ["flash", "quiz"],
     "mobilefriendly": true,
-    "link": "buchstaben_trainer.html"
+    "link": "buchstaben_trainer.html",
+    "fach": "Sonstiges",
+    // "stufe": [8, 9],
+    "wichtig": false,
+    "added": "2026-04-01",
+    // "major": "2026-04-14",
+    "extra": true
   },
   {
     "id": "schrift-trainer",
@@ -390,7 +703,13 @@ const cardsData = [
     "desc": "Übersetze die Schrift von einzelnen Wörtern in andere Buchstabensysteme",
     "types": ["uebung"],
     "mobilefriendly": true,
-    "link": "schrift_trainer.html"
+    "link": "schrift_trainer.html",
+    "fach": "Sonstiges",
+    // "stufe": [8, 9],
+    "wichtig": false,
+    "added": "2026-04-07",
+    // "major": "2026-04-14",
+    "extra": true
   },
   {
     "id": "trio",
@@ -398,7 +717,13 @@ const cardsData = [
     "desc": "Zufallsgeneriertes Spielfeld für das Mathe-Spiel TRIO",
     "types": ["game"],
     "mobilefriendly": true,
-    "link": "TRIO.html"
+    "link": "TRIO.html",
+    "fach": "Mathematik",
+    // "stufe": [8, 9],
+    "wichtig": false,
+    "added": "2024-04-01",
+    "major": "2026-05-30",
+    "extra": true
   },
   {
     "id": "annomathematica",
@@ -406,7 +731,13 @@ const cardsData = [
     "desc": "Ordne mathematische Ereignisse am Zeitstrahl, von der Antike bis zur Gegenwart.",
     "types": ["game"],
     "mobilefriendly": true,
-    "link": "anno.html"
+    "link": "anno.html",
+    "fach": "Mathematik",
+    // "stufe": [8, 9],
+    "wichtig": false,
+    "added": "2026-04-27",
+    "major": "2026-05-04",
+    "extra": true
   },
   {
     "id": "studiengaenge",
@@ -414,6 +745,26 @@ const cardsData = [
     "desc": "Orientierungshilfe für Studiengänge rund um Mathematik",
     "types": ["info"],
     "mobilefriendly": true,
-    "link": "studiengaenge_mathematik.html"
+    "link": "studiengaenge_mathematik.html",
+    "fach": "Mathematik",
+    // "stufe": [8, 9],
+    "wichtig": false,
+    "added": "2026-03-26",
+    // "major": "2026-04-14",
+    "extra": true
+  },
+  {
+    "id": "geographie",
+    "title": "Geographie-Spiel: Finde die Orte",
+    "desc": "Finde die Orte auf der Karte, umso genauer du bist, desto mehr Punkte bekommst du.",
+    "types": ["spiel"],
+    "mobilefriendly": true,
+    "link": "./Geographie/geographie.html",
+    "fach": "Sonstiges",
+    // "stufe": [8, 9],
+    "wichtig": false,
+    "added": "2026-07-25",
+    // "major": "2026-04-14",
+    "extra": true
   }
 ];

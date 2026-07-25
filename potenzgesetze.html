@@ -8,7 +8,7 @@
   </script>
   <script id="MathJax-script" async
     src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-     <!-- Google tag (gtag.js) -->
+  <!-- Google tag (gtag.js) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-5K8WYYXDL2"></script>
   <script>
       window.dataLayer = window.dataLayer || [];
@@ -58,7 +58,7 @@
       width: 100%;
     }
     .scale-wrapper {
-      overflow: visible; width: 90%; padding: 0.3em 0.5em;
+      overflow: visible; width: 90%; padding: 0.3em 0.5em; min-height: 84px;
       display: flex; justify-content: center; align-items: center; flex-shrink: 0;
       pointer-events: none;
     }
@@ -83,6 +83,7 @@
     #answerInput:focus { border-color: #4CAF50; }
     #answerInput.correct { border-color: #28a745; background: #d4edda; color: #155724; }
     #answerInput.wrong   { border-color: #dc3545; background: #f8d7da; color: #721c24; }
+    #answerInput.almost  { border-color: #e0a800; background: #fff8e1; color: #7a5c00; }
 
     #checkBtn {
       padding: 9px 24px; font-size: 1em; border-radius: 8px;
@@ -96,19 +97,33 @@
       font-size: 0.84em; color: #555; background: #fff3cd;
       border: 1px solid #e0a800; border-radius: 6px;
       padding: 6px 14px; text-align: center;
-      display: none; max-width: min(380px, 90vw);
+      display: none; max-width: min(560px, 92vw);
     }
     #answerHint.visible { display: block; }
+
+    /* Feedback-Bereich unterhalb der Buttons: reservierte Höhe,
+       damit erscheinende Meldungen nichts darüber verschieben */
+    #feedbackArea {
+      min-height: 64px; display: flex; flex-direction: column;
+      align-items: center; gap: 6px; margin-top: 10px; width: 100%;
+    }
+    #ansatzBox {
+      font-size: 0.9em; color: #1a4a6e; background: #e7f1fb;
+      border: 1px solid #7fb2e5; border-radius: 6px;
+      padding: 6px 14px; text-align: center;
+      display: none; max-width: min(560px, 92vw);
+    }
+    #ansatzBox.visible { display: block; }
 
     .btn-row {
       display: flex; justify-content: center; gap: 8px; margin-top: 10px; flex-wrap: wrap;
     }
-    #revealBtn {
+    #revealBtn, #hintBtn {
       padding: 9px 18px; font-size: 1em; border-radius: 8px;
       border: 2px solid #ddd; background: #fafafa; color: #666;
       cursor: pointer; transition: background 0.15s;
     }
-    #revealBtn:hover { background: #f0eeee; border-color: #bbb; }
+    #revealBtn:hover, #hintBtn:hover { background: #f0eeee; border-color: #bbb; }
     #nextBtn {
       padding: 9px 24px; font-size: 1em; border-radius: 8px;
       border: 2px solid #aaa; background: #f5f5f5; color: #333;
@@ -155,6 +170,10 @@
         Quotienten-Potenzregel &nbsp;<span style="font-family:monospace">(a/b)ⁿ = aⁿ/bⁿ</span>
       </label><br>
       <label style="font-size:0.82em;cursor:pointer;display:inline-block;margin:2px 0">
+        <input type="checkbox" class="law-cb" value="negPow">
+        Negative Exponenten &nbsp;<span style="font-family:monospace">a⁻ⁿ = 1/aⁿ</span>
+      </label><br>
+      <label style="font-size:0.82em;cursor:pointer;display:inline-block;margin:2px 0">
         <input type="checkbox" class="law-cb" value="sqrt">
         Wurzeln &nbsp;<span style="font-family:monospace">√(aⁿ), (√a)ⁿ</span>
       </label><br>
@@ -177,7 +196,7 @@
       <label style="font-size:0.82em;cursor:pointer;display:inline-block;margin:2px 0">
         <input type="checkbox" id="withNumbers">
         Zahlen als Koeffizienten
-        &nbsp;<span style="font-family:monospace">z.B. (15x³)²</span>
+        &nbsp;<span style="font-family:monospace">z.B. (2x³y)⁵, (x+12)²</span>
       </label><br>
       <label style="font-size:0.82em;cursor:pointer;display:inline-block;margin:2px 0">
         <input type="checkbox" id="withRoots">
@@ -187,32 +206,81 @@
     </div>
 
     <div class="form-block">
+      <b>Division einzelner Faktoren:</b><br>
+      <div class="radio-group">
+        <label style="font-size:0.82em">
+          <input type="radio" name="divStyle" value="colon">
+          Geteilt-Zeichen &nbsp;<span style="font-family:monospace;color:#888">a⁵ : a³</span>
+        </label>
+        <label style="font-size:0.82em">
+          <input type="radio" name="divStyle" value="frac">
+          Bruchstrich
+        </label>
+        <label style="font-size:0.82em">
+          <input type="radio" name="divStyle" value="mixed" checked>
+          gemischt
+        </label>
+      </div>
+    </div>
+
+    <div class="form-block">
       <b>Schwierigkeitsgrad der Exponenten:</b><br>
       <div class="radio-group">
         <label style="font-size:0.82em">
           <input type="radio" name="expMode" value="simple" checked>
-          Einfach &nbsp;<span style="font-family:monospace;color:#888">exp. 2–4, ausrechenbar</span>
+          Einfach &nbsp;<span style="font-family:monospace;color:#888">exp. 2–5, ausrechenbar</span>
         </label>
         <label style="font-size:0.82em">
           <input type="radio" name="expMode" value="hard">
-          Schwer &nbsp;<span style="font-family:monospace;color:#888">exp. 5–12, Gesetze nötig</span>
+          Schwer &nbsp;<span style="font-family:monospace;color:#888">exp. 8–100, Gesetze nötig</span>
         </label>
       </div>
     </div>
 
     <div class="form-block">
       <b>Vorzeichen &amp; besondere Exponenten:</b>
-      <button type="button" class="section-toggle-btn" onclick="toggleSection(['negExp','negBase'])">alle</button><br>
+      <button type="button" class="section-toggle-btn" onclick="toggleSection(['negExp','negExpDenom','negBase','negSign'])">alle</button><br>
       <label style="font-size:0.82em;cursor:pointer;display:inline-block;margin:2px 0">
         <input type="checkbox" id="negExp">
-        Negative Exponenten im Ergebnis
-        &nbsp;<span style="font-family:monospace">z.B. a²:a⁵ = a⁻³</span>
+        Negative Exponenten in Aufgaben
+        &nbsp;<span style="font-family:monospace">z.B. a³·a⁻⁵</span>
+      </label><br>
+      <label style="font-size:0.82em;cursor:pointer;display:inline-block;margin:2px 0 2px 22px">
+        <input type="checkbox" id="negExpDenom">
+        … auch im Nenner
+        &nbsp;<span style="font-family:monospace">z.B. a³ : a⁻⁵</span>
       </label><br>
       <label style="font-size:0.82em;cursor:pointer;display:inline-block;margin:2px 0">
         <input type="checkbox" id="negBase">
         Negative Basen
         &nbsp;<span style="font-family:monospace">z.B. (−a)⁴ = a⁴</span>
       </label>
+      <br><label style="font-size:0.82em;cursor:pointer;display:inline-block;margin:2px 0">
+        <input type="checkbox" id="negSign">
+        Negative Vorzeichen
+        &nbsp;<span style="font-family:monospace">z.B. −a⁴·a² = −a⁶, (−a³)²</span>
+      </label>
+    </div>
+
+    <div class="form-block">
+      <b>Lösungsform:</b><br>
+      <span style="font-size:0.75em;color:#888;display:block;margin-bottom:4px">
+        Wie muss das Ergebnis eingegeben werden, wenn Nenner bzw. negative Exponenten auftreten?
+      </span>
+      <div class="radio-group">
+        <label style="font-size:0.82em">
+          <input type="radio" name="solForm" value="positive">
+          nur positive Exponenten &nbsp;<span style="font-family:monospace;color:#888">als Bruch</span>
+        </label>
+        <label style="font-size:0.82em">
+          <input type="radio" name="solForm" value="negexp">
+          ohne Bruch &nbsp;<span style="font-family:monospace;color:#888">negative Exponenten</span>
+        </label>
+        <label style="font-size:0.82em">
+          <input type="radio" name="solForm" value="any" checked>
+          beliebig &nbsp;<span style="font-family:monospace;color:#888">beide Varianten erlaubt</span>
+        </label>
+      </div>
     </div>
 
     <div class="form-block">
@@ -225,6 +293,14 @@
         <input id="comboSlider" type="range" min="0" max="100" step="5" value="50">
         <span style="font-size:0.8em">immer</span>
       </div>
+      <label style="font-size:0.82em;cursor:pointer;display:inline-block;margin:4px 0 2px 0">
+        <input type="checkbox" id="comboChain" checked>
+        aneinandergereiht &nbsp;<span style="font-family:monospace">A · B : C</span>
+      </label><br>
+      <label style="font-size:0.82em;cursor:pointer;display:inline-block;margin:2px 0">
+        <input type="checkbox" id="comboNested" checked>
+        verschachtelt &nbsp;<span style="font-family:monospace">(A · (B)²)³</span>
+      </label>
     </div>
 
     <div class="form-block">
@@ -292,6 +368,10 @@
       $\sqrt[k]{a} = a^{1/k},\quad \sqrt[k]{a^n} = a^{n/k}$
     </div>
     <div>
+      <strong>Negative Basis / Vorzeichen</strong><br>
+      $(-a)^{2} = a^{2},\quad (-a)^{3} = -a^{3},\quad -a^{2} \ne (-a)^{2}$
+    </div>
+    <div>
       <strong>1. Binomische Formel</strong><br>
       $(a+b)^2 = a^2 + 2ab + b^2$
     </div>
@@ -325,12 +405,17 @@
   <input type="text" id="answerInput"
     autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
     placeholder="Vereinfachten Term eingeben">
-  <div id="answerHint"></div>
   <button id="checkBtn">Lösung überprüfen</button>
 </div>
 
 <div class="btn-row">
+  <button id="hintBtn">💡 Ansatz</button>
   <button id="revealBtn">Lösung anzeigen</button>
+</div>
+
+<div id="feedbackArea">
+  <div id="answerHint"></div>
+  <div id="ansatzBox"></div>
 </div>
 
 <footer class="site-footer">
@@ -418,7 +503,8 @@ function preprocess(s) {
     .replace(/\s+/g, '').toLowerCase();
 }
 
-/* Parse monomial → {coeff, vars}. Supports negative exponents a^-3. */
+/* Parse monomial → {coeff, vars}. Supports negative exponents a^-3
+   and numeric powers like 2^10 or 10^-3 (multiplied into coeff). */
 function parseMono(raw) {
   let s = preprocess(raw);
   let coeff = 1;
@@ -428,12 +514,20 @@ function parseMono(raw) {
 
   for (const f of s.split('*')) {
     if (!f) return null;
+    // pure numeric power: 2^10, 10^-3
+    const pm = f.match(/^(-?\d+(?:\.\d+)?)\^(-?\d+)$/);
+    if (pm) { coeff *= Math.pow(parseFloat(pm[1]), parseInt(pm[2])); continue; }
     if (/^-?\d+(\.\d+)?$/.test(f)) {
       coeff *= parseFloat(f);
     } else {
       let rest = f;
-      const numM = rest.match(/^(-?\d+(?:\.\d+)?)/);
-      if (numM) { coeff *= parseFloat(numM[1]); rest = rest.slice(numM[1].length); }
+      // leading number, optionally with its own exponent: "2x", "2^3x^4"
+      const numM = rest.match(/^(-?\d+(?:\.\d+)?)(\^(-?\d+))?/);
+      if (numM && numM[0]) {
+        const base = parseFloat(numM[1]);
+        coeff *= numM[3] !== undefined ? Math.pow(base, parseInt(numM[3])) : base;
+        rest = rest.slice(numM[0].length);
+      }
       if (!rest) continue;
       const varRe = /([a-z])(?:\^(-?\d+))?/g;
       let m, consumed = 0;
@@ -450,7 +544,8 @@ function parseMono(raw) {
 function monosEqual(aStr, bStr) {
   const a = parseMono(aStr), b = parseMono(bStr);
   if (!a || !b) return preprocess(aStr) === preprocess(bStr);
-  if (Math.abs(a.coeff - b.coeff) > 1e-9) return false;
+  const tol = 1e-9 * Math.max(1, Math.abs(a.coeff), Math.abs(b.coeff));
+  if (Math.abs(a.coeff - b.coeff) > tol) return false;
   const all = new Set([...Object.keys(a.vars), ...Object.keys(b.vars)]);
   for (const v of all) if ((a.vars[v] || 0) !== (b.vars[v] || 0)) return false;
   return true;
@@ -490,16 +585,113 @@ function polyCanonical(str) {
   }).join('');
 }
 
+/* Bruch oder Monom → einheitliche Monom-Darstellung
+   (Nenner-Exponenten negiert). Erlaubt, dass Bruch- und
+   Negativ-Exponenten-Schreibweise gleichwertig akzeptiert werden.
+   Standard-Lesart: a/b*c = (a/b)·c; ein mehrfaktoriger Nenner
+   braucht Klammern: a/(b*c). Auch a/b/c wird korrekt gelesen. */
+function monoFromExpr(sRaw) {
+  // Top-Level-Tokenisierung nach * und / (Klammern respektieren)
+  const factors = [];
+  let depth = 0, cur = '', div = false;
+  for (const ch of sRaw) {
+    if (ch === '(') { depth++; cur += ch; }
+    else if (ch === ')') { depth--; if (depth < 0) return null; cur += ch; }
+    else if ((ch === '*' || ch === '/') && depth === 0) {
+      factors.push({ tok: cur, div });
+      div = ch === '/'; cur = '';
+    } else cur += ch;
+  }
+  if (depth !== 0) return null;
+  factors.push({ tok: cur, div });
+
+  // Einzelner Faktor: ggf. äußere Klammern entfernen, sonst Monom parsen
+  if (factors.length === 1 && !factors[0].div) {
+    const t = factors[0].tok;
+    if (t.startsWith('(') && t.endsWith(')')) return monoFromExpr(t.slice(1, -1));
+    return parseMono(t);
+  }
+
+  let coeff = 1;
+  const vars = {};
+  for (const f of factors) {
+    if (!f.tok) return null;
+    const m = monoFromExpr(f.tok);
+    if (!m) return null;
+    if (f.div) {
+      if (m.coeff === 0) return null;
+      coeff /= m.coeff;
+      for (const [x, e] of Object.entries(m.vars)) vars[x] = (vars[x] || 0) - e;
+    } else {
+      coeff *= m.coeff;
+      for (const [x, e] of Object.entries(m.vars)) vars[x] = (vars[x] || 0) + e;
+    }
+  }
+  return { coeff, vars };
+}
+
 function answersEqual(userRaw, expectedRaw, solType) {
   const u = preprocess(userRaw), e = preprocess(expectedRaw);
   if (u === e) return true;
   if (solType === 'poly') return polyCanonical(u) === polyCanonical(e);
-  if (solType === 'frac' || u.includes('/') || e.includes('/')) {
-    const sf = s => { const i = s.indexOf('/'); return i < 0 ? [s,'1'] : [s.slice(0,i), s.slice(i+1)]; };
-    const [un,ud] = sf(u), [en,ed] = sf(e);
-    return monosEqual(un,en) && monosEqual(ud,ed);
+  const mu = monoFromExpr(u), me = monoFromExpr(e);
+  if (mu && me) {
+    const tol = 1e-9 * Math.max(1, Math.abs(mu.coeff), Math.abs(me.coeff));
+    if (Math.abs(mu.coeff - me.coeff) > tol) return false;
+    const all = new Set([...Object.keys(mu.vars), ...Object.keys(me.vars)]);
+    for (const x of all) if ((mu.vars[x] || 0) !== (me.vars[x] || 0)) return false;
+    return true;
   }
-  return monosEqual(u, e);
+  return false;
+}
+
+/* Monom-Lösung in beide Darstellungen bringen (Bruch / negative Exponenten).
+   primary/alt gemäß Lösungsform-Einstellung bzw. requiredForm der Aufgabe.
+   alt = null, wenn die Formen zusammenfallen oder nur eine gezeigt werden soll. */
+function bothFormsLatex(solution, solType, requiredForm) {
+  const plain = solToLatex(solution, solType);
+  if (solType === 'poly') return { primary: plain, alt: null };
+  const m = monoFromExpr(preprocess(solution));
+  if (!m) return { primary: plain, alt: null };
+  const negVars = Object.keys(m.vars).filter(x => m.vars[x] < 0).sort();
+  if (!negVars.length) return { primary: plain, alt: null };
+  const posVars = Object.keys(m.vars).filter(x => m.vars[x] > 0).sort();
+  const sign = m.coeff < 0 ? '-' : '';
+  const cAbs = Math.abs(m.coeff);
+  if (Math.abs(cAbs - Math.round(cAbs)) > 1e-9) return { primary: plain, alt: null };
+  const coefStr = Math.round(cAbs) === 1 ? '' : String(Math.round(cAbs));
+  const tx = (x, e) => e === 1 ? x : `${x}^{${e}}`;
+  const num = coefStr + posVars.map(x => tx(x, m.vars[x])).join('');
+  const den = negVars.map(x => tx(x, -m.vars[x])).join('');
+  const fracTex = `${sign}\\frac{${num || '1'}}{${den}}`;
+  const allVars = [...posVars, ...negVars].sort();
+  const negTex = `${sign}${coefStr}${allVars.map(x => tx(x, m.vars[x])).join('')}`;
+  const form = requiredForm || getSolForm();
+  if (form === 'positive') return { primary: fracTex, alt: null };
+  if (form === 'negexp')   return { primary: negTex,  alt: null };
+  return { primary: fracTex, alt: negTex };
+}
+
+function solutionDisplayLatex(task) {
+  const f = bothFormsLatex(task.solution, task.solType, task.requiredForm);
+  return f.alt ? `${f.primary} = ${f.alt}` : f.primary;
+}
+
+/* Prüft, ob die (rechnerisch richtige) Eingabe der geforderten Form entspricht. */
+function answerFormOk(valRaw, task) {
+  const form = task.requiredForm || getSolForm();
+  if (form === 'any') return { ok: true };
+  const m = monoFromExpr(preprocess(task.solution));
+  const hasNegVar = m && Object.values(m.vars).some(e => e < 0);
+  if (!hasNegVar) return { ok: true };
+  const u = preprocess(valRaw);
+  if (form === 'positive' && /\^-/.test(u)) {
+    return { ok: false, msg: 'Der Wert stimmt – gib das Ergebnis aber ohne negative Exponenten (als Bruch) an.' };
+  }
+  if (form === 'negexp' && u.includes('/')) {
+    return { ok: false, msg: 'Der Wert stimmt – gib das Ergebnis aber ohne Bruch (mit negativen Exponenten) an.' };
+  }
+  return { ok: true };
 }
 
 function solToLatex(sol, solType) {
@@ -508,7 +700,11 @@ function solToLatex(sol, solType) {
   s = s.replace(/\^(\d{2,})/g, '^{$1}');  // x^12  → x^{12}
   if (solType === 'frac') {
     const idx = s.indexOf('/');
-    if (idx >= 0) s = `\\frac{${s.slice(0,idx)}}{${s.slice(idx+1)}}`;
+    if (idx >= 0) {
+      let den = s.slice(idx + 1);
+      den = den.replace(/^\((.*)\)$/, '$1');
+      s = `\\frac{${s.slice(0, idx)}}{${den}}`;
+    }
   }
   return s;
 }
@@ -523,14 +719,31 @@ function isWithNumbers()  { return document.getElementById('withNumbers').checke
 function isWithRoots()    { return document.getElementById('withRoots').checked; }
 function isNegExp()       { return document.getElementById('negExp').checked; }
 function isNegBase()      { return document.getElementById('negBase').checked; }
+function isNegSign()      { return document.getElementById('negSign').checked; }
+function isComboChain()   { return document.getElementById('comboChain').checked; }
+function isComboNested()  { return document.getElementById('comboNested').checked; }
+function getDivStyle()    { return document.querySelector('input[name="divStyle"]:checked')?.value || 'mixed'; }
+function getSolForm()     { return document.querySelector('input[name="solForm"]:checked')?.value || 'any'; }
+/* Negative Exponenten im Nenner: Untereinstellung, greift wenn negative
+   Exponenten überhaupt vorkommen können (Option oder Gesetz gewählt) */
+function isNegExpDenom() {
+  return document.getElementById('negExpDenom').checked &&
+         (isNegExp() || getSelectedLaws().includes('negPow'));
+}
 function isHardMode()     { return document.querySelector('input[name="expMode"]:checked')?.value === 'hard'; }
 
 /**
- * Random exponent.
- * Simple mode (default): 2–4, small enough to expand by hand.
- * Hard mode: 5–12, power laws genuinely needed.
+ * Random exponent (the one being simplified).
+ * Simple mode: 2–5, small enough to expand by hand.
+ * Hard mode: 8–100 (weighted towards 8–30), power laws genuinely needed.
  */
-function randExp() { return isHardMode() ? randomInt(9, 40) : randomInt(2, 8); }
+function randExp() {
+  if (!isHardMode()) return randomInt(2, 5);
+  return Math.random() < 0.7 ? randomInt(8, 30) : randomInt(31, 100);
+}
+
+/** Small structural (outer) exponent, e.g. the m in (…)^m. */
+function randOuterExp() { return isHardMode() ? randomInt(2, 5) : randomInt(2, 3); }
 
 function toggleSection(ids) {
   const cbs = ids.map(id => document.getElementById(id)).filter(Boolean);
@@ -555,19 +768,36 @@ function pickVars(n, force = false) {
 }
 
 /* ════════════════════════════════════════════════
-   Numeric coefficient pool
-   Quadratzahlen bis 20 + wichtige Potenzen
+   Numeric coefficient pool — gut im Kopf rechenbar:
+   • Quadratzahlen bis 20²
+   • 3³, 3⁴, 3⁵, 4³, 4⁴, 5³, 5⁴, 6³
+   • Zweierpotenzen bis 2¹⁰
+   • Zehnerpotenzen bis 10¹²
    ════════════════════════════════════════════════ */
-// For outer exponent 2: bases 1–20 are all fine (15² = 225 is still manageable)
-const COEFF_POOL_EXP2  = [2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20];
-// For outer exponent 3+: keep bases small so results stay reasonable
-const COEFF_POOL_LARGE = [2,3,4,5,6,7,8,9,10,12];
+const NICE_EXP_LIMIT = { 2: 10, 3: 5, 4: 4, 5: 4, 6: 3, 10: 12 };
 
-function pickCoeff(outerExp) {
-  if (!isWithNumbers()) return null;
-  const pool = (outerExp && outerExp >= 3) ? COEFF_POOL_LARGE : COEFF_POOL_EXP2;
-  return randomChoice(pool);
+/* Basen, deren m-te Potenz noch mental berechenbar ist */
+function coeffBasesForExp(m) {
+  if (m <= 2) { const r = []; for (let b = 2; b <= 20; b++) r.push(b); r.push(10); return r; }
+  return [2, 3, 4, 5, 6, 10].filter(b => NICE_EXP_LIMIT[b] >= m);
 }
+
+/* base^exp, falls "schön" berechenbar, sonst null */
+function niceExpand(base, exp) {
+  if (exp === 0) return 1;
+  if (exp === 1) return base;
+  if (exp === 2 && base >= 2 && base <= 20) return base * base;
+  if ((NICE_EXP_LIMIT[base] || 0) >= exp) return Math.round(Math.pow(base, exp));
+  return null;
+}
+
+function pickCoeffForExp(m) {
+  const pool = coeffBasesForExp(m);
+  return pool.length ? randomChoice(pool) : null;
+}
+
+/* Term-String für Lösungen: v bzw. v^e */
+function term(x, e) { return e === 1 ? x : `${x}^${e}`; }
 
 /* ════════════════════════════════════════════════
    Negative-base helper
@@ -588,6 +818,7 @@ const LAW_LABELS = {
   power:         'Potenzregel ((aⁿ)ᵐ = aⁿ·ᵐ)',
   productPower:  'Produkt-Potenzregel ((ab)ⁿ = aⁿbⁿ)',
   quotientPower: 'Quotienten-Potenzregel ((a/b)ⁿ = aⁿ/bⁿ)',
+  negPow:        'Negative Exponenten (a⁻ⁿ = 1/aⁿ)',
   sqrt:          'Wurzeln',
   binom1:        '1. Bin. Formel  (a+b)² = a²+2ab+b²',
   binom2:        '2. Bin. Formel  (a−b)² = a²−2ab+b²',
@@ -601,139 +832,309 @@ const PLACEHOLDERS = {
   poly: 'z.B. a^7 + 2^3/b^3 + sqrt(3)',
 };
 
+/* n Kopien von base ausgeschrieben (n ≤ 6), sonst mit …; Anzahl als Unterklammer */
+function expandFactors(base, n, joiner) {
+  const j = joiner || ' \\cdot ';
+  if (n === 1) return base;
+  if (n <= 6) return `\\underbrace{${Array(n).fill(base).join(j)}}_{${n}}`;
+  return `\\underbrace{${base}${j}${base}${j}\\ldots${j}${base}}_{${n}}`;
+}
+
+/* Division zweier Einzelterme: je nach Einstellung a : b oder Bruchstrich */
+function divLatex(a, b) {
+  const st = getDivStyle();
+  const useFrac = st === 'frac' || (st === 'mixed' && Math.random() < 0.5);
+  return useFrac ? `\\frac{${a}}{${b}}` : `${a} : ${b}`;
+}
+
 function generateSingleTask(law, vars) {
-  const v = vars[0], w = vars[1] || 'b';
+  const v = vars[0];
+  const w = vars[1] || (v === 'b' ? 'c' : 'b');
+  const u = vars[2] || null;
   const n = randExp();
-  // Outer exponent: always 2–4 regardless of mode (it's the *structure* exp, not the one being simplified).
-  // When a numeric coefficient is involved, cap at 2 so c^m stays reasonable.
-  const m     = randomInt(2, 4);
-  const mCoeff = 2;
 
   switch (law) {
 
     // ── Produktregel ────────────────────────────────
     case 'product': {
-      // Negative-exp variant: v^n · v^{-m} = v^{n-m}
-      if (isNegExp() && Math.random() < 0.4) {
-        const negM = -m, resExp = n + negM;
-        const expStr = resExp === 0 ? '' : resExp === 1 ? '' : `^${resExp}`;
-        const sol = resExp === 0 ? '1' : resExp === 1 ? v : `${v}${expStr}`;
+      const n2 = randExp();
+      // Negativer Exponent in der Aufgabe: v^n · v^{-m}
+      if (isNegExp() && Math.random() < 0.35) {
+        const negM = -randomInt(2, isHardMode() ? 20 : 4);
+        const resExp = n + negM;
+        const sol = resExp === 0 ? '1' : term(v, resExp);
+        return { latex: `${v}^{${n}} \\cdot ${v}^{${negM}}`, solution: sol, solType: 'mono', law,
+                 hint: `a^{n} \\cdot a^{m} = a^{n+m}\\ \\text{gilt auch für negative Exponenten}` };
+      }
+      // Negatives Vorzeichen: -v^n · v^m  bzw.  (-v^n)·(-v^m)
+      if (isNegSign() && Math.random() < 0.4) {
+        const both = Math.random() < 0.4;
+        const latex = both
+          ? `\\left(-${v}^{${n}}\\right) \\cdot \\left(-${v}^{${n2}}\\right)`
+          : `-${v}^{${n}} \\cdot ${v}^{${n2}}`;
+        const hint = both
+          ? `\\left(-${v}^{${n}}\\right) \\cdot \\left(-${v}^{${n2}}\\right) = (-1)\\cdot(-1)\\cdot ${v}^{${n}} \\cdot ${v}^{${n2}}`
+          : `-${v}^{${n}} \\cdot ${v}^{${n2}} = -\\left(${v}^{${n}} \\cdot ${v}^{${n2}}\\right)`;
+        return { latex, solution: `${both ? '' : '-'}${term(v, n + n2)}`, solType: 'mono', law, hint };
+      }
+      // Dreifaktoriges Produkt im Schwer-Modus
+      if (isHardMode() && Math.random() < 0.3) {
+        const n3 = randExp();
         return {
-          latex:    `${v}^{${n}} \\cdot ${v}^{${negM}}`,
-          solution: sol, solType: 'mono', law,
+          latex:    `${v}^{${n}} \\cdot ${v}^{${n2}} \\cdot ${v}^{${n3}}`,
+          solution: term(v, n + n2 + n3),
+          solType: 'mono', law,
+          hint: `${expandFactors(v, n)} \\cdot ${expandFactors(v, n2)} \\cdot ${expandFactors(v, n3)}`,
         };
       }
-      const { baseLatex, negSign } = maybeNegBase(v, n + m);
-      const resExp = n + m;
-      const sign = negSign ? '-' : '';
+      const { baseLatex, negSign } = maybeNegBase(v, n + n2);
       return {
-        latex:    `${baseLatex}^{${n}} \\cdot ${baseLatex}^{${m}}`,
-        solution: `${sign}${v}^${resExp}`,
+        latex:    `${baseLatex}^{${n}} \\cdot ${baseLatex}^{${n2}}`,
+        solution: `${negSign ? '-' : ''}${term(v, n + n2)}`,
         solType: 'mono', law,
+        hint: `${expandFactors(baseLatex, n)} \\cdot ${expandFactors(baseLatex, n2)}`,
       };
     }
 
     // ── Quotientenregel ──────────────────────────────
     case 'quotient': {
-      // Negative-exp variant: small : big → negative exponent
-      if (isNegExp() && Math.random() < 0.45) {
+      let a = randExp(), b = randExp();
+      if (a === b) a += randomInt(1, 4);
+      const hi = Math.max(a, b), lo = Math.min(a, b);
+      // Negativer Exponent im Nenner: v^a : v^{-b}
+      if (isNegExpDenom() && Math.random() < 0.35) {
         return {
-          latex:    `${v}^{${n}} : ${v}^{${n + m}}`,
-          solution: `${v}^${-m}`,
-          solType: 'mono', law,
+          latex:    divLatex(`${v}^{${hi}}`, `${v}^{${-lo}}`),
+          solution: term(v, hi + lo), solType: 'mono', law,
+          hint: `\\frac{1}{${v}^{${-lo}}} = ${v}^{${lo}}`,
         };
       }
-      // Normal: (n+m) : m = n
-      const { baseLatex, negSign } = maybeNegBase(v, n);
-      const sign = negSign ? '-' : '';
-      const expStr = n === 1 ? '' : `^${n}`;
+      // Negativer Exponent im Ergebnis: klein : groß
+      if (isNegExp() && Math.random() < 0.45) {
+        return {
+          latex:    divLatex(`${v}^{${lo}}`, `${v}^{${hi}}`),
+          solution: `${v}^${lo - hi}`, solType: 'mono', law,
+          hint: `\\frac{${expandFactors(v, lo)}}{${expandFactors(v, hi)}}`,
+        };
+      }
+      const { baseLatex, negSign } = maybeNegBase(v, hi - lo);
       return {
-        latex:    `${baseLatex}^{${n + m}} : ${baseLatex}^{${m}}`,
-        solution: `${sign}${v}${expStr}`,
+        latex:    divLatex(`${baseLatex}^{${hi}}`, `${baseLatex}^{${lo}}`),
+        solution: `${negSign ? '-' : ''}${term(v, hi - lo)}`,
         solType: 'mono', law,
+        hint: `\\frac{${expandFactors(baseLatex, hi)}}{${expandFactors(baseLatex, lo)}}`,
       };
     }
 
     // ── Potenzregel ──────────────────────────────────
     case 'power': {
-      const { baseLatex, negSign } = maybeNegBase(v, n * m);
-      const sign = negSign ? '-' : '';
+      const nn = isHardMode() ? randomInt(8, 50) : randomInt(2, 5);
+      const mm = randomInt(2, isHardMode() ? 5 : 3);
+      // (−vⁿ)^m: Minus innerhalb der Klammer
+      if (isNegSign() && Math.random() < 0.35) {
+        return {
+          latex:    `\\left(-${v}^{${nn}}\\right)^{${mm}}`,
+          solution: `${mm % 2 !== 0 ? '-' : ''}${v}^${nn * mm}`,
+          solType: 'mono', law,
+          hint: expandFactors(`\\left(-${v}^{${nn}}\\right)`, mm),
+        };
+      }
+      // Kontrastaufgabe: (−v)^n allein
+      if (isNegBase() && Math.random() < 0.3) {
+        return {
+          latex:    `\\left(-${v}\\right)^{${nn}}`,
+          solution: `${nn % 2 !== 0 ? '-' : ''}${v}^${nn}`,
+          solType: 'mono', law,
+          hint: expandFactors(`\\left(-${v}\\right)`, nn),
+        };
+      }
+      // Negativer äußerer Exponent
+      if (isNegExp() && Math.random() < 0.3) {
+        const mneg = -randomInt(2, 4);
+        return {
+          latex:    `\\left(${v}^{${nn}}\\right)^{${mneg}}`,
+          solution: `${v}^${nn * mneg}`,
+          solType: 'mono', law,
+          hint: `(a^{n})^{m} = a^{n \\cdot m}\\ \\text{gilt auch für negative Exponenten}`,
+        };
+      }
+      const { baseLatex, negSign } = maybeNegBase(v, nn * mm);
       return {
-        latex:    `\\left(${baseLatex}^{${n}}\\right)^{${m}}`,
-        solution: `${sign}${v}^${n * m}`,
+        latex:    `\\left(${baseLatex}^{${nn}}\\right)^{${mm}}`,
+        solution: `${negSign ? '-' : ''}${v}^${nn * mm}`,
         solType: 'mono', law,
+        hint: expandFactors(`${baseLatex}^{${nn}}`, mm),
       };
     }
 
     // ── Produkt-Potenzregel ──────────────────────────
     case 'productPower': {
-      const c = pickCoeff(mCoeff);
+      const mm = randOuterExp();
+      const singleVar = getVarCount() === 1;
+      const c = isWithNumbers() && Math.random() < 0.65 ? pickCoeffForExp(mm) : null;
+      const i1 = Math.random() < 0.5 ? 1 : randomInt(2, 4);
+      const i2 = Math.random() < 0.5 ? 1 : randomInt(2, 4);
+      const i3 = randomInt(1, 3);
+      const use3 = !singleVar && u && Math.random() < 0.35;
+
+      let inner, solution;
       if (c) {
-        const cn = Math.round(Math.pow(c, mCoeff));
-        return {
-          latex:    `\\left(${c} \\cdot ${v} \\cdot ${w}\\right)^{${mCoeff}}`,
-          solution: `${cn}*${v}^${mCoeff}*${w}^${mCoeff}`,
-          solType: 'mono', law,
-        };
+        const cm = niceExpand(c, mm);
+        if (singleVar) {
+          inner = `${c}${vt(v, i1)}`;
+          solution = `${cm}*${term(v, i1 * mm)}`;
+        } else if (use3) {
+          inner = `${c}${vt(v, i1)}${vt(w, i2)}${vt(u, i3)}`;
+          solution = `${cm}*${term(v, i1*mm)}*${term(w, i2*mm)}*${term(u, i3*mm)}`;
+        } else {
+          inner = `${c}${vt(v, i1)}${vt(w, i2)}`;
+          solution = `${cm}*${term(v, i1*mm)}*${term(w, i2*mm)}`;
+        }
+      } else if (use3) {
+        inner = `${vt(v, i1)} \\cdot ${vt(w, i2)} \\cdot ${vt(u, i3)}`;
+        solution = `${term(v, i1*mm)}*${term(w, i2*mm)}*${term(u, i3*mm)}`;
+      } else {
+        inner = `${vt(v, i1)} \\cdot ${vt(w, i2)}`;
+        solution = `${term(v, i1*mm)}*${term(w, i2*mm)}`;
       }
       return {
-        latex:    `\\left(${v} \\cdot ${w}\\right)^{${m}}`,
-        solution: `${v}^${m}*${w}^${m}`,
-        solType: 'mono', law,
+        latex: `\\left(${inner}\\right)^{${mm}}`, solution, solType: 'mono', law,
+        hint: expandFactors(`\\left(${inner}\\right)`, mm),
       };
     }
 
     // ── Quotienten-Potenzregel ───────────────────────
-    case 'quotientPower':
+    case 'quotientPower': {
+      const mm = randOuterExp();
+      const i1 = Math.random() < 0.5 ? 1 : randomInt(2, 3);
+      const i2 = Math.random() < 0.5 ? 1 : randomInt(2, 3);
+      const c = isWithNumbers() && Math.random() < 0.4 ? pickCoeffForExp(mm) : null;
+      let fr, solution;
+      if (c && Math.random() < 0.5) {
+        fr = `\\frac{${vt(v, i1)}}{${c}}`;
+        solution = `${term(v, i1 * mm)}/${niceExpand(c, mm)}`;
+      } else if (c) {
+        fr = `\\frac{${c}}{${vt(w, i2)}}`;
+        solution = `${niceExpand(c, mm)}/${term(w, i2 * mm)}`;
+      } else {
+        fr = `\\frac{${vt(v, i1)}}{${vt(w, i2)}}`;
+        solution = `${term(v, i1 * mm)}/${term(w, i2 * mm)}`;
+      }
       return {
-        latex:    `\\left(\\frac{${v}}{${w}}\\right)^{${n}}`,
-        solution: `${v}^${n}/${w}^${n}`,
-        solType: 'frac', law,
+        latex: `\\left(${fr}\\right)^{${mm}}`, solution, solType: 'frac', law,
+        hint: expandFactors(fr, mm),
       };
+    }
+
+    // ── Negative Exponenten ──────────────────────────
+    case 'negPow': {
+      const nn = isHardMode() ? randomInt(8, 40) : randomInt(2, 6);
+      const form = getSolForm();
+      const variants = ['prod', 'prod', 'pow'];
+      if (form !== 'negexp')   variants.push('toFrac', 'toFrac');
+      if (form !== 'positive') variants.push('toPow', 'toPow');
+      if (isNegExpDenom())     variants.push('denom', 'denom');
+
+      switch (randomChoice(variants)) {
+        case 'toFrac':
+          // a^{-n} ohne negativen Exponenten schreiben
+          return { latex: `${v}^{${-nn}}`, solution: `1/${term(v, nn)}`, solType: 'frac', law,
+                   requiredForm: 'positive', subLabel: 'Ohne negativen Exponenten schreiben',
+                   hint: `a^{-n} = \\frac{1}{a^{n}}` };
+        case 'toPow':
+          // 1/a^n ohne Bruch schreiben
+          return { latex: `\\frac{1}{${v}^{${nn}}}`, solution: `${v}^${-nn}`, solType: 'mono', law,
+                   requiredForm: 'negexp', subLabel: 'Ohne Bruch schreiben',
+                   hint: `\\frac{1}{a^{n}} = a^{-n}` };
+        case 'prod': {
+          const b2 = Math.random() < 0.7
+            ? nn + randomInt(1, isHardMode() ? 20 : 4)
+            : randomInt(2, Math.max(2, nn - 1));
+          const resExp = b2 - nn;
+          return { latex: `${v}^{${-nn}} \\cdot ${v}^{${b2}}`,
+                   solution: resExp === 0 ? '1' : term(v, resExp), solType: 'mono', law,
+                   hint: `a^{n} \\cdot a^{m} = a^{n+m}\\ \\text{gilt auch für negative Exponenten}` };
+        }
+        case 'pow': {
+          const mm = randomInt(2, 4);
+          const nn2 = Math.min(nn, 12);
+          const negInner = Math.random() < 0.5;
+          return { latex: negInner
+                     ? `\\left(${v}^{${-nn2}}\\right)^{${mm}}`
+                     : `\\left(${v}^{${nn2}}\\right)^{${-mm}}`,
+                   solution: `${v}^${-nn2 * mm}`, solType: 'mono', law,
+                   hint: `(a^{n})^{m} = a^{n \\cdot m}\\ \\text{gilt auch für negative Exponenten}` };
+        }
+        case 'denom': {
+          const a2 = isHardMode() ? randomInt(8, 40) : randomInt(2, 6);
+          return { latex: divLatex(`${v}^{${a2}}`, `${v}^{${-nn}}`),
+                   solution: term(v, a2 + nn), solType: 'mono', law,
+                   hint: `\\frac{1}{${v}^{${-nn}}} = ${v}^{${nn}}` };
+        }
+      }
+      return null;
+    }
 
     case 'sqrt': return generateSqrtTask(vars);
 
     // ── Binomische Formeln ───────────────────────────
-    case 'binom1': {
-      const ca = pickCoeff(2), cb = pickCoeff(2);
-      if (ca || cb) {
-        const a = ca||1, b = cb||1;
-        const vp = a > 1 ? `${a}${v}` : v, wp = b > 1 ? `${b}${w}` : w;
-        return {
-          latex:    `(${vp} + ${wp})^2`,
-          solution: `${a*a}*${v}^2+${2*a*b}*${v}*${w}+${b*b}*${w}^2`,
-          solType: 'poly', law,
-        };
-      }
-      return { latex:`(${v} + ${w})^2`, solution:`${v}^2+2*${v}*${w}+${w}^2`, solType:'poly', law };
-    }
+    case 'binom1': case 'binom2': case 'binom3': {
+      const minus = law === 'binom2';
+      const useNum   = isWithNumbers() && Math.random() < 0.45;
+      const useCoeff = !useNum && isWithNumbers() && Math.random() < 0.6;
+      const usePow   = isHardMode() && Math.random() < 0.5;
+      const p = usePow ? randomInt(2, 4) : 1;
+      const q = usePow ? randomInt(2, 4) : 1;
+      const formula = law === 'binom1' ? '(a+b)^{2} = a^{2}+2ab+b^{2}'
+                    : law === 'binom2' ? '(a-b)^{2} = a^{2}-2ab+b^{2}'
+                    : '(a+b)(a-b) = a^{2}-b^{2}';
+      const mkHint = (A, B) => `${formula} \\quad\\text{mit}\\ a = ${A},\\ b = ${B}`;
 
-    case 'binom2': {
-      const ca = pickCoeff(2), cb = pickCoeff(2);
-      if (ca || cb) {
-        const a = ca||1, b = cb||1;
-        const vp = a > 1 ? `${a}${v}` : v, wp = b > 1 ? `${b}${w}` : w;
+      // Zahl als zweiter Summand
+      if (useNum) {
+        const cNum = randomChoice([2,3,4,5,6,7,8,9,10,11,12,15,20]);
+        const A = vt(v, p);
+        if (law === 'binom3') {
+          return {
+            latex:    `\\left(${A} + ${cNum}\\right)\\left(${A} - ${cNum}\\right)`,
+            solution: `${term(v, 2*p)}-${cNum*cNum}`,
+            solType: 'poly', law, hint: mkHint(A, cNum),
+          };
+        }
+        const s = minus ? '-' : '+';
         return {
-          latex:    `(${vp} - ${wp})^2`,
-          solution: `${a*a}*${v}^2-${2*a*b}*${v}*${w}+${b*b}*${w}^2`,
-          solType: 'poly', law,
+          latex:    `\\left(${A} ${s} ${cNum}\\right)^{2}`,
+          solution: `${term(v, 2*p)}${minus ? '-' : '+'}${2*cNum}*${term(v, p)}+${cNum*cNum}`,
+          solType: 'poly', law, hint: mkHint(A, cNum),
         };
       }
-      return { latex:`(${v} - ${w})^2`, solution:`${v}^2-2*${v}*${w}+${w}^2`, solType:'poly', law };
-    }
 
-    case 'binom3': {
-      const ca = pickCoeff(2), cb = pickCoeff(2);
-      if (ca || cb) {
-        const a = ca||1, b = cb||1;
-        const vp = a > 1 ? `${a}${v}` : v, wp = b > 1 ? `${b}${w}` : w;
+      // Zahlenkoeffizienten vor den Variablen
+      let aC = 1, bC = 1;
+      if (useCoeff) {
+        const pool = [2,3,4,5,6,7,8,9,10,11,12];
+        aC = Math.random() < 0.6 ? randomChoice(pool) : 1;
+        bC = randomChoice(pool);
+        if (aC === 1 && bC === 1) bC = randomChoice(pool);
+      }
+      const A = (aC > 1 ? aC : '') + vt(v, p);
+      const B = (bC > 1 ? bC : '') + vt(w, q);
+      const a2 = aC * aC, b2 = bC * bC, ab2 = 2 * aC * bC;
+      const cf = (k) => k === 1 ? '' : `${k}*`;
+
+      if (law === 'binom3') {
         return {
-          latex:    `(${vp} + ${wp})(${vp} - ${wp})`,
-          solution: `${a*a}*${v}^2-${b*b}*${w}^2`,
-          solType: 'poly', law,
+          latex:    `\\left(${A} + ${B}\\right)\\left(${A} - ${B}\\right)`,
+          solution: `${cf(a2)}${term(v, 2*p)}-${cf(b2)}${term(w, 2*q)}`,
+          solType: 'poly', law, hint: mkHint(A, B),
         };
       }
-      return { latex:`(${v} + ${w})(${v} - ${w})`, solution:`${v}^2-${w}^2`, solType:'poly', law };
+      const s = minus ? '-' : '+';
+      return {
+        latex:    `\\left(${A} ${s} ${B}\\right)^{2}`,
+        solution: `${cf(a2)}${term(v, 2*p)}${s}${ab2}*${term(v, p)}*${term(w, q)}+${cf(b2)}${term(w, 2*q)}`,
+        solType: 'poly', law, hint: mkHint(A, B),
+      };
     }
   }
   return null;
@@ -741,280 +1142,492 @@ function generateSingleTask(law, vars) {
 
 function generateSqrtTask(vars) {
   const v = vars[0], w = vars[1] || 'b';
-  // Root order: simple mode → √ only; hard mode → all orders
-  const r = isHardMode() ? randomChoice([2,2,3,3,4,5]) : 2;
+  const r = isHardMode() ? randomChoice([2, 2, 3, 3, 4, 5]) : 2;
   const rootLatex = r === 2 ? '\\sqrt' : `\\sqrt[${r}]`;
-  // exponent multiplier k: for hard mode allow larger k
-  const k = randomInt(1, isHardMode() ? 4 : 3);
-  const type = randomInt(1, 4);
+  const kMax = isHardMode() ? 8 : 3;
+  const k = randomInt(1, kMax);
+  const powHint = (rad) => `\\left(${rad}\\right)^{\\frac{1}{${r}}}`;
 
-  if (type === 1) {
+  // Numerische Variante: √(c^r · v^{kr}) = c·v^k
+  if (isWithNumbers() && Math.random() < 0.3) {
+    const c = randomChoice(r === 2 ? [2,3,4,5,6,7,8,9,10] : [2,3,4,5,10]);
+    const rad = `${c}^{${r}} \\cdot ${v}^{${k*r}}`;
     return {
-      latex:    `${rootLatex}{${v}^{${k*r}}}`,
-      solution: k===1 ? v : `${v}^${k}`,
-      solType: 'mono', law: 'sqrt',
+      latex:    `${rootLatex}{${rad}}`,
+      solution: `${c}*${term(v, k)}`,
+      solType: 'mono', law: 'sqrt', hint: powHint(rad),
     };
+  }
+
+  const type = randomInt(1, 4);
+  if (type === 1) {
+    const rad = `${v}^{${k*r}}`;
+    return { latex: `${rootLatex}{${rad}}`, solution: term(v, k),
+             solType: 'mono', law: 'sqrt', hint: powHint(rad) };
   }
   if (type === 2) {
     return {
       latex:    `\\left(${rootLatex}{${v}}\\right)^{${k*r}}`,
-      solution: k===1 ? v : `${v}^${k}`,
+      solution: term(v, k),
       solType: 'mono', law: 'sqrt',
+      hint: expandFactors(`${rootLatex}{${v}}`, k*r),
     };
   }
   if (type === 3) {
-    const j = randomInt(1, isHardMode() ? 4 : 3);
-    const sol = (k===1?v:`${v}^${k}`) + '*' + (j===1?w:`${w}^${j}`);
-    return {
-      latex:    `${rootLatex}{${v}^{${k*r}} \\cdot ${w}^{${j*r}}}`,
-      solution: sol,
-      solType: 'mono', law: 'sqrt',
-    };
+    const j = randomInt(1, kMax);
+    const rad = `${v}^{${k*r}} \\cdot ${w}^{${j*r}}`;
+    return { latex: `${rootLatex}{${rad}}`, solution: `${term(v, k)}*${term(w, j)}`,
+             solType: 'mono', law: 'sqrt', hint: powHint(rad) };
   }
-  // type 4: √v · √v = v  (only meaningful for r=2)
   if (r === 2) {
-    return { latex:`\\sqrt{${v}} \\cdot \\sqrt{${v}}`, solution:v, solType:'mono', law:'sqrt' };
+    return { latex: `\\sqrt{${v}} \\cdot \\sqrt{${v}}`, solution: v, solType: 'mono', law: 'sqrt',
+             hint: `\\left(\\sqrt{${v}}\\right)^{2}` };
   }
-  // fallback for higher r: just type 1 variant
-  return {
-    latex:    `${rootLatex}{${v}^{${k*r}}}`,
-    solution: k===1 ? v : `${v}^${k}`,
-    solType: 'mono', law: 'sqrt',
-  };
+  const rad = `${v}^{${k*r}}`;
+  return { latex: `${rootLatex}{${rad}}`, solution: term(v, k),
+           solType: 'mono', law: 'sqrt', hint: powHint(rad) };
 }
 
 /* ════════════════════════════════════════════════
    Compositional combo generator
    ════════════════════════════════════════════════
    An expression is a chain of "atoms" joined by · or :
-   Each atom applies one law and contributes a {coeff, varMap}.
-   The chain is evaluated left-to-right symbolically, then
-   rendered as LaTeX and solution string.
+   (or rendered as one big fraction, see renderChain).
+   Each atom applies one law and contributes
+   {latex, sign, cExp, varMap [, hintTex]}:
+     sign    ±1 (from negative bases / leading minus)
+     cExp    exponent of the shared numeric base (coeffCtx.base)
+     varMap  variable → exponent
+     hintTex optional expansion shown as Ansatz for single-atom tasks
 
-   Atom types:
-     SIMPLE       v^n                           (product rule appears between atoms)
-     POW_POW      (v^n)^m                       (power rule)
-     COEFF_POW    (c·v^n)^m                     (power + productPower)
-     NEG_BASE     (−v)^n                        (negative base)
-     PROD_2V      (v^n·w^p)^m                   (productPower, 2 vars)
-     COEFF_2V     (c·v^n·w^p)^m                 (productPower + coeff, 2 vars)
-     PROD_3V      (v^n·w^p·u^q)^m               (productPower, 3 vars)
-     COEFF_3V     (c·v^n·w^p·u^q)^m             (productPower + coeff, 3 vars)
+   Atom types (gated by the selected laws / options):
+     SIMPLE       v^n                       (product/quotient rule via chain ops)
+     SIMPLE_NEG   v^{-n}                    (negative exponents; in denominators
+                                             only if negExpDenom is enabled)
+     POW_POW      (v^n)^m                   (power rule)
+     NESTED_POW   ((v^a)^b)^c               (power rule, hard mode)
+     NESTED_GROUP (v^p · (w^q)^r)^m         (nested structures, comboNested)
+     COEFF_POW    (c·v^n)^m                 (power + productPower + numbers)
+     NEG_BASE     (−v)^n                    (negative base)
+     NEG_SIGN     −v^n                      (leading minus, chains only)
+     PROD_2V/3V   (vⁿ·wᵖ[·u^q])^m           (productPower)
+     COEFF_2V/3V  (c·vⁿ·wᵖ[·u^q])^m         (productPower + numbers)
+     FRAC_POW     (vⁿ/wᵖ)^m                 (quotientPower)
+     NUM_POW      c^n                       (numeric base, product rule on numbers)
+     ROOT         √[r]{...}                 (roots)
 
-   Chain operators · and : produce product/quotient rules between atoms.
+   All numeric atoms of one task share a single base
+   (coeffCtx.base) so the final coefficient stays a
+   mentally computable power of that base.
    ════════════════════════════════════════════════ */
 
-/* ════════════════════════════════════════════════
-   Root-wrapping helper
-   Picks root order r ∈ {2,3,4,5}, generates inner
-   expression whose exponents are all multiples of r,
-   wraps in \sqrt[r]{...}, returns {latex, coeff, varMap}
-   with exponents divided by r.
-   ════════════════════════════════════════════════ */
-function makeRootAtom(vars, can2, can3) {
+const NUM_ATOM_BASES = [2, 2, 3, 10];  // bases that support higher exponents
+
+/* Inner exponent for atoms like (v^p · w^q)^m — kept small so
+   result = inner·outer stays reasonable even in hard mode. */
+function innerExp() { return isHardMode() ? randomInt(2, 12) : randomInt(1, 3); }
+function vt(x, e)   { return e === 1 ? x : `${x}^{${e}}`; }
+
+function makeRootAtom(vars, can2, can3, coeffCtx) {
   const [v, w, u] = vars;
   const r = randomChoice([2, 2, 2, 3, 3, 4, 5]); // weight towards √
-  // Multiplier k so exponent inside = k*r
-  const k  = randomInt(1, isHardMode() ? 4 : 2);
-  const k2 = randomInt(1, isHardMode() ? 4 : 2);
-  const k3 = randomInt(1, isHardMode() ? 4 : 2);
-
+  const kMax = isHardMode() ? 6 : 2;
+  const k  = randomInt(1, kMax);
+  const k2 = randomInt(1, kMax);
+  const k3 = randomInt(1, kMax);
   const rootLatex = r === 2 ? '\\sqrt' : `\\sqrt[${r}]`;
 
-  // Optionally include an outer coefficient raised to r-th power inside root
-  const c = isWithNumbers() && Math.random() < 0.4 ? pickCoeff(r) : null;
-  const coeffInside = c ? `${c}^{${r}} \\cdot ` : '';
-  const coeffOutside = c ? c : 1; // c^r inside → c outside
+  // Optionally a coefficient c^r inside the root → c outside (cExp = 1)
+  let cExp = 0, coeffInside = '';
+  if (isWithNumbers() && Math.random() < 0.35) {
+    let b = coeffCtx.base;
+    if (b === null) { b = randomChoice([2, 3, 4, 5, 10]); coeffCtx.base = b; }
+    if (b <= 20) { coeffInside = `${b}^{${r}} \\cdot `; cExp = 1; }
+  }
 
   const type = can3 && Math.random() < 0.25 ? '3v'
              : can2 && Math.random() < 0.5  ? '2v' : '1v';
-
+  let rad, varMap;
   if (type === '1v') {
-    return {
-      latex: `${rootLatex}{${coeffInside}${v}^{${k*r}}}`,
-      coeff: coeffOutside,
-      varMap: {[v]: k},
-    };
+    rad = `${coeffInside}${v}^{${k*r}}`;
+    varMap = {[v]: k};
+  } else if (type === '2v') {
+    rad = `${coeffInside}${v}^{${k*r}} \\cdot ${w}^{${k2*r}}`;
+    varMap = {[v]: k, [w]: k2};
+  } else {
+    rad = `${coeffInside}${v}^{${k*r}} \\cdot ${w}^{${k2*r}} \\cdot ${u}^{${k3*r}}`;
+    varMap = {[v]: k, [w]: k2, [u]: k3};
   }
-  if (type === '2v') {
-    return {
-      latex: `${rootLatex}{${coeffInside}${v}^{${k*r}} \\cdot ${w}^{${k2*r}}}`,
-      coeff: coeffOutside,
-      varMap: {[v]: k, [w]: k2},
-    };
-  }
-  // 3v
-  return {
-    latex: `${rootLatex}{${coeffInside}${v}^{${k*r}} \\cdot ${w}^{${k2*r}} \\cdot ${u}^{${k3*r}}}`,
-    coeff: coeffOutside,
-    varMap: {[v]: k, [w]: k2, [u]: k3},
-  };
+  return { latex: `${rootLatex}{${rad}}`, sign: 1, cExp, varMap,
+           hintTex: `\\left(${rad}\\right)^{\\frac{1}{${r}}}` };
 }
 
 /**
- * Build one atom. Returns {latex, coeff, varMap}.
+ * Build one atom. Returns {latex, sign, cExp, varMap} or null.
+ * Only atom types whose laws/options are selected can appear.
  * vars is shuffled per atom so all variables get used as primaries.
+ * isDenom: true if this atom lands after ':' — negative exponents
+ * are then only offered when negExpDenom is enabled.
  */
-function makeAtom(vars, can2, can3) {
+function makeAtom(vars, can2, can3, laws, coeffCtx, allowSimple, isDenom) {
   const [v, w, u] = vars;
   const n = randExp();
-  // Outer exponent m stays small (2–4) so results stay manageable;
-  // when a numeric coefficient c is involved, cap m at 2 so c^m doesn't explode.
-  const mFull  = randomInt(2, 4);  // for atom types without numeric coefficient
-  const mCoeff = 2;                // for atom types with numeric coefficient
+  const mFull = randOuterExp();
+  const hasPower = laws.includes('power');
+  const hasPP    = laws.includes('productPower');
+  const hasQP    = laws.includes('quotientPower');
+  // Only add further numeric atoms if the shared base supports stacking
+  const coeffOK = isWithNumbers() &&
+    (coeffCtx.base === null || coeffCtx.base === 2 || coeffCtx.base === 3 || coeffCtx.base === 10);
+  // Negative exponents as atoms: option or law enables them;
+  // directly behind ':' only with the denominator sub-setting
+  const negAtomOK = (isNegExp() || laws.includes('negPow')) && (!isDenom || isNegExpDenom());
 
-  // Build weighted type pool
   const pool = [
-    'SIMPLE','SIMPLE','SIMPLE',
-    'POW_POW','POW_POW','POW_POW',
-    ...(isWithNumbers() ? ['COEFF_POW','COEFF_POW','COEFF_POW'] : []),
-    ...(isNegBase()     ? ['NEG_BASE','NEG_BASE']                : []),
-    ...(can2            ? ['PROD_2V','PROD_2V','PROD_2V','PROD_2V']       : []),
-    ...(can2 && isWithNumbers() ? ['COEFF_2V','COEFF_2V','COEFF_2V']     : []),
-    ...(can3            ? ['PROD_3V','PROD_3V','PROD_3V']                 : []),
-    ...(can3 && isWithNumbers() ? ['COEFF_3V','COEFF_3V']                : []),
-    ...(isWithRoots()   ? ['ROOT','ROOT','ROOT','ROOT']                   : []),
+    ...(allowSimple ? ['SIMPLE','SIMPLE','SIMPLE'] : []),
+    ...(allowSimple && negAtomOK ? ['SIMPLE_NEG','SIMPLE_NEG'] : []),
+    ...(hasPower ? ['POW_POW','POW_POW','POW_POW'] : []),
+    ...(hasPower && isHardMode() ? ['NESTED_POW'] : []),
+    ...(hasPP && isComboNested() ? ['NESTED_GROUP','NESTED_GROUP','NESTED_GROUP'] : []),
+    ...(hasPower && hasPP && coeffOK ? ['COEFF_POW','COEFF_POW','COEFF_POW'] : []),
+    ...(isNegBase() ? ['NEG_BASE','NEG_BASE'] : []),
+    ...(isNegSign() && allowSimple ? ['NEG_SIGN','NEG_SIGN'] : []),
+    ...(hasPP && can2 ? ['PROD_2V','PROD_2V','PROD_2V','PROD_2V'] : []),
+    ...(hasPP && can2 && coeffOK ? ['COEFF_2V','COEFF_2V','COEFF_2V'] : []),
+    ...(hasPP && can3 ? ['PROD_3V','PROD_3V','PROD_3V'] : []),
+    ...(hasPP && can3 && coeffOK ? ['COEFF_3V','COEFF_3V'] : []),
+    ...(hasQP ? ['FRAC_POW','FRAC_POW'] : []),
+    ...((isWithRoots() || laws.includes('sqrt')) ? ['ROOT','ROOT','ROOT'] : []),
+    ...(coeffOK && allowSimple ? ['NUM_POW'] : []),
   ];
+  if (!pool.length) return null;
+
+  /* Pick a numeric coefficient c with outer exponent m so that c^m
+     is mentally computable; all numeric atoms share coeffCtx.base. */
+  function pickAtomCoeff(mWanted) {
+    if (coeffCtx.base === null) {
+      const b = pickCoeffForExp(mWanted);
+      if (b === null) return null;
+      coeffCtx.base = b;
+      return { c: b, m: mWanted };
+    }
+    const b = coeffCtx.base;
+    const lim = NICE_EXP_LIMIT[b] || 2;
+    return { c: b, m: Math.min(mWanted, lim) };
+  }
 
   switch (randomChoice(pool)) {
 
     case 'SIMPLE':
-      return { latex: `${v}^{${n}}`, coeff: 1, varMap: {[v]: n} };
+      return { latex: `${v}^{${n}}`, sign: 1, cExp: 0, varMap: {[v]: n} };
 
-    case 'POW_POW':
-      return { latex: `\\left(${v}^{${n}}\\right)^{${mFull}}`, coeff: 1, varMap: {[v]: n*mFull} };
+    case 'SIMPLE_NEG': {
+      const e = isHardMode() ? randomInt(8, 30) : randomInt(2, 5);
+      return { latex: `${v}^{${-e}}`, sign: 1, cExp: 0, varMap: {[v]: -e} };
+    }
+
+    case 'POW_POW': {
+      const nn = isHardMode() ? randomInt(8, 30) : randomInt(2, 5);
+      return { latex: `\\left(${v}^{${nn}}\\right)^{${mFull}}`,
+               sign: 1, cExp: 0, varMap: {[v]: nn * mFull},
+               hintTex: expandFactors(`${v}^{${nn}}`, mFull) };
+    }
+
+    case 'NESTED_POW': {
+      const a1 = randomInt(2, 5), a2 = randomInt(2, 4), a3 = randomInt(2, 3);
+      return { latex: `\\left(\\left(${v}^{${a1}}\\right)^{${a2}}\\right)^{${a3}}`,
+               sign: 1, cExp: 0, varMap: {[v]: a1 * a2 * a3},
+               hintTex: expandFactors(`\\left(${v}^{${a1}}\\right)^{${a2}}`, a3) };
+    }
+
+    case 'NESTED_GROUP': {
+      // verschachtelt: (v^p · (w^q)^r)^m
+      const mm = randomInt(2, isHardMode() ? 4 : 3);
+      const p = innerExp();
+      let part2, map2;
+      if (hasPower && (Math.random() < 0.6 || !can2)) {
+        const q = randomInt(2, isHardMode() ? 6 : 3), r2 = randomInt(2, 3);
+        const bv = can2 && Math.random() < 0.5 ? w : v;
+        part2 = `\\left(${bv}^{${q}}\\right)^{${r2}}`;
+        map2 = { [bv]: q * r2 };
+      } else if (can2) {
+        const q = innerExp();
+        part2 = vt(w, q);
+        map2 = { [w]: q };
+      } else {
+        const q = innerExp();
+        part2 = vt(v, q);
+        map2 = { [v]: q };
+      }
+      const inner = `${vt(v, p)} \\cdot ${part2}`;
+      const varMap = {};
+      varMap[v] = (varMap[v] || 0) + p * mm;
+      for (const [x, e] of Object.entries(map2)) varMap[x] = (varMap[x] || 0) + e * mm;
+      return { latex: `\\left(${inner}\\right)^{${mm}}`,
+               sign: 1, cExp: 0, varMap,
+               hintTex: expandFactors(`\\left(${inner}\\right)`, mm) };
+    }
 
     case 'COEFF_POW': {
-      const c = pickCoeff(mCoeff) || randomInt(2,5);
-      const cm = Math.round(Math.pow(c,mCoeff));
-      return { latex: `\\left(${c}${v}^{${n}}\\right)^{${mCoeff}}`, coeff: cm, varMap: {[v]: n*mCoeff} };
+      const pc = pickAtomCoeff(randomInt(2, isHardMode() ? 5 : 3));
+      if (!pc) return { latex: `${v}^{${n}}`, sign: 1, cExp: 0, varMap: {[v]: n} };
+      const i1 = Math.random() < 0.5 ? 1 : randomInt(2, 4);
+      return { latex: `\\left(${pc.c}${vt(v, i1)}\\right)^{${pc.m}}`,
+               sign: 1, cExp: pc.m, varMap: {[v]: i1 * pc.m},
+               hintTex: expandFactors(`\\left(${pc.c}${vt(v, i1)}\\right)`, pc.m) };
     }
 
     case 'NEG_BASE':
-      return { latex: `\\left(-${v}\\right)^{${n}}`, coeff: n%2===0?1:-1, varMap: {[v]: n} };
+      return { latex: `\\left(-${v}\\right)^{${n}}`,
+               sign: n % 2 === 0 ? 1 : -1, cExp: 0, varMap: {[v]: n},
+               hintTex: expandFactors(`\\left(-${v}\\right)`, n) };
+
+    case 'NEG_SIGN': {
+      const nn = Math.min(n, 30);
+      return { latex: `-${v}^{${nn}}`, sign: -1, cExp: 0, varMap: {[v]: nn} };
+    }
 
     case 'PROD_2V': {
-      const p = randExp();
-      return {
-        latex: `\\left(${v}^{${n}} \\cdot ${w}^{${p}}\\right)^{${mFull}}`,
-        coeff: 1, varMap: {[v]: n*mFull, [w]: p*mFull},
-      };
+      const p = innerExp(), q = innerExp();
+      const inner = `${vt(v, p)} \\cdot ${vt(w, q)}`;
+      return { latex: `\\left(${inner}\\right)^{${mFull}}`,
+               sign: 1, cExp: 0, varMap: {[v]: p * mFull, [w]: q * mFull},
+               hintTex: expandFactors(`\\left(${inner}\\right)`, mFull) };
     }
 
     case 'COEFF_2V': {
-      const p = randExp(), c = pickCoeff(mCoeff)||randomInt(2,4), cm = Math.round(Math.pow(c,mCoeff));
-      return {
-        latex: `\\left(${c} \\cdot ${v}^{${n}} \\cdot ${w}^{${p}}\\right)^{${mCoeff}}`,
-        coeff: cm, varMap: {[v]: n*mCoeff, [w]: p*mCoeff},
-      };
+      const pc = pickAtomCoeff(randomInt(2, isHardMode() ? 4 : 2));
+      if (!pc) return { latex: `${v}^{${n}}`, sign: 1, cExp: 0, varMap: {[v]: n} };
+      const p = innerExp(), q = innerExp();
+      const inner = `${pc.c}${vt(v, p)}${vt(w, q)}`;
+      return { latex: `\\left(${inner}\\right)^{${pc.m}}`,
+               sign: 1, cExp: pc.m, varMap: {[v]: p * pc.m, [w]: q * pc.m},
+               hintTex: expandFactors(`\\left(${inner}\\right)`, pc.m) };
     }
 
     case 'PROD_3V': {
-      const p = randExp(), q = randExp();
-      return {
-        latex: `\\left(${v}^{${n}} \\cdot ${w}^{${p}} \\cdot ${u}^{${q}}\\right)^{${mFull}}`,
-        coeff: 1, varMap: {[v]: n*mFull, [w]: p*mFull, [u]: q*mFull},
-      };
+      const p = innerExp(), q = innerExp(), s = innerExp();
+      const inner = `${vt(v, p)} \\cdot ${vt(w, q)} \\cdot ${vt(u, s)}`;
+      return { latex: `\\left(${inner}\\right)^{${mFull}}`,
+               sign: 1, cExp: 0, varMap: {[v]: p * mFull, [w]: q * mFull, [u]: s * mFull},
+               hintTex: expandFactors(`\\left(${inner}\\right)`, mFull) };
     }
 
     case 'COEFF_3V': {
-      const p = randExp(), q = randExp(), c = pickCoeff(mCoeff)||randomInt(2,4), cm = Math.round(Math.pow(c,mCoeff));
-      return {
-        latex: `\\left(${c} \\cdot ${v}^{${n}} \\cdot ${w}^{${p}} \\cdot ${u}^{${q}}\\right)^{${mCoeff}}`,
-        coeff: cm, varMap: {[v]: n*mCoeff, [w]: p*mCoeff, [u]: q*mCoeff},
-      };
+      const pc = pickAtomCoeff(2);
+      if (!pc) return { latex: `${v}^{${n}}`, sign: 1, cExp: 0, varMap: {[v]: n} };
+      const p = innerExp(), q = innerExp(), s = innerExp();
+      const inner = `${pc.c}${vt(v, p)}${vt(w, q)}${vt(u, s)}`;
+      return { latex: `\\left(${inner}\\right)^{${pc.m}}`,
+               sign: 1, cExp: pc.m,
+               varMap: {[v]: p * pc.m, [w]: q * pc.m, [u]: s * pc.m},
+               hintTex: expandFactors(`\\left(${inner}\\right)`, pc.m) };
+    }
+
+    case 'FRAC_POW': {
+      const mm = randomInt(2, isHardMode() ? 4 : 3);
+      const p = innerExp(), q = innerExp();
+      // Negativer Exponent im Nenner des inneren Bruchs
+      if (can2 && isNegExpDenom() && Math.random() < 0.35) {
+        const fr = `\\frac{${vt(v, p)}}{${w}^{${-q}}}`;
+        return { latex: `\\left(${fr}\\right)^{${mm}}`,
+                 sign: 1, cExp: 0, varMap: {[v]: p * mm, [w]: q * mm},
+                 hintTex: expandFactors(fr, mm) };
+      }
+      if (can2) {
+        const fr = `\\frac{${vt(v, p)}}{${vt(w, q)}}`;
+        return { latex: `\\left(${fr}\\right)^{${mm}}`,
+                 sign: 1, cExp: 0, varMap: {[v]: p * mm, [w]: -q * mm},
+                 hintTex: expandFactors(fr, mm) };
+      }
+      // single variable: exponents subtract inside
+      const hi = Math.max(p, q) + 1, lo = Math.min(p, q);
+      const fr = `\\frac{${vt(v, hi)}}{${vt(v, lo)}}`;
+      return { latex: `\\left(${fr}\\right)^{${mm}}`,
+               sign: 1, cExp: 0, varMap: {[v]: (hi - lo) * mm},
+               hintTex: expandFactors(fr, mm) };
+    }
+
+    case 'NUM_POW': {
+      let b = coeffCtx.base;
+      if (b !== null && ![2, 3, 10].includes(b)) {
+        return { latex: `${v}^{${n}}`, sign: 1, cExp: 0, varMap: {[v]: n} };
+      }
+      if (b === null) { b = randomChoice(NUM_ATOM_BASES); coeffCtx.base = b; }
+      const lim = NICE_EXP_LIMIT[b];
+      const e = randomInt(2, Math.max(3, Math.floor(lim * 0.6)));
+      return { latex: `${b}^{${e}}`, sign: 1, cExp: e, varMap: {} };
     }
 
     case 'ROOT':
-      return makeRootAtom(vars, can2, can3);
+      return makeRootAtom(vars, can2, can3, coeffCtx);
   }
+  return null;
+}
+
+/* Kette rendern: als ·/:-Folge oder als ein großer Bruch.
+   Atome mit führendem Minus werden ab Position 2 geklammert;
+   mehrfaktorige Terme hinter ':' ebenfalls, da a : b·c sonst
+   als (a:b)·c gelesen würde. */
+function renderChain(texArr, ops, asFrac) {
+  // "ein Faktor": einzelne Potenz/Zahl oder bereits geklammerte Struktur
+  const single = (L) =>
+    /^[a-z](\^\{-?\d+\})?$/.test(L) ||
+    /^\d+(\^\{-?\d+\})?$/.test(L) ||
+    L.startsWith('\\left(') || L.startsWith('\\frac{') || L.startsWith('\\sqrt');
+  const wrapNeg = (L) => L.startsWith('-') ? `\\left(${L}\\right)` : L;
+  const wrapDiv = (L) => (L.startsWith('-') || !single(L)) ? `\\left(${L}\\right)` : L;
+  if (asFrac) {
+    const num = [texArr[0]], den = [];
+    for (let i = 0; i < ops.length; i++) (ops[i] === ':' ? den : num).push(texArr[i + 1]);
+    const numTex = num.map((L, i) => i ? wrapNeg(L) : L).join(' \\cdot ');
+    const denTex = den.map(wrapNeg).join(' \\cdot ');
+    return `\\frac{${numTex}}{${denTex}}`;
+  }
+  const parts = [texArr[0]];
+  for (let i = 0; i < ops.length; i++) {
+    if (ops[i] === '·') {
+      parts.push('\\cdot', wrapNeg(texArr[i + 1]));
+    } else {
+      parts.push(':', wrapDiv(texArr[i + 1]));
+    }
+  }
+  return parts.join(' ');
 }
 
 /**
  * Generate a composite task.
  * comboProb controls chain length and multi-variable density:
- *   1–33  → chain 2,   1 var
- *   34–66 → chain 2–3, up to 2 vars
+ *   1–33   → chain 2,   1 var
+ *   34–66  → chain 2–3, up to 2 vars
  *   67–100 → chain 2–4, up to 3 vars (if varCount slider allows)
+ * Respects the selected laws: chain operators · / : only appear if
+ * product / quotient rule are selected; atom types only if their
+ * laws are selected. Structure follows the combo settings:
+ * "aneinandergereiht" = chains, "verschachtelt" = nested single
+ * structures like (v^p · (w^q)^r)^m; both = mixed.
  */
 function generateComboTask(comboProb) {
+  const laws = getSelectedLaws();
   const tier = comboProb <= 33 ? 1 : comboProb <= 66 ? 2 : 3;
-  const maxLen     = [2, 3, 4][tier-1];
-  const maxVarsCap = [1, 2, 3][tier-1];
+  const maxVarsCap = [1, 2, 3][tier - 1];
   const varCount   = Math.min(getVarCount(), maxVarsCap);
   const allVars    = pickVars(varCount, true);
 
-  // chain length: bias towards longer chains at higher comboProb
-  // e.g. tier3: 20% chance of 2, 40% of 3, 40% of 4
-  const lenWeights = tier===1 ? [1] : tier===2 ? [2,3] : [2,2,3,3,4,4,4];
-  const chainLen = randomChoice(lenWeights);
+  // Chain operators depend on selected laws
+  const opPool = [];
+  if (laws.includes('product'))  opPool.push('·', '·', '·');
+  if (laws.includes('quotient')) opPool.push(':');
 
-  // For each atom, shuffle the vars so different atoms use different primaries.
-  // This ensures all vars appear in the task when varCount > 1.
-  const atoms = [];
-  const ops   = [];
+  const chainAllowed  = isComboChain();
+  const nestedAllowed = isComboNested() && laws.includes('productPower');
 
+  let chainLen;
+  if (!opPool.length || (!chainAllowed && nestedAllowed)) {
+    chainLen = 1;   // Einzelstruktur (keine Kette erlaubt/möglich)
+  } else {
+    const lenWeights = tier === 1 ? [2] : tier === 2 ? [2, 3] : [2, 2, 3, 3, 4, 4, 4];
+    chainLen = randomChoice(lenWeights);
+  }
+
+  const coeffCtx = { base: null };
+  const atoms = [], ops = [];
   for (let i = 0; i < chainLen; i++) {
+    const op = i === 0 ? null : randomChoice(opPool);
+    if (op) ops.push(op);
     // Rotate-shuffle: atom i starts from allVars[i % allVars.length]
     const rotated = [
       ...allVars.slice(i % allVars.length),
       ...allVars.slice(0, i % allVars.length),
     ];
-    const can2 = varCount >= 2;
-    const can3 = varCount >= 3;
-    atoms.push(makeAtom(rotated, can2, can3));
+    const atom = makeAtom(rotated, varCount >= 2, varCount >= 3, laws, coeffCtx,
+                          chainLen > 1, op === ':');
+    if (!atom) return null;
+    atoms.push(atom);
+  }
 
-    if (i < chainLen - 1) {
-      // Use · most of the time; : only between single-var atoms to avoid messy fractions
-      const bothSingleVar = true; // we'll check after, just bias heavily toward ·
-      ops.push(Math.random() < 0.78 ? '·' : ':');
+  // Trivialitätscheck: mindestens ein Gesetz muss wirklich angewendet werden —
+  // entweder kombiniert sich eine Variable über Atome hinweg, oder mindestens
+  // ein Atom ist selbst komplex (Klammer, Bruch, Wurzel, Zahl, Vorzeichen).
+  const simpleRe = /^[a-z]\^\{-?\d+\}$/;
+  if (atoms.every(a => simpleRe.test(a.latex))) {
+    const seen = {};
+    let overlap = false;
+    for (const a of atoms) for (const x of Object.keys(a.varMap)) {
+      if (seen[x]) overlap = true;
+      seen[x] = true;
     }
+    if (!overlap) return null;
   }
 
   // Evaluate chain left-to-right
-  let coeff = atoms[0].coeff;
+  let sign = atoms[0].sign, cExp = atoms[0].cExp;
   const varMap = { ...atoms[0].varMap };
-
   for (let i = 0; i < ops.length; i++) {
-    const a = atoms[i+1];
+    const a = atoms[i + 1];
+    sign *= a.sign;
     if (ops[i] === '·') {
-      coeff *= a.coeff;
-      for (const [v,e] of Object.entries(a.varMap)) varMap[v] = (varMap[v]||0) + e;
+      cExp += a.cExp;
+      for (const [x, e] of Object.entries(a.varMap)) varMap[x] = (varMap[x] || 0) + e;
     } else {
-      if (a.coeff === 0) return null;
-      coeff /= a.coeff;
-      for (const [v,e] of Object.entries(a.varMap)) varMap[v] = (varMap[v]||0) - e;
+      cExp -= a.cExp;
+      for (const [x, e] of Object.entries(a.varMap)) varMap[x] = (varMap[x] || 0) - e;
     }
   }
 
-  // Validate: coeff must be non-zero integer; negative exps only if enabled
-  if (!Number.isInteger(coeff) || coeff === 0) return null;
-  const hasNegExp = Object.values(varMap).some(e => e < 0);
-  if (hasNegExp && !isNegExp()) return null;
-  // Avoid trivial "= 1" or "= -1" with no variables
-  const activeVars = Object.keys(varMap).filter(v => varMap[v] !== 0);
-  if (activeVars.length === 0 && Math.abs(coeff) <= 1) return null;
+  // Coefficient must stay a mentally computable power of the shared base
+  let coeffVal = 1;
+  if (coeffCtx.base !== null && cExp !== 0) {
+    if (cExp < 0) return null;
+    const val = niceExpand(coeffCtx.base, cExp);
+    if (val === null) return null;
+    coeffVal = val;
+  }
 
-  // Build solution string
-  const sign = coeff < 0 ? '-' : '';
-  const absC = Math.abs(coeff);
+  // At least one variable must survive in the result
+  const activeVars = Object.keys(varMap).filter(x => varMap[x] !== 0).sort();
+  if (activeVars.length === 0) return null;
+
+  // Kanonische Lösung als Monom (negative Exponenten inline);
+  // die Darstellung als Bruch übernimmt die Lösungsform-Schicht.
   const parts = [];
-  if (absC !== 1 || activeVars.length === 0) parts.push(String(absC));
-  for (const v of activeVars.sort()) {
-    const e = varMap[v];
-    parts.push(e === 1 ? v : `${v}^${e}`);
-  }
-  const solution = sign + parts.join('*');
+  if (coeffVal !== 1) parts.push(String(coeffVal));
+  activeVars.forEach(x => parts.push(term(x, varMap[x])));
+  const solution = (sign < 0 ? '-' : '') + parts.join('*');
+  const solType = 'mono';
 
-  // Build LaTeX string
-  const latexParts = [atoms[0].latex];
-  for (let i = 0; i < ops.length; i++) {
-    latexParts.push(ops[i] === '·' ? '\\cdot' : ':');
-    latexParts.push(atoms[i+1].latex);
-  }
-  const latex = latexParts.join(' ');
+  // Darstellung der Aufgabe: Kette oder großer Bruch
+  const hasDiv = ops.includes(':');
+  const st = getDivStyle();
+  const asFrac = hasDiv && (st === 'frac' || (st === 'mixed' && Math.random() < 0.5));
+  const atomTexArr = atoms.map(a => a.latex);
+  const latex = renderChain(atomTexArr, ops, asFrac);
 
-  return { latex, solution, solType: 'mono', law: 'multi' };
+  // Ansatz-Hilfe
+  let hint;
+  if (chainLen === 1) {
+    hint = atoms[0].hintTex || null;
+  } else if (atoms.every(a => simpleRe.test(a.latex))) {
+    // reine Potenzkette: Faktoren ausschreiben
+    const ex = (a) => {
+      const [x, e] = Object.entries(a.varMap)[0];
+      return e > 0 ? expandFactors(x, e) : `\\frac{1}{${expandFactors(x, -e)}}`;
+    };
+    hint = renderChain(atoms.map(ex), ops, asFrac);
+  } else {
+    // jede Teilstruktur einen Schritt vereinfacht (Koeffizient unausgerechnet)
+    const simpTex = (a) => {
+      let t = a.sign < 0 ? '-' : '';
+      if (a.cExp && coeffCtx.base !== null) t += `${coeffCtx.base}^{${a.cExp}}`;
+      const ks = Object.keys(a.varMap).filter(x => a.varMap[x] !== 0).sort();
+      const vparts = ks.map(x => `${x}^{${a.varMap[x]}}`).join('');
+      if (!vparts && !a.cExp) return t + '1';
+      return t + vparts;
+    };
+    hint = renderChain(atoms.map(simpTex), ops, asFrac);
+  }
+
+  return { latex, solution, solType, law: 'multi', hint };
 }
 
 /* ════════════════════════════════════════════════
@@ -1031,13 +1644,13 @@ function generateTask() {
   if (!laws.length) { showToast('Bitte mindestens ein Potenzgesetz auswählen.'); return; }
 
   const comboProb = getComboProb();
-  const algebraicLaws = laws.filter(l => !l.startsWith('binom') && l !== 'sqrt');
-  const tryCombo = comboProb > 0 && algebraicLaws.length >= 1 && Math.random() * 100 < comboProb;
+  const comboLaws = laws.filter(l => ['product','quotient','power','productPower','quotientPower'].includes(l));
+  const tryCombo = comboProb > 0 && comboLaws.length >= 1 && Math.random() * 100 < comboProb;
 
   let task = null;
   if (tryCombo) {
     // Retry up to 8 times (some combos produce invalid results and return null)
-    for (let attempt = 0; attempt < 8 && !task; attempt++) {
+    for (let attempt = 0; attempt < 14 && !task; attempt++) {
       task = generateComboTask(comboProb);
     }
   }
@@ -1053,13 +1666,15 @@ function generateTask() {
 
   const taskEl = document.getElementById('taskText');
   taskEl.innerHTML = `\\(${task.latex} = {}\\)`;
-  document.getElementById('taskSub').textContent = LAW_LABELS[task.law] || '';
+  document.getElementById('taskSub').textContent = task.subLabel || LAW_LABELS[task.law] || '';
 
   const input = document.getElementById('answerInput');
   input.value = ''; input.className = '';
   input.placeholder = PLACEHOLDERS[task.solType] || 'Term eingeben';
   const hint = document.getElementById('answerHint');
   hint.className = ''; hint.innerHTML = '';
+  const ansatz = document.getElementById('ansatzBox');
+  ansatz.className = ''; ansatz.innerHTML = '';
 
   typesetMath(taskEl);
   if (window.MathJax && MathJax.typesetPromise) {
@@ -1075,14 +1690,28 @@ function checkAnswer() {
   const val   = input.value.trim();
   if (!val) { input.focus(); return; }
 
-  const correct = answersEqual(val, current.solution, current.solType);
+  const valueOk = answersEqual(val, current.solution, current.solType);
+
+  if (valueOk) {
+    const form = answerFormOk(val, current);
+    if (!form.ok) {
+      // Richtig umgeformt, aber falsche Darstellungsform:
+      // Hinweis geben, Versuch noch nicht werten
+      input.className = 'almost';
+      hint.innerHTML  = form.msg;
+      hint.className  = 'visible';
+      return;
+    }
+  }
+
+  const correct = valueOk;
   if (!answered) { scoreTotal++; if (correct) scoreOk++; updateCounter(); answered = true; }
 
   if (correct) {
     input.className = 'correct'; hint.className = '';
   } else {
     input.className = 'wrong';
-    hint.innerHTML  = `Richtige Antwort: \\(${solToLatex(current.solution, current.solType)}\\)`;
+    hint.innerHTML  = `Richtige Antwort: \\(${solutionDisplayLatex(current)}\\)`;
     hint.className  = 'visible';
     typesetMath(hint);
   }
@@ -1091,10 +1720,21 @@ function checkAnswer() {
 function revealAnswer() {
   if (!current) return;
   const hint = document.getElementById('answerHint');
-  hint.innerHTML = `Lösung: \\(${solToLatex(current.solution, current.solType)}\\)`;
+  hint.innerHTML = `Lösung: \\(${solutionDisplayLatex(current)}\\)`;
   hint.className = 'visible';
   document.getElementById('answerInput').className = '';
   typesetMath(hint);
+}
+
+function toggleAnsatz() {
+  if (!current) return;
+  const box = document.getElementById('ansatzBox');
+  if (box.className === 'visible') { box.className = ''; return; }
+  box.innerHTML = current.hint
+    ? `Ansatz: \\(${current.hint}\\)`
+    : 'Für diese Aufgabe gibt es keinen Ansatz-Tipp.';
+  box.className = 'visible';
+  typesetMath(box);
 }
 
 /* ════════════════════════════════════════════════
@@ -1103,6 +1743,7 @@ function revealAnswer() {
 document.getElementById('checkBtn') .addEventListener('click', checkAnswer);
 document.getElementById('nextBtn')  .addEventListener('click', generateTask);
 document.getElementById('revealBtn').addEventListener('click', revealAnswer);
+document.getElementById('hintBtn')  .addEventListener('click', toggleAnsatz);
 document.getElementById('answerInput').addEventListener('keydown', e => { if (e.key==='Enter') checkAnswer(); });
 
 document.getElementById('varCount').addEventListener('input', function() {

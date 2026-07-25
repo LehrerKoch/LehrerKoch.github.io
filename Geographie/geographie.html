@@ -1,0 +1,1543 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Geographie-Trainer</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+  /* ---------- Farbschema (Light / Dark) ---------- */
+  :root {
+    --bg: #f2f5f0;
+    --karte-hg: #ffffff;
+    --text: #1f2428;
+    --gedaempft: #5c6660;
+    --rand: #d5dad2;
+    --akzent: #4CAF50;
+    --wasser: #cbe2f5;
+    --land: #f3efe1;
+    --landrand: #59604f;
+    --blgrenze: #9aa392;
+    --gridfarbe: rgba(0,0,0,0.4);
+    --pin: #d32f2f;
+    --ortpunkt: #1565c0;
+    --richtig: #2e7d32;
+    --falsch: #c62828;
+    --schatten: 0 1px 4px rgba(0,0,0,0.10);
+  }
+  body.dark {
+    --bg: #14181c;
+    --karte-hg: #1e2429;
+    --text: #e7eae8;
+    --gedaempft: #9aa5a0;
+    --rand: #3a434b;
+    --wasser: #10202e;
+    --land: #3a4238;
+    --landrand: #c6ccbd;
+    --blgrenze: #7e8779;
+    --gridfarbe: rgba(255,255,255,0.45);
+    --pin: #ef5350;
+    --ortpunkt: #64b5f6;
+    --richtig: #81c784;
+    --falsch: #e57373;
+    --schatten: 0 1px 4px rgba(0,0,0,0.55);
+  }
+
+  /* ---------- Grundlayout ---------- */
+  html, body { margin: 0; }
+  body {
+    font-family: Calibri, sans-serif;
+    display: flex; flex-direction: column; align-items: center;
+    padding: 0 2%; box-sizing: border-box;
+    min-height: 100vh;
+    background: var(--bg); color: var(--text);
+    transition: background 0.25s, color 0.25s;
+  }
+  main { width: 100%; max-width: 780px; flex: 1 0 auto; display: flex; flex-direction: column; min-height: 0; }
+
+  .kopf { width: 100%; max-width: 780px; display: flex; align-items: center; justify-content: space-between; margin-top: 10px; }
+  .kopf h1 { margin: 0; font-size: 1.6em; }
+  .untertitel { color: var(--gedaempft); margin: 2px 0 12px 0; width: 100%; max-width: 780px; }
+
+  /* Spielmodus: Seite füllt exakt den Bildschirm, kein Scrollen */
+  body.spielaktiv { height: 100vh; height: 100dvh; overflow: hidden; }
+  body.spielaktiv .kopf, body.spielaktiv .untertitel, body.spielaktiv .site-footer { display: none; }
+  body.spielaktiv main { max-width: 1400px; flex: 1 1 auto; }
+
+  /* ---------- Karten (UI-Boxen) ---------- */
+  .form-block {
+    border: 1px solid var(--rand); border-radius: 10px;
+    padding: 6px 12px 10px 12px; margin-bottom: 12px;
+    background: var(--karte-hg); box-shadow: var(--schatten);
+  }
+  .form-block h3 { margin: 6px 0; font-size: 1.05em; }
+  .unterkategorie { border-top: 1px dashed var(--rand); margin-top: 10px; padding-top: 6px; }
+  .unterkategorie h4 { margin: 2px 0 6px 0; font-size: 0.95em; color: var(--gedaempft); }
+  .hinweis { color: var(--gedaempft); font-weight: normal; font-size: 0.9em; }
+
+  details { border: 1px solid var(--rand); border-radius: 10px; background: var(--karte-hg);
+            box-shadow: var(--schatten); padding: 6px 12px; margin: 12px 0; }
+  summary { font-weight: bold; cursor: pointer; }
+
+  /* Quellen-Akkordeon (wie in anno.html) */
+  details.quellen-details { margin: 8px 0 2px 0; padding: 0; font-size: 0.85em;
+    color: var(--gedaempft); background: var(--bg); border: 1px solid var(--rand);
+    border-radius: 6px; box-shadow: none; overflow: hidden; }
+  details.quellen-details summary { cursor: pointer; color: var(--gedaempft); font-weight: normal;
+    list-style: none; user-select: none; padding: 4px 6px; }
+  details.quellen-details summary::-webkit-details-marker { display: none; }
+  details.quellen-details summary::before { content: '▶'; font-size: 0.65em; margin-right: 4px;
+    transition: transform 0.2s; display: inline-block; vertical-align: middle; }
+  details.quellen-details[open] summary::before { transform: rotate(90deg); }
+  .quellen-body { padding: 4px 8px 2px 14px; line-height: 1.6; }
+  .quellen-body a { color: var(--akzent); text-decoration: underline; word-break: break-all; }
+  .quellen-body ul { margin: 2px 0 6px 0; padding-left: 16px; }
+  .quellen-body li { margin-bottom: 2px; }
+  .quellen-body h4 { margin: 6px 0 2px; font-size: 1em; }
+  .quellen-close-btn { display: block; width: 100%; margin: 8px 0 0 -14px; padding: 5px 0 4px;
+    box-sizing: content-box; background: transparent; border: none;
+    border-top: 1px solid var(--rand); color: var(--gedaempft); font-size: 0.78em;
+    cursor: pointer; text-align: center; font-family: inherit; letter-spacing: 0.04em; }
+  .quellen-close-btn:hover { color: var(--text); }
+
+  /* Anzahl-Schieberegler */
+  .anzahl-zeile { margin-top: 10px; }
+  .anzahl-zeile input[type="range"] { width: 100%; margin: 6px 0 0 0; accent-color: var(--akzent); }
+  .slider-skala { position: relative; height: 1.2em; font-size: 0.75em; color: var(--gedaempft); margin: 0 8px; }
+  .slider-skala span { position: absolute; transform: translateX(-50%); white-space: nowrap; }
+  .slider-skala span:first-child { transform: none; }
+  .slider-skala span:last-child { transform: translateX(-100%); }
+
+  /* Rasterbeschriftung (Spalten A, B, ... / Zeilen 1, 2, ...) */
+  .gridLabel { fill: var(--gridfarbe); opacity: 0.75; pointer-events: none;
+               font-family: Calibri, sans-serif; }
+
+  /* Pin-Modus: Fadenkreuz auf der Karte, Greifhand auf dem Pin */
+  #kartenBox.pinModus { cursor: crosshair; }
+
+  .overlay-tabelle { display: grid; grid-template-columns: max-content 1fr; gap: 6px 10px; align-items: center; }
+  .overlay-tabelle > .overlay-name { font-size: 0.95em; }
+  .overlay-tabelle > .pill-group { justify-content: flex-start; }
+  @media (max-width: 460px) {
+    .overlay-tabelle { grid-template-columns: 1fr; gap: 2px 0; }
+    .overlay-tabelle > .pill-group { margin-bottom: 6px; }
+  }
+
+  /* markierte mögliche Orte */
+  .ortpunkt { fill: var(--ortpunkt); fill-opacity: 0.55; stroke: #fff; stroke-width: 0.8;
+              vector-effect: non-scaling-stroke; cursor: pointer; }
+  .ortpunkt:hover { fill-opacity: 0.85; }
+  #pinMarker { cursor: grab; }
+  #pinMarker:active { cursor: grabbing; }
+
+  /* ---------- Pills & Buttons ---------- */
+  .pill-group { display: flex; flex-wrap: wrap; gap: 6px; }
+  .pill-group input[type="radio"], .pill-group input[type="checkbox"] { display: none; }
+  .pill-group label {
+    padding: 7px 14px; border: 2px solid var(--akzent); border-radius: 20px;
+    cursor: pointer; user-select: none; -webkit-user-select: none; font-size: 1em;
+    background: transparent; transition: background 0.15s;
+  }
+  .pill-group input:checked + label { background: var(--akzent); color: #fff;
+    font-weight: bold; }
+  /* Breite unabhängig vom Fett-Zustand: Label reserviert vorab die fette Breite */
+  .pill-group label { position: relative; }
+  .pill-group label::before {
+    content: attr(data-text); font-weight: bold; height: 0; overflow: hidden;
+    visibility: hidden; display: block; pointer-events: none;
+  }
+  .pill-group.kompakt label { padding: 4px 10px; font-size: 0.9em; border-width: 1.5px; }
+  .pill-group.gridfein { gap: 4px; margin-top: 6px; margin-left: 12px; }
+  .pill-group.gridfein label { padding: 3px 8px; font-size: 0.8em; }
+
+  .btn { background-color: var(--akzent); color: white; border: none; padding: 10px 20px;
+         font-size: 1em; margin: 4px 2px; border-radius: 6px; cursor: pointer; }
+  .btn:disabled { background-color: #9e9e9e; opacity: 0.6; cursor: not-allowed; }
+  .btn.sekundaer { background: transparent; color: var(--text); border: 1px solid var(--gedaempft); }
+  .btn.sekundaer { position: relative; }
+  .btn.sekundaer.aktiv { border-color: #2196F3; color: #2196F3; font-weight: bold; }
+  /* reserviert die fette Breite, damit aktive Buttons nicht breiter werden */
+  .btn.sekundaer::before {
+    content: attr(data-text); font-weight: bold; height: 0; overflow: hidden;
+    visibility: hidden; display: block; pointer-events: none;
+  }
+  .btn.gross { font-size: 1.15em; padding: 12px 28px; }
+
+  .theme-knopf {
+    background: var(--karte-hg); color: var(--text); border: 1px solid var(--rand);
+    border-radius: 50%; width: 42px; height: 42px; font-size: 1.25em; cursor: pointer;
+    box-shadow: var(--schatten); flex: 0 0 auto;
+    padding: 0; display: inline-flex; align-items: center; justify-content: center;
+    line-height: 1; overflow: hidden;
+  }
+
+  /* ---------- Spielansicht ---------- */
+  #spielScreen { display: none; flex-direction: column; flex: 1 1 auto; min-height: 0; }
+  #spielScreen.sichtbar { display: flex; }
+
+  #hud { display: flex; justify-content: space-between; align-items: center; gap: 8px;
+         width: 100%; padding: 6px 0 4px 0; box-sizing: border-box; }
+  #hudRunde { font-size: 0.95em; color: var(--gedaempft); white-space: nowrap; padding: 0 4px;
+              font-variant-numeric: tabular-nums; }
+  #hudPunkte { font-size: 1.05em; font-weight: bold; white-space: nowrap; padding: 0 4px;
+               font-variant-numeric: tabular-nums; }
+  #hudOrt { font-size: 1.45em; font-weight: bold; flex: 1 1 auto; text-align: center;
+            min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #hudRechts { display: flex; align-items: center; gap: 8px; }
+  #btnAbbruch { background: none; border: none; color: var(--gedaempft); font-size: 1.2em;
+                cursor: pointer; padding: 2px 6px; }
+
+  #gridLeiste { display: none; justify-content: center; flex-wrap: wrap; gap: 5px; padding-bottom: 5px; }
+  #gridLeiste.sichtbar { display: flex; }
+
+  #kartenBox { position: relative; flex: 1 1 auto; min-height: 0; width: 100%;
+               border: 1px solid var(--rand); border-radius: 10px; overflow: hidden;
+               background: var(--wasser); touch-action: none; box-shadow: var(--schatten); }
+  #karte { display: block; width: 100%; height: 100%; }
+  #zoomLeiste { position: absolute; right: 8px; top: 8px; display: flex; flex-direction: column; gap: 5px; }
+  #zoomLeiste button { width: 40px; height: 40px; font-size: 1.2em; margin: 0; padding: 0;
+                       background: var(--karte-hg); color: var(--text); border: 1px solid var(--rand);
+                       border-radius: 8px; cursor: pointer; box-shadow: var(--schatten); }
+  #zoomLeiste button:active { filter: brightness(0.9); }
+
+  #feedback { text-align: center; font-size: 1.1em; height: 2.8em; padding: 3px 0;
+              display: flex; align-items: center; justify-content: center;
+              overflow: hidden; box-sizing: border-box; }
+  #feedback .punkte { font-weight: bold; }
+  .gut { color: var(--richtig); }
+  .schlecht { color: var(--falsch); }
+
+  #aktionsLeiste { display: flex; justify-content: center; align-items: center; flex-wrap: wrap;
+                   gap: 6px; padding-bottom: 6px; }
+
+  /* ---------- Karte: SVG-Inhalte ---------- */
+  .land { fill: var(--land); stroke: var(--landrand); stroke-width: 1; vector-effect: non-scaling-stroke; }
+  .bundesland { fill: none; stroke: var(--blgrenze); stroke-width: 0.8; vector-effect: non-scaling-stroke; }
+  .gridZelle { fill: transparent; stroke: var(--gridfarbe); stroke-width: 0.8;
+               vector-effect: non-scaling-stroke; cursor: pointer; }
+  .gridZelle.gewaehlt { fill: rgba(33,150,243,0.35); }
+  .gridZelle.richtig { fill: rgba(76,175,80,0.45); }
+  .gridZelle.falsch { fill: rgba(244,67,54,0.4); }
+
+  /* ---------- Ergebnis ---------- */
+  #ergebnisTabelle { border-collapse: collapse; width: 100%; margin: 10px 0;
+                     background: var(--karte-hg); box-shadow: var(--schatten); border-radius: 10px; overflow: hidden; }
+  #ergebnisTabelle th, #ergebnisTabelle td { border: 1px solid var(--rand); padding: 5px 10px; text-align: left; }
+  #ergebnisTabelle th { background: rgba(76,175,80,0.18); }
+  #ergebnisTabelle td.rechts, #ergebnisTabelle th.rechts { text-align: right; }
+  #gesamtZeile td { font-weight: bold; background: rgba(76,175,80,0.12); }
+
+  /* .site-footer { width: 100%; padding: 12px 15px; border-top: 1px solid var(--rand); margin-top: 16px;
+                 box-sizing: border-box; font-size: 0.9em; color: var(--gedaempft); }
+  .footer-content { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; }
+  .footer-content a { color: var(--akzent); } */
+
+  #lobby-spacer { 
+    flex: 1 1 0; 
+    min-height: 0; 
+  }
+  .site-footer {
+    width: 100%; box-sizing: border-box; padding: 15px 15px;
+    border-top: 1px solid #ccc; margin-top: 4px; margin-bottom: 0px;
+    font-family: sans-serif; font-size: 0.6em; color: #333333d8;
+  }
+  .footer-content {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    margin: 0 auto;
+    max-width: 1000px;
+  }
+  .footer-content > :first-child {
+    justify-self: start;
+  }
+  .footer-content > :nth-child(2) {
+    justify-self: center;
+  }
+  .footer-content > :last-child {
+    justify-self: end;
+  }
+  .footer-topic a { 
+    color: inherit; 
+    text-decoration: underline; 
+  }
+  
+  .versteckt { display: none !important; }
+  .unsichtbar { visibility: hidden !important; }
+  /* Aktionsleiste behält feste Höhe, egal welche Buttons gerade sichtbar sind */
+  #aktionsLeiste { min-height: 52px; }
+
+  @media (max-width: 500px) {
+    .kopf h1 { font-size: 1.3em; }
+    #hudOrt { font-size: 1.15em; }
+    .btn.gross { width: 100%; }
+    .pill-group label { padding: 6px 10px; font-size: 0.95em; }
+    .pill-group.kompakt label { padding: 3px 8px; font-size: 0.85em; }
+  }
+  /* Querformat-Handys: HUD und Leisten besonders kompakt */
+  @media (max-height: 450px) {
+    #hud { padding: 3px 0 2px 0; }
+    #hudOrt { font-size: 1.05em; }
+    #hud .theme-knopf { width: 32px; height: 32px; font-size: 1em; }
+    #feedback { font-size: 0.95em; height: 2.4em; padding: 1px 0; }
+    #aktionsLeiste { padding-bottom: 3px; }
+    #aktionsLeiste .btn { padding: 6px 14px; }
+    #zoomLeiste button { width: 34px; height: 34px; }
+  }
+</style>
+</head>
+<body>
+<div class="kopf">
+  <h1>🌍 Geographie-Trainer</h1>
+  <button class="theme-knopf" id="btnTheme" title="Hell/Dunkel umschalten">🌙</button>
+</div>
+<p class="untertitel">Wo liegt der gesuchte Ort? Klicke auf die Karte!</p>
+
+<main>
+  <!-- ===================== Startbildschirm ===================== -->
+  <section id="startScreen">
+    <details id="regelnDetails" open>
+      <summary>Spielregeln</summary>
+      <div style="padding: 6px 0;">
+        <p>Errate, wo der gesuchte Ort liegt! Pro Spiel werden <b>10 zufällige Orte</b> aus deiner
+        Auswahl gefragt – je genauer du triffst, desto mehr Punkte sammelst du.</p>
+        <p>Wähle unten die <b>Karte</b>, die <b>Orte-Kategorien</b> (ohne Auswahl wird mit allen Orten
+        gespielt; langes Drücken auf eine Kategorie wählt nur diese aus) und den <b>Spielmodus</b> –
+        die genauen Regeln des gewählten Modus stehen direkt dort.
+        Die Karte lässt sich mit Mausrad, Zoom-Tasten oder Zwei-Finger-Geste zoomen und verschieben.</p>
+        <details class="quellen-details">
+          <summary>📚 Weiterführendes &amp; Quellen</summary>
+          <div class="quellen-body">
+            <h4>Quellen</h4>
+            Die Kartengeometrien stammen aus freien Datenquellen:
+            <ul>
+              <li><a href="https://github.com/isellsoap/deutschlandGeoJSON" target="_blank" rel="noopener">deutschlandGeoJSON</a> – Deutschland und Bundesländer (© GeoBasis-DE / BKG, dl-de/by-2-0)</li>
+              <li><a href="https://www.naturalearthdata.com/" target="_blank" rel="noopener">Natural Earth</a> – Europa- und Weltkarte sowie Hauptstädte (gemeinfrei)</li>
+            </ul>
+            Die Ortskoordinaten wurden sorgfältig zusammengestellt – trotzdem können Fehler oder
+            Ungenauigkeiten auftreten. Zögere nicht, mir solche Fälle zu melden!
+            <h4>Empfehlenswerte Seiten zum Üben</h4>
+            <ul>
+              <li><a href="https://www.geoguessr.com/de/quiz/seterra" target="_blank" rel="noopener">Seterra</a> – Hier kann man Länder anklicken, Fahnen erraten und Hauptstädte benennen</li>
+              <li><a href="https://www.jetpunk.com/user-quizzes/176412/weltkarte-ohne-20-zufallige-lander" target="_blank" rel="noopener">Jetpunk</a> – Weltkarte ohne 20 zufällige Länder, die erraten werden sollen</li>
+              <li><a href="https://www.geoguessr.com/de" target="_blank" rel="noopener">GeoGuessr</a> – Orte anhand von Panoramen erraten</li>
+            </ul>
+            <button class="quellen-close-btn" onclick="this.closest('details').open=false">▲ einklappen</button>
+          </div>
+        </details>
+      </div>
+    </details>
+
+    <div class="form-block">
+      <h3>Karte</h3>
+      <div class="pill-group" id="karteWahl"></div>
+      <div class="unterkategorie" id="overlayZeile">
+        <h4>Zusatz-Ebenen <span class="hinweis">– wie oft im Spiel nutzbar?</span></h4>
+        <div class="overlay-tabelle">
+          <span class="overlay-name" id="overlayGrenzenName">Grenzen</span>
+          <div class="pill-group kompakt" data-overlay="grenzen" id="overlayGrenzenPills"></div>
+          <span class="overlay-name">Mögliche Orte markieren</span>
+          <div class="pill-group kompakt" data-overlay="orte"></div>
+        </div>
+        <p class="hinweis">„Immer“ zeigt die Ebene dauerhaft, „Umschaltbar“ per Knopf beliebig oft,
+          „Joker“ nur einmal pro Spiel, „Aus“ gar nicht.</p>
+      </div>
+    </div>
+
+    <div class="form-block">
+      <h3>Orte <span class="hinweis">– womit möchtest du spielen?</span></h3>
+      <div class="pill-group kompakt" id="tagWahl"></div>
+      <p class="hinweis" id="tagInfo"></p>
+      <div class="anzahl-zeile">
+        <label for="anzahlSlider">Anzahl der Orte: <b id="anzahlWert">10</b></label>
+        <input type="range" id="anzahlSlider" min="0" max="80" step="1" value="20">
+        <div class="slider-skala" id="anzahlSkala"></div>
+      </div>
+    </div>
+
+    <div class="form-block">
+      <h3>Spielmodus</h3>
+      <div class="pill-group">
+        <input type="radio" name="modus" id="modusPin" value="pin" checked>
+        <label for="modusPin">📍 Pin (Distanz zählt)</label>
+        <input type="radio" name="modus" id="modusGrid" value="grid">
+        <label for="modusGrid">🔳 Raster (Feld treffen)</label>
+      </div>
+      <p class="hinweis" id="modusHinweis"></p>
+      <div id="gridOptionen" class="unterkategorie versteckt">
+        <div class="pill-group kompakt">
+          <input type="radio" name="gridArt" id="gridArtIndiv" value="individuell" checked>
+          <label for="gridArtIndiv">Individuelles Raster</label>
+          <input type="radio" name="gridArt" id="gridArtFest" value="fest">
+          <label for="gridArtFest">Festes Raster</label>
+        </div>
+        <div class="pill-group kompakt gridfein versteckt" id="gridFestWahl"></div>
+        <div class="pill-group kompakt" style="margin-top:14px;">
+          <input type="checkbox" id="optVerschiebung" checked>
+          <label for="optVerschiebung">Raster-Verschiebung erlauben</label>
+        </div>
+      </div>
+    </div>
+
+    <div style="text-align:center; margin: 14px 0;">
+      <button class="btn gross" id="btnStart">▶ Spiel starten</button>
+    </div>
+  </section>
+
+  <!-- ===================== Spielbildschirm ===================== -->
+  <section id="spielScreen">
+    <div id="hud">
+      <button id="btnAbbruch" title="Spiel beenden">✖</button>
+      <span id="hudRunde"></span>
+      <span id="hudOrt"></span>
+      <div id="hudRechts">
+        <span id="hudPunkte"></span>
+        <button class="theme-knopf" id="btnThemeSpiel" title="Hell/Dunkel umschalten">🌙</button>
+      </div>
+    </div>
+    <div id="gridLeiste" class="pill-group kompakt"></div>
+    <div id="kartenBox">
+      <svg id="karte" xmlns="http://www.w3.org/2000/svg">
+        <g id="gWelt">
+          <g id="gLand"></g>
+          <g id="gLaender"></g>
+          <g id="gPunkte"></g>
+          <g id="gGrid"></g>
+          <g id="gMarker"></g>
+        </g>
+      </svg>
+      <div id="zoomLeiste">
+        <button id="btnZoomPlus" title="Hineinzoomen">＋</button>
+        <button id="btnZoomMinus" title="Herauszoomen">－</button>
+        <button id="btnZoomReset" title="Ansicht zurücksetzen">⌂</button>
+      </div>
+    </div>
+    <div id="feedback"></div>
+    <div id="aktionsLeiste">
+      <button class="btn sekundaer versteckt" id="btnVersetzen" data-text="½ Raster versetzen">½ Raster versetzen</button>
+      <button class="btn sekundaer versteckt" id="btnOverlayGrenzen"></button>
+      <button class="btn sekundaer versteckt" id="btnOverlayOrte"></button>
+      <button class="btn" id="btnBestaetigen" disabled>Bestätigen</button>
+      <button class="btn versteckt" id="btnWeiter">Weiter ▶</button>
+    </div>
+  </section>
+
+  <!-- ===================== Ergebnisbildschirm ===================== -->
+  <section id="ergebnisScreen" class="versteckt">
+    <h2 style="text-align:center;">Ergebnis</h2>
+    <table id="ergebnisTabelle">
+      <thead>
+        <tr><th>#</th><th>Ort</th><th id="thDetail">Distanz</th><th class="rechts">Punkte</th></tr>
+      </thead>
+      <tbody></tbody>
+      <tfoot><tr id="gesamtZeile"><td colspan="3">Gesamt</td><td class="rechts" id="tdGesamt"></td></tr></tfoot>
+    </table>
+    <div style="text-align:center;">
+      <button class="btn gross" id="btnNochmal">🔁 Nochmal spielen</button>
+      <button class="btn sekundaer gross" id="btnZurueck">⚙ Einstellungen</button>
+    </div>
+  </section>
+</main>
+<!-- 
+<footer class="site-footer">
+  <div class="footer-content">
+    <span>© M. Koch</span>
+    <a href="index.html">Mathe-Tools</a>
+    <span style="text-align:right; font-size:0.75em;">Kartendaten: © GeoBasis-DE / BKG (dl-de/by-2-0), Natural Earth</span>
+  </div>
+</footer> -->
+<div id="lobby-spacer"></div>
+<footer class="site-footer">
+  <div class="footer-content">
+      M.&nbsp;Koch
+      <span class="footer-topic"><a href="../index.html">Mathe-Tools</a></span>
+      <span class="footer-update">Last updated:&nbsp;<span id="last-update">...</span></span>
+  </div>
+</footer>
+
+<script src="../last-update.js" defer></script>
+
+<script src="geo_karte_de.js"></script>
+<script src="geo_orte_de.js"></script>
+<script src="geo_karte_eu.js"></script>
+<script src="geo_orte_eu.js"></script>
+<script src="geo_karte_welt.js"></script>
+<script src="geo_orte_welt.js"></script>
+<script src="geo_karte_berlin.js"></script>
+<script src="geo_orte_berlin.js"></script>
+<script>
+"use strict";
+/* =========================================================================
+   Geographie-Trainer – M. Koch
+   Erweiterbar: neue Karten/Ortslisten einfach in KARTEN registrieren.
+   ========================================================================= */
+
+/* ---------- Reine Hilfsfunktionen (DOM-frei, testbar) ---------- */
+
+const GRID_PUNKTE = {2:100, 3:200, 4:300, 5:400, 6:500, 8:600, 16:800, 32:1000};
+const ANZAHL_DEFAULT = 10;
+const ANZAHL_ANKER = [1, 5, 10, 15, 20, 30, 50, 100];
+const SLIDER_STUFEN = 10;      // Feinstufen zwischen zwei Skalen-Ankern
+
+// Skalen-Anker für einen Ortspool der Größe max: [1, 5, ..., MAX]
+function sliderAnker(max) {
+  const a = ANZAHL_ANKER.filter(x => x < max);
+  a.push(Math.max(1, max));
+  return a;
+}
+// Schieberegler-Position -> Ortsanzahl (stückweise linear zwischen den Ankern)
+function sliderZuWert(pos, anker) {
+  if (anker.length < 2) return anker[0];
+  pos = Math.min((anker.length - 1) * SLIDER_STUFEN, Math.max(0, pos));
+  const i = Math.min(anker.length - 2, Math.max(0, Math.floor(pos / SLIDER_STUFEN)));
+  const anteil = (pos - i * SLIDER_STUFEN) / SLIDER_STUFEN;
+  return Math.round(anker[i] + anteil * (anker[i + 1] - anker[i]));
+}
+// Ortsanzahl -> Schieberegler-Position
+function wertZuSlider(wert, anker) {
+  if (anker.length < 2) return 0;
+  const w = Math.min(anker[anker.length - 1], Math.max(anker[0], wert));
+  for (let i = 0; i < anker.length - 1; i++) {
+    if (w <= anker[i + 1])
+      return Math.round((i + (w - anker[i]) / (anker[i + 1] - anker[i])) * SLIDER_STUFEN);
+  }
+  return (anker.length - 1) * SLIDER_STUFEN;
+}
+
+// Spaltenname: 0 -> A, 25 -> Z, 26 -> AA, ...
+function spaltenName(i) {
+  let s = ""; i++;
+  while (i > 0) { i--; s = String.fromCharCode(65 + (i % 26)) + s; i = Math.floor(i / 26); }
+  return s;
+}
+// Beschriftung: versetzt liegen die Zellen ZWISCHEN den Originalen ("AB", "1,5")
+function spaltenLabel(i, versetzt) {
+  return versetzt ? spaltenName(i) + spaltenName(i + 1) : spaltenName(i);
+}
+function zeilenLabel(i, versetzt) {
+  return versetzt ? `${i + 1},5` : `${i + 1}`;
+}
+
+function hatTag(ort, tag, alleTags) {
+  if (Array.isArray(ort.t) && ort.t.includes(tag)) return true;   // explizites Tag
+  if (tag === "top10")  return ort.r !== undefined && ort.r <= 10;
+  if (tag === "top50")  return ort.r !== undefined && ort.r <= 50;
+  if (tag === "top100") return ort.r !== undefined && ort.r <= 100;
+  if (tag === "weitere")                                          // kein anderes wählbares Tag trifft zu
+    return !(alleTags || []).filter(t => t !== "weitere").some(t => hatTag(ort, t));
+  return false;
+}
+
+// Leere Tag-Auswahl = alle Orte. Jeder Ort erscheint höchstens einmal (keine Dubletten bei Mehrfach-Tags).
+// alleTags: sämtliche wählbaren Tags der Karte (nötig für das dynamische "weitere"-Tag).
+function filtereOrte(orte, aktiveTags, alleTags) {
+  if (!aktiveTags || aktiveTags.length === 0) return orte.slice();
+  return orte.filter(o => aktiveTags.some(tag => hatTag(o, tag, alleTags)));
+}
+
+function mercY(lat) { return Math.log(Math.tan(Math.PI/4 + lat*Math.PI/360)); }
+function invMercY(y) { return (2*Math.atan(Math.exp(y)) - Math.PI/2) * 180/Math.PI; }
+
+// Erzeugt Projektionsfunktionen für eine BBox [lonMin, latMin, lonMax, latMax]
+function makeProjektion(bbox, breite, randProzent) {
+  const rand = randProzent ?? 0.02;
+  const dLon = bbox[2]-bbox[0], dLat = bbox[3]-bbox[1];
+  const b = [bbox[0]-dLon*rand, bbox[1]-dLat*rand, bbox[2]+dLon*rand, bbox[3]+dLat*rand];
+  const yTop = mercY(b[3]), yBot = mercY(b[1]);
+  const dX = (b[2]-b[0]) * Math.PI/180;      // Mercator-Breite (rad)
+  const dY = yTop - yBot;                    // Mercator-Höhe
+  const hoehe = breite * dY / dX;
+  return {
+    breite, hoehe,
+    proj(lon, lat) {
+      return [ (lon-b[0])/(b[2]-b[0]) * breite,
+               (yTop - mercY(lat)) / dY * hoehe ];
+    },
+    unproj(x, y) {
+      return [ b[0] + x/breite * (b[2]-b[0]),
+               invMercY(yTop - y/hoehe * dY) ];
+    }
+  };
+}
+
+// Haversine-Distanz in km
+function distanzKm(lat1, lon1, lat2, lon2) {
+  const R = 6371, rad = Math.PI/180;
+  const dLat = (lat2-lat1)*rad, dLon = (lon2-lon1)*rad;
+  const a = Math.sin(dLat/2)**2 +
+            Math.cos(lat1*rad)*Math.cos(lat2*rad)*Math.sin(dLon/2)**2;
+  return 2*R*Math.asin(Math.sqrt(a));
+}
+
+// Pin-Modus: 100 P bis "voll" km, dann quadratisch (= schnell) fallend, 0 P ab "max" km
+function pinPunkte(dKm, voll, max) {
+  if (dKm <= voll) return 1000;
+  if (dKm >= max) return 0;
+  const rest = (max - dKm) / (max - voll);
+  return Math.round(1000 * rest * rest);
+}
+
+// Rasterzelle (Spalte, Zeile) eines projizierten Punktes
+// Liegt der Punkt im freien Halbfeld-Rand des versetzten Rasters?
+function imVersetztenRand(x, y, breite, hoehe, n) {
+  const ox = breite / n / 2, oy = hoehe / n / 2;
+  return x < ox || x > breite - ox || y < oy || y > hoehe - oy;
+}
+
+// versetzt: Raster um ein halbes Feld verschoben -> (n-1)×(n-1) Zellen, Ränder frei
+function gridZelle(x, y, breite, hoehe, n, versetzt) {
+  const cw = breite / n, ch = hoehe / n;
+  const m = versetzt ? n - 1 : n;
+  const ox = versetzt ? cw / 2 : 0, oy = versetzt ? ch / 2 : 0;
+  const c = Math.min(m - 1, Math.max(0, Math.floor((x - ox) / cw)));
+  const r = Math.min(m - 1, Math.max(0, Math.floor((y - oy) / ch)));
+  return [c, r];
+}
+
+// Zufällige Auswahl von k Elementen (Fisher-Yates, partiell)
+function ziehe(arr, k) {
+  const a = arr.slice();
+  for (let i = 0; i < Math.min(k, a.length); i++) {
+    const j = i + Math.floor(Math.random() * (a.length - i));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a.slice(0, k);
+}
+
+// GeoJSON-Geometrie (Polygon/MultiPolygon) -> SVG-Pfad
+function geoZuPfad(geom, proj) {
+  const polys = geom.type === "Polygon" ? [geom.coordinates] : geom.coordinates;
+  let d = "";
+  for (const poly of polys) {
+    for (const ring of poly) {
+      ring.forEach((p, i) => {
+        const [x, y] = proj(p[0], p[1]);
+        d += (i === 0 ? "M" : "L") + x.toFixed(1) + " " + y.toFixed(1);
+      });
+      d += "Z";
+    }
+  }
+  return d;
+}
+
+/* ---------- DOM ---------- */  // (Marker für Test-Harness: alles darunter braucht den Browser)
+
+// Karten-Registry: Geometrie, Orte, wählbare Tags, Punkteskala und Overlay je Karte
+const KARTEN = {
+  de: {
+    titel: "Deutschland", karte: KARTE_DE, orte: ORTE_DE,
+    tags: { top10:"Top 10", top50:"Top 50", top100:"Top 100",
+            hs:"Landeshauptstädte", insel:"Inseln", see:"Seen", berg:"Berge",
+            antik:"Antike Orte", weitere:"Weitere Orte" },
+    pin: { voll: 5, max: 200 },
+    grenzenName: "Bundesländer",
+    zoomMax: 8
+  },
+  eu: {
+    titel: "Europa", karte: KARTE_EU, orte: ORTE_EU,
+    tags: { hs:"Hauptstädte", metro:"Metropolen", top3:"Top 3 je Land",
+            insel:"Inseln", berg:"Berge", see:"Seen",
+            antik:"Antike Orte", weitere:"Weitere Orte" },
+    pin: { voll: 25, max: 1000 },
+    grenzenName: "Staatsgrenzen",
+    zoomMax: 12
+  },
+  welt: {
+    titel: "Welt", karte: KARTE_WELT, orte: ORTE_WELT,
+    tags: { hs:"Hauptstädte", top:"Top 100",
+            insel:"Inseln", see:"Seen", berg:"Berge",
+            antik:"Antike Orte", weitere:"Weitere Orte" },
+    pin: { voll: 50, max: 3000 },
+    grenzenName: "Staatsgrenzen",
+    zoomMax: 24
+  },
+  berlin: {
+    titel: "Berlin", karte: KARTE_BERLIN, orte: ORTE_BERLIN,
+    tags: { sehen:"Sehenswürdigkeiten", rathaus:"Rathäuser", sbahn:"S-Bahnhöfe",
+            park:"Parks", see:"Seen", weitere:"Weitere Orte" },
+    pin: { voll: 0.3, max: 10 },
+    grenzenName: "Bezirke",
+    zoomMax: 10
+  }
+};
+
+const $ = id => document.getElementById(id);
+const SVG_NS = "http://www.w3.org/2000/svg";
+function setzeText(el, text) { el.textContent = text; el.dataset.text = text; }
+
+// Overlay-Verfügbarkeit: "aus" | "immer" | "toggle" | "joker"
+const OVERLAY_MODI = { aus:"Aus", immer:"Immer", toggle:"Umschaltbar", joker:"Joker" };
+const OVERLAY_IDS = ["grenzen", "orte"];
+
+const einstellungen = { karte: "de", modus: "pin",
+                        gridArt: "individuell", gridFest: 8, grid: 8,
+                        verschiebung: true, anzahl: ANZAHL_DEFAULT,
+                        overlays: { grenzen: "toggle", orte: "aus" },
+                        tags: [], autostart: false };
+
+let P = null;                 // aktuelle Projektion
+let view = null;              // aktuelle viewBox {x,y,w,h}
+let spiel = null;             // Spielzustand
+// Laufzeit je Overlay: an (aktuell sichtbar), jokerVerbraucht
+const overlayLauf = { grenzen: { an: false, ratenAn: false, jokerVerbraucht: false },
+                      orte:    { an: false, ratenAn: false, jokerVerbraucht: false } };
+
+function aktuelleKarte() { return KARTEN[einstellungen.karte]; }
+
+/* ----- Hell/Dunkel ----- */
+function setzeTheme(dunkel) {
+  document.body.classList.toggle("dark", dunkel);
+  const symbol = dunkel ? "☀️" : "🌙";
+  $("btnTheme").textContent = symbol;
+  $("btnThemeSpiel").textContent = symbol;
+  try { localStorage.setItem("geoTheme", dunkel ? "d" : "l"); } catch (e) {}
+}
+function initTheme() {
+  let dunkel = false;
+  try {
+    const gespeichert = localStorage.getItem("geoTheme");
+    if (gespeichert) dunkel = gespeichert === "d";
+    else dunkel = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+  } catch (e) {}
+  setzeTheme(dunkel);
+}
+
+/* ----- Start-UI aufbauen ----- */
+function baueStartUI() {
+  const kw = $("karteWahl");
+  kw.innerHTML = "";
+  Object.entries(KARTEN).forEach(([key, k]) => {
+    const inp = document.createElement("input");
+    inp.type = "radio"; inp.name = "karte"; inp.id = "karte_" + key; inp.value = key;
+    if (key === einstellungen.karte) inp.checked = true;
+    inp.addEventListener("change", () => {
+      einstellungen.karte = key;
+      einstellungen.tags = [];        // Tags gelten je Karte
+      baueTagUI();
+      aktualisiereStartUI();
+    });
+    const lbl = document.createElement("label");
+    lbl.htmlFor = inp.id; setzeText(lbl, k.titel);
+    kw.append(inp, lbl);
+  });
+
+  document.querySelectorAll('input[name="modus"]').forEach(r =>
+    r.addEventListener("change", aktualisiereStartUI));
+
+  // Raster-Optionen aus den Einstellungen herstellen
+  $("gridArtFest").checked = einstellungen.gridArt === "fest";
+  $("gridArtIndiv").checked = einstellungen.gridArt !== "fest";
+  document.querySelectorAll('input[name="gridArt"]').forEach(r =>
+    r.addEventListener("change", aktualisiereStartUI));
+  const fw = $("gridFestWahl");
+  fw.innerHTML = "";
+  Object.keys(GRID_PUNKTE).forEach(nStr => {
+    const n = +nStr;
+    const inp = document.createElement("input");
+    inp.type = "radio"; inp.name = "gridFestN"; inp.id = "gridF_" + n; inp.value = n;
+    if (n === einstellungen.gridFest) inp.checked = true;
+    const lbl = document.createElement("label");
+    lbl.htmlFor = inp.id;
+    setzeText(lbl, `${n}×${n} · ${GRID_PUNKTE[n]} P`);
+    fw.append(inp, lbl);
+  });
+  $("optVerschiebung").checked = einstellungen.verschiebung;
+  $("optVerschiebung").addEventListener("change", aktualisiereStartUI);
+  $("anzahlSlider").addEventListener("input", () => {
+    einstellungen.anzahl = sliderZuWert(+$("anzahlSlider").value, anzahlAnker);
+    $("anzahlWert").textContent = einstellungen.anzahl;
+    schreibeHash();
+  });
+
+  startUIImAufbau = true;
+  baueTagUI();
+  startUIImAufbau = false;
+  aktualisiereStartUI();
+}
+
+function baueTagUI() {
+  const K = aktuelleKarte();
+  const tw = $("tagWahl");
+  tw.innerHTML = "";
+  const alleTags = Object.keys(K.tags);
+  Object.entries(K.tags).forEach(([tag, titel]) => {
+    const anzahl = filtereOrte(K.orte, [tag], alleTags).length;
+    if (anzahl === 0) return;                       // leere Kategorien nicht anbieten
+    const inp = document.createElement("input");
+    inp.type = "checkbox"; inp.id = "tag_" + tag; inp.value = tag;
+    inp.checked = einstellungen.tags.includes(tag);
+    inp.addEventListener("change", aktualisiereStartUI);
+    const lbl = document.createElement("label");
+    lbl.htmlFor = inp.id; setzeText(lbl, `${titel} (${anzahl})`);
+    richteLangdruckEin(lbl, inp, tag);
+    tw.append(inp, lbl);
+  });
+
+  baueOverlayUI();
+}
+
+// Langes Drücken (Maus/Touch/Stift) auf ein Tag: nur dieses Tag aktivieren
+function richteLangdruckEin(lbl, inp, tag) {
+  let timer = null, ausgeloest = false;
+  const abbrechen = () => { if (timer) { clearTimeout(timer); timer = null; } };
+  lbl.addEventListener("pointerdown", () => {
+    ausgeloest = false;
+    timer = setTimeout(() => {
+      ausgeloest = true;
+      document.querySelectorAll('#tagWahl input').forEach(i => i.checked = (i === inp));
+      aktualisiereStartUI();
+    }, 500);
+  });
+  lbl.addEventListener("pointerup", abbrechen);
+  lbl.addEventListener("pointerleave", abbrechen);
+  lbl.addEventListener("pointercancel", abbrechen);
+  lbl.addEventListener("click", ev => {
+    if (ausgeloest) { ev.preventDefault(); ausgeloest = false; }
+  });
+  lbl.addEventListener("contextmenu", ev => ev.preventDefault());
+}
+
+function aktiveTagsAusUI() {
+  return [...document.querySelectorAll('#tagWahl input:checked')].map(i => i.value);
+}
+
+// Baut für jede Zusatz-Ebene (Grenzen, Orte) eine Modus-Pillgruppe: Aus/Immer/Umschaltbar/Joker
+function baueOverlayUI() {
+  const K = aktuelleKarte();
+  $("overlayGrenzenName").textContent = K.grenzenName + "-Grenzen";
+  const hatGrenzen = (K.karte.laender || []).length > 0;
+  $("overlayGrenzenName").classList.toggle("versteckt", !hatGrenzen);
+  $("overlayGrenzenPills").classList.toggle("versteckt", !hatGrenzen);
+  OVERLAY_IDS.forEach(ov => {
+    const grp = document.querySelector(`.pill-group[data-overlay="${ov}"]`);
+    grp.innerHTML = "";
+    Object.entries(OVERLAY_MODI).forEach(([modus, label]) => {
+      const inp = document.createElement("input");
+      inp.type = "radio"; inp.name = "ov_" + ov; inp.id = `ov_${ov}_${modus}`; inp.value = modus;
+      if (einstellungen.overlays[ov] === modus) inp.checked = true;
+      inp.addEventListener("change", () => { einstellungen.overlays[ov] = modus; schreibeHash(); });
+      const lbl = document.createElement("label");
+      lbl.htmlFor = inp.id; setzeText(lbl, label);
+      grp.append(inp, lbl);
+    });
+  });
+}
+
+function aktualisiereStartUI() {
+  const modus = document.querySelector('input[name="modus"]:checked').value;
+  const gridArt = document.querySelector('input[name="gridArt"]:checked').value;
+  const K = aktuelleKarte();
+  if (modus === "grid") {
+    $("modusHinweis").innerHTML =
+      (gridArt === "fest"
+        ? "Alle Orte werden mit dem gewählten festen Raster gespielt. "
+        : "Wähle bei <i>jedem Ort neu</i>, wie fein das Raster sein soll – mehr Risiko, mehr Punkte. ") +
+      "Tippe das Feld an, in dem der Ort liegt; nur ein Treffer gibt Punkte: " +
+      "2×2 → 100, 3×3 → 200, 4×4 → 300, 5×5 → 400, 6×6 → 500, 8×8 → 600, 16×16 → 800, 32×32 → 1000." +
+      ($("optVerschiebung").checked
+        ? " Mit „½ Raster versetzen“ kannst du das Raster im Spiel um ein halbes Feld verschieben, " +
+          "falls ein Ort genau auf einer Feldkante liegt."
+        : "");
+  } else {
+    $("modusHinweis").innerHTML =
+      `Setze einen Pin auf die vermutete Position (Antippen bzw. Klicken, Verschieben möglich) und bestätige. ` +
+      `Volle 1000 Punkte gibt es bis ${K.pin.voll}&nbsp;km Entfernung, danach fallen die Punkte schnell ab – ` +
+      `ab ${K.pin.max}&nbsp;km gibt es keine Punkte mehr.`;
+  }
+  $("gridOptionen").classList.toggle("versteckt", modus !== "grid");
+  $("gridFestWahl").classList.toggle("versteckt", gridArt !== "fest");
+  const tags = aktiveTagsAusUI();
+  const anzahl = filtereOrte(K.orte, tags, Object.keys(K.tags)).length;
+  aktualisiereAnzahlSlider(anzahl);
+  $("tagInfo").textContent = tags.length === 0
+    ? `Keine Kategorie gewählt – es wird mit allen ${anzahl} Orten gespielt.`
+    : `${anzahl} Orte ausgewählt.`;
+  if (!startUIImAufbau) { leseEinstellungenAusUI(); schreibeHash(); }
+}
+let startUIImAufbau = false;
+
+/* ----- Anzahl-Schieberegler (nichtlineare Skala 1..MAX) ----- */
+let sliderMax = -1, anzahlAnker = [1];
+function aktualisiereAnzahlSlider(maxPool) {
+  const max = Math.max(1, maxPool);
+  $("anzahlWert").textContent = einstellungen.anzahl;
+  if (max === sliderMax) return;                 // Skala unverändert (kein Neuaufbau beim Ziehen)
+  sliderMax = max;
+  anzahlAnker = sliderAnker(max);
+  const s = $("anzahlSlider");
+  s.max = Math.max(1, (anzahlAnker.length - 1) * SLIDER_STUFEN);
+  s.disabled = anzahlAnker.length < 2;
+  einstellungen.anzahl = Math.min(einstellungen.anzahl, max);
+  s.value = wertZuSlider(einstellungen.anzahl, anzahlAnker);
+  $("anzahlWert").textContent = einstellungen.anzahl;
+  const skala = $("anzahlSkala");
+  skala.innerHTML = "";
+  anzahlAnker.forEach((a, i) => {
+    const sp = document.createElement("span");
+    sp.textContent = i === anzahlAnker.length - 1 ? "MAX" : a;
+    sp.style.left = (i / Math.max(1, anzahlAnker.length - 1) * 100) + "%";
+    skala.appendChild(sp);
+  });
+}
+
+/* ----- Einstellungen <-> URL-Hash ----- */
+function leseEinstellungenAusUI() {
+  einstellungen.karte = document.querySelector('input[name="karte"]:checked').value;
+  einstellungen.modus = document.querySelector('input[name="modus"]:checked').value;
+  einstellungen.gridArt = document.querySelector('input[name="gridArt"]:checked').value;
+  const festN = document.querySelector('input[name="gridFestN"]:checked');
+  if (festN) einstellungen.gridFest = +festN.value;
+  einstellungen.verschiebung = $("optVerschiebung").checked;
+  OVERLAY_IDS.forEach(ov => {
+    const sel = document.querySelector(`input[name="ov_${ov}"]:checked`);
+    if (sel) einstellungen.overlays[ov] = sel.value;
+  });
+  einstellungen.tags = aktiveTagsAusUI();
+}
+
+function schreibeHash() {
+  const p = new URLSearchParams();
+  if (einstellungen.karte !== "de") p.set("karte", einstellungen.karte);
+  p.set("modus", einstellungen.modus);
+  if (einstellungen.modus === "grid") {
+    p.set("raster", einstellungen.gridArt === "fest"
+      ? String(einstellungen.gridFest) : "individuell");
+    if (!einstellungen.verschiebung) p.set("verschiebung", "0");
+  }
+  if (einstellungen.anzahl !== ANZAHL_DEFAULT) p.set("anzahl", einstellungen.anzahl);
+  // Overlay-Modi nur schreiben, wenn sie vom Default abweichen
+  const ovDefault = { grenzen: "toggle", orte: "aus" };
+  OVERLAY_IDS.forEach(ov => {
+    if (einstellungen.overlays[ov] !== ovDefault[ov])
+      p.set(ov, einstellungen.overlays[ov]);
+  });
+  if (einstellungen.tags.length) p.set("tags", einstellungen.tags.join(","));
+  if (einstellungen.autostart) p.set("autostart", "1");
+  history.replaceState(null, "", "#" + p.toString());
+}
+
+function leseHash() {
+  const p = new URLSearchParams(location.hash.slice(1));
+  if (KARTEN[p.get("karte")]) einstellungen.karte = p.get("karte");
+  if (p.get("modus") === "grid") { einstellungen.modus = "grid"; $("modusGrid").checked = true; }
+  const raster = p.get("raster");
+  if (raster === "individuell") einstellungen.gridArt = "individuell";
+  else if (GRID_PUNKTE[+raster]) { einstellungen.gridArt = "fest"; einstellungen.gridFest = +raster; }
+  if (p.get("verschiebung") === "0") einstellungen.verschiebung = false;
+  const anz = parseInt(p.get("anzahl"), 10);
+  if (anz >= 1) einstellungen.anzahl = anz;
+  if (p.has("autostart")) einstellungen.autostart = true;
+  OVERLAY_IDS.forEach(ov => {
+    const m = p.get(ov);
+    if (m && OVERLAY_MODI[m]) einstellungen.overlays[ov] = m;
+  });
+  if (p.get("tags")) {
+    const gueltig = aktuelleKarte().tags;
+    einstellungen.tags = p.get("tags").split(",").filter(t => gueltig[t]);
+  }
+}
+
+/* ----- Karte zeichnen ----- */
+function zeichneKarte() {
+  const K = aktuelleKarte().karte;
+  P = makeProjektion(K.bbox, 700);
+  view = { x: 0, y: 0, w: P.breite, h: P.hoehe };
+  setzeView();
+
+  const gLand = $("gLand");
+  gLand.innerHTML = "";
+  for (const geom of K.umriss) {
+    const pfad = document.createElementNS(SVG_NS, "path");
+    pfad.setAttribute("d", geoZuPfad(geom, P.proj));
+    pfad.setAttribute("class", "land");
+    gLand.appendChild(pfad);
+  }
+
+  const gL = $("gLaender");
+  gL.innerHTML = "";
+  for (const l of (K.laender || [])) {
+    const pfad = document.createElementNS(SVG_NS, "path");
+    pfad.setAttribute("d", geoZuPfad(l.g, P.proj));
+    pfad.setAttribute("class", "bundesland");
+    gL.appendChild(pfad);
+  }
+  zeichneOrtspunkte();
+  aktualisiereOverlaySicht();
+}
+
+// Kreise für alle im Spiel möglichen Orte (aus dem gezogenen Pool bzw. der Tag-Auswahl)
+function zeichneOrtspunkte() {
+  const g = $("gPunkte");
+  g.innerHTML = "";
+  const punkte = ortsPunktePool();
+  const r = markerSkala() * Math.min(P.breite, P.hoehe) * 0.006;
+  for (const o of punkte) {
+    const [x, y] = P.proj(o.lon, o.lat);
+    const c = document.createElementNS(SVG_NS, "circle");
+    c.setAttribute("cx", x); c.setAttribute("cy", y);
+    c.setAttribute("r", r);
+    c.setAttribute("class", "ortpunkt");
+    c.dataset.lon = o.lon; c.dataset.lat = o.lat;
+    g.appendChild(c);
+  }
+}
+
+// Menge der Orte, die als Kreise gezeigt werden: der gesamte Auswahl-Pool der laufenden Partie.
+function ortsPunktePool() {
+  const K = aktuelleKarte();
+  return filtereOrte(K.orte, einstellungen.tags, Object.keys(K.tags));
+}
+
+// Ist der Umschalt-Button einer Zusatz-Ebene aktuell verfügbar?
+function overlayVerfuegbar(ov) {
+  const modus = einstellungen.overlays[ov];
+  if (ov === "grenzen" && !(aktuelleKarte().karte.laender || []).length) return false;
+  // In der Auswertung sind schaltbare Ebenen (toggle/joker) frei, auch verbrauchte Joker
+  if (spiel && spiel.phase === "ergebnis")
+    return modus === "toggle" || modus === "joker";
+  if (modus === "toggle") return true;
+  if (modus === "joker") return !overlayLauf[ov].jokerVerbraucht;  // nur solange nicht verbraucht
+  return false;
+}
+
+function aktualisiereOverlaySicht() {
+  // Grenzen
+  const grenzenAn = overlayLauf.grenzen.an;
+  $("gLaender").classList.toggle("versteckt", !grenzenAn);
+  // Orts-Kreise
+  const orteAn = overlayLauf.orte.an;
+  $("gPunkte").classList.toggle("versteckt", !orteAn);
+
+  [["grenzen", "btnOverlayGrenzen"], ["orte", "btnOverlayOrte"]].forEach(([ov, btnId]) => {
+    const btn = $(btnId);
+    const modus = einstellungen.overlays[ov];
+    const name = ov === "grenzen" ? aktuelleKarte().grenzenName : "Orte";
+    const symbol = ov === "grenzen" ? "🗺️" : "📍";
+    // Button existiert (und reserviert Platz), wenn die Ebene per Knopf schaltbar sein kann:
+    // Modus toggle oder joker, bei Grenzen zusätzlich abhängig davon, ob die Karte Grenzen hat.
+    const hatGrenzKarte = !(ov === "grenzen" && !(aktuelleKarte().karte.laender || []).length);
+    const grundsaetzlich = hatGrenzKarte && (modus === "toggle" || modus === "joker");
+    btn.classList.toggle("versteckt", !grundsaetzlich);   // nie schaltbar -> ganz weg
+    const verfuegbar = overlayVerfuegbar(ov);
+    btn.classList.toggle("unsichtbar", grundsaetzlich && !verfuegbar);  // da, aber gerade nicht schaltbar
+    btn.classList.toggle("aktiv", overlayLauf[ov].an);
+    if (grundsaetzlich) {
+      btn.disabled = false;
+      setzeText(btn, `${symbol} ${name}${modus === "joker" ? " (Joker)" : ""}`);
+    }
+  });
+}
+
+// Overlay im Spiel umschalten (per Button)
+function overlayUmschalten(ov) {
+  if (!spiel) return;
+  const modus = einstellungen.overlays[ov];
+  if (spiel.phase === "ergebnis") {
+    // Freies An/Aus nur für die Auswertung – verbraucht keinen Joker
+    if (!overlayVerfuegbar(ov)) return;
+    overlayLauf[ov].an = !overlayLauf[ov].an;
+    aktualisiereOverlaySicht();
+    return;
+  }
+  if (spiel.phase !== "raten") return;
+  if (modus === "joker") {
+    if (overlayLauf[ov].jokerVerbraucht) return;
+    overlayLauf[ov].an = true;                       // nur für den aktuellen Ort
+    overlayLauf[ov].jokerVerbraucht = true;          // danach dauerhaft weg
+  } else if (modus === "toggle") {
+    overlayLauf[ov].an = !overlayLauf[ov].an;
+  } else return;
+  overlayLauf[ov].ratenAn = overlayLauf[ov].an;      // Rate-Zustand merken
+  aktualisiereOverlaySicht();
+}
+
+/* ----- Rasterwahl pro Runde ----- */
+function baueGridLeiste() {
+  const gl = $("gridLeiste");
+  gl.innerHTML = "";
+  Object.keys(GRID_PUNKTE).forEach(nStr => {
+    const n = +nStr;
+    const inp = document.createElement("input");
+    inp.type = "radio"; inp.name = "gridRunde"; inp.id = "gridR_" + n; inp.value = n;
+    if (n === spiel.gridN) inp.checked = true;
+    inp.addEventListener("change", () => waehleGridN(n));
+    const lbl = document.createElement("label");
+    lbl.htmlFor = inp.id;
+    setzeText(lbl, `${n}×${n} · ${GRID_PUNKTE[n]} P`);
+    gl.append(inp, lbl);
+  });
+  gl.classList.toggle("sichtbar", spiel.modus === "grid" && spiel.gridArt === "individuell");
+}
+
+function waehleGridN(n) {
+  if (spiel.phase !== "raten") return;
+  spiel.gridN = n;
+  einstellungen.grid = n;
+  schreibeHash();
+  spiel.zelle = null;
+  $("btnBestaetigen").disabled = true;
+  zeichneGrid();
+}
+
+function zeichneGrid() {
+  const g = $("gGrid");
+  g.innerHTML = "";
+  if (spiel.modus !== "grid") return;
+  const n = spiel.gridN, v = spiel.versetzt;
+  const cw = P.breite / n, ch = P.hoehe / n;
+  const m = v ? n - 1 : n;
+  const ox = v ? cw / 2 : 0, oy = v ? ch / 2 : 0;
+  for (let r = 0; r < m; r++) {
+    for (let c = 0; c < m; c++) {
+      const z = document.createElementNS(SVG_NS, "rect");
+      z.setAttribute("x", ox + c * cw);
+      z.setAttribute("y", oy + r * ch);
+      z.setAttribute("width", cw);
+      z.setAttribute("height", ch);
+      z.setAttribute("class", "gridZelle");
+      z.dataset.c = c; z.dataset.r = r;
+      g.appendChild(z);
+    }
+  }
+  // Dezente Beschriftung: Spalten oben (A, B, ...), Zeilen links (1, 2, ...)
+  const fs = Math.min(15, Math.max(5, ch * 0.3));
+  const label = (x, y, text, anchor) => {
+    const el = document.createElementNS(SVG_NS, "text");
+    el.setAttribute("x", x); el.setAttribute("y", y);
+    el.setAttribute("class", "gridLabel");
+    el.setAttribute("font-size", fs.toFixed(1));
+    el.setAttribute("text-anchor", anchor);
+    el.textContent = text;
+    g.appendChild(el);
+  };
+  for (let c = 0; c < m; c++)
+    label(ox + c * cw + cw / 2, oy + fs * 1.1, spaltenLabel(c, v), "middle");
+  for (let r = 0; r < m; r++)
+    label(ox + fs * 0.25, oy + r * ch + ch / 2 + fs * 0.35, zeilenLabel(r, v), "start");
+}
+
+/* ----- viewBox / Zoom / Pan ----- */
+function setzeView() {
+  $("karte").setAttribute("viewBox",
+    `${view.x.toFixed(2)} ${view.y.toFixed(2)} ${view.w.toFixed(2)} ${view.h.toFixed(2)}`);
+  skaliereMarker();
+}
+
+// Marker unabhängig vom Zoom immer gleich groß halten
+function markerSkala() { return view.w / P.breite; }
+function skaliereMarker() {
+  const s = markerSkala();
+  document.querySelectorAll("#gMarker .marker").forEach(m =>
+    m.setAttribute("transform", `translate(${m.dataset.x} ${m.dataset.y}) scale(${s})`));
+  // Orts-Kreise ebenfalls zoomunabhängig gleich groß
+  const r = s * Math.min(P.breite, P.hoehe) * 0.006;
+  document.querySelectorAll("#gPunkte .ortpunkt").forEach(c => c.setAttribute("r", r));
+}
+
+function klemmeView() {
+  const minW = P.breite / (aktuelleKarte().zoomMax || 8);
+  view.w = Math.min(P.breite, Math.max(minW, view.w));
+  view.h = view.w * P.hoehe / P.breite;
+  view.x = Math.min(P.breite - view.w, Math.max(0, view.x));
+  view.y = Math.min(P.hoehe - view.h, Math.max(0, view.y));
+}
+
+function zoomeUm(faktor, cx, cy) {   // cx, cy in SVG-Koordinaten
+  const neuW = view.w / faktor;
+  view.x = cx - (cx - view.x) * (neuW / view.w);
+  view.y = cy - (cy - view.y) * (neuW / view.w);
+  view.w = neuW;
+  klemmeView();
+  setzeView();
+}
+
+// Client-Koordinaten -> SVG-Koordinaten (berücksichtigt Letterboxing durch preserveAspectRatio)
+function clientZuSvg(clientX, clientY) {
+  const svg = $("karte");
+  const ctm = svg.getScreenCTM();
+  if (!ctm) return [0, 0];
+  const pt = svg.createSVGPoint();
+  pt.x = clientX; pt.y = clientY;
+  const p = pt.matrixTransform(ctm.inverse());
+  return [p.x, p.y];
+}
+
+// Pixel pro SVG-Einheit (für Pan-Deltas)
+function svgSkala() {
+  const ctm = $("karte").getScreenCTM();
+  return ctm ? ctm.a : 1;
+}
+
+// Sucht den nächsten sichtbaren Orts-Kreis in Klicknähe (SVG-Koordinaten).
+// Trefferradius skaliert mit dem Zoom, damit er sich per Touch/Stift gut trifft.
+function ortAmPunkt(sx, sy) {
+  if (!overlayLauf.orte.an) return null;
+  const tol = (view.w / P.breite) * Math.min(P.breite, P.hoehe) * 0.02;
+  let best = null, bestD = tol;
+  document.querySelectorAll("#gPunkte .ortpunkt").forEach(c => {
+    const [x, y] = P.proj(+c.dataset.lon, +c.dataset.lat);
+    const d = Math.hypot(x - sx, y - sy);
+    if (d < bestD) { bestD = d; best = [x, y]; }
+  });
+  return best;
+}
+
+/* ----- Pointer-Interaktion (Pan, Pinch, Tap, Pin ziehen) ----- */
+const zeiger = new Map();   // pointerId -> {x, y, startX, startY, bewegt, pinDrag}
+let pinchStart = null;
+
+function richtePointerEin() {
+  const box = $("kartenBox");
+
+  box.addEventListener("pointerdown", ev => {
+    if (ev.target.closest("#zoomLeiste")) return;
+    box.setPointerCapture(ev.pointerId);
+    let pinDrag = !!ev.target.closest("#pinMarker");
+    // Mit der Maus: Pin sofort beim Drücken setzen und direkt weiterziehen können
+    if (!pinDrag && ev.pointerType === "mouse" && ev.button === 0 &&
+        spiel && spiel.phase === "raten" && spiel.modus === "pin") {
+      const [sx, sy] = clientZuSvg(ev.clientX, ev.clientY);
+      if (sx >= 0 && sx <= P.breite && sy >= 0 && sy <= P.hoehe) {
+        const treffer = ortAmPunkt(sx, sy);
+        if (treffer) { setzePin(treffer[0], treffer[1]); }
+        else { setzePin(sx, sy); pinDrag = true; }   // frei gesetzt -> weiterziehbar
+      }
+    }
+    zeiger.set(ev.pointerId, { x: ev.clientX, y: ev.clientY,
+                               startX: ev.clientX, startY: ev.clientY,
+                               bewegt: false, pinDrag });
+    if (zeiger.size === 2) {
+      const [a, b] = [...zeiger.values()];
+      pinchStart = { dist: Math.hypot(a.x-b.x, a.y-b.y), w: view.w };
+    }
+    ev.preventDefault();
+  });
+
+  box.addEventListener("pointermove", ev => {
+    const z = zeiger.get(ev.pointerId);
+    if (!z) return;
+    const dx = ev.clientX - z.x, dy = ev.clientY - z.y;
+    if (Math.hypot(ev.clientX - z.startX, ev.clientY - z.startY) > 8) z.bewegt = true;
+    z.x = ev.clientX; z.y = ev.clientY;
+
+    if (zeiger.size === 2 && pinchStart) {
+      const [a, b] = [...zeiger.values()];
+      const dist = Math.hypot(a.x-b.x, a.y-b.y);
+      if (dist > 0 && pinchStart.dist > 0) {
+        const [sx, sy] = clientZuSvg((a.x+b.x)/2, (a.y+b.y)/2);
+        const faktor = dist / pinchStart.dist;
+        const neuW = pinchStart.w / faktor;
+        view.x = sx - (sx - view.x) * (neuW / view.w);
+        view.y = sy - (sy - view.y) * (neuW / view.w);
+        view.w = neuW;
+        klemmeView(); setzeView();
+      }
+      return;
+    }
+
+    if (z.pinDrag && spiel && spiel.phase === "raten" && spiel.modus === "pin") {
+      const [sx, sy] = clientZuSvg(ev.clientX, ev.clientY);
+      setzePin(sx, sy);
+      return;
+    }
+
+    if (z.bewegt) {   // Pan
+      const skala = svgSkala();
+      view.x -= dx / skala;
+      view.y -= dy / skala;
+      klemmeView(); setzeView();
+    }
+  });
+
+  const hoch = ev => {
+    const z = zeiger.get(ev.pointerId);
+    zeiger.delete(ev.pointerId);
+    if (zeiger.size < 2) pinchStart = null;
+    if (!z || z.bewegt || z.pinDrag) return;
+    // Tap
+    if (!spiel || spiel.phase !== "raten") return;
+    const [sx, sy] = clientZuSvg(ev.clientX, ev.clientY);
+    if (sx < 0 || sx > P.breite || sy < 0 || sy > P.hoehe) return;  // Klick im Letterbox-Bereich
+    if (spiel.modus === "pin") {
+      const treffer = ortAmPunkt(sx, sy);
+      setzePin(treffer ? treffer[0] : sx, treffer ? treffer[1] : sy);
+    } else {
+      // Klick im freien Rand des versetzten Rasters: automatisch zum
+      // normalen Raster zurückspringen (dort existieren die halben Randfelder)
+      if (spiel.versetzt && imVersetztenRand(sx, sy, P.breite, P.hoehe, spiel.gridN)) {
+        spiel.versetzt = false;
+        $("btnVersetzen").classList.remove("aktiv");
+        zeichneGrid();
+      }
+      const [c, r] = gridZelle(sx, sy, P.breite, P.hoehe, spiel.gridN, spiel.versetzt);
+      waehleZelle(c, r);
+    }
+  };
+  box.addEventListener("pointerup", hoch);
+  box.addEventListener("pointercancel", ev => { zeiger.delete(ev.pointerId); pinchStart = null; });
+
+  box.addEventListener("wheel", ev => {
+    ev.preventDefault();
+    const [sx, sy] = clientZuSvg(ev.clientX, ev.clientY);
+    zoomeUm(ev.deltaY < 0 ? 1.25 : 0.8, sx, sy);
+  }, { passive: false });
+
+  $("btnZoomPlus").addEventListener("click", () =>
+    zoomeUm(1.4, view.x + view.w/2, view.y + view.h/2));
+  $("btnZoomMinus").addEventListener("click", () =>
+    zoomeUm(1/1.4, view.x + view.w/2, view.y + view.h/2));
+  $("btnZoomReset").addEventListener("click", () => {
+    view = { x: 0, y: 0, w: P.breite, h: P.hoehe }; setzeView();
+  });
+}
+
+/* ----- Marker ----- */
+function pinSymbol(x, y, farbe, id) {
+  const g = document.createElementNS(SVG_NS, "g");
+  if (id) g.id = id;
+  g.classList.add("marker");
+  g.dataset.x = x; g.dataset.y = y;
+  g.setAttribute("transform", `translate(${x} ${y}) scale(${markerSkala()})`);
+  g.innerHTML =
+    `<circle cx="0" cy="-13" r="15" fill="transparent"/>
+     <path d="M0 0 C -5.6 -9.6, -7.2 -12.8, -7.2 -16.8 A 7.2 7.2 0 1 1 7.2 -16.8 C 7.2 -12.8, 5.6 -9.6, 0 0 Z"
+       fill="${farbe}" stroke="#fff" stroke-width="1.2"/>
+     <circle cx="0" cy="-16.8" r="2.7" fill="#fff"/>`;
+  return g;
+}
+
+function punktSymbol(x, y, farbe) {
+  const g = document.createElementNS(SVG_NS, "g");
+  g.classList.add("marker");
+  g.dataset.x = x; g.dataset.y = y;
+  g.setAttribute("transform", `translate(${x} ${y}) scale(${markerSkala()})`);
+  g.innerHTML = `<circle r="4" fill="${farbe}" stroke="#fff" stroke-width="1.2"/>`;
+  return g;
+}
+
+function markerFarbe(name) {
+  return getComputedStyle(document.body).getPropertyValue("--" + name).trim() || "#2e7d32";
+}
+
+function setzePin(sx, sy) {
+  sx = Math.min(P.breite, Math.max(0, sx));
+  sy = Math.min(P.hoehe, Math.max(0, sy));
+  spiel.pin = [sx, sy];
+  let m = $("pinMarker");
+  if (!m) {
+    m = pinSymbol(sx, sy, markerFarbe("pin"), "pinMarker");
+    $("gMarker").appendChild(m);
+  } else {
+    m.dataset.x = sx; m.dataset.y = sy;
+    m.setAttribute("transform", `translate(${sx} ${sy}) scale(${markerSkala()})`);
+  }
+  $("btnBestaetigen").disabled = false;
+}
+
+function waehleZelle(c, r) {
+  spiel.zelle = [c, r];
+  document.querySelectorAll(".gridZelle.gewaehlt").forEach(z => z.classList.remove("gewaehlt"));
+  const z = zelleElement(c, r);
+  if (z) z.classList.add("gewaehlt");
+  $("btnBestaetigen").disabled = false;
+}
+
+function zelleElement(c, r) {
+  return document.querySelector(`.gridZelle[data-c="${c}"][data-r="${r}"]`);
+}
+
+/* ----- Spielablauf ----- */
+function starteSpiel() {
+  leseEinstellungenAusUI();
+  schreibeHash();
+  const pool = filtereOrte(aktuelleKarte().orte, einstellungen.tags,
+                           Object.keys(aktuelleKarte().tags));
+  if (pool.length === 0) return;
+  OVERLAY_IDS.forEach(ov => {
+    overlayLauf[ov].jokerVerbraucht = false;
+    overlayLauf[ov].an = einstellungen.overlays[ov] === "immer";
+    overlayLauf[ov].ratenAn = overlayLauf[ov].an;
+  });
+  spiel = {
+    modus: einstellungen.modus,
+    gridArt: einstellungen.gridArt,
+    gridN: einstellungen.gridArt === "fest" ? einstellungen.gridFest : einstellungen.grid,
+    versetzt: false,
+    orte: ziehe(pool, einstellungen.anzahl),
+    runden: Math.min(einstellungen.anzahl, pool.length),
+    runde: 0,
+    punkte: 0,
+    maxPunkte: 0,
+    phase: "raten",
+    protokoll: [],
+    pin: null, zelle: null
+  };
+  document.body.classList.add("spielaktiv");
+  $("startScreen").classList.add("versteckt");
+  $("ergebnisScreen").classList.add("versteckt");
+  $("spielScreen").classList.add("sichtbar");
+  zeichneKarte();
+  baueGridLeiste();
+  zeichneGrid();
+  naechsteRunde();
+}
+
+function beendeSpielansicht() {
+  document.body.classList.remove("spielaktiv");
+  $("spielScreen").classList.remove("sichtbar");
+}
+
+function naechsteRunde() {
+  spiel.phase = "raten";
+  spiel.pin = null; spiel.zelle = null;
+  $("gMarker").innerHTML = "";
+  document.querySelectorAll(".gridZelle").forEach(z =>
+    z.classList.remove("gewaehlt", "richtig", "falsch"));
+  $("feedback").innerHTML = "";
+  $("btnBestaetigen").disabled = true;
+  $("btnBestaetigen").classList.remove("versteckt");
+  $("btnWeiter").classList.add("versteckt");
+  view = { x: 0, y: 0, w: P.breite, h: P.hoehe };
+  setzeView();
+  $("kartenBox").classList.toggle("pinModus", spiel.modus === "pin");
+  spiel.versetzt = false;
+  const versetzenAktiv = spiel.modus === "grid" && einstellungen.verschiebung;
+  $("btnVersetzen").classList.toggle("versteckt", spiel.modus !== "grid");
+  $("btnVersetzen").classList.toggle("unsichtbar", spiel.modus === "grid" && !versetzenAktiv);
+  $("btnVersetzen").classList.remove("aktiv");
+  if (spiel.modus === "grid") zeichneGrid();
+  // Zum neuen Ort: Rate-Zustand wiederherstellen (Joker war nur für den Vor-Ort an).
+  // Joker bleibt aus, Umschalt-Ebenen behalten ihren zuletzt gewählten Rate-Zustand.
+  OVERLAY_IDS.forEach(ov => {
+    if (einstellungen.overlays[ov] === "joker") overlayLauf[ov].ratenAn = false;
+    overlayLauf[ov].an = overlayLauf[ov].ratenAn;
+  });
+  aktualisiereOverlaySicht();
+  const ort = spiel.orte[spiel.runde];
+  $("hudRunde").textContent = `Runde ${spiel.runde + 1} / ${spiel.runden}`;
+  $("hudOrt").textContent = ort.n;
+  $("hudPunkte").textContent = `${spiel.punkte} P`;
+}
+
+function bestaetige() {
+  if (spiel.phase !== "raten") return;
+  const ort = spiel.orte[spiel.runde];
+  const [ox, oy] = P.proj(ort.lon, ort.lat);
+  let punkte = 0, detail = "", max = 0;
+
+  if (spiel.modus === "pin") {
+    if (!spiel.pin) return;
+    const skala = aktuelleKarte().pin;
+    const [lon, lat] = P.unproj(spiel.pin[0], spiel.pin[1]);
+    const d = distanzKm(lat, lon, ort.lat, ort.lon);
+    punkte = pinPunkte(d, skala.voll, skala.max);
+    max = 1000;
+    detail = d < 1 ? Math.round(d * 1000) + " m"
+           : d < 10 ? d.toFixed(1) + " km" : Math.round(d) + " km";
+    const linie = document.createElementNS(SVG_NS, "line");
+    linie.setAttribute("x1", spiel.pin[0]); linie.setAttribute("y1", spiel.pin[1]);
+    linie.setAttribute("x2", ox); linie.setAttribute("y2", oy);
+    linie.setAttribute("stroke", markerFarbe("text"));
+    linie.setAttribute("stroke-dasharray", "4 3");
+    linie.setAttribute("vector-effect", "non-scaling-stroke");
+    $("gMarker").appendChild(linie);
+    $("gMarker").appendChild(punktSymbol(ox, oy, markerFarbe("richtig")));
+    $("feedback").innerHTML =
+      `Entfernung: <b>${detail}</b> → <span class="punkte ${punkte >= 500 ? "gut" : "schlecht"}">+${punkte} Punkte</span>`;
+  } else {
+    if (!spiel.zelle) return;
+    const n = spiel.gridN, v = spiel.versetzt;
+    const [rc, rr] = gridZelle(ox, oy, P.breite, P.hoehe, n, v);
+    const richtig = spiel.zelle[0] === rc && spiel.zelle[1] === rr;
+    punkte = richtig ? GRID_PUNKTE[n] : 0;
+    max = GRID_PUNKTE[n];
+    detail = `${n}×${n}${v ? " (versetzt)" : ""} ${richtig ? "✔" : "✘"}`;
+    const zRichtig = zelleElement(rc, rr);
+    if (zRichtig) zRichtig.classList.add("richtig");
+    if (!richtig) {
+      const zFalsch = zelleElement(spiel.zelle[0], spiel.zelle[1]);
+      if (zFalsch) { zFalsch.classList.remove("gewaehlt"); zFalsch.classList.add("falsch"); }
+    }
+    $("gMarker").appendChild(punktSymbol(ox, oy, markerFarbe("richtig")));
+    $("feedback").innerHTML = richtig
+      ? `<span class="gut">✔ Richtiges Feld!</span> <span class="punkte gut">+${punkte} Punkte</span>`
+      : `<span class="schlecht">✘ Leider daneben – richtig wäre ` +
+        `<b>${spaltenLabel(rc, v)}${zeilenLabel(rr, v)}</b> gewesen.</span> ` +
+        `<span class="punkte schlecht">+0 Punkte</span>`;
+  }
+
+  spiel.punkte += punkte;
+  spiel.maxPunkte += max;
+  spiel.protokoll.push({ ort: ort.n, detail, punkte });
+  spiel.phase = "ergebnis";
+  // Versetzen-Knopf ausblenden, aber Platz reservieren (Karte darf nicht springen)
+  $("btnVersetzen").classList.add("unsichtbar");
+  aktualisiereOverlaySicht();   // in der Auswertung alle Ebenen frei schaltbar
+  $("kartenBox").classList.remove("pinModus");
+  $("hudPunkte").textContent = `${spiel.punkte} P`;
+  $("btnBestaetigen").classList.add("versteckt");
+  $("btnWeiter").classList.remove("versteckt");
+  $("btnWeiter").textContent = spiel.runde + 1 < spiel.runden ? "Weiter ▶" : "🏁 Ergebnis anzeigen";
+  $("btnWeiter").focus();
+}
+
+function weiter() {
+  spiel.runde++;
+  if (spiel.runde < spiel.runden) {
+    naechsteRunde();
+  } else {
+    zeigeErgebnis();
+  }
+}
+
+function zeigeErgebnis() {
+  beendeSpielansicht();
+  $("ergebnisScreen").classList.remove("versteckt");
+  $("thDetail").textContent = spiel.modus === "pin" ? "Distanz" : "Raster";
+  const tb = document.querySelector("#ergebnisTabelle tbody");
+  tb.innerHTML = "";
+  spiel.protokoll.forEach((z, i) => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${i+1}</td><td>${z.ort}</td><td>${z.detail}</td>
+                    <td class="rechts">${z.punkte}</td>`;
+    tb.appendChild(tr);
+  });
+  $("tdGesamt").textContent = `${spiel.punkte} / ${spiel.maxPunkte}`;
+}
+
+/* ----- Initialisierung ----- */
+document.addEventListener("DOMContentLoaded", () => {
+  initTheme();
+  leseHash();
+  baueStartUI();
+  richtePointerEin();
+  $("btnStart").addEventListener("click", starteSpiel);
+  $("btnBestaetigen").addEventListener("click", bestaetige);
+  $("btnWeiter").addEventListener("click", weiter);
+  $("btnOverlayGrenzen").addEventListener("click", () => overlayUmschalten("grenzen"));
+  $("btnOverlayOrte").addEventListener("click", () => overlayUmschalten("orte"));
+  $("btnVersetzen").addEventListener("click", () => {
+    if (!spiel || spiel.phase !== "raten" || spiel.modus !== "grid") return;
+    spiel.versetzt = !spiel.versetzt;
+    $("btnVersetzen").classList.toggle("aktiv", spiel.versetzt);
+    spiel.zelle = null;
+    $("btnBestaetigen").disabled = true;
+    zeichneGrid();
+  });
+  $("btnAbbruch").addEventListener("click", () => {
+    beendeSpielansicht();
+    $("startScreen").classList.remove("versteckt");
+  });
+  $("btnNochmal").addEventListener("click", starteSpiel);
+  $("btnZurueck").addEventListener("click", () => {
+    $("ergebnisScreen").classList.add("versteckt");
+    $("startScreen").classList.remove("versteckt");
+  });
+  const themeWechsel = () => setzeTheme(!document.body.classList.contains("dark"));
+  $("btnTheme").addEventListener("click", themeWechsel);
+  $("btnThemeSpiel").addEventListener("click", themeWechsel);
+  if (einstellungen.autostart) starteSpiel();   // URL-Parameter "autostart"
+});
+</script>
+</body>
+</html>

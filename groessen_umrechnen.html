@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script>
+    window.MathJax = { tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] } };
+  </script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <title>Größen umrechnen</title>
+  <link rel="stylesheet" type="text/css" href="styles.css">
+  <style>
+
+    body { font-family: sans-serif; -webkit-user-select: none; user-select: none; overflow-x: hidden; }
+    *:focus { outline: none; }
+
+    #flashOverlay {
+      position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      opacity: 0; transition: opacity 1s;
+    }
+    #toast {
+      position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+      background: #333; color: #fff; padding: 12px 24px; border-radius: 10px;
+      font-size: 0.95em; opacity: 0; pointer-events: none;
+      transition: opacity 0.4s; z-index: 999; white-space: nowrap;
+    }
+    #toast.show { opacity: 1; }
+
+    /* Card area - Vereinfacht für reinen Eingabemodus */
+    #taskWrap {
+      position: relative; width: 100%; height: 210px; margin-top: 20px;
+      border: 1px solid #eee; border-radius: 10px; z-index: 1;
+      display: flex; justify-content: center; align-items: center;
+      background-color: #fafafa;
+    }
+
+    #taskCard {
+      position: relative;
+      text-align: center; border-radius: 15px;
+      width: calc(100% - 40px); max-width: 400px; height: 90%;
+      z-index: 2; box-sizing: border-box;
+    }
+
+    .card-face {
+      position: absolute; width: 100%; height: 100%;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      border: 2px solid #ddd; border-radius: 15px; background: white;
+      transition: background-color 0.2s ease;
+      overflow: hidden; box-sizing: border-box;
+    }
+
+    .card-sub { font-size: 0.85em; color: #888; margin-top: 10px; flex-shrink: 0; }
+
+    .scale-wrapper {
+      overflow: visible; width: 90%; padding: 0.3em 0.5em;
+      display: flex; justify-content: center; align-items: center;
+      flex-shrink: 0; pointer-events: none;
+    }
+    .scale-el {
+      display: inline-block; transform-origin: center center;
+      white-space: nowrap; font-size: 1.6em; pointer-events: none;
+    }
+
+    /* Settings */
+    .radio-group { display: inline-flex; border-radius: 6px; overflow: hidden; border: 2px solid #4CAF50; margin: 6px 0 12px 0; }
+    .radio-group label { display: flex; align-items: center; padding: 5px 9px; font-weight: normal; font-size: 0.78em; cursor: pointer; background: #fff; border-right: 1px solid #4CAF50; transition: background 0.15s; line-height: 1.3; user-select: none; }
+    .radio-group label:last-child { border-right: none; }
+    .radio-group label:hover { background: #f1fbf1; }
+    .radio-group input[type="radio"] { display: none; }
+    .radio-group label:has(input:checked) { background: #4CAF50; color: #fff; }
+
+    .cb-grid { display: flex; flex-wrap: wrap; gap: 2px 4px; margin: 4px 0 8px 0; }
+    .cb-item { display: flex; align-items: center; width: 65px; gap: 3px; font-size: 0.85em; }
+    .cb-item input[type="checkbox"] { flex-shrink: 0; width: 14px; height: 14px; margin: 0; cursor: pointer; }
+    .cb-item label { cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    
+    .cb-item.wide { width: auto; margin-right: 15px; }
+
+    .section-toggle-btn {
+      font-size: 0.72em; padding: 1px 7px; margin-left: 7px;
+      border: 1px solid #aaa; border-radius: 4px; background: #f5f5f5;
+      cursor: pointer; vertical-align: middle; color: #333;
+      transition: background 0.12s;
+    }
+    .section-toggle-btn:hover { background: #e0e0e0; }
+
+    /* Input mode answer area */
+    #inputArea {
+      display: flex; flex-direction: column; align-items: center;
+      gap: 8px; margin: 20px 0 0 0; width: 100%;
+    }
+    #answerInput {
+      width: min(320px, 90vw); padding: 8px 12px; font-size: 1.1em;
+      border: 2px solid #ccc; border-radius: 8px; text-align: center;
+      outline: none; transition: border-color 0.2s, background 0.2s;
+    }
+    #answerInput:focus { border-color: #4CAF50; }
+    #answerInput.correct { border-color: #28a745; background: #d4edda; color: #155724; }
+    #answerInput.wrong   { border-color: #dc3545; background: #f8d7da; color: #721c24; }
+    
+    #checkBtn {
+      padding: 9px 24px; font-size: 1em; border-radius: 8px;
+      border: 2px solid #4CAF50; background: #e8f5e9; color: #1b5e20;
+      cursor: pointer; font-weight: bold; transition: background 0.15s, border-color 0.15s;
+      letter-spacing: 0.02em;
+    }
+    #checkBtn:hover { background: #c8e6c9; border-color: #388e3c; }
+    
+    #answerHint {
+      font-size: 0.9em; color: #721c24; background: #f8d7da;
+      border: 1px solid #dc3545; border-radius: 6px;
+      padding: 5px 10px; text-align: center;
+      display: none; max-width: min(320px, 90vw); font-weight: bold;
+    }
+    #answerHint.visible { display: block; }
+  </style>
+</head>
+<body>
+  <div id="flashOverlay"></div>
+  <div id="toast"></div>
+  <div style="position:relative; z-index:1;">
+
+  <h1>Größen umrechnen</h1>
+
+  <details>
+    <summary>Settings</summary>
+    <form id="settingsForm">
+      
+      <div class="form-block">
+        <b>Längenmaße:</b><button type="button" onclick="toggleGroup('length')">alle</button><br>
+        <div id="length" class="cb-grid"></div>
+        
+        <b>Flächenmaße:</b><button type="button" onclick="toggleGroup('area')">alle</button><br>
+        <div id="area" class="cb-grid"></div>
+        
+        <b>Raummaße:</b><button type="button" onclick="toggleGroup('volume')">alle</button><br>
+        <div id="volume" class="cb-grid"></div>
+      </div>
+
+      <div class="form-block">
+        <b>Schrittweite:</b><br>
+        <div class="radio-group">
+          <label><input type="radio" name="stepMode" value="adjacent" checked> Nur benachbarte Größen</label>
+          <label><input type="radio" name="stepMode" value="skip"> Auch Größen überspringen</label>
+        </div>
+      </div>
+
+      <div class="form-block">
+        <b>Umrechnungsrichtung:</b><br>
+        <div class="radio-group">
+          <label><input type="radio" name="dirMode" value="up"> Klein nach Groß</label>
+          <label><input type="radio" name="dirMode" value="random" checked> Zufällig</label>
+          <label><input type="radio" name="dirMode" value="down"> Groß nach Klein</label>
+        </div>
+      </div>
+
+      <div class="form-block">
+        <b>Aufgabentypen (Zahlen):</b><br>
+        <div class="cb-grid" style="flex-direction: column;">
+          <div class="cb-item wide"><label><input type="checkbox" id="numInt" checked disabled> Ganze Zahlen</label></div>
+          <div class="cb-item wide"><label><input type="checkbox" id="numDec"> Kommazahlen</label></div>
+          <div class="cb-item wide"><label><input type="checkbox" id="numFrac"> Brüche</label></div>
+          <div class="cb-item wide"><label><input type="checkbox" id="numSci"> Wissenschaftliche Schreibweise</label></div>
+        </div>
+      </div>
+
+      <div class="form-block">
+        <b>Erweiterte Aufgaben:</b><br>
+        <div class="cb-grid" style="flex-direction: column;">
+          <div class="cb-item wide" style="opacity: 0.6;">
+            <label><input type="checkbox" id="mixUnits" disabled> Aufgaben verrechnen (z.B. 3m + 22cm) <i style="font-size:0.8em;">(In Entwicklung)</i></label>
+          </div>
+        </div>
+      </div>
+
+    </form>
+  </details>
+
+  <p id="taskLabel" style="text-align:center; margin-top:12px; font-weight:bold;">Wähle Größen und starte&hellip;</p>
+  <p id="counter"   style="text-align:center; font-weight:bold;">Richtig: 0 / 0</p>
+
+  <div id="taskWrap">
+    <div id="taskCard">
+      <div class="card-face" id="faceFront">
+        <div class="scale-wrapper"><div id="taskText" class="scale-el"></div></div>
+        <div class="card-sub" id="taskSub">Gib die umgerechnete Zahl ein.</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="inputArea">
+    <input type="text" id="answerInput" inputmode="decimal" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Zahl eingeben...">
+    <div id="answerHint">Falsch.</div>
+    <button id="checkBtn">Lösung überprüfen</button>
+  </div>
+
+  </div>
+
+<script>
+/* ── MathJax / Scaling ───────────────────────────── */
+let _mjPending = false, _mjElements = new Set();
+function typesetMath(el) {
+  if (!window.MathJax) return;
+  if (el) _mjElements.add(el);
+  if (_mjPending) return;
+  _mjPending = true;
+  requestAnimationFrame(() => {
+    _mjPending = false;
+    const targets = _mjElements.size > 0 ? [..._mjElements] : null;
+    _mjElements = new Set();
+    if (!MathJax.typesetPromise) return;
+    if (targets && MathJax.typesetClear) MathJax.typesetClear(targets);
+    MathJax.typesetPromise(targets).catch(() => {});
+  });
+}
+
+function scaleToFit(el) {
+  if (!el) return;
+  el.style.transform = 'none';
+  const wrapper = el.parentElement;
+  if (!wrapper) return;
+  requestAnimationFrame(() => {
+    const available = wrapper.clientWidth
+      - parseFloat(getComputedStyle(wrapper).paddingLeft)
+      - parseFloat(getComputedStyle(wrapper).paddingRight);
+    const natural = el.scrollWidth;
+    if (natural > available && available > 0) {
+      const scale = available / natural;
+      el.style.transform = `scale(${scale})`;
+      wrapper.style.height = (el.scrollHeight * scale) + 'px';
+    } else {
+      wrapper.style.height = '';
+    }
+  });
+}
+
+function scaleAllElements() {
+  document.querySelectorAll('.scale-el').forEach(scaleToFit);
+}
+window.addEventListener('resize', scaleAllElements);
+
+/* ── Helpers ─────────────────────────────────────── */
+function showToast(msg, duration = 1800) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), duration);
+}
+
+function flashResult(color) {
+  const ov = document.getElementById('flashOverlay');
+  ov.style.transition = 'none';
+  ov.style.backgroundColor = color;
+  ov.style.opacity = '1';
+  setTimeout(() => { ov.style.transition = 'opacity 1s'; ov.style.opacity = '0'; }, 50);
+}
+
+/* ── Einheiten-Definitionen ──────────────────────── */
+// powers: Faktor ist 10^power relativ zur Basiseinheit (z.B. Meter).
+const UNITS = {
+  length: [
+    { id: 'mm', tex: '\\text{mm}', power: -3 },
+    { id: 'cm', tex: '\\text{cm}', power: -2 },
+    { id: 'dm', tex: '\\text{dm}', power: -1 },
+    { id: 'm',  tex: '\\text{m}',  power: 0 },
+    { id: 'km', tex: '\\text{km}', power: 3 }
+  ],
+  area: [
+    { id: 'mm2', tex: '\\text{mm}^2', power: -6 },
+    { id: 'cm2', tex: '\\text{cm}^2', power: -4 },
+    { id: 'dm2', tex: '\\text{dm}^2', power: -2 },
+    { id: 'm2',  tex: '\\text{m}^2',  power: 0 },
+    { id: 'a',   tex: '\\text{a}',    power: 2 },
+    { id: 'ha',  tex: '\\text{ha}',   power: 4 },
+    { id: 'km2', tex: '\\text{km}^2', power: 6 }
+  ],
+  volume: [
+    { id: 'mm3', tex: '\\text{mm}^3', power: -9 },
+    { id: 'cm3', tex: '\\text{cm}^3', power: -6 },
+    { id: 'dm3', tex: '\\text{dm}^3', power: -3 },
+    { id: 'm3',  tex: '\\text{m}^3',  power: 0 }
+  ]
+};
+
+let korrekteAntworten = 0, anzahlAufgaben = 0;
+let currentTask = null;
+let expectedAnswerFloat = null;
+
+/* ── UI Checkboxen generieren ────────────────────── */
+function initCheckboxes() {
+  Object.keys(UNITS).forEach(category => {
+    const container = document.getElementById(category);
+    UNITS[category].forEach((unit, index) => {
+      const item = document.createElement('div');
+      item.className = 'cb-item';
+
+      const cb = document.createElement('input');
+      cb.type = 'checkbox'; 
+      cb.value = index; 
+      cb.dataset.category = category;
+      cb.id = `cb_${category}_${unit.id}`;
+      cb.checked = true; // Default: Alles an
+      cb.addEventListener('change', onSettingsChange);
+
+      const lbl = document.createElement('label');
+      lbl.htmlFor = cb.id;
+      // Entferne MathJax Artefakte für das simple HTML Label
+      lbl.innerHTML = unit.tex.replace('\\text{', '').replace('}', '').replace('^2', '²').replace('^3', '³');
+
+      item.appendChild(cb);
+      item.appendChild(lbl);
+      container.appendChild(item);
+    });
+  });
+
+  // Listener für sonstige Einstellungen
+  document.querySelectorAll('input[name="stepMode"], input[name="dirMode"], #settingsForm input[type="checkbox"]').forEach(el => {
+    el.addEventListener('change', onSettingsChange);
+  });
+}
+
+function toggleGroup(category) {
+  const cbs = document.querySelectorAll(`input[data-category="${category}"]`);
+  if (cbs.length === 0) return;
+  const allOn = Array.from(cbs).every(cb => cb.checked);
+  cbs.forEach(cb => { cb.checked = !allOn; });
+  onSettingsChange();
+}
+
+function onSettingsChange() {
+  korrekteAntworten = 0;
+  anzahlAufgaben = 0;
+  updateCounterDisplay();
+  document.getElementById('taskText').innerHTML = '';
+  document.getElementById('answerHint').classList.remove('visible');
+  document.getElementById('answerInput').className = '';
+  document.getElementById('answerInput').value = '';
+  generateTask();
+}
+
+function updateCounterDisplay() {
+  document.getElementById('counter').textContent = `Richtig: ${korrekteAntworten} / ${anzahlAufgaben}`;
+}
+
+/* ── Aufgaben Generierung ────────────────────────── */
+function generateTask() {
+  const activeCategories = [];
+  
+  // Finde alle aktiven Kategorien (min 2 Einheiten müssen ausgewählt sein)
+  Object.keys(UNITS).forEach(cat => {
+    const activeIndices = Array.from(document.querySelectorAll(`input[data-category="${cat}"]:checked`)).map(cb => parseInt(cb.value));
+    if (activeIndices.length >= 2) {
+      activeCategories.push({ category: cat, indices: activeIndices.sort((a,b) => a-b) });
+    }
+  });
+
+  if (activeCategories.length === 0) {
+    document.getElementById('taskLabel').textContent = 'Bitte mindestens 2 Einheiten einer Kategorie auswählen!';
+    document.getElementById('taskText').innerHTML = '';
+    currentTask = null;
+    return;
+  }
+
+  document.getElementById('taskLabel').textContent = 'Rechne um:';
+  
+  // Wähle zufällige Kategorie
+  const catObj = activeCategories[Math.floor(Math.random() * activeCategories.length)];
+  const units = UNITS[catObj.category];
+  const indices = catObj.indices;
+
+  // Wende Einstellungen an
+  const stepMode = document.querySelector('input[name="stepMode"]:checked').value;
+  const dirMode = document.querySelector('input[name="dirMode"]:checked').value;
+
+  // Baue mögliche Paare (from, to)
+  let validPairs = [];
+  for (let i = 0; i < indices.length; i++) {
+    for (let j = 0; j < indices.length; j++) {
+      if (i === j) continue;
+      
+      const idxA = indices[i];
+      const idxB = indices[j];
+
+      // Step-Check: 
+      // i, j sind die Positionen im aktivierten Array, idxA, idxB im globalen Einheiten Array.
+      // "Benachbart" bedeutet in der Mathe-Didaktik meist die direkte Stufe, also idxA - idxB = +/- 1
+      const isAdjacent = Math.abs(idxA - idxB) === 1;
+      
+      if (stepMode === 'adjacent' && !isAdjacent) continue;
+
+      // Richtungs-Check:
+      // power kleiner -> Zahl größer. "Klein nach Groß" bei Einheiten: mm -> m (Zahl wird kleiner, Einheit größer)
+      // idxA < idxB bedeutet Start-Einheit ist kleiner als Ziel-Einheit.
+      if (dirMode === 'up' && idxA > idxB) continue; // Nur klein -> groß
+      if (dirMode === 'down' && idxA < idxB) continue; // Nur groß -> klein
+
+      validPairs.push({ from: units[idxA], to: units[idxB] });
+    }
+  }
+
+  if (validPairs.length === 0) {
+    // Fallback falls durch Settings (z.B. nur benachbarte aber Lücken angeklickt) nichts übrig bleibt
+    document.getElementById('taskLabel').textContent = 'Keine Aufgabe mit diesen Einstellungen möglich.';
+    document.getElementById('taskText').innerHTML = '';
+    currentTask = null;
+    return;
+  }
+
+  // Wähle zufälliges Paar
+  const pair = validPairs[Math.floor(Math.random() * validPairs.length)];
+  
+  // Generiere Startzahl (Vorerst nur Ganze Zahlen 1 - 999)
+  // TODO: Hier könnten später die Checkboxen für Kommazahlen etc. greifen
+  let startValue = Math.floor(Math.random() * 999) + 1;
+  
+  // Wenn wir von Groß nach Klein gehen, machen wir kleine Zahlen, damit das Ergebnis nicht riesig wird?
+  // Vorerst simple Integer.
+
+  const diffPower = pair.from.power - pair.to.power;
+  // expected = startValue * 10^diffPower
+  expectedAnswerFloat = startValue * Math.pow(10, diffPower);
+
+  currentTask = {
+    startValue: startValue,
+    from: pair.from,
+    to: pair.to,
+    expected: expectedAnswerFloat
+  };
+
+    // UI Update
+  const faceFront = document.getElementById('faceFront');
+  const taskTextEl = document.getElementById('taskText');
+  
+  faceFront.style.opacity = '0';
+  
+  // Nutze \( \) für Inline-Math, das ist oft stabiler beim dynamischen Laden
+  const aufgabeTex = `${startValue} \\, ${pair.from.tex} = \\text{$\\,\\,\\,\\,\\,$?$\\,\\,\\,\\,\\,$} ${pair.to.tex}`;
+  taskTextEl.innerHTML = `\\(${aufgabeTex}\\)`;
+
+  // Sicherstellen, dass MathJax fertig ist, bevor skaliert wird
+  if (window.MathJax && MathJax.typesetPromise) {
+    MathJax.typesetPromise([taskTextEl]).then(() => {
+      scaleToFit(taskTextEl);
+      faceFront.style.opacity = '1';
+    });
+  } else {
+    // Fallback falls MathJax noch nicht geladen ist
+    faceFront.style.opacity = '1';
+  }
+
+  const inp = document.getElementById('answerInput');
+  inp.value = '';
+  inp.className = '';
+  document.getElementById('answerHint').classList.remove('visible');
+  // inp.focus(); // GELÖSCHT, um Autofokus zu verhindern
+}
+
+/* ── Überprüfung ─────────────────────────────────── */
+function checkAnswer() {
+  if (!currentTask) return;
+  const inp = document.getElementById('answerInput');
+  const raw = inp.value.trim().replace(',', '.');
+  if (!raw) return;
+
+  const givenFloat = parseFloat(raw);
+  
+  if (isNaN(givenFloat)) {
+    document.getElementById('answerHint').textContent = "Bitte eine gültige Zahl eingeben.";
+    document.getElementById('answerHint').classList.add('visible');
+    return;
+  }
+
+  // Floating point vergleich mit Toleranz
+  const isCorrect = Math.abs(givenFloat - expectedAnswerFloat) < 1e-10;
+
+  flashResult(isCorrect ? '#d4edda' : '#f8d7da');
+  anzahlAufgaben++;
+
+  if (isCorrect) {
+    korrekteAntworten++;
+    inp.className = 'correct';
+    document.getElementById('answerHint').classList.remove('visible');
+    updateCounterDisplay();
+    currentTask = null; // Sperre bis neue Aufgabe kommt
+    setTimeout(generateTask, 1000);
+  } else {
+    inp.className = 'wrong';
+    document.getElementById('answerHint').textContent = "Falsch.";
+    document.getElementById('answerHint').classList.add('visible');
+    updateCounterDisplay();
+    inp.select();
+  }
+}
+
+/* ── Event Listener Setup ────────────────────────── */
+document.addEventListener('DOMContentLoaded', () => {
+  initCheckboxes();
+
+  document.getElementById('checkBtn').addEventListener('click', checkAnswer);
+  document.getElementById('answerInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') checkAnswer();
+  });
+  
+  // Verhindere ungültige Zeichen
+  document.getElementById('answerInput').addEventListener('keypress', e => {
+    if (!/[\d\.,\-]/.test(e.key)) e.preventDefault();
+  });
+
+  // Mobile Keyboard Scroll
+  if (window.visualViewport) {
+    ['resize', 'scroll'].forEach(event => {
+      window.visualViewport.addEventListener(event, () => {
+        if (document.activeElement === document.getElementById('answerInput')) {
+          const inp = document.getElementById('answerInput');
+          setTimeout(() => {
+            inp.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }, 50);
+        }
+      });
+    });
+  }
+
+  onSettingsChange();
+});
+</script>
+
+<div id="lobby-spacer"></div>
+<footer class="site-footer">
+  <div class="footer-content">
+    M.&nbsp;Koch
+    <span class="footer-topic"><a href="./index.html">Mathe-Tools</a></span>
+    <span class="footer-update">Last updated:&nbsp;<span id="last-update">…</span></span>
+  </div>
+</footer>
+<script src="last-update.js" defer></script>
+</body>
+</html>

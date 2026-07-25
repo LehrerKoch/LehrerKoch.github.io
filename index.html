@@ -15,6 +15,44 @@
         gtag('js', new Date());
         gtag('config', 'G-5K8WYYXDL2');
     </script>
+    <script>
+        /* ══ Footer-Datum ══ */
+        var LAST_UPDATE_MODE        = 'repo';
+        var LAST_UPDATE_CACHE       = true;
+        var LAST_UPDATE_CACHE_HOURS = 24;
+        var LAST_UPDATE_DEBUG       = false;
+
+        /* ══ Highlights für neue / überarbeitete Karten ══ */
+        var SHOW_NEW_BADGE   = true;   // "Neu"-Highlight anzeigen
+        var SHOW_MAJOR_BADGE = true;   // "Update"-Highlight anzeigen
+        var HIGHLIGHT_DAYS   = 14;     // Zeitraum in Tagen (42 = 6 Wochen, 1 = 1 Tag)
+        var HIGHLIGHT_TINT   = true;   // Karten farbig hervorheben (false = nur Fähnchen)
+        var SHOW_WICHTIG     = true;   // "Wichtig"-System komplett: Fähnchen, Filter UND
+                                       // den Modus "Jahrgang + wichtige Wiederholungen".
+                                       // false = alles davon aus.
+        var WICHTIG_TINT     = false;  // "Wichtig"-Karten zusätzlich rot einfärben?
+                                       // (unabhängig steuerbar; nur wirksam bei SHOW_WICHTIG)
+
+        /* ══ Verhalten der Leisten beim Scrollen ══
+           true  = bleibt beim Scrollen fest am Bildschirmrand kleben (fixed)
+           false = scrollt mit dem Seiteninhalt weg (statisch)
+           Auf Handys aendern Browser beim Scrollen die Viewport-Hoehe
+           (URL-Leiste faehrt ein/aus) - deshalb koennen fixierte Leisten
+           dort "wandern". Mit diesen Schaltern laesst sich beides testen. */
+        var STICKY_TOP_NAV     = true;
+        var STICKY_BOTTOM_BAR  = true;
+
+        /* ══ Jahrgangsstufen-Filter ══ */
+        var SHOW_STUFEN_FILTER = true;
+        var STUFEN_LIST        = ['5', '6', '7', '8', '9', '10', 'Abi'];  // Reihenfolge = Progression
+        var STUFEN_REMEMBER_DAYS = 30;   // Auswahl so lange in localStorage merken
+        var SHOW_FACH_FILTER   = true;   // Fach-Auswahl (Ma/Info/Sonst.) anbieten
+        var SHOW_EXTRA_FILTER  = true;   // Checkbox "ueber den Schulstoff hinaus" anbieten
+
+        /* ══ "Zuletzt besucht" in der Seitenleiste ══ */
+        var SHOW_RECENT      = true;
+        var RECENT_COUNT     = 3;
+    </script>
     <script src="last-update.js" defer></script>
     <script src="index/page_types.js"></script>
     <script src="index/categories.js"></script>
@@ -58,6 +96,10 @@
         .sticky-top-nav {
             position: fixed;
             top: 0; left: 0; right: 0;
+            /* Verhindert das "Wandern" auf Mobilgeraeten, wenn die
+               URL-Leiste ein-/ausfaehrt. */
+            will-change: transform;
+            transform: translateZ(0);
             z-index: 300;
             height: var(--nav-height);
             display: flex;
@@ -94,19 +136,304 @@
         }
         .menu-btn:hover { background: var(--surface2); }
 
+        /* ══════════════════════════════════════════════════════
+           JAHRGANGSSTUFEN-FILTER (Top-Nav, links)
+        ══════════════════════════════════════════════════════ */
+        :root {
+            --stufen-accent: #1e3a6d;   /* Dunkelblau: Rahmen + Auswahl */
+            --toolbar-h: 26px;          /* Einheitliche Hoehe ALLER Toolbar-Elemente */
+            --search-w: 40px;           /* Breite der zugeklappten Lupe */
+        }
+
+        .stufen-btn {
+            display: none;              /* -> init() blendet ein */
+            flex-shrink: 0;
+            margin-right: 6px;
+            align-items: center;
+            gap: 0.25rem;
+            height: 36px;
+            padding: 0 0.6rem;
+            border-radius: 10px;
+            /* Im Grundzustand bereits deutlich sichtbar: dunkelblauer
+               Rahmen + heller Blauton, damit der Filter auffaellt. */
+            border: 2px solid var(--stufen-accent);
+            background: #eaf0f9;
+            color: var(--stufen-accent);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.72rem;
+            font-weight: 700;
+            white-space: nowrap;
+            cursor: pointer;
+            box-shadow: var(--shadow-xs);
+            transition: background 0.15s, color 0.15s;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .stufen-btn:hover { background: #dce7f5; }
+        .stufen-btn.active {
+            background: var(--stufen-accent);
+            color: #fff;
+            border-color: var(--stufen-accent);
+            box-shadow: none;
+        }
+        .stufen-btn .caret { font-size: 0.55rem; opacity: 0.9; }
+
+        .stufen-popover {
+            position: fixed;
+            top: calc(var(--nav-height) + 4px);
+            left: 8px;
+            z-index: 480;
+            width: 245px;
+            max-width: calc(100vw - 16px);
+            background: var(--surface);
+            border: 2.5px solid var(--stufen-accent);
+            border-radius: 12px;
+            box-shadow: var(--shadow-md);
+            padding: 0.7rem 0.75rem 0.75rem;
+            display: none;
+            font-family: 'DM Sans', sans-serif;
+        }
+        .stufen-popover.open { display: block; }
+        .stufen-popover-title {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 0.6rem;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 0.4rem;
+        }
+        .stufen-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.25rem;
+            margin-bottom: 0.7rem;
+        }
+        .stufen-chip {
+            flex: 1 1 auto;
+            min-width: 2.1rem;
+            padding: 0.28rem 0.35rem;
+            border-radius: 7px;
+            border: 1.5px solid var(--border-strong);
+            background: var(--surface);
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.74rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.13s, color 0.13s;
+        }
+        .stufen-chip:hover { background: var(--surface2); }
+        .stufen-chip.selected {
+            background: var(--stufen-accent);
+            color: #fff;
+            border-color: var(--stufen-accent);
+        }
+
+        /* Zweigeteilter Abi/LK-Chip */
+        .stufen-chip-split {
+            display: flex;
+            padding: 0;
+            overflow: hidden;
+        }
+        .stufen-chip-split .chip-part {
+            border: none;
+            background: transparent;
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.74rem;
+            font-weight: 600;
+            padding: 0.28rem 0.35rem;
+            cursor: pointer;
+            transition: background 0.13s, color 0.13s;
+        }
+        .stufen-chip-split .chip-abi { flex: 1 1 auto; }
+        .stufen-chip-split .chip-lk {
+            flex: 0 0 auto;
+            border-left: 1.5px solid var(--border-strong);
+            font-size: 0.64rem;
+            letter-spacing: 0.02em;
+            opacity: 0.72;
+        }
+        .stufen-chip-split .chip-part:hover { background: var(--surface2); }
+        /* Aktivzustaende */
+        .stufen-chip-split.abi-selected .chip-abi {
+            background: var(--stufen-accent);
+            color: #fff;
+        }
+        .stufen-chip-split.lk-selected .chip-lk {
+            background: var(--stufen-accent);
+            color: #fff;
+            opacity: 1;
+            border-left-color: rgba(255,255,255,0.4);
+        }
+        /* Wenn Abi aktiv, aber LK nicht: LK-Teil trennt sich sichtbar ab */
+        .stufen-chip-split.abi-selected .chip-lk {
+            border-left-color: rgba(255,255,255,0.35);
+            color: var(--text);
+        }
+        .stufen-modes { display: flex; flex-direction: column; gap: 0.1rem; }
+        .stufen-mode {
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
+            padding: 0.3rem 0.35rem;
+            border-radius: 7px;
+            font-size: 0.73rem;
+            color: var(--text);
+            cursor: pointer;
+            user-select: none;
+        }
+        .stufen-mode:hover { background: var(--surface2); }
+        .stufen-mode input { accent-color: var(--stufen-accent); flex-shrink: 0; }
+        .stufen-hint {
+            margin-top: 0.55rem;
+            padding-top: 0.5rem;
+            border-top: 1px solid var(--border);
+            font-size: 0.63rem;
+            line-height: 1.35;
+            color: var(--muted);
+        }
+        .stufen-reset {
+            margin-top: 0.5rem;
+            width: 100%;
+            padding: 0.3rem;
+            border-radius: 7px;
+            border: 1.5px solid var(--border-strong);
+            background: var(--surface);
+            color: var(--muted);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.7rem;
+            cursor: pointer;
+        }
+        .stufen-reset:hover { background: var(--surface2); color: var(--text); }
+
+        /* Jahrgangsangabe auf der Karte: horizontal zentriert,
+           vertikal auf gleicher Höhe wie das Handy-Symbol unten rechts. */
+        /* Zusatzthema: Titel grau, Stern grau (Titelfarbe) */
+        a.card.is-extra .card-title { color: var(--muted); }
+        .extra-star {
+            color: var(--muted);
+            font-weight: 700;
+            cursor: help;
+        }
+        .title-star { font-size: 0.9em; white-space: nowrap; }
+        .card-stufe .extra-star {
+            margin-left: 1px;
+            /* card-stufe hat pointer-events:none - der Stern soll aber
+               den Hover-Tooltip zeigen, daher hier wieder aktivieren. */
+            pointer-events: auto;
+        }
+
+        /* Under-Construction-Symbol vor dem Titel */
+        .wip-icon {
+            display: inline-block;
+            margin-right: 0.3em;
+            font-size: 0.95em;
+            line-height: 1;
+            cursor: help;
+            /* Emoji folgt sonst der grauen Titelfarbe bei Zusatzthemen nicht;
+               eigener Kontext haelt es farbig. */
+            filter: none;
+        }
+
+        /* Fach-Auswahl im Popover (identische Optik wie die Jahrgangs-Chips) */
+        .fach-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.25rem;
+            margin-bottom: 0.7rem;
+        }
+        .fach-chip {
+            flex: 1 1 auto;
+            min-width: 3.2rem;
+            padding: 0.28rem 0.4rem;
+            border-radius: 7px;
+            border: 1.5px solid var(--border-strong);
+            background: var(--surface);
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.72rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.13s, color 0.13s;
+        }
+        .fach-chip:hover { background: var(--surface2); }
+        .fach-chip.selected {
+            background: var(--stufen-accent);
+            color: #fff;
+            border-color: var(--stufen-accent);
+        }
+
+        /* Checkbox-Zeile "ueber den Schulstoff hinaus" */
+        .stufen-check {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.45rem;
+            padding: 0.4rem 0.35rem 0.1rem;
+            font-size: 0.73rem;
+            color: var(--text);
+            cursor: pointer;
+            user-select: none;
+        }
+        .stufen-check input { accent-color: var(--stufen-accent); flex-shrink: 0; margin-top: 0.1rem; }
+
+        .card-stufe {
+            position: absolute;
+            bottom: 9px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            height: 1em;
+            font-size: 0.63rem;
+            font-weight: 600;
+            color: var(--muted);
+            opacity: 0.75;
+            letter-spacing: 0.01em;
+            white-space: nowrap;
+            pointer-events: none;
+        }
+        .card-stufe::before { content: 'Kl. '; font-weight: 500; opacity: 0.8; }
+        .card-stufe.abi-only::before { content: ''; }
+
+
         /* Section nav: horizontally scrollable, never wraps */
         .section-nav {
+            /* WICHTIG: ohne position waere der offsetParent der Links die
+               fixierte .sticky-top-nav - offsetLeft enthielte dann deren
+               Padding UND die Breite des Jahrgang-Buttons, wodurch die
+               Scroll-Rechnung genau um diese Breite danebenliegt. */
+            position: relative;
             display: flex;
             align-items: center;
             gap: 0.15rem;
             overflow-x: auto;
             overflow-y: hidden;
-            flex: 1;
+            /* 1 1 0 statt "1": die Nav bekommt NUR den Rest neben dem
+               Jahrgang-Button - sie darf ihn nie ueberlappen. */
+            flex: 1 1 0;
             min-width: 0;
             scrollbar-width: none;
             -ms-overflow-style: none;
-            padding: 0.2rem 0;
+            /* Links ein Anlauf, damit das ERSTE Thema nicht schon in der
+               14px-Ausblendrampe der Maske steht und ausgraut. */
+            padding: 0.2rem 0 0.2rem 18px;
+            /* pan-x: horizontales Wischen bleibt beim Browser bzw. beim
+               Drag-Handler - wichtig fuer Touch-Tafeln und Stifteingabe. */
+            touch-action: pan-x;
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior-x: contain;
+            cursor: grab;
+            /* Weicher Auslauf links: gescrollte Links verschwinden sanft,
+               statt hart an der Kante des Jahrgang-Buttons abzuschneiden. */
+            -webkit-mask-image: linear-gradient(to right, transparent 0, #000 14px);
+            mask-image: linear-gradient(to right, transparent 0, #000 14px);
         }
+        .section-nav:active { cursor: grabbing; }
+
+        /* Der Jahrgang-Button liegt vor der Nav und bleibt immer sichtbar. */
+        .stufen-btn { position: relative; z-index: 2; }
         .section-nav::-webkit-scrollbar { display: none; }
 
         .section-nav-link {
@@ -208,6 +535,8 @@
             padding: 0.6rem 0.65rem;
             gap: 0.05rem;
             overflow-y: auto;
+            touch-action: pan-y;
+            -webkit-overflow-scrolling: touch;
         }
         .sidebar-nav a {
             font-family: 'DM Sans', sans-serif;
@@ -250,7 +579,12 @@
             display: flex;
             align-items: center;
             gap: 0.4rem;
-            padding: 0.28rem 0.65rem;
+            /* Feste Hoehe + border-box: garantiert pixelgleich zu allen
+               anderen Toolbar-Elementen, mit und ohne Beschriftung.
+               Vertikale Zentrierung uebernimmt align-items. */
+            height: var(--toolbar-h);
+            box-sizing: border-box;
+            padding: 0 0.65rem;
             border-radius: 8px;
             border: 1.5px solid var(--border-strong);
             background: var(--surface);
@@ -258,16 +592,36 @@
             font-family: 'DM Sans', sans-serif;
             font-size: 0.72rem;
             font-weight: 500;
+            line-height: 14px;      /* = Icon-Hoehe -> alle Buttons gleich hoch */
             cursor: pointer;
             transition: all 0.15s ease;
             box-shadow: var(--shadow-xs);
-            margin-right: auto; /* Schiebt den Button nach links */
             user-select: none;
+            white-space: nowrap;
+            flex-shrink: 0;
         }
+        #fresh-toggle-label { font-style: italic; }
+        #wichtig-toggle-label .flag-excl {
+            font-weight: 800;
+            color: #b45309;
+            line-height: 1;
+        }
+        #wichtig-toggle-label.active .flag-excl { color: inherit; }
         .mobile-toggle:hover { background: var(--surface2); color: var(--text); }
         .mobile-toggle.active { background: var(--text); color: var(--bg); border-color: var(--text); box-shadow: none; }
         .mobile-toggle input { display: none; }
-        .mobile-icon-card { flex-shrink: 0; display: flex; align-items: center; }
+        .mobile-icon-card {
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            /* Emoji, Textzeichen und SVG belegen dieselbe Box - sonst
+               werden die Buttons unterschiedlich hoch, sobald der
+               Beschriftungstext ausgeblendet ist. */
+            width: 14px;
+            height: 14px;
+            line-height: 1;
+        }
         /* ══════════════════════════════════════════════════════
            HEADER
         ══════════════════════════════════════════════════════ */
@@ -309,14 +663,58 @@
 
         .main-toolbar {
             display: flex;
-            justify-content: flex-end;
+            justify-content: flex-start;
+            align-items: center;
+            flex-wrap: nowrap;
+            gap: 0.35rem;
             padding: 0 0.15rem 0.55rem;
+            min-width: 0;
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+        /* Schiebt Suche + Einklapp-Button nach rechts */
+        .toolbar-spacer { flex: 1 1 auto; min-width: 0; }
+
+        /* ── Schmale Bildschirme: Beschriftungen weg, nur Symbole ──
+           Reihenfolge des Abspeckens: erst Einklapp-Text, dann Filtertexte. */
+        .toggle-text { display: inline; }
+
+        @media (max-width: 720px) {
+            #collapse-all-label { display: none; }
+            .collapse-all-btn { padding: 0.3rem 0.45rem; }
+        }
+        @media (max-width: 560px) {
+            .main-toolbar { gap: 0.3rem; }
+            .toggle-text { display: none; }
+            /* Ohne Text: nur die Breite setzen. Die Hoehe steckt bereits
+               fest in --toolbar-h und bleibt dadurch unveraendert. */
+            .mobile-toggle {
+                padding-left: 0;
+                padding-right: 0;
+                gap: 0;
+                min-width: 40px;
+                justify-content: center;
+            }
+            .mobile-toggle .mobile-icon-card { margin: 0; }
+            .collapse-all-btn {
+                padding-left: 0;
+                padding-right: 0;
+                min-width: 40px;
+                justify-content: center;
+            }
+            /* Breite kommt aus --search-w und ist bereits 40px -
+               damit sind alle fuenf Elemente exakt 40 x 26 px. */
         }
         .collapse-all-btn {
             display: flex;
             align-items: center;
+            line-height: 14px;
+            height: var(--toolbar-h);
+            box-sizing: border-box;
+            white-space: nowrap;
+            flex-shrink: 0;
             gap: 0.3rem;
-            padding: 0.28rem 0.65rem;
+            padding: 0 0.65rem;
             border-radius: 8px;
             border: 1.5px solid var(--border-strong);
             background: var(--surface);
@@ -566,6 +964,8 @@
         .sticky-bottom-filters {
             position: fixed;
             bottom: 0; left: 0; right: 0;
+            will-change: transform;
+            transform: translateZ(0);
             width: 100%;
             z-index: 1000;
             background: linear-gradient(to top, var(--bg) 68%, transparent);
@@ -584,17 +984,44 @@
             width: 100%;
             pointer-events: all;
         }
+        /* ── Nicht-fixierte Varianten (ueber STICKY_* steuerbar) ── */
+        body.topnav-static .sticky-top-nav {
+            position: static;
+            transform: none;
+            will-change: auto;
+        }
+        body.topnav-static { padding-top: 0; }
+
+        body.bottombar-static .sticky-bottom-filters {
+            position: static;
+            transform: none;
+            will-change: auto;
+            background: var(--bg);
+            padding-top: 6px;
+            margin-top: 0.5rem;
+        }
+        /* Ohne fixierte Leiste braucht der Footer keinen Freiraum darunter */
+        body.bottombar-static .site-footer {
+            padding-bottom: 12px;
+        }
+        body.bottombar-static .sidebar-recent {
+            padding-bottom: 1.1rem;
+        }
+        /* Popover haengt an der Top-Nav - im statischen Modus mitscrollen */
+        body.topnav-static .stufen-popover { position: absolute; }
+
         .filter-btn {
             display: inline-flex;
             align-items: center;
-            gap: 0.22rem;
-            padding: 0.35rem 0.7rem;
+            justify-content: center;
+            gap: 0.2rem;
+            padding: 0.28rem 0.58rem;
             border-radius: 999px;
             border: 1.5px solid var(--border-strong);
             background: var(--surface);
             color: var(--muted);
             font-family: 'DM Sans', sans-serif;
-            font-size: 0.78rem;
+            font-size: 0.74rem;
             font-weight: 500;
             cursor: pointer;
             transition: all 0.16s ease;
@@ -613,25 +1040,35 @@
            TOOLTIP
         ══════════════════════════════════════════════════════ */
         [data-tooltip] { position: relative; }
-        [data-tooltip]::after {
-            content: attr(data-tooltip);
-            position: absolute;
-            bottom: calc(100% + 8px);
-            left: 50%;
-            transform: translateX(-50%);
+        /* Eine einzige Sprechblase fuer alle Tooltips. Sie liegt direkt am
+           <body> und wird per JS positioniert - dadurch laesst sie sich am
+           Bildschirmrand begrenzen, was mit ::after nicht moeglich waere. */
+        .tooltip-bubble {
+            position: fixed;
+            left: 0;
+            top: 0;
+            z-index: 2000;
+            max-width: min(320px, calc(100vw - 20px));
+            padding: 0.35rem 0.65rem;
+            border-radius: 6px;
             background: #14162a;
             color: #fff;
-            font-size: 0.7rem;
             font-family: 'DM Sans', sans-serif;
-            padding: 0.3rem 0.65rem;
-            border-radius: 6px;
-            white-space: nowrap;
+            font-size: 0.7rem;
+            line-height: 1.35;
+            text-align: center;
+            white-space: normal;      /* langer Text darf umbrechen */
             pointer-events: none;
             opacity: 0;
+            visibility: hidden;
             transition: opacity 0.16s ease;
-            z-index: 200;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.28);
         }
-        [data-tooltip]:hover::after { opacity: 1; }
+        .tooltip-bubble.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
 
         /* ══════════════════════════════════════════════════════
            FOOTER
@@ -657,8 +1094,261 @@
         }
 
         /* ══════════════════════════════════════════════════════
+           HIGHLIGHTS: NEU / UPDATE / WICHTIG
+        ══════════════════════════════════════════════════════ */
+        /* Farbige Tönung der Karte.
+           Greift nur, wenn HIGHLIGHT_TINT true ist (Klasse .tint-on am <body>).
+           Kartenrahmen und linker Typ-Rand bleiben unverändert. */
+        body.tint-on a.card.hl-new,
+        body.tint-on a.card.hl-major,
+        body.tint-on a.card.hl-wichtig {
+            background-color: var(--hl-tint);
+        }
+        body.tint-on a.card.hl-new:hover,
+        body.tint-on a.card.hl-major:hover,
+        body.tint-on a.card.hl-wichtig:hover {
+            background-color: var(--hl-tint);
+        }
+        @media (hover: none) {
+            body.tint-on a.card.hl-new:active,
+            body.tint-on a.card.hl-major:active,
+            body.tint-on a.card.hl-wichtig:active { background-color: var(--hl-tint-strong); }
+        }
+
+        a.card.hl-new {
+            --hl-tint: #f4fbf6;
+            --hl-tint-strong: #e6f5eb;
+        }
+        a.card.hl-major {
+            --hl-tint: #eef4fb;          /* kühles Blau */
+            --hl-tint-strong: #e0ebf6;
+        }
+        a.card.hl-wichtig {
+            --hl-tint: #fdf3ea;          /* warmes Sandgelb - klar gegen Blau abgesetzt */
+            --hl-tint-strong: #fae8d8;
+        }
+
+        .flag-row {
+            position: absolute;
+            top: -7px;
+            left: 9px;
+            display: flex;
+            gap: 0.25rem;
+            pointer-events: none;
+        }
+        .flag {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.2rem;
+            padding: 0.05rem 0.4rem;
+            border-radius: 999px;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 0.6rem;
+            font-weight: 800;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+            line-height: 1.5;
+            white-space: nowrap;
+            box-shadow: var(--shadow-xs);
+        }
+        .flag-new {
+            background: #eaf7ee;
+            color: #16a34a;
+            border: 2px solid rgba(22,163,74,0.45);
+        }
+        .flag-major {
+            background: #e9f2f9;
+            color: #0369a1;
+            border: 2px solid rgba(3,105,161,0.42);
+        }
+        .flag-wichtig {
+            background: #fdefdd;
+            color: #b45309;
+            border: 2px solid rgba(180,83,9,0.45);
+        }
+
+        /* ══════════════════════════════════════════════════════
+           SUCHFELD
+        ══════════════════════════════════════════════════════ */
+        /* Platzhalter in der Toolbar: behält immer nur die Lupenbreite,
+           damit sich beim Aufklappen nichts verschiebt. */
+        .search-wrap {
+            position: relative;
+            display: flex;
+            align-items: center;
+            flex: 0 0 var(--search-w);
+            width: var(--search-w);
+            height: var(--toolbar-h);
+        }
+        /* Das Feld selbst liegt absolut und wächst nach LINKS über den
+           Inhalt davor - der Rest der Toolbar bleibt unverschoben. */
+        .search-inner {
+            position: absolute;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            align-items: center;
+            width: var(--search-w);
+            height: var(--toolbar-h);
+            transition: width 0.22s ease;
+            z-index: 60;
+        }
+        .search-wrap:focus-within .search-inner,
+        .search-wrap.has-text .search-inner {
+            width: clamp(9rem, 30vw, 15rem);
+        }
+        .search-wrap .search-icon {
+            position: absolute;
+            left: 0.55rem;
+            color: var(--muted);
+            pointer-events: none;
+            display: flex;
+        }
+        #search-input {
+            width: 100%;
+            min-width: 0;
+            height: var(--toolbar-h);
+            box-sizing: border-box;
+            line-height: 1;
+            padding: 0 1.7rem 0 1.85rem;
+            cursor: pointer;
+            border-radius: 8px;
+            border: 1.5px solid var(--border-strong);
+            background: var(--surface);
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.75rem;
+            box-shadow: var(--shadow-xs);
+            transition: border-color 0.15s;
+        }
+        #search-input:focus {
+            outline: none;
+            border-color: var(--muted);
+            cursor: text;
+        }
+        /* Zusammengeklappt: Rahmen als Lupen-Button, Platzhalter unsichtbar */
+        .search-wrap:not(:focus-within):not(.has-text) #search-input {
+            padding: 0;
+            color: transparent;
+        }
+        .search-wrap:not(:focus-within):not(.has-text) #search-input::placeholder {
+            color: transparent;
+        }
+        .search-wrap .search-icon { transition: color 0.15s, left 0.22s ease; }
+        .search-wrap:hover .search-icon { color: var(--text); }
+        /* Zugeklappt: Lupe mittig im Feld. Das :not() erhoeht die
+           Spezifitaet, damit diese Regel die Grundregel sicher schlaegt. */
+        .search-wrap:not(:focus-within):not(.has-text) .search-icon {
+            left: 0;
+            width: var(--search-w);
+            justify-content: center;
+        }
+        #search-input::placeholder { color: var(--muted); }
+        .search-clear {
+            position: absolute;
+            right: 0.35rem;
+            display: none;
+            border: none;
+            background: none;
+            color: var(--muted);
+            font-size: 0.9rem;
+            line-height: 1;
+            cursor: pointer;
+            padding: 0.15rem 0.25rem;
+            border-radius: 5px;
+        }
+        .search-clear:hover { color: var(--text); background: var(--surface2); }
+        .search-wrap.has-text .search-clear { display: block; }
+
+        mark.search-hit {
+            background: #fff3bf;
+            color: inherit;
+            padding: 0 1px;
+            border-radius: 2px;
+        }
+
+        /* ══════════════════════════════════════════════════════
+           ZULETZT BESUCHT (Sidebar)
+        ══════════════════════════════════════════════════════ */
+        .sidebar-recent {
+            margin-top: auto;
+            padding: 0.9rem 1.1rem calc(var(--filter-height) + 0.3rem + env(safe-area-inset-bottom));
+            border-top: 1px solid var(--border);
+        }
+        .sidebar-recent-title {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 0.62rem;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 0.45rem;
+        }
+        .sidebar-recent a {
+            display: block;
+            font-size: 0.74rem;
+            line-height: 1.3;
+            padding: 0.28rem 0;
+            color: var(--text);
+            text-decoration: none;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .sidebar-recent a:hover { text-decoration: underline; }
+
+        /* ══════════════════════════════════════════════════════
+           REDUCED MOTION
+        ══════════════════════════════════════════════════════ */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.001ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.001ms !important;
+                scroll-behavior: auto !important;
+            }
+            .topic-group { animation: none !important; opacity: 1 !important; transform: none !important; }
+            a.card:hover { transform: none !important; }
+        }
+
+        /* ══════════════════════════════════════════════════════
            NO RESULTS
         ══════════════════════════════════════════════════════ */
+        /* Dezenter Reset-Hinweis unter allen Karten */
+        #filter-reset-note {
+            display: none;              /* -> JS schaltet auf flex */
+            flex-direction: column;     /* Button eine Zeile tiefer */
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin: 0.1rem auto 0.2rem;
+            padding: 0.2rem 0.75rem;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.82rem;
+            color: var(--muted);
+            text-align: center;
+        }
+        .reset-note-text { opacity: 0.85; }
+        .reset-note-btn {
+            border: 1px solid var(--border-strong);
+            background: transparent;
+            color: var(--muted);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.76rem;
+            padding: 0.24rem 0.7rem;
+            border-radius: 999px;
+            cursor: pointer;
+            transition: background 0.14s, color 0.14s, border-color 0.14s;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .reset-note-btn:hover {
+            background: var(--surface2);
+            color: var(--text);
+            border-color: var(--muted);
+        }
+
         #no-results {
             display: none;
             text-align: center;
@@ -687,12 +1377,57 @@
         <a href="datenschutz.html">Datenschutz</a>
         <a style="touch-action: manipulation; cursor: pointer;" onclick="copyMail()" title="Kopiere Mail-Adresse">Kontakt</a>
     </nav>
+    <div class="sidebar-recent" id="sidebar-recent" style="display:none;">
+        <div class="sidebar-recent-title">Zuletzt besucht</div>
+        <div id="sidebar-recent-list"></div>
+    </div>
 </aside>
 
 <!-- Sticky Top Nav -->
 <div class="sticky-top-nav">
     <button class="menu-btn" onclick="openSidebar()" aria-label="Menü öffnen">☰</button>
+    <button class="stufen-btn" id="stufen-btn" onclick="toggleStufenPopover(event)"
+            aria-haspopup="true" aria-expanded="false" title="Nach Jahrgangsstufe filtern">
+        <span id="stufen-btn-label">Jahrgang</span>
+        <span class="caret">▾</span>
+    </button>
     <nav class="section-nav" id="section-nav"></nav>
+</div>
+
+<!-- Jahrgangsstufen-Auswahl -->
+<div class="stufen-popover" id="stufen-popover" role="dialog" aria-label="Jahrgangsstufe wählen">
+    <div class="stufen-popover-title" id="fach-title">Fach</div>
+    <div class="fach-grid" id="fach-grid"></div>
+
+    <div class="stufen-popover-title">Jahrgangsstufe</div>
+    <div class="stufen-grid" id="stufen-grid"></div>
+
+    <div class="stufen-popover-title">Anzeigen</div>
+    <div class="stufen-modes">
+        <label class="stufen-mode">
+            <input type="radio" name="stufen-mode" value="exact" onchange="setStufenMode('exact')">
+            <span>Nur dieser Jahrgang</span>
+        </label>
+        <label class="stufen-mode">
+            <input type="radio" name="stufen-mode" value="upto" onchange="setStufenMode('upto')">
+            <span>Alles bis zu diesem Jahrgang</span>
+        </label>
+        <label class="stufen-mode">
+            <input type="radio" name="stufen-mode" value="plus" onchange="setStufenMode('plus')">
+            <span>Jahrgang + wichtige Wiederholungen</span>
+        </label>
+    </div>
+
+    <label class="stufen-check" id="extra-check-row">
+        <input type="checkbox" id="extra-cb" checked onchange="toggleExtraFilter()">
+        <span>Auch über den Schulstoff hinausgehende Themen</span>
+    </label>
+
+    <button class="stufen-reset" onclick="resetStufenFilter()">Filter zurücksetzen</button>
+
+    <div class="stufen-hint">
+        Richtwerte &ndash; je nach Bundesland und Schule kann die Reihenfolge der Themen abweichen.
+    </div>
 </div>
 
 <header>
@@ -705,17 +1440,47 @@
         <label class="mobile-toggle" id="mobile-toggle-label" title="Nur Tools anzeigen, die am Handy gut funktionieren">
             <input type="checkbox" id="mobile-cb" onchange="toggleMobileFilter()">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><path d="M12 18h.01"></path></svg>
-            Nur Handy-kompatibel
+            <span class="toggle-text">Handy-kompatibel</span>
         </label>
-        
+
+        <label class="mobile-toggle" id="wichtig-toggle-label" title="Nur besonders wichtige Tools anzeigen" style="display:none;">
+            <input type="checkbox" id="wichtig-cb" onchange="toggleWichtigFilter()">
+            <span class="mobile-icon-card flag-excl">!</span>
+            <span class="toggle-text">Wichtig</span>
+        </label>
+
+        <label class="mobile-toggle" id="fresh-toggle-label" title="Nur Tools anzeigen, die neu sind oder gerade überarbeitet wurden">
+            <input type="checkbox" id="fresh-cb" onchange="toggleFreshFilter()">
+            <span class="mobile-icon-card">✨</span>
+            <span class="toggle-text">Neu</span>
+        </label>
+
+        <div class="toolbar-spacer"></div>
+
+        <div class="search-wrap" id="search-wrap">
+            <div class="search-inner">
+                <span class="search-icon">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><path d="M21 21l-4.2-4.2"></path></svg>
+                </span>
+                <input type="text" id="search-input" placeholder="Tool suchen…" autocomplete="off"
+                       oninput="onSearchInput()" onkeydown="if(event.key==='Escape'){clearSearch();this.blur();}">
+                <button class="search-clear" onclick="clearSearch()" aria-label="Suche löschen" title="Suche löschen">✕</button>
+            </div>
+        </div>
+
         <button class="collapse-all-btn" id="collapse-all-btn" onclick="toggleAllGroups()">
             <span id="collapse-all-icon">▾▾</span>
-            <span id="collapse-all-label">Alle einklappen</span>
+            <span id="collapse-all-label">Einklappen</span>
         </button>
     </div>
 </div>
 
 <main id="main-content"></main>
+
+<div id="filter-reset-note" style="display:none;">
+    <span class="reset-note-text">Es werden nur gefilterte Tools angezeigt, es gibt noch weitere:</span>
+    <button class="reset-note-btn" onclick="resetAllFilters()">Filter zurücksetzen</button>
+</div>
 
 <div id="no-results">Keine Tools für diesen Filter gefunden.</div>
 
@@ -791,13 +1556,7 @@ function scrollToGroup(id) {
     if (activeLink) {
         activeLink.classList.add('active');
         // Nur horizontal scrollen – kein scrollIntoView (würde ggf. Seite verschieben)
-        const nav = document.getElementById('section-nav');
-        if (nav) {
-            const linkLeft  = activeLink.offsetLeft;
-            const linkRight = linkLeft + activeLink.offsetWidth;
-            if (linkLeft < nav.scrollLeft) nav.scrollLeft = linkLeft - 10;
-            else if (linkRight > nav.scrollLeft + nav.clientWidth) nav.scrollLeft = linkRight - nav.clientWidth + 10;
-        }
+        ensureActiveNavVisible(true);
     }
 
     isAutoScrolling = true;
@@ -852,6 +1611,66 @@ function buildGroupIcon(cat) {
     return cat.icon;
 }
 
+// ══════════════════════════════════════════════════════════════
+// HIGHLIGHTS: NEU / UPDATE / WICHTIG
+// ══════════════════════════════════════════════════════════════
+function escAttr(str) {
+    return String(str).replace(/"/g, '&quot;');
+}
+
+function isWithinHighlightWindow(dateStr) {
+    if (!dateStr) return false;
+    const d = new Date(dateStr + 'T00:00:00');
+    if (isNaN(d)) return false;
+    const days = (Date.now() - d.getTime()) / 86400000;
+    const limit = (typeof HIGHLIGHT_DAYS === 'number') ? HIGHLIGHT_DAYS : 14;
+    return days >= 0 && days <= limit;
+}
+
+/**
+ * Baut die Fähnchen-Zeile einer Karte.
+ * "wichtig" ist dauerhaft, "Neu"/"Update" laufen nach HIGHLIGHT_DAYS ab.
+ * "Neu" hat Vorrang vor "Update".
+ */
+function wichtigEnabled() {
+    return (typeof SHOW_WICHTIG === 'undefined') || SHOW_WICHTIG;
+}
+
+function buildFlags(card) {
+    const showNew     = (typeof SHOW_NEW_BADGE   === 'undefined') || SHOW_NEW_BADGE;
+    const showMajor   = (typeof SHOW_MAJOR_BADGE === 'undefined') || SHOW_MAJOR_BADGE;
+    const showWichtig = wichtigEnabled();
+    const wichtigTint = (typeof WICHTIG_TINT !== 'undefined') && WICHTIG_TINT;
+
+    const parts = [];
+    let fresh = false;
+    let hlClass = '';   // steuert die farbige Tönung der Karte
+
+    // Karte gilt nur dann als "wichtig", wenn das System aktiv ist
+    const cardWichtig = showWichtig && !!card.wichtig;
+
+    if (cardWichtig) {
+        parts.push('<span class="flag flag-wichtig" title="Besonders wichtiges Tool">! Wichtig</span>');
+        if (wichtigTint) hlClass = 'hl-wichtig';   // rote Tönung nur wenn ausdrücklich gewünscht
+    }
+    if (showNew && isWithinHighlightWindow(card.added)) {
+        parts.push('<span class="flag flag-new" title="Neu hinzugefügt">Neu</span>');
+        fresh = true;
+        hlClass = 'hl-new';        // "Neu" gewinnt die Tönung
+    } else if (showMajor && isWithinHighlightWindow(card.major)) {
+        parts.push('<span class="flag flag-major" title="Grundlegend überarbeitet">Update</span>');
+        fresh = true;
+        hlClass = 'hl-major';      // "Update" gewinnt gegen "Wichtig"
+    }
+
+    return {
+        fresh: fresh,
+        wichtig: cardWichtig,
+        cls: hlClass,
+        html: parts.length ? `<div class="flag-row">${parts.join('')}</div>` : ''
+    };
+}
+
 function buildCard(card, typesMap) {
     const primary = typesMap[card.types[0]];
     const allTypes = card.types.join(' ');
@@ -877,9 +1696,52 @@ function buildCard(card, typesMap) {
     ? "var(--muted)" 
     : "rgba(220, 80, 80, 0.9)";
     
-    return `<a class="card" href="${card.link}"${target} data-types="${allTypes}" data-mobile="${isMobile}" style="--card-accent:${accentColor}">
+    const flags = buildFlags(card);
+
+    // Jahrgangsstufe: Zahlen UND Strings erlaubt.
+    //   "stufe": [7, 8]  /  "stufe": ["7","8"]  /  "stufe": ["Abi"]  /  "stufe": 9
+    // Intern wird immer mit Strings gearbeitet.
+    const stufenArr = (Array.isArray(card.stufe) ? card.stufe
+                      : (card.stufe === 0 || card.stufe ? [card.stufe] : []))
+                      .map(v => String(v).trim())
+                      .filter(Boolean);
+    const stufeAttr = stufenArr.join('|');
+    const stufeIsAbi = stufenArr.length === 1 && !/^\d+$/.test(stufenArr[0]);
+
+    // Fach: 'mathematik' | 'informatik' | 'sonstiges' (leer -> sonstiges)
+    const fach = normalizeFach(card.fach);
+
+    // Ueber den Schulstoff hinausgehendes Zusatzthema?
+    const isExtra = card.extra === true;
+    const EXTRA_TITLE = 'Zusätzliches Thema, das über den Schulstoff hinausgeht';
+
+    // Jahrgangsanzeige unten. Der Stern hinter dem Jahrgang erscheint nur,
+    // wenn AUCH eine Stufe angegeben ist - eine reine Extra-Karte ohne
+    // Stufe zeigt unten gar nichts (kein einsames "*").
+    const starHtml = (isExtra && stufenArr.length)
+        ? `<span class="extra-star" data-tooltip="${EXTRA_TITLE}" title="${EXTRA_TITLE}">*</span>`
+        : '';
+    const stufeInner = stufenArr.length ? formatStufen(stufenArr) : '';
+    const stufeHtml = stufenArr.length
+        ? `<span class="card-stufe${stufeIsAbi ? ' abi-only' : ''}" title="Übliche Jahrgangsstufe">${stufeInner}${starHtml}</span>`
+        : '';
+
+    // Stern direkt an den Text, ohne Leerzeichen davor -> kein Umbruch
+    const titleStar = isExtra
+        ? `<span class="extra-star title-star" data-tooltip="${EXTRA_TITLE}" title="${EXTRA_TITLE}">*</span>`
+        : '';
+
+    // Under construction: Karte kann noch Fehler in Bedienung/Loesungen enthalten
+    const isWip = card.wip === true;
+    const WIP_TITLE = 'Under Construction: Diese Seite wird noch überarbeitet und kann Fehler in der Bedienung oder den Lösungen enthalten.';
+    const wipHtml = isWip
+        ? `<span class="wip-icon" data-tooltip="${WIP_TITLE}" title="${WIP_TITLE}">🏗️</span>`
+        : '';
+
+    return `<a class="card${flags.cls ? ' ' + flags.cls : ''}${isExtra ? ' is-extra' : ''}${isWip ? ' is-wip' : ''}" href="${card.link}"${target} data-types="${allTypes}" data-mobile="${isMobile}" data-fresh="${flags.fresh}" data-wichtig="${flags.wichtig}" data-stufe="${stufeAttr}" data-fach="${fach}" data-extra="${isExtra}" data-wip="${isWip}" data-id="${card.id}" data-title="${escAttr(card.title)}" style="--card-accent:${accentColor}" onclick="rememberVisit('${card.id}')">
+    ${flags.html}
     <div class="card-top">
-        <div class="card-title">${card.title}</div>
+        <div class="card-title">${wipHtml}${card.title}${titleStar}</div>
         ${buildBadge(card.types, typesMap)}
     </div>
     <div class="card-desc">${card.desc}</div>
@@ -888,6 +1750,8 @@ function buildCard(card, typesMap) {
         <span class="card-link-text">${lbl}</span>
         <span class="card-arrow">${arrowChar}</span>
     </div>
+
+    ${stufeHtml}
 
     <span class="mobile-icon-corner" style="color:${mobileColor};" title="${mobileTitle}">
         ${mobileIcon}
@@ -954,7 +1818,19 @@ function injectTypeStyles(types) {
 // ══════════════════════════════════════════════════════════════
 // INIT
 // ══════════════════════════════════════════════════════════════
+/**
+ * Wendet STICKY_TOP_NAV / STICKY_BOTTOM_BAR an.
+ * Wird vor dem Rendern aufgerufen, damit die Paddings gleich stimmen.
+ */
+function applyStickyModes() {
+    const topSticky    = (typeof STICKY_TOP_NAV    === 'undefined') || STICKY_TOP_NAV;
+    const bottomSticky = (typeof STICKY_BOTTOM_BAR === 'undefined') || STICKY_BOTTOM_BAR;
+    document.body.classList.toggle('topnav-static',    !topSticky);
+    document.body.classList.toggle('bottombar-static', !bottomSticky);
+}
+
 function init() {
+    applyStickyModes();
     const typesMap = Object.fromEntries(typesData.map(t => [t.id, t]));
     const cardsMap = Object.fromEntries(cardsData.map(c => [c.id, c]));
 
@@ -964,10 +1840,89 @@ function init() {
     const main = document.getElementById('main-content');
     main.innerHTML = categoriesData.map(cat => buildGroup(cat, cardsMap, typesMap)).join('');
 
+    // "Jahrgang + wichtige Wiederholungen" nur anbieten, wenn das
+    // Wichtig-System ueberhaupt aktiv ist.
+    if (!wichtigEnabled()) {
+        const plusRadio = document.querySelector('input[name="stufen-mode"][value="plus"]');
+        const plusLabel = plusRadio ? plusRadio.closest('.stufen-mode') : null;
+        if (plusLabel) plusLabel.style.display = 'none';
+        // Falls per URL/localStorage doch 'plus' gesetzt war: auf 'upto' zurueck
+        if (stufenMode === 'plus') stufenMode = 'upto';
+    }
+
+    // Jahrgangs-/Fach-Filter aufbauen - MUSS vor updateSectionNav()
+    // laufen, sonst berechnet die Themenleiste ihre Breite ohne den
+    // Button und die Themen verschwinden dahinter.
+    {
+        const showStufe = ((typeof SHOW_STUFEN_FILTER === 'undefined') || SHOW_STUFEN_FILTER)
+                          && document.querySelector('.card[data-stufe]:not([data-stufe=""])');
+        const showFach  = ((typeof SHOW_FACH_FILTER === 'undefined') || SHOW_FACH_FILTER);
+        const showExtraFilter = ((typeof SHOW_EXTRA_FILTER === 'undefined') || SHOW_EXTRA_FILTER)
+                          && document.querySelector('.card[data-extra="true"]');
+
+        // Popover-Abschnitte einzeln ein-/ausblenden
+        const stufeSection = document.getElementById('stufen-grid');
+        const stufeTitle   = stufeSection ? stufeSection.previousElementSibling : null;
+        const modesTitle   = document.querySelector('.stufen-modes')?.previousElementSibling;
+        const modesBox     = document.querySelector('.stufen-modes');
+        if (!showStufe) {
+            if (stufeSection) stufeSection.style.display = 'none';
+            if (stufeTitle)   stufeTitle.style.display = 'none';
+            if (modesTitle)   modesTitle.style.display = 'none';
+            if (modesBox)     modesBox.style.display = 'none';
+        }
+        const fachGrid  = document.getElementById('fach-grid');
+        const fachTitle = document.getElementById('fach-title');
+        if (!showFach) {
+            if (fachGrid)  fachGrid.style.display = 'none';
+            if (fachTitle) fachTitle.style.display = 'none';
+        }
+        const extraRow = document.getElementById('extra-check-row');
+        if (!showExtraFilter && extraRow) extraRow.style.display = 'none';
+
+        if (showStufe) buildStufenGrid();
+        if (showFach)  buildFachGrid();
+
+        // Button anzeigen, sobald irgendein Kriterium verfuegbar ist
+        if (showStufe || showFach || showExtraFilter) {
+            loadStufenChoice();
+            document.getElementById('stufen-btn').style.display = 'inline-flex';
+            syncStufenUI();
+        }
+    }
+
     restoreFromHash();
     updateSectionNav();
     initScrollSpy();
     initNavScroll(); // <-- Diese Zeile neu hinzufügen
+
+    renderRecent(cardsMap);
+
+    // Farbige Hervorhebung global an-/abschalten
+    if ((typeof HIGHLIGHT_TINT === 'undefined') || HIGHLIGHT_TINT) {
+        document.body.classList.add('tint-on');
+    }
+
+    // "Neue Funktionen"-Toggle ausblenden, wenn es gerade nichts Frisches gibt
+    const freshLabel = document.getElementById('fresh-toggle-label');
+    if (freshLabel && !document.querySelector('.card[data-fresh="true"]')) {
+        freshLabel.style.display = 'none';
+    }
+
+    // "Wichtig"-Toggle nur zeigen, wenn das System aktiv ist UND es
+    // ueberhaupt wichtige Karten gibt (data-wichtig ist bereits false,
+    // wenn SHOW_WICHTIG aus ist - siehe buildFlags).
+    const wichtigLabel = document.getElementById('wichtig-toggle-label');
+    if (wichtigLabel && wichtigEnabled() && document.querySelector('.card[data-wichtig="true"]')) {
+        wichtigLabel.style.display = '';
+    }
+
+    // Konsistenzprüfung (nur Konsole)
+    const used = new Set(categoriesData.flatMap(c => c.cards).filter(Boolean));
+    cardsData.filter(c => !used.has(c.id))
+             .forEach(c => console.warn('Karte ohne Kategorie:', c.id));
+    [...used].filter(id => !cardsMap[id])
+             .forEach(id => console.warn('Unbekannte Karten-ID in categories.js:', id));
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -998,8 +1953,74 @@ let currentFilter = 'all';
 
 // NEU: Globale Variable für den Mobile-Filter
 let filterMobileOnly = false;
+let filterFreshOnly  = false;
+let filterWichtigOnly = false;
+let stufenValue = '';        // '' = kein Filter, sonst z.B. '9' oder 'Abi'
+let stufenMode  = 'upto';    // 'exact' | 'upto' | 'plus'
+let lkActive    = false;     // Leistungskurs mit einbeziehen (nur sinnvoll bei stufenValue='Abi')
+let fachValue   = '';        // '' = alle Faecher, sonst 'mathematik'|'informatik'|'sonstiges'
+let showExtra   = true;      // Zusatzthemen (ueber Schulstoff hinaus) anzeigen?
+let searchQuery      = '';
 
 // NEU: Zentrale Funktion, die prüft, welche Karten sichtbar sind
+/** Ist gerade irgendein Filter aktiv (oben, unten, Jahrgang, Fach, Suche)? */
+function anyFilterActive() {
+    return (currentFilter && currentFilter !== 'all')
+        || filterMobileOnly
+        || filterFreshOnly
+        || filterWichtigOnly
+        || !!searchQuery
+        || !!stufenValue
+        || !!fachValue
+        || !showExtra;
+}
+
+/**
+ * Setzt ALLE Filter zurueck: Typ-Leiste, Toggles, Suche, Jahrgang, Fach.
+ */
+function resetAllFilters() {
+    // Typ-Filter (Kartenkategorien oben)
+    currentFilter = 'all';
+    document.querySelectorAll('.filter-btn').forEach(b => {
+        [...b.classList].filter(c => c.startsWith('active-')).forEach(c => b.classList.remove(c));
+    });
+    const allBtn = document.querySelector('[data-filter="all"]');
+    if (allBtn) allBtn.classList.add('active-all');
+
+    // Toggles
+    filterMobileOnly = false; filterFreshOnly = false; filterWichtigOnly = false;
+    ['mobile', 'fresh', 'wichtig'].forEach(k => {
+        const cb = document.getElementById(k + '-cb');
+        const lbl = document.getElementById(k + '-toggle-label');
+        if (cb) cb.checked = false;
+        if (lbl) lbl.classList.remove('active');
+    });
+
+    // Suche
+    const searchInput = document.getElementById('search-input');
+    if (searchInput) {
+        searchInput.value = '';
+        document.getElementById('search-wrap')?.classList.remove('has-text');
+    }
+    searchQuery = '';
+
+    // Jahrgang / Fach / Extra / LK
+    stufenValue = ''; fachValue = ''; showExtra = true; lkActive = false;
+    if (typeof syncStufenUI === 'function') syncStufenUI();
+    if (typeof saveStufenChoice === 'function') saveStufenChoice();
+
+    // Alle Gruppen wieder aufklappen? Nein - Klappzustand bleibt, nur Filter weg.
+    updateCardVisibility();
+    updateCollapseAllBtn();
+    pushHash(currentFilter, getCollapsedIds());
+    updateSectionNav();
+    requestAnimationFrame(() => {
+        updateDynamicPaddings();
+        initScrollSpy();
+        ensureActiveNavVisible(true);
+    });
+}
+
 function updateCardVisibility() {
     const groups = document.querySelectorAll('.topic-group');
     let anyVisible = false;
@@ -1010,9 +2031,17 @@ function updateCardVisibility() {
             const cardTypes = (card.dataset.types || '').split(' ');
             const matchType = currentFilter === 'all' || cardTypes.includes(currentFilter);
             const matchMobile = !filterMobileOnly || card.dataset.mobile === 'true';
-            
-            const match = matchType && matchMobile;
+            const matchFresh  = !filterFreshOnly  || card.dataset.fresh  === 'true';
+            const matchWichtig = !filterWichtigOnly || card.dataset.wichtig === 'true';
+            const matchStufe  = cardMatchesStufe(card);
+            const matchFach   = cardMatchesFach(card);
+            const matchExtra  = cardMatchesExtra(card);
+            const matchSearch = !searchQuery || cardMatchesSearch(card, searchQuery);
+
+            const match = matchType && matchMobile && matchFresh && matchWichtig
+                        && matchStufe && matchFach && matchExtra && matchSearch;
             card.classList.toggle('filtered-out', !match);
+            applySearchHighlight(card, match ? searchQuery : '');
             if (match) visibleInGroup++;
         });
         group.classList.toggle('hidden-group', visibleInGroup === 0);
@@ -1021,6 +2050,14 @@ function updateCardVisibility() {
         if (metaEl) metaEl.textContent = visibleInGroup + (visibleInGroup === 1 ? ' Tool' : ' Tools');
     });
     document.getElementById('no-results').style.display = anyVisible ? 'none' : 'block';
+
+    // Reset-Hinweis unterhalb aller Karten: nur zeigen, wenn ein Filter
+    // aktiv ist UND ueberhaupt Karten sichtbar sind (bei 0 Treffern
+    // uebernimmt bereits #no-results die Meldung).
+    const resetNote = document.getElementById('filter-reset-note');
+    if (resetNote) {
+        resetNote.style.display = (anyFilterActive() && anyVisible) ? 'flex' : 'none';
+    }
 }
 
 // NEU: Toggle Event-Listener für Mobile
@@ -1041,11 +2078,569 @@ function toggleMobileFilter() {
         initScrollSpy();
     });
 }
+// ══════════════════════════════════════════════════════════════
+// FILTER "FRISCH DABEI"
+// ══════════════════════════════════════════════════════════════
+function toggleFreshFilter() {
+    const cb = document.getElementById('fresh-cb');
+    filterFreshOnly = cb.checked;
+
+    const label = document.getElementById('fresh-toggle-label');
+    label.classList.toggle('active', filterFreshOnly);
+
+    updateCardVisibility();
+    updateCollapseAllBtn();
+    pushHash(currentFilter, getCollapsedIds());
+    updateSectionNav();
+    requestAnimationFrame(() => {
+        updateDynamicPaddings();
+        initScrollSpy();
+    });
+}
+
+// ══════════════════════════════════════════════════════════════
+// JAHRGANGSSTUFEN-FILTER
+//
+// In cards.js:  "stufe": ["7", "8"]   -> zeigt "7/8" auf der Karte
+// Reihenfolge/Progression kommt aus STUFEN_LIST (siehe <head>).
+// Modi:
+//   exact -> "Klasse 9"     nur Karten, die Stufe 9 enthalten
+//   upto  -> "Bis Klasse 9" alles bis einschließlich Stufe 9
+//   plus  -> "Für Klasse 9" Stufe 9 + wichtige Karten früherer Stufen
+// ══════════════════════════════════════════════════════════════
+const STUFEN_KEY = 'matheToolsStufe';
+
+function stufenList() {
+    return (typeof STUFEN_LIST !== 'undefined' && Array.isArray(STUFEN_LIST))
+        ? STUFEN_LIST.map(String)
+        : ['5','6','7','8','9','10','Abi'];
+}
+
+/** Position in der Progression; -1 wenn unbekannt. */
+function stufenIndex(v) {
+    // LK liegt in der Progression auf Hoehe von Abi (Unterklasse davon)
+    const s = String(v);
+    if (s === 'LK') return stufenList().indexOf('Abi');
+    return stufenList().indexOf(s);
+}
+
+/**
+ * Normalisiert die Fachangabe einer Karte.
+ * Erlaubt: 'Mathematik'/'mathe'/'ma', 'Informatik'/'info', 'Sonstiges'.
+ * Leer/unbekannt -> 'sonstiges'.
+ */
+function normalizeFach(raw) {
+    const v = String(raw || '').trim().toLowerCase();
+    if (v === 'mathematik' || v === 'mathe' || v === 'ma' || v === 'm') return 'mathematik';
+    if (v === 'informatik' || v === 'info' || v === 'inf' || v === 'i')  return 'informatik';
+    return 'sonstiges';
+}
+
+const FACH_LIST = [
+    { id: 'mathematik', label: 'Mathematik', abbr: 'Ma' },
+    { id: 'informatik', label: 'Informatik', abbr: 'Info' },
+    { id: 'sonstiges',  label: 'Sonstiges',  abbr: 'Sonst.' }
+];
+function fachAbbr(id) {
+    const f = FACH_LIST.find(x => x.id === id);
+    return f ? f.abbr : '';
+}
+
+/** Rohwerte einer Karte als String-Array, immer normalisiert. */
+function cardStufen(card) {
+    const raw = card.dataset.stufe || '';
+    return raw ? raw.split('|').filter(Boolean) : [];
+}
+
+/** Anzeigetext auf der Karte: ["7","8"] -> "7/8" */
+function formatStufen(arr) {
+    return arr.map(String).join('/');
+}
+
+/** Fach-Filter: leer = alle. */
+function cardMatchesFach(card) {
+    if (!fachValue) return true;
+    return (card.dataset.fach || 'sonstiges') === fachValue;
+}
+
+/** Zusatzthemen-Filter: ausgeblendet, wenn Checkbox aus. */
+function cardMatchesExtra(card) {
+    if (showExtra) return true;
+    return card.dataset.extra !== 'true';
+}
+
+function cardMatchesStufe(card) {
+    if (!stufenValue) return true;              // kein Filter aktiv
+    const own = cardStufen(card);               // z.B. ['Abi'], ['LK'], ['Abi','LK'], ['8','9']
+    if (!own.length) return true;               // Karte ohne Angabe: immer zeigen
+
+    const target = stufenIndex(stufenValue);
+    if (target < 0) return true;
+
+    // Effektive Stufen-Indizes der Karte. Eine reine LK-Karte zaehlt auf
+    // Abi-Niveau nur mit, wenn der Leistungskurs aktiviert ist (lkActive).
+    // (Abi-Karten erscheinen immer auch im LK - das ergibt sich von selbst,
+    //  weil 'Abi' und 'LK' denselben Progressionsindex haben.)
+    const abiIdx = stufenIndex('Abi');
+    const idxs = [];
+    own.forEach(v => {
+        const i = stufenIndex(v);
+        if (i < 0) return;
+        if (v === 'LK' && !(stufenValue === 'Abi' && lkActive)) {
+            // LK nur beruecksichtigen, wenn Abi gewaehlt UND LK aktiv ist
+            return;
+        }
+        idxs.push(i);
+    });
+    if (!idxs.length) return false;             // z.B. reine LK-Karte, LK nicht aktiv
+
+    if (stufenMode === 'exact') {
+        return idxs.includes(target);
+    }
+    if (stufenMode === 'upto') {
+        return Math.min(...idxs) <= target;
+    }
+    // 'plus': Zielstufe + wichtige Karten frueherer Stufen.
+    // Ohne aktives Wichtig-System verhaelt sich 'plus' wie 'upto'.
+    if (!wichtigEnabled()) return Math.min(...idxs) <= target;
+    if (idxs.includes(target)) return true;
+    return Math.min(...idxs) < target && card.dataset.wichtig === 'true';
+}
+
+function stufenButtonLabel() {
+    const fachSuffix = fachValue ? ' (' + fachAbbr(fachValue) + ')' : '';
+
+    // Kein Jahrgang gewaehlt: Button zeigt nur das Fach (oder "Jahrgang")
+    if (!stufenValue) return (fachValue ? fachAbbr(fachValue) : 'Jahrgang') + '';
+
+    const isAbi = stufenValue === 'Abi';
+    // Bei aktivem LK zeigt der Name "Abi+LK"
+    const abiName = (isAbi && lkActive) ? 'Abi+LK' : stufenValue;
+    const name = isAbi ? abiName : 'Klasse ' + stufenValue;
+    let base;
+    if (stufenMode === 'exact')      base = name;
+    else if (stufenMode === 'upto')  base = 'Bis ' + (isAbi ? abiName : 'Klasse ' + stufenValue);
+    else                             base = 'Für ' + (isAbi ? abiName : 'Klasse ' + stufenValue);
+    return base + fachSuffix;
+}
+
+function buildStufenGrid() {
+    const grid = document.getElementById('stufen-grid');
+    if (!grid) return;
+    grid.innerHTML = stufenList().map(v => {
+        if (v === 'Abi') {
+            // Zweigeteilter Chip: links "Abi", rechts anklickbarer "LK"-Teil
+            return `<div class="stufen-chip stufen-chip-split" data-stufe="Abi">` +
+                       `<button class="chip-part chip-abi" onclick="selectStufe('Abi')" title="Abitur">Abi</button>` +
+                       `<button class="chip-part chip-lk" onclick="toggleLK(event)" title="Leistungskurs zusätzlich einbeziehen">LK</button>` +
+                   `</div>`;
+        }
+        return `<button class="stufen-chip" data-stufe="${v}" onclick="selectStufe('${v}')">${v}</button>`;
+    }).join('');
+}
+
+function buildFachGrid() {
+    const grid = document.getElementById('fach-grid');
+    if (!grid) return;
+    grid.innerHTML = FACH_LIST.map(f =>
+        `<button class="fach-chip" data-fach="${f.id}" onclick="selectFach('${f.id}')">${f.label}</button>`
+    ).join('');
+}
+
+function syncStufenUI() {
+    document.querySelectorAll('.stufen-chip').forEach(chip => {
+        const isAbiChip = chip.dataset.stufe === 'Abi';
+        if (isAbiChip) {
+            // Linker Teil (Abi) aktiv, wenn Abi gewaehlt; rechter Teil (LK)
+            // nur wenn zusaetzlich LK aktiv ist.
+            chip.classList.toggle('abi-selected', stufenValue === 'Abi');
+            chip.classList.toggle('lk-selected', stufenValue === 'Abi' && lkActive);
+            chip.classList.remove('selected');
+        } else {
+            chip.classList.toggle('selected', chip.dataset.stufe === stufenValue);
+        }
+    });
+    document.querySelectorAll('.fach-chip').forEach(chip => {
+        chip.classList.toggle('selected', chip.dataset.fach === fachValue);
+    });
+    document.querySelectorAll('input[name="stufen-mode"]').forEach(r => {
+        r.checked = (r.value === stufenMode);
+    });
+    const extraCb = document.getElementById('extra-cb');
+    if (extraCb) extraCb.checked = showExtra;
+
+    const btn = document.getElementById('stufen-btn');
+    const lbl = document.getElementById('stufen-btn-label');
+    if (lbl) lbl.textContent = stufenButtonLabel();
+    // Button gilt als aktiv, sobald IRGENDEIN Kriterium gesetzt ist
+    const anyActive = !!stufenValue || !!fachValue || !showExtra;
+    if (btn) btn.classList.toggle('active', anyActive);
+}
+
+function applyStufenFilter() {
+    syncStufenUI();
+    saveStufenChoice();
+    pushHash(currentFilter, getCollapsedIds());
+    updateCardVisibility();
+    updateCollapseAllBtn();
+    updateSectionNav();
+    requestAnimationFrame(() => {
+        updateDynamicPaddings();
+        initScrollSpy();
+        // Die Buttonbreite hat sich evtl. geaendert ("Jahrgang" -> "Bis Klasse 10")
+        ensureActiveNavVisible(true);
+    });
+}
+
+/** Klick auf denselben Jahrgang hebt die Auswahl wieder auf. */
+function selectStufe(v) {
+    const was = stufenValue;
+    stufenValue = (stufenValue === String(v)) ? '' : String(v);
+    // Wird Abi abgewaehlt (oder ein anderer Jahrgang gewaehlt), faellt LK weg
+    if (stufenValue !== 'Abi') lkActive = false;
+    applyStufenFilter();
+}
+
+/**
+ * Klick auf den "LK"-Teil des Abi-Chips.
+ * Aktiviert Abi automatisch mit, falls noch nicht geschehen.
+ * Erneuter Klick deaktiviert nur LK (Abi bleibt).
+ */
+function toggleLK(ev) {
+    if (ev) ev.stopPropagation();       // nicht als Abi-Klick werten
+    if (stufenValue !== 'Abi') {
+        // LK impliziert Abi
+        stufenValue = 'Abi';
+        lkActive = true;
+    } else {
+        lkActive = !lkActive;
+    }
+    applyStufenFilter();
+}
+
+function setStufenMode(mode) {
+    stufenMode = mode;
+    applyStufenFilter();
+}
+
+/** Klick auf dasselbe Fach hebt die Auswahl auf (-> alle Faecher). */
+function selectFach(id) {
+    fachValue = (fachValue === id) ? '' : id;
+    applyStufenFilter();
+}
+
+function toggleExtraFilter() {
+    const cb = document.getElementById('extra-cb');
+    showExtra = cb.checked;
+    applyStufenFilter();
+}
+
+function resetStufenFilter() {
+    stufenValue = '';
+    fachValue   = '';
+    showExtra   = true;
+    lkActive    = false;
+    applyStufenFilter();
+    closeStufenPopover();
+}
+
+// ── Popover ──────────────────────────────────────────────────
+function toggleStufenPopover(ev) {
+    if (ev) ev.stopPropagation();
+    const pop = document.getElementById('stufen-popover');
+    const btn = document.getElementById('stufen-btn');
+    const open = pop.classList.toggle('open');
+    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    if (open) {
+        // Popover unter dem Button ausrichten
+        const r = btn.getBoundingClientRect();
+        pop.style.left = Math.max(8, Math.min(r.left, window.innerWidth - pop.offsetWidth - 8)) + 'px';
+    }
+}
+function closeStufenPopover() {
+    const pop = document.getElementById('stufen-popover');
+    if (!pop) return;
+    pop.classList.remove('open');
+    const btn = document.getElementById('stufen-btn');
+    if (btn) btn.setAttribute('aria-expanded', 'false');
+}
+document.addEventListener('click', e => {
+    const pop = document.getElementById('stufen-popover');
+    if (!pop || !pop.classList.contains('open')) return;
+    if (!pop.contains(e.target) && !e.target.closest('#stufen-btn')) closeStufenPopover();
+});
+document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeStufenPopover();
+});
+
+// ── Persistenz (localStorage, mit Ablaufdatum) ───────────────
+function saveStufenChoice() {
+    try {
+        // Nichts aktiv -> Eintrag entfernen
+        if (!stufenValue && !fachValue && showExtra) {
+            localStorage.removeItem(STUFEN_KEY);
+            return;
+        }
+        localStorage.setItem(STUFEN_KEY, JSON.stringify({
+            ts: Date.now(), stufe: stufenValue, mode: stufenMode,
+            fach: fachValue, extra: showExtra, lk: lkActive
+        }));
+    } catch (e) { /* localStorage nicht verfügbar */ }
+}
+
+function loadStufenChoice() {
+    try {
+        const raw = localStorage.getItem(STUFEN_KEY);
+        if (!raw) return;
+        const e = JSON.parse(raw);
+        const days = (typeof STUFEN_REMEMBER_DAYS === 'number') ? STUFEN_REMEMBER_DAYS : 30;
+        if (Date.now() - e.ts > days * 86400000) {
+            localStorage.removeItem(STUFEN_KEY);
+            return;
+        }
+        if (stufenIndex(e.stufe) >= 0) stufenValue = String(e.stufe);
+        if (['exact','upto','plus'].includes(e.mode)) stufenMode = e.mode;
+        if (typeof e.lk === 'boolean') lkActive = e.lk && (stufenValue === 'Abi');
+        if (['mathematik','informatik','sonstiges'].includes(e.fach)) fachValue = e.fach;
+        if (typeof e.extra === 'boolean') showExtra = e.extra;
+    } catch (e) { /* ignorieren */ }
+}
+
+// ══════════════════════════════════════════════════════════════
+// FILTER "WICHTIG"
+// ══════════════════════════════════════════════════════════════
+function toggleWichtigFilter() {
+    const cb = document.getElementById('wichtig-cb');
+    filterWichtigOnly = cb.checked;
+
+    const label = document.getElementById('wichtig-toggle-label');
+    label.classList.toggle('active', filterWichtigOnly);
+
+    updateCardVisibility();
+    updateCollapseAllBtn();
+    pushHash(currentFilter, getCollapsedIds());
+    updateSectionNav();
+    requestAnimationFrame(() => {
+        updateDynamicPaddings();
+        initScrollSpy();
+    });
+}
+
+// ══════════════════════════════════════════════════════════════
+// SUCHE
+// ══════════════════════════════════════════════════════════════
+
+/** Diakritika entfernen + kleinschreiben, damit "loesung"/"lösung" beide treffen. */
+/**
+ * Normalisiert Text UND merkt sich, aus welcher Originalposition jedes
+ * Zeichen stammt. Noetig, weil Umlaute laenger werden (ä -> ae) und sich
+ * die Positionen dadurch verschieben - ohne diese Zuordnung liessen sich
+ * Fundstellen nicht korrekt im Originaltext markieren.
+ */
+function normalizeWithMap(str) {
+    str = String(str);
+    let out = '';
+    const map = [];                 // map[i] = Index in str fuer out[i]
+    for (let i = 0; i < str.length; i++) {
+        const c = str[i].toLowerCase();
+        let rep;
+        if (c === 'ä') rep = 'ae';
+        else if (c === 'ö') rep = 'oe';
+        else if (c === 'ü') rep = 'ue';
+        else if (c === 'ß') rep = 'ss';
+        else rep = c.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        for (let k = 0; k < rep.length; k++) { out += rep[k]; map.push(i); }
+    }
+    map.push(str.length);           // Endmarke
+    return { text: out, map };
+}
+
+/** Diakritika entfernen + kleinschreiben, damit "loesung"/"lösung" beide treffen. */
+function normalizeText(str) {
+    return normalizeWithMap(str).text;
+}
+
+/** Alle Suchbegriffe müssen in Titel ODER Beschreibung vorkommen (UND-Verknüpfung). */
+function cardMatchesSearch(card, query) {
+    const haystack = normalizeText(
+        (card.querySelector('.card-title')?.textContent || '') + ' ' +
+        (card.querySelector('.card-desc')?.textContent  || '')
+    );
+    return normalizeText(query).split(/\s+/).filter(Boolean)
+             .every(term => haystack.includes(term));
+}
+
+/**
+ * Liefert die Fundstellen als [start, ende]-Bereiche im ORIGINALTEXT.
+ * Ueberlappende Bereiche werden zusammengefasst.
+ */
+function findMatchRanges(text, terms) {
+    const { text: norm, map } = normalizeWithMap(text);
+    const ranges = [];
+
+    terms.forEach(term => {
+        if (!term) return;
+        let from = 0, idx;
+        while ((idx = norm.indexOf(term, from)) !== -1) {
+            const start = map[idx];
+            const end   = map[idx + term.length];
+            if (start !== undefined && end !== undefined && end > start) {
+                ranges.push([start, end]);
+            }
+            from = idx + term.length;
+        }
+    });
+
+    ranges.sort((a, b) => a[0] - b[0]);
+    const merged = [];
+    for (const r of ranges) {
+        const last = merged[merged.length - 1];
+        if (last && r[0] <= last[1]) last[1] = Math.max(last[1], r[1]);
+        else merged.push([r[0], r[1]]);
+    }
+    return merged;
+}
+
+/**
+ * Markiert Fundstellen in Titel UND Beschreibung.
+ * Der Originalinhalt wird beim ersten Mal in data-plain gesichert.
+ */
+function applySearchHighlight(card, query) {
+    const terms = query ? normalizeText(query).split(/\s+/).filter(Boolean) : [];
+
+    [card.querySelector('.card-title'), card.querySelector('.card-desc')].forEach(el => {
+        if (!el) return;
+        if (el.dataset.plain === undefined) el.dataset.plain = el.innerHTML;
+        const plain = el.dataset.plain;
+
+        if (!terms.length) {
+            if (el.innerHTML !== plain) el.innerHTML = plain;
+            return;
+        }
+
+        // Auf einer Kopie arbeiten, damit vorhandenes HTML (z.B. <b>, <br>) heil bleibt
+        const tmp = document.createElement('div');
+        tmp.innerHTML = plain;
+        highlightTextNodes(tmp, terms);
+        if (el.innerHTML !== tmp.innerHTML) el.innerHTML = tmp.innerHTML;
+    });
+}
+
+/** Ersetzt Fundstellen in allen Textknoten durch <mark>-Elemente. */
+function highlightTextNodes(node, terms) {
+    for (const child of Array.from(node.childNodes)) {
+        if (child.nodeType === 3) {
+            const text = child.nodeValue;
+            const ranges = findMatchRanges(text, terms);
+            if (!ranges.length) continue;
+
+            const frag = document.createDocumentFragment();
+            let pos = 0;
+            for (const [start, end] of ranges) {
+                if (start > pos) frag.appendChild(document.createTextNode(text.slice(pos, start)));
+                const mark = document.createElement('mark');
+                mark.className = 'search-hit';
+                mark.textContent = text.slice(start, end);   // kein innerHTML -> nichts kann kaputtgehen
+                frag.appendChild(mark);
+                pos = end;
+            }
+            if (pos < text.length) frag.appendChild(document.createTextNode(text.slice(pos)));
+            child.replaceWith(frag);
+        } else if (child.nodeType === 1 && child.tagName !== 'MARK') {
+            highlightTextNodes(child, terms);
+        }
+    }
+}
+
+let searchDebounce = null;
+function onSearchInput() {
+    const input = document.getElementById('search-input');
+    document.getElementById('search-wrap').classList.toggle('has-text', !!input.value);
+    clearTimeout(searchDebounce);
+    searchDebounce = setTimeout(() => {
+        searchQuery = input.value.trim();
+        // Bei aktiver Suche alle Gruppen aufklappen, sonst versteckt sich der Treffer
+        if (searchQuery) {
+            document.querySelectorAll('.topic-group').forEach(g => g.classList.remove('collapsed'));
+        }
+        updateCardVisibility();
+        updateCollapseAllBtn();
+        updateSectionNav();
+        requestAnimationFrame(() => {
+            updateDynamicPaddings();
+            initScrollSpy();
+        });
+    }, 120);
+}
+
+function clearSearch() {
+    const input = document.getElementById('search-input');
+    input.value = '';
+    document.getElementById('search-wrap').classList.remove('has-text');
+    searchQuery = '';
+    updateCardVisibility();
+    updateCollapseAllBtn();
+    updateSectionNav();
+    requestAnimationFrame(() => {
+        updateDynamicPaddings();
+        initScrollSpy();
+    });
+}
+
+// ══════════════════════════════════════════════════════════════
+// ZULETZT BESUCHT
+// ══════════════════════════════════════════════════════════════
+const RECENT_KEY = 'matheToolsRecent';
+
+function recentEnabled() {
+    return (typeof SHOW_RECENT === 'undefined') || SHOW_RECENT;
+}
+function recentCount() {
+    return (typeof RECENT_COUNT === 'number') ? RECENT_COUNT : 3;
+}
+
+function rememberVisit(id) {
+    if (!recentEnabled()) return;
+    try {
+        const list = JSON.parse(localStorage.getItem(RECENT_KEY) || '[]')
+                       .filter(x => x !== id);
+        list.unshift(id);
+        localStorage.setItem(RECENT_KEY, JSON.stringify(list.slice(0, 10)));
+    } catch (e) { /* localStorage nicht verfügbar */ }
+}
+
+function renderRecent(cardsMap) {
+    const box  = document.getElementById('sidebar-recent');
+    const list = document.getElementById('sidebar-recent-list');
+    if (!box || !list || !recentEnabled()) return;
+
+    let ids = [];
+    try { ids = JSON.parse(localStorage.getItem(RECENT_KEY) || '[]'); } catch (e) {}
+
+    const items = ids.map(id => cardsMap[id]).filter(Boolean).slice(0, recentCount());
+    if (!items.length) { box.style.display = 'none'; return; }
+
+    const target = c => /^https?:/i.test(c.link) ? ' target="_blank" rel="noopener"' : '';
+    list.innerHTML = items.map(c =>
+        `<a href="${c.link}"${target(c)} onclick="rememberVisit('${c.id}')" title="${escAttr(c.title.replace(/&amp;/g,'&'))}">${c.title}</a>`
+    ).join('');
+    box.style.display = 'block';
+}
+
 // URL STATE anpassen (Mobile State merken)
 function buildHash(filter, collapsedIds) {
     const parts = [];
     if (filter && filter !== 'all') parts.push('filter=' + filter);
     if (filterMobileOnly) parts.push('mobile=1'); // Merkt sich den Mobile-Toggle
+    if (filterFreshOnly)  parts.push('fresh=1');
+    if (filterWichtigOnly) parts.push('wichtig=1');
+    if (stufenValue) {
+        parts.push('stufe=' + encodeURIComponent(stufenValue));
+        parts.push('smode=' + stufenMode);
+        if (stufenValue === 'Abi' && lkActive) parts.push('lk=1');
+    }
+    if (fachValue) parts.push('fach=' + fachValue);
+    if (!showExtra) parts.push('extra=0');
     if (collapsedIds.length > 0) parts.push('collapsed=' + collapsedIds.join(','));
     return parts.length ? '#' + parts.join('&') : '#';
 }
@@ -1058,7 +2653,13 @@ function setFilter(type, btn, skipHash) {
     currentFilter = type;
 
     document.querySelectorAll('.topic-group').forEach(g => g.classList.remove('collapsed'));
-    document.querySelectorAll('.filter-btn').forEach(b => b.className = 'filter-btn');
+    // Nur die active-*-Klassen entfernen. Ein komplettes Ueberschreiben
+    // von className wuerde auch tooltip-visible loeschen und den gerade
+    // angetippten Tooltip sofort wieder ausblenden.
+    document.querySelectorAll('.filter-btn').forEach(b => {
+        [...b.classList].filter(c => c.startsWith('active-'))
+                        .forEach(c => b.classList.remove(c));
+    });
     if (!btn) btn = document.querySelector('[data-filter="' + type + '"]');
     if (btn) btn.classList.add(type === 'all' ? 'active-all' : 'active-' + type);
 
@@ -1093,6 +2694,50 @@ function restoreFromHash() {
         if (filterMobileOnly) mobileLabel.classList.add('active');
     }
 
+    // Frisch-Toggle wiederherstellen
+    filterFreshOnly = params.fresh === '1';
+    const freshCb = document.getElementById('fresh-cb');
+    const freshLabel = document.getElementById('fresh-toggle-label');
+    if (freshCb && freshLabel) {
+        freshCb.checked = filterFreshOnly;
+        if (filterFreshOnly) freshLabel.classList.add('active');
+    }
+
+    // Wichtig-Toggle wiederherstellen
+    filterWichtigOnly = params.wichtig === '1';
+    const wichtigCb = document.getElementById('wichtig-cb');
+    const wichtigLabel = document.getElementById('wichtig-toggle-label');
+    if (wichtigCb && wichtigLabel) {
+        wichtigCb.checked = filterWichtigOnly;
+        if (filterWichtigOnly) wichtigLabel.classList.add('active');
+    }
+
+    // Jahrgang / Fach / Extra aus der URL (Vorrang vor localStorage).
+    // Nur uebernehmen, wenn der jeweilige Parameter im Hash steht -
+    // sonst bleibt der evtl. aus localStorage geladene Wert erhalten.
+    if ('stufe' in params) {
+        const v = decodeURIComponent(params.stufe || '');
+        stufenValue = (stufenIndex(v) >= 0) ? v : '';
+    }
+    if ('smode' in params && ['exact','upto','plus'].includes(params.smode)) {
+        stufenMode = params.smode;
+        // 'plus' braucht das Wichtig-System; sonst auf 'upto' zurueckfallen
+        if (stufenMode === 'plus' && !wichtigEnabled()) stufenMode = 'upto';
+    }
+    // LK nur gueltig, wenn Abi gewaehlt ist
+    if ('lk' in params) {
+        lkActive = (params.lk === '1') && (stufenValue === 'Abi');
+    }
+    if ('fach' in params) {
+        stufenValue; // no-op (Lesbarkeit)
+        fachValue = ['mathematik','informatik','sonstiges'].includes(params.fach) ? params.fach : '';
+    }
+    if ('extra' in params) {
+        showExtra = params.extra !== '0';
+    }
+    // UI an den (aus URL oder localStorage) ermittelten Stand angleichen
+    if (typeof syncStufenUI === 'function') syncStufenUI();
+
     const filter = params.filter || 'all';
     currentFilter = filter;
     const btn = document.querySelector('[data-filter="' + filter + '"]');
@@ -1125,12 +2770,7 @@ function restoreFromHash() {
                 );
                 if (activeLink) {
                     activeLink.classList.add('active');
-                    const nav = document.getElementById('section-nav');
-                    if (nav) {
-                        const ll = activeLink.offsetLeft, lr = ll + activeLink.offsetWidth;
-                        if (ll < nav.scrollLeft) nav.scrollLeft = ll - 10;
-                        else if (lr > nav.scrollLeft + nav.clientWidth) nav.scrollLeft = lr - nav.clientWidth + 10;
-                    }
+                    ensureActiveNavVisible(false);
                 }
                 const navBar = document.querySelector('.sticky-top-nav');
                 const offset = navBar ? navBar.offsetHeight + 6 : 58;
@@ -1165,7 +2805,7 @@ function updateCollapseAllBtn() {
     const groups = Array.from(document.querySelectorAll('.topic-group:not(.hidden-group)'));
     const allCollapsed = groups.every(g => g.classList.contains('collapsed'));
     document.getElementById('collapse-all-icon').textContent = allCollapsed ? '▸▸' : '▾▾';
-    document.getElementById('collapse-all-label').textContent = allCollapsed ? 'Alle ausklappen' : 'Alle einklappen';
+    document.getElementById('collapse-all-label').textContent = allCollapsed ? 'Ausklappen' : 'Einklappen';
 }
 
 function toggleGroup(id) {
@@ -1218,13 +2858,7 @@ function initScrollSpy() {
             navLinks.forEach(link => link.classList.remove('active'));
             activeLink.classList.add('active');
             // Nur horizontal scrollen – kein scrollIntoView (würde Seite verschieben)
-            const nav = document.getElementById('section-nav');
-            if (nav) {
-                const linkLeft  = activeLink.offsetLeft;
-                const linkRight = linkLeft + activeLink.offsetWidth;
-                if (linkLeft < nav.scrollLeft) nav.scrollLeft = linkLeft - 10;
-                else if (linkRight > nav.scrollLeft + nav.clientWidth) nav.scrollLeft = linkRight - nav.clientWidth + 10;
-            }
+            ensureActiveNavVisible(false);
             // URL-Anker nur setzen, wenn der Nutzer wirklich gescrollt hat
             if (window.scrollY > navHeight) {
                 history.replaceState(null, null, '#' + activeGroup.id);
@@ -1243,14 +2877,65 @@ function initScrollSpy() {
 // ══════════════════════════════════════════════════════════════
 function updateDynamicPaddings() {
     const topNav = document.querySelector('.sticky-top-nav');
-    if (topNav) document.documentElement.style.setProperty('--nav-height', topNav.offsetHeight + 'px');
+    // Im statischen Modus belegt die Leiste echten Platz im Fluss -
+    // dann darf kein zusaetzliches Padding reserviert werden.
+    const topStatic    = document.body.classList.contains('topnav-static');
+    const bottomStatic = document.body.classList.contains('bottombar-static');
+
+    if (topNav) {
+        document.documentElement.style.setProperty(
+            '--nav-height', topStatic ? '0px' : topNav.offsetHeight + 'px');
+    }
     const bottomNav = document.querySelector('.sticky-bottom-filters');
-    if (bottomNav) document.documentElement.style.setProperty('--filter-height', (bottomNav.offsetHeight + 10) + 'px');
+    if (bottomNav) {
+        document.documentElement.style.setProperty(
+            '--filter-height', bottomStatic ? '0px' : (bottomNav.offsetHeight + 10) + 'px');
+    }
 }
 
 // ══════════════════════════════════════════════════════════════
 // NAV SCROLL (MAUSRAD & DRAG)
 // ══════════════════════════════════════════════════════════════
+/**
+ * Scrollt die Themenleiste so, dass der aktive Link vollstaendig
+ * sichtbar ist - nie halb hinter dem Jahrgang-Button oder der Kante.
+ * Wird auch nach Layoutaenderungen aufgerufen (z.B. wenn sich die
+ * Beschriftung des Jahrgang-Buttons und damit seine Breite aendert).
+ */
+function ensureActiveNavVisible(smooth) {
+    const nav = document.getElementById('section-nav');
+    if (!nav) return;
+    const link = nav.querySelector('.section-nav-link.active');
+    if (!link) return;
+
+    // Ueber getBoundingClientRect statt offsetLeft: unabhaengig davon,
+    // welches Element gerade offsetParent ist.
+    const navRect  = nav.getBoundingClientRect();
+    const linkRect = link.getBoundingClientRect();
+    if (!navRect.width) return;
+
+    const PAD = 18;                          // = padding-left der Nav (hinter der Maske)
+    const relLeft  = linkRect.left  - navRect.left;   // Lage im sichtbaren Bereich
+    const relRight = linkRect.right - navRect.left;
+
+    let delta = 0;
+    if (relLeft < PAD) {
+        delta = relLeft - PAD;                       // nach links scrollen
+    } else if (relRight > navRect.width - 10) {
+        delta = relRight - navRect.width + 10;       // nach rechts scrollen
+    }
+    if (delta === 0) return;
+
+    const target = Math.max(0, Math.min(nav.scrollLeft + delta,
+                                        nav.scrollWidth - nav.clientWidth));
+
+    if (smooth && typeof nav.scrollTo === 'function') {
+        nav.scrollTo({ left: target, behavior: 'smooth' });
+    } else {
+        nav.scrollLeft = target;
+    }
+}
+
 function initNavScroll() {
     const nav = document.getElementById('section-nav');
     if (!nav) return;
@@ -1263,26 +2948,61 @@ function initNavScroll() {
         }
     }, { passive: false });
 
-    // 2. Scrollen durch Ziehen mit der Maus (Drag-to-scroll)
+    // 2. Ziehen mit Maus, Finger ODER Stift.
+    //    Pointer Events decken alle drei ab - reine mouse*-Handler versagen
+    //    an Touch-Tafeln (z.B. Promethean), weil der Stift als pointerType
+    //    'pen' kommt und dort keine Maus-Kompatibilitaetsevents erzeugt.
     let isDown = false;
-    let startX;
-    let scrollLeft;
+    let startX = 0;
+    let startScroll = 0;
+    let moved = false;
+    let activeId = null;
 
-    nav.addEventListener('mousedown', (e) => {
+    nav.addEventListener('pointerdown', (e) => {
+        // Nur primaere Taste bzw. primaerer Kontaktpunkt
+        if (e.button !== 0 && e.pointerType === 'mouse') return;
         isDown = true;
+        moved = false;
+        activeId = e.pointerId;
+        startX = e.clientX;
+        startScroll = nav.scrollLeft;
         nav.style.cursor = 'grabbing';
-        startX = e.pageX - nav.offsetLeft;
-        scrollLeft = nav.scrollLeft;
     });
-    nav.addEventListener('mouseleave', () => { isDown = false; nav.style.cursor = ''; });
-    nav.addEventListener('mouseup', () => { isDown = false; nav.style.cursor = ''; });
-    nav.addEventListener('mousemove', (e) => {
-        if (!isDown) return;
+
+    nav.addEventListener('pointermove', (e) => {
+        if (!isDown || e.pointerId !== activeId) return;
+        const walk = e.clientX - startX;
+        if (!moved && Math.abs(walk) > 4) {
+            moved = true;
+            // Erst ab echtem Ziehen den Pointer einfangen, damit ein
+            // einfacher Tipp/Klick auf einen Link normal durchgeht.
+            try { nav.setPointerCapture(activeId); } catch (err) {}
+        }
+        if (!moved) return;
         e.preventDefault();
-        const x = e.pageX - nav.offsetLeft;
-        const walk = (x - startX) * 1.5; // Multiplikator für Scroll-Geschwindigkeit
-        nav.scrollLeft = scrollLeft - walk;
+        nav.scrollLeft = startScroll - walk * 1.5;
     });
+
+    const endDrag = (e) => {
+        if (activeId !== null) {
+            try { nav.releasePointerCapture(activeId); } catch (err) {}
+        }
+        isDown = false;
+        activeId = null;
+        nav.style.cursor = '';
+    };
+    nav.addEventListener('pointerup', endDrag);
+    nav.addEventListener('pointercancel', endDrag);
+    nav.addEventListener('pointerleave', endDrag);
+
+    // Nach echtem Ziehen den Klick auf den darunterliegenden Link schlucken
+    nav.addEventListener('click', (e) => {
+        if (moved) {
+            e.preventDefault();
+            e.stopPropagation();
+            moved = false;
+        }
+    }, true);
 }
 
 // E-Mail obfuskiert (base64) – Zum Kodieren: btoa('ihre@email.de') im Browser
@@ -1317,7 +3037,10 @@ function _showToast(msg,nearEl){
 document.addEventListener('DOMContentLoaded', () => { if (typeof init === 'function') init(); });
 window.addEventListener('hashchange', restoreFromHash);
 window.addEventListener('load', updateDynamicPaddings);
-window.addEventListener('resize', updateDynamicPaddings);
+window.addEventListener('resize', () => {
+    updateDynamicPaddings();
+    ensureActiveNavVisible(false);
+});
 
 window.addEventListener('pageshow', function(e) {
     if (e.persisted) {
@@ -1327,19 +3050,144 @@ window.addEventListener('pageshow', function(e) {
     }
 });
 
-// Klebende Tooltips auf Mobile verhindern
-document.addEventListener('DOMContentLoaded', () => {
-    document.querySelectorAll('.filter-btn, [data-tooltip]').forEach(el => {
-        el.addEventListener('touchstart', function() {
-            const t = this;
-            setTimeout(() => {
-                t.blur();
-                if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
-            }, 1000);
+// ══════════════════════════════════════════════════════════════
+// TOOLTIPS AUF TOUCH-GERAETEN
+//
+// Problem: :hover bleibt nach einem Tipp am Element haengen, alte
+// Tooltips schliessen sich nicht. Loesung: auf Touch uebernimmt JS
+// die Steuerung - es ist immer hoechstens einer sichtbar, und er
+// verschwindet beim Scrollen, beim Tippen woanders und nach kurzer Zeit.
+// ══════════════════════════════════════════════════════════════
+let _activeTooltip  = null;
+let _tooltipTimer   = null;
+let _tooltipShownAt = 0;
+let _tooltipScrollY = 0;
+let _tooltipsReady  = false;
+
+const TOOLTIP_HOLD         = 2500;  // ms, danach schliesst er auf Touch von selbst
+const TOOLTIP_SCROLL_GRACE = 700;   // ms, in denen Scroll-Ereignisse ignoriert werden
+const TOOLTIP_SCROLL_MIN   = 14;    // px, ab denen echtes Scrollen angenommen wird
+const TOOLTIP_MARGIN       = 8;     // px Mindestabstand zum Bildschirmrand
+
+function hideActiveTooltip() {
+    if (_tooltipTimer) { clearTimeout(_tooltipTimer); _tooltipTimer = null; }
+    const bubble = document.getElementById('tooltip-bubble');
+    if (bubble) bubble.classList.remove('visible');
+    if (_activeTooltip) {
+        _activeTooltip.classList.remove('tooltip-visible');
+        _activeTooltip = null;
+    }
+}
+
+/**
+ * Setzt die Sprechblase ueber das Element und haelt sie dabei
+ * innerhalb des Bildschirms - bei Buttons ganz am Rand wird sie
+ * seitlich verschoben statt abgeschnitten.
+ */
+function positionTooltipBubble(el) {
+    const bubble = document.getElementById('tooltip-bubble');
+    if (!bubble || !el) return;
+
+    bubble.textContent = el.getAttribute('data-tooltip') || '';
+
+    // Erst unsichtbar einblenden, um die tatsaechliche Groesse zu messen
+    bubble.style.left = '0px';
+    bubble.style.top  = '0px';
+    bubble.style.visibility = 'hidden';
+    bubble.classList.add('visible');
+
+    const anchor = el.getBoundingClientRect();
+    const box    = bubble.getBoundingClientRect();
+    const M      = TOOLTIP_MARGIN;
+
+    // Waagerecht mittig ueber dem Button, aber auf den Bildschirm begrenzt
+    let left = anchor.left + anchor.width / 2 - box.width / 2;
+    left = Math.max(M, Math.min(left, window.innerWidth - box.width - M));
+
+    // Bevorzugt darueber; wenn oben kein Platz ist, darunter
+    let top = anchor.top - box.height - M;
+    if (top < M) top = anchor.bottom + M;
+
+    bubble.style.left = Math.round(left) + 'px';
+    bubble.style.top  = Math.round(top)  + 'px';
+    bubble.style.visibility = '';
+}
+
+function showTooltipFor(el, autoHide) {
+    hideActiveTooltip();               // immer nur einer gleichzeitig
+    if (!el || !el.hasAttribute('data-tooltip')) return;
+
+    el.classList.add('tooltip-visible');
+    positionTooltipBubble(el);
+
+    _activeTooltip  = el;
+    _tooltipShownAt = Date.now();
+    _tooltipScrollY = window.scrollY;
+    if (autoHide) _tooltipTimer = setTimeout(hideActiveTooltip, TOOLTIP_HOLD);
+}
+
+/**
+ * Schliesst nur bei ECHTEM Scrollen durch den Nutzer.
+ * Ein Filterklick klappt Gruppen auf und aendert die Seitenhoehe - dabei
+ * feuert der Browser ein scroll-Ereignis, obwohl niemand gescrollt hat.
+ * Ohne diese Unterscheidung verschwaende der Tooltip sofort wieder.
+ */
+function onTooltipScroll() {
+    if (!_activeTooltip) return;
+
+    // Kurz nach dem Antippen: Layoutsprung, nicht der Nutzer
+    if (Date.now() - _tooltipShownAt < TOOLTIP_SCROLL_GRACE) {
+        _tooltipScrollY = window.scrollY;      // Bezugspunkt nachziehen
+        positionTooltipBubble(_activeTooltip); // Blase mitfuehren
+        return;
+    }
+    // Winzige Verschiebungen ignorieren
+    if (Math.abs(window.scrollY - _tooltipScrollY) < TOOLTIP_SCROLL_MIN) return;
+
+    hideActiveTooltip();
+}
+
+function initTooltips() {
+    if (_tooltipsReady) return;    // Doppelte Listener wuerden das
+    _tooltipsReady = true;         // Auf-/Zutippen gegeneinander aufheben
+
+    const isTouch = !window.matchMedia
+        || window.matchMedia('(hover: none), (pointer: coarse)').matches;
+
+    if (isTouch) {
+        // Touch: Tippen oeffnet, erneutes Tippen bzw. Tippen daneben schliesst
+        document.addEventListener('pointerdown', (e) => {
+            if (e.pointerType === 'mouse') return;
+            const target = e.target.closest('[data-tooltip]');
+            if (target === _activeTooltip) { hideActiveTooltip(); return; }
+            if (target) showTooltipFor(target, true);
+            else hideActiveTooltip();
         }, { passive: true });
-    });
-});
+    } else {
+        // Maus: klassisches Hover, ohne Zeitlimit
+        document.addEventListener('mouseover', (e) => {
+            const target = e.target.closest('[data-tooltip]');
+            if (!target || target === _activeTooltip) return;
+            showTooltipFor(target, false);
+        });
+        document.addEventListener('mouseout', (e) => {
+            const target = e.target.closest('[data-tooltip]');
+            if (target && target === _activeTooltip) hideActiveTooltip();
+        });
+    }
+
+    // Nur echtes Scrollen schliesst
+    window.addEventListener('scroll', onTooltipScroll, { passive: true });
+
+    // Beim Drehen, Wegwischen oder Verlassen der Seite ebenfalls
+    window.addEventListener('resize', hideActiveTooltip);
+    window.addEventListener('blur', hideActiveTooltip);
+    document.addEventListener('visibilitychange', hideActiveTooltip);
+}
+
+document.addEventListener('DOMContentLoaded', initTooltips);
 </script>
+<div class="tooltip-bubble" id="tooltip-bubble" role="tooltip"></div>
 <div class="share-toast" id="copyToast"></div>
 </body>
 </html>

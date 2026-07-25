@@ -5,7 +5,7 @@ const categoriesData = [
     "icon": "±",
     "iconType": "text",
     "tooltip": "Grundlegende Algebra, Gleichungen und Gleichungssysteme",
-    "cards": ["potenzen", ,"sciNot", "zahlbereiche", "graphen", "gleichungart", "lgs"]
+    "cards": ["potenzen", "sciNot", "potenzgesetze", "waage", "zahlbereiche", "graphen", "gleichungart", "lgs", "groessen_umrechnen"]
   },
   {
     "id": "quadratisch",
@@ -69,7 +69,7 @@ const categoriesData = [
     "icon": "∿",
     "iconType": "text",
     "tooltip": "Sinusfunktion, Arkussinus und ihre Parameter visualisieren",
-    "cards": ["geo-sinus-herleitung", "geo-arkussinus", "geo-sinus-ablesen", "geo-sinus-veraendern", , "geo-parameter-einheit", "sinus-toene", "geo-fourier"]
+    "cards": ["geo-sinus-herleitung", "geo-arkussinus", "geo-sinus-ablesen", "geo-sinus-veraendern", "geo-parameter-einheit", "sinus-toene", "geo-fourier"]
   },
   {
     "id": "stochastik",
@@ -77,7 +77,7 @@ const categoriesData = [
     "icon": "🎲",
     "iconType": "text",
     "tooltip": "Wahrscheinlichkeitsrechnung, Kombinatorik und Statistik",
-    "cards": ["differenz_trifft", "baumdiagramm_auswahl", "vierfeldertafel"]
+    "cards": ["differenz_trifft", "ziegenproblem", "baumdiagramm_auswahl", "vierfeldertafel"]
   },
   {
     "id": "mathematik-sonstiges",
@@ -117,6 +117,6 @@ const categoriesData = [
     "icon": "🕹️",
     "iconType": "emoji",
     "tooltip": "Spielerische mathematische Aktivitäten",
-    "cards": ["annomathematica","trio", "differenz_trifft"]
+    "cards": ["annomathematica","trio", "differenz_trifft", "ziegenproblem", "geographie"]
   }
 ];

@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Das Ziegenproblem – Interaktiv</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-5K8WYYXDL2"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-5K8WYYXDL2');
+    </script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; 
+      scrollbar-gutter: stable;}
+
+    body {
+      font-family: Calibri, 'Trebuchet MS', sans-serif;
+      background: #f5f5f5;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 0 2%;
+      color: #222;
+      min-height: 100vh;
+    }
+    header {
+      width: 100%; max-width: 1020px;
+      padding: 22px 0 8px; text-align: center;
+    }
+    header h1 { font-size: 2rem; margin-bottom: 4px; }
+    header h1 .hl { color: #4CAF50; }
+    main {
+      width: 100%; max-width: 1020px;
+      display: flex; flex-direction: column; gap: 14px;
+      padding-bottom: 40px;
+    }
+
+    /* ═══ SETTINGS ═══ */
+    .settings-bar {
+      background: white; border: 1px solid #ccc; border-radius: 8px;
+      padding: 11px 18px; display: flex; align-items: center;
+      gap: 18px; flex-wrap: wrap;
+    }
+    .settings-bar .lbl { font-weight: bold; font-size: 14px; }
+    .settings-bar input[type=range] {
+      width: 130px; accent-color: #4CAF50;
+      vertical-align: middle; cursor: pointer;
+    }
+    .door-badge {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 34px; height: 34px; border-radius: 50%;
+      background: #4CAF50; color: white; font-weight: bold; font-size: 17px;
+      flex-shrink: 0;
+    }
+
+    /* ═══ GAME CARD ═══ */
+    .game-card {
+      background: white; border: 2px solid #000; border-radius: 8px;
+      padding: 22px 18px 18px;
+      display: flex; flex-direction: column; align-items: center; gap: 16px;
+    }
+    /* Height locked by JS after first render to prevent layout shifts */
+    .phase-info {
+      width: 100%;
+      display: flex; align-items: center; justify-content: center;
+      text-align: center;
+      min-height: 5.8em;
+    }
+    .phase-info .pi-inner {
+      font-size: 1rem; line-height: 1.6; max-width: 700px;
+      color: #333; transition: color 0.2s;
+    }
+    .phase-info.pi-picked .pi-inner { color: #555; }
+    .phase-info.pi-decide .pi-inner { color: #1a3f6f; }
+    .phase-info.pi-win    .pi-inner { color: #1b5e20; }
+    .phase-info.pi-lose   .pi-inner { color: #b71c1c; }
+
+    /* ═══ DOORS ═══ */
+    .doors-container {
+      display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;
+    }
+    .door-wrap {
+      display: flex; flex-direction: column; align-items: center;
+      cursor: default; user-select: none;
+    }
+    .door-wrap.clickable { cursor: pointer; }
+    .door-wrap.clickable:hover .door-body {
+      transform: translateY(-4px) scale(1.04); filter: brightness(1.1);
+    }
+    .door-body {
+      width: 72px; height: 112px;
+      border-radius: 5px 5px 0 0; border: 3px solid #5a3520;
+      background: linear-gradient(150deg,#b87840 0%,#8b5527 45%,#7a4a1e 100%);
+      position: relative; display: flex; align-items: center; justify-content: center;
+      transition: transform .15s ease, filter .15s ease,
+                  background .35s ease, border-color .35s ease, box-shadow .2s ease;
+      overflow: hidden;
+    }
+    .door-body .d-panel {
+      position: absolute; top:8px; left:7px; right:7px; bottom:8px;
+      border: 2px solid rgba(255,255,255,.18); border-radius: 3px; pointer-events: none;
+    }
+    .door-body .d-knob {
+      position: absolute; right:9px; top:50%; transform:translateY(-50%);
+      width:10px; height:10px; border-radius:50%;
+      background: radial-gradient(circle at 35% 35%,#f5d860,#b8960a);
+      box-shadow: 1px 1px 3px rgba(0,0,0,.45);
+    }
+    .door-body .d-num {
+      font-size:22px; font-weight:bold;
+      color: rgba(255,255,255,.78); text-shadow:1px 1px 2px rgba(0,0,0,.5); z-index:1;
+    }
+    .door-body .d-emoji { font-size:40px; z-index:1; display:none; }
+    .door-body.opened { background:#ece5d8; border-color:#aaa; }
+    .door-body.opened .d-panel, .door-body.opened .d-knob, .door-body.opened .d-num { display:none; }
+    .door-body.opened .d-emoji { display:block; }
+    .door-body.sel {
+      border-color:#1a7a2a; box-shadow:0 0 0 3px #4CAF50;
+      background: linear-gradient(150deg,#3a9a4a 0%,#1e6e2e 100%);
+    }
+    .door-body.alt { border-color:#d06010; box-shadow:0 0 0 3px #FF9800; }
+    .door-body.res-win  { background:#e8f5e9; border-color:#2d862d; box-shadow:0 0 0 3px #4CAF50; }
+    .door-body.res-lose { background:#ffebee; border-color:#b71c1c; box-shadow:0 0 0 3px #e53935; }
+    .door-step { width:72px; height:7px; background:#5a3520; border-radius:0 0 3px 3px; transition:background .35s; }
+    .door-body.opened ~ .door-step,
+    .door-body.res-win ~ .door-step,
+    .door-body.res-lose ~ .door-step { background:#aaa; }
+    .door-tag {
+      font-size:11px; color:#666; margin-top:5px; text-align:center;
+      width:82px; height:2.5em; line-height:1.35; overflow:hidden;
+    }
+    .door-tag.t-sel  { color:#1a7a2a; font-weight:bold; }
+    .door-tag.t-alt  { color:#d06010; font-weight:bold; }
+    .door-tag.t-win  { color:#1b5e20; font-weight:bold; }
+    .door-tag.t-lose { color:#b71c1c; font-weight:bold; }
+
+    /* ═══ ACTION ROW ═══ */
+    .action-row {
+      min-height:46px; display:flex; gap:10px;
+      flex-wrap:wrap; justify-content:center; align-items:center;
+    }
+
+    /* ═══ BUTTONS ═══ */
+    button {
+      font-family:inherit; font-size:14px; padding:10px 20px;
+      border:none; border-radius:5px; cursor:pointer;
+      background:#4CAF50; color:white; margin:2px;
+      transition:background .15s, transform .1s;
+    }
+    button:hover:not(:disabled) { background:#43a047; transform:translateY(-1px); }
+    button:active:not(:disabled) { transform:translateY(0); }
+    button:disabled { background:#bbb; cursor:not-allowed; }
+    .btn-stay   { background:#1976D2; }
+    .btn-stay:hover:not(:disabled)   { background:#1565C0; }
+    .btn-switch { background:#E65100; }
+    .btn-switch:hover:not(:disabled) { background:#BF360C; }
+    .btn-red    { background:#c62828; }
+    .btn-red:hover:not(:disabled)    { background:#b71c1c; }
+    .btn-stop   { background:#e53935; }
+    .btn-stop:hover:not(:disabled)   { background:#c62828; }
+
+    /* ═══ COLLAPSIBLES ═══ */
+    details { border:2px solid #000; border-radius:8px; background:white; width:100%; }
+    summary {
+      font-weight:bold; font-size:1rem; padding:12px 16px;
+      cursor:pointer; display:block; user-select:none; list-style:none;
+    }
+    summary::-webkit-details-marker { display:none; }
+    summary::before { content:'▶️ '; }
+    details[open] > summary::before { content:'🔽 '; }
+    .d-body { padding:16px; border-top:1px solid #ddd; }
+
+    /* ═══ AUTO-PLAY ═══ */
+    .ap-row {
+      display:flex; flex-wrap:wrap; gap:10px 20px;
+      align-items:center; margin-bottom:12px;
+    }
+    .ap-row label { font-size:13px; display:flex; align-items:center; gap:6px; }
+    .ap-row select, .ap-row input[type=number] {
+      font-family:inherit; font-size:13px; padding:5px 8px;
+      border:1px solid #aaa; border-radius:4px; background:white;
+    }
+    .ap-row select { min-width:160px; }
+    .ap-row input[type=number] { width:70px; }
+    .ap-info { font-size:13px; color:#555; margin-top:4px; min-height:1.3em; }
+    .prog-outer {
+      height:8px; background:#e0e0e0; border-radius:4px;
+      overflow:hidden; margin-top:6px; display:none;
+    }
+    .prog-inner { height:100%; background:#4CAF50; border-radius:4px; width:0%; transition:width .15s linear; }
+
+    /* ═══ STATISTICS ═══ */
+    .stat-cards { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:16px; }
+    .stat-card  { border:1px solid #ddd; border-radius:6px; padding:12px 8px; text-align:center; }
+    .stat-card.c-stay   { border-top:4px solid #1976D2; }
+    .stat-card.c-switch { border-top:4px solid #E65100; }
+    .stat-card.c-total  { border-top:4px solid #4CAF50; }
+    .sc-lbl   { font-size:12px; color:#777; margin-bottom:4px; }
+    .sc-val   { font-size:1.5rem; font-weight:bold; line-height:1.2; }
+    .sc-sub   { font-size:11px; color:#888; margin-top:4px; }
+    .sc-theor { font-size:11px; color:#888; margin-top:2px; }
+    .chart-toggles { margin-bottom:10px; font-size:13px; }
+    .chart-toggles label { margin-right:16px; cursor:pointer; }
+    .chart-box { position:relative; height:270px; }
+
+    /* ═══ TREE / TABLE ═══ */
+    .tree-scroll {
+      overflow-x:auto; background:#fafafa;
+      border:1px solid #ddd; border-radius:6px; padding:10px;
+    }
+    #treeSVG { display:block; width:100%; }
+    .tree-caption {
+      font-size:12px; color:#777; text-align:center;
+      margin-top:8px; font-style:italic; line-height:1.5;
+    }
+
+    /* ═══ RESPONSIVE ═══ */
+    @media (max-width:600px) {
+      .stat-cards { grid-template-columns:1fr; }
+      .door-body  { width:58px; height:92px; }
+      .door-step  { width:58px; }
+      .door-tag   { width:68px; }
+      .door-body .d-emoji { font-size:32px; }
+      .door-body .d-num   { font-size:18px; }
+    }
+    @media (max-width:400px) {
+      .door-body { width:48px; height:76px; }
+      .door-step { width:48px; }
+      .door-tag  { width:56px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>&#x1F410; Das <span class="hl">Ziegen</span>problem</h1>
+</header>
+
+<main>
+  <!-- SETTINGS -->
+  <div class="settings-bar">
+    <span class="lbl">T&#xFC;ren:</span>
+    <input type="range" id="doorSlider" min="3" max="10" value="3"
+           oninput="onDoorChange(this.value)">
+    <span class="door-badge" id="doorBadge">3</span>
+  </div>
+
+  <!-- GAME -->
+  <div class="game-card">
+    <div class="phase-info" id="phaseInfo">
+      <div class="pi-inner" id="phaseText"></div>
+    </div>
+    <div class="doors-container" id="doorsContainer"></div>
+    <div class="action-row" id="actionRow"></div>
+  </div>
+
+  <!-- AUTO-PLAY -->
+  <details>
+    <summary>&#x26A1; Auto-Play</summary>
+    <div class="d-body">
+      <div class="ap-row">
+        <label>Strategie:
+          <select id="apStrat">
+            <option value="switch">Immer wechseln</option>
+            <option value="stay">Immer bleiben</option>
+            <option value="random">Zuf&#xE4;llig (50&#x202F;%&#x202F;/&#x202F;50&#x202F;%)</option>
+            <option value="both">Abwechselnd (je 50&#x202F;%)</option>
+          </select>
+        </label>
+        <label>Anzahl:
+          <input type="number" id="apCount" value="10" min="1" max="9999" step="1">
+        </label>
+        <label>Geschwindigkeit:
+          <select id="apSpeed">
+            <option value="0.2">0,2&#x202F;/&#x202F;s</option>
+            <option value="0.5">0,5&#x202F;/&#x202F;s</option>
+            <option value="1" selected>1&#x202F;/&#x202F;s</option>
+            <option value="2">2&#x202F;/&#x202F;s</option>
+            <option value="5">5&#x202F;/&#x202F;s</option>
+            <option value="10">10&#x202F;/&#x202F;s</option>
+          </select>
+        </label>
+        <button id="apBtn" onclick="toggleAP()">&#x25B6; Start</button>
+        <button class="btn-red" onclick="resetStats()">&#x21BA; Statistik l&#xF6;schen</button>
+      </div>
+      <p class="ap-info" id="apInfo"></p>
+      <div class="prog-outer" id="progOuter"><div class="prog-inner" id="progInner"></div></div>
+    </div>
+  </details>
+
+  <!-- STATISTICS -->
+  <details id="statsDetails" ontoggle="if(this.open) rebuildChart(true)">
+    <summary>&#x1F4CA; Statistiken</summary>
+    <div class="d-body">
+      <div class="stat-cards">
+        <div class="stat-card c-stay">
+          <div class="sc-lbl">Bleiben</div>
+          <div class="sc-val"   id="sc-s-rate">&#x2013;</div>
+          <div class="sc-sub"   id="sc-s-cnt">0&#x202F;/&#x202F;0 Spiele</div>
+          <div class="sc-theor" id="sc-s-th"></div>
+        </div>
+        <div class="stat-card c-switch">
+          <div class="sc-lbl">Wechseln</div>
+          <div class="sc-val"   id="sc-w-rate">&#x2013;</div>
+          <div class="sc-sub"   id="sc-w-cnt">0&#x202F;/&#x202F;0 Spiele</div>
+          <div class="sc-theor" id="sc-w-th"></div>
+        </div>
+        <div class="stat-card c-total">
+          <div class="sc-lbl">Gesamt</div>
+          <div class="sc-val"   id="sc-t-rate">&#x2013;</div>
+          <div class="sc-sub"   id="sc-t-cnt">0&#x202F;/&#x202F;0 Spiele</div>
+        </div>
+      </div>
+      <div class="chart-toggles">
+        <label><input type="radio" name="chartMode" value="bar" checked
+                      onchange="rebuildChart(true)"> Balkendiagramm</label>
+        <label><input type="radio" name="chartMode" value="line"
+                      onchange="rebuildChart(true)"> Verlauf &#xFC;ber Zeit</label>
+      </div>
+      <div class="chart-box"><canvas id="mainChart"></canvas></div>
+    </div>
+  </details>
+
+  <!-- TREE / TABLE DIAGRAM -->
+  <details id="treeDetails" ontoggle="if(this.open) drawTable()">
+    <summary>&#x1F4CA; Alle F&#xE4;lle im &#xDC;berblick</summary>
+    <div class="d-body">
+      <div class="tree-scroll">
+        <svg id="treeSVG" xmlns="http://www.w3.org/2000/svg"></svg>
+      </div>
+      <p class="tree-caption" id="treeCaption"></p>
+    </div>
+  </details>
+
+</main>
+
+<div id="lobby-spacer"></div>
+<footer class="site-footer">
+  <div class="footer-content">
+      M.&nbsp;Koch
+      <span class="footer-topic"><a href="./index.html">Mathe-Tools</a></span>
+      <span class="footer-update">Last updated:&nbsp;<span id="last-update">...</span></span>
+  </div>
+</footer>
+<script src="last-update.js" defer></script>
+
+<script>
+// ===================================================
+// STATE
+// ===================================================
+let N         = 3;
+let carDoor   = -1;
+let pick      = -1;
+let openedSet = [];
+let altDoor   = -1;
+let phase     = 'pick';   // 'pick' | 'picked' | 'decide' | 'result'
+let lastAct   = null;
+
+const st = { stay:{n:0,w:0}, switch:{n:0,w:0} };
+let histData = [];
+
+// Auto-Play
+let apRunning = false;
+let apTimer   = null;
+let apDone    = 0;
+let apTarget  = 0;
+let apAlter   = 0;
+
+// Timer for the manual pick->reveal delay
+let pickRevealTimer = null;
+
+// Chart
+let chartObj     = null;
+let chartCurMode = '';
+let chartCurN    = 3;
+
+// ===================================================
+// INIT
+// ===================================================
+window.addEventListener('load', () => {
+  initGame();
+  updateStatsUI();
+  // Lock phase-info height after intro text renders
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    const el = document.getElementById('phaseInfo');
+    el.style.minHeight = el.getBoundingClientRect().height + 'px';
+  }));
+});
+
+// ===================================================
+// SETTINGS
+// ===================================================
+function onDoorChange(v) {
+  N = parseInt(v);
+  document.getElementById('doorBadge').textContent = N;
+  stopAP(false, false);
+  const el = document.getElementById('phaseInfo');
+  el.style.minHeight = '';
+  initGame();
+  updateStatsUI();
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    el.style.minHeight = el.getBoundingClientRect().height + 'px';
+  }));
+  if (document.getElementById('treeDetails').open) drawTable();
+}
+
+// ===================================================
+// GAME LOGIC
+// ===================================================
+function initGame() {
+  clearTimeout(pickRevealTimer);
+  carDoor   = Math.floor(Math.random() * N);
+  pick      = -1;
+  openedSet = [];
+  altDoor   = -1;
+  phase     = 'pick';
+  lastAct   = null;
+  renderDoors();
+  setPhaseInfo('pick');
+  renderActions();
+}
+
+// Step 1: show door as selected (green) – no goats opened yet
+function _doPick(d) {
+  pick  = d;
+  phase = 'picked';
+  renderDoors();
+  setPhaseInfo('picked');
+  renderActions();
+}
+
+// Step 2: compute and reveal goat doors
+function _doReveal() {
+  if (phase !== 'picked') return;
+  openedSet = [];
+  if (pick === carDoor) {
+    const pool = [];
+    for (let i = 0; i < N; i++) if (i !== pick) pool.push(i);
+    shuffle(pool);
+    altDoor   = pool[pool.length - 1];
+    openedSet = pool.slice(0, pool.length - 1);
+  } else {
+    altDoor = carDoor;
+    for (let i = 0; i < N; i++) {
+      if (i !== pick && i !== carDoor) openedSet.push(i);
+    }
+  }
+  phase = 'decide';
+  renderDoors();
+  setPhaseInfo('decide');
+  renderActions();
+}
+
+function onPickDoor(d) {
+  if (phase !== 'pick') return;
+  clearTimeout(pickRevealTimer);
+  _doPick(d);
+  // Manual play: reveal goats after 500 ms
+  if (!apRunning) {
+    pickRevealTimer = setTimeout(() => _doReveal(), 500);
+  }
+}
+
+function doDecide(action) {
+  if (phase !== 'decide') return;
+  lastAct = action;
+  const finalDoor = action === 'stay' ? pick : altDoor;
+  if (action === 'switch') pick = altDoor;
+  const won = (finalDoor === carDoor);
+  recordGame(action, won);
+  phase = 'result';
+  renderDoors();
+  setPhaseInfo('result', won, finalDoor, action);
+  renderActions();
+  updateStatsUI();
+  rebuildChart();
+}
+
+function recordGame(action, won) {
+  st[action].n++;
+  if (won) st[action].w++;
+  const total = st.stay.n + st.switch.n;
+  const samp  = Math.max(1, Math.round(Math.max(apTarget, total) / 400));
+  if ([1,2,5,10,20,50].includes(total) || total % samp === 0) {
+    histData.push({
+      game: total,
+      sr: st.stay.n   > 0 ? st.stay.w   / st.stay.n   : null,
+      wr: st.switch.n > 0 ? st.switch.w / st.switch.n : null
+    });
+    if (histData.length > 800) histData = histData.filter((_,i) => i%2===0);
+  }
+}
+
+// ===================================================
+// RENDERING
+// ===================================================
+function renderDoors() {
+  const c = document.getElementById('doorsContainer');
+  c.innerHTML = '';
+  for (let i = 0; i < N; i++) {
+    const isOpened  = openedSet.includes(i);
+    const isPick    = (i === pick);
+    const isAlt     = (i === altDoor && phase === 'decide');
+    const isWinDoor = (i === carDoor);
+
+    let bodyClass = 'door-body', tagClass = 'door-tag';
+    let tagTxt = 'T\u00fcr\u00a0' + (i + 1);
+    let showNum = true, emoji = '';
+
+    if (phase === 'result') {
+      bodyClass += ' opened';
+      if (isPick) bodyClass += isWinDoor ? ' res-win' : ' res-lose';
+      emoji = isWinDoor ? '\u{1F697}' : '\u{1F410}';
+      showNum = false;
+      if (isPick) {
+        tagClass += isWinDoor ? ' t-win' : ' t-lose';
+        tagTxt   += lastAct === 'stay' ? '\u00a0\u2190' : '\u00a0\u21C4';
+      }
+    } else if (isOpened) {
+      bodyClass += ' opened'; emoji = '\u{1F410}'; showNum = false;
+    } else if (isPick) {
+      bodyClass += ' sel'; tagClass += ' t-sel'; tagTxt += '\u00a0\u2713';
+    } else if (isAlt) {
+      bodyClass += ' alt'; tagClass += ' t-alt'; tagTxt += '\u00a0\u21C4';
+    }
+
+    const wrap = document.createElement('div');
+    const clickable = (phase === 'pick' && !apRunning);
+    wrap.className = 'door-wrap' + (clickable ? ' clickable' : '');
+    if (clickable) wrap.onclick = () => onPickDoor(i);
+
+    const inner = (!isOpened && phase !== 'result')
+      ? '<div class="d-panel"></div><div class="d-knob"></div>' : '';
+    wrap.innerHTML =
+      '<div class="' + bodyClass + '">' + inner +
+      (showNum  ? '<div class="d-num">'   + (i+1) + '</div>' : '') +
+      (emoji    ? '<div class="d-emoji">' + emoji + '</div>' : '') +
+      '</div>' +
+      '<div class="door-step"></div>' +
+      '<div class="' + tagClass + '">' + tagTxt + '</div>';
+    c.appendChild(wrap);
+  }
+}
+
+function setPhaseInfo(ph, won, finalDoor, action) {
+  const el  = document.getElementById('phaseInfo');
+  const txt = document.getElementById('phaseText');
+  el.className = 'phase-info';
+
+  if (ph === 'pick') {
+    const nOpen    = N - 2;
+    const tuerWort  = nOpen === 1 ? 'einer T\u00fcr' : (nOpen + ' T\u00fcren');
+    const ziegeWort = nOpen === 1 ? 'eine Ziege'    : (nOpen + ' Ziegen');
+    txt.innerHTML =
+      'Hinter einer von <strong>' + N + '</strong> T\u00fcren versteckt sich ein Auto \u2013 hinter den anderen sind Ziegen. ' +
+      '<strong>W\u00e4hle eine T\u00fcr!</strong> ' +
+      'Der Moderator wei\u00df, wo das Auto ist, und \u00f6ffnet danach ' + tuerWort + ' mit ' + ziegeWort + ', ' +
+      'sodass genau eine weitere T\u00fcr geschlossen bleibt. ' +
+      'Er bietet dir immer an zu wechseln \u2013 lohnt es sich?';
+  } else if (ph === 'picked') {
+    el.className = 'phase-info pi-picked';
+    txt.innerHTML =
+      'T\u00fcr\u00a0<strong>' + (pick+1) + '</strong> gew\u00e4hlt. ' +
+      'Der Moderator \u00f6ffnet nun die Ziegen' + (N > 3 ? 't\u00fcren' : 't\u00fcr') + '\u2026';
+  } else if (ph === 'decide') {
+    el.className = 'phase-info pi-decide';
+    const n  = openedSet.length;
+    const tw = n === 1 ? '1\u00a0T\u00fcr' : (n + '\u00a0T\u00fcren');
+    const zw = n === 1 ? 'eine Ziege' : 'Ziegen';
+    txt.innerHTML =
+      'Der Moderator \u00f6ffnet <strong>' + tw + '</strong> und zeigt ' + zw + '. ' +
+      'Bleibst du bei <strong>T\u00fcr\u00a0' + (pick+1) + '</strong> ' +
+      'oder wechselst du zu <strong>T\u00fcr\u00a0' + (altDoor+1) + '</strong>?';
+  } else {
+    el.className = 'phase-info ' + (won ? 'pi-win' : 'pi-lose');
+    if (won) {
+      txt.innerHTML =
+        '\uD83C\uDF89 <strong>Gewonnen!</strong> Hinter T\u00fcr\u00a0' + (finalDoor+1) + ' war das Auto. ' +
+        'Du hast durch <em>' + (action==='stay' ? 'Bleiben' : 'Wechseln') + '</em> gewonnen.';
+    } else {
+      txt.innerHTML =
+        '\uD83D\uDE22 <strong>Verloren.</strong> Das Auto war hinter T\u00fcr\u00a0' + (carDoor+1) + '. ' +
+        'Du hast durch <em>' + (action==='stay' ? 'Bleiben' : 'Wechseln') + '</em> verloren.';
+    }
+  }
+}
+
+function renderActions() {
+  const r = document.getElementById('actionRow');
+  if (apRunning || phase === 'pick' || phase === 'picked') {
+    r.innerHTML = '';
+  } else if (phase === 'decide') {
+    r.innerHTML =
+      '<button class="btn-stay"   onclick="doDecide(\'stay\'  )">\uD83D\uDD12 Bleiben\u00a0(T\u00fcr\u00a0' + (pick+1)    + ')</button>' +
+      '<button class="btn-switch" onclick="doDecide(\'switch\')">\uD83D\uDD04 Wechseln\u00a0(T\u00fcr\u00a0' + (altDoor+1) + ')</button>';
+  } else {
+    r.innerHTML = '<button onclick="initGame()">\uD83D\uDD01 Neue Runde</button>';
+  }
+}
+
+// ===================================================
+// AUTO-PLAY  –  animated
+// ===================================================
+function toggleAP() { apRunning ? stopAP(false,true) : startAP(); }
+
+function startAP() {
+  apTarget  = Math.max(1, parseInt(document.getElementById('apCount').value) || 10);
+  apDone    = 0; apAlter = 0; apRunning = true;
+  document.getElementById('apBtn').className   = 'btn-stop';
+  document.getElementById('apBtn').textContent = '\u23F9 Stop';
+  document.getElementById('progOuter').style.display = 'block';
+  document.getElementById('apInfo').textContent = '';
+  initGame();
+  renderActions();
+  _apStep('wait-pick');
+}
+
+function _apStep(step) {
+  if (!apRunning) return;
+  const speed = parseFloat(document.getElementById('apSpeed').value);
+  const T = 1000 / speed;
+
+  if (step === 'wait-pick') {
+    // Brief pause on fresh board before picking
+    apTimer = setTimeout(() => _apStep('do-pick'), T * 0.12);
+
+  } else if (step === 'do-pick') {
+    _doPick(Math.floor(Math.random() * N));
+    // Wait: door is green, reveal coming
+    apTimer = setTimeout(() => _apStep('do-reveal'), T * 0.28);
+
+  } else if (step === 'do-reveal') {
+    _doReveal();
+    renderActions(); // stays empty (apRunning)
+    // Wait: goats are open, decision coming
+    apTimer = setTimeout(() => _apStep('do-decide'), T * 0.32);
+
+  } else if (step === 'do-decide') {
+    const strat = document.getElementById('apStrat').value;
+    let action;
+    if      (strat === 'stay'  ) action = 'stay';
+    else if (strat === 'switch') action = 'switch';
+    else if (strat === 'random') action = Math.random() < 0.5 ? 'stay' : 'switch';
+    else                          action = apAlter++ % 2 === 0 ? 'stay' : 'switch';
+    doDecide(action);
+    renderActions(); // stays empty (apRunning)
+    apDone++;
+    updateAPProg();
+    const next = T * 0.28;
+    if (apDone >= apTarget) {
+      apTimer = setTimeout(() => stopAP(true, false), next);
+    } else {
+      apTimer = setTimeout(() => { if (!apRunning) return; initGame(); renderActions(); _apStep('wait-pick'); }, next);
+    }
+  }
+}
+
+function stopAP(done=false, manual=false) {
+  const was = apRunning;
+  apRunning = false;
+  clearTimeout(apTimer); apTimer = null;
+  document.getElementById('apBtn').className   = '';
+  document.getElementById('apBtn').textContent = '\u25B6 Start';
+  document.getElementById('progOuter').style.display = 'none';
+  if (done) {
+    document.getElementById('apInfo').textContent = '\u2705 ' + apDone.toLocaleString('de') + ' Spiele abgeschlossen.';
+    renderActions();
+  } else if (manual && was) {
+    document.getElementById('apInfo').textContent = apDone.toLocaleString('de') + ' Spiele durchgef\u00fchrt.';
+    initGame();
+  }
+}
+
+function updateAPProg() {
+  document.getElementById('progInner').style.width = Math.min(100,(apDone/apTarget)*100) + '%';
+  document.getElementById('apInfo').textContent = apDone.toLocaleString('de') + ' / ' + apTarget.toLocaleString('de') + ' Spiele';
+}
+
+// ===================================================
+// STATS
+// ===================================================
+function resetStats() {
+  st.stay={n:0,w:0}; st.switch={n:0,w:0}; histData=[];
+  stopAP(false,false);
+  updateStatsUI(); rebuildChart(true);
+  document.getElementById('apInfo').textContent='';
+}
+
+function updateStatsUI() {
+  const pS=1/N, pW=(N-1)/N;
+  const fmt = s => s.n>0 ? fmtPct(s.w/s.n)+'\u202f%' : '\u2013';
+  const sub = s => s.w.toLocaleString('de')+'\u202f/\u202f'+s.n.toLocaleString('de')+' Spiele';
+  const tot = {n:st.stay.n+st.switch.n, w:st.stay.w+st.switch.w};
+  document.getElementById('sc-s-rate').textContent = fmt(st.stay);
+  document.getElementById('sc-s-cnt' ).textContent = sub(st.stay);
+  document.getElementById('sc-s-th'  ).textContent = 'Theorie: '+fmtPct(pS)+'\u202f%';
+  document.getElementById('sc-w-rate').textContent = fmt(st.switch);
+  document.getElementById('sc-w-cnt' ).textContent = sub(st.switch);
+  document.getElementById('sc-w-th'  ).textContent = 'Theorie: '+fmtPct(pW)+'\u202f%';
+  document.getElementById('sc-t-rate').textContent = fmt(tot);
+  document.getElementById('sc-t-cnt' ).textContent = sub(tot);
+}
+
+// ===================================================
+// CHART
+// ===================================================
+function rebuildChart(force=false) {
+  if (!document.getElementById('statsDetails').open && !force) return;
+  const mode=document.querySelector('input[name="chartMode"]:checked').value;
+  const pS=1/N, pW=(N-1)/N;
+  if (chartObj && mode===chartCurMode && N===chartCurN && !force) { updateChartDataOnly(mode,pS,pW); return; }
+  if (chartObj) { chartObj.destroy(); chartObj=null; }
+  chartCurMode=mode; chartCurN=N;
+  const ctx=document.getElementById('mainChart').getContext('2d');
+  if (mode==='bar') {
+    chartObj=new Chart(ctx,{
+      type:'bar',
+      data:{
+        labels:['Bleiben','Wechseln'],
+        datasets:[
+          {type:'bar',label:'Beobachtet',
+           data:[st.stay.n>0?st.stay.w/st.stay.n:null, st.switch.n>0?st.switch.w/st.switch.n:null],
+           backgroundColor:['rgba(25,118,210,.72)','rgba(230,81,0,.72)'],
+           borderColor:['#1565C0','#BF360C'],borderWidth:2,order:2},
+          {type:'line',label:'Theorie Bleiben ('+fmtPct(pS)+'\u202f%)',
+           data:[pS,pS],borderColor:'rgba(25,118,210,.7)',borderDash:[7,4],
+           borderWidth:2,pointRadius:0,fill:false,order:1},
+          {type:'line',label:'Theorie Wechseln ('+fmtPct(pW)+'\u202f%)',
+           data:[pW,pW],borderColor:'rgba(230,81,0,.7)',borderDash:[7,4],
+           borderWidth:2,pointRadius:0,fill:false,order:1}
+        ]
+      },
+      options:{
+        responsive:true,maintainAspectRatio:false,
+        scales:{y:{min:0,max:1,ticks:{callback:v=>fmtPct(v)+'\u202f%'},title:{display:true,text:'Gewinnrate'}}},
+        plugins:{tooltip:{callbacks:{label:c=>c.raw!=null?c.dataset.label+': '+fmtPct(c.raw)+'\u202f%':''}},legend:{position:'top'}}
+      }
+    });
+  } else {
+    const hd=histData.length>0?histData:[{game:0,sr:null,wr:null}];
+    chartObj=new Chart(ctx,{
+      type:'line',
+      data:{
+        labels:hd.map(h=>h.game),
+        datasets:[
+          {label:'Bleiben (beob.)',data:hd.map(h=>h.sr),borderColor:'#1976D2',backgroundColor:'rgba(25,118,210,.06)',borderWidth:2,tension:.2,pointRadius:0,fill:false},
+          {label:'Wechseln (beob.)',data:hd.map(h=>h.wr),borderColor:'#E65100',backgroundColor:'rgba(230,81,0,.06)',borderWidth:2,tension:.2,pointRadius:0,fill:false},
+          {label:'Theorie Bleiben ('+fmtPct(pS)+'\u202f%)',data:hd.map(()=>pS),borderColor:'rgba(25,118,210,.45)',borderDash:[7,4],borderWidth:1.5,pointRadius:0,fill:false},
+          {label:'Theorie Wechseln ('+fmtPct(pW)+'\u202f%)',data:hd.map(()=>pW),borderColor:'rgba(230,81,0,.45)',borderDash:[7,4],borderWidth:1.5,pointRadius:0,fill:false}
+        ]
+      },
+      options:{
+        responsive:true,maintainAspectRatio:false,
+        scales:{
+          x:{title:{display:true,text:'Anzahl Spiele'},ticks:{maxTicksLimit:8}},
+          y:{min:0,max:1,ticks:{callback:v=>fmtPct(v)+'\u202f%'},title:{display:true,text:'Gewinnrate'}}
+        },
+        plugins:{tooltip:{callbacks:{label:c=>c.raw!=null?c.dataset.label+': '+fmtPct(c.raw)+'\u202f%':''}},legend:{position:'top'}},
+        animation:{duration:0}
+      }
+    });
+  }
+}
+
+function updateChartDataOnly(mode,pS,pW) {
+  if (mode==='bar') {
+    chartObj.data.datasets[0].data=[st.stay.n>0?st.stay.w/st.stay.n:null, st.switch.n>0?st.switch.w/st.switch.n:null];
+    chartObj.data.datasets[1].data=[pS,pS];
+    chartObj.data.datasets[2].data=[pW,pW];
+  } else {
+    const hd=histData.length>0?histData:[{game:0,sr:null,wr:null}];
+    chartObj.data.labels=hd.map(h=>h.game);
+    chartObj.data.datasets[0].data=hd.map(h=>h.sr);
+    chartObj.data.datasets[1].data=hd.map(h=>h.wr);
+    chartObj.data.datasets[2].data=hd.map(()=>pS);
+    chartObj.data.datasets[3].data=hd.map(()=>pW);
+  }
+  chartObj.update('none');
+}
+
+// ===================================================
+// TABLE DIAGRAM
+// Shows all N possible car positions as columns.
+// Player always picks door 1 (symmetric -> same for any door).
+// Row "Bleiben":  green=win in column 1 only; red=lose elsewhere.
+// Row "Wechseln": red=lose in column 1 only; green=win elsewhere.
+// ===================================================
+function drawTable() {
+  const svg = document.getElementById('treeSVG');
+
+  // Layout constants
+  const LBL_W = 94;   // width of row-label column
+  const COL_W = 74;   // width of each door column
+  const HDR_H = 62;   // height of header area
+  const ROW_H = 54;   // height of each data row
+  const SUM_H = 60;   // height of summary bar
+
+  const svgW = LBL_W + N * COL_W;
+  const svgH = HDR_H + 2 * ROW_H + SUM_H;
+
+  // Responsive: scale to fit container, but don't upscale beyond natural size
+  svg.setAttribute('viewBox', '0 0 ' + svgW + ' ' + svgH);
+  svg.style.maxWidth = svgW + 'px';
+  svg.removeAttribute('height');
+
+  const ps = '1/' + N;
+  const pw = (N - 1) + '/' + N;
+
+  let h = '';
+
+  // ── White background ──
+  h += '<rect width="' + svgW + '" height="' + svgH + '" fill="white"/>';
+
+  // ── Column headers: one per possible car position ──
+  for (let k = 0; k < N; k++) {
+    const x0 = LBL_W + k * COL_W;
+    const cx = x0 + COL_W / 2;
+    const isPickCol = (k === 0);
+    const hdrBg  = isPickCol ? '#e8f0fe' : '#f5f5f5';
+    const hdrStr = isPickCol ? '#93b4f8' : '#ddd';
+    const lblCol = isPickCol ? '#1a3fbd' : '#333';
+
+    h += '<rect x="' + x0 + '" y="0" width="' + COL_W + '" height="' + HDR_H + '"' +
+         ' fill="' + hdrBg + '" stroke="' + hdrStr + '" stroke-width="0.6"/>';
+
+    if (isPickCol) {
+      h += '<text x="' + cx + '" y="15" text-anchor="middle"' +
+           ' font-size="9.5" font-family="Calibri,sans-serif" fill="#3b5bdb"' +
+           ' font-weight="bold">\u2605 deine Wahl</text>';
+    }
+
+    var yTuer = isPickCol ? 31 : 26;
+    h += '<text x="' + cx + '" y="' + yTuer + '" text-anchor="middle"' +
+         ' font-size="12" font-family="Calibri,sans-serif"' +
+         ' font-weight="bold" fill="' + lblCol + '">T\u00fcr ' + (k+1) + '</text>';
+
+    var yAuto = isPickCol ? 43 : 38;
+    h += '<text x="' + cx + '" y="' + yAuto + '" text-anchor="middle"' +
+         ' font-size="10" font-family="Calibri,sans-serif" fill="#888">Auto hier</text>';
+
+    var yProb = isPickCol ? 55 : 50;
+    h += '<text x="' + cx + '" y="' + yProb + '" text-anchor="middle"' +
+         ' font-size="10" font-family="Calibri,sans-serif" fill="#aaa">p\u202f=\u202f' + ps + '</text>';
+  }
+
+  // ── Row label column ──
+  // Overlay on top of column headers (draws over them for the label area)
+  h += '<rect x="0" y="0" width="' + LBL_W + '" height="' + svgH + '"' +
+       ' fill="#f8f8f8" stroke="#ddd" stroke-width="0.6"/>';
+  // Header cell of label column (top-left)
+  h += '<rect x="0" y="0" width="' + LBL_W + '" height="' + HDR_H + '"' +
+       ' fill="#ececec" stroke="#ddd" stroke-width="0.6"/>';
+  h += '<text x="' + (LBL_W/2) + '" y="28" text-anchor="middle"' +
+       ' font-size="10.5" font-family="Calibri,sans-serif" font-weight="bold" fill="#555">Deine</text>';
+  h += '<text x="' + (LBL_W/2) + '" y="42" text-anchor="middle"' +
+       ' font-size="10.5" font-family="Calibri,sans-serif" font-weight="bold" fill="#555">Entscheidung</text>';
+
+  // ── Row labels + data cells ──
+  var rowDefs = [
+    { ri: 0, y: HDR_H,         label: '\uD83D\uDD12 Bleiben'  },
+    { ri: 1, y: HDR_H + ROW_H, label: '\uD83D\uDD04 Wechseln' }
+  ];
+
+  for (var ri2 = 0; ri2 < rowDefs.length; ri2++) {
+    var rd = rowDefs[ri2];
+    // Row label cell
+    h += '<rect x="0" y="' + rd.y + '" width="' + LBL_W + '" height="' + ROW_H + '"' +
+         ' fill="#f8f8f8" stroke="#ddd" stroke-width="0.6"/>';
+    h += '<text x="' + (LBL_W/2) + '" y="' + (rd.y + ROW_H/2 + 5) + '"' +
+         ' text-anchor="middle" font-size="12.5"' +
+         ' font-family="Calibri,sans-serif" font-weight="bold" fill="#333">' + rd.label + '</text>';
+
+    // Data cells
+    for (var k2 = 0; k2 < N; k2++) {
+      var x0c = LBL_W + k2 * COL_W;
+      var cxc = x0c + COL_W / 2;
+      // Bleiben (ri2=0): win only when car=door1 (k2=0)
+      // Wechseln (ri2=1): win when car != door1 (k2>0)
+      var win = (rd.ri === 0) ? (k2 === 0) : (k2 !== 0);
+      var bg     = win ? '#e8f5e9' : '#ffebee';
+      var border = win ? '#a5d6a7' : '#ef9a9a';
+      var icon   = win ? '\u2705' : '\u274C';
+      var lbl2   = win ? 'Gewinn' : 'Verlust';
+      var lc2    = win ? '#1b5e20' : '#b71c1c';
+
+      h += '<rect x="' + x0c + '" y="' + rd.y + '" width="' + COL_W + '" height="' + ROW_H + '"' +
+           ' fill="' + bg + '" stroke="' + border + '" stroke-width="0.6"/>';
+      h += '<text x="' + cxc + '" y="' + (rd.y + 26) + '" text-anchor="middle" font-size="20">' + icon + '</text>';
+      h += '<text x="' + cxc + '" y="' + (rd.y + ROW_H - 7) + '" text-anchor="middle"' +
+           ' font-size="10" font-family="Calibri,sans-serif"' +
+           ' font-weight="bold" fill="' + lc2 + '">' + lbl2 + '</text>';
+    }
+  }
+
+  // ── Summary bar ──
+  var sy = HDR_H + 2 * ROW_H;
+  var hw = LBL_W + COL_W;
+
+  h += '<rect x="0" y="' + sy + '" width="' + hw + '" height="' + SUM_H + '"' +
+     ' fill="#e3f2fd" stroke="#90caf9" stroke-width="1"/>';
+h += '<text x="' + (hw/2) + '" y="' + (sy + 18) + '" text-anchor="middle"' +
+     ' font-size="12" font-family="Calibri,sans-serif"' +
+     ' font-weight="bold" fill="#1565C0">' +
+     '<tspan x="' + (hw/2) + '">Bleiben gewinnt in</tspan>' +
+     '<tspan x="' + (hw/2) + '" dy="16">1 von ' + N + ' F\u00e4llen</tspan>' +
+     '<tspan x="' + (hw/2) + '" dy="16">= ' + ps + '</tspan></text>';
+
+h += '<rect x="' + hw + '" y="' + sy + '" width="' + (svgW - hw) + '" height="' + SUM_H + '"' +
+     ' fill="#fff3e0" stroke="#ffcc80" stroke-width="1"/>';
+h += '<text x="' + (hw + (svgW-hw)/2) + '" y="' + (sy + 18) + '" text-anchor="middle"' +
+     ' font-size="12" font-family="Calibri,sans-serif"' +
+     ' font-weight="bold" fill="#bf360c">' +
+     '<tspan x="' + (hw + (svgW-hw)/2) + '">Wechseln gewinnt in</tspan>' +
+     '<tspan x="' + (hw + (svgW-hw)/2) + '" dy="16">' + (N-1) + ' von ' + N + ' F\u00e4llen</tspan>' +
+     '<tspan x="' + (hw + (svgW-hw)/2) + '" dy="16">= ' + pw + '</tspan></text>';
+
+  // Outer border
+  h += '<rect x="0" y="0" width="' + svgW + '" height="' + svgH + '"' +
+       ' fill="none" stroke="#bbb" stroke-width="1"/>';
+
+  svg.innerHTML = h;
+
+  // Update caption
+  var goatN = N - 2;
+  var goatTxt = goatN === 1 ? 'die verbleibende Ziegent\u00fcr' : 'alle ' + goatN + ' verbleibenden Ziegent\u00fcren';
+  document.getElementById('treeCaption').innerHTML =
+    'Annahme: Du w\u00e4hlst zuerst <strong>T\u00fcr 1</strong> ' +
+    '(per Symmetrie gilt dasselbe f\u00fcr jede andere T\u00fcr). ' +
+    'Der Moderator \u00f6ffnet danach ' + goatTxt + ', sodass genau eine alternative T\u00fcr bleibt.';
+}
+
+// ===================================================
+// UTILITIES
+// ===================================================
+function shuffle(arr) {
+  for (let i=arr.length-1; i>0; i--) {
+    const j=Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]]=[arr[j],arr[i]];
+  }
+  return arr;
+}
+function fmtPct(v) { return (v*100).toFixed(1).replace('.',','); }
+</script>
+</body>
+</html>

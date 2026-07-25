@@ -1,0 +1,1387 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gleichungswaage – Lineare Gleichungen lösen</title>
+<style>
+  body{font-family:Calibri,Arial,sans-serif;display:flex;flex-direction:column;min-height:100vh;margin:0;padding:0 2%;}
+  h1{margin:12px 0 4px 0;}
+  button{background-color:#4CAF50;color:#fff;border:none;padding:10px 20px;font-size:12px;margin:4px 2px;border-radius:5px;cursor:pointer;}
+  button:disabled{background:#9e9e9e;cursor:default;}
+  button:focus-visible{outline:3px solid #1b5e20;outline-offset:2px;}
+  details{border:2px solid #000;margin-bottom:8px;padding:4px 8px;background:#fff;}
+  summary{font-weight:bold;display:block;cursor:pointer;}
+  summary::before{content:'▶️';display:inline-block;margin-right:6px;transition:transform .15s;}
+  details[open] summary::before{transform:rotate(90deg);}
+  #setDetails[open] summary{margin-bottom:12px;}
+  .form-block{border:1px solid black;padding:6px;margin-bottom:10px;}
+  .form-block b{display:block;margin-bottom:4px;}
+  label{margin-right:12px;white-space:nowrap;}
+  select,input[type=text]{font-family:inherit;font-size:14px;padding:4px;border:1px solid #888;border-radius:4px;}
+  .row{margin:5px 0;display:flex;flex-wrap:wrap;align-items:center;gap:6px;}
+
+  /* Radios geordnet */
+  .optgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:3px 10px;}
+  .optgrid label{margin:0;white-space:nowrap;font-size:14px;}
+
+  /* Segment-Schalter */
+  .seg{display:inline-flex;border:1.5px solid #2e7d32;border-radius:6px;overflow:hidden;}
+  .seg label{margin:0;padding:0;}
+  .seg input{display:none;}
+  .seg span,.seg button{display:inline-block;padding:7px 12px;background:#fff;color:#2e7d32;font-size:13px;cursor:pointer;border:none;border-radius:0;margin:0;}
+  .seg label+label span,.seg button+button{border-left:1.5px solid #2e7d32;}
+  .seg input:checked+span,.seg button.active{background:#4CAF50;color:#fff;}
+  .ghost{background:#fff;color:#2e7d32;border:1.5px solid #2e7d32;}
+
+  /* Kippschalter */
+  .sw{display:inline-flex;align-items:center;gap:7px;cursor:pointer;font-size:13px;font-weight:bold;margin:0;--acc:#4CAF50;color:#1b5e20;}
+  .sw input{position:absolute;opacity:0;width:0;height:0;}
+  .sw .tr{width:36px;height:19px;border-radius:10px;background:#c6c6c6;position:relative;transition:background .2s;flex:none;}
+  .sw .tr::after{content:'';position:absolute;left:2px;top:2px;width:15px;height:15px;border-radius:50%;background:#fff;transition:left .2s;box-shadow:0 1px 2px rgba(0,0,0,.35);}
+  .sw input:checked+.tr{background:var(--acc);}
+  .sw input:checked+.tr::after{left:19px;}
+  .sw input:focus-visible+.tr{outline:3px solid #1b5e20;outline-offset:2px;}
+  .sw.amber{--acc:#b28704;color:#5d4300;}
+  .sw.blue{--acc:#1565c0;color:#0d47a1;}
+  @media (prefers-reduced-motion: reduce){.sw .tr,.sw .tr::after,.secbar .chev{transition:none;}}
+
+  /* Zahleneingabe mit Stepper */
+  .num{display:inline-flex;align-items:stretch;height:36px;box-sizing:border-box;border:1px solid #888;border-radius:5px;overflow:hidden;background:#fff;vertical-align:middle;}
+  .num input{border:none;width:58px;text-align:center;font-size:15px;padding:0 4px;height:100%;box-sizing:border-box;border-radius:0;}
+  .num input:focus{outline:none;background:#f1f8e9;}
+  .num .st{display:flex;flex-direction:column;border-left:1px solid #ccc;width:20px;}
+  .num .st button{flex:1;margin:0;padding:0;border:none;border-radius:0;background:#efefef;color:#444;font-size:8px;line-height:1;cursor:pointer;}
+  .num .st button:first-child{border-bottom:1px solid #ccc;}
+  .num .st button:hover{background:#dcedc8;}
+
+  /* Aufgabe & Arbeitsbereich */
+  #initEq{font-size:36px;font-weight:bold;text-align:center;margin:26px 0 22px 0;min-height:46px;}
+  #workArea{display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap;}
+  #colEq{flex:1 1 420px;min-width:320px;}
+  #colScale{flex:0 1 480px;min-width:300px;}
+  
+
+  #modeRow{justify-content:center;}
+  #feedback{font-size:18px;font-weight:bold;min-height:26px;margin:6px 0;text-align:center;}
+  .ok{color:#2e7d32;} .err{color:#c62828;} .info{color:#1565c0;font-weight:normal;}
+  #directPanel .row{justify-content:center;}
+  #stepsExtras{justify-content:center;display:none;}
+
+  /* Gleichungsgitter */
+  .eqgrid{display:none;grid-template-columns:repeat(7,max-content);row-gap:4px;align-items:center;font-size:22px;margin:10px auto;width:fit-content;max-width:100%;}
+  .eqgrid.on{display:grid;}
+  .eqgrid.noblocks{grid-template-columns:repeat(4,max-content);}
+  .c-l{justify-self:end;padding-right:14px;}
+  .c-r{justify-self:start;padding-left:14px;}
+  .c-op{margin-left:30px;min-height:1em;display:flex;align-items:center;}
+  .c-op.has{border-left:2.5px solid #000;padding-left:12px;}
+  .bl1,.bl2{display:flex;align-items:center;align-content:center;gap:3px;flex-wrap:wrap;max-width:120px;min-height:100%;box-sizing:border-box;}
+  .bl1{justify-self:end;justify-content:flex-end;margin-left:56px;}
+  .bl2{justify-self:start;justify-content:flex-start;}
+  .ble{box-sizing:border-box;min-height:100%;display:flex;align-items:center;}
+  .bl1.hasb{background:#fff8e1;border:1px solid #eddfae;border-right:none;border-radius:6px 0 0 6px;padding:3px 3px 3px 6px;}
+  .ble.hasb{background:#fff8e1;border-top:1px solid #eddfae;border-bottom:1px solid #eddfae;padding:3px 3px;font-weight:bold;}
+  .bl2.hasb{background:#fff8e1;border:1px solid #eddfae;border-left:none;border-radius:0 6px 6px 0;padding:3px 6px 3px 3px;}
+  #solGrid .bl1{margin-left:130px;}
+  .cur{font-weight:bold;}
+  .c-op.cur{min-height:42px;position:relative;}
+  .chkover{position:absolute;left:14px;top:50%;transform:translateY(-50%);}
+  .grey{color:#777;font-weight:normal;}
+  .done{color:#2e7d32;font-weight:bold;}
+  .fullrow{grid-column:1/-1;margin-top:4px;}
+  .probelbl{font-weight:bold;color:#0d47a1;margin-bottom:2px;}
+  .fr{display:inline-flex;flex-direction:column;text-align:center;vertical-align:middle;line-height:1.05;font-size:.7em;margin:0 1px;}
+  .fr b{font-weight:normal;padding:0 3px;}
+  .fr b:last-child{border-top:1.5px solid currentColor;}
+
+  /* Operations-UI in der aktuellen Zeile */
+  #opUI,#opUI2{display:inline-flex;align-items:center;gap:6px;}
+  .opbar2{display:inline-block;width:2.5px;height:34px;background:#000;margin:0 8px 0 14px;vertical-align:middle;}
+  #scaleEq{text-align:center;margin:0;padding:9px 0;}
+  #scaleEq .row{margin:0;}
+  #scaleSec>.row:first-child{margin:10px 0 12px 0;}
+  #scaleEqTxt{font-size:22px;font-weight:bold;}
+  #opBtn,#opBtn2{display:grid;grid-template-columns:1fr 1fr;width:48px;height:36px;padding:0;margin:0;background:#e8e8e8;color:#000;border:1px solid #999;border-radius:6px;overflow:hidden;}
+  #opBtn span,#opBtn2 span{display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:bold;line-height:1;}
+  #opBtn span:nth-child(1),#opBtn2 span:nth-child(1){border-right:1px solid #bbb;border-bottom:1px solid #bbb;}
+  #opBtn span:nth-child(2),#opBtn2 span:nth-child(2){border-bottom:1px solid #bbb;}
+  #opBtn span:nth-child(3),#opBtn2 span:nth-child(3){border-right:1px solid #bbb;}
+  #opBtn span.sel,#opBtn2 span.sel{background:#4CAF50;color:#fff;}
+  #opBig{display:none;position:fixed;z-index:60;grid-template-columns:1fr 1fr;background:#fff;border:2px solid #666;border-radius:14px;box-shadow:0 8px 24px rgba(0,0,0,.4);overflow:hidden;}
+  #opBig span{display:flex;align-items:center;justify-content:center;width:66px;height:66px;font-size:30px;font-weight:bold;cursor:pointer;user-select:none;}
+  #opBig span:nth-child(1),#opBig span:nth-child(3){border-right:1px solid #bbb;}
+  #opBig span:nth-child(1),#opBig span:nth-child(2){border-bottom:1px solid #bbb;}
+  #opBig span.sel{background:#4CAF50;color:#fff;}
+  #opBtn,#opBtn2{touch-action:manipulation;}
+  #appleBtn,#appleBtn2{display:none;background:#fff;border:1.5px solid #b28704;padding:0 8px;height:36px;font-size:16px;}
+  #btnApply,#btnApply2{height:36px;padding:0 14px;}
+
+  #segDiff{flex-wrap:wrap;}
+  /* Spezifische Anpassung nur für den #segDiff Schalter */
+  #segDiff button.bseg {
+    font-size: 11px;
+    padding: 5px 8px;
+  }
+  @keyframes hlPulse{0%{box-shadow:0 0 0 0 rgba(76,175,80,.85);}100%{box-shadow:0 0 0 14px rgba(76,175,80,0);}}
+  .hl{animation:hlPulse .8s ease-out 2;}
+  .sw.dis{opacity:.55;cursor:default;}
+
+  /* Waagen-Spalte: vertikale Leiste (breite Bildschirme) */
+  #scaleSlotTop{width:100%;}
+  #scaleSlotTop #colScale{width:100%;margin:6px 0;}
+  #colScale.vert{display:flex;flex-direction:row;align-items:stretch;gap:0;flex:0 0 auto;margin-left:auto;min-width:0;justify-content:flex-end;}
+  #colScale.vert #scaleBar{order:2;}
+  #colScale.vert #scaleSec{order:1;}
+  #colScale.vert #scaleBar{writing-mode:vertical-rl;width:auto;min-height:480px;padding:18px 12px;font-size:16px;margin:0;justify-content:flex-start;}
+  #colScale.vert #scaleBar .bicon{margin-top:auto;}
+  #colScale.vert #scaleSec{border-top:2px solid #b28704!important;border-radius:8px 0 0 8px;border-right:none;}
+  #colScale.vert #scaleSec.open{width:560px;}
+  #colScale.vert #scaleBar.open{border-radius:0 8px 8px 0;}
+
+  /* Bereichs-Öffner */
+  .secbar{display:flex;align-items:center;gap:10px;text-align:left;font-size:15px;font-weight:bold;padding:10px 14px;border-radius:8px;margin:12px 0 0 0;box-sizing:border-box;}
+  .secbar .chev{display:inline-block;transition:transform .15s;}
+  .secbar.open .chev{transform:rotate(90deg);}
+  #scaleBar{background:#fff8e1;color:#5d4300;border:2px solid #b28704;width:100%;margin-top:0;}
+  #solBar{background:#e3f2fd;color:#0d47a1;border:2px solid #1565c0;width:100%;}
+  .section{border-radius:0 0 8px 8px;border-top:none!important;padding:8px;display:none;box-sizing:border-box;}
+  .section.open{display:block;}
+  #scaleSec{border:2px solid #b28704;background:linear-gradient(#fffdf5,#fff);}
+  #solSec{border:2px solid #1565c0;background:#fafcff;}
+
+  /* Waage */
+  #scaleWrap{position:relative;width:100%;margin:0 auto;overflow:hidden;}
+  #scaleStage{position:relative;width:500px;height:246px;transform-origin:top left;}
+  #scaleStage svg{position:absolute;left:0;top:0;}
+  .pan{position:absolute;top:22px;height:146px;width:150px;display:flex;flex-wrap:wrap-reverse;align-content:flex-start;align-items:flex-end;justify-content:center;gap:2px;}
+  #panL{left:0;} #panR{left:350px;}
+
+  .blk{display:inline-flex;align-items:center;justify-content:center;border-radius:4px;font-weight:bold;font-size:14px;min-width:28px;height:30px;padding:0 4px;box-shadow:0 1px 1px rgba(0,0,0,.3);box-sizing:border-box;transition:opacity .45s,transform .45s,min-width .45s,padding .45s;}
+  .blk .fr{font-size:.66em;}
+  .blk.w{min-width:40px;font-size:16px;}
+  .blk.m{height:22px;min-width:18px;font-size:11px;border-radius:3px;padding:0 3px;box-shadow:none;}
+  .blk.m .fr{font-size:.7em;}
+  .blk.var{background:#a5d6a7;border:1.5px solid #2e7d32;color:#1b5e20;}
+  .blk.wt{background:#ffe082;border:1.5px solid #b28704;color:#5d4300;}
+  .blk.neg{background:#ffcdd2;border-style:dashed;border-color:#c62828;color:#b71c1c;}
+  .blk.z{background:#f5f5f5;border:1.5px dashed #aaa;color:#888;}
+  .blk.in,.blk.out{opacity:0;transform:scale(.2);min-width:0;padding:0;margin:0;border-width:0;}
+  @media (prefers-reduced-motion: reduce){.blk{transition:none;}}
+  .beq-eq{font-weight:bold;margin:0 4px;}
+
+  .scaleLegend{font-size:12px;color:#555;text-align:center;margin:2px 0 6px 0;}
+  #manip{border-top:1px dashed #b28704;margin-top:6px;padding-top:6px;}
+  #manip .row{justify-content:center;}
+  .blkbtn{font-weight:bold;font-size:15px;min-width:44px;height:36px;border-radius:5px;padding:0 8px;box-shadow:0 1px 1px rgba(0,0,0,.3);}
+  .blkbtn.var{background:#a5d6a7;border:1.5px solid #2e7d32;color:#1b5e20;}
+  .blkbtn.wt{background:#ffe082;border:1.5px solid #b28704;color:#5d4300;}
+  .blkbtn.opb{background:#e0e0e0;border:1.5px solid #777;color:#000;}
+
+  #solHead{justify-content:flex-start;gap:18px;}
+
+  #lobby-spacer {
+      flex: 1 1 0;
+      min-height: 0;
+  }
+  .site-footer {
+      width: 100%; box-sizing: border-box; padding: 15px 15px;
+      border-top: 1px solid #ccc; margin-top: 4px; margin-bottom: 0px;
+      font-family: sans-serif; font-size: 0.6em; color: #333333d8;
+  }
+  .footer-content {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      margin: 0 auto;
+  }
+  .footer-content > :first-child {
+      justify-self: start;
+  }
+  .footer-content > :nth-child(2) {
+      justify-self: center;
+  }
+  .footer-content > :last-child {
+      justify-self: end;
+  }
+  .footer-topic a {
+      color: inherit;
+      text-decoration: underline;
+  }
+
+  @media (max-width:1150px){
+    .bl1{margin-left:26px;}
+    #solGrid .bl1{margin-left:40px;}
+  }
+
+  /* schmale Bildschirme: kompakte Bedienleiste, keine Mindestbreiten */
+  @media (max-width:780px){
+    #colEq,#colScale{min-width:0;}
+    body{padding:0 8px;}
+    .eqgrid{font-size:20px;margin:8px auto;}
+    .c-l{padding-right:8px;} .c-r{padding-left:8px;}
+    .c-op{margin-left:12px;}
+    .c-op.has{padding-left:8px;}
+    .chkover{left:6px;}
+    #opUI,#opUI2{gap:4px;flex-wrap:nowrap;}
+    #opBtn,#opBtn2{width:2.2em;height:1.8em;}
+    #opBtn span,#opBtn2 span,#opBtn2 span{font-size:.46em;}
+    #opUI .num,#opUI2 .num{height:1.8em;}
+    #opUI .num input,#opUI2 .num input{width:2em;font-size:.66em;padding:0 2px;}
+    #opUI .num .st,#opUI2 .num .st{width:.8em;}
+    #btnApply,#btnApply2{height:1.8em;padding:0 .45em;font-size:.6em;}
+    #appleBtn,#appleBtn2{height:1.8em;padding:0 .3em;font-size:.7em;}
+  }
+
+  @media (max-width:520px){
+    #initEq{font-size:24px;}
+    .eqgrid{font-size:17px;}
+    button{font-size:13px;padding:10px 12px;}
+    .c-op{margin-left:8px;}
+    #manip .row{gap:4px;}
+    .blkbtn{min-width:38px;padding:0 6px;}
+  }
+</style>
+</head>
+<body>
+<h1>Gleichungswaage</h1>
+<p style="margin-top:0;">Lineare Gleichungen lösen – mit Waagen-Modell.</p>
+
+<details id="setDetails">
+  <summary>Einstellungen</summary>
+  <div id="setBody">
+  <div class="form-block">
+    <label>Variablenname:
+      <select id="setVar">
+        <option value="x">x</option>
+        <option value="a">a</option>
+        <option value="apple">🍎 (Apfel)</option>
+        <option value="rand">zufälliger Buchstabe</option>
+      </select>
+    </label>
+  </div>
+  <div class="form-block"><b>Koeffizienten</b><div class="optgrid" id="grpCoef"></div></div>
+  <div class="form-block"><b>Summanden</b><div class="optgrid" id="grpConst"></div></div>
+  <div class="form-block"><b>Lösungen</b><div class="optgrid" id="grpSol"></div></div>
+  </div>
+</details>
+
+<div class="row" style="justify-content:center;">
+  <span style="font-size:13px;">Variable steht:</span>
+  <span class="seg" id="segSides">
+    <label><input type="radio" name="sides" value="one"><span>nur auf einer Seite</span></label>
+    <label><input type="radio" name="sides" value="rand" checked><span>zufällig</span></label>
+    <label><input type="radio" name="sides" value="both"><span>auf beiden Seiten</span></label>
+  </span>
+</div>
+<div class="row" style="justify-content:center;">
+  <span class="seg" id="segDiff">
+    <button data-lv="intro" class="bseg">Einführung</button>
+    <button data-lv="easy" class="bseg">Einfach</button>
+    <button data-lv="mid" class="bseg active">Mittel</button>
+    <button data-lv="hard" class="bseg">Schwieriger</button>
+    <button data-lv="chall" class="bseg">Herausforderung</button>
+    <button data-lv="ind" class="bseg">Individuell</button>
+  </span>
+</div>
+<div class="row" style="justify-content:center;">
+  <button id="btnNew">Neue zufällige Aufgabe</button>
+  <button id="btnManual" class="ghost">Manuelle Aufgabe</button>
+</div>
+<div class="row" id="manRow" style="display:none;justify-content:center;">
+  <input type="text" id="manInput" size="24" placeholder="z. B. 3x + 4 = x + 10">
+  <button id="btnParse">Übernehmen</button>
+</div>
+
+<div id="initEq"></div>
+
+<div id="scaleSlotTop"></div>
+
+<div id="workArea">
+  <div id="colEq">
+    <div class="row" id="modeRow">
+      <span class="seg">
+        <button id="modeDirect">Direkt lösen</button>
+        <button id="modeSteps" class="active">Schritt für Schritt</button>
+      </span>
+      <button id="btnHint" class="ghost">Tipp</button>
+    </div>
+    <div class="eqgrid on" id="workGrid"></div>
+    <div class="row" id="stepsExtras">
+      <label class="sw"><input type="checkbox" id="detChkA"><span class="tr"></span> ausführliche Zwischenschritte</label>
+      <button id="btnUndo" style="background:#e0e0e0;color:#000;">↩ Rückgängig</button>
+    </div>
+    <div id="directPanel">
+      <div class="row">
+        <span id="directLbl" style="font-size:22px;"></span>
+        <input type="text" id="directInput" size="8" placeholder="z. B. 3 oder 1/2">
+        <button id="btnCheck">Prüfen</button>
+      </div>
+    </div>
+    <div id="feedback"></div>
+  </div>
+
+  <div id="colScale">
+    <button class="secbar" id="scaleBar"><span class="chev">▶</span> Waagen-Modell <span style="font-weight:normal;font-size:13px;">(ein-/ausblenden)</span> <span class="bicon">⚖️</span></button>
+    <div class="section" id="scaleSec">
+      <div class="row" style="justify-content:center;gap:16px;">
+        <label class="sw amber"><input type="checkbox" id="grpChk"><span class="tr"></span> Vielfache zusammenfassen</label>
+        <label class="sw amber"><input type="checkbox" id="animChk"><span class="tr"></span> Animationen</label>
+      </div>
+      <div id="scaleEq" style="display:none;">
+        <div class="row" style="justify-content:center;">
+          <span id="scaleEqTxt"></span>
+          <span class="opbar2" id="scaleOpBar"></span>
+          <span id="opUI2">
+            <button id="opBtn2" type="button" title="Rechenzeichen wählen">
+              <span data-op="+">+</span><span data-op="-" class="sel">−</span><span data-op="*">·</span><span data-op="/">:</span>
+            </button>
+            <span class="num"><input type="text" id="stepInput2" placeholder="z. B. 4"><span class="st"><button type="button" data-d="1">▲</button><button type="button" data-d="-1">▼</button></span></span>
+            <button id="appleBtn2" type="button" title="Apfel einfügen">🍎</button>
+            <button id="btnApply2" type="button">Anwenden</button>
+          </span>
+        </div>
+      </div>
+      <div id="scaleWrap">
+        <div id="scaleStage">
+          <svg width="500" height="246" viewBox="0 0 500 246" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <rect x="243" y="44" width="14" height="180" fill="#8d6e63"/>
+            <rect x="185" y="224" width="130" height="12" rx="6" fill="#6d4c41"/>
+            <line id="strL1" x1="0" y1="0" x2="0" y2="0" stroke="#a1887f" stroke-width="2"/>
+            <line id="strL2" x1="0" y1="0" x2="0" y2="0" stroke="#a1887f" stroke-width="2"/>
+            <line id="strR1" x1="0" y1="0" x2="0" y2="0" stroke="#a1887f" stroke-width="2"/>
+            <line id="strR2" x1="0" y1="0" x2="0" y2="0" stroke="#a1887f" stroke-width="2"/>
+            <line id="beamLn" x1="75" y1="44" x2="425" y2="44" stroke="#6d4c41" stroke-width="10" stroke-linecap="round"/>
+            <circle cx="250" cy="44" r="9" fill="#4e342e"/>
+            <rect x="0" y="168" width="150" height="9" rx="3" fill="#5d4037"/>
+            <rect x="350" y="168" width="150" height="9" rx="3" fill="#5d4037"/>
+          </svg>
+          <div class="pan" id="panL"></div>
+          <div class="pan" id="panR"></div>
+        </div>
+      </div>
+      <div class="scaleLegend">grün = Variable &nbsp;·&nbsp; gelb = Gewichte &nbsp;·&nbsp; rot gestrichelt = negative Blöcke</div>
+      <div id="manip">
+        <div class="row"><b>Beide Seiten verändern:</b></div>
+        <div class="row">
+          <label>Anzahl</label>
+          <span class="num"><input type="text" id="mAnz" value="1"><span class="st"><button type="button" data-d="1">▲</button><button type="button" data-d="-1">▼</button></span></span>
+          <button class="blkbtn var" id="mAddV">+ x</button>
+          <button class="blkbtn var" id="mSubV">− x</button>
+          <button class="blkbtn wt" id="mAddC">+ 1</button>
+          <button class="blkbtn wt" id="mSubC">− 1</button>
+        </div>
+        <div class="row">
+          <label>Vervielfachen:</label>
+          <button class="blkbtn opb" id="mMul">·</button>
+          <button class="blkbtn opb" id="mDiv">:</button>
+          <span class="num"><input type="text" id="mFac" value="2"><span class="st"><button type="button" data-d="1">▲</button><button type="button" data-d="-1">▼</button></span></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<button class="secbar" id="solBar"><span class="chev">▶</span> 📋 Lösungsweg <span style="font-weight:normal;font-size:13px;">(ein-/ausblenden)</span></button>
+<div class="section" id="solSec">
+  <div class="row" id="solHead">
+    <label class="sw blue"><input type="checkbox" id="detChkB"><span class="tr"></span> ausführliche Zwischenschritte</label>
+  </div>
+  <div class="eqgrid on" id="solGrid"></div>
+  <div class="row" style="margin-top:10px;border-top:1px dashed #90caf9;padding-top:8px;">
+    <label class="sw blue"><input type="checkbox" id="probeChk"><span class="tr"></span> Probe anzeigen</label>
+  </div>
+  <div id="probeLbl" class="probelbl" style="display:none;"></div>
+  <div class="eqgrid on" id="probeGrid"></div>
+</div>
+
+<div id="opBig">
+  <span data-op="+">+</span><span data-op="-">−</span><span data-op="*">·</span><span data-op="/">:</span>
+</div>
+
+<div id="opDock" style="display:none;">
+  <span id="opUI">
+    <button id="opBtn" type="button" title="Rechenzeichen wählen">
+      <span data-op="+">+</span><span data-op="-" class="sel">−</span><span data-op="*">·</span><span data-op="/">:</span>
+    </button>
+    <span class="num"><input type="text" id="stepInput" placeholder="z. B. 4"><span class="st"><button type="button" data-d="1">▲</button><button type="button" data-d="-1">▼</button></span></span>
+    <button id="appleBtn" type="button" title="Apfel einfügen">🍎</button>
+    <button id="btnApply" type="button">Anwenden</button>
+  </span>
+</div>
+
+<div id="lobby-spacer"></div>
+<footer class="site-footer">
+  <div class="footer-content">
+      M.&nbsp;Koch
+      <span class="footer-topic"><a href="./index.html">Mathe-Tools</a></span>
+      <span class="footer-update">Last updated:&nbsp;<span id="last-update">...</span></span>
+  </div>
+</footer>
+<script src="last-update.js" defer></script>
+
+<script>
+'use strict';
+/* ================= Brüche ================= */
+function gcd(a,b){a=Math.abs(a);b=Math.abs(b);while(b){const t=a%b;a=b;b=t;}return a||1;}
+function fr(n,d){d=(d===undefined)?1:d;if(!Number.isFinite(n)||!Number.isFinite(d))throw new Error('nan');if(d===0)throw new Error('div0');if(d<0){n=-n;d=-d;}const g=gcd(n,d);return {n:n/g,d:d/g};}
+function fAdd(x,y){return fr(x.n*y.d+y.n*x.d,x.d*y.d);}
+function fSub(x,y){return fr(x.n*y.d-y.n*x.d,x.d*y.d);}
+function fMul(x,y){return fr(x.n*y.n,x.d*y.d);}
+function fDiv(x,y){if(y.n===0)throw new Error('div0');return fr(x.n*y.d,x.d*y.n);}
+function fNeg(x){return fr(-x.n,x.d);}
+function fVal(x){return x.n/x.d;}
+function fEq(x,y){return x.n===y.n&&x.d===y.d;}
+function fZero(x){return x.n===0;}
+function fAbs(x){return fr(Math.abs(x.n),x.d);}
+function fHTML(x){
+  if(x.d===1)return String(x.n).replace('-','−');
+  let dd=0;
+  if(x.d===10||x.d===100)dd=x.d;
+  else if(S.decPref&&10%x.d===0)dd=10;
+  else if(S.decPref&&100%x.d===0)dd=100;
+  if(dd){
+    const s=x.n<0?'−':'';const a=Math.abs(x.n)*(dd/x.d);
+    return s+Math.floor(a/dd)+','+String(a%dd).padStart(dd===100?2:1,'0');
+  }
+  const s=x.n<0?'−':'';
+  return s+'<span class="fr"><b>'+Math.abs(x.n)+'</b><b>'+x.d+'</b></span>';
+}
+function fAbsHTML(x){return fHTML(fAbs(x));}
+function fTxt(x){return x.d===1?String(x.n):x.n+'/'+x.d;}
+
+/* ================= Zustand ================= */
+const S={
+  a:fr(1),b:fr(0),c:fr(0),d:fr(6),v:'x',
+  init:{a:fr(1),b:fr(0),c:fr(0),d:fr(6)},
+  hist:[],ops:[],solved:false,
+  group:false,detail:false,probe:false,decPref:false,anim:true,
+  mode:'steps',scaleOpen:false,solOpen:false
+};
+let curOp='-';
+const $=id=>document.getElementById(id);
+const reducedMotion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ================= Einstellungs-Optionen ================= */
+const OPTS=[
+ ['pk','positiv klein'],['p','positiv'],['gk','ganzzahlig klein'],
+ ['gm','ganzzahlig mittel'],['gg','ganzzahlig groß']
+];
+const HINTS={
+ coef:{pk:'(1–6)',p:'(1–12)',gk:'(−6…6)',gm:'(−12…12)',gg:'(bis ±100)'},
+ csum:{pk:'(0–10)',p:'(0–20)',gk:'(−10…10)',gm:'(−20…20)',gg:'(bis ±100)'},
+ sol:{pk:'(1–9)',p:'(0–20)',gk:'(−9…9)',gm:'(−20…20)',gg:'(bis ±100)'}
+};
+function buildRadios(containerId,name){
+  $(containerId).innerHTML=OPTS.map(([val,lbl])=>
+    '<label><input type="radio" name="'+name+'" value="'+val+'"'+(val==='pk'?' checked':'')+'> '+lbl+' '+HINTS[name][val]+'</label>'
+  ).join('')
+  +'<label><input type="checkbox" class="exchk" data-g="'+name+'" data-t="br"> zusätzlich Brüche</label>'
+  +'<label><input type="checkbox" class="exchk" data-g="'+name+'" data-t="kz"> zusätzlich Kommazahlen</label>';
+}
+function exOn(g,t){const e=document.querySelector('.exchk[data-g="'+g+'"][data-t="'+t+'"]');return e&&e.checked;}
+buildRadios('grpCoef','coef');buildRadios('grpConst','csum');buildRadios('grpSol','sol');
+function radioVal(name){return document.querySelector('input[name='+name+']:checked').value;}
+function setRadio(name,val){const el=document.querySelector('input[name='+name+'][value="'+val+'"]');if(el)el.checked=true;}
+
+/* ================= Zufall & Generatoren ================= */
+function pick(arr){return arr[Math.floor(Math.random()*arr.length)];}
+function rnd(min,max){return min+Math.floor(Math.random()*(max-min+1));}
+function nz(min,max){let n=0;while(n===0)n=rnd(min,max);return n;}
+function genFrac(maxV,signed){
+  const d=rnd(2,4);let n=rnd(1,maxV*d);
+  while(n%d===0)n=rnd(1,maxV*d);
+  let f=fr(n,d);if(signed&&Math.random()<0.5)f=fNeg(f);return f;
+}
+function genDec(maxTenths,signed){
+  let n=rnd(1,maxTenths);while(n%10===0)n=rnd(1,maxTenths);
+  let f=fr(n,10);if(signed&&Math.random()<0.5)f=fNeg(f);return f;
+}
+function genBase(group,opt){
+  if(group==='coef')switch(opt){
+    case 'pk':return fr(rnd(1,6));case 'p':return fr(rnd(1,12));
+    case 'gk':return fr(nz(-6,6));case 'gm':return fr(nz(-12,12));case 'gg':return fr(nz(-100,100));
+  }
+  if(group==='csum')switch(opt){
+    case 'pk':return fr(rnd(0,10));case 'p':return fr(rnd(0,20));
+    case 'gk':return fr(rnd(-10,10));case 'gm':return fr(rnd(-20,20));case 'gg':return fr(rnd(-100,100));
+  }
+  switch(opt){
+    case 'pk':return fr(rnd(1,9));case 'p':return fr(rnd(0,20));
+    case 'gk':return fr(rnd(-9,9));case 'gm':return fr(rnd(-20,20));case 'gg':return fr(rnd(-100,100));
+  }
+}
+function genValue(group){
+  const kinds=['base'];
+  if(exOn(group,'br'))kinds.push('br');
+  if(exOn(group,'kz'))kinds.push('kz');
+  const kind=pick(kinds);
+  if(kind==='br')return group==='coef'?genFrac(6,false):group==='csum'?genFrac(10,false):genFrac(9,true);
+  if(kind==='kz')return group==='coef'?genDec(60,false):group==='csum'?genDec(100,false):genDec(99,true);
+  return genBase(group,radioVal(group));
+}
+function sumOK(f,tol){
+  const v=fVal(f),os=radioVal('csum');
+  let base=false;
+  switch(os){
+    case 'pk':base=f.d===1&&v>=0&&v<=10*tol;break;
+    case 'p':base=f.d===1&&v>=0&&v<=20*tol;break;
+    case 'gk':base=f.d===1&&Math.abs(v)<=10*tol;break;
+    case 'gm':base=f.d===1&&Math.abs(v)<=20*tol;break;
+    case 'gg':base=f.d===1&&Math.abs(v)<=100*tol;break;
+  }
+  if(base)return true;
+  if(exOn('csum','br')&&f.d<=12&&Math.abs(v)<=10*tol)return true;
+  if(exOn('csum','kz')&&10%f.d===0&&f.d>1&&Math.abs(v)<=10*tol)return true;
+  return false;
+}
+function genEquation(){
+  const sidesSet=radioVal('sides');
+  const both=(sidesSet==='both')||(sidesSet==='rand'&&Math.random()<0.5);
+  applyVarSetting(false);
+  S.decPref=exOn('coef','kz')||exOn('csum','kz')||exOn('sol','kz');
+  for(let t=0;t<900;t++){
+    const tol=t<500?1:(t<700?2:4);
+    let a=genValue('coef'), c=both?genValue('coef'):fr(0);
+    if(fEq(a,c))continue;
+    const x0=genValue('sol');
+    let b,d;
+    try{
+      if(Math.random()<0.5){                       /* b frei wählen, d prüfen */
+        b=genValue('csum');d=fAdd(fMul(fSub(a,c),x0),b);
+        if(!sumOK(d,tol))continue;
+      }else{                                       /* d frei wählen, b prüfen */
+        d=genValue('csum');b=fSub(d,fMul(fSub(a,c),x0));
+        if(!sumOK(b,tol))continue;
+      }
+    }catch(e){continue;}
+    if(!both&&Math.random()<0.5){const ta=a;a=c;c=ta;const tb=b;b=d;d=tb;}
+    Object.assign(S,{a,b,c,d});
+    return true;
+  }
+  return false;
+}
+function applyVarSetting(rerender){
+  const vSet=$('setVar').value;
+  const nv=(vSet==='apple')?'🍎':(vSet==='rand'?pick('abcdefghkmnpqrstuvwyz'.split('')):vSet);
+  if(nv!==S.v){S.v=nv;}
+  const ad=(S.v==='🍎')?'inline-block':'none';
+  $('appleBtn').style.display=ad;$('appleBtn2').style.display=ad;
+  $('mAddV').textContent='+ '+S.v;$('mSubV').textContent='− '+S.v;
+  if(rerender){renderInit();renderAll(false);saveURL();}
+}
+
+/* ================= Schwierigkeitsstufen ================= */
+const LEVELS={
+  intro:{radio:'pk',ex:{}},
+  easy:{radio:'p',ex:{}},
+  mid:{radio:'gm',ex:{}},
+  hard:{radio:'gg',ex:{sol:{br:true,kz:true}}},                       /* nur die Lösungen dürfen krumm sein */
+  chall:{radio:'gg',ex:{coef:{br:true,kz:true},csum:{br:true,kz:true},sol:{br:true,kz:true}}}
+};
+let curLevel='mid',prevSides=null,progLevel=false;
+function setSegDiff(lv){document.querySelectorAll('#segDiff button').forEach(b=>b.classList.toggle('active',b.dataset.lv===lv));}
+function flashSettings(){
+  ['grpCoef','grpConst','grpSol'].forEach(id=>{
+    const blk=$(id).closest('.form-block');
+    blk.classList.remove('hl');void blk.offsetWidth;blk.classList.add('hl');
+    setTimeout(()=>blk.classList.remove('hl'),1800);
+  });
+}
+function openSettings(cb){
+  const d=$('setDetails'),body=$('setBody');
+  if(d.open||reducedMotion){d.open=true;if(cb)setTimeout(cb,60);return;}
+  d.open=true;
+  const h=body.scrollHeight;
+  body.style.overflow='hidden';body.style.height='0px';body.style.opacity='.3';
+  requestAnimationFrame(()=>{
+    body.style.transition='height .5s ease,opacity .5s ease';
+    body.style.height=h+'px';body.style.opacity='1';
+  });
+  setTimeout(()=>{
+    body.style.transition='';body.style.height='';body.style.overflow='';body.style.opacity='';
+    if(cb)cb();
+  },520);
+}
+function applyLevel(lv,fromUser){
+  if(lv==='ind'){
+    curLevel='ind';setSegDiff('ind');
+    if(fromUser)openSettings(flashSettings);
+    saveURL();return;
+  }
+  progLevel=true;
+  const L=LEVELS[lv];
+  ['coef','csum','sol'].forEach(g=>setRadio(g,L.radio));
+  document.querySelectorAll('.exchk').forEach(c=>{const gx=L.ex[c.dataset.g]||{};c.checked=!!gx[c.dataset.t];});
+  if(lv==='intro'){
+    if(curLevel!=='intro')prevSides=radioVal('sides');
+    setRadio('sides','one');
+  }else if(curLevel==='intro'&&prevSides){
+    setRadio('sides',prevSides);
+  }
+  curLevel=lv;progLevel=false;setSegDiff(lv);saveURL();
+}
+function manualSettingChange(){
+  if(!progLevel&&curLevel!=='ind'){curLevel='ind';setSegDiff('ind');}
+  saveURL();
+}
+
+/* ================= Terme / Darstellung ================= */
+function varHTML(coef,v){
+  if(fZero(coef))return null;
+  const one=(Math.abs(coef.n)===coef.d);
+  return {neg:coef.n<0,html:(one?'':fAbsHTML(coef))+v};
+}
+function constHTMLp(k){if(fZero(k))return null;return {neg:k.n<0,html:fAbsHTML(k)};}
+function sideHTML(coef,k,v){
+  const parts=[varHTML(coef,v),constHTMLp(k)].filter(Boolean);
+  if(parts.length===0)return '0';
+  let out='';
+  parts.forEach((p,i)=>{out+=(i===0)?((p.neg?'−':'')+p.html):(' '+(p.neg?'−':'+')+' '+p.html);});
+  return out;
+}
+function termHTML(t){
+  const one=t.isVar&&Math.abs(t.k.n)===t.k.d;
+  const body=(one?'':fAbsHTML(t.k))+(t.isVar?S.v:'');
+  return t.k.n<0?'(−'+body+')':body;
+}
+function sideTxt(coef,k,v){
+  const parts=[];
+  if(!fZero(coef)){
+    const abs=fAbs(coef),one=fEq(abs,fr(1));
+    parts.push({neg:coef.n<0,t:(one?'':fTxt(abs))+v});
+  }
+  if(!fZero(k))parts.push({neg:k.n<0,t:fTxt(fAbs(k))});
+  if(parts.length===0)return '0';
+  return parts.map((p,i)=>(i===0?(p.neg?'-':''):(p.neg?'-':'+'))+p.t).join('');
+}
+function eqTxt(){return sideTxt(S.a,S.b,S.v)+'='+sideTxt(S.c,S.d,S.v);}
+
+/* ================= Parser ================= */
+function parseCoef(str){
+  if(str===''||str==='+')return fr(1);
+  if(str==='-')return fr(-1);
+  const sign=str[0]==='-'?-1:1;
+  str=str.replace(/^[+-]/,'');
+  if(str.includes('/')){const [p,q]=str.split('/');return fr(sign*parseInt(p,10),parseInt(q,10));}
+  if(str.includes('.')){const dec=str.split('.')[1].length;return fr(sign*Math.round(parseFloat(str)*10**dec),10**dec);}
+  return fr(sign*parseInt(str,10));
+}
+function parseSide(s,ref){
+  s=s.replace(/\s+/g,'').replace(/−/g,'-').replace(/,/g,'.').replace(/[*·]/g,'');
+  if(s==='')throw new Error('Eine Seite der Gleichung ist leer.');
+  let a=fr(0),b=fr(0);
+  const re=/([+-]?)(\d+(?:\.\d+)?(?:\/\d+)?)?((?:[A-Za-zÄÖÜäöüß])|🍎)?/uy;
+  let pos=0;
+  while(pos<s.length){
+    re.lastIndex=pos;
+    const m=re.exec(s);
+    if(!m||m[0]===''){throw new Error('Konnte „'+s.slice(pos)+'“ nicht lesen.');}
+    const [full,sg,num,vch]=m;
+    if(!num&&!vch)throw new Error('Konnte „'+s.slice(pos)+'“ nicht lesen.');
+    const k=parseCoef(sg+(num||''));
+    if(vch){
+      if(ref.v&&ref.v!==vch)throw new Error('Bitte nur eine Variable verwenden ('+ref.v+' und '+vch+' gefunden).');
+      ref.v=vch;a=fAdd(a,k);
+    }else b=fAdd(b,k);
+    pos+=full.length;
+  }
+  return {a,b};
+}
+function parseEquation(str){
+  const parts=str.split('=');
+  if(parts.length!==2)throw new Error('Die Gleichung braucht genau ein „=“.');
+  const ref={v:null};
+  const L=parseSide(parts[0],ref),R=parseSide(parts[1],ref);
+  if(!ref.v)throw new Error('Es kommt keine Variable vor.');
+  Object.assign(S,{a:L.a,b:L.b,c:R.a,d:R.b,v:ref.v});
+  S.decPref=/[.,]\d/.test(str);
+  syncVarSelect();
+}
+function syncVarSelect(){
+  const sel=$('setVar');
+  if(S.v==='🍎')sel.value='apple';
+  else if(S.v==='x'||S.v==='a')sel.value=S.v;
+  else sel.value='rand';
+  const ad2=(S.v==='🍎')?'inline-block':'none';
+  $('appleBtn').style.display=ad2;$('appleBtn2').style.display=ad2;
+  $('mAddV').textContent='+ '+S.v;$('mSubV').textContent='− '+S.v;
+}
+
+/* ================= Analyse ================= */
+function solutionInfoSt(st){
+  const diff=fSub(st.a,st.c);
+  if(fZero(diff))return fEq(st.b,st.d)?{type:'all'}:{type:'none'};
+  return {type:'one',x0:fDiv(fSub(st.d,st.b),diff)};
+}
+function solutionInfo(){return solutionInfoSt(S);}
+function isFinished(){
+  const leftIso=fEq(S.a,fr(1))&&fZero(S.b)&&fZero(S.c);
+  const rightIso=fEq(S.c,fr(1))&&fZero(S.d)&&fZero(S.a);
+  return leftIso||rightIso;
+}
+function say(msg,cls){$('feedback').innerHTML=msg?'<span class="'+(cls||'info')+'">'+msg+'</span>':'';}
+
+/* ================= Blöcke ================= */
+function blocksList(coef,k,v){
+  const arr=[];const grp=effGroup();
+  function push(coef,base){
+    if(fZero(coef))return;
+    const neg=coef.n<0,abs=fAbs(coef),cls=base+(neg?' neg':'');
+    const ip=Math.trunc(abs.n/abs.d),rest=fSub(abs,fr(ip));
+    const unit=base==='var'?v:'1';
+    if(grp||ip>15){
+      const one=(base==='var')&&fEq(abs,fr(1));
+      arr.push({cls,wide:true,label:(neg?'−':'')+(one?'':fAbsHTML(abs))+(base==='var'?v:''),key:cls+'|g'+fTxt(coef)});
+    }else{
+      for(let i=0;i<ip;i++)arr.push({cls,label:(neg?'−':'')+unit,key:cls+'|u'});
+      if(!fZero(rest))arr.push({cls,label:(neg?'−':'')+fAbsHTML(rest)+(base==='var'?v:''),key:cls+'|r'+fTxt(rest)});
+    }
+  }
+  push(coef,'var');push(k,'wt');
+  return arr;
+}
+function blockHTML(b,mini,extra){
+  return '<span class="blk '+b.cls+(b.wide?' w':'')+(mini?' m':'')+(extra?' '+extra:'')+'" data-k="'+b.key+'">'+b.label+'</span>';
+}
+function blocksSideMini(coef,k){
+  const l=blocksList(coef,k,S.v);
+  return l.length?l.map(b=>blockHTML(b,true)).join(''):'<span class="blk z m">0</span>';
+}
+function addBlockCells(grid,st,withBlocks,cls){
+  if(grid.classList.contains('noblocks'))return;
+  const c=cls||'';
+  grid.appendChild(mk('bl1 '+c+(withBlocks?' hasb':''),withBlocks?blocksSideMini(st.a,st.b):''));
+  grid.appendChild(mk('ble '+c+(withBlocks?' hasb':''),withBlocks?'=':''));
+  grid.appendChild(mk('bl2 '+c+(withBlocks?' hasb':''),withBlocks?blocksSideMini(st.c,st.d):''));
+}
+
+/* ================= Waage ================= */
+const GEO={W:500,H:246,px:250,py:44,L:175,plateY:168,plateW:150};
+let curTilt=0,animId=null;
+let panKeys={L:null,R:null};
+function setTilt(deg){
+  curTilt=deg;
+  const r=deg*Math.PI/180,{px,py,L,plateY,plateW,W}=GEO;
+  const xL=px-L*Math.cos(r),yL=py-L*Math.sin(r);
+  const xR=px+L*Math.cos(r),yR=py+L*Math.sin(r);
+  const set=(id,x1,y1,x2,y2)=>{const e=$(id);e.setAttribute('x1',x1);e.setAttribute('y1',y1);e.setAttribute('x2',x2);e.setAttribute('y2',y2);};
+  set('beamLn',xL,yL,xR,yR);
+  set('strL1',xL,yL,3,plateY);set('strL2',xL,yL,plateW-3,plateY);
+  set('strR1',xR,yR,W-plateW+3,plateY);set('strR2',xR,yR,W-3,plateY);
+}
+function tiltTo(target,dur,cb){
+  if(animId)cancelAnimationFrame(animId);
+  if(reducedMotion){setTilt(target);if(cb)cb();return;}
+  const from=curTilt,t0=performance.now();
+  function f(t){
+    let p=Math.min(1,(t-t0)/(dur||400));p=1-Math.pow(1-p,3);
+    setTilt(from+(target-from)*p);
+    if(p<1)animId=requestAnimationFrame(f);else if(cb)cb();
+  }
+  animId=requestAnimationFrame(f);
+}
+function wobble(){tiltTo(2.2,160,()=>tiltTo(-1.6,160,()=>tiltTo(0.8,140,()=>tiltTo(0,140))));}
+function fitScale(){
+  const wrap=$('scaleWrap');if(!S.scaleOpen)return;
+  const s=Math.min(1,wrap.clientWidth/GEO.W);
+  const st=$('scaleStage');
+  st.style.transform='scale('+s+')';
+  st.style.marginLeft=Math.max(0,(wrap.clientWidth-GEO.W*s)/2)+'px';
+  wrap.style.height=(GEO.H*s)+'px';
+}
+window.addEventListener('resize',()=>{fitScale();fitGrids();});
+function diffPan(el,newL,animate){
+  if(!animate||reducedMotion){
+    el.innerHTML=newL.map(b=>blockHTML(b,false)).join('');
+    return;
+  }
+  const cnt=list=>{const m={};list.forEach(b=>m[b.key]=(m[b.key]||0)+1);return m;};
+  const kids=[...el.children].filter(c=>!c.classList.contains('out'));
+  const oldC={};kids.forEach(c=>oldC[c.dataset.k]=(oldC[c.dataset.k]||0)+1);
+  const newC=cnt(newL);
+  /* entfernen */
+  const excess={};Object.keys(oldC).forEach(k=>{const e=oldC[k]-(newC[k]||0);if(e>0)excess[k]=e;});
+  for(let i=kids.length-1;i>=0;i--){
+    const c=kids[i],k=c.dataset.k;
+    if(excess[k]>0){excess[k]--;c.classList.add('out');setTimeout(()=>c.remove(),480);}
+  }
+  /* hinzufügen */
+  Object.keys(newC).forEach(k=>{
+    const add=newC[k]-(oldC[k]||0);
+    if(add<=0)return;
+    const proto=newL.find(b=>b.key===k);
+    for(let i=0;i<add;i++){
+      el.insertAdjacentHTML('beforeend',blockHTML(proto,false,'in'));
+      const nEl=el.lastElementChild;
+      requestAnimationFrame(()=>requestAnimationFrame(()=>nEl.classList.remove('in')));
+    }
+  });
+}
+function bigNumbers(){
+  const big=f=>Math.trunc(fAbs(f).n/fAbs(f).d)>15;
+  return big(S.a)||big(S.b)||big(S.c)||big(S.d);
+}
+function effGroup(){return S.group||bigNumbers();}
+function autoGroupActive(){return !S.group&&bigNumbers();}
+function renderScale(animOps){
+  if(!S.scaleOpen)return;
+  const auto=autoGroupActive();
+  const chk=$('grpChk');
+  chk.checked=S.group||auto;
+  chk.disabled=auto;
+  chk.closest('.sw').classList.toggle('dis',auto);
+  const useAnim=S.anim&&animOps;
+  diffPan($('panL'),blocksList(S.a,S.b,S.v),useAnim);
+  diffPan($('panR'),blocksList(S.c,S.d,S.v),useAnim);
+  if(useAnim)wobble();
+}
+
+/* ================= Gleichungsgitter ================= */
+function mk(cls,html){const el=document.createElement('div');el.className=cls;el.innerHTML=html||'';return el;}
+function opSymbol(op){return {'+':'+','-':'−','*':'·','/':':'}[op];}
+function addRow(grid,st,op,cls,withBlocks){
+  grid.appendChild(mk('c-l '+(cls||''),sideHTML(st.a,st.b,S.v)));
+  grid.appendChild(mk('c-eq '+(cls||''),'='));
+  grid.appendChild(mk('c-r '+(cls||''),sideHTML(st.c,st.d,S.v)));
+  const opCell=mk('c-op'+(op?' has':''),op?opSymbol(op.op)+' '+termHTML(op.t):(cls==='done'?'<span class="done">✔</span>':''));
+  grid.appendChild(opCell);
+  addBlockCells(grid,st,withBlocks,cls);
+}
+function addIntermRow(grid,st,op){
+  const t=op.t,sym=opSymbol(op.op);
+  let lh,rh;
+  if(op.op==='+'||op.op==='-'){
+    const s=' '+sym+' '+termHTML(t);
+    lh=sideHTML(st.a,st.b,S.v)+s;rh=sideHTML(st.c,st.d,S.v)+s;
+  }else{
+    lh='('+sideHTML(st.a,st.b,S.v)+') '+sym+' '+termHTML(t);
+    rh='('+sideHTML(st.c,st.d,S.v)+') '+sym+' '+termHTML(t);
+  }
+  grid.appendChild(mk('c-l grey',lh));
+  grid.appendChild(mk('c-eq grey','='));
+  grid.appendChild(mk('c-r grey',rh));
+  grid.appendChild(mk('c-op',''));
+  addBlockCells(grid,st,false);
+}
+function gridContentWidth(g){
+  const l=g.getBoundingClientRect().left;
+  let w=0;
+  for(const k of g.children){const r=k.getBoundingClientRect();if(r.width)w=Math.max(w,r.right-l);}
+  return w;
+}
+function fitGrid(g){
+  if(!g||!g.classList.contains('on'))return;
+  g.style.fontSize='';
+  if(!g.classList.contains('noblocks'))return;   /* mit Blockspalten: Breite ist durch Breakpoints gesichert */
+  const avail=(g.parentElement?g.parentElement.clientWidth:0)-6;
+  if(avail<=0)return;
+  let fs=parseFloat(getComputedStyle(g).fontSize),guard=0;
+  while(gridContentWidth(g)>avail&&fs>11&&guard++<26){fs-=1;g.style.fontSize=fs+'px';}
+}
+function fitGrids(){['workGrid','solGrid','probeGrid'].forEach(id=>fitGrid($(id)));}
+
+function mergedGroups(){
+  const out=[];
+  for(let i=0;i<S.ops.length;i++){
+    const o=S.ops[i],last=out[out.length-1];
+    if(last&&(o.op==='+'||o.op==='-')&&last.op===o.op&&last.t.isVar===o.t.isVar){
+      last.t={k:fAdd(last.t.k,o.t.k),isVar:o.t.isVar};
+    }else out.push({i,op:o.op,t:{k:o.t.k,isVar:o.t.isVar}});
+  }
+  return out;
+}
+
+function renderGrid(newRowAnim){
+  const g=$('workGrid');
+  $('opDock').appendChild($('opUI'));           /* Bedienelemente parken */
+  g.innerHTML='';
+  const states=[...S.hist,{a:S.a,b:S.b,c:S.c,d:S.d}];
+  const wb=blocksInWork();
+  g.classList.toggle('noblocks',!wb);
+  mergedGroups().forEach(gr=>{
+    const o={op:gr.op,t:gr.t};
+    addRow(g,states[gr.i],o,'',wb);
+    if(S.detail)addIntermRow(g,states[gr.i],o);
+  });
+  /* aktuelle Zeile */
+  const cur=states[states.length-1];
+  g.appendChild(mk('c-l cur',sideHTML(cur.a,cur.b,S.v)));
+  g.appendChild(mk('c-eq cur','='));
+  g.appendChild(mk('c-r cur',sideHTML(cur.c,cur.d,S.v)));
+  const inSteps=(S.mode==='steps');
+  const opCell=mk('c-op cur'+(inSteps?' has':''),'');
+  if(inSteps){
+    const ui=$('opUI');
+    ui.style.visibility=S.solved?'hidden':'visible';
+    opCell.appendChild(ui);
+    if(S.solved)opCell.insertAdjacentHTML('beforeend','<span class="done chkover">✔</span>');
+  }else if(S.solved){
+    opCell.innerHTML='<span class="done">✔</span>';
+  }
+  g.appendChild(opCell);
+  addBlockCells(g,cur,wb,'cur');
+  if(wb&&newRowAnim&&S.anim&&!reducedMotion){
+    [...g.querySelectorAll('.bl1.cur .blk,.bl2.cur .blk')].forEach(b=>{
+      b.classList.add('in');
+      requestAnimationFrame(()=>requestAnimationFrame(()=>b.classList.remove('in')));
+    });
+  }
+  fitGrid(g);
+  updateScaleEq();
+}
+function updateScaleEq(){
+  const box=$('scaleEq');
+  const show=mqNarrow.matches&&S.scaleOpen;
+  box.style.display=show?'block':'none';
+  if(!show)return;
+  $('scaleEqTxt').innerHTML=sideHTML(S.a,S.b,S.v)+' = '+sideHTML(S.c,S.d,S.v)
+    +(S.solved?' <span class="done">✔</span>':'');
+  const steps=(S.mode==='steps')&&!S.solved;
+  $('scaleOpBar').style.display=steps?'inline-block':'none';
+  $('opUI2').style.display=steps?'inline-flex':'none';
+}
+
+/* ================= Operationen ================= */
+function doOp(op,t){
+  if(S.solved){say('Die Gleichung ist schon gelöst – hole dir eine neue Aufgabe.','info');return false;}
+  if((op==='*'||op==='/')&&t.isVar){say('Mit der Variablen wird hier nicht multipliziert oder dividiert.','err');return false;}
+  if(fZero(t.k)){say('0 verändert die Gleichung nicht.','err');return false;}
+  S.hist.push({a:S.a,b:S.b,c:S.c,d:S.d});
+  try{
+    if(op==='+'||op==='-'){
+      const k=(op==='-')?fNeg(t.k):t.k;
+      if(t.isVar){S.a=fAdd(S.a,k);S.c=fAdd(S.c,k);}
+      else{S.b=fAdd(S.b,k);S.d=fAdd(S.d,k);}
+    }else{
+      const f=(op==='*')?t.k:fDiv(fr(1),t.k);
+      S.a=fMul(S.a,f);S.b=fMul(S.b,f);S.c=fMul(S.c,f);S.d=fMul(S.d,f);
+    }
+  }catch(e){S.hist.pop();say('Durch 0 kann nicht geteilt werden.','err');return false;}
+  S.ops.push({op,t});
+  if(isFinished()){
+    S.solved=true;
+    say('Richtig umgeformt: '+S.v+' = '+fHTML(fZero(S.c)?S.d:S.b),'ok');
+  }else say('');
+  renderGrid(true);renderScale(true);
+  if(S.solOpen)buildSolution();
+  saveURL();
+  return true;
+}
+function parseStepTerm(str){
+  str=str.trim().replace(/\s+/g,'').replace(/−/g,'-').replace(/,/g,'.').replace(/[*·]/g,'');
+  if(str==='')return {k:fr(1),isVar:false};        /* leeres Feld: 1 annehmen */
+  const re=new RegExp('^([+-]?(?:\\d+(?:\\.\\d+)?(?:\\/\\d+)?)?)('+(S.v==='🍎'?'🍎':S.v)+')?$','u');
+  const m=re.exec(str);
+  if(!m)throw new Error('Eingabe nicht verstanden. Erlaubt sind z. B. „4“, „1/2“ oder „2'+S.v+'“.');
+  const isVar=!!m[2];
+  return {k:parseCoef(m[1]),isVar};
+}
+function syncStepInputs(from){
+  const v=$(from).value;
+  $(from==='stepInput'?'stepInput2':'stepInput').value=v;
+}
+function applyStep(id){
+  const inp=$(id||'stepInput');
+  let t;
+  try{t=parseStepTerm(inp.value);}catch(e){say(e.message,'err');return;}
+  if(doOp(curOp,t)){$('stepInput').value='';$('stepInput2').value='';inp.focus();}
+}
+function undoStep(){
+  if(S.hist.length===0)return;
+  Object.assign(S,S.hist.pop());
+  S.ops.pop();S.solved=false;
+  say('');
+  renderGrid(false);renderScale(true);
+  if(S.solOpen)buildSolution();
+  saveURL();
+}
+
+/* ================= Direkt prüfen ================= */
+function checkDirect(){
+  const raw=$('directInput').value.trim();
+  if(raw===''){say('Bitte eine Zahl eingeben.','err');return;}
+  let g;
+  try{g=parseCoef(raw.replace(/−/g,'-').replace(/,/g,'.'));}
+  catch(e){say('Bitte eine Zahl eingeben (z. B. 3, −2, 1/2 oder 2,5).','err');return;}
+  const info=solutionInfo();
+  if(info.type==='all'){say('Diese Gleichung ist allgemeingültig – jede Zahl ist eine Lösung. ✔','ok');return;}
+  if(info.type==='none'){say('Diese Gleichung hat keine Lösung – auch '+fHTML(g)+' erfüllt sie nicht.','err');return;}
+  if(fEq(g,info.x0)){
+    say('Richtig! '+S.v+' = '+fHTML(info.x0)+' ✔','ok');
+    if(S.scaleOpen&&S.anim)wobble();
+  }else{
+    const L=fVal(S.a)*fVal(g)+fVal(S.b),R=fVal(S.c)*fVal(g)+fVal(S.d);
+    const tilt=Math.max(-10,Math.min(10,(R-L)*4))||6;
+    say('Leider falsch – setze '+fHTML(g)+' ein: die Waage ist nicht im Gleichgewicht.','err');
+    if(S.scaleOpen){tiltTo(tilt,500);setTimeout(()=>tiltTo(0,500),2200);}
+  }
+}
+
+/* ================= Lösungsweg (vom Aufgabenstart) ================= */
+function substHTML(coef,k,x0,v){
+  const parts=[];
+  if(!fZero(coef)){
+    const xh=(x0.n<0)?'('+fHTML(x0)+')':fHTML(x0);
+    let h;
+    if(fEq(coef,fr(1)))h=xh;
+    else if(fEq(coef,fr(-1)))h='−'+xh;
+    else h=fHTML(coef)+' · '+xh;
+    parts.push({neg:false,html:h});
+  }
+  if(!fZero(k))parts.push({neg:k.n<0,html:fAbsHTML(k)});
+  if(parts.length===0)return '0';
+  let out='';
+  parts.forEach((p,i)=>{out+=(i===0)?((p.neg?'−':'')+p.html):(' '+(p.neg?'−':'+')+' '+p.html);});
+  return out;
+}
+function buildSolution(){
+  const g=$('solGrid');g.innerHTML='';$('probeGrid').innerHTML='';$('probeLbl').style.display='none';
+  const st0=S.init;
+  const info=solutionInfoSt(st0);
+  if(info.type!=='one'){
+    g.appendChild(mk('fullrow',info.type==='all'
+      ?'Die Gleichung ist allgemeingültig: Jede Zahl ist eine Lösung.'
+      :'Die Gleichung hat keine Lösung.'));
+    return;
+  }
+  let a=st0.a,b=st0.b,c=st0.c,d=st0.d;const wb=blocksInSol();
+  g.classList.toggle('noblocks',!wb);
+  const rows=[];
+  function pushStep(op,t,apply){rows.push({st:{a,b,c,d},op:{op,t}});apply();}
+  if(!fZero(a)&&!fZero(c)){
+    const k=fVal(a)<fVal(c)?a:c;
+    pushStep(k.n<0?'+':'-',{k:fAbs(k),isVar:true},()=>{a=fSub(a,k);c=fSub(c,k);});
+  }
+  const varLeft=!fZero(a);
+  const kk=varLeft?b:d;
+  if(!fZero(kk)){
+    pushStep(kk.n<0?'+':'-',{k:fAbs(kk),isVar:false},()=>{b=fSub(b,kk);d=fSub(d,kk);});
+  }
+  const co=varLeft?a:c;
+  if(!fEq(co,fr(1))){
+    pushStep('/',{k:co,isVar:false},()=>{a=fDiv(a,co);b=fDiv(b,co);c=fDiv(c,co);d=fDiv(d,co);});
+  }
+  rows.forEach(r=>{
+    addRow(g,r.st,r.op,'',wb);
+    if(S.detail)addIntermRow(g,r.st,r.op);
+  });
+  addRow(g,{a,b,c,d},null,'done',wb);
+  if(!varLeft)addRow(g,{a:fr(1),b:fr(0),c:fr(0),d:info.x0},null,'',wb);
+  const pg=$('probeGrid');pg.innerHTML='';pg.classList.add('noblocks');
+  $('probeLbl').style.display=S.probe?'block':'none';
+  if(S.probe){
+    $('probeLbl').innerHTML='Probe – Einsetzen von '+S.v+' = '+fHTML(info.x0)+' in die Ausgangsgleichung:';
+    /* Zeile 1: eingesetzt */
+    pg.appendChild(mk('c-l grey',substHTML(st0.a,st0.b,info.x0,S.v)));
+    pg.appendChild(mk('c-eq grey','='));
+    pg.appendChild(mk('c-r grey',substHTML(st0.c,st0.d,info.x0,S.v)));
+    pg.appendChild(mk('c-op',''));addBlockCells(pg,st0,false);
+    /* Zeile 2: ausgerechnet */
+    const L=fAdd(fMul(st0.a,info.x0),st0.b),R=fAdd(fMul(st0.c,info.x0),st0.d);
+    const okP=fEq(L,R);
+    pg.appendChild(mk('c-l',fHTML(L)));
+    pg.appendChild(mk('c-eq','='));
+    pg.appendChild(mk('c-r',fHTML(R)));
+    pg.appendChild(mk('c-op',okP?'<span class="done">✔</span>':'✗'));
+    addBlockCells(pg,st0,false);
+  }
+  fitGrid(g);fitGrid(pg);
+}
+
+/* ================= Tipp ================= */
+function hint(){
+  if(S.solved){say('Schon gelöst – Zeit für eine neue Aufgabe!','info');return;}
+  const info=solutionInfo();
+  if(info.type!=='one'){say('Fasse beide Seiten zusammen und vergleiche sie.','info');return;}
+  if(!fZero(S.a)&&!fZero(S.c)){
+    const t=fVal(S.a)<fVal(S.c)?S.a:S.c;
+    say('Tipp: Entferne den Variablenterm von einer Seite, z. B. | '+(t.n<0?'+ ':'− ')+termHTML({k:fAbs(t),isVar:true}),'info');return;
+  }
+  const varLeft=!fZero(S.a),kk=varLeft?S.b:S.d;
+  if(!fZero(kk)){say('Tipp: Bringe die Zahl auf die andere Seite, z. B. | '+(kk.n<0?'+ ':'− ')+fAbsHTML(kk),'info');return;}
+  const co=varLeft?S.a:S.c;
+  if(!fEq(co,fr(1))){say('Tipp: Teile beide Seiten durch '+fHTML(co)+'.','info');return;}
+  say('Fast geschafft – die Variable steht schon fast allein.','info');
+}
+
+/* ================= Rendern / Aufgabe ================= */
+function renderInit(){
+  $('initEq').innerHTML=sideHTML(S.init.a,S.init.b,S.v)+' = '+sideHTML(S.init.c,S.init.d,S.v);
+  $('directLbl').innerHTML=S.v+' = ';
+}
+function renderAll(anim){
+  renderGrid(false);renderScale(anim);
+  if(S.solOpen)buildSolution();
+}
+function resetTask(){
+  S.init={a:S.a,b:S.b,c:S.c,d:S.d};
+  S.hist=[];S.ops=[];S.solved=false;
+  $('directInput').value='';$('stepInput').value='';
+  say('');
+  renderInit();
+  renderAll(false);
+  saveURL();
+}
+function closeSolution(){
+  if(S.solOpen){
+    S.solOpen=false;
+    $('solBar').classList.remove('open');$('solSec').classList.remove('open');
+  }
+}
+function newTask(){
+  if(!genEquation()){say('Mit diesen Einstellungen wurde keine passende Aufgabe gefunden.','err');return;}
+  setSource(false);
+  closeSolution();
+  resetTask();
+}
+
+/* ================= URL-Persistenz ================= */
+let loading=true;
+function saveURL(){
+  if(loading)return;
+  const p=new URLSearchParams();
+  p.set('s',radioVal('sides'));p.set('vn',$('setVar').value);
+  p.set('k',radioVal('coef'));p.set('su',radioVal('csum'));p.set('lo',radioVal('sol'));
+  p.set('g',S.group?1:0);p.set('dt',S.detail?1:0);p.set('pb',S.probe?1:0);p.set('an',S.anim?1:0);
+  p.set('df',curLevel);if(prevSides)p.set('pv',prevSides);
+  ['coef','csum','sol'].forEach(g=>{p.set(g+'b',exOn(g,'br')?1:0);p.set(g+'k',exOn(g,'kz')?1:0);});
+  p.set('md',S.mode);p.set('w',S.scaleOpen?1:0);p.set('lw',S.solOpen?1:0);
+  p.set('eq',eqTxt());
+  history.replaceState(null,'','?'+p.toString());
+}
+function loadURL(){
+  const p=new URLSearchParams(location.search);
+  if(p.has('s'))setRadio('sides',p.get('s'));
+  if(p.has('vn'))$('setVar').value=p.get('vn');
+  if(p.has('k'))setRadio('coef',p.get('k'));
+  if(p.has('su'))setRadio('csum',p.get('su'));
+  if(p.has('lo'))setRadio('sol',p.get('lo'));
+  S.group=p.get('g')==='1';S.detail=p.get('dt')==='1';S.probe=p.get('pb')==='1';S.anim=p.has('an')?p.get('an')==='1':true;
+  S.mode=(p.get('md')==='direct')?'direct':'steps';
+  S.scaleOpen=p.get('w')==='1';S.solOpen=p.get('lw')==='1';
+  ['coef','csum','sol'].forEach(g=>{
+    const eb=document.querySelector('.exchk[data-g="'+g+'"][data-t="br"]');
+    const ek=document.querySelector('.exchk[data-g="'+g+'"][data-t="kz"]');
+    if(p.has(g+'b'))eb.checked=p.get(g+'b')==='1';
+    if(p.has(g+'k'))ek.checked=p.get(g+'k')==='1';
+  });
+  prevSides=p.get('pv')||null;
+  if(p.has('df')){curLevel=p.get('df');setSegDiff(curLevel);}
+  else if(!location.search){applyLevel('mid',false);}
+  else {curLevel='ind';setSegDiff('ind');}
+  $('grpChk').checked=S.group;$('animChk').checked=S.anim;
+  $('detChkA').checked=S.detail;$('detChkB').checked=S.detail;$('probeChk').checked=S.probe;
+  return p.get('eq');
+}
+
+/* ================= Zahleneingabe-Stepper ================= */
+function stepVal(inp,dir){
+  const m=/^\s*([+-]?[\d.,/]*)\s*(.*)$/.exec(inp.value)||[];
+  const num=(m[1]||'').trim(),suf=(m[2]||'').trim();
+  let f;
+  try{f=(num===''||num==='+'||num==='-')?fr(num==='-'?-0:0):parseCoef(num.replace(/,/g,'.'));}
+  catch(e){f=fr(0);}
+  try{f=fAdd(f,fr(dir));}catch(e){return;}
+  let out;
+  if(f.d===1)out=String(f.n);
+  else if((num.includes(',')||num.includes('.'))&&100%f.d===0){
+    const dd=(10%f.d===0)?10:100;const neg=f.n<0?'-':'';const aN=Math.abs(f.n)*(dd/f.d);
+    out=neg+Math.floor(aN/dd)+','+String(aN%dd).padStart(dd===100?2:1,'0');
+  }
+  else out=f.n+'/'+f.d;
+  inp.value=out+suf;
+}
+document.querySelectorAll('.num .st button').forEach(b=>{
+  b.addEventListener('click',()=>{
+    const inp=b.closest('.num').querySelector('input');
+    stepVal(inp,parseInt(b.dataset.d,10));
+    if(inp.id==='stepInput'||inp.id==='stepInput2')syncStepInputs(inp.id);
+    inp.focus();
+  });
+});
+
+/* ================= UI-Verdrahtung ================= */
+$('btnNew').addEventListener('click',newTask);
+function setSource(manual){
+  $('manRow').style.display=manual?'flex':'none';
+  $('btnManual').classList.toggle('ghost',!manual);
+  $('btnNew').classList.toggle('ghost',manual);
+  if(manual)$('manInput').focus();
+}
+$('btnManual').addEventListener('click',()=>setSource($('manRow').style.display==='none'));
+$('btnParse').addEventListener('click',()=>{
+  try{parseEquation($('manInput').value);closeSolution();resetTask();}
+  catch(e){say(e.message,'err');}
+});
+$('manInput').addEventListener('keydown',e=>{if(e.key==='Enter')$('btnParse').click();});
+
+function setMode(m,save){
+  S.mode=m;
+  $('modeDirect').classList.toggle('active',m==='direct');
+  $('modeSteps').classList.toggle('active',m==='steps');
+  $('directPanel').style.display=(m==='direct')?'':'none';
+  $('stepsExtras').style.display=(m==='steps')?'flex':'none';
+  renderGrid(false);
+  if(save!==false)saveURL();
+}
+$('modeDirect').addEventListener('click',()=>setMode('direct'));
+$('modeSteps').addEventListener('click',()=>setMode('steps'));
+$('btnHint').addEventListener('click',hint);
+$('btnCheck').addEventListener('click',checkDirect);
+$('directInput').addEventListener('keydown',e=>{if(e.key==='Enter')checkDirect();});
+$('btnApply').addEventListener('click',()=>applyStep('stepInput'));
+$('btnApply2').addEventListener('click',()=>applyStep('stepInput2'));
+$('stepInput').addEventListener('keydown',e=>{if(e.key==='Enter')applyStep('stepInput');});
+$('stepInput2').addEventListener('keydown',e=>{if(e.key==='Enter')applyStep('stepInput2');});
+$('stepInput').addEventListener('input',()=>syncStepInputs('stepInput'));
+$('stepInput2').addEventListener('input',()=>syncStepInputs('stepInput2'));
+$('btnUndo').addEventListener('click',undoStep);
+$('appleBtn').addEventListener('click',()=>{$('stepInput').value+='🍎';syncStepInputs('stepInput');$('stepInput').focus();});
+$('appleBtn2').addEventListener('click',()=>{$('stepInput2').value+='🍎';syncStepInputs('stepInput2');$('stepInput2').focus();});
+
+/* Operationsauswahl (beide Leisten synchron) */
+function selectOp(op){
+  curOp=op;
+  document.querySelectorAll('#opBtn span,#opBtn2 span,#opBig span').forEach(s=>s.classList.toggle('sel',s.dataset.op===op));
+}
+let lpTimer=null,lpFired=false;
+function showOpBig(btn){
+  const o=$('opBig');
+  o.style.display='grid';
+  const r=btn.getBoundingClientRect(),w=o.offsetWidth,h=o.offsetHeight;
+  o.style.left=Math.max(6,Math.min(window.innerWidth-w-6,r.left+r.width/2-w/2))+'px';
+  o.style.top =Math.max(6,Math.min(window.innerHeight-h-6,r.top+r.height/2-h/2))+'px';
+  o.dataset.src=btn.id;
+  document.querySelectorAll('#opBig span').forEach(s=>s.classList.toggle('sel',s.dataset.op===curOp));
+}
+function hideOpBig(){$('opBig').style.display='none';}
+function bindOpBtn(id,inputId){
+  const btn=$(id);
+  btn.addEventListener('click',e=>{
+    if(lpFired){lpFired=false;return;}
+    const op=e.target.dataset.op;
+    if(op){selectOp(op);$(inputId).focus();}
+  });
+  btn.addEventListener('pointerdown',()=>{
+    lpFired=false;clearTimeout(lpTimer);
+    lpTimer=setTimeout(()=>{lpFired=true;showOpBig(btn);},450);
+  });
+  ['pointerup','pointerleave','pointercancel'].forEach(ev=>btn.addEventListener(ev,()=>clearTimeout(lpTimer)));
+  btn.addEventListener('contextmenu',e=>e.preventDefault());
+}
+bindOpBtn('opBtn','stepInput');
+bindOpBtn('opBtn2','stepInput2');
+$('opBig').addEventListener('click',e=>{
+  const op=e.target.dataset.op;
+  if(!op)return;
+  selectOp(op);
+  const inp=($('opBig').dataset.src==='opBtn2')?'stepInput2':'stepInput';
+  hideOpBig();$(inp).focus();
+});
+document.addEventListener('pointerdown',e=>{
+  if($('opBig').style.display==='grid'&&!e.target.closest('#opBig')&&!e.target.closest('#opBtn')&&!e.target.closest('#opBtn2'))hideOpBig();
+});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')hideOpBig();});
+window.addEventListener('scroll',hideOpBig,true);
+
+/* Bereichs-Öffner */
+function toggleSec(bar,sec,flag){
+  S[flag]=!S[flag];
+  $(bar).classList.toggle('open',S[flag]);
+  $(sec).classList.toggle('open',S[flag]);
+  if(flag==='scaleOpen'){
+    if(S.scaleOpen){fitScale();setTilt(0);renderScale(false);}
+    renderGrid(false);
+    if(S.solOpen)buildSolution();
+  }
+  if(flag==='solOpen'&&S.solOpen)buildSolution();
+  saveURL();
+}
+$('scaleBar').addEventListener('click',()=>toggleSec('scaleBar','scaleSec','scaleOpen'));
+$('solBar').addEventListener('click',()=>toggleSec('solBar','solSec','solOpen'));
+
+/* Schalter */
+$('grpChk').addEventListener('change',()=>{S.group=$('grpChk').checked;renderScale(S.anim);renderGrid(false);if(S.solOpen)buildSolution();saveURL();});
+$('animChk').addEventListener('change',()=>{S.anim=$('animChk').checked;saveURL();});
+function setDetail(v){S.detail=v;$('detChkA').checked=v;$('detChkB').checked=v;renderGrid(false);if(S.solOpen)buildSolution();saveURL();}
+$('detChkA').addEventListener('change',()=>setDetail($('detChkA').checked));
+$('detChkB').addEventListener('change',()=>setDetail($('detChkB').checked));
+$('probeChk').addEventListener('change',()=>{S.probe=$('probeChk').checked;if(S.solOpen)buildSolution();saveURL();});
+
+/* Einstellungen */
+document.querySelectorAll('input[name=sides]').forEach(r=>r.addEventListener('change',saveURL));
+document.querySelectorAll('input[name=coef],input[name=csum],input[name=sol],.exchk')
+  .forEach(r=>r.addEventListener('change',manualSettingChange));
+$('setVar').addEventListener('change',()=>applyVarSetting(true));
+document.querySelectorAll('#segDiff button').forEach(b=>b.addEventListener('click',()=>applyLevel(b.dataset.lv,true)));
+
+/* Waagen-Manipulation */
+function manip(op,isVar){
+  let k;
+  try{
+    k=parseCoef($('mAnz').value.trim().replace(/−/g,'-').replace(/,/g,'.'));
+    if(k.n<=0)throw 0;
+  }catch(e){say('Bitte eine positive Anzahl eingeben.','err');return;}
+  doOp(op,{k,isVar});
+}
+$('mAddV').addEventListener('click',()=>manip('+',true));
+$('mSubV').addEventListener('click',()=>manip('-',true));
+$('mAddC').addEventListener('click',()=>manip('+',false));
+$('mSubC').addEventListener('click',()=>manip('-',false));
+function manipFac(op){
+  let f;
+  try{f=parseCoef($('mFac').value.trim().replace(/−/g,'-').replace(/,/g,'.'));}
+  catch(e){say('Bitte einen gültigen Faktor eingeben.','err');return;}
+  if(fZero(f)){say('Der Faktor 0 ist nicht erlaubt.','err');return;}
+  doOp(op,{k:f,isVar:false});
+}
+$('mMul').addEventListener('click',()=>manipFac('*'));
+$('mDiv').addEventListener('click',()=>manipFac('/'));
+
+/* ================= Leisten-Platzierung ================= */
+const mqNarrow=window.matchMedia('(max-width:1150px)');
+const mqWide=window.matchMedia('(min-width:1400px)');
+const mqBlocks=window.matchMedia('(min-width:900px)');   /* darunter kein Platz für Blockgleichungen */
+function onBreakpoint(){renderGrid(false);if(S.solOpen)buildSolution();}
+[mqWide,mqBlocks].forEach(m=>{
+  if(m.addEventListener)m.addEventListener('change',onBreakpoint);else m.addListener(onBreakpoint);
+});
+function blocksInWork(){return S.scaleOpen&&mqBlocks.matches&&(mqNarrow.matches||mqWide.matches);}
+function blocksInSol(){return S.scaleOpen&&mqBlocks.matches;}
+function placeScale(){
+  const col=$('colScale');
+  if(mqNarrow.matches){
+    col.classList.remove('vert');
+    $('scaleSlotTop').appendChild(col);
+  }else{
+    col.classList.add('vert');
+    $('workArea').appendChild(col);
+  }
+  renderGrid(false);
+  if(S.scaleOpen)fitScale();
+}
+if(mqNarrow.addEventListener)mqNarrow.addEventListener('change',placeScale);
+else mqNarrow.addListener(placeScale);
+
+/* ================= Start ================= */
+(function init(){
+  const eqParam=loadURL();
+  setMode(S.mode,false);
+  $('scaleBar').classList.toggle('open',S.scaleOpen);
+  $('scaleSec').classList.toggle('open',S.scaleOpen);
+  $('solBar').classList.toggle('open',S.solOpen);
+  $('solSec').classList.toggle('open',S.solOpen);
+  setTilt(0);
+  placeScale();
+  let ok=false;
+  if(eqParam){try{parseEquation(eqParam);ok=true;}catch(e){ok=false;}}
+  if(!ok)genEquation();
+  else syncVarSelect();
+  loading=false;
+  resetTask();
+  if(S.scaleOpen)fitScale();
+})();
+</script>
+</body>
+</html>
