@@ -757,7 +757,7 @@ const cardsData = [
     "id": "geographie",
     "title": "Geographie-Spiel: Finde die Orte",
     "desc": "Finde die Orte auf der Karte, umso genauer du bist, desto mehr Punkte bekommst du.",
-    "types": ["spiel"],
+    "types": ["game"],
     "mobilefriendly": true,
     "link": "./Geographie/geographie.html",
     "fach": "Sonstiges",
