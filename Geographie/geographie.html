@@ -5,6 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Geographie-Trainer</title>
 <link rel="stylesheet" href="styles.css">
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-5K8WYYXDL2"></script>
+<script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-5K8WYYXDL2');
+</script>
 <style>
   /* ---------- Farbschema (Light / Dark) ---------- */
   :root {
@@ -45,6 +54,7 @@
 
   /* ---------- Grundlayout ---------- */
   html, body { margin: 0; }
+  html.spielaktiv, body.spielaktiv { overflow: hidden; overscroll-behavior: none; }
   body {
     font-family: Calibri, sans-serif;
     display: flex; flex-direction: column; align-items: center;
@@ -59,8 +69,16 @@
   .kopf h1 { margin: 0; font-size: 1.6em; }
   .untertitel { color: var(--gedaempft); margin: 2px 0 12px 0; width: 100%; max-width: 780px; }
 
-  /* Spielmodus: Seite füllt exakt den Bildschirm, kein Scrollen */
-  body.spielaktiv { height: 100vh; height: 100dvh; overflow: hidden; }
+  /* Spielmodus: Seite füllt exakt den sichtbaren Bildschirm, kein Scrollen */
+  body.spielaktiv {
+    position: fixed;                     /* fest am oberen Rand verankern (nicht hinter URL-Leiste) */
+    top: 0; left: 0; right: 0;
+    height: 100vh;                       /* Fallback */
+    height: 100dvh;                      /* moderne Browser */
+    height: var(--vph, 100dvh);          /* JS-gemessene sichtbare Höhe (URL-Leiste raus) */
+    min-height: 0;                       /* das globale min-height:100vh darf hier nicht gewinnen */
+    overflow: hidden;
+  }
   body.spielaktiv .kopf, body.spielaktiv .untertitel, body.spielaktiv .site-footer { display: none; }
   body.spielaktiv main { max-width: 1400px; flex: 1 1 auto; }
 
@@ -239,7 +257,7 @@
   .site-footer {
     width: 100%; box-sizing: border-box; padding: 15px 15px;
     border-top: 1px solid #ccc; margin-top: 4px; margin-bottom: 0px;
-    font-family: sans-serif; font-size: 0.6em; color: #333333d8;
+    font-family: sans-serif; font-size: 0.6em; color: var(--text);
   }
   .footer-content {
     display: grid;
@@ -455,7 +473,6 @@
   </div>
 </footer>
 
-<script src="../last-update.js" defer></script>
 
 <script src="geo_karte_de.js"></script>
 <script src="geo_orte_de.js"></script>
@@ -1123,6 +1140,14 @@ function setzeView() {
   skaliereMarker();
 }
 
+// viewBox nach dem Layout-Settle erneut anwenden (Mobil: beim Spielstart ist das Layout des
+// frisch eingeblendeten Spielbildschirms noch nicht final -> Karte sonst falsch positioniert).
+function setzeViewSicher() {
+  setzeView();
+  requestAnimationFrame(() => { setzeView();
+    requestAnimationFrame(setzeView); });
+}
+
 // Marker unabhängig vom Zoom immer gleich groß halten
 function markerSkala() { return view.w / P.breite; }
 function skaliereMarker() {
@@ -1143,10 +1168,13 @@ function klemmeView() {
 }
 
 function zoomeUm(faktor, cx, cy) {   // cx, cy in SVG-Koordinaten
-  const neuW = view.w / faktor;
-  view.x = cx - (cx - view.x) * (neuW / view.w);
-  view.y = cy - (cy - view.y) * (neuW / view.w);
-  view.w = neuW;
+  const relX = (cx - view.x) / view.w;
+  const relY = (cy - view.y) / view.h;
+  const neuW = Math.min(P.breite, Math.max(P.breite / (aktuelleKarte().zoomMax || 8), view.w / faktor));
+  const neuH = neuW * P.hoehe / P.breite;
+  view.x = cx - relX * neuW;
+  view.y = cy - relY * neuH;
+  view.w = neuW; view.h = neuH;
   klemmeView();
   setzeView();
 }
@@ -1172,7 +1200,10 @@ function svgSkala() {
 // Trefferradius skaliert mit dem Zoom, damit er sich per Touch/Stift gut trifft.
 function ortAmPunkt(sx, sy) {
   if (!overlayLauf.orte.an) return null;
-  const tol = (view.w / P.breite) * Math.min(P.breite, P.hoehe) * 0.02;
+  // Fester Trefferradius ~24 px am Bildschirm, in SVG-Einheiten umgerechnet (zoomunabhängig).
+  const rect = $("kartenBox").getBoundingClientRect();
+  const pxProSvg = (rect.width > 0 ? rect.width : 350) / view.w;
+  const tol = 24 / pxProSvg;
   let best = null, bestD = tol;
   document.querySelectorAll("#gPunkte .ortpunkt").forEach(c => {
     const [x, y] = P.proj(+c.dataset.lon, +c.dataset.lat);
@@ -1225,12 +1256,8 @@ function richtePointerEin() {
       const dist = Math.hypot(a.x-b.x, a.y-b.y);
       if (dist > 0 && pinchStart.dist > 0) {
         const [sx, sy] = clientZuSvg((a.x+b.x)/2, (a.y+b.y)/2);
-        const faktor = dist / pinchStart.dist;
-        const neuW = pinchStart.w / faktor;
-        view.x = sx - (sx - view.x) * (neuW / view.w);
-        view.y = sy - (sy - view.y) * (neuW / view.w);
-        view.w = neuW;
-        klemmeView(); setzeView();
+        const zielW = pinchStart.w * pinchStart.dist / dist;  // absolute Zielbreite aus der Pinch-Distanz
+        zoomeUm(view.w / zielW, sx, sy);                       // gemeinsame, driftfreie Zoom-Logik
       }
       return;
     }
@@ -1347,6 +1374,14 @@ function zelleElement(c, r) {
 }
 
 /* ----- Spielablauf ----- */
+// Sichtbare Viewport-Höhe zuverlässig setzen (mobile URL-Leiste zählt bei 100vh nicht mit,
+// daher window.innerHeight bzw. visualViewport). Bei Änderung die Karte neu einpassen.
+function setzeViewportHoehe() {
+  const h = (window.visualViewport && window.visualViewport.height) || window.innerHeight;
+  document.documentElement.style.setProperty("--vph", h + "px");
+  if (document.body.classList.contains("spielaktiv") && spiel) setzeView();
+}
+
 function starteSpiel() {
   leseEinstellungenAusUI();
   schreibeHash();
@@ -1372,6 +1407,8 @@ function starteSpiel() {
     protokoll: [],
     pin: null, zelle: null
   };
+  setzeViewportHoehe();                 // sichtbare Höhe VOR dem Umschalten festlegen
+  document.documentElement.classList.add("spielaktiv");
   document.body.classList.add("spielaktiv");
   $("startScreen").classList.add("versteckt");
   $("ergebnisScreen").classList.add("versteckt");
@@ -1383,6 +1420,7 @@ function starteSpiel() {
 }
 
 function beendeSpielansicht() {
+  document.documentElement.classList.remove("spielaktiv");
   document.body.classList.remove("spielaktiv");
   $("spielScreen").classList.remove("sichtbar");
 }
@@ -1398,7 +1436,7 @@ function naechsteRunde() {
   $("btnBestaetigen").classList.remove("versteckt");
   $("btnWeiter").classList.add("versteckt");
   view = { x: 0, y: 0, w: P.breite, h: P.hoehe };
-  setzeView();
+  setzeViewSicher();
   $("kartenBox").classList.toggle("pinModus", spiel.modus === "pin");
   spiel.versetzt = false;
   const versetzenAktiv = spiel.modus === "grid" && einstellungen.verschiebung;
@@ -1536,6 +1574,17 @@ document.addEventListener("DOMContentLoaded", () => {
   const themeWechsel = () => setzeTheme(!document.body.classList.contains("dark"));
   $("btnTheme").addEventListener("click", themeWechsel);
   $("btnThemeSpiel").addEventListener("click", themeWechsel);
+
+  setzeViewportHoehe();
+  window.addEventListener("resize", setzeViewportHoehe);
+  window.addEventListener("orientationchange", () => {
+    setzeViewportHoehe();
+    requestAnimationFrame(setzeViewportHoehe);   // nach dem Dreh-Reflow erneut
+  });
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener("resize", setzeViewportHoehe);
+    window.visualViewport.addEventListener("scroll", setzeViewportHoehe);
+  }
   if (einstellungen.autostart) starteSpiel();   // URL-Parameter "autostart"
 });
 </script>
