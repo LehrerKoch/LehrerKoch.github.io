@@ -40,7 +40,7 @@ function updateHandAreaMinHeight() {
     const probe = document.createElement('div');
     probe.style.cssText =
         'position:absolute;visibility:hidden;pointer-events:none;' +
-        'width:var(--card-w);height:var(--card-h);max-height:35dvh;' +
+        'width:var(--card-w);height:var(--card-h);max-height:calc(35 * var(--dvh));' +
         'top:-9999px;left:-9999px;';
     document.body.appendChild(probe);
     const cardH = probe.getBoundingClientRect().height || 130;
@@ -710,45 +710,90 @@ function createCardUI(card, isHand, index, isZoom = false) {
 function setupTouchDrag(cardEl, index, isHand) {
     let startX = 0, startY = 0, localDragging = false;
 
-    cardEl.addEventListener('touchstart', (e) => {
-        if (draggingBlocked) return;
-        // Ändert --card-h für das gesamte Projekt
-        startX = e.touches[0].clientX;
-        startY = e.touches[0].clientY;
+    // Gemeinsame Logik für Pointer- und Touch-Pfad
+    const dragStart = (x, y) => {
+        if (draggingBlocked) return false;
+        startX = x; startY = y;
         localDragging = false;
         touchDrag = { idx: index, isHand, cardEl };
-    }, { passive: true });
-
-    cardEl.addEventListener('touchmove', (e) => {
-        if (!touchDrag || touchDrag.cardEl !== cardEl) return;
-        const dx = e.touches[0].clientX - startX;
-        const dy = e.touches[0].clientY - startY;
-
-        if (!localDragging && (Math.abs(dx) > 8 || Math.abs(dy) > 8)) {
+        return true;
+    };
+    const dragMove = (x, y) => {
+        if (!touchDrag || touchDrag.cardEl !== cardEl) return false;
+        if (!localDragging && (Math.abs(x - startX) > 8 || Math.abs(y - startY) > 8)) {
             localDragging = true;
             isDragging    = true;
             createTouchGhost(cardEl, startX, startY);
             cardEl.classList.add('dragging');
         }
         if (localDragging && ghostEl) {
-            e.preventDefault();
-            const t = e.touches[0];
-            ghostEl.style.left = (t.clientX - ghostEl._ox) + 'px';
-            ghostEl.style.top  = (t.clientY - ghostEl._oy) + 'px';
-            updateTouchPlaceholder(t.clientX, t.clientY);
+            ghostEl.style.left = (x - ghostEl._ox) + 'px';
+            ghostEl.style.top  = (y - ghostEl._oy) + 'px';
+            updateTouchPlaceholder(x, y);
+            return true;   // Event soll preventDefault bekommen
         }
+        return false;
+    };
+    const dragEnd = (didCancel) => {
+        if (!didCancel && localDragging && touchDrag) performTouchDrop();
+        cleanupTouchDrag(cardEl);
+        localDragging = false;
+    };
+
+    // ── Pointer Events (bevorzugt) ─────────────────────────────
+    // Interaktive Tafeln (z. B. Promethean) melden Eingaben je nach
+    // Modus/Treiber als 'touch' ODER als 'pen' – Touch-Events feuern
+    // im Pen-Fall gar nicht. Pointer Events (Chromium 55+) decken
+    // beides ab. Die Maus behält das native HTML5-Drag&Drop
+    // (ondragstart in createCardUI), daher wird sie hier ignoriert.
+    // setPointerCapture: alle Folge-Events landen auf der Karte,
+    // auch wenn der Finger/Stift das Element verlässt.
+    if (window.PointerEvent) {
+        let activeId = null;
+
+        cardEl.addEventListener('pointerdown', (e) => {
+            if (e.pointerType === 'mouse') return;      // Maus → HTML5 DnD
+            if (!dragStart(e.clientX, e.clientY)) return;
+            activeId = e.pointerId;
+            // Capture NICHT hier setzen: bei einem reinen Tipp würde der
+            // click sonst auf die Karte retargetet und innere Buttons
+            // (🔗 / ✱) bekämen keinen Klick mehr. Capture erst, wenn der
+            // Drag wirklich beginnt (8px-Schwelle in dragMove).
+        });
+
+        cardEl.addEventListener('pointermove', (e) => {
+            if (e.pointerId !== activeId) return;
+            const wasDragging = localDragging;
+            if (dragMove(e.clientX, e.clientY) && e.cancelable) e.preventDefault();
+            if (!wasDragging && localDragging) {
+                // Drag hat gerade begonnen → Karte fängt alle weiteren
+                // Pointer-Events, auch außerhalb der eigenen Fläche.
+                try { cardEl.setPointerCapture(e.pointerId); } catch (_) { /* egal */ }
+            }
+        });
+
+        const finish = (e) => {
+            if (e.pointerId !== activeId) return;
+            activeId = null;
+            dragEnd(e.type === 'pointercancel');
+        };
+        cardEl.addEventListener('pointerup',     finish);
+        cardEl.addEventListener('pointercancel', finish);
+        return;
+    }
+
+    // ── Fallback: Touch Events (sehr alte Browser ohne PointerEvent) ──
+    cardEl.addEventListener('touchstart', (e) => {
+        dragStart(e.touches[0].clientX, e.touches[0].clientY);
+    }, { passive: true });
+
+    cardEl.addEventListener('touchmove', (e) => {
+        const t = e.touches[0];
+        if (dragMove(t.clientX, t.clientY)) e.preventDefault();
     }, { passive: false });
 
-    cardEl.addEventListener('touchend', () => {
-        if (localDragging && touchDrag) performTouchDrop();
-        cleanupTouchDrag(cardEl);
-        localDragging = false;
-    });
-
-    cardEl.addEventListener('touchcancel', () => {
-        cleanupTouchDrag(cardEl);
-        localDragging = false;
-    });
+    cardEl.addEventListener('touchend',    () => dragEnd(false));
+    cardEl.addEventListener('touchcancel', () => dragEnd(true));
 }
 
 function createTouchGhost(sourceEl, touchX, touchY) {

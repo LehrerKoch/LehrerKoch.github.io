@@ -20,18 +20,47 @@
     --text-back:  #d32f2f;
     --accent:     #3498db;
 
-    /* ---- Karten (stetig skalierend) ---- */
-    --card-w:    clamp(65px,  min(38vw, 19dvh), 240px);
-    --card-h:    clamp(92px,  min(56vw, 28dvh), 345px);
-    --card-font: clamp(0.60rem, min(3.5vw, 2.2dvh), 1.1rem);
+    /* ── --dvh: 1 dynamische Viewport-Höhen-Einheit ──
+       dvh gibt es erst ab Chromium 108 (Ende 2022). Ältere Browser
+       (z. B. eingebaute Browser auf Promethean-/Whiteboard-Panels)
+       kennen die Einheit nicht: JEDE Deklaration mit dvh würde dort
+       komplett verworfen – bei --card-w/--card-h kollabieren die
+       Karten dann auf 0×0 (Front/Back sind absolut positioniert).
+       Deshalb überall calc(N * var(--dvh)) statt Ndvh; Fallback = vh. */
+    --dvh: 1vh;
 
-    /* ---- UI-Chrome (dvh funktioniert für beide Orientierungen) ---- */
-    --header-h:     clamp(30px, 5.5dvh, 64px);
-    --header-font:  clamp(0.68rem, 1.8dvh, 1.0rem);
-    --result-min-h: clamp(30px, 5dvh,   54px);
+    /* ---- Fallback-Werte für sehr alte Browser (ohne clamp()/min(),
+            Chromium < 79) – vh-basiert, werden im @supports-Block
+            unten für moderne Browser überschrieben ---- */
+    --card-w:    19vh;
+    --card-h:    28vh;
+    --card-font: 2.2vh;
+    --header-h:     5.5vh;
+    --header-font:  1.8vh;
+    --result-min-h: 5vh;
 
     /* Lobby */
     --lobby-max-w: 600px;
+}
+
+/* Moderne Browser: dvh statt vh (stabil bei ein-/ausblendender Browser-UI) */
+@supports (height: 1dvh) {
+    :root { --dvh: 1dvh; }
+}
+
+/* Moderne Browser (können clamp()/min()): stetig skalierende Karten */
+@supports (width: clamp(1px, min(1vh, 2px), 3px)) {
+    :root {
+        /* ---- Karten (stetig skalierend) ---- */
+        --card-w:    clamp(65px,  min(38vw, calc(19 * var(--dvh))), 240px);
+        --card-h:    clamp(92px,  min(56vw, calc(28 * var(--dvh))), 345px);
+        --card-font: clamp(0.60rem, min(3.5vw, calc(2.2 * var(--dvh))), 1.1rem);
+
+        /* ---- UI-Chrome (dvh funktioniert für beide Orientierungen) ---- */
+        --header-h:     clamp(30px, calc(5.5 * var(--dvh)), 64px);
+        --header-font:  clamp(0.68rem, calc(1.8 * var(--dvh)), 1.0rem);
+        --result-min-h: clamp(30px, calc(5 * var(--dvh)),   54px);
+    }
 }
 
 /* --------------------------------------------------------
@@ -42,7 +71,8 @@ body {
     background-color: var(--bg-color);
     margin: 0;
     overflow: hidden;
-    height: 100dvh;
+    height: 100vh;                     /* Fallback alte Browser */
+    height: calc(100 * var(--dvh));
     display: flex;
     flex-direction: column;
     -webkit-user-select: none;
@@ -55,7 +85,7 @@ body {
 -------------------------------------------------------- */
 #lobby {
     position: fixed;
-    inset: 0;
+    top: 0; right: 0; bottom: 0; left: 0;   /* statt inset:0 (erst ab Chromium 87) */
     background: white;
     z-index: 1000;
     display: flex;
@@ -65,16 +95,16 @@ body {
     /* overflow: hidden würde Inhalt auf kleinen Screens abschneiden */
     overflow-y: auto;
     overflow-x: hidden;
-    padding: clamp(4px, .8dvh, 20px) 10px clamp(2px, 1dvh, 8px);
+    padding: clamp(4px, calc(0.8 * var(--dvh)), 20px) 10px clamp(2px, calc(1 * var(--dvh)), 8px);
     box-sizing: border-box;
-    gap: clamp(4px, 0.9dvh, 18px);
+    gap: clamp(4px, calc(0.9 * var(--dvh)), 18px);
     scrollbar-width: thin;
     scrollbar-color: rgba(0,0,0,0.2) transparent;
 }
 
 #lobby h1 {
     margin: 0;
-    font-size: clamp(1.3rem, 4dvh, 1.8rem);
+    font-size: clamp(1.3rem, calc(4 * var(--dvh)), 1.8rem);
 }
 
 #tag-filters {
@@ -86,9 +116,13 @@ body {
     max-width: var(--lobby-max-w);
     /* Gleiche Mindestbreite wie der Modus-Switch */
     min-width: min(360px, 92vw);
-    /* Mindesthöhe: zeigt immer mindestens 2 Reihen Tags */
-    min-height: clamp(58px, 14dvh, 110px);
-    max-height: 27dvh;
+    /* Mindesthöhe: zeigt immer mindestens 2 Reihen Tags.
+       px-Fallback zuerst: clamp() wird auf alten Browsern (Chromium<79)
+       verworfen – ohne Fallback quetscht flex-shrink den Bereich auf ~0
+       und die Tags verschwinden. */
+    min-height: 64px;
+    min-height: clamp(58px, calc(14 * var(--dvh)), 110px);
+    max-height: calc(27 * var(--dvh));
     overflow-y: auto;
     margin: 0 20px;
     padding: 2px 0;
@@ -101,10 +135,13 @@ body {
 #tag-filters::-webkit-scrollbar-track  { background: #f1f1f1; }
 
 @media (min-width: 800px) {
-    #tag-filters { max-height: 40dvh; }
+    #tag-filters { max-height: calc(40 * var(--dvh)); }
 }
 
 .tag-btn {
+    /* manipulation: Scrollen der Tag-Liste bleibt möglich,
+       aber kein Doppeltipp-Zoom / keine Tap-Verzögerung */
+    touch-action: manipulation;
     padding: 3px 9px;
     /* Original-Größe beibehalten – 4K-Skalierung über Media-Query unten */
     font-size: clamp(0.65rem, 1.5vw, 0.80rem);
@@ -127,7 +164,7 @@ body {
     width: 100%;
     max-width: var(--lobby-max-w);
     margin: 0 clamp(3px, 0.66vw, 10px);
-    padding: clamp(2px, 0.6dvh, 4px) 8px;
+    padding: clamp(2px, calc(0.6 * var(--dvh)), 4px) 8px;
     background: #fdfdfd;
     border-left: 4px solid var(--accent);
     box-shadow: 0 2px 5px rgba(0,0,0,0.05);
@@ -139,7 +176,7 @@ body {
 }
 #game-rules h2 {
     margin-top: 0;
-    font-size: clamp(0.85rem, 2dvh, 1rem);
+    font-size: clamp(0.85rem, calc(2 * var(--dvh)), 1rem);
     color: var(--accent);
     margin-bottom: 0;
 }
@@ -155,7 +192,7 @@ body {
 -------------------------------------------------------- */
 #game-over {
     position: fixed;
-    inset: 0;
+    top: 0; right: 0; bottom: 0; left: 0;   /* statt inset:0 (erst ab Chromium 87) */
     background: rgba(255,255,255,0.97);
     z-index: 1500;
     display: flex;
@@ -166,22 +203,22 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: clamp(6px, 1.5dvh, 16px);
+    gap: clamp(6px, calc(1.5 * var(--dvh)), 16px);
     text-align: center;
 }
-.game-over-icon      { font-size: clamp(2.2rem, 7dvh, 6rem); }
-.game-over-inner h2  { margin: 0; font-size: clamp(1.3rem, 4dvh, 3.5rem); }
-.final-score-label   { color: #888; font-size: clamp(0.80rem, 1.8dvh, 1.4rem); margin-top: 2px; }
-.final-score-value   { font-size: clamp(2.8rem, 8dvh, 7rem); font-weight: 800; color: var(--accent); line-height: 1; }
+.game-over-icon      { font-size: clamp(2.2rem, calc(7 * var(--dvh)), 6rem); }
+.game-over-inner h2  { margin: 0; font-size: clamp(1.3rem, calc(4 * var(--dvh)), 3.5rem); }
+.final-score-label   { color: #888; font-size: clamp(0.80rem, calc(1.8 * var(--dvh)), 1.4rem); margin-top: 2px; }
+.final-score-value   { font-size: clamp(2.8rem, calc(8 * var(--dvh)), 7rem); font-weight: 800; color: var(--accent); line-height: 1; }
 .restart-btn {
-    margin-top: clamp(8px, 2dvh, 20px);
-    padding: clamp(9px, 1.5dvh, 18px) clamp(28px, 5vw, 70px);
+    margin-top: clamp(8px, calc(2 * var(--dvh)), 20px);
+    padding: clamp(9px, calc(1.5 * var(--dvh)), 18px) clamp(28px, 5vw, 70px);
     background: var(--accent);
     color: white;
     border: none;
     border-radius: 25px;
     cursor: pointer;
-    font-size: clamp(0.9rem, 2dvh, 1.5rem);
+    font-size: clamp(0.9rem, calc(2 * var(--dvh)), 1.5rem);
     font-weight: bold;
     box-shadow: 0 4px 12px rgba(52,152,219,0.3);
     transition: all 0.2s;
@@ -217,7 +254,7 @@ header {
     flex-shrink: 0;
     min-height: var(--result-min-h);
     height: auto;
-    padding: clamp(4px, 0.8dvh, 8px) 12px;
+    padding: clamp(4px, calc(0.8 * var(--dvh)), 8px) 12px;
     box-sizing: border-box;
     border-bottom: 2px solid transparent;
     display: flex;
@@ -225,7 +262,7 @@ header {
     justify-content: center;
     flex-wrap: wrap;
     gap: 6px 14px;
-    font-size: clamp(0.72rem, min(2.2vw, 1.8dvh), 1.2rem);
+    font-size: clamp(0.72rem, min(2.2vw, calc(1.8 * var(--dvh))), 1.2rem);
     overflow: hidden;
     visibility: hidden;
     transition: background 0.15s, border-color 0.15s;
@@ -237,7 +274,7 @@ header {
 #round-result-bar.wrong   { background: #f8d7da; color: #721c24; border-color: #dc3545; }
 
 #round-result-btn {
-    padding: clamp(4px, 0.7dvh, 7px) clamp(14px, 2.5vw, 24px);
+    padding: clamp(4px, calc(0.7 * var(--dvh)), 7px) clamp(14px, 2.5vw, 24px);
     border: none;
     border-radius: 20px;
     cursor: pointer;
@@ -299,7 +336,7 @@ header {
     align-items: center;
     justify-content: center;
     overflow: hidden;
-    padding: clamp(3px, 0.8dvh, 8px) 5px;
+    padding: clamp(3px, calc(0.8 * var(--dvh)), 8px) 5px;
     box-sizing: border-box;
 }
 
@@ -329,7 +366,7 @@ header {
     flex-direction: column;
     align-items: center;
     justify-content: flex-end;
-    padding: clamp(4px, 1dvh, 12px) 0 clamp(5px, 1.2dvh, 14px) 0;
+    padding: clamp(4px, calc(1 * var(--dvh)), 12px) 0 clamp(5px, calc(1.2 * var(--dvh)), 14px) 0;
     box-sizing: border-box;
     overflow: hidden;
     position: relative; /* Anker für ::after */
@@ -361,10 +398,16 @@ header {
    KARTEN – 3D FLIP
 -------------------------------------------------------- */
 .card {
+    /* touch-action:none: Der Browser darf die Geste NICHT selbst als
+       Scroll/Pan beanspruchen. Ohne dies startet auf Touch-Panels
+       (z. B. Promethean-Tafeln) teils das Browser-Panning, bevor unser
+       Drag-Code preventDefault() aufrufen kann – der Drag "hakt" dann
+       oder bricht ab. Der Spielbildschirm scrollt ohnehin nicht. */
+    touch-action: none;
     width: var(--card-w);
     height: var(--card-h);
     /* Sicherheitsklemme: nie mehr als 35dvh hoch */
-    max-height: 35dvh;
+    max-height: calc(35 * var(--dvh));
     flex-shrink: 0;
     position: relative;
     cursor: grab;
@@ -378,13 +421,13 @@ header {
 
 .card-front, .card-back {
     position: absolute;
-    inset: 0;
+    top: 0; right: 0; bottom: 0; left: 0;   /* statt inset:0 (erst ab Chromium 87) */
     backface-visibility: hidden;
     -webkit-backface-visibility: hidden;
     background: var(--card-bg);
     border-radius: 12px;
     border: 1px solid #ccc;
-    padding: clamp(5px, 1dvh, 10px) clamp(5px, 1vw, 10px);
+    padding: clamp(5px, calc(1 * var(--dvh)), 10px) clamp(5px, 1vw, 10px);
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
@@ -447,7 +490,7 @@ header {
     margin: 0 0 2px 0;
 }
 .back-year {
-    font-size: clamp(1rem, min(5vw, 4dvh), 1.5rem);
+    font-size: clamp(1rem, min(5vw, calc(4 * var(--dvh))), 1.5rem);
     color: var(--text-back);
     font-weight: 800;
     white-space: nowrap;
@@ -521,7 +564,7 @@ header {
     padding: 10px 12px;
     max-width: clamp(200px, 35vw, 320px);
     min-width: 160px;
-    font-size: clamp(0.75rem, min(1.8vw, 1.5dvh), 1.1rem);
+    font-size: clamp(0.75rem, min(1.8vw, calc(1.5 * var(--dvh))), 1.1rem);
     color: #333;
     line-height: 1.5;
     pointer-events: all;
@@ -544,7 +587,7 @@ header {
 .dragging::after {
     content: '';
     position: absolute;
-    inset: 0;
+    top: 0; right: 0; bottom: 0; left: 0;   /* statt inset:0 (erst ab Chromium 87) */
     background: rgba(255,255,255,0.78);
     border-radius: 12px;
     z-index: 10;
@@ -569,7 +612,7 @@ header {
     flex-direction: column;
     align-items: center;
     width: 100%;
-    margin-top: clamp(4px, 1dvh, 10px);
+    margin-top: clamp(4px, calc(1 * var(--dvh)), 10px);
     flex-shrink: 0;
 }
 .timeline-direction {
@@ -579,7 +622,7 @@ header {
     max-width: 1800px;
     gap: 10px;
     color: #7f8c8d;
-    font-size: clamp(0.65rem, min(1.5vw, 1.6dvh), 1.0rem);
+    font-size: clamp(0.65rem, min(1.5vw, calc(1.6 * var(--dvh))), 1.0rem);
     font-weight: bold;
     text-transform: uppercase;
 }
@@ -600,15 +643,15 @@ header {
     border-left: 10px solid #bdc3c7;
 }
 #reveal-risk-btn {
-    margin-top: clamp(6px, 1.2dvh, 12px);
-    padding: clamp(7px, 1.5dvh, 12px) clamp(20px, 4vw, 40px);
+    margin-top: clamp(6px, calc(1.2 * var(--dvh)), 12px);
+    padding: clamp(7px, calc(1.5 * var(--dvh)), 12px) clamp(20px, 4vw, 40px);
     background: #27ae60;
     color: white;
     border: none;
     border-radius: 25px;
     cursor: pointer;
     font-weight: bold;
-    font-size: clamp(0.80rem, min(1.8vw, 2dvh), 1.2rem);
+    font-size: clamp(0.80rem, min(1.8vw, calc(2 * var(--dvh))), 1.2rem);
     box-shadow: 0 4px 12px rgba(39,174,96,0.25);
     transition: background 0.2s, transform 0.2s;
 }
@@ -620,7 +663,7 @@ header {
 .placeholder {
     width: 6px;
     height: var(--card-h);
-    max-height: 35dvh;
+    max-height: calc(35 * var(--dvh));
     background: #3498db;
     border-radius: 3px;
     flex-shrink: 0;
@@ -632,14 +675,14 @@ header {
 -------------------------------------------------------- */
 #zoom-modal {
     position: fixed;
-    inset: 0;
+    top: 0; right: 0; bottom: 0; left: 0;   /* statt inset:0 (erst ab Chromium 87) */
     background: rgba(255,255,255,0.95);
     z-index: 2000;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: clamp(10px, 3dvh, 30px) clamp(10px, 3vw, 30px);
+    padding: clamp(10px, calc(3 * var(--dvh)), 30px) clamp(10px, 3vw, 30px);
     box-sizing: border-box;
 }
 .zoom-container {
@@ -653,16 +696,25 @@ header {
    max-height: none überschreibt das 35dvh-Limit aus .card.
    Beide Karten (Vorder- + Rückseite) passen so nebeneinander. */
 .card.big {
-    aspect-ratio: 240 / 345;
-    width: clamp(120px, min(42vw, 48dvh), 280px);
-    height: auto;
+    /* Fallback alte Browser (kein aspect-ratio, Chromium<88):
+       height:auto würde die Karte auf 0 kollabieren lassen
+       (Front/Back sind absolut positioniert) → feste vh-Größen. */
+    width: 33.4vh;
+    height: 48vh;
     max-height: none;
     cursor: default;
+}
+@supports (aspect-ratio: 1) {
+    .card.big {
+        aspect-ratio: 240 / 345;
+        width: clamp(120px, min(42vw, calc(48 * var(--dvh))), 280px);
+        height: auto;
+    }
 }
 /* Schriftgrößen: großzügige Startwerte, fitCardContents() reduziert
    bei Bedarf – nie erhöht. Also hier möglichst groß ansetzen. */
 .card.big .card-title { font-size: 1.4rem; }
-.card.big .back-year  { font-size: clamp(1.8rem, min(8vw, 5dvh), 3rem); }
+.card.big .back-year  { font-size: clamp(1.8rem, min(8vw, calc(5 * var(--dvh))), 3rem); }
 .card.big .card-text  { font-size: 1.0rem; }
 
 /* --------------------------------------------------------
@@ -677,9 +729,9 @@ header {
     transform: translateX(-50%);
     background: #333;
     color: #fff;
-    padding: clamp(7px, 1.2dvh, 12px) clamp(14px, 3vw, 28px);
+    padding: clamp(7px, calc(1.2 * var(--dvh)), 12px) clamp(14px, 3vw, 28px);
     border-radius: 10px;
-    font-size: clamp(0.80rem, min(2vw, 2dvh), 1.2rem);
+    font-size: clamp(0.80rem, min(2vw, calc(2 * var(--dvh))), 1.2rem);
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.35s;
@@ -711,9 +763,9 @@ header {
     /* min-height reserviert Platz und verhindert Layout-Shift beim Umschalten.
        height: auto erlaubt Wachstum wenn der Text auf schmalen Screens umbricht.
        max-height + overflow kappen zu langen Text trotzdem sauber. */
-    min-height: clamp(52px, 10dvh, 75px);
+    min-height: clamp(52px, calc(10 * var(--dvh)), 75px);
     height: auto;
-    max-height: clamp(75px, 18dvh, 110px);
+    max-height: clamp(75px, calc(18 * var(--dvh)), 110px);
     overflow: hidden;
     line-height: 1.2;
 }
@@ -784,13 +836,13 @@ header {
 .primary-btn:hover { background: #2980b9; transform: translateY(-2px); }
 
 .quit-btn {
-    padding: clamp(4px, 0.9dvh, 8px) clamp(10px, 2vw, 18px);
+    padding: clamp(4px, calc(0.9 * var(--dvh)), 8px) clamp(10px, 2vw, 18px);
     cursor: pointer;
     border: 1px solid #ddd;
     border-radius: 20px;
     background: white;
     color: #666;
-    font-size: clamp(0.72rem, min(1.5vw, 1.8dvh), 1.1rem);
+    font-size: clamp(0.72rem, min(1.5vw, calc(1.8 * var(--dvh))), 1.1rem);
     transition: all 0.2s;
 }
 .quit-btn:hover { background: #fdecea; color: #c0392b; border-color: #f5c6cb; }
@@ -806,7 +858,7 @@ header {
     margin-top: 4px;
     margin-bottom: 0;
     font-family: sans-serif;
-    font-size: clamp(0.52rem, min(1.4vw, 1.2dvh), 0.80rem);
+    font-size: clamp(0.52rem, min(1.4vw, calc(1.2 * var(--dvh))), 0.80rem);
     color: #333333d8;
 }
 .footer-content {

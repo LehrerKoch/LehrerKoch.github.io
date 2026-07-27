@@ -656,7 +656,7 @@
            MAIN & TOOLBAR
         ══════════════════════════════════════════════════════ */
         main {
-            padding: 0 0.65rem 2rem;
+            padding: 0 0.65rem 0.4rem;
             max-width: 1200px;
             margin: 0 auto;
         }
@@ -1719,7 +1719,7 @@ function buildCard(card, typesMap) {
     // wenn AUCH eine Stufe angegeben ist - eine reine Extra-Karte ohne
     // Stufe zeigt unten gar nichts (kein einsames "*").
     const starHtml = (isExtra && stufenArr.length)
-        ? `<span class="extra-star" data-tooltip="${EXTRA_TITLE}" title="${EXTRA_TITLE}">*</span>`
+        ? `<span class="extra-star" data-tooltip="${EXTRA_TITLE}">*</span>`
         : '';
     const stufeInner = stufenArr.length ? formatStufen(stufenArr) : '';
     const stufeHtml = stufenArr.length
@@ -1728,14 +1728,14 @@ function buildCard(card, typesMap) {
 
     // Stern direkt an den Text, ohne Leerzeichen davor -> kein Umbruch
     const titleStar = isExtra
-        ? `<span class="extra-star title-star" data-tooltip="${EXTRA_TITLE}" title="${EXTRA_TITLE}">*</span>`
+        ? `<span class="extra-star title-star" data-tooltip="${EXTRA_TITLE}">*</span>`
         : '';
 
     // Under construction: Karte kann noch Fehler in Bedienung/Loesungen enthalten
     const isWip = card.wip === true;
     const WIP_TITLE = 'Under Construction: Diese Seite wird noch überarbeitet und kann Fehler in der Bedienung oder den Lösungen enthalten.';
     const wipHtml = isWip
-        ? `<span class="wip-icon" data-tooltip="${WIP_TITLE}" title="${WIP_TITLE}">🏗️</span>`
+        ? `<span class="wip-icon" data-tooltip="${WIP_TITLE}">🏗️</span>`
         : '';
 
     return `<a class="card${flags.cls ? ' ' + flags.cls : ''}${isExtra ? ' is-extra' : ''}${isWip ? ' is-wip' : ''}" href="${card.link}"${target} data-types="${allTypes}" data-mobile="${isMobile}" data-fresh="${flags.fresh}" data-wichtig="${flags.wichtig}" data-stufe="${stufeAttr}" data-fach="${fach}" data-extra="${isExtra}" data-wip="${isWip}" data-id="${card.id}" data-title="${escAttr(card.title)}" style="--card-accent:${accentColor}" onclick="rememberVisit('${card.id}')">
@@ -3068,6 +3068,7 @@ const TOOLTIP_HOLD         = 2500;  // ms, danach schliesst er auf Touch von sel
 const TOOLTIP_SCROLL_GRACE = 700;   // ms, in denen Scroll-Ereignisse ignoriert werden
 const TOOLTIP_SCROLL_MIN   = 14;    // px, ab denen echtes Scrollen angenommen wird
 const TOOLTIP_MARGIN       = 8;     // px Mindestabstand zum Bildschirmrand
+const TOOLTIP_HOVER_DELAY  = 450;   // ms, bevor ein Hover-Tooltip erscheint
 
 function hideActiveTooltip() {
     if (_tooltipTimer) { clearTimeout(_tooltipTimer); _tooltipTimer = null; }
@@ -3164,15 +3165,20 @@ function initTooltips() {
             else hideActiveTooltip();
         }, { passive: true });
     } else {
-        // Maus: klassisches Hover, ohne Zeitlimit
+        // Maus: Hover mit kurzer Verzoegerung, damit der Tooltip nicht
+        // schon beim Druebergleiten aufpoppt.
+        let hoverTimer = null;
         document.addEventListener('mouseover', (e) => {
             const target = e.target.closest('[data-tooltip]');
             if (!target || target === _activeTooltip) return;
-            showTooltipFor(target, false);
+            clearTimeout(hoverTimer);
+            hoverTimer = setTimeout(() => showTooltipFor(target, false), TOOLTIP_HOVER_DELAY);
         });
         document.addEventListener('mouseout', (e) => {
             const target = e.target.closest('[data-tooltip]');
-            if (target && target === _activeTooltip) hideActiveTooltip();
+            if (!target) return;
+            clearTimeout(hoverTimer);
+            if (target === _activeTooltip) hideActiveTooltip();
         });
     }
 

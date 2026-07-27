@@ -1094,9 +1094,9 @@ const cardPool = [
             "Informatik"
         ],
         "furtherInformation": [
-            "TODO: Video",
-            "TODO: Erklärung Eulerweg",
-            "TODO: Zusammenhang: Euler-Charakteristik/-Formel Körper"
+            // "TODO: Video",
+            // "TODO: Erklärung Eulerweg",
+            // "TODO: Zusammenhang: Euler-Charakteristik/-Formel Körper"
         ]
     },
     {
@@ -1638,7 +1638,8 @@ const cardPool = [
         ],
         "furtherInformation": [
             "<em>'Aus dem Paradies, das Cantor uns geschaffen, soll uns niemand vertreiben können.'</em> - David Hilbert",
-            "<a href='https://detektor.fm/wissen/geschichten-aus-der-mathematik-georg-cantor'>Podcast: <em>Geschichten aus der Mathematik</em> | Georg Cantor: Das Plagiat unter Freunden</a>"
+            "<a href='https://detektor.fm/wissen/geschichten-aus-der-mathematik-georg-cantor'>Podcast: <em>Geschichten aus der Mathematik</em> | Georg Cantor: Das Plagiat unter Freunden</a>",
+            "Buchempfehlung: David Foster Wallace: Die Entdeckung des Unendlichen"
         ]
     },
     {
@@ -1674,7 +1675,7 @@ const cardPool = [
     {
         "title": "Poincaré-Vermutung",
         "fronttext": "Henri Poincaré legte mit der Untersuchung des Drei-Körper-Problems den Grundstein für die Chaostheorie und formulierte eine fundamentale Vermutung über die Topologie von Sphären, der Poincaré-Vermutung.",
-        "backtext": "Poincaré war einer der letzten 'Universal-Gelehrter', die fast alle Gebiete der Mathematik beherrschten.",
+        "backtext": "Poincaré war einer der letzten 'Universal-Gelehrter', der fast alle Gebiete der Mathematik beherrschte.",
         "valuetext": "1904",
         "startvalue": 1904,
         "endvalue": 1904,
@@ -1701,7 +1702,7 @@ const cardPool = [
         ],
         "furtherInformation": [
             "Liste der 23 Probleme: <a href='https://de.wikipedia.org/wiki/Hilbertsche_Probleme#Die_Probleme'>Wikipedia</a>",
-            "TODO: Video"
+            // "TODO: Video"
         ]
     },
     {
@@ -1735,8 +1736,8 @@ const cardPool = [
         ]
     },
     {
-        "title": "Ramanujan und die 1729",
-        "fronttext": "Die kleinste Zahl, die man auf zwei verschiedene Arten als Summe von zwei Kubikzahlen schreiben kann.",
+        "title": "Ramanujan und die Zahl 1729",
+        "fronttext": "1729 ist die kleinste Zahl, die man auf zwei verschiedene Arten als Summe von zwei Kubikzahlen schreiben kann.",
         "backtext": "Das indische Autodidakt Srinivasa Ramanujan gilt als mathematisches Genie, der leider schon mit 32 Jahren gestorben ist. Viele seiner Entdeckungen wurden erst Jahre später verstanden und bewiesen.",
         "valuetext": "1918",
         "startvalue": 1918,
@@ -1858,7 +1859,7 @@ const cardPool = [
     },
     {
         "title": "Der erste Bug",
-        "fronttext": "Weil eine Motte in einem Computer flog und einen Kurzschluss verursachte, sprach die Informatik-Pionieren Grace Hopper von einem 'Bug' als Fehler im Computer.",
+        "fronttext": "Weil eine Motte in einem Computer flog und einen Kurzschluss verursachte, sprach die Informatik-Pionierin Grace Hopper von einem 'Bug' als Fehler im Computer.",
         "backtext": "Grace Hopper entwickelte den ersten Compiler und war maßgeblich an der Entwicklung der Programmiersprache COBOL (Common Business Oriented Language) beteiligt, die auch heute noch verwendet wird.",
         "valuetext": "1952",
         "startvalue": 1952,
@@ -1922,7 +1923,8 @@ const cardPool = [
             "Informatik"
         ],
         "furtherInformation": [
-            "TODO: Link Spiel"
+            "<a href='https://gameoflifeevo.com/'>Spiele Game of Life</a>",
+            "<a href='https://beltoforion.de/de/game_of_life/'>Game of Life: Information</a>"
         ]
     },
     {
@@ -1961,7 +1963,7 @@ const cardPool = [
     {
         "title": "Fraktale und Mandelbrot",
         "fronttext": "Selbstähnliche geometrische Muster, die bei jeder Vergrößerung immer wieder neue Details offenbaren. Die Mandelbrot-Menge ist das berühmteste Beispiel.",
-        "backtext": "Benoît Mandelbrot prägte den Begriff und zeigte, dass viele komplexe Naturformen fraktal sind.",
+        "backtext": "Benoît Mandelbrot prägte den Begriff und zeigte, dass viele komplexe Naturformen fraktal sind. Andere Fraktale sind die Koch-Kurve oder die Sierpinski-Dreieck und schon lange vorher bekannt.",
         "valuetext": "1975",
         "startvalue": 1975,
         "endvalue": 1975,
@@ -1990,7 +1992,7 @@ const cardPool = [
     {
         "title": "Beweis von Fermats letztem Satz",
         "fronttext": "Andrew Wiles präsentierte nach siebenjähriger isolierter Arbeit einen hunderte Seiten langen Beweis über elliptische Kurven.",
-        "backtext": "Nach mehreren hundert Jahren wurde das berühmteste Rätsel der Mathematik endlich gelöst.",
+        "backtext": "Nach mehreren hundert Jahren wurde das berühmteste Rätsel der Mathematik endlich gelöst, dass es keine ganzzahligen Lösungen für die Gleichung x^n + y^n = z^n mit n > 2 gibt.",
         "valuetext": "1994",
         "startvalue": 1994,
         "endvalue": 1994,
@@ -2071,7 +2073,7 @@ const cardPool = [
         ]
     },
     {
-        "title": "Peter Scholze",
+        "title": "Fields Medaille für Peter Scholze",
         "fronttext": "Der deutsche Mathematiker Peter Scholze revolutionierte die arithmetische Geometrie mit 'perfektoiden Räumen' und wurde dafür mit nur 30 Jahren mit der Fields Medaille beehrt, als zweiter Deutscher jemals.",
         "backtext": "Der geborene Dresdner besuchte das Berliner Heinrich-Hertz-Gymnasium mit mathematischem Schwerpunkt bevor er zum Studium nach Bonn zog.",
         "valuetext": "2018",
@@ -2115,7 +2117,7 @@ const cardPool = [
     {
         "title": "Lemniskate von Bernoulli",
         "fronttext": "Diese Kurve in Form einer liegenden Acht wurde von Jakob Bernoulli beschrieben und ist ein Klassiker der algebraischen Geometrie.",
-        "backtext": "Die Lemniskate ist definiert als der geometrische Ort von Punkten, deren Abstands-Produkt zu zwei Brennpunkten konstant ist.",
+        "backtext": "Die Lemniskate ist definiert als der geometrische Ort von Punkten, deren Abstands-Produkt zu zwei Brennpunkten konstant ist. Es gibt Theorien, dass Jakob Bernoulli die Lemniskate als Symbol für die Unendlichkeit wählte.",
         "valuetext": "1694",
         "startvalue": 1694,
         "endvalue": 1694,
@@ -2129,7 +2131,7 @@ const cardPool = [
     {
         "title": "$\\LaTeX$",
         "fronttext": "Basierend auf der Basis von Donald Knuths TeX, ist die Weiterentwicklung namens LaTeX (sprich: 'Lah-Tech') heute der absolute technische Standard für wissenschaftliche Publikationen.",
-        "backtext": "LaTeX ermöglicht den perfekten Satz komplexer mathematischer Formeln und trennt strikt Inhalt von optischer Gestaltung. Früher wurden mathematische Formeln oft von Hand gesetzt, was fehleranfällig und zeitaufwendig war.",
+        "backtext": "LaTeX ermöglicht den perfekten Satz komplexer mathematischer Formeln und trennt strikt Inhalt von optischer Gestaltung. Früher wurden mathematische Formeln oft von Hand gesetzt, was fehleranfällig und zeitaufwändig war.",
         "valuetext": "1984",
         "startvalue": 1984,
         "endvalue": 1984,
@@ -2161,7 +2163,7 @@ const cardPool = [
     {
         "title": "M.C. Escher",
         "fronttext": "Obwohl er sich selbst nicht als Mathematiker sah, visualisierte dieser Künstler Konzepte, die Mathematiker bis heute faszinieren.",
-        "backtext": "Escher nutzte Parkettierungen, die Hyperbolische Geometrie und unmögliche Figuren wie das Penrose-Dreieck in seinen Werken.",
+        "backtext": "Escher nutzte in seinen Bildern Parkettierungen, die Hyperbolische Geometrie und unmögliche Figuren wie das Penrose-Dreieck.",
         "valuetext": "1944",
         "startvalue": 1944,
         "endvalue": 1944,
@@ -2176,7 +2178,7 @@ const cardPool = [
     {
         "title": "Millennium-Probleme",
         "fronttext": "Das Clay Mathematics Institute rief sieben Probleme aus, deren Lösung mit jeweils einer Million Dollar dotiert ist.",
-        "backtext": "Bisher wurde nur die Poincaré-Vermutung (durch Grigori Perelman) gelöst. Andere wie P vs. NP oder die Riemannsche Vermutung bleiben offen.",
+        "backtext": "Bisher wurde nur die Poincaré-Vermutung (durch Grigori Perelman) gelöst. Andere wie 'P vs. NP' oder die 'Riemannsche Vermutung' bleiben offen.",
         "valuetext": "2000",
         "startvalue": 2000,
         "endvalue": 2000,
@@ -2185,15 +2187,17 @@ const cardPool = [
             "!ungelöst",
             "!wichtig"
         ],
-        "furtherInformation": []
+        "furtherInformation": [
+            "<a href='https://youtu.be/9nPwel6xvFY?si=TdKOK3-8WW7fIlWt'>YouTube: <em>DorFuchs</em> | Die größten offenen Fragen der Mathematik (Millennium-Probleme)</a>"
+        ]
     },
     {
         "title": "3Blue1Brown",
-        "fronttext": "Grant Sanderson revolutionierte mit seinem Kanal die Art und Weise, wie mathematische Intuition digital vermittelt wird.",
-        "backtext": "Durch visuelle Animationen macht er komplexe Themen wie Lineare Algebra oder die Fourier-Transformation für Millionen Menschen greifbar.",
+        "fronttext": "Grant Sanderson revolutionierte mit seinen Videos die Art und Weise, wie mathematische Intuition digital vermittelt wird.",
+        "backtext": "Durch visuelle Animationen macht er komplexe Themen wie Lineare Algebra oder die Fourier-Transformation für Millionen Menschen in seinem YouTube-Kanal greifbar.",
         "valuetext": "2015",
         "startvalue": 2015,
-        "endvalue": 2026,
+        "endvalue": 2015,
         "tags": [
             "Gegenwart",
             "Informatik"
@@ -2221,7 +2225,7 @@ const cardPool = [
     },
     {
         "title": "Hausdorff-Dimension",
-        "fronttext": "Der Jude Felix Hausdorff erweiterte den Dimensionsbegriff, sodass er auch für Gebilde gilt, die zwischen den klassischen Dimensionen liegen, d.h. die z.B. 1,5-dimensional sind.",
+        "fronttext": "Felix Hausdorff erweiterte den Dimensionsbegriff, sodass er auch für Gebilde gilt, die zwischen den klassischen Dimensionen liegen, d.h. die z.B. 1,5-dimensional sind.",
         "backtext": "Dieses Konzept ist die Grundlage für die Beschreibung von Fraktalen, deren Dimension oft keine ganze Zahl ist (z.B. 1,26 für eine Küstenlinie).",
         "valuetext": "1918",
         "startvalue": 1918,
@@ -2232,7 +2236,7 @@ const cardPool = [
             "Topologie",
             "Geometrie"
         ],
-        "furtherInformation": []
+        "furtherInformation": ["Sein jüdischer Hintergrund führte dazu, dass er 1942 von den Nationalsozialisten verfolgt wurde und sich das Leben nahm."]
     },
     {
         "title": "Arrow-Theorem",
@@ -2247,7 +2251,7 @@ const cardPool = [
             "Logik"
         ],
         "furtherInformation": [
-            "TODO: Video verlinken"
+            "<a href='https://www.youtube.com/watch?v=rbVoEjS6Q1Q'>YouTube: <em>Polylog</em> | The flaw in every voting system (engl.)</a>"
         ]
     },
     {
@@ -2312,8 +2316,8 @@ const cardPool = [
     },
     {
         "title": "Newton-Verfahren",
-        "fronttext": "Dieses iterative Verfahren ist eines der wichtigsten Werkzeuge der Numerik, um Nullstellen von Funktionen schnell und präzise zu approximieren.",
-        "backtext": "Es nutzt die Tangente an einem Punkt, um den nächsten Näherungswert zu finden. Die Formel lautet: $x_{n+1} = x_n - \\frac{f(x_n)}{f'(x_n)}$.",
+        "fronttext": "Dieses iterative Verfahren von Isaac Newton ist eines der wichtigsten Werkzeuge der Numerik, um Nullstellen von Funktionen schnell und präzise zu approximieren.",
+        "backtext": "Es nutzt die Tangente an einem Punkt, um den nächsten Näherungswert für die Nullstelle zu finden. Die Formel lautet: $x_{n+1} = x_n - \\frac{f(x_n)}{f'(x_n)}$.",
         "valuetext": "1669",
         "startvalue": 1669,
         "endvalue": 1669,
@@ -2408,7 +2412,8 @@ const cardPool = [
             "Geometrie"
         ],
         "furtherInformation": [
-            "TODO: Link zum Spiel"
+            "<a href='https://playset.netlify.app/'>Das SET-Spiel online testen</a>",
+            "<a href='https://youtube.com/watch?v=EkFX9jUJPKk'>YouTube: <em>Numberphile</em> | The Game of Set</a>"
         ]
     },
     {
@@ -2576,7 +2581,7 @@ const cardPool = [
     },
     {
         "title": "Banach-Tarski-Paradoxon",
-        "fronttext": "Dieses Paradoxon besagt, dass eine Kugel in nur 5 Teile zerlegt und diese Teile so umgeordnet werden können, dass man zwei identische Kugeln erhält.",
+        "fronttext": "Dieses Paradoxon besagt, dass eine Kugel in nur 5 Teile zerlegt und so umgeordnet werden können, dass man zwei identische Kugeln mit demselben Volumen erhält.",
         "backtext": "Dieses unintuitive Ergebnis zeigt, dass unser klassisches Verständnis von Volumen in der Mathematik nicht immer anwendbar ist. Jedoch: es gibt kein konstruktives Verfahren, um die Zerlegung tatsächlich durchzuführen.",
         "valuetext": "1924",
         "startvalue": 1924,
@@ -2602,8 +2607,8 @@ const cardPool = [
     },
     {
         "title": "Turing-Bombe",
-        "fronttext": "Er rettete Millionen Menschenleben, indem er die Enigma-Verschlüsselung knackte, doch sein eigenes Land dankte es ihm mit grausamer Verfolgung.",
-        "backtext": "Turing entwickelte die 'Bombe' zur Dechiffrierung. 1952 wurde er wegen seiner Homosexualität zur chemischen Kastration gezwungen; erst 2013 erfolgte die offizielle königliche Begnadigung.",
+        "fronttext": "Alan Turing rettete Millionen Menschenleben, indem er die Enigma-Verschlüsselung knackte, doch sein eigenes Land dankte es ihm mit grausamer Verfolgung.",
+        "backtext": "Alan Turing entwickelte die 'Bombe' zur Dechiffrierung, ein Computer zum Knacken der Enigma. 1952 wurde er wegen seiner Homosexualität zur chemischen Kastration gezwungen; erst 2013 erfolgte die offizielle königliche Begnadigung.",
         "valuetext": "1939-1941",
         "startvalue": 1939,
         "endvalue": 1941,
@@ -2617,7 +2622,7 @@ const cardPool = [
     {
         "title": "Grahams Zahl",
         "fronttext": "Diese Zahl ist die größte Zahl, die jemals in einem mathematischen Beweis verwendet wurde.",
-        "backtext": "Sie ist eine Obergrenze und stammt aus der Ramsey-Theorie. Die Zahl ist so groß, dass sie nicht sinnvoll darstellbar ist, am ehesten wird sie mittels Pfeilschreibweise von Knuth angegeben.",
+        "backtext": "Sie ist eine Obergrenze und stammt aus der Ramsey-Theorie. Die Zahl ist so groß, dass sie nicht sinnvoll darstellbar ist, am ehesten wird sie mittels Pfeilschreibweise von Donald Knuth angegeben.",
         // \
         // \[\
         //     3\\underbrace_{}{\\uparrow\\uparrow\\ldots\\uparrow}3\
@@ -2706,13 +2711,14 @@ const cardPool = [
             "Paradoxon"
         ],
         "furtherInformation": [
-            "<a href='https://detektor.fm/wissen/geschichten-aus-der-mathematik-marilyn-vos-savant'>Podcast: <em>Geschichten aus der Mathematik</em> | Marilyn vos Savant: Das Ziegenproblem</a>"
+            "<a href='https://detektor.fm/wissen/geschichten-aus-der-mathematik-marilyn-vos-savant'>Podcast: <em>Geschichten aus der Mathematik</em> | Marilyn vos Savant: Das Ziegenproblem</a>",
+            "<a href='https://lehrerkoch.github.io/ziegenproblem.html'>Meine Website: <em>Das Ziegenproblem</em> - Zum Ausprobieren</a>"
         ]
     },
     {
-        "title": "Simpson-Paradox",
+        "title": "Veröffentlichung des Simpson-Paradoxons",
         "fronttext": "Dieses statistische Phänomen beschreibt eine Situation, in der sich ein Trend, der in mehreren Gruppen existiert, umkehrt, wenn man diese Gruppen zusammenfasst.",
-        "backtext": "Es warnt davor, Korrelationen in aggregierten Daten ohne Berücksichtigung der zugrunde liegenden Teilgruppen zu interpretieren.",
+        "backtext": "Es warnt davor, Korrelationen in aggregierten Daten ohne Berücksichtigung der zugrunde liegenden Teilgruppen zu interpretieren. Es wurde schon 1899 von Karl Pearson beschrieben, aber erst 1951 von Edward H. Simpson populär gemacht.",
         "valuetext": "1951",
         "startvalue": 1951,
         "endvalue": 1951,
@@ -2721,7 +2727,9 @@ const cardPool = [
             "Datenanalyse",
             "Paradoxon"
         ],
-        "furtherInformation": []
+        "furtherInformation": [
+            "<a href='https://www.youtube.com/watch?v=I-FTa_-fwB0'>YouTube: <em>Mathewelten</em> | Das Simpson-Paradoxon</a>"
+        ]
     },
     {
         "title": "Veröffentlichung des Geburtstagsparadoxons",
@@ -2740,7 +2748,7 @@ const cardPool = [
     {
         "title": "Veröffentlichung des Hauses vom Nikolaus",
         "fronttext": "In diesem klassischen Zeichenrätsel soll ein bestimmtes Muster gezeichnet werden, ohne mit dem Stift abzusetzen und ohne eine Linie mehrfach zu nutzen.",
-        "backtext": "Die Lösung ist ein 'eulerscher Pfad', wie Leonard Euler bei seinem Königsberger Brückenproblem feststellte. Das Haus vom Nikolaus lässt sich nur zeichnen, indem man bei einem der unteren Eckpunkte startet, diese haben eine ungerade Anzahl an Kanten.",
+        "backtext": "Die Lösung ist ein 'Eulerscher Pfad', wie Leonard Euler bei seinem Königsberger Brückenproblem feststellte. Das Haus vom Nikolaus lässt sich nur zeichnen, indem man bei einem der unteren Eckpunkte startet, diese haben eine ungerade Anzahl an Kanten.",
         "valuetext": "Ende 19. Jh.",
         "startvalue": 1870,
         "endvalue": 1900,
@@ -2786,7 +2794,7 @@ const cardPool = [
     //     ]
     // },
     {
-        "title": "Martin Hellman",
+        "title": "Diffie-Hellman-Schlüsselaustausch",
         "fronttext": "Ein Pionier der Kryptographie, der zusammen mit Whitfield Diffie das Konzept des Public-Key-Austauschs entwickelte.",
         "backtext": "Der Diffie-Hellman-Schlüsselaustausch ermöglichte erstmals sichere Kommunikation über unsichere Kanäle ohne vorherigen Austausch eines gemeinsamen Schlüssels.",
         "valuetext": "1976",
@@ -2945,7 +2953,7 @@ const cardPool = [
     // },
     {
         "title": "Futurama-Theorem",
-        "fronttext": "Der Mathematiker und Serienschreiber Ken Keeler erfand ein echtes mathematisches Theorem, um ein Plotloch in Futurama zu lösen.",
+        "fronttext": "Der Mathematiker und Serienschreiber Ken Keeler erfand ein echtes mathematisches Theorem, um ein Plotloch in der Fernseh-Serie Futurama zu lösen.",
         "backtext": "Das Theorem bewies, dass man jede Gruppe von Körpern, die ihre Gehirne getauscht haben, wieder durch den Einsatz von zwei zusätzlichen 'unbeteiligten' Personen in den Ursprungszustand zurückversetzen kann.",
         "valuetext": "2010",
         "startvalue": 2010,
@@ -2960,9 +2968,9 @@ const cardPool = [
         ]
     },
     {
-        "title": "Turing Awards für Computergrafik",
+        "title": "Turing Award für Computergrafik",
         "fronttext": "Der Pionier der Computergrafik, Pat Hanrahan, der die mathematischen Grundlagen für modernes Rendering (RenderMan) legte, erhält die höchste Auszeichnung in der Informatik.",
-        "backtext": "Für seine grundlegenden Beiträge zur 3D-Computergrafik, die heute jeden modernen Animationsfilm ermöglichen, erhielt Hanrahan auch mehrere Academy Awards (Oscars).",
+        "backtext": "Für seine grundlegenden Beiträge zur 3D-Computergrafik, die heute jeden modernen Animationsfilm unter anderem für Toy Story ermöglichen, erhielt Hanrahan auch mehrere Academy Awards (Oscars).",
         "valuetext": "2019",
         "startvalue": 2019,
         "endvalue": 2019,
@@ -2978,7 +2986,7 @@ const cardPool = [
     },
     {
         "title": "Josephus-Problem",
-        "fronttext": "Ein Abzählrätsel: In welcher Position muss man stehen, um als Letzter übrig zu bleiben, wenn man jeden k-ten Menschen entfernt?",
+        "fronttext": "Ein Abzählrätsel — Eene, meene, muh: In welcher Position muss man stehen, um als Letzter übrig zu bleiben, wenn man jeden k-ten Menschen entfernt?",
         "backtext": "Das Problem führt zu einer faszinierenden rekursiven Lösung und demonstriert mathematische Prinzipien der dynamischen Programmierung.",
         "valuetext": "60",
         "startvalue": 60,
@@ -2995,7 +3003,7 @@ const cardPool = [
     {
         "title": "Maryna Viazovskas Lösung des Kugelpackungsproblems",
         "fronttext": "Sie löste das Jahrhunderte alte Problem des Kugelpackungsproblems in den Dimensionen 8 und 24.",
-        "backtext": "Für ihre Arbeit zur optimalen Anordnung von Sphären in hochdimensionalen Räumen erhielt sie als zweite Frau die Fields-Medaille.",
+        "backtext": "Für ihre Arbeit zur optimalen Anordnung von Kugeln in hochdimensionalen Räumen erhielt sie als zweite Frau die Fields-Medaille.",
         "valuetext": "2022",
         "startvalue": 2022,
         "endvalue": 2022,

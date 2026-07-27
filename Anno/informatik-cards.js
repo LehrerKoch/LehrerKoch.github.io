@@ -2515,7 +2515,7 @@ const cardPool = [
     {
         "title": "Sony PlayStation (PS1)",
         "fronttext": "Ein Elektronikriese steigt nach einem geplatzten Abkommen mit Nintendo in den Konsolenmarkt ein und bricht das traditionelle Modul-Monopol durch den Einsatz von CD-ROMs.",
-        "backtext": "Unter Ken Kutaragi entwickelte Sony eine reine 3D-Polygon-Maschine. Die billige Produktion von CDs erlaubte es Entwicklern, riesige Welten mit FMV-Zwischensequenzen und CD-Audio zu erschaffen, was Videospiele endgültig aus der Kinderecke in die Popkultur katapultierte.",
+        "backtext": "Unter Ken Kutaragi entwickelte Sony eine reine 3D-Polygon-Maschine. Die billige Produktion von CDs erlaubte es Entwicklern, riesige Welten mit Zwischensequenzen und CD-Audio zu erschaffen. Ihr Nachfolger PS2 ist bis heute die meistverkaufte Konsole aller Zeiten.",
         "valuetext": "1994",
         "startvalue": 1994,
         "endvalue": 1994,
