@@ -54,6 +54,39 @@ details[open]>summary::before{transform:rotate(90deg);}
 #methodSelect:focus{outline:none;border-color:#2a7a2a;box-shadow:0 0 0 2px rgba(74,154,74,.25);}
 /* Keep the "Neue Aufgabe generieren" button at its natural width (styles.css may force full width) */
 #genBtn{display:inline-block;width:auto;align-self:flex-start;}
+#taskButtons{display:flex;flex-wrap:wrap;gap:4px;align-items:center;}
+.btn-secondary{background:#eef4ee;color:#2a5a2a;border:1.5px solid #b8d8b8;}
+.btn-secondary:hover{filter:none;background:#e2eee2;}
+/* Manual-entry panel */
+#manualPanel{border:1.5px solid #b8d8b8;border-radius:8px;background:#f8fbf8;padding:12px 14px;margin:8px 0 4px;max-width:640px;}
+.mp-head{font-weight:bold;color:#1a4a1a;margin-bottom:8px;font-size:1.02em;}
+.mp-tabs{display:flex;gap:0;margin-bottom:10px;border-bottom:1.5px solid #cde0cd;}
+.mp-tab{background:none;color:#4a6a4a;border:none;border-bottom:2.5px solid transparent;border-radius:0;margin:0;padding:6px 14px;font-weight:bold;font-size:.92em;}
+.mp-tab:hover{filter:none;background:#eef4ee;}
+.mp-tab-active{color:#2a7a2a;border-bottom-color:#4a9a4a;}
+.mp-hint{font-size:.86em;color:#555;margin-bottom:8px;line-height:1.5;}
+.mp-hint code{background:#eef2ee;padding:1px 5px;border-radius:4px;}
+.mp-anzahl-row{display:flex;flex-wrap:wrap;align-items:center;gap:4px 12px;margin-bottom:8px;font-size:.9em;}
+.mp-anzahl-row>span{font-weight:bold;color:#333;}
+.mp-anzahl-row .opt{white-space:nowrap;}
+#mpTextArea{width:100%;box-sizing:border-box;font-family:'Consolas','Menlo',monospace;font-size:1em;padding:8px;border:1.5px solid #b8d8b8;border-radius:6px;resize:vertical;background:#fff;}
+#mpTextArea:focus{outline:none;border-color:#4a9a4a;}
+.mp-grid-area{overflow-x:auto;padding:2px 0;}
+.mp-grid{border-collapse:collapse;margin:2px auto;}
+.mp-grid td{padding:2px 3px;text-align:center;vertical-align:middle;font-size:1.02em;}
+.mp-grid .mp-coef{width:44px;font-family:inherit;font-size:.95em;padding:6px 3px;border:1.5px solid #cbdccb;border-radius:5px;text-align:center;background:#fff;}
+.mp-grid .mp-coef:focus{outline:none;border-color:#4a9a4a;box-shadow:0 0 0 2px rgba(74,154,74,.2);}
+.mp-grid .mp-var{color:#1a4a1a;font-weight:bold;padding:0 2px 0 1px;}
+.mp-grid .mp-op{color:#555;padding:0 2px;}
+.mp-grid .mp-eqlbl{color:#888;font-size:.82em;padding-right:8px;white-space:nowrap;}
+.mp-error{color:#b00020;background:#fdecef;border:1px solid #f3c2cb;border-radius:6px;padding:7px 10px;font-size:.88em;margin:8px 0;}
+.mp-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;}
+/* Share button in the task header */
+.task-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;}
+.task-head h2{margin:6px 0 2px;}
+.share-btn{background:none;color:#8aa2bd;border:none;font-size:.82em;padding:5px 11px;font-weight:bold;opacity:.6;transition:opacity .15s,color .15s,background .15s;}
+.share-btn:hover{filter:none;background:#eef4fb;color:#3a7ac0;opacity:1;}
+.share-btn.copied{color:#2a7a2a;border:none;background:#eefaee;opacity:1;}
 
 /* Segmented switch (radio group styled as a slider) */
 .seg-switch{position:relative;display:inline-flex;background:#eef4ee;border:1.5px solid #b8d8b8;border-radius:22px;padding:3px;gap:0;box-sizing:border-box;}
@@ -240,10 +273,40 @@ details[open]>summary::before{transform:rotate(90deg);}
   </div>
 </div>
 
-<button id="genBtn" onclick="generateSystem()">&#x27F3;&nbsp;Neue Aufgabe generieren</button>
+<div id="taskButtons">
+  <button id="genBtn" onclick="generateSystem()">&#x27F3;&nbsp;Neue Aufgabe generieren</button>
+  <button id="manualBtn" class="btn-secondary" onclick="toggleManualPanel()">&#9998;&nbsp;Manuelle Aufgabe</button>
+</div>
+
+<div id="manualPanel" style="display:none;">
+  <div class="mp-head">Eigenes Gleichungssystem eingeben</div>
+  <div class="mp-tabs">
+    <button type="button" id="mpTabText" class="mp-tab mp-tab-active" onclick="manualSetMode('text')">Als Text</button>
+    <button type="button" id="mpTabGrid" class="mp-tab" onclick="manualSetMode('grid')">Als Raster</button>
+  </div>
+
+  <div id="mpText" class="mp-mode">
+    <div class="mp-hint">Eine Gleichung pro Zeile, z.&nbsp;B.<br><code>2x + 3y = 8</code>. Du kannst beliebige Variablen verwenden (höchstens 3&nbsp;verschiedene, höchstens 3&nbsp;Gleichungen). Brüche (<code>3/4</code>) und Kommazahlen (<code>2,5</code>) sind erlaubt.</div>
+    <textarea id="mpTextArea" rows="3" spellcheck="false" placeholder="2x + 3y = 8&#10;3x - y = 1"></textarea>
+  </div>
+
+  <div id="mpGrid" class="mp-mode" style="display:none;">
+    <div class="mp-hint">Gib die Koeffizienten ein (leer = 0). Anzahl der Gleichungen und Variablen richten sich nach den Einstellungen oben. Brüche und Kommazahlen sind erlaubt.</div>
+    <div id="mpGridArea" class="mp-grid-area"></div>
+  </div>
+
+  <div id="mpError" class="mp-error" style="display:none;"></div>
+  <div class="mp-actions">
+    <button type="button" onclick="manualSubmit()">Aufgabe übernehmen</button>
+    <button type="button" class="btn-secondary" onclick="toggleManualPanel()">Abbrechen</button>
+  </div>
+</div>
 
 <div id="taskArea" style="display:none;margin-top:4px;">
-  <h2>Aufgabe</h2>
+  <div class="task-head">
+    <h2>Aufgabe</h2>
+    <button id="shareBtn" class="share-btn" onclick="shareCurrentSystem(this)" title="Diese Aufgabe teilen (Link kopieren)">🔗&nbsp;Teilen</button>
+  </div>
   <p style="margin:4px 0;">Löse das folgende Gleichungssystem:</p>
   <div id="lgsDisplayWrap" style="text-align:center;margin:10px 0;"><div class="scale-wrapper" style="display:inline-block;max-width:100%;"><div class="scale-el" id="lgsDisplay"></div></div></div>
 
@@ -295,19 +358,60 @@ function lcm(a,b){if(!a||!b)return 0;return Math.abs(Math.round(a*b))/gcd(a,b);}
 // Convert a (possibly fractional/decimal) value to an exact fraction {n,d}>0
 // in lowest terms. Handles integers, up to 3 decimal places and simple
 // denominators (2,3,4,5,6,8,10,12,…) reliably.
-function toRational(x){
-  if(Math.abs(x-Math.round(x))<1e-9)return{n:Math.round(x),d:1};
-  for(var d=2;d<=10000;d++){
-    var n=x*d;
-    if(Math.abs(n-Math.round(n))<1e-7){
-      n=Math.round(n);
-      var g=gcd(Math.abs(n),d);
-      return{n:n/g,d:d/g};
-    }
+// Best rational approximation with denominator <= maxD (continued fractions).
+// Finds the SIMPLEST fraction matching x, so 0.42857142857142855 -> 3/7 rather
+// than some 6-digit denominator, and it never silently rounds like a fixed
+// decimal fallback would.
+// Largest denominator we accept as a *displayable exact* value. Beyond this a
+// continued-fraction result is only an approximation of the float, and printing
+// it after an "=" would state something false (and put the exact answer out of
+// reach). Values that need more are flagged via _numInexact and the generator
+// discards the task. The integer baseline of these methods peaks around 1e4.
+var RAT_MAX_DEN=20000;
+function ratApprox(x,maxD){
+  maxD=maxD||RAT_MAX_DEN;
+  var neg=x<0;x=Math.abs(x);
+  var h0=0,h1=1,k0=1,k1=0,b=x,guard=0;
+  while(guard++<64){
+    var a=Math.floor(b);
+    var h2=a*h1+h0,k2=a*k1+k0;
+    if(k2>maxD||!isFinite(h2)||!isFinite(k2))break;
+    h0=h1;h1=h2;k0=k1;k1=k2;
+    var frac=b-a;
+    if(frac<1e-13)break;
+    b=1/frac;
   }
-  // fallback: 3-decimal approximation
-  var nn=Math.round(x*1000),dd=1000,g2=gcd(Math.abs(nn),dd);
-  return{n:nn/g2,d:dd/g2};
+  if(k1===0)return{n:Math.round(x)*(neg?-1:1),d:1};
+  return{n:(neg?-1:1)*h1,d:k1};
+}
+// Tolerance for "this fraction IS the value". Relative, because floating point
+// error grows with magnitude: a Gauss step can produce 1164352.0000000007 for a
+// value that is mathematically the integer 1164352.
+// Absolute floor: elimination leaves residues like 1.86e-9 for values that are
+// mathematically 0. No legitimate displayed value is anywhere near that small
+// (the smallest realistic one is ~1e-5), so treat everything below as zero.
+var NUM_EPS=1e-7;
+function _ratTol(x){return Math.max(NUM_EPS,1e-9*Math.abs(x));}
+// Snap accumulated float error back onto the exact value it represents.
+function cleanNum(x){
+  if(Math.abs(x)<NUM_EPS)return 0;
+  var r=Math.round(x);
+  return Math.abs(x-r)<=_ratTol(x)?r:x;
+}
+// Is x (up to accumulated float error) a whole number?
+function isIntegerVal(x){return Math.abs(x-Math.round(x))<=_ratTol(x);}
+// True when x can be written exactly as a fraction with a sane denominator.
+function isExactRational(x){
+  if(isIntegerVal(x))return true;
+  var q=ratApprox(x);
+  return q.d!==0&&Math.abs(q.n/q.d-x)<=_ratTol(x);
+}
+function toRational(x){
+  if(isIntegerVal(x))return{n:Math.round(x),d:1};
+  var q=ratApprox(x);
+  if(q.d===0)return{n:Math.round(x),d:1};
+  var g=gcd(Math.abs(q.n),q.d)||1;
+  return{n:q.n/g,d:q.d/g};
 }
 // kgV of two rationals p/q and r/s: lcm(p,r)/gcd(q,s)  (all taken on |numerators|,
 // denominators). Returns a plain number (may be fractional).
@@ -339,6 +443,56 @@ function detEqs(eqs){
   if(n===2)return eqs[0].coeffs[0]*eqs[1].coeffs[1]-eqs[0].coeffs[1]*eqs[1].coeffs[0];
   var a=eqs[0].coeffs,b=eqs[1].coeffs,c=eqs[2].coeffs;
   return a[0]*(b[1]*c[2]-b[2]*c[1])-a[1]*(b[0]*c[2]-b[2]*c[0])+a[2]*(b[0]*c[1]-b[1]*c[0]);
+}
+// Solve an n×n system (n=2 or 3) with Cramer's rule. Returns the solution vector,
+// or null if the coefficient matrix is singular (no unique solution). Used for
+// manually entered / shared systems, where we must compute the solution ourselves.
+function solveEqs(eqs){
+  var n=eqs.length,d=detEqs(eqs);
+  if(Math.abs(d)<1e-9)return null;
+  var sol=[];
+  for(var i=0;i<n;i++){
+    var mod=eqs.map(function(e){return{coeffs:e.coeffs.slice(),rhs:e.rhs};});
+    for(var r=0;r<n;r++)mod[r].coeffs[i]=mod[r].rhs;
+    sol.push(cleanNum(detEqs(mod)/d));
+  }
+  return sol;
+}
+// ── Encoding a concrete system into a shareable URL token ───────────────────
+// Each value: integer as-is, short decimal with a DOT (2.5), else an exact
+// fraction n/d. Coefficients + rhs of one equation are joined by ",", equations
+// by ";".  e.g. 2x+3y=8 ; 3x−y=1  →  "2,3,8;3,-1,1". parseNum reads all three
+// notations back, so the token round-trips exactly.
+function numURL(x){
+  if(isIntegerVal(x))return''+Math.round(x);
+  if(hasShortDecimal(x))
+    return(Math.round(x*1000)/1000).toFixed(3).replace(/0+$/,'').replace(/\.$/,'');
+  var q=toRational(x);
+  if(q.d!==1&&Math.abs(q.n/q.d-x)<=_ratTol(x))return q.n+'/'+q.d;
+  return String(Math.round(x*1000)/1000);
+}
+function encodeSystem(lgs){
+  return lgs.equations.map(function(e){
+    return e.coeffs.concat([e.rhs]).map(numURL).join(',');
+  }).join(';');
+}
+// Parse a "sys" token back into equations. Returns {n,equations} or null if the
+// token is malformed or the equation count / width is inconsistent.
+function decodeSystem(str){
+  if(!str)return null;
+  var rows=str.split(';').filter(function(r){return r.length>0;});
+  if(rows.length<2||rows.length>3)return null;
+  var n=rows.length,equations=[];
+  for(var i=0;i<n;i++){
+    var parts=rows[i].split(',');
+    if(parts.length!==n+1)return null;
+    var coeffs=[],ok=true;
+    for(var j=0;j<n;j++){var v=parseNum(parts[j]);if(v===null){ok=false;break;}coeffs.push(v);}
+    if(!ok)return null;
+    var rhs=parseNum(parts[n]);if(rhs===null)return null;
+    equations.push({coeffs:coeffs,rhs:rhs});
+  }
+  return{n:n,equations:equations};
 }
 // In how many equations does variable vi occur (coefficient ≠ 0)?
 function countEqsWithVar(eqs,vi){
@@ -429,14 +583,23 @@ function fmtDecimalComma(x){
 }
 function hasShortDecimal(x){
   var r=Math.round(x*1000)/1000;
-  return Math.abs(r*1000-Math.round(r*1000))<1e-6 && Math.abs(x-r)<1e-9;
+  return Math.abs(r*1000-Math.round(r*1000))<1e-6 && Math.abs(x-r)<=_ratTol(x);
 }
+// Set to true whenever a value could NOT be rendered exactly. Displayed values
+// are joined by "=" everywhere, so a rounded value would make the stated
+// equation false and put the exact answer out of reach. The generator checks
+// this flag and discards such tasks (see generateSystem).
+var _numInexact=false;
+function resetNumExactFlag(){_numInexact=false;}
+function numWasInexact(){return _numInexact;}
 function numTex(x){
-  var r=Math.round(x*1e9)/1e9;
-  if(Number.isInteger(r))return''+r;
+  if(isIntegerVal(x))return''+Math.round(x);
   if((_numMode==='decimal'||_numMode==='both')&&hasShortDecimal(x))return fmtDecimalComma(x);
-  for(var d=2;d<=100;d++){var n=Math.round(x*d);if(Math.abs(n/d-x)<1e-9){var g=gcd(Math.abs(n),d);return(n<0?'-':'')+'\\frac{'+Math.abs(n)/g+'}{'+d/g+'}';}}
-  // last resort: comma decimal
+  var q=toRational(x);
+  if(q.d!==1&&Math.abs(q.n/q.d-x)<=_ratTol(x))
+    return(q.n<0?'-':'')+'\\frac{'+Math.abs(q.n)+'}{'+q.d+'}';
+  // No exact representation available – flag it; the task will be regenerated.
+  _numInexact=true;
   return fmtDecimalComma(x);
 }
 
@@ -448,15 +611,15 @@ function numTex(x){
 // integers as-is, short terminating decimals with a comma, everything else as
 // an exact "n/d" fraction. Round-trips through parseNum (which accepts , . and /).
 function numPlain(x){
-  var r=Math.round(x*1e9)/1e9;
-  if(Number.isInteger(r))return''+r;
+  if(isIntegerVal(x))return''+Math.round(x);
   if(hasShortDecimal(x))
     return(Math.round(x*1000)/1000).toFixed(3).replace(/0+$/,'').replace(/\.$/,'').replace('.',',');
   var q=toRational(x);
-  if(q.d!==1&&Math.abs(q.n)<1e6)return q.n+'/'+q.d;
+  if(q.d!==1&&Math.abs(q.n/q.d-x)<=_ratTol(x))return q.n+'/'+q.d;
+  _numInexact=true;
   return String(Math.round(x*1000)/1000).replace('.',',');
 }
-function numNeedsParen(x){return x<-1e-9||Math.abs(x-Math.round(x))>1e-9;}
+function numNeedsParen(x){return x<-1e-9||!isIntegerVal(x);}
 function numTexParen(x){return numNeedsParen(x)?'\\left('+numTex(x)+'\\right)':numTex(x);}
 
 // Decide how non-integers should be displayed based on the current settings.
@@ -548,12 +711,12 @@ function systemTexCompact(eqs,vars,labels){
 }
 function applyRowOp(eq1,eq2,f1,f2,op,noReduce){
   var s=op==='add'?1:-1;
-  var nc=eq1.coeffs.map(function(c,i){return f1*c+s*f2*eq2.coeffs[i];});
-  var nr=f1*eq1.rhs+s*f2*eq2.rhs;
+  var nc=eq1.coeffs.map(function(c,i){return cleanNum(f1*c+s*f2*eq2.coeffs[i]);});
+  var nr=cleanNum(f1*eq1.rhs+s*f2*eq2.rhs);
   if(noReduce)return{coeffs:nc,rhs:nr};
   var nums=nc.concat([nr]).filter(function(x){return Math.abs(x)>1e-9;});
   if(nums.length>0){
-    var allInt=nums.every(function(x){return Math.abs(x-Math.round(x))<1e-9;});
+    var allInt=nums.every(isIntegerVal);
     if(allInt){
       var g=nums.reduce(function(a,b){return gcd(Math.abs(Math.round(a)),Math.abs(Math.round(b)));});
       if(g>1){nc=nc.map(function(c){return c/g;});nr=nr/g;}
@@ -767,6 +930,7 @@ function positionAllGliders(){
 function onAnzahlChange(){
   positionGlider(document.getElementById('anzahlSwitch'));
   applyDiffPreset(getSelectedDiff());  // number of equations affects the 2/3 special-case rules
+  manualSyncGrid();
   generateSystem();
 }
 function onMethodSelectChange(){
@@ -824,6 +988,7 @@ function applyDiffPreset(diff){
 var _varsUserChosen=false;
 function onVarsChange(){
   _varsUserChosen=true;
+  manualSyncGrid();
   updateURLParams();
   generateSystem();
 }
@@ -951,37 +1116,80 @@ function _levelRange(level,forCoeff){
   if(level==='int_hard')return[-35,35];
   return[-10,10];
 }
+// All non-integer values of one task are generated over a SINGLE common
+// denominator. Mixing denominators (say 1/3 next to 0,7) makes the intermediate
+// values of the Gleichsetzungs-/Einsetzungsverfahren explode: their exact form
+// then needs denominators in the hundred-thousands, which is unusable for a
+// student — and impossible to display exactly. With one shared denominator the
+// whole system is just a scaled integer system and the numbers stay classroom-sized.
+//   only decimals  → 2,4,5,10   (every k/D terminates)
+//   only fractions → 2,3,4,5,6
+//   both           → 6,12,20    (a mix: halves terminate, thirds/sixths do not)
+var _genDen=1;
+var NONINT_MAG_CAP=6;
+function pickGenDen(allowDecimal,allowFraction){
+  var pool;
+  if(allowDecimal&&allowFraction)pool=[6];      // halves terminate, thirds/sixths do not
+  else if(allowDecimal)pool=[2,4,5];
+  else if(allowFraction)pool=[2,3,4];
+  else return 1;
+  return pool[Math.floor(Math.random()*pool.length)];
+}
 function genValue(level,allowDecimal,allowFraction,allowZero,forCoeff){
   var rng=_levelRange(level,forCoeff),lo=rng[0],hi=rng[1];
   if(!allowZero&&lo===0)lo=1;
   // An all-positive range (e.g. the "sehr einfach" coefficients 1–3) must be able
   // to produce 0 when zero coefficients are explicitly allowed.
   if(allowZero&&lo>0)lo=0;
-  var modes=['int'];
-  if(allowDecimal)modes.push('dec');
-  if(allowFraction)modes.push('frac');
-  for(var tries=0;tries<50;tries++){
-    var mode=modes[Math.floor(Math.random()*modes.length)];
+  var den=(allowDecimal||allowFraction)?_genDen:1;
+  // A value k/D has numerator k = value·D. Without a cap the numerators grow with
+  // D and the exact intermediate values of the solution paths become unusable
+  // (denominators in the hundred-thousands), so limit the magnitude here.
+  if(den>1){var cap=NONINT_MAG_CAP;if(hi>cap)hi=cap;if(lo<-cap)lo=-cap;}
+  for(var tries=0;tries<60;tries++){
     var v;
-    if(mode==='int'){
+    // Roughly every other value stays a whole number so tasks don't become
+    // uniformly fractional.
+    if(den<2||Math.random()<0.45){
       v=randomInt(lo,hi);
-    } else if(mode==='dec'){
-      // one decimal place within the same magnitude range (avoid whole numbers)
-      v=Math.round((Math.random()*(hi-lo)+lo)*10)/10;
-      if(Math.abs(v-Math.round(v))<1e-9)continue; // want a genuine decimal here
     } else {
-      // simple fraction with a small denominator
-      var den=[2,3,4,5][Math.floor(Math.random()*4)];
-      var mag=Math.max(2,Math.min(Math.abs(lo)||hi,Math.abs(hi)));
-      var num=randomInt(-mag*den,mag*den);
-      v=num/den;
-      if(Math.abs(v-Math.round(v))<1e-9)continue; // want a genuine fraction here
+      var k=randomInt(Math.ceil(lo*den),Math.floor(hi*den));
+      if(k%den===0)continue;              // want a genuine non-integer here
+      v=k/den;
     }
     if(!allowZero&&Math.abs(v)<1e-9)continue;
     if(v<lo-1e-9||v>hi+1e-9)continue;
     return v;
   }
   var f=randomInt(lo,hi);return(!allowZero&&f===0)?(hi>0?1:lo):f;
+}
+
+// Render all four solution paths into a throwaway string and report whether
+// every number in them could be displayed exactly (see numTex/_numInexact).
+function allPathNumbersExact(){
+  if(!currentLGS)return true;
+  var n=currentLGS.n,base=solPathChoices;
+  resetNumExactFlag();
+  // Check every variable/equation choice the buttons offer, not just the default
+  // one — the student may pick any of them and must never meet a rounded value.
+  for(var a=0;a<n;a++){
+    for(var b=0;b<n;b++){
+      var ch={};
+      for(var k in base)if(Object.prototype.hasOwnProperty.call(base,k))ch[k]=base[k];
+      ch.elimVar=a;ch.add_bs0=b;ch.gleich_var=a;ch.gleich_bs0=b;
+      ch.einsetz_eq=b;ch.einsetz_var=a;
+      try{
+        solPath_add(currentLGS,ch);
+        solPath_gleich(currentLGS,ch);
+        solPath_einsetz(currentLGS,ch);
+      }catch(e){/* a path may bail out on a choice combination – ignore here */}
+      if(numWasInexact()){resetNumExactFlag();return false;}
+    }
+  }
+  try{solPath_gauss(currentLGS);}catch(e){}
+  var ok=!numWasInexact();
+  resetNumExactFlag();
+  return ok;
 }
 
 function generateSystem(){
@@ -991,6 +1199,9 @@ function generateSystem(){
   var vn=params.vars==='abc'?['a','b','c']:params.vars==='emoji'?['🍎','🍌','🍇']:['x','y','z'];
   vn=vn.slice(0,n);
 
+  // One shared denominator for every non-integer value of this task (see pickGenDen)
+  _genDen=pickGenDen(params.loesDecimal||params.coeffDecimal,
+                     params.loesFraction||params.coeffFraction);
   var solution=[];
   for(var i=0;i<n;i++){
     solution.push(genValue(params.loes,params.loesDecimal,params.loesFraction,false));
@@ -1038,9 +1249,23 @@ function generateSystem(){
     }
     if(maxKgv>60&&(generateSystem._retry=(generateSystem._retry||0)+1)<=40){return generateSystem();}
   }
+  currentLGS={n:n,vars:vn,equations:equations,solution:solution};
+
+  // Every displayed number must be exact: the solution paths join values with
+  // "=", so a rounded value would state a false equation and make the exact
+  // result unreachable. Dry-run all four paths; if any value cannot be written
+  // exactly, throw the task away and generate another one.
+  if(!allPathNumbersExact()&&(generateSystem._retry=(generateSystem._retry||0)+1)<=40)
+    return generateSystem();
   generateSystem._retry=0;
 
-  currentLGS={n:n,vars:vn,equations:equations,solution:solution};
+  displaySystem();
+}
+
+// Reset the choice state and render whatever is currently in currentLGS. Shared
+// by the random generator and by manually entered / URL-loaded custom systems.
+function displaySystem(){
+  var vn=currentLGS.vars,equations=currentLGS.equations;
   solPathChoices={elimVar:0,gleich_var:0,einsetz_eq:0,einsetz_var:0,
     add_pair1:[0,1],add_pair2:[0,2],add_target1:null,add_target2:null,
     add_elimVar2:-1,add_target3:null,add_bs0:0,add_bs1:0,add_bs2:0,
@@ -1050,6 +1275,8 @@ function generateSystem(){
 
   var settingsWereOpen=document.getElementById('settingsDetails').hasAttribute('open');
   if(!settingsWereOpen)document.getElementById('settingsDetails').removeAttribute('open');
+  var manualPanel=document.getElementById('manualPanel');
+  if(manualPanel)manualPanel.style.display='none';
   document.getElementById('taskArea').style.display='';
   document.getElementById('lgsDisplay').innerHTML='$$'+systemTex(equations,vn,vn.map(function(_,i){return romanNum(i+1);}))+'$$';
   document.getElementById('solutionContent').innerHTML='';
@@ -1063,16 +1290,36 @@ function generateSystem(){
   document.getElementById('solutionPathDetails').removeAttribute('open');
 
   renderSolution();
-  MathJax.typesetPromise([document.getElementById('lgsDisplay')]);
+  typesetAndScale([document.getElementById('lgsDisplay')]);
   updateURLParams();
   // Only scroll to the task when the settings panel is closed (i.e. not while
   // the user is actively tweaking settings) to avoid jumping around on each change.
   if(!settingsWereOpen)document.getElementById('taskArea').scrollIntoView({behavior:'smooth',block:'start'});
 }
 
+// The URL normally records the variable style via "vars" (xyz/abc/emoji). A
+// manually entered system may use arbitrary letters (e.g. p, q), so pin the exact
+// names via "vn" when they are not one of the standard modes.
+function _customVarMode(vars){
+  if(varsAreEmoji(vars))return 'emoji';
+  if(vars[0]==='a'&&vars[1]==='b')return 'abc';
+  if(vars[0]==='x'&&vars[1]==='y')return 'xyz';
+  return null;
+}
 function updateURLParams(){
   var p=getParams();
   var q=new URLSearchParams();
+  // A manually entered / shared system pins the exact equations via "sys" instead
+  // of the generator settings, so re-opening the link reproduces this very system.
+  if(currentLGS&&currentLGS.custom){
+    q.set('sys',encodeSystem(currentLGS));
+    var vm=_customVarMode(currentLGS.vars);
+    if(vm)q.set('vars',vm);else q.set('vn',currentLGS.vars.join(','));
+    q.set('method',p.gauss?'gauss':p.method);
+    q.set('scaled',p.scaledEqs?'1':'0');
+    history.replaceState({},'',window.location.pathname+'?'+q.toString());
+    return;
+  }
   q.set('anzahl',p.anzahl);q.set('vars',p.vars);q.set('loes',p.loes);
   q.set('coeff',p.coeff);q.set('zeros',p.zeros?'1':'0');
   q.set('method',p.gauss?'gauss':p.method);q.set('scaled',p.scaledEqs?'1':'0');
@@ -1081,11 +1328,47 @@ function updateURLParams(){
   q.set('cdec',p.coeffDecimal?'1':'0');q.set('cfrac',p.coeffFraction?'1':'0');
   history.replaceState({},'',window.location.pathname+'?'+q.toString());
 }
+// Build the shareable URL that pins the CURRENT system (generated or manual) via
+// "sys", so the recipient sees exactly these equations rather than a fresh random
+// one of the same kind.
+function buildShareURL(){
+  if(!currentLGS)return window.location.href;
+  var p=getParams();
+  var q=new URLSearchParams();
+  q.set('sys',encodeSystem(currentLGS));
+  var vm=_customVarMode(currentLGS.vars);
+  if(vm)q.set('vars',vm);else q.set('vn',currentLGS.vars.join(','));
+  q.set('method',p.gauss?'gauss':p.method);
+  q.set('scaled',p.scaledEqs?'1':'0');
+  return window.location.origin+window.location.pathname+'?'+q.toString();
+}
 
 function loadURLParams(){
   var q=new URLSearchParams(window.location.search);
   var g=function(k,d){return q.has(k)?q.get(k):d;};
   function setR(n,v){var e=document.querySelector('input[name="'+n+'"][value="'+v+'"]');if(e)e.checked=true;}
+  // A pinned custom system ("sys") takes precedence: adopt its variables/method,
+  // hand the decoded equations back to the caller and skip the generator settings.
+  var sysDec=q.has('sys')?decodeSystem(g('sys','')):null;
+  if(sysDec){
+    // Explicit variable names ("vn") win over the style shorthand ("vars").
+    var vnames=null,sv;
+    if(q.has('vn')){
+      vnames=g('vn','').split(',').map(function(x){return x.trim();}).filter(function(x){return x.length>0;});
+      sv=_customVarMode(vnames)||'xyz';
+    } else {
+      sv=g('vars','xyz');
+      vnames=sv==='abc'?['a','b','c']:sv==='emoji'?['\ud83c\udf4e','\ud83c\udf4c','\ud83c\udf47']:['x','y','z'];
+    }
+    vnames=vnames.slice(0,sysDec.n);
+    setR('anzahl',''+sysDec.n);setR('vars',sv);_varsUserChosen=true;
+    var m0=g('method','add');var ms0=document.getElementById('methodSelect');
+    if(ms0)ms0.value=(['add','gauss','gleich','einsetz'].indexOf(m0)>=0?m0:'add');
+    if(document.getElementById('scaledEqs'))document.getElementById('scaledEqs').checked=g('scaled','1')==='1';
+    setDiffSwitch('custom');
+    syncMethodUI();
+    return{custom:sysDec,vars:sv,varNames:vnames};
+  }
   setR('anzahl',g('anzahl','3'));setR('vars',g('vars','xyz'));setR('loes',g('loes','int_mid'));setR('coeff',g('coeff','int_mid'));
   // A vars value present in the URL counts as an active user choice, so difficulty
   // presets won't override it.
@@ -1106,6 +1389,20 @@ function loadURLParams(){
     _diffApplying=true;applyDiffPreset(diff);_diffApplying=false;
   }
   syncMethodUI();
+  return null;
+}
+// Adopt an externally supplied system (manual entry or a shared "sys" link):
+// compute its solution, mark it custom and render it. `equations` are
+// {coeffs,rhs}; `vn` are the variable names. Returns false if the system has no
+// unique solution.
+function setCustomSystem(equations,vn){
+  var n=equations.length;
+  var sol=solveEqs(equations);
+  if(!sol)return false;
+  refreshNumModeFor(varsAreEmoji(vn)?'emoji':(vn[0]==='a'?'abc':'xyz'),equations);
+  currentLGS={n:n,vars:vn.slice(0,n),equations:equations,solution:sol,custom:true};
+  displaySystem();
+  return true;
 }
 
 // =============================================================
@@ -1118,7 +1415,7 @@ function renderSolution(){
   var tex='\\['+solResultTex(lgs.vars,lgs.solution)+'\\]';
   var sc=document.getElementById('solutionContent');
   sc.innerHTML=tex;
-  MathJax.typesetPromise([sc]);
+  typesetAndScale([sc]);
 }
 
 // =============================================================
@@ -1133,6 +1430,18 @@ var solPathChoices={elimVar:0,gleich_var:0,einsetz_eq:0,einsetz_var:0,
 
 function solSec(title,content){return'<div class="sol-sec"><b>'+title+'</b>'+content+'</div>';}
 // Use \[ \] for display math (more reliable in dynamic content)
+// Typeset with MathJax and afterwards let scale.js fit wide formulas to the
+// available width. Without the follow-up call a freshly rendered system keeps
+// its natural width and can overflow to the right until the next resize event.
+function typesetAndScale(nodes){
+  if(!(typeof MathJax!=='undefined'&&MathJax.typesetPromise))return;
+  return MathJax.typesetPromise(nodes).then(function(){
+    rescaleFormulas();
+    // Watch the new boxes: MathJax web fonts may still change their width.
+    if(typeof observeFormulaBoxes==='function')observeFormulaBoxes();
+    if(typeof scheduleRescale==='function')scheduleRescale(120);
+  });
+}
 function solEq(tex){return'<div class="sol-eq"><div class="scale-wrapper"><div class="scale-el">\\['+tex+'\\]</div></div></div>';}
 function solText(t){return'<div class="sol-eq" style="font-size:.9em;color:#444;">'+t+'</div>';}
 
@@ -1855,7 +2164,7 @@ function solPath_gauss(lgs){
     var pCoeff=M[col].coeffs[col];
     var pivLbl=lbl(col);
     if(Math.abs(Math.abs(pCoeff)-1)>1e-9){
-      var scaled={coeffs:M[col].coeffs.map(function(c){return c/pCoeff;}),rhs:M[col].rhs/pCoeff};
+      var scaled={coeffs:M[col].coeffs.map(function(c){return cleanNum(c/pCoeff);}),rhs:cleanNum(M[col].rhs/pCoeff)};
       primes[col]++;
       var newPivLbl=lbl(col);
       M[col]=scaled;
@@ -2348,7 +2657,7 @@ function renderSolutionPath(){
   }
   choiceHtml+='</div>';
   choiceArea.innerHTML=choiceHtml;
-  MathJax.typesetPromise([choiceArea]);
+  typesetAndScale([choiceArea]);
 
   var html='';
   switch(method){
@@ -2358,7 +2667,7 @@ function renderSolutionPath(){
     default:        html=solPath_add(currentLGS,ch);break;
   }
   cont.innerHTML=html;
-  MathJax.typesetPromise([cont]).then(function(){if(typeof scaleAllElements==='function')scaleAllElements();});
+  typesetAndScale([cont]);
 }
 // =============================================================
 // §11  QUIZ ENGINE
@@ -2542,13 +2851,13 @@ function renderQuiz(){
         +qzCurStep('Hinweis',
           '<div class="qz-hint-box">'+(quizState.qInfoMsg||'')+'</div>'
           +'<div class="qz-btns"><button onclick="qzInfoNext()">Weiter &#8594;</button></div>');
-      MathJax.typesetPromise([qa]).then(function(){if(typeof scaleAllElements==='function')scaleAllElements();});
+      typesetAndScale([qa]);
       return;
     }
     // Direct solving of single-variable equations before the actual method starts
     if(quizState.stage==='pre_solve'){
       renderPreSolve(qa);
-      MathJax.typesetPromise([qa]).then(function(){if(typeof scaleAllElements==='function')scaleAllElements();});
+      typesetAndScale([qa]);
       return;
     }
     switch(quizState.method){
@@ -2557,7 +2866,7 @@ function renderQuiz(){
       case 'einsetz':renderQuiz_einsetz(qa);break;
       default:       renderQuiz_add(qa);break;
     }
-    MathJax.typesetPromise([qa]).then(function(){if(typeof scaleAllElements==='function')scaleAllElements();});
+    typesetAndScale([qa]);
   }catch(e){
     qa.innerHTML='<div class="qz-cur-step" style="color:#900;">Fehler: '+e.message+'</div>';
     console.error('Quiz-Fehler:',e);
@@ -4666,18 +4975,353 @@ function eqMCVal(ci,corr,btn){
 
 
 // =============================================================
+// §11b  MANUAL ENTRY & SHARING
+// =============================================================
+var _manualMode='text';
+function toggleManualPanel(){
+  var p=document.getElementById('manualPanel');
+  if(!p)return;
+  // Only display:none counts as hidden; once opened the panel has display:'' and
+  // must close on the next toggle (also used by the "Abbrechen" button).
+  var show=p.style.display==='none';
+  p.style.display=show?'':'none';
+  if(show){
+    manualPrefillFromCurrent();
+    manualBuildGrid();
+    hideManualError();
+    var ta=document.getElementById('mpTextArea');
+    if(_manualMode==='text'&&ta){try{ta.focus();}catch(e){}}
+    smoothScrollTo(p,700);
+  }
+}
+function manualSetMode(mode){
+  _manualMode=mode;
+  document.getElementById('mpText').style.display=mode==='text'?'':'none';
+  document.getElementById('mpGrid').style.display=mode==='grid'?'':'none';
+  document.getElementById('mpTabText').classList.toggle('mp-tab-active',mode==='text');
+  document.getElementById('mpTabGrid').classList.toggle('mp-tab-active',mode==='grid');
+  hideManualError();
+  if(mode==='grid')manualBuildGrid();
+}
+// The grid follows the top-level settings: how many equations (name="anzahl")
+// and which variable names (name="vars").
+function topAnzahl(){return parseInt((document.querySelector('input[name="anzahl"]:checked')||{}).value)||3;}
+function topVarNames(){
+  var v=(document.querySelector('input[name="vars"]:checked')||{}).value||'xyz';
+  return v==='abc'?['a','b','c']:v==='emoji'?['🍎','🍌','🍇']:['x','y','z'];
+}
+function manualVarsChanged(){/* text mode reads variables from the typed equations */}
+// Grid mode mirrors the top settings; nothing to prefill from the current task.
+function manualPrefillFromCurrent(){}
+// Rebuild the coefficient grid whenever the panel is open and the top settings
+// (equation count or variable names) change.
+function manualSyncGrid(){
+  var p=document.getElementById('manualPanel');
+  if(p&&p.style.display!=='none')manualBuildGrid();
+}
+// Classify a (possibly rectangular) system by Gaussian elimination on the
+// augmented matrix: 'unique' (exactly one solution), 'none' (contradictory) or
+// 'infinite' (under-determined → infinitely many solutions). Our solution
+// methods require the 'unique' case.
+function classifySystem(eqs,nv){
+  var ne=eqs.length,EPS=1e-9;
+  var M=eqs.map(function(e){
+    var r=e.coeffs.slice(0,nv);while(r.length<nv)r.push(0);r.push(e.rhs);return r;
+  });
+  var row=0;
+  for(var col=0;col<nv&&row<ne;col++){
+    var piv=-1,best=EPS;
+    for(var r=row;r<ne;r++){if(Math.abs(M[r][col])>best){best=Math.abs(M[r][col]);piv=r;}}
+    if(piv<0)continue;
+    var t=M[row];M[row]=M[piv];M[piv]=t;
+    var pv=M[row][col];
+    for(var c=col;c<=nv;c++)M[row][c]/=pv;
+    for(var r2=0;r2<ne;r2++){
+      if(r2===row)continue;
+      var f=M[r2][col];
+      if(Math.abs(f)>EPS)for(var c2=col;c2<=nv;c2++)M[r2][c2]-=f*M[row][c2];
+    }
+    row++;
+  }
+  var rankA=row;
+  for(var rr=0;rr<ne;rr++){
+    var allZero=true;
+    for(var cc=0;cc<nv;cc++)if(Math.abs(M[rr][cc])>EPS){allZero=false;break;}
+    if(allZero&&Math.abs(M[rr][nv])>1e-6)return 'none';
+  }
+  if(rankA<nv)return 'infinite';
+  return 'unique';
+}
+// Build the coefficient grid, sized and labelled from the top-level settings.
+function manualBuildGrid(){
+  var area=document.getElementById('mpGridArea');if(!area)return;
+  var n=topAnzahl();
+  var vars=topVarNames();
+  var prev={};
+  area.querySelectorAll('input.mp-coef').forEach(function(inp){prev[inp.getAttribute('data-k')]=inp.value;});
+  var h='<table class="mp-grid"><tbody>';
+  for(var i=0;i<n;i++){
+    h+='<tr><td class="mp-eqlbl">'+romanNum(i+1)+':</td>';
+    for(var j=0;j<n;j++){
+      var key='c'+i+'_'+j,val=prev[key]!==undefined?prev[key]:'';
+      if(j>0)h+='<td class="mp-op">+</td>';
+      h+='<td><input class="mp-coef" data-k="'+key+'" type="text" inputmode="text" '
+        +'value="'+val.replace(/"/g,'&quot;')+'" '
+        +'title="Koeffizient (leer = 0), z. B. 2, -3, 2,5 oder 3/4"></td>'
+        +'<td class="mp-var">'+vars[j]+'</td>';
+    }
+    var rkey='r'+i,rval=prev[rkey]!==undefined?prev[rkey]:'';
+    h+='<td class="mp-op">=</td>'
+      +'<td><input class="mp-coef" data-k="'+rkey+'" type="text" inputmode="text" '
+      +'value="'+rval.replace(/"/g,'&quot;')+'" title="rechte Seite"></td>';
+    h+='</tr>';
+  }
+  h+='</tbody></table>';
+  area.innerHTML=h;
+}
+function showManualError(msg){
+  var e=document.getElementById('mpError');if(!e)return;
+  e.innerHTML=msg;e.style.display='';
+}
+function hideManualError(){var e=document.getElementById('mpError');if(e)e.style.display='none';}
+// Read the text-mode input into an array of {coeffs,rhs}; returns {equations,vars}
+// or throws a message string describing the first problem.
+function manualParseText(){
+  var raw=(document.getElementById('mpTextArea').value||'').split(/\n+/)
+    .map(function(l){return l.trim();}).filter(function(l){return l.length>0;});
+  if(raw.length<2)throw 'Bitte mindestens 2 Gleichungen eingeben (eine pro Zeile).';
+  if(raw.length>3)throw 'Es sind höchstens 3 Gleichungen möglich – du hast '+raw.length+' eingegeben.';
+  // Collect the variables the user actually typed (any single letters), in order
+  // of first appearance. Emoji fruits are supported too.
+  var vars=_collectTextVars(raw);
+  if(vars.length===0)throw 'Es wurde keine Variable erkannt. Beispiel: <code>2x + 3y = 8</code>.';
+  if(vars.length>3)throw 'Es sind höchstens 3 verschiedene Variablen möglich – erkannt: '+vars.map(escapeHTML).join(', ')+'.';
+  var equations=[];
+  for(var i=0;i<raw.length;i++){
+    if(raw[i].indexOf('=')<0)throw 'Zeile '+(i+1)+' enthält kein „=“: <code>'+escapeHTML(raw[i])+'</code>';
+    var pe=parseUserEq(raw[i],vars);
+    if(!pe)throw 'Zeile '+(i+1)+' konnte nicht gelesen werden: <code>'+escapeHTML(raw[i])+'</code>';
+    equations.push(pe);
+  }
+  return{equations:equations,vars:vars};
+}
+// Distinct variable tokens across all lines, ordered by first appearance.
+// A "variable" is any single latin letter or emoji fruit that is not part of a
+// number. Digits, operators, ',', '.', '/', '=' and whitespace are ignored.
+function _collectTextVars(lines){
+  var seen={},order=[];
+  var fruit=['🍎','🍌','🍇'];
+  lines.forEach(function(line){
+    var s=line.replace(/\s+/g,'');
+    // strip everything after '=' handled naturally; scan whole line for letters/emoji
+    for(var i=0;i<s.length;i++){
+      var ch=s[i];
+      // emoji fruits are surrogate pairs
+      var two=s.substr(i,2);
+      if(fruit.indexOf(two)>=0){if(!seen[two]){seen[two]=1;order.push(two);}i++;continue;}
+      if(/[a-zA-Z]/.test(ch)){var k=ch;if(!seen[k]){seen[k]=1;order.push(k);}}
+    }
+  });
+  return order;
+}
+function escapeHTML(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+// Read the grid-mode inputs into {equations,vars}; empty cell = 0.
+function manualParseGrid(){
+  var n=topAnzahl();
+  var vars=topVarNames().slice(0,n),equations=[];
+  var area=document.getElementById('mpGridArea');
+  var val=function(k){
+    var inp=area.querySelector('input[data-k="'+k+'"]');
+    var t=inp?inp.value.trim():'';
+    if(t==='')return 0;
+    var v=parseNum(t);
+    if(v===null)throw 'Ungültige Eingabe: <code>'+escapeHTML(t)+'</code>';
+    return v;
+  };
+  for(var i=0;i<n;i++){
+    var coeffs=[];for(var j=0;j<n;j++)coeffs.push(val('c'+i+'_'+j));
+    if(coeffs.every(function(c){return Math.abs(c)<1e-9;}))
+      throw 'Gleichung '+romanNum(i+1)+' hat nur Nullen als Koeffizienten.';
+    equations.push({coeffs:coeffs,rhs:val('r'+i)});
+  }
+  return{equations:equations,vars:vars};
+}
+function manualSubmit(){
+  hideManualError();
+  var parsed;
+  try{parsed=_manualMode==='grid'?manualParseGrid():manualParseText();}
+  catch(msg){showManualError(typeof msg==='string'?msg:'Eingabe konnte nicht gelesen werden.');return;}
+  var nv=parsed.vars.length,ne=parsed.equations.length;
+  // FIRST: our methods only work for a uniquely solvable system. Test that
+  // before anything else and report the specific reason otherwise.
+  var cls=classifySystem(parsed.equations,nv);
+  if(cls==='infinite'){
+    showManualError('Dieses Gleichungssystem besitzt <b>mehrere (unendlich viele) Lösungen</b> und ist damit nicht eindeutig lösbar. Die Lösungsverfahren benötigen aber ein eindeutig lösbares System – bitte die Gleichungen so anpassen, dass es genau eine Lösung gibt.');
+    return;
+  }
+  if(cls==='none'){
+    showManualError('Dieses Gleichungssystem besitzt <b>keine Lösung</b> – die Gleichungen widersprechen sich. Bitte die Koeffizienten anpassen.');
+    return;
+  }
+  // 'unique' requires as many equations as variables for our square-system engine.
+  if(ne!==nv){
+    showManualError('Für eine eindeutige Lösung müssen Anzahl der Gleichungen und Anzahl der Variablen übereinstimmen (hier: '+ne+' Gleichung(en), '+nv+' Variable(n)).');
+    return;
+  }
+  var sol=solveEqs(parsed.equations);
+  if(!sol){
+    showManualError('Dieses Gleichungssystem ist nicht eindeutig lösbar. Bitte die Koeffizienten anpassen.');
+    return;
+  }
+  // Exactness guard: the solution paths join values with "=", so a value that
+  // cannot be shown exactly would make the stated result unreachable. Reuse the
+  // generator's check on a trial system; warn instead of silently rounding.
+  refreshNumModeFor('',parsed.equations);
+  var prevLGS=currentLGS;
+  currentLGS={n:parsed.equations.length,vars:parsed.vars,equations:parsed.equations,solution:sol,custom:true};
+  var exact=allPathNumbersExact();
+  currentLGS=prevLGS;
+  if(!exact){
+    showManualError('Dieses System lässt sich nicht exakt darstellen: Beim Lösen entstehen Zwischenwerte, die nur gerundet angezeigt werden könnten (z.&nbsp;B. Brüche wie 1/7). Bitte „glattere" Koeffizienten wählen, damit die Zwischenschritte exakt bleiben.');
+    return;
+  }
+  // Reflect the variable style in the top setting when it matches a known mode.
+  var vmode=varsAreEmoji(parsed.vars)?'emoji':(parsed.vars[0]==='a'&&parsed.vars[1]==='b')?'abc':(parsed.vars[0]==='x'&&parsed.vars[1]==='y')?'xyz':null;
+  if(vmode){var e=document.querySelector('input[name="vars"][value="'+vmode+'"]');if(e)e.checked=true;}
+  _varsUserChosen=true;setDiffSwitch('custom');
+  setCustomSystem(parsed.equations,parsed.vars);
+}
+// Set the number-display mode from an explicit variable mode + the actual values
+// present (so a manual/shared task shows decimals vs fractions sensibly).
+function refreshNumModeFor(vmode,equations){
+  var anyDec=false,anyFrac=false;
+  equations.forEach(function(e){
+    e.coeffs.concat([e.rhs]).forEach(function(v){
+      if(isIntegerVal(v))return;
+      if(hasShortDecimal(v))anyDec=true;else anyFrac=true;
+    });
+  });
+  if(anyDec&&anyFrac)_numMode='both';
+  else if(anyDec)_numMode='decimal';
+  else if(anyFrac)_numMode='fraction';
+  else _numMode='fraction';
+}
+// Copy a share link that pins the current system.
+function shareCurrentSystem(btn){
+  var url=buildShareURL();
+  var done=function(){
+    if(!btn)return;
+    var old=btn.innerHTML;btn.classList.add('copied');btn.innerHTML='✓&nbsp;Link kopiert';
+    setTimeout(function(){btn.classList.remove('copied');btn.innerHTML=old;},1800);
+  };
+  var fallback=function(){
+    try{
+      var ta=document.createElement('textarea');ta.value=url;ta.style.position='fixed';ta.style.opacity='0';
+      document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);done();
+    }catch(e){
+      if(btn){var o=btn.innerHTML;btn.innerHTML='Link: '+url;setTimeout(function(){btn.innerHTML=o;},4000);}
+    }
+  };
+  if(navigator.clipboard&&navigator.clipboard.writeText)
+    navigator.clipboard.writeText(url).then(done,fallback);
+  else fallback();
+}
+
+// =============================================================
 // §12  UI & INIT
 // =============================================================
 document.addEventListener('DOMContentLoaded',function(){
-  loadURLParams();
+  var loaded=loadURLParams();
   positionAllGliders();
   window.addEventListener('resize',positionAllGliders);
-  // Poll for MathJax readiness, then generate first task
+  // Poll for MathJax readiness, then show the first task: either the pinned
+  // custom system from the URL, or a freshly generated one.
   (function tryGen(){
-    if(window.MathJax&&MathJax.typesetPromise){generateSystem();positionAllGliders();}
+    if(window.MathJax&&MathJax.typesetPromise){
+      if(loaded&&loaded.custom){
+        var vn=loaded.varNames&&loaded.varNames.length?loaded.varNames:
+               (loaded.vars==='abc'?['a','b','c']:loaded.vars==='emoji'?['🍎','🍌','🍇']:['x','y','z']);
+        if(!setCustomSystem(loaded.custom.equations,vn))generateSystem();
+      } else {
+        generateSystem();
+      }
+      positionAllGliders();
+      observeFormulaBoxes();
+      // scale.js is deferred and MathJax loads its fonts asynchronously, so keep
+      // re-fitting until scale.js has actually taken over (or we give up and
+      // stay with the local fitter).
+      (function waitForScaleJs(tries){
+        var ok=rescaleFormulas();
+        if(ok||tries>40)return;
+        setTimeout(function(){waitForScaleJs(tries+1);},100);
+      })(0);
+      if(document.fonts&&document.fonts.ready&&document.fonts.ready.then)
+        document.fonts.ready.then(function(){rescaleFormulas();});
+    }
     else{setTimeout(tryGen,80);}
   })();
 });
+// ── Fitting wide formulas to the available width ──────────────────────────
+// scale.js supplies scaleAllElements(), but it is loaded with `defer` and
+// MathJax fetches its own web fonts *after* typesetting. Both mean the final
+// width is often only known some time after the first render — which is why a
+// freshly generated system could overflow to the right until the next resize.
+// We therefore (a) keep retrying until scale.js is available, (b) observe the
+// formula boxes and re-fit whenever their intrinsic size changes, and
+// (c) fall back to a local fitter should scale.js never load.
+var _rescaleTimer=null,_usedFitFallback=false;
+function _fitWrappers(){
+  var wraps=document.querySelectorAll('.scale-wrapper');
+  for(var i=0;i<wraps.length;i++){
+    var w=wraps[i],el=w.querySelector('.scale-el');
+    if(!el)continue;
+    el.style.transformOrigin='left top';
+    el.style.transform='';
+    w.style.height='';
+    var avail=w.clientWidth||(w.parentNode?w.parentNode.clientWidth:0);
+    var nat=el.scrollWidth;
+    if(avail>0&&nat>avail+1){
+      var f=avail/nat;
+      el.style.transform='scale('+f+')';
+      w.style.height=Math.ceil(el.offsetHeight*f)+'px';
+    }
+  }
+}
+function _clearFitStyles(){
+  var wraps=document.querySelectorAll('.scale-wrapper');
+  for(var i=0;i<wraps.length;i++){
+    var w=wraps[i],el=w.querySelector('.scale-el');
+    if(el){el.style.transform='';el.style.transformOrigin='';}
+    w.style.height='';
+  }
+}
+function rescaleFormulas(){
+  if(typeof scaleAllElements==='function'){
+    if(_usedFitFallback){_clearFitStyles();_usedFitFallback=false;}
+    scaleAllElements();
+    return true;
+  }
+  _fitWrappers();_usedFitFallback=true;
+  return false;
+}
+function scheduleRescale(delay){
+  if(_rescaleTimer)clearTimeout(_rescaleTimer);
+  _rescaleTimer=setTimeout(function(){_rescaleTimer=null;rescaleFormulas();},delay||60);
+}
+// Re-fit when a formula box changes its intrinsic size (e.g. late MathJax fonts).
+// A CSS transform does not alter the observed border box, so this cannot loop.
+var _fitObserver=null;
+function observeFormulaBoxes(){
+  if(typeof ResizeObserver!=='function')return;
+  if(!_fitObserver)_fitObserver=new ResizeObserver(function(){scheduleRescale(40);});
+  var els=document.querySelectorAll('.scale-el');
+  for(var i=0;i<els.length;i++){try{_fitObserver.observe(els[i]);}catch(e){}}
+}
+if(window.addEventListener){
+  window.addEventListener('resize',function(){scheduleRescale(40);});
+  window.addEventListener('orientationchange',function(){scheduleRescale(140);});
+  window.addEventListener('load',function(){rescaleFormulas();observeFormulaBoxes();});
+}
 </script>
 </body>
 </html>
