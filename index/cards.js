@@ -22,7 +22,67 @@ const cardsData = [
     "stufe": [7,8],
     "wichtig": false,
     "added": "2026-07-25",
-    "wip": true
+    "updated": "2026-08-19",
+  },
+  {
+    "id": "flaecheninhalte",
+    "title": "Flächeninhalte",
+    "desc": "Übe das Berechnen von Flächeninhalten verschiedener geometrischer Figuren.",
+    "types": ["learn"],
+    "mobilefriendly": true,
+    "link": "flaecheninhalt.html",
+    "fach": "Mathematik",
+    "stufe": [7,8],
+    "wichtig": true,
+    "added": "2026-08-19"
+  },
+  {
+    "id": "flaechen_erkennen",
+    "title": "Flächen erkennen",
+    "desc": "Übe das Erkennen von Flächen, insbesondere die verschiedenen Dreiecks- und Vierecksarten (Haus der Vierecke).",
+    "types": ["learn"],
+    "mobilefriendly": true,
+    "link": "flaechen_erkennen.html",
+    "fach": "Mathematik",
+    "stufe": [5,6,7],
+    "wichtig": true,
+    "added": "2026-08-27"
+  },
+  {
+    "id": "koerper_erkennen",
+    "title": "Körper erkennen",
+    "desc": "Übe das Erkennen von Körpern in verschiedenen Darstellungsformen (z.B. Schrägbilder, Netzdarstellungen).",
+    "types": ["learn"],
+    "mobilefriendly": true,
+    "link": "koerper_erkennen.html",
+    "fach": "Mathematik",
+    "stufe": [7,8,9],
+    "wichtig": true,
+    "added": "2026-08-27"
+  },
+  {
+    "id": "flaecheninhalte",
+    "title": "Flächeninhalte",
+    "desc": "Übe das Berechnen von Flächeninhalten verschiedener geometrischer Figuren.",
+    "types": ["learn"],
+    "mobilefriendly": true,
+    "link": "flaecheninhalt.html",
+    "fach": "Mathematik",
+    "stufe": [7,8],
+    "wichtig": true,
+    "added": "2026-08-19"
+  },
+  {
+    "id": "volumen",
+    "title": "Volumen",
+    "desc": "Übe das Berechnen von Volumina verschiedener geometrischer Körper.",
+    "types": ["learn"],
+    "mobilefriendly": true,
+    "link": "volumen.html",
+    "fach": "Mathematik",
+    "stufe": [8,9],
+    "wichtig": true,
+    "added": "2026-08-19"
   },
   {
     "id": "waage",

@@ -5,7 +5,15 @@ const categoriesData = [
     "icon": "±",
     "iconType": "text",
     "tooltip": "Grundlegende Algebra, Gleichungen und Gleichungssysteme",
-    "cards": ["potenzen", "sciNot", "potenzgesetze", "waage", "zahlbereiche", "graphen", "gleichungart", "lgs", "groessen_umrechnen"]
+    "cards": ["potenzen", "sciNot", "potenzgesetze", "waage", "zahlbereiche", "graphen", "gleichungart", "lgs"]
+  },
+  {
+    "id": "raumUndForm",
+    "title": "Flächen und Körper",
+    "icon": "▱",
+    "iconType": "text",
+    "tooltip": "Berechnung von Flächen und Körpern, Volumen und Oberflächen, Umrechnen von Einheiten",
+    "cards": ["flaechen_erkennen", "flaecheninhalte", "koerper_erkennen","volumen", "groessen_umrechnen"]
   },
   {
     "id": "quadratisch",

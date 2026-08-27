@@ -1,0 +1,2419 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flächeninhalte berechnen &amp; visualisieren</title>
+
+<!-- MathJax -->
+<script>
+window.MathJax = {
+  tex: { inlineMath: [['\\(','\\)']], displayMath: [['\\[','\\]']] },
+  svg: { fontCache: 'global' },
+  startup: {
+    typeset: false,
+    ready(){ MathJax.startup.defaultReady(); window.__mjReady = true; MathJax.typesetPromise(); }
+  }
+};
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+<!-- Portal-Basisstil (im Repo vorhanden); Inline-Stile unten überschreiben/ergänzen -->
+<link rel="stylesheet" href="styles.css">
+<!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-5K8WYYXDL2"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-5K8WYYXDL2');
+    </script>
+
+<style>
+/* ---- Basis (Fallback, falls styles.css fehlt / für die Vorschau) ---- */
+html{scrollbar-gutter:stable;overflow-y:scroll;}
+body{font-family:Calibri,'Segoe UI',sans-serif;display:flex;flex-direction:column;padding:0 2%;margin:0;color:#1a1a1a;line-height:1.4;background:#fff;}
+h1{font-size:1.5em;margin:.5em 0 .3em;}
+button{background:#4CAF50;color:#fff;border:none;padding:10px 20px;font-size:12px;margin:4px 2px;border-radius:5px;cursor:pointer;}
+button:hover{filter:brightness(1.05);}
+details{border:2px solid #000;border-radius:6px;margin:10px 0;padding:6px 10px;}
+details:not([open]){padding-bottom:4px;}
+summary{font-weight:bold;display:block;cursor:pointer;list-style:none;}
+summary::-webkit-details-marker{display:none;}
+summary::before{content:'▶️';display:inline-block;margin-right:6px;transition:transform .2s;}
+details[open]>summary::before{transform:rotate(90deg);}
+.form-block{border:1px solid #000;padding:6px 8px;margin-bottom:8px;border-radius:5px;}
+
+/* ---- Seiten-spezifisch ---- */
+:root{
+  --accent:#4CAF50; --accent-d:#3c9040; --line:#cfcfcf; --soft:#f5f7f5;
+  --chip:#eef2ef; --chip-active:#4CAF50; --blue:#2f6fb0; --amber:#e08b00;
+}
+*{box-sizing:border-box;}
+.wrap{max-width:820px;width:100%;margin:0 auto;}
+.muted{color:#666;font-size:.9em;}
+.small{font-size:.85em;}
+.hidden{display:none !important;}
+
+/* Segmented switches */
+.seg{display:inline-flex;flex-wrap:wrap;gap:0;border:1.5px solid var(--accent);border-radius:8px;overflow:hidden;background:#fff;vertical-align:middle;}
+.seg button{background:#fff;color:#2a2a2a;border:none;border-right:1px solid var(--line);margin:0;padding:7px 12px;font-size:12px;border-radius:0;}
+.seg button:last-child{border-right:none;}
+.seg button.on{background:var(--accent);color:#fff;font-weight:bold;}
+.seg.small button{padding:5px 9px;font-size:11px;}
+.ctl-row{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;margin:8px 0;}
+.ctl-row .lbl{font-weight:bold;font-size:.9em;min-width:92px;}
+
+/* Formen-Baum */
+.cat{border:1px solid var(--line);border-radius:8px;margin:8px 0;padding:8px 10px;background:var(--soft);}
+.cat-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px;}
+.cat-title{font-weight:bold;}
+.cat-actions button{padding:3px 8px;font-size:10px;background:#fff;color:#444;border:1px solid var(--line);}
+.shape-list{display:flex;flex-direction:column;gap:6px;}
+.shape{border:1px solid var(--line);border-radius:7px;background:#fff;overflow:hidden;}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;font-size:13px;cursor:pointer;user-select:none;-webkit-user-select:none;}
+.shape>.chip{font-weight:bold;width:100%;}
+.chip .box{width:15px;height:15px;border:1.5px solid #999;border-radius:4px;flex:0 0 auto;display:inline-block;}
+.chip.on .box{background:var(--accent);border-color:var(--accent-d);position:relative;}
+.chip.on .box::after{content:'✓';color:#fff;font-size:11px;position:absolute;left:1px;top:-3px;}
+.chip.partial .box{background:linear-gradient(135deg,var(--accent) 50%,#fff 50%);border-color:var(--accent-d);}
+.formulas{display:flex;flex-direction:column;border-top:1px dashed var(--line);}
+.formulas .chip{padding-left:26px;font-size:12px;border-top:1px dotted #eee;}
+.formulas .chip .tag{font-size:10px;color:#fff;background:var(--blue);border-radius:4px;padding:1px 5px;margin-left:4px;}
+.formulas .chip .tag.trig{background:#8552c9;}
+
+/* Aufgabenkarte */
+.task-card{border:2px solid #222;border-radius:12px;padding:14px 16px;margin:14px 0;background:#fff;}
+.task-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px;}
+.task-title{font-weight:bold;display:inline-flex;align-items:center;gap:6px;}
+.tt-hidden{font-weight:normal;color:#6b7a6b;font-style:italic;}
+.eye-btn{background:none;border:none;padding:2px;margin:0;color:#4a6a4a;opacity:.38;cursor:pointer;line-height:0;border-radius:4px;transition:opacity .15s,color .15s;}
+.eye-btn:hover,.eye-btn:focus{opacity:1;color:#256b2a;background:#eef7ee;}
+.badge{font-size:11px;padding:2px 8px;border-radius:10px;background:#eef2ef;color:#3c6b3c;border:1px solid #cfe0cf;}
+.badge.inv{background:#fff3e0;color:#a35a00;border-color:#ffd699;}
+.task-body{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start;}
+.task-text{flex:1 1 240px;min-width:0;}
+.task-text.full{flex:1 1 100%;}
+.task-fig{flex:1 1 300px;min-width:260px;text-align:center;}
+.sketch-wrap{border:1px solid var(--line);border-radius:8px;padding:6px;background:#fbfdfb;display:inline-block;max-width:100%;}
+svg.sketch{max-width:100%;height:auto;}
+
+.answer-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:center;margin-top:12px;}
+.answer-row input[type=text]{font-size:16px;padding:8px 10px;border:1.5px solid #bbb;border-radius:6px;width:130px;}
+.answer-row .unit{font-weight:bold;font-size:1.05em;}
+.unit-select{position:relative;display:inline-block;}
+.unit-btn{font-weight:bold;font-size:1.02em;padding:7px 10px;margin:0;border:1.5px solid var(--accent);border-radius:6px;background:#f2faf2;color:#1a3a1a;cursor:pointer;white-space:nowrap;}
+.unit-btn::after{content:" ▾";color:#4CAF50;}
+.unit-panel{position:absolute;top:calc(100% + 4px);left:50%;transform:translateX(-50%);z-index:30;background:#fff;color:#222;border:1.5px solid var(--accent);border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,.14);padding:8px;min-width:210px;text-align:left;}
+.unit-grid{border-collapse:separate;border-spacing:3px;margin-top:4px;width:100%;}
+.unit-grid th{font-size:.72em;color:#777;font-weight:600;padding:2px 4px;text-align:center;background:none;}
+.unit-cell{width:100%;padding:5px 4px;margin:0;border:1px solid #cfe3cf;border-radius:5px;background:#fff;color:#222;cursor:pointer;font-size:.95em;font-weight:normal;}
+.unit-cell:hover{background:#eef7ee;filter:none;}
+.unit-cell.sel{background:var(--accent);color:#fff;border-color:var(--accent);}
+.result-msg{font-weight:bold;margin-left:6px;}
+.result-msg.ok{color:#2e7d32;} .result-msg.no{color:#c62828;}
+
+.act-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
+.act-row.center{justify-content:center;}
+.btn-hint{background:#fff;color:var(--amber);border:1.5px solid var(--amber);font-weight:bold;}
+.btn-sol{background:#fff;color:var(--blue);border:1.5px solid var(--blue);font-weight:bold;}
+.btn-new{background:var(--accent);color:#fff;}
+.btn-ghost{background:#fff;color:#444;border:1px solid var(--line);}
+
+/* Hilfe / Lösung Boxen */
+.help-box{border:1.5px solid var(--amber);border-radius:10px;background:#fffdf6;padding:10px 12px;margin-top:10px;}
+.help-box h4{margin:.2em 0 .4em;color:#a35a00;}
+.help-step{border-top:1px dashed #f0d9a8;padding-top:8px;margin-top:8px;}
+.sol-box{border:1.5px solid var(--blue);border-radius:10px;background:#f6faff;padding:10px 12px;margin-top:10px;}
+.sol-box h4{margin:.2em 0 .4em;color:#245a8f;}
+.choice{display:inline-block;border:1.5px solid var(--line);border-radius:8px;background:#fff;padding:8px 12px;margin:4px;cursor:pointer;}
+.choice.ok{border-color:#2e7d32;background:#eafaec;}
+.choice.no{border-color:#c62828;background:#fdeaea;opacity:.7;}
+.steps .ln{padding:2px 0;}
+
+.settings-flash{animation:flash 1.1s ease;}
+@keyframes flash{0%{box-shadow:0 0 0 0 rgba(76,175,80,.0);} 30%{box-shadow:0 0 0 4px rgba(76,175,80,.45);} 100%{box-shadow:0 0 0 0 rgba(76,175,80,0);}}
+
+.settings-grid{display:flex;flex-direction:column;gap:0;}
+.opt-line{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:6px 0;}
+.check-line{display:flex;align-items:flex-start;gap:9px;cursor:pointer;font-size:.9em;margin:8px 0;}
+.check-line>input{appearance:none;-webkit-appearance:none;width:20px;height:20px;border:2px solid var(--accent);border-radius:6px;background:#fff;cursor:pointer;position:relative;flex:0 0 auto;margin:0;transition:background .15s,border-color .15s,box-shadow .15s;}
+.check-line>input:hover{border-color:#2e7d32;box-shadow:0 0 0 3px rgba(76,175,80,.15);}
+.check-line>input:checked{background:var(--accent);border-color:var(--accent);}
+.check-line>input:checked::after{content:'';position:absolute;left:6px;top:2px;width:5px;height:10px;border:solid #fff;border-width:0 2.5px 2.5px 0;transform:rotate(45deg);}
+.check-line>span{flex:1 1 auto;line-height:1.35;padding-top:1px;}
+.opt-line label{font-size:.9em;}
+.unitset button{padding:5px 9px;font-size:11px;}
+
+/* Footer (Portal-Markup) */
+/* #lobby-spacer{flex:1 0 30px;}
+.site-footer{width:100%;padding:15px;border-top:1px solid #ccc;margin-top:24px;}
+.footer-content{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px;font-size:.85em;color:#555;}
+.footer-content .footer-topic{text-align:center;}
+.footer-content a{color:#3c9040;text-decoration:none;}
+.footer-content .last{text-align:right;} */
+
+#lobby-spacer { 
+    flex: 1 1 0; 
+    min-height: 0; 
+}
+.site-footer {
+    width: 100%; box-sizing: border-box; padding: 15px 15px;
+    border-top: 1px solid #ccc; margin-top: 4px; margin-bottom: 0px;
+    font-family: sans-serif; font-size: 0.6em; color: #333333d8;
+}
+.footer-content {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    margin: 0 auto;
+    max-width: 800px;
+}
+.footer-content > :first-child {
+    justify-self: start;
+}
+.footer-content > :nth-child(2) {
+    justify-self: center;
+}
+.footer-content > :last-child {
+    justify-self: end;
+}
+.footer-topic a { 
+    color: inherit; 
+    text-decoration: underline; 
+}
+
+/* Skizze zuverlässig sichtbar dimensionieren */
+svg.sketch{display:block;width:100%;max-width:360px;height:auto;margin:0 auto;}
+
+/* Skizzen-Kopf: exakt/allgemein-Umschalter + Hinweise direkt an der Skizze */
+.fig-top{display:flex;flex-wrap:wrap;gap:8px 10px;align-items:center;justify-content:center;margin-bottom:6px;}
+.not-scale{color:#888;font-style:italic;font-size:.82em;margin-top:4px;}
+.grid-ctl{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;justify-content:center;font-size:.82em;color:#555;margin-top:6px;}
+.grid-ctl input[type=range]{width:120px;}
+.grid-ctl .gc-lbl{white-space:nowrap;}
+
+/* Steuerblöcke: Abstand VOR der Bezeichnung, Schalter direkt darunter */
+.ctl{margin-top:14px;}
+.ctl:first-child{margin-top:4px;}
+.ctl>.lbl{display:block;font-weight:bold;font-size:.9em;margin-bottom:4px;}
+.ctl .seg{margin:0;}
+
+/* Formen-Auswahl auffälliger */
+details#shapeTree{border:2px solid var(--accent);background:linear-gradient(#f2faf3,#eaf6ec);}
+details#shapeTree>summary{color:#256b2a;font-size:1.05em;padding:2px 0;}
+.tree-top{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin:8px 0 4px;}
+.tree-hint{color:#567;font-size:.82em;}
+
+/* Teilen-Button */
+.share-btn{background:#fff;color:#256b2a;border:1.5px solid var(--accent);opacity:.45;transition:opacity .15s, box-shadow .15s;font-size:12px;padding:6px 12px;}
+.share-btn:hover,.share-btn:focus{opacity:1;box-shadow:0 1px 5px rgba(0,0,0,.12);}
+.share-btn .ico{margin-right:5px;}
+.toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:#256b2a;color:#fff;padding:9px 16px;border-radius:20px;font-size:.9em;opacity:0;pointer-events:none;transition:opacity .2s;z-index:50;}
+.toast.show{opacity:.96;}
+
+/* dynamische Breitenskalierung des geg-Bereichs */
+.geg-fit{overflow:hidden;}
+.geg-fit>.geg-inner{display:inline-block;transform-origin:left center;white-space:nowrap;}
+
+.cat-actions .toggle-all{padding:3px 10px;font-size:10px;background:#fff;color:#256b2a;border:1px solid var(--accent);}
+
+/* Formel-Legende (was die Buchstaben bedeuten) */
+.leg{font-size:10px;color:#6b7a6b;margin:0 0 4px 22px;line-height:1.3;}
+/* aufklappbare „andere Darstellung" */
+details.alt-rep{margin-top:8px;border:1px dashed var(--line);border-radius:8px;padding:4px 10px;background:#fafafa;}
+details.alt-rep>summary{cursor:pointer;font-size:.85em;color:#4a6a4a;}
+.alt-rep-body{margin-top:8px;}
+.ask-line{margin:8px 0 0;}
+.ctx{color:#555;font-size:.95em;margin:6px 0 0;}
+/* Lösung als aufklappbarer Bereich */
+details.sol-details{margin-top:10px;border:1.5px solid var(--blue);border-radius:10px;padding:8px 12px;background:#f0f7ff;}
+details.sol-details>summary{cursor:pointer;font-weight:bold;color:#245a8f;list-style:none;}
+details.sol-details>summary::-webkit-details-marker{display:none;}
+.sol-body{margin-top:8px;}
+details.steps-details{margin-top:8px;}
+details.steps-details>summary{cursor:pointer;color:#245a8f;font-size:.9em;}
+.answer-row.locked{opacity:.55;}
+.result-msg.muted{color:#888;}
+/* allgemeinere (nicht optimale) Formel = gelb */
+.choice.warn{border-color:#e0b400;background:#fff6d6;color:#6a5300;}
+.choice-why{font-size:.85em;color:#6a5b1e;margin-top:8px;line-height:1.35;}
+/* Aufmerksamkeits-Animation für den Flächen-Bereich beim Laden */
+details#shapeTree.attn{animation:treeAttn 1.6s ease 2;}
+@keyframes treeAttn{0%{box-shadow:0 0 0 0 rgba(76,175,80,0);} 25%{box-shadow:0 0 0 6px rgba(76,175,80,.4);} 60%{box-shadow:0 0 0 0 rgba(76,175,80,0);} 100%{box-shadow:0 0 0 0 rgba(76,175,80,0);}}
+details#shapeTree.attn>summary{animation:treeAttnText 1.6s ease 2;}
+@keyframes treeAttnText{0%,100%{color:#256b2a;} 40%{color:#c0392b;}}
+
+@media(max-width:520px){
+  .task-body{flex-direction:column;}
+  .ctl-row .lbl{min-width:auto;width:100%;}
+}
+
+/* ===== Erkundungsmodus (eingebettet, auf #mode-erkundung begrenzt) ===== */
+#mode-erkundung{font-family:inherit;color:#1a1a1a;line-height:1.4;}
+#mode-erkundung button{margin:0;font-family:inherit;}
+#mode-erkundung .erk-intro{color:#666;font-size:.9em;margin:.2em 0 12px;}
+#mode-erkundung{ --accent:#4CAF50; --accent-dark:#357a38; --ink:#1f2a22; --muted:#5b6b60;
+    --line:#d7e0d9; --paper:#ffffff; --bg:#eef3ef; --shape:#4CAF50; --shape-fill:rgba(76,175,80,.14);
+    --helper:#e07b39; --helper-fill:rgba(224,123,57,.26); --shape-light:#8fce92; --shape-lightfill:rgba(76,175,80,.07); --grid:#c7d8c9; }
+#mode-erkundung header h1{font-size:1.45rem;margin:.2em 0 .1em;letter-spacing:-.01em;}
+#mode-erkundung header p{margin:0 0 14px;color:var(--muted);font-size:.96rem;}
+#mode-erkundung .picker{display:grid;grid-template-columns:repeat(auto-fit,minmax(92px,1fr));gap:8px;margin-bottom:14px;}
+#mode-erkundung .tile{display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 4px 6px;border:1.5px solid var(--line);
+    border-radius:13px;background:var(--paper);cursor:pointer;font:inherit;color:var(--muted);transition:border-color .12s,background .12s;}
+#mode-erkundung .tile svg{width:42px;height:30px;}
+#mode-erkundung .tile span{font-size:.79rem;font-weight:600;}
+#mode-erkundung .tile:hover{border-color:var(--accent);}
+#mode-erkundung .tile[aria-selected="true"]{border-color:var(--accent);background:#f2faf2;color:var(--accent-dark);box-shadow:0 0 0 1.5px var(--accent) inset;}
+#mode-erkundung .toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:12px 18px;background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:11px 14px;margin-bottom:12px;}
+#mode-erkundung .ctrl{display:flex;align-items:center;gap:8px;font-size:.92rem;color:var(--ink);}
+#mode-erkundung .ctrl label{display:flex;align-items:center;gap:7px;cursor:pointer;user-select:none;}
+#mode-erkundung .ctrl input[type=checkbox]{width:18px;height:18px;accent-color:var(--accent);cursor:pointer;}
+#mode-erkundung .ctrl input[type=range]{accent-color:var(--accent);cursor:pointer;width:108px;vertical-align:middle;}
+#mode-erkundung .ctrl .cell{color:var(--muted);font-variant-numeric:tabular-nums;min-width:92px;}
+#mode-erkundung .ctrl.is-disabled{opacity:.45;pointer-events:none;}
+#mode-erkundung .muted{color:var(--muted);}
+#mode-erkundung .seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;}
+#mode-erkundung .seg button{appearance:none;border:none;background:var(--paper);font:inherit;font-size:.82rem;padding:6px 11px;cursor:pointer;color:var(--muted);}
+#mode-erkundung .seg button.on{background:var(--accent);color:#fff;}
+#mode-erkundung .spacer{flex:1 1 auto;}
+#mode-erkundung .btn{appearance:none;border:1px solid var(--line);background:var(--paper);color:var(--ink);font:inherit;font-size:.86rem;padding:7px 12px;border-radius:8px;cursor:pointer;}
+#mode-erkundung .btn:hover{border-color:var(--accent);color:var(--accent-dark);}
+#mode-erkundung .stage-wrap{position:relative;background:var(--paper);border:1px solid var(--line);border-radius:14px;overflow:hidden;}
+#mode-erkundung svg#stage{display:block;width:100%;height:480px;touch-action:none;cursor:grab;}
+#mode-erkundung svg#stage.grabbing{cursor:grabbing;}
+#mode-erkundung .stage-hint{position:absolute;left:12px;bottom:10px;font-size:.75rem;color:var(--muted);background:rgba(255,255,255,.82);padding:2px 8px;border-radius:6px;pointer-events:none;max-width:calc(100% - 24px);}
+#mode-erkundung .derive{margin-top:12px;background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:13px 16px;}
+#mode-erkundung .derive h2{font-size:.8rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:0 0 6px;font-weight:700;}
+#mode-erkundung .derive p{margin:.35em 0;}
+#mode-erkundung .formula{font-size:1.12rem;font-weight:600;}
+#mode-erkundung .formula b{color:var(--accent-dark);}
+/* #mode-erkundung footer{margin-top:26px;text-align:center;color:var(--muted);font-size:.82rem;}
+#mode-erkundung footer a{color:var(--accent-dark);text-decoration:none;} */
+@media (max-width:640px){#mode-erkundung .picker{grid-template-columns:repeat(4,1fr);}
+#mode-erkundung .tile svg{width:38px;height:26px;}
+#mode-erkundung .tile span{font-size:.72rem;}}
+@media (max-width:560px){#mode-erkundung svg#stage{height:400px;}
+#mode-erkundung .ctrl{font-size:.88rem;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Flächeninhalte berechnen &amp; visualisieren</h1>
+  <p class="muted small" id="intro">Übe das Berechnen von Flächeninhalten — mit Text- oder Skizzenaufgaben, Umkehraufgaben und gestuften Hilfen.</p>
+
+  <div style="text-align:center;margin:6px 0 12px;"><div id="mode-switch" class="seg" role="tablist">
+    <button data-mode="erkundung">Erkundungsmodus</button>
+    <button data-mode="uebung" class="on">Übungsmodus</button>
+  </div></div>
+
+  <div id="mode-uebung">
+
+    <!-- ================= LEHRER-EINSTELLUNGEN ================= -->
+  <details id="teacherSettings">
+    <summary>Einstellungen</summary>
+    <div id="teacherBody" style="margin-top:8px;"></div>
+  </details>
+
+  <!-- ================= SCHÜLER-STEUERUNG ================= -->
+  <div id="studentPanel"></div>
+
+  <!-- ================= AUFGABE ================= -->
+  <div id="taskArea"></div>
+
+  <div id="lobby-spacer"></div>
+  </div><!-- /mode-uebung -->
+
+  <div id="mode-erkundung" class="hidden">
+    <p class="erk-intro">Zieh an den Ecken und erkunde, woher die Flächenformeln kommen. Mit zwei Fingern verschiebst und zoomst du; mit einem Finger im Hintergrund scrollst du die Seite.</p>
+<div class="picker" id="picker" role="tablist"></div>
+
+  <div class="toolbar">
+    <div class="ctrl"><label><input type="checkbox" id="c-grid" checked> Raster</label></div>
+    <div class="ctrl" id="ctrl-where">
+      <span class="muted">nur</span>
+      <div class="seg"><button data-where="shape" class="on">in der Fläche</button><button data-where="all">überall</button></div>
+    </div>
+    <div class="ctrl"><label for="c-refine">Feinheit</label><input type="range" id="c-refine" min="0" max="2" step="1" value="1"><span class="cell" id="l-refine">1 × 1</span></div>
+    <div class="ctrl"><label><input type="checkbox" id="c-int" checked> ganzzahlige Seiten</label></div>
+    <div class="ctrl"><label><input type="checkbox" id="c-derive" checked> Herleitung</label></div>
+    <div class="ctrl" id="ctrl-cmode" style="display:none">
+      <span class="muted">Ansatz</span>
+      <div class="seg"><button data-cmode="squares" class="on">Quadrate</button><button data-cmode="sectors">Sektoren</button></div>
+    </div>
+    <div class="ctrl" id="ctrl-tmode" style="display:none">
+      <span class="muted">Ansatz</span>
+      <div class="seg"><button data-tmode="parallelogram" class="on">Parallelogramm</button><button data-tmode="rectangle">Rechteck</button></div>
+    </div>
+    <div class="ctrl" id="ctrl-trapmode" style="display:none">
+      <span class="muted">Ansatz</span>
+      <div class="seg"><button data-trapmode="parallelogram" class="on">Parallelogramm</button><button data-trapmode="midline">Mittellinie</button></div>
+    </div>
+    <div class="ctrl" id="ctrl-sectors" style="display:none"><label for="c-sectors">Sektoren</label><input type="range" id="c-sectors" min="4" max="48" step="2" value="12"><span class="cell" id="l-sectors">12</span></div>
+    <div class="spacer"></div>
+    <button class="btn" id="b-reset">Ansicht zurücksetzen</button>
+  </div>
+
+  <div class="stage-wrap">
+    <svg id="stage" xmlns="http://www.w3.org/2000/svg"></svg>
+    <div class="stage-hint">Ecke ziehen · 2 Finger: verschieben & zoomen · 1 Finger im Hintergrund: Seite scrollen</div>
+  </div>
+
+  <div class="derive" id="derive"><h2>Herleitung</h2><p class="formula" id="formula"></p><p id="explain"></p></div>
+  </div><!-- /mode-erkundung -->
+
+  <div id="lobby-spacer"></div>
+  <footer class="site-footer">
+  <div class="footer-content">
+      M.&nbsp;Koch
+      <span class="footer-topic"><a href="./index.html">Mathe-Tools</a></span>
+      <span class="footer-update">Last updated:&nbsp;<span id="last-update">...</span></span>
+  </div>
+  </footer>
+<script src="last-update.js" defer></script>
+<script src="scale.js" defer></script>
+
+<!-- ================= APP-LOGIK ================= -->
+<script id="app">
+"use strict";
+/* =======================================================================
+   Flächeninhalt-Trainer  –  M. Koch / Mathe-Tools
+   Einzeldatei-Logik. Struktur:
+     1. Hilfsfunktionen           6. Aufgaben-Generierung
+     2. Einheiten / Zahlen        7. Rendering (Text/Skizze)
+     3. SVG-Renderer              8. Hilfen (mehrstufig)
+     4. Formen & Formeln          9. Lösung / Lösungsweg
+     5. State + Presets + URL    10. UI-Aufbau + Init
+   ===================================================================== */
+
+/* ---------- 1. Hilfsfunktionen ---------- */
+const $  = (s,r=document)=>r.querySelector(s);
+const $$ = (s,r=document)=>[...r.querySelectorAll(s)];
+const el = (t,cls,html)=>{const e=document.createElement(t); if(cls)e.className=cls; if(html!=null)e.innerHTML=html; return e;};
+const randInt=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
+const rad=d=>d*Math.PI/180;
+
+function fmtDE(x,md=4){ if(!isFinite(x))return '—'; const r=Math.round(x*10**md)/10**md; let s=r.toFixed(md); s=s.replace(/0+$/,'').replace(/\.$/,''); return s.replace('.',','); }
+function texNum(x,md=4){ return fmtDE(x,md).replace(',', '{,}'); }
+function parseNum(s){
+  if(typeof s!=='string')return NaN;
+  s=s.trim().replace(/\s/g,'').replace('·','*');
+  if(!s)return NaN;
+  s=s.replace(',', '.');
+  if(/^[-+]?\d*\.?\d+$/.test(s))return parseFloat(s);
+  if(/^[-+]?\d*\.?\d+\/[-+]?\d*\.?\d+$/.test(s)){const[a,b]=s.split('/');return parseFloat(a)/parseFloat(b);}
+  return NaN;
+}
+
+/* ---------- 2. Einheiten / Zahlen ---------- */
+const LENGTH_UNITS=['mm','cm','dm','m','km'];
+const GRID_STEPS=[0.25,0.5,1,2,5,10];  // wählbare Rasterweite (1 Kästchen = … Einheiten)
+const uTex =u=>'\\,\\text{'+u+'}';
+const uTex2=u=>'\\,\\text{'+u+'}^2';
+
+/* Einheiten-Darstellung je nach Einstellung (useUnits / unitsMode) */
+function stripUnits(latex){ let s=latex;
+  LENGTH_UNITS.forEach(u=>{
+    s=s.split('\\;\\,\\text{'+u+'}^2').join('');
+    s=s.split('\\,\\text{'+u+'}^2').join('');
+    s=s.split('\\;\\,\\text{'+u+'}').join('');
+    s=s.split('\\,\\text{'+u+'}').join('');
+  });
+  return s;
+}
+// Lösungsweg (aligned-Block) einheitenkonform aufbereiten
+function styleUnits(latex,unit,kind){ // kind: 'area' | 'len'
+  if(!state.useUnits) return stripUnits(latex);
+  if(state.unitsMode==='end'){
+    const s=stripUnits(latex);
+    const br=kind==='area'?'\\,[\\text{'+unit+'}^2]':'\\,[\\text{'+unit+'}]';
+    const marker='\\end{aligned}\\]';
+    return s.endsWith(marker)? s.slice(0,-marker.length)+br+marker : s+br;
+  }
+  return latex; // durchgängig (Standard)
+}
+// Einheit hinter einem Ergebniswert (Inline)
+function uRes(unit,kind){ if(!state.useUnits)return '';
+  if(state.unitsMode==='end') return kind==='area'?'\\,[\\text{'+unit+'}^2]':'\\,[\\text{'+unit+'}]';
+  return kind==='area'?'\\,\\text{'+unit+'}^2':'\\,\\text{'+unit+'}';
+}
+// Einheit hinter einer gegebenen Größe (behält immer echte Einheit, außer useUnits=false)
+function uGiven(unit,kind){ if(!state.useUnits)return ''; return kind==='area'?'\\,\\text{'+unit+'}^2':'\\,\\text{'+unit+'}'; }
+
+/* Gemischte Einheiten (max. 1 Stufe): intern in Basiseinheit rechnen, einzelne Größen nur anders anzeigen */
+const uIndex=u=>LENGTH_UNITS.indexOf(u);
+function convLen(val,from,to){ return val*Math.pow(10, uIndex(from)-uIndex(to)); } // nur ×10-Bereich (mm..m)
+function dispVal(t,sym){ const du=(t.disp&&t.disp[sym])||t.unit; return convLen(t.v[sym], t.unit, du); }
+function mixingActive(){ return state.useUnits && state.mixMode!=='never'; }   // gilt in beiden Modi (durchgängig & erst am Ergebnis)
+// Basiseinheit + Anzeige-Einheit je Länge festlegen
+function assignUnits(formula){
+  const allowed = state.units.length?state.units:['cm'];
+  const lenSyms=formula.needs.filter(n=>n.kind==='len').map(n=>n.sym);
+  const nbrs=u=>{ const i=uIndex(u); if(i<0||i>3)return []; const r=[]; [i-1,i+1].forEach(j=>{ if(j>=0&&j<=3){const x=LENGTH_UNITS[j]; if(allowed.includes(x))r.push(x);} }); return r; };
+  const wantMix = mixingActive() && lenSyms.length>=2;
+  let base;
+  if(wantMix && state.mixMode==='always'){ const good=allowed.filter(u=>nbrs(u).length); base=pick(good.length?good:allowed); }
+  else base=pick(allowed);
+  const disp={}; lenSyms.forEach(s=>disp[s]=base);
+  if(!wantMix) return {base,disp};
+  const cand=nbrs(base); if(!cand.length) return {base,disp};
+  const partner=pick(cand);
+  if(state.mixMode==='always'){                          // immer mischen: mind. zwei verschiedene Einheiten
+    disp[lenSyms[0]]=base; disp[lenSyms[1]]=partner;
+    for(let k=2;k<lenSyms.length;k++) disp[lenSyms[k]]=pick([base,partner]);
+  } else {                                                // manchmal: zufällig
+    lenSyms.forEach(s=> disp[s]= Math.random()<0.45? partner : base);
+  }
+  return {base,disp};
+}
+// Umrechnungsschritt vor dem Lösungsweg (nur bei tatsächlich gemischten Einheiten)
+function conversionBlock(t){
+  if(!mixingActive()) return '';
+  const {formula,v,unit,disp,mode}=t; const lines=[];
+  formula.needs.forEach(n=>{ if(n.kind!=='len')return; if(mode==='umkehr'&&n.sym===t.unknownSym)return;
+    const du=(disp&&disp[n.sym])||unit; if(du===unit)return;
+    lines.push(needTexOf(formula,n)+' &= '+texNum(convLen(v[n.sym],unit,du))+uTex(du)+' = '+texNum(v[n.sym])+uTex(unit)); });
+  if(!lines.length) return '';
+  return '<p><b>Zuerst alles in \\('+unit+'\\) umrechnen:</b></p>'+A0.apply(null,lines);
+}
+
+function genNum(S){
+  const {numberType:t,min,max}=S;
+  if(t==='int')  return randInt(Math.max(1,min),max);
+  if(t==='dec1'){let v=randInt(min*10,max*10)/10; if(Number.isInteger(v))v+=pick([-0.3,0.5,-0.5,0.7]); return Math.max(0.5,Math.round(v*10)/10);}
+  // dec2
+  let v=randInt(min*100,max*100)/100; if(Number.isInteger(v*10))v+=0.05; return Math.max(0.5,Math.round(v*100)/100);
+}
+// „schöne" Zahl (für Umkehraufgaben, damit die gesuchte Größe glatt bleibt)
+function genNice(S){ const t=S.numberType; if(t==='int')return randInt(Math.max(2,S.min),S.max);
+  if(t==='dec1')return Math.max(1,randInt(S.min*2,S.max*2)/2); // Vielfache von 0,5
+  return Math.max(1,randInt(S.min*4,S.max*4)/4); } // Vielfache von 0,25
+
+/* ---------- 3. SVG-Renderer ---------- */
+/* spec: {points:[[x,y]..] (Umriss, math y-oben), circle:[cx,cy,r],
+          helpers:[{from,to,dashed,color}], rightAngles:[{at,d1,d2}],
+          angles:[{at,d1,d2,label,r}], ghosts:[{points,fill,dashed}],
+          labels:[{text,at,anchor,dx,dy,bold,color}] }                     */
+function svgSub(text){ // '_c' -> echter Tiefindex im SVG
+  return String(text).replace(/_\{?([A-Za-z0-9]+)\}?/g,'<tspan baseline-shift="-22%" font-size="10.5">$1</tspan>');
+}
+function svgSketch(spec,opt={}){
+  const o=Object.assign({w:340,h:250,pad:20,preserveAspect:true,
+     stroke:'#28502a', fill:'rgba(76,175,80,.13)'},opt);
+  const P=[];
+  (spec.points||[]).forEach(p=>P.push(p));
+  (spec.ghosts||[]).forEach(g=>g.points.forEach(p=>P.push(p)));
+  if(spec.circle){const[cx,cy,r]=spec.circle;P.push([cx-r,cy-r],[cx+r,cy+r]);}
+  (spec.helpers||[]).forEach(h=>{P.push(h.from,h.to);});
+  (spec.marks||[]).forEach(h=>{P.push(h.from,h.to);});
+  (spec.labels||[]).forEach(l=>P.push(l.at));
+  const minx=Math.min(...P.map(p=>p[0])), maxx=Math.max(...P.map(p=>p[0]));
+  const miny=Math.min(...P.map(p=>p[1])), maxy=Math.max(...P.map(p=>p[1]));
+  const bw=(maxx-minx)||1, bh=(maxy-miny)||1;
+  // Ränder je Seite (links/rechts/oben/unten), damit nur die tatsächlich enge Seite verkleinert wird
+  const layout=(m)=>{ const aw=o.w-m.l-m.r, ah=o.h-m.t-m.b; const s=Math.min(aw/bw, ah/bh);
+    const cw=bw*s, ch=bh*s; const ox=m.l+(aw-cw)/2, oy=m.b+(ah-ch)/2;
+    return {s,ox,oy, M:p=>[ox+(p[0]-minx)*s, o.h-(oy+(p[1]-miny)*s)]}; };
+  const m={l:o.pad,r:o.pad,t:o.pad,b:o.pad};
+  let L=layout(m);
+  // Beschriftungen dürfen nicht aus dem Bild ragen -> nur die überstehende Seite bekommt mehr Rand
+  const estW=t=>String(t).replace(/_\{?|\}/g,'').length*7.3+4;
+  for(let pass=0; pass<3; pass++){
+    let oL=0,oR=0,oT=0,oB=0;
+    (spec.labels||[]).forEach(l=>{ const p=L.M(l.at); const w=estW(l.text);
+      let x0=p[0]+(l.dx||0), x1=x0; const an=l.anchor||'middle';
+      if(an==='middle'){x0-=w/2;x1+=w/2;} else if(an==='end'){x0-=w;} else {x1+=w;}
+      const y=p[1]+(l.dy||0);
+      oL=Math.max(oL, 3-x0); oR=Math.max(oR, x1-(o.w-3)); oT=Math.max(oT, 11-y); oB=Math.max(oB, y-(o.h-11)); });
+    if(oL<1&&oR<1&&oT<1&&oB<1) break;
+    const cap=(x)=>Math.min(x, o.w*0.4);
+    m.l=Math.min(o.w*0.45, m.l+cap(oL)); m.r=Math.min(o.w*0.45, m.r+cap(oR));
+    m.t=Math.min(o.h*0.45, m.t+cap(oT)); m.b=Math.min(o.h*0.45, m.b+cap(oB));
+    L=layout(m);
+  }
+  const {s,ox,oy,M}=L;
+  const nrm=(v)=>{const Ln=Math.hypot(v[0],v[1])||1;return[v[0]/Ln,v[1]/Ln];};
+  const svgDir=d=>nrm([d[0], -d[1]]); // math-Richtung -> svg-Richtung
+
+  let out=`<svg class="sketch" viewBox="0 0 ${o.w} ${o.h}" width="${o.w}" height="${o.h}" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">`;
+  // Raster (nur exakte Skizze): 1 Kästchen = grid.step Längeneinheiten
+  if(o.grid&&o.grid.step>0){
+    const step=o.grid.step;
+    const wx=X=>minx+(X-ox)/s, wy=Y=>miny+((o.h-Y)-oy)/s;
+    const x0=wx(0),x1=wx(o.w),y0=wy(o.h),y1=wy(0);
+    const kx0=Math.floor(Math.min(x0,x1)/step), kx1=Math.ceil(Math.max(x0,x1)/step);
+    const ky0=Math.floor(Math.min(y0,y1)/step), ky1=Math.ceil(Math.max(y0,y1)/step);
+    let gl='<g stroke="#cfe0cf" stroke-width="1">';
+    for(let k=kx0;k<=kx1;k++){ const X=M([k*step,miny])[0]; gl+=`<line x1="${X.toFixed(1)}" y1="0" x2="${X.toFixed(1)}" y2="${o.h}"/>`; }
+    for(let k=ky0;k<=ky1;k++){ const Y=M([minx,k*step])[1]; gl+=`<line x1="0" y1="${Y.toFixed(1)}" x2="${o.w}" y2="${Y.toFixed(1)}"/>`; }
+    gl+='</g>'; out+=gl;
+  }
+  // Ghosts (Hilfsflächen)
+  (spec.ghosts||[]).forEach(g=>{
+    const d='M'+g.points.map(M).map(q=>q[0].toFixed(1)+' '+q[1].toFixed(1)).join(' L ')+' Z';
+    out+=`<path d="${d}" fill="${g.fill||'rgba(47,111,176,.10)'}" stroke="#2f6fb0" stroke-width="1.3" ${g.dashed?'stroke-dasharray="5 4"':''}/>`;
+  });
+  // Umriss
+  if(spec.points&&spec.points.length){
+    const d='M'+spec.points.map(M).map(q=>q[0].toFixed(1)+' '+q[1].toFixed(1)).join(' L ')+' Z';
+    out+=`<path d="${d}" fill="${o.fill}" stroke="${o.stroke}" stroke-width="2"/>`;
+  }
+  if(spec.circle){const[cx,cy,r]=spec.circle;const c=M([cx,cy]);const rr=r*s;
+    out+=`<circle cx="${c[0].toFixed(1)}" cy="${c[1].toFixed(1)}" r="${rr.toFixed(1)}" fill="${o.fill}" stroke="${o.stroke}" stroke-width="2"/>`;}
+  // Hilfslinien
+  (spec.helpers||[]).forEach(h=>{const a=M(h.from),b=M(h.to);
+    out+=`<line x1="${a[0].toFixed(1)}" y1="${a[1].toFixed(1)}" x2="${b[0].toFixed(1)}" y2="${b[1].toFixed(1)}" stroke="${h.color||'#666'}" stroke-width="1.4" ${h.dashed?'stroke-dasharray="5 4"':''}/>`;});
+  // farbige Markierungen der gegebenen Strecken (über dem Umriss)
+  (spec.marks||[]).forEach(mk=>{const a=M(mk.from),b=M(mk.to);
+    out+=`<line x1="${a[0].toFixed(1)}" y1="${a[1].toFixed(1)}" x2="${b[0].toFixed(1)}" y2="${b[1].toFixed(1)}" stroke="${mk.color}" stroke-width="3.4" stroke-linecap="round"/>`;});
+  // rechte Winkel
+  (spec.rightAngles||[]).forEach(ra=>{const p=M(ra.at);const d1=svgDir(ra.d1),d2=svgDir(ra.d2);const k=11;
+    const A=[p[0]+d1[0]*k,p[1]+d1[1]*k], B=[p[0]+d1[0]*k+d2[0]*k,p[1]+d1[1]*k+d2[1]*k], C=[p[0]+d2[0]*k,p[1]+d2[1]*k];
+    out+=`<path d="M${A[0].toFixed(1)} ${A[1].toFixed(1)} L${B[0].toFixed(1)} ${B[1].toFixed(1)} L${C[0].toFixed(1)} ${C[1].toFixed(1)}" fill="none" stroke="#444" stroke-width="1.2"/>`;});
+  // Winkelbögen
+  (spec.angles||[]).forEach(an=>{const p=M(an.at);const d1=svgDir(an.d1),d2=svgDir(an.d2);const rr=an.r||24;
+    const A=[p[0]+d1[0]*rr,p[1]+d1[1]*rr], B=[p[0]+d2[0]*rr,p[1]+d2[1]*rr];
+    const cross=d1[0]*d2[1]-d1[1]*d2[0]; const sweep=cross<0?1:0;
+    out+=`<path d="M${A[0].toFixed(1)} ${A[1].toFixed(1)} A ${rr} ${rr} 0 0 ${sweep} ${B[0].toFixed(1)} ${B[1].toFixed(1)}" fill="none" stroke="#8552c9" stroke-width="1.6"/>`;
+    if(an.label){const mid=nrm([d1[0]+d2[0],d1[1]+d2[1]]);const lp=[p[0]+mid[0]*(rr+12),p[1]+mid[1]*(rr+12)];
+      out+=`<text x="${lp[0].toFixed(1)}" y="${lp[1].toFixed(1)}" font-size="14" fill="#6b3fa0" text-anchor="middle" dominant-baseline="middle">${svgSub(an.label)}</text>`;}});
+  // Labels
+  (spec.labels||[]).forEach(l=>{const p=M(l.at);
+    out+=`<text x="${(p[0]+(l.dx||0)).toFixed(1)}" y="${(p[1]+(l.dy||0)).toFixed(1)}" font-size="14" fill="${l.color||'#173'}" text-anchor="${l.anchor||'middle'}" dominant-baseline="middle" ${l.bold?'font-weight="bold"':''}>${svgSub(l.text)}</text>`;});
+  out+='</svg>';
+  return out;
+}
+
+/* ---------- 4. Formen & Formeln ---------- */
+/* Jede Formel: {id,label,tag,trig,needs:[{sym,name,kind,tex}],
+                 area(v), sym (LaTeX A=..), fwd(v,unit), inv(target,v,unit,disp),
+                 invertible, invTargets, exact:null|'pi'|'sqrt3'}            */
+const AU=uTex2, U=uTex;
+const A0=(...L)=>{ // aligned-Block als Gleichungskette (wiederholte linke Seite weglassen)
+  let prev=null;
+  const rows=L.map(line=>{ const m=line.match(/^([^&]*)&(.*)$/); if(!m){prev=null;return line;}
+    const lhs=m[1].trim(); const out=(lhs===prev)?'&'+m[2]:m[1]+'&'+m[2]; prev=lhs; return out; });
+  return '\\[\\begin{aligned}'+rows.join(' \\\\ ')+'\\end{aligned}\\]';
+};
+
+/* Schreibweisen-Varianten (in den Einstellungen wählbar) */
+// ½·inner je nach halfStyle; paren=true klammert inner im Faktor-Stil
+function h2(inner,paren){
+  return state.halfStyle==='factor'
+    ? '\\tfrac12\\cdot '+(paren?'\\left('+inner+'\\right)':inner)
+    : '\\dfrac{'+inner+'}{2}';
+}
+function h2A(inner){ return state.halfStyle==='factor' ? '½·'+inner : inner+'/2'; } // ASCII (Chip-Label)
+// konkrete Namen: Dreieck a1 (Grundseite c/a/b + h_..), Parallelogramm p1 (a/b + h_..); a2: Winkel an beliebiger Ecke
+let TASKCTX=false;                       // true = aktuelle Aufgabe wird gerendert (nicht die generischen Chips)
+function baseForRender(f){
+  if(!TASKCTX) return null;
+  const t=state.task; if(t&&t.formula===f){ if(f.id==='a1')return t.triBase; if(f.id==='p1')return t.paraBase; if(f.id==='a2')return t.trigVertex; }
+  return null;
+}
+function triMap(s,base){
+  if(state.triSide!=='c') return s;      // g-Modus: g·h
+  const b=base||'c'; if(b==='g') return s;
+  return s.replace(/\bg\b/g,b).replace(/\bh\b/g,'h_'+b);   // Chips: repräsentativ c·h_c
+}
+function paraMap(s,pos){
+  if(state.triSide!=='c') return s;      // g-Modus: g·h
+  const L=(pos==='left'||pos==='right')?'b':'a';           // waagerechte Seiten = a, seitliche = b
+  return s.replace(/\bg\b/g,L).replace(/\bh\b/g,'h_'+L);   // Chips: repräsentativ a·h_a
+}
+function a2Map(s,vx){
+  if(!vx) return s;                       // generisch: a·b·sin(γ)
+  return s.replace(/\bb\b/g,'\uF002').replace(/\ba\b/g,vx.s1).replace(/\uF002/g,vx.s2).replace(/\\gamma/g,'\\'+vx.ang);
+}
+function triAware(id,s,ctx){ if(id==='a1')return triMap(s,ctx); if(id==='p1')return paraMap(s,ctx); if(id==='a2')return a2Map(s,ctx); return s; }
+// styled sym / label / needs-tex (berücksichtigt Varianten)
+function symOf(f){ const s=typeof f.sym==='function'?f.sym():f.sym; return triAware(f.id,s,baseForRender(f)); }
+function labelOf(f){ const s=typeof f.label==='function'?f.label():f.label; return triAware(f.id,s,baseForRender(f)); }
+function needTexOf(f,n){ return triAware(f.id,n.tex,baseForRender(f)); }
+// Klartext-Symbol (für Legende, ohne LaTeX)
+function plainSym(s){ return s.replace(/\\rho/g,'ρ').replace(/\\gamma/g,'γ').replace(/\\pi/g,'π').replace(/\\,/g,'').replace(/[\\{}]/g,''); }
+function htmlSub(s){ return s.replace(/_\{?([A-Za-z0-9]+)\}?/g,'<sub>$1</sub>'); } // '_c' -> Tiefindex (HTML)
+// Legende: welche Buchstaben stehen wofür (nach Bedeutung gruppiert)
+function legendOf(f){
+  const groups=[];
+  f.needs.forEach(n=>{ const sy=htmlSub(plainSym(triAware(f.id,n.tex))); const g=groups.find(x=>x.name===n.name); if(g)g.syms.push(sy); else groups.push({name:n.name,syms:[sy]}); });
+  return groups.map(g=>g.syms.join(', ')+': '+g.name).join(' · ');
+}
+
+// kleine Bausteine für Lösungswege
+function needTex(needs,v,unit){ // "geg.: a = 5 cm, ..."
+  return needs.map(n=> n.tex+' = '+ (n.kind==='angle'? texNum(v[n.sym])+'^\\circ' : texNum(v[n.sym])+U(unit)) ).join(',\\quad ');
+}
+
+const SHAPES=[
+/* ===== VIERECKE ===== */
+{ id:'quadrat', name:'Quadrat', cat:'Vierecke',
+  formulas:[{ id:'q1', label:'A = a²', needs:[{sym:'a',name:'Seitenlänge',kind:'len',tex:'a'}],
+    area:v=>v.a*v.a, sym:'A = a^2', invertible:true, invTargets:['a'], exact:null,
+    fwd:(v,u)=>A0('A &= a^2','A &= ('+texNum(v.a)+U(u)+')^2','A &= '+texNum(v.a*v.a)+AU(u)),
+    inv:(t,v,u)=>A0('A &= a^2','a &= \\sqrt{A}','a &= \\sqrt{'+texNum(v.a*v.a)+AU(u)+'}','a &= '+texNum(v.a)+U(u)) }],
+  geom:(v,f,mode)=>{const a=mode==='general'?5:v.a; return {points:[[0,0],[a,0],[a,a],[0,a]],
+     spots:{a:{at:[a/2,0],anchor:'middle',dy:16}}, areaSpot:[a/2,a/2],
+     segs:{a:[[0,0],[a,0]]},
+     // erst die gleich benannten Seiten + der rechte Winkel machen die Form eindeutig erkennbar
+     plain:[{sym:'a',at:[a,a/2],anchor:'start',dx:7},{sym:'a',at:[a/2,a],anchor:'middle',dy:-12},
+            {sym:'a',at:[0,a/2],anchor:'end',dx:-7}],
+     equal:{a:[[[0,0],[a,0]],[[a,0],[a,a]],[[a,a],[0,a]],[[0,a],[0,0]]]},
+     rightAngles:[{at:[0,0],d1:[1,0],d2:[0,1]}]};},
+  deriv:'Ein Quadrat ist ein Rechteck mit vier gleich langen Seiten. Da alle Seiten die Länge \\(a\\) haben.'
+},
+{ id:'rechteck', name:'Rechteck', cat:'Vierecke',
+  formulas:[{ id:'r1', label:'A = a · b', needs:[{sym:'a',name:'Länge',kind:'len',tex:'a'},{sym:'b',name:'Breite',kind:'len',tex:'b'}],
+    area:v=>v.a*v.b, sym:'A = a \\cdot b', invertible:true, invTargets:['a','b'], exact:null,
+    fwd:(v,u)=>A0('A &= a \\cdot b','A &= '+texNum(v.a)+U(u)+' \\cdot '+texNum(v.b)+U(u),'A &= '+texNum(v.a*v.b)+AU(u)),
+    inv:(t,v,u)=>{const o=t==='a'?'b':'a';return A0('A &= a \\cdot b',t+' &= \\dfrac{A}{'+o+'}',t+' &= \\dfrac{'+texNum(v.a*v.b)+AU(u)+'}{'+texNum(v[o])+U(u)+'}',t+' &= '+texNum(v[t])+U(u));} }],
+  geom:(v,f,mode)=>{const a=mode==='general'?6:v.a,b=mode==='general'?3.6:v.b;return{points:[[0,0],[a,0],[a,b],[0,b]],
+     spots:{a:{at:[a/2,0],anchor:'middle',dy:16}, b:{at:[0,b/2],anchor:'end',dx:-8}}, areaSpot:[a/2,b/2],
+     segs:{a:[[0,0],[a,0]], b:[[0,b],[0,0]]},
+     plain:[{sym:'a',at:[a/2,b],anchor:'middle',dy:-12},{sym:'b',at:[a,b/2],anchor:'start',dx:7}],
+     equal:{a:[[[0,0],[a,0]],[[a,b],[0,b]]], b:[[[0,b],[0,0]],[[a,0],[a,b]]]},
+     rightAngles:[{at:[0,0],d1:[1,0],d2:[0,1]}]};},
+  deriv:'Legt man in das Rechteck ein Einheitsquadrat-Raster, so passen \\(a\\) Quadrate in eine Reihe und es gibt \\(b\\) Reihen.'
+},
+{ id:'parallelogramm', name:'Parallelogramm', cat:'Vierecke',
+  formulas:[
+   { id:'p1', label:'A = g · h', tag:'ohne Trig.', needs:[{sym:'g',name:'Grundseite',kind:'len',tex:'g'},{sym:'h',name:'Höhe',kind:'len',tex:'h'}],
+     area:v=>v.g*v.h, sym:'A = g \\cdot h', invertible:true, invTargets:['g','h'], exact:null,
+     fwd:(v,u)=>A0('A &= g \\cdot h','A &= '+texNum(v.g)+U(u)+' \\cdot '+texNum(v.h)+U(u),'A &= '+texNum(v.g*v.h)+AU(u)),
+     inv:(t,v,u)=>{const o=t==='g'?'h':'g';return A0('A &= g \\cdot h',t+' &= \\dfrac{A}{'+o+'}',t+' &= \\dfrac{'+texNum(v.g*v.h)+AU(u)+'}{'+texNum(v[o])+U(u)+'}',t+' &= '+texNum(v[t])+U(u));} },
+   { id:'p2', label:'A = a · b · sin γ', tag:'mit Trig.', trig:true,
+     needs:[{sym:'a',name:'Seite',kind:'len',tex:'a'},{sym:'b',name:'Seite',kind:'len',tex:'b'},{sym:'g',name:'eingeschl. Winkel',kind:'angle',tex:'\\gamma'}],
+     area:v=>v.a*v.b*Math.sin(rad(v.g)), sym:'A = a \\cdot b \\cdot \\sin(\\gamma)', invertible:false, invTargets:[], exact:null,
+     fwd:(v,u)=>{const A=v.a*v.b*Math.sin(rad(v.g));return A0('A &= a \\cdot b \\cdot \\sin(\\gamma)',
+        'A &= '+texNum(v.a)+U(u)+' \\cdot '+texNum(v.b)+U(u)+' \\cdot \\sin('+texNum(v.g)+'^\\circ)',
+        'A &= '+texNum(v.a*v.b)+AU(u)+' \\cdot '+texNum(Math.sin(rad(v.g)),3),
+        'A &\\approx '+texNum(A,2)+AU(u));} }
+  ],
+  geom:(v,f,mode,seed,t)=>{
+    if(f==='p2'){const a=mode==='general'?6:v.a, b=mode==='general'?4:v.b, g=mode==='general'?60:v.g;
+      const bx=b*Math.cos(rad(g)), by=b*Math.sin(rad(g));
+      return{points:[[0,0],[a,0],[a+bx,by],[bx,by]],
+        spots:{a:{at:[a/2,0],anchor:'middle',dy:16}, b:{at:[bx/2,by/2],anchor:'end',dx:-6}},
+        angles:[{at:[0,0],d1:[1,0],d2:[Math.cos(rad(g)),Math.sin(rad(g))],label:'γ'}], areaSpot:[a/2+bx/2,by/2]};}
+    const g=mode==='general'?6:v.g, h=mode==='general'?3.4:v.h;
+    const pos=(t&&t.paraBase)||'bottom';
+    const lean=(t&&t.pLean)||1;                                   // +1 nach rechts, -1 nach links
+    const sk=lean*(0.2+0.55*(seed==null?0.5:seed))*Math.min(h,g*0.6);   // Scherung (Vorzeichen = Kipprichtung)
+    if(pos==='bottom'||pos==='top'){
+      const pts=[[0,0],[g,0],[g+sk,h],[sk,h]];
+      const baseY = pos==='bottom' ? 0 : h;                 // Fußpunkt-Linie
+      const foot=[sk, baseY], top=[sk, baseY===0?h:0];
+      const gSpot = pos==='bottom' ? {at:[g/2,0],anchor:'middle',dy:16} : {at:[g/2+sk,h],anchor:'middle',dy:-12};
+      const hp=[]; // Verlängerung der Grundseite, falls der Höhenfußpunkt außerhalb liegt
+      const bx0 = pos==='bottom'?0:sk, bx1 = pos==='bottom'?g:g+sk;
+      if(sk<Math.min(bx0,bx1)) hp.push({from:[Math.min(bx0,bx1),baseY],to:[sk,baseY],dashed:true,color:'#bbb'});
+      else if(sk>Math.max(bx0,bx1)) hp.push({from:[Math.max(bx0,bx1),baseY],to:[sk,baseY],dashed:true,color:'#bbb'});
+      const oppSpot = pos==='bottom' ? {at:[g/2+sk,h],anchor:'middle',dy:-12} : {at:[g/2,0],anchor:'middle',dy:16};
+      return{points:pts, helpers:[{from:foot,to:top,dashed:true}].concat(hp),
+        rightAngles:[{at:foot,d1:[1,0],d2:[0,baseY===0?1:-1]}],
+        segs:{g: pos==='bottom'?[[0,0],[g,0]]:[[sk,h],[g+sk,h]], h:[foot,top]},
+        // Gegenseite gleich benannt -> als Parallelogramm erkennbar
+        plain:[{sym:'g',at:oppSpot.at,anchor:oppSpot.anchor,dx:oppSpot.dx||0,dy:oppSpot.dy||0}],
+        equal:{g:[[[0,0],[g,0]],[[sk,h],[g+sk,h]]]},
+        spots:{g:gSpot, h:{at:[sk,h/2],anchor:'end',dx:-6}}, areaSpot:[g/2+sk/2,h/2]};
+    }
+    // seitliche Grundseite (Länge g senkrecht), Höhe h waagerecht
+    const ky=g*0.42;
+    if(pos==='left'){
+      const pts=[[0,0],[h,sk],[h,g+sk],[0,g]];
+      return{points:pts, helpers:[{from:[0,ky],to:[h,ky],dashed:true}],
+        rightAngles:[{at:[0,ky],d1:[0,1],d2:[1,0]}],
+        spots:{g:{at:[0,g/2],anchor:'end',dx:-6}, h:{at:[h/2,ky],anchor:'middle',dy:-8}}, areaSpot:[h/2,g/2]};
+    }
+    // right
+    const pts=[[h,0],[h,g],[0,g+sk],[0,sk]];
+    return{points:pts, helpers:[{from:[h,ky],to:[0,ky],dashed:true}],
+      rightAngles:[{at:[h,ky],d1:[0,1],d2:[-1,0]}],
+      spots:{g:{at:[h,g/2],anchor:'start',dx:6}, h:{at:[h/2,ky],anchor:'middle',dy:-8}}, areaSpot:[h/2,g/2]};},
+  deriv:'DERIV_PARA'
+},
+{ id:'trapez', name:'Trapez', cat:'Vierecke',
+  formulas:[{ id:'t1', label:'A = ½·(a+c)·h',
+    needs:[{sym:'a',name:'längere Parallelseite',kind:'len',tex:'a'},{sym:'c',name:'kürzere Parallelseite',kind:'len',tex:'c'},{sym:'h',name:'Höhe',kind:'len',tex:'h'}],
+    area:v=>(v.a+v.c)/2*v.h, sym:()=>'A = '+h2('a+c',true)+'\\cdot h', invertible:true, invTargets:['a','c','h'], exact:null,
+    fwd:(v,u)=>A0('A &= '+h2('a+c',true)+'\\cdot h',
+        'A &= '+h2(texNum(v.a)+U(u)+'+'+texNum(v.c)+U(u),true)+'\\cdot '+texNum(v.h)+U(u),
+        'A &= '+texNum((v.a+v.c)/2)+U(u)+' \\cdot '+texNum(v.h)+U(u),
+        'A &= '+texNum((v.a+v.c)/2*v.h)+AU(u)),
+    inv:(t,v,u)=>{const A=(v.a+v.c)/2*v.h;
+      if(t==='h')return A0('A &= '+h2('a+c',true)+'\\cdot h','h &= \\dfrac{2A}{a+c}','h &= \\dfrac{2\\cdot '+texNum(A)+AU(u)+'}{('+texNum(v.a)+'+'+texNum(v.c)+')'+U(u)+'}','h &= '+texNum(v.h)+U(u));
+      const o=t==='a'?'c':'a';return A0('A &= '+h2('a+c',true)+'\\cdot h',t+' &= \\dfrac{2A}{h}-'+o,t+' &= \\dfrac{2\\cdot '+texNum(A)+AU(u)+'}{'+texNum(v.h)+U(u)+'}-'+texNum(v[o])+U(u),t+' &= '+texNum(v[t])+U(u));} }],
+  geom:(v,f,mode,seed)=>{let a=mode==='general'?7:v.a, c=mode==='general'?4:v.c, h=mode==='general'?3.4:v.h;
+    if(c>a){const t=a;a=c;c=t;}                       // längere Parallelseite unten
+    const off=(a-c)*(0.12+0.76*(seed==null?0.5:seed)); // Deckseite zufällig versetzt statt mittig
+    return{points:[[0,0],[a,0],[off+c,h],[off,h]],
+      helpers:[{from:[off,0],to:[off,h],dashed:true}],
+      // rechter Winkel an beiden Enden der Höhe (zeigt: h steht senkrecht auf beiden Parallelen)
+      rightAngles:[{at:[off,0],d1:[1,0],d2:[0,1]},{at:[off,h],d1:[1,0],d2:[0,-1]}],
+      segs:{a:[[0,0],[a,0]], c:[[off,h],[off+c,h]], h:[[off,0],[off,h]]},
+      spots:{a:{at:[a/2,0],anchor:'middle',dy:16}, c:{at:[off+c/2,h],anchor:'middle',dy:-12}, h:{at:[off,h/2],anchor:'end',dx:-6}}, areaSpot:[a/2,h/2]};},
+  deriv:'DERIV_TRAP'
+},
+{ id:'drache', name:'Drache (Deltoid)', cat:'Vierecke',
+  formulas:[{ id:'d1', label:'A = ½·e·f',
+    needs:[{sym:'e',name:'Diagonale',kind:'len',tex:'e'},{sym:'f',name:'Diagonale',kind:'len',tex:'f'}],
+    area:v=>v.e*v.f/2, sym:()=>'A = '+h2('e \\cdot f'), invertible:true, invTargets:['e','f'], exact:null,
+    fwd:(v,u)=>A0('A &= '+h2('e \\cdot f'),'A &= '+h2(texNum(v.e)+U(u)+' \\cdot '+texNum(v.f)+U(u)),'A &= '+texNum(v.e*v.f/2)+AU(u)),
+    inv:(t,v,u)=>{const o=t==='e'?'f':'e';return A0('A &= '+h2('e \\cdot f'),t+' &= \\dfrac{2A}{'+o+'}',t+' &= \\dfrac{2\\cdot '+texNum(v.e*v.f/2)+AU(u)+'}{'+texNum(v[o])+U(u)+'}',t+' &= '+texNum(v[t])+U(u));} },
+  { id:'d2', label:'A = a·b·sin(γ)', tag:'trig', trig:true,
+    needs:[{sym:'a',name:'Seite',kind:'len',tex:'a'},{sym:'b',name:'Seite',kind:'len',tex:'b'},{sym:'g',name:'eingeschlossener Winkel',kind:'angle',tex:'\\gamma'}],
+    area:v=>v.a*v.b*Math.sin(rad(v.g)), sym:()=>'A = a \\cdot b \\cdot \\sin(\\gamma)', invertible:false, exact:null,
+    fwd:(v,u)=>A0('A &= a \\cdot b \\cdot \\sin(\\gamma)','A &= '+texNum(v.a)+U(u)+' \\cdot '+texNum(v.b)+U(u)+' \\cdot \\sin('+texNum(v.g)+'^\\circ)','A &\\approx '+texNum(v.a*v.b*Math.sin(rad(v.g)),2)+AU(u)) }],
+  geom:(v,f,mode,seed,t)=>{
+    if(f==='d2'){ const a=mode==='general'?5:v.a, b=mode==='general'?6.5:v.b, g=mode==='general'?70:v.g;
+      const c2=Math.cos(rad(g/2)), s2=Math.sin(rad(g/2));
+      const B=[0,0], A=[-a*c2, a*s2], C=[-b*c2, -b*s2];
+      const dx=C[0]-A[0], dy=C[1]-A[1]; const tt=((B[0]-A[0])*dx+(B[1]-A[1])*dy)/((dx*dx+dy*dy)||1);
+      const px=A[0]+tt*dx, py=A[1]+tt*dy; const D=[2*px-B[0],2*py-B[1]];
+      const mid=(P,Q)=>[(P[0]+Q[0])/2,(P[1]+Q[1])/2];
+      return{points:[A,B,C,D],
+        angles:[{at:B,d1:[A[0]-B[0],A[1]-B[1]],d2:[C[0]-B[0],C[1]-B[1]],label:'γ',r:22}],
+        spots:{a:{at:mid(A,B),anchor:'start',dx:6,dy:-4}, b:{at:mid(B,C),anchor:'start',dx:6,dy:4}}, areaSpot:[(A[0]+C[0])/3,0]};
+    }
+    const e=mode==='general'?6:v.e, ff=mode==='general'?8:v.f;
+    if(t&&t.concave){ // Pfeilviereck (konkav): C liegt zwischen den Diagonalen; Höhen-/Diagonalen-Verlängerung gestrichelt
+      const cY=(0.3+0.3*(seed==null?0.5:seed))*ff; const A=[0,cY+ff], C=[0,cY], B=[e/2,0], D=[-e/2,0];
+      return{points:[A,B,C,D],
+        helpers:[{from:[-e/2,0],to:[e/2,0],dashed:true},{from:[0,cY],to:[0,cY+ff],dashed:true},{from:[0,0],to:[0,cY],dashed:true,color:'#bbb'}],
+        rightAngles:[{at:[0,0],d1:[1,0],d2:[0,1]}],
+        spots:{e:{at:[e*0.28,0],anchor:'middle',dy:16}, f:{at:[0,cY+ff*0.5],anchor:'start',dx:8}}, areaSpot:[0,cY+ff*0.55]};
+    }
+    const topR=0.4+0.4*(seed==null?0.5:seed); const ft=ff*topR, fb=ff*(1-topR);
+    const T=[0,ft],R=[e/2,0],Bm=[0,-fb],Lf=[-e/2,0];
+    const mid2=(P,Q)=>[(P[0]+Q[0])/2,(P[1]+Q[1])/2];
+    return{points:[T,R,Bm,Lf],
+      helpers:[{from:Lf,to:R,dashed:true},{from:T,to:Bm,dashed:true}],
+      // senkrechte Diagonalen + je zwei gleich lange Nachbarseiten -> als Drache erkennbar
+      rightAngles:[{at:[0,0],d1:[1,0],d2:[0,1]},{at:[0,0],d1:[-1,0],d2:[0,-1]}],
+      segs:{e:[Lf,R], f:[T,Bm]},
+      plain:[{sym:'a',at:mid2(T,R),anchor:'start',dx:14,dy:-9},{sym:'a',at:mid2(T,Lf),anchor:'end',dx:-14,dy:-9},
+             {sym:'b',at:mid2(R,Bm),anchor:'start',dx:14,dy:9},{sym:'b',at:mid2(Bm,Lf),anchor:'end',dx:-14,dy:9}],
+      spots:{e:{at:[e*0.28,0],anchor:'middle',dy:16}, f:{at:[0,ft*0.55],anchor:'start',dx:8}}, areaSpot:[0,ft*0.3]};},
+  deriv:'Die Diagonalen eines Drachens stehen senkrecht aufeinander. Das umschließende Rechteck hat die Seiten \\(e\\) und \\(f\\); der Drache füllt genau die Hälfte davon.'
+},
+/* ===== DREIECKE ===== */
+{ id:'dreieck', name:'beliebiges Dreieck', cat:'Dreiecke',
+  formulas:[
+   { id:'a1', label:()=>'A = '+h2A('g·h'), tag:'Grundseite·Höhe', needs:[{sym:'g',name:'Grundseite',kind:'len',tex:'g'},{sym:'h',name:'Höhe',kind:'len',tex:'h'}],
+     area:v=>v.g*v.h/2, sym:()=>'A = '+h2('g \\cdot h'), invertible:true, invTargets:['g','h'], exact:null,
+     fwd:(v,u)=>A0('A &= '+h2('g \\cdot h'),'A &= '+h2(texNum(v.g)+U(u)+' \\cdot '+texNum(v.h)+U(u)),'A &= '+texNum(v.g*v.h/2)+AU(u)),
+     inv:(t,v,u)=>{const o=t==='g'?'h':'g';return A0('A &= '+h2('g \\cdot h'),t+' &= \\dfrac{2A}{'+o+'}',t+' &= \\dfrac{2\\cdot '+texNum(v.g*v.h/2)+AU(u)+'}{'+texNum(v[o])+U(u)+'}',t+' &= '+texNum(v[t])+U(u));} },
+   { id:'a2', label:()=>'A = '+h2A('a·b·sin γ'), tag:'mit Trig.', trig:true,
+     needs:[{sym:'a',name:'Seite',kind:'len',tex:'a'},{sym:'b',name:'Seite',kind:'len',tex:'b'},{sym:'g',name:'eingeschl. Winkel',kind:'angle',tex:'\\gamma'}],
+     area:v=>0.5*v.a*v.b*Math.sin(rad(v.g)), sym:()=>'A = '+h2('a \\cdot b \\cdot \\sin(\\gamma)'), invertible:false, invTargets:[], exact:null,
+     fwd:(v,u)=>{const A=0.5*v.a*v.b*Math.sin(rad(v.g));return A0('A &= '+h2('a \\cdot b \\cdot \\sin(\\gamma)'),
+        'A &= '+h2(texNum(v.a)+U(u)+' \\cdot '+texNum(v.b)+U(u)+' \\cdot \\sin('+texNum(v.g)+'^\\circ)'),
+        'A &\\approx '+texNum(A,2)+AU(u));} },
+   { id:'a3', label:'A = √(s(s−a)(s−b)(s−c))', tag:'Heron', 
+     needs:[{sym:'a',name:'Seite',kind:'len',tex:'a'},{sym:'b',name:'Seite',kind:'len',tex:'b'},{sym:'c',name:'Seite',kind:'len',tex:'c'}],
+     area:v=>{const s=(v.a+v.b+v.c)/2;return Math.sqrt(Math.max(0,s*(s-v.a)*(s-v.b)*(s-v.c)));}, sym:'A = \\sqrt{s(s-a)(s-b)(s-c)},\\ s=\\tfrac{a+b+c}{2}', invertible:false, invTargets:[], exact:null,
+     fwd:(v,u)=>{const s=(v.a+v.b+v.c)/2,A=Math.sqrt(Math.max(0,s*(s-v.a)*(s-v.b)*(s-v.c)));return A0('s &= \\tfrac{a+b+c}{2}='+texNum(s)+U(u),
+        'A &= \\sqrt{s(s-a)(s-b)(s-c)}',
+        'A &= \\sqrt{'+texNum(s)+'\\cdot '+texNum(s-v.a)+'\\cdot '+texNum(s-v.b)+'\\cdot '+texNum(s-v.c)+'}\\,'+U(u)+'^2',
+        'A &\\approx '+texNum(A,2)+AU(u));} }
+  ],
+  geom:(v,f,mode,seed,t)=>{
+    if(f==='a2'){const a=mode==='general'?6:v.a,b=mode==='general'?4.5:v.b,g=mode==='general'?55:v.g;
+      const bx=b*Math.cos(rad(g)),by=b*Math.sin(rad(g));
+      return{points:[[0,0],[a,0],[bx,by]],
+        angles:[{at:[0,0],d1:[1,0],d2:[Math.cos(rad(g)),Math.sin(rad(g))],label:'γ'}],
+        spots:{a:{at:[a/2,0],anchor:'middle',dy:16}, b:{at:[bx/2,by/2],anchor:'end',dx:-6}}, areaSpot:[(a+bx)/3,by/3]};}
+    if(f==='a3'){const a=mode==='general'?7:v.a,b=mode==='general'?6:v.b,c=mode==='general'?5:v.c;
+      const x=(a*a+c*c-b*b)/(2*a), y=Math.sqrt(Math.max(0.01,c*c-x*x));
+      return{points:[[0,0],[a,0],[x,y]],
+        spots:{a:{at:[a/2,0],anchor:'middle',dy:16}, c:{at:[x/2,y/2],anchor:'end',dx:-6}, b:{at:[(a+x)/2,y/2],anchor:'start',dx:6}}, areaSpot:[(a+x)/3,y/3]};}
+    const g=mode==='general'?7:v.g,h=mode==='general'?4:v.h;
+    const fr=-0.28+1.56*(seed==null?0.4:seed);   // Fußpunkt-Anteil (kann <0 oder >1 -> stumpfwinklig)
+    const base=(t&&t.triBase)||'c';   // c=unten, a=rechts, b=links
+    if(base==='a'){ // Grundseite = rechte (vertikale) Seite, Höhe waagerecht
+      const af=g*fr, foot=[g,af], apex=[g-h,af]; const hp=[];
+      if(af<0) hp.push({from:[g,0],to:[g,af],dashed:true,color:'#bbb'}); else if(af>g) hp.push({from:[g,g],to:[g,af],dashed:true,color:'#bbb'});
+      return{points:[[g,0],[g,g],apex], helpers:[{from:apex,to:foot,dashed:true}].concat(hp),
+        rightAngles:[{at:foot,d1:[0,1],d2:[-1,0]}],
+        spots:{g:{at:[g,g/2],anchor:'start',dx:8}, h:{at:[(apex[0]+g)/2,af],anchor:'middle',dy:-8}}, areaSpot:[(2*g+apex[0])/3,(g+af)/3]};
+    }
+    if(base==='b'){ // Grundseite = linke (vertikale) Seite, Höhe waagerecht
+      const af=g*fr, foot=[0,af], apex=[h,af]; const hp=[];
+      if(af<0) hp.push({from:[0,0],to:[0,af],dashed:true,color:'#bbb'}); else if(af>g) hp.push({from:[0,g],to:[0,af],dashed:true,color:'#bbb'});
+      return{points:[[0,0],[0,g],apex], helpers:[{from:apex,to:foot,dashed:true}].concat(hp),
+        rightAngles:[{at:foot,d1:[0,1],d2:[1,0]}],
+        spots:{g:{at:[0,g/2],anchor:'end',dx:-8}, h:{at:[apex[0]/2,af],anchor:'middle',dy:-8}}, areaSpot:[apex[0]/3,(g+af)/3]};
+    }
+    const ax=g*fr;                                // Grundseite unten, Höhe senkrecht
+    const hp=[]; if(ax<0) hp.push({from:[0,0],to:[ax,0],dashed:true,color:'#bbb'}); else if(ax>g) hp.push({from:[g,0],to:[ax,0],dashed:true,color:'#bbb'});
+    const hRight=ax>g*0.5;
+    return{points:[[0,0],[g,0],[ax,h]],
+      helpers:[{from:[ax,0],to:[ax,h],dashed:true}].concat(hp), rightAngles:[{at:[ax,0],d1:[1,0],d2:[0,1]}],
+      spots:{g:{at:[g/2,0],anchor:'middle',dy:16}, h:{at:[ax,h/2],anchor:hRight?'start':'end',dx:hRight?8:-8}}, areaSpot:[(g+ax)/3,h/3]};},
+  deriv:'DERIV_TRI'
+},
+{ id:'rechtwinklig', name:'rechtwinkliges Dreieck', cat:'Dreiecke',
+  formulas:[{ id:'rw1', label:()=>'A = '+h2A('a·b'), tag:'Katheten',
+    needs:[{sym:'a',name:'Kathete',kind:'len',tex:'a'},{sym:'b',name:'Kathete',kind:'len',tex:'b'}],
+    area:v=>v.a*v.b/2, sym:()=>'A = '+h2('a \\cdot b'), invertible:true, invTargets:['a','b'], exact:null,
+    fwd:(v,u)=>A0('A &= '+h2('a \\cdot b'),'A &= '+h2(texNum(v.a)+U(u)+' \\cdot '+texNum(v.b)+U(u)),'A &= '+texNum(v.a*v.b/2)+AU(u)),
+    inv:(t,v,u)=>{const o=t==='a'?'b':'a';return A0('A &= '+h2('a \\cdot b'),t+' &= \\dfrac{2A}{'+o+'}',t+' &= \\dfrac{2\\cdot '+texNum(v.a*v.b/2)+AU(u)+'}{'+texNum(v[o])+U(u)+'}',t+' &= '+texNum(v[t])+U(u));} }],
+  geom:(v,f,mode,seed)=>{const a=mode==='general'?6:v.a,b=mode==='general'?4:v.b;
+    const q=Math.min(3,Math.floor((seed==null?0:seed)*4));   // 4 Orientierungen
+    if(q===0) // rechter Winkel links unten
+      return{points:[[0,0],[a,0],[0,b]], rightAngles:[{at:[0,0],d1:[1,0],d2:[0,1]}],
+        segs:{a:[[0,0],[a,0]], b:[[0,0],[0,b]]},
+        spots:{a:{at:[a/2,0],anchor:'middle',dy:16}, b:{at:[0,b/2],anchor:'end',dx:-8}}, areaSpot:[a/3,b/3]};
+    if(q===1) // rechts unten
+      return{points:[[0,0],[a,0],[a,b]], rightAngles:[{at:[a,0],d1:[-1,0],d2:[0,1]}],
+        segs:{a:[[0,0],[a,0]], b:[[a,0],[a,b]]},
+        spots:{a:{at:[a/2,0],anchor:'middle',dy:16}, b:{at:[a,b/2],anchor:'start',dx:8}}, areaSpot:[a*2/3,b/3]};
+    if(q===2) // links oben
+      return{points:[[0,b],[a,b],[0,0]], rightAngles:[{at:[0,b],d1:[1,0],d2:[0,-1]}],
+        segs:{a:[[0,b],[a,b]], b:[[0,b],[0,0]]},
+        spots:{a:{at:[a/2,b],anchor:'middle',dy:-8}, b:{at:[0,b/2],anchor:'end',dx:-8}}, areaSpot:[a/3,b*2/3]};
+    // rechts oben
+    return{points:[[a,b],[0,b],[a,0]], rightAngles:[{at:[a,b],d1:[-1,0],d2:[0,-1]}],
+      spots:{a:{at:[a/2,b],anchor:'middle',dy:-8}, b:{at:[a,b/2],anchor:'start',dx:8}}, areaSpot:[a*2/3,b*2/3]};},
+  deriv:'Zwei rechtwinklige Dreiecke ergeben zusammen ein Rechteck mit den Seiten \\(a\\) und \\(b\\). Ein Dreieck ist also halb so groß wie dieses Rechteck.'
+},
+{ id:'gleichseitig', name:'gleichseitiges Dreieck', cat:'Dreiecke',
+  formulas:[{ id:'gs1', label:'A = ¼·a²·√3',
+    needs:[{sym:'a',name:'Seitenlänge',kind:'len',tex:'a'}],
+    area:v=>v.a*v.a*Math.sqrt(3)/4, sym:'A = \\dfrac{a^2}{4}\\sqrt{3}', invertible:true, invTargets:['a'], exact:'sqrt3',
+    fwd:(v,u)=>{const A=v.a*v.a*Math.sqrt(3)/4;return A0('A &= \\dfrac{a^2}{4}\\sqrt{3}','A &= \\dfrac{('+texNum(v.a)+U(u)+')^2}{4}\\sqrt{3}','A &= \\dfrac{'+texNum(v.a*v.a)+'}{4}\\sqrt{3}\\;'+U(u)+'^2 = '+texNum(v.a*v.a/4)+'\\sqrt{3}\\;'+U(u)+'^2','A &\\approx '+texNum(A,2)+AU(u));},
+    inv:(t,v,u,disp)=>A0('A &= \\dfrac{a^2}{4}\\sqrt{3}','a^2 &= \\dfrac{4A}{\\sqrt{3}}','a &= \\sqrt{\\dfrac{4A}{\\sqrt3}} = \\sqrt{\\dfrac{4\\cdot '+texNum(v.a*v.a/4)+'\\sqrt3}{\\sqrt3}} = \\sqrt{'+texNum(v.a*v.a)+'}\\,'+U(u),'a &= '+texNum(v.a)+U(u)) }],
+  geom:(v,f,mode)=>{const a=mode==='general'?6:v.a; const h=a*Math.sqrt(3)/2;
+    return{points:[[0,0],[a,0],[a/2,h]],
+      spots:{a:{at:[a/2,0],anchor:'middle',dy:16}},
+      // alle drei Seiten gleich benannt -> als gleichseitiges Dreieck erkennbar
+      plain:[{sym:'a',at:[a*0.75,h/2],anchor:'start',dx:6},{sym:'a',at:[a*0.25,h/2],anchor:'end',dx:-6}],
+      segs:{a:[[0,0],[a,0]]},
+      equal:{a:[[[0,0],[a,0]],[[a,0],[a/2,h]],[[a/2,h],[0,0]]]},
+      areaSpot:[a/2,h/3]};},
+  deriv:'Die Höhe halbiert das Dreieck; mit dem Satz des Pythagoras gilt \\(h=\\tfrac{a}{2}\\sqrt3\\). Diese Höhe wird anschließend in die Dreiecksformel eingesetzt.'
+},
+/* ===== KREISE ===== */
+{ id:'kreis', name:'Kreis', cat:'Kreise',
+  formulas:[
+   { id:'k1', label:'A = π·r²', tag:'Radius', needs:[{sym:'r',name:'Radius',kind:'len',tex:'r'}],
+     area:v=>Math.PI*v.r*v.r, sym:'A = \\pi \\cdot r^2', invertible:true, invTargets:['r'], exact:'pi',
+     fwd:(v,u)=>{const A=Math.PI*v.r*v.r;return A0('A &= \\pi \\cdot r^2','A &= \\pi \\cdot ('+texNum(v.r)+U(u)+')^2','A &= '+texNum(v.r*v.r)+'\\pi\\;'+U(u)+'^2','A &\\approx '+texNum(A,2)+AU(u));},
+     inv:(t,v,u,disp)=>A0('A &= \\pi \\cdot r^2','r &= \\sqrt{\\dfrac{A}{\\pi}}','r &= \\sqrt{\\dfrac{'+texNum(v.r*v.r)+'\\pi\\;'+U(u)+'^2}{\\pi}} = \\sqrt{'+texNum(v.r*v.r)+'}\\,'+U(u),'r &= '+texNum(v.r)+U(u)) },
+   { id:'k2', label:'A = ¼·π·d²', tag:'Durchmesser', needs:[{sym:'d',name:'Durchmesser',kind:'len',tex:'d'}],
+     area:v=>Math.PI*v.d*v.d/4, sym:'A = \\dfrac{\\pi}{4}\\cdot d^2', invertible:true, invTargets:['d'], exact:'pi',
+     fwd:(v,u)=>{const A=Math.PI*v.d*v.d/4;return A0('A &= \\dfrac{\\pi}{4}\\cdot d^2','A &= \\dfrac{\\pi}{4}\\cdot ('+texNum(v.d)+U(u)+')^2','A &= '+texNum(v.d*v.d/4)+'\\pi\\;'+U(u)+'^2','A &\\approx '+texNum(A,2)+AU(u));},
+     inv:(t,v,u,disp)=>A0('A &= \\dfrac{\\pi}{4}\\cdot d^2','d &= \\sqrt{\\dfrac{4A}{\\pi}}','d &= \\sqrt{\\dfrac{4\\cdot '+texNum(v.d*v.d/4)+'\\pi\\;'+U(u)+'^2}{\\pi}} = \\sqrt{'+texNum(v.d*v.d)+'}\\,'+U(u),'d &= '+texNum(v.d)+U(u)) }
+  ],
+  geom:(v,f,mode)=>{const r=mode==='general'?4:(f==='k2'?v.d/2:v.r);
+    if(f==='k2')return{circle:[0,0,r], helpers:[{from:[-r,0],to:[r,0]}], spots:{d:{at:[0,0],anchor:'middle',dy:-8}}, areaSpot:[0,r*0.5]};
+    return{circle:[0,0,r], helpers:[{from:[0,0],to:[r*Math.cos(rad(35)),r*Math.sin(rad(35))]}], spots:{r:{at:[r*Math.cos(rad(35))/2,r*Math.sin(rad(35))/2],anchor:'middle',dy:-10}}, areaSpot:[0,-r*0.4]};},
+  deriv:'Zerschneidet man den Kreis in viele schmale Sektoren und legt sie abwechselnd aneinander, entsteht näherungsweise ein Rechteck mit der Höhe \\(r\\) und der Breite \\(\\tfrac12\\cdot 2\\pi r=\\pi r\\) (dem halben Umfang).'
+},
+/* ===== REGULÄRE POLYGONE ===== */
+{ id:'polygon', name:'reguläres n-Eck', cat:'Reguläre Polygone',
+  formulas:[
+   { id:'n1', label:()=>'A = '+h2A('u·ρ'), tag:'Umfang·Apothem',
+     needs:[{sym:'n',name:'Eckenzahl',kind:'count',tex:'n'},{sym:'a',name:'Seitenlänge',kind:'len',tex:'a'},{sym:'rho',name:'Apothem (Inkreisradius)',kind:'len',tex:'\\rho'}],
+     area:v=>0.5*(v.n*v.a)*v.rho, sym:()=>'A = '+h2('u \\cdot \\rho')+',\\quad u=n\\cdot a', invertible:false, invTargets:[], exact:null,
+     fwd:(v,u)=>{const um=v.n*v.a;return A0('u &= n\\cdot a = '+v.n+'\\cdot '+texNum(v.a)+U(u)+' = '+texNum(um)+U(u),
+        'A &= '+h2('u\\cdot\\rho'),'A &= '+h2(texNum(um)+U(u)+'\\cdot '+texNum(v.rho)+U(u)),'A &= '+texNum(0.5*um*v.rho,2)+AU(u));} },
+   { id:'n2', label:'A = n·a² / (4·tan(180°/n))', tag:'mit Trig.', trig:true,
+     needs:[{sym:'n',name:'Eckenzahl',kind:'count',tex:'n'},{sym:'a',name:'Seitenlänge',kind:'len',tex:'a'}],
+     area:v=>v.n*v.a*v.a/(4*Math.tan(Math.PI/v.n)), sym:'A = \\dfrac{n\\cdot a^2}{4\\,\\tan\\!\\left(\\frac{180^\\circ}{n}\\right)}', invertible:false, invTargets:[], exact:null,
+     fwd:(v,u)=>{const A=v.n*v.a*v.a/(4*Math.tan(Math.PI/v.n));return A0('A &= \\dfrac{n\\cdot a^2}{4\\,\\tan\\!\\left(\\frac{180^\\circ}{n}\\right)}',
+        'A &= \\dfrac{'+v.n+'\\cdot ('+texNum(v.a)+U(u)+')^2}{4\\,\\tan('+texNum(180/v.n,2)+'^\\circ)}',
+        'A &\\approx '+texNum(A,2)+AU(u));} }
+  ],
+  geom:(v,f,mode,seed)=>{const n=mode==='general'?6:v.n; const a=mode==='general'?4:v.a;
+    const R=a/(2*Math.sin(Math.PI/n)); const rho=R*Math.cos(Math.PI/n);
+    const rot=((seed==null?0.5:seed)-0.5)*(2*Math.PI/n)*0.8;    // leichte Drehung je Aufgabe
+    const pts=[]; const start=-Math.PI/2-Math.PI/n+rot; // eine Kante unten (leicht gedreht)
+    for(let k=0;k<n;k++){const ang=start+k*2*Math.PI/n; pts.push([R*Math.cos(ang),R*Math.sin(ang)]);}
+    // untere Kante = pts[?] -> finde die beiden untersten
+    let sp={a:{at:[(pts[0][0]+pts[1][0])/2,(pts[0][1]+pts[1][1])/2],anchor:'middle',dy:16}};
+    let helpers=[], extra={};
+    if(f==='n1'){const mid=[(pts[0][0]+pts[1][0])/2,(pts[0][1]+pts[1][1])/2];
+      helpers.push({from:[0,0],to:mid,dashed:true});
+      sp.rho={at:[mid[0]/2,mid[1]/2],anchor:'start',dx:6};}
+    return{points:pts, helpers, spots:sp, areaSpot:[0,0]};},
+  deriv:'Ein reguläres \\(n\\)-Eck lässt sich in \\(n\\) gleiche Dreiecke mit der Grundseite \\(a\\) und der Höhe \\(\\rho\\) (Apothem) zerlegen. Ein Dreieck hat \\(\\tfrac12 a\\rho\\).'
+}
+];
+
+// Nachschlag-Helfer
+const shapeById=id=>SHAPES.find(s=>s.id===id);
+function formulaRef(fid){for(const s of SHAPES){const f=s.formulas.find(x=>x.id===fid);if(f)return{shape:s,formula:f};}return null;}
+const CATS=['Vierecke','Dreiecke','Kreise','Reguläre Polygone'];
+
+/* ---------- 5. State + Presets + URL ---------- */
+const PRESETS={
+  einfuehrung:{numberType:'int',  min:1, max:10,  units:['cm'], simpleAngles:true,  mixMode:'never', baseAny:false},
+  leicht:     {numberType:'int',  min:2, max:20,  units:['cm','m'], simpleAngles:true,  mixMode:'never', baseAny:false},
+  mittel:     {numberType:'dec1', min:2, max:30,  units:['mm','cm','dm','m'], simpleAngles:false, mixMode:'never', baseAny:true},
+  herausfordernd:{numberType:'dec2',min:2,max:100,units:['mm','cm','dm','m','km'], simpleAngles:false, mixMode:'sometimes', baseAny:true}
+};
+const ANGLE_POOL=[30,45,60,120,135,150];
+
+const state={
+  diff:'mittel',
+  mode:'flaeche',            // flaeche | zufall | umkehr
+  present:'random',          // text | skizze | random (Zufall ist Default)
+  sketchType:'exact',        // exact | general  (exakt ist Default)
+  analog:true,               // andere Darstellung zum Aufklappen anbieten
+  gridOn:false, gridStep:1, gridAuto:true,  // Raster in der exakten Skizze standardmäßig aus; Stufe automatisch (nächst-kleinere)
+  // Lehrer-Settings
+  numberType:'dec1', min:2, max:30, units:['mm','cm','dm','m'],
+  useUnits:true,             // mit Einheiten rechnen?
+  unitsMode:'through',       // through = durchgängig in den Formeln | end = erst am Ergebnis in [ ]
+  mixMode:'never',           // gemischte Einheiten: never | sometimes | always (max. 1 Stufe Unterschied)
+  halfStyle:'factor',        // factor = ½ als Faktor (Default) | fraction = Term/2 im Nenner
+  triSide:'c',               // c = A=½·c·h_c (Default) | g = A=½·g·h
+  baseAny:false,             // Grundseite: false = nur unten | true = beliebige Seite (preset-gesteuert)
+  concaveKite:false,         // konkave Drachen (Pfeilvierecke) zulassen
+  autoUnit:true,             // Antwort: Einheit automatisch vorgeben (sonst per Auswahl)
+  colorLen:true,             // gegebene Strecken und ihre Beschriftungen farbig markieren
+  showName:false,            // Name der Form bei Skizzen anzeigen (sonst per Auge einblendbar)
+  helpMode:'herleitung',     // herleitung = bildlich | formelsammlung = richtige Formel direkt
+  simpleAngles:true,         // nur einfache Winkel (30°,45°,…) statt zufällig erzeugter
+  angles:[30,45,60,120,135,150],
+  // Formel-Auswahl (Set aktiver Formel-IDs)
+  active:new Set(),
+  // aktuelle Aufgabe
+  task:null, _gen:0
+};
+
+function applyPreset(name){
+  if(name==='individuell')return;
+  const p=PRESETS[name]; if(!p)return;
+  state.numberType=p.numberType; state.min=p.min; state.max=p.max; state.units=p.units.slice();
+  state.simpleAngles=p.simpleAngles; state.mixMode=p.mixMode; state.baseAny=p.baseAny;
+}
+
+// Default-Formelauswahl: die ersten (nicht-trig) Formeln je Form – ohne gleichseitiges Dreieck und reguläres n-Eck
+function defaultActive(){ const s=new Set(); SHAPES.forEach(sh=>{ if(sh.id==='gleichseitig'||sh.id==='polygon')return; const base=sh.formulas.find(f=>!f.trig)||sh.formulas[0]; s.add(base.id); }); return s; }
+
+function serialize(){
+  const p=new URLSearchParams(location.search);
+  p.set('d',state.diff); p.set('m',state.mode); p.set('pr',state.present);
+  p.set('st',state.sketchType); p.set('an',state.analog?1:0);
+  p.set('gr',state.gridOn?1:0); p.set('gs',state.gridStep); p.set('ga',state.gridAuto?1:0);
+  p.set('cl',state.colorLen?1:0); p.set('sn',state.showName?1:0);
+  p.set('nt',state.numberType); p.set('mn',state.min); p.set('mx',state.max);
+  p.set('u',state.units.join('.')); p.set('uu',state.useUnits?1:0); p.set('um',state.unitsMode); p.set('mix',state.mixMode);
+  p.set('hm',state.helpMode); p.set('hs',state.halfStyle); p.set('ts',state.triSide); p.set('ba',state.baseAny?1:0); p.set('ck',state.concaveKite?1:0); p.set('au',state.autoUnit?1:0);
+  p.set('sa',state.simpleAngles?1:0); p.set('ang',state.angles.join('.'));
+  p.set('f',[...state.active].join('.'));
+  const qs=p.toString();
+  try{ history.replaceState(null,'','?'+qs); }catch(e){ /* z.B. sandbox/about:blank – Persistenz dann nur pro Sitzung */ }
+  return qs;
+}
+function deserialize(){
+  const p=new URLSearchParams(location.search); if(![...p.keys()].length)return false;
+  const g=(k,d)=>p.has(k)?p.get(k):d;
+  state.diff=g('d','mittel'); state.mode=g('m','flaeche'); state.present=g('pr','random');
+  state.sketchType=g('st','exact'); state.analog=g('an','1')==='1';
+  state.gridOn=g('gr','0')==='1'; state.gridStep=Math.max(0.25,+g('gs',1)||1); state.gridAuto=g('ga','1')==='1';
+  state.numberType=g('nt','dec1'); state.min=+g('mn',2); state.max=+g('mx',30);
+  state.units=g('u','mm.cm.m').split('.').filter(Boolean);
+  state.useUnits=g('uu','1')==='1'; state.unitsMode=g('um','through')==='end'?'end':'through';
+  state.mixMode=(x=>['never','sometimes','always'].includes(x)?x:'never')(g('mix','never'));
+  state.helpMode=g('hm','herleitung')==='formelsammlung'?'formelsammlung':'herleitung';
+  state.halfStyle=g('hs','factor')==='fraction'?'fraction':'factor';
+  state.triSide=g('ts','c')==='g'?'g':'c';
+  state.baseAny=g('ba','0')==='1';
+  state.concaveKite=g('ck','0')==='1';
+  state.autoUnit=g('au','1')==='1';
+  state.colorLen=g('cl','1')==='1';
+  state.showName=g('sn','0')==='1';
+  state.simpleAngles=g('sa','1')==='1';
+  state.angles=g('ang','30.45.60.120.135.150').split('.').filter(Boolean).map(Number);
+  const f=g('f',''); state.active=new Set(f.split('.').filter(Boolean));
+  if(!state.active.size)state.active=defaultActive();
+  return true;
+}
+
+/* ---------- 6. Aufgaben-Generierung ---------- */
+function genAngle(){
+  if(state.simpleAngles) return pick(ANGLE_POOL);
+  const lo=15, hi=165;
+  if(state.numberType==='int') return randInt(lo,hi);
+  const dec=state.numberType==='dec1'?1:2, f=10**dec;
+  return Math.round((lo+Math.random()*(hi-lo))*f)/f;
+}
+function activePairs(){ // [{shape,formula}]
+  const out=[]; SHAPES.forEach(sh=>sh.formulas.forEach(f=>{ if(state.active.has(f.id))out.push({shape:sh,formula:f}); })); return out;
+}
+function genValues(formula){
+  const S={numberType:state.numberType,min:state.min,max:state.max};
+  const v={}; const unit=pick(state.units.length?state.units:['cm']);
+  formula.needs.forEach(n=>{
+    if(n.kind==='angle')      v[n.sym]=genAngle();
+    else if(n.kind==='count') v[n.sym]=pick([5,6,8]);
+    else                      v[n.sym]=genNum(S);
+  });
+  // Heron: gültiges Dreieck sicherstellen (Dreiecksungleichung)
+  if(formula.id==='a3'){
+    const valid=()=> v.a+v.b>v.c && v.a+v.c>v.b && v.b+v.c>v.a;
+    let tries=0; while(!valid()&&tries<80){ v.c=genNum(S); tries++; }
+    if(!valid()) v.c=Math.max(v.a,v.b);
+  }
+  // Trapez: a ist die längere Parallelseite
+  if(formula.id==='t1' && v.a<v.c){ const tmp=v.a; v.a=v.c; v.c=tmp; }
+  return {v,unit};
+}
+// „schöne" Werte für Umkehraufgaben
+function genValuesNice(formula){
+  const S={numberType:state.numberType,min:state.min,max:state.max};
+  const v={}; const unit=pick(state.units.length?state.units:['cm']);
+  formula.needs.forEach(n=>{
+    if(n.kind==='angle')      v[n.sym]=genAngle();
+    else if(n.kind==='count') v[n.sym]=pick([5,6,8]);
+    else                      v[n.sym]=genNice(S);
+  });
+  // π- und √3-Formen: Umkehrung ist wegen a=√(a²) ohnehin exakt – keine Sonderbehandlung nötig
+  if(formula.id==='t1' && v.a<v.c){ const tmp=v.a; v.a=v.c; v.c=tmp; }
+  return {v,unit};
+}
+
+function newTask(){
+  const pairs=activePairs();
+  if(!pairs.length){ state.task=null; return; }
+  const gen=++state._gen;
+  // Modus bestimmen
+  let mode=state.mode;
+  if(mode==='zufall') mode=Math.random()<0.5?'flaeche':'umkehr';
+  // passende Paare je Modus
+  let usable=pairs;
+  if(mode==='umkehr') usable=pairs.filter(p=>p.formula.invertible&&p.formula.invTargets.length);
+  if(!usable.length){ mode='flaeche'; usable=pairs; }
+  const {shape,formula}=pick(usable);
+
+  let v,unit,unknownSym=null;
+  if(mode==='umkehr'){ ({v,unit}=genValuesNice(formula)); unknownSym=pick(formula.invTargets); }
+  else               ({v,unit}=genValues(formula));
+
+  // Basiseinheit (Rechen-/Antworteinheit) und Anzeige-Einheiten je Länge (für gemischte Einheiten)
+  const {base,disp}=assignUnits(formula); unit=base;
+
+  const areaExact=formula.area(v);
+  // Anzeige der Fläche (bei π- bzw. √3-Formen exakt)
+  let areaDisp;
+  if(formula.exact==='pi'){ const k= formula.id==='k2'? v.d*v.d/4 : v.r*v.r; areaDisp=texNum(k)+'\\pi'; }
+  else if(formula.exact==='sqrt3'){ const k=v.a*v.a/4; areaDisp=texNum(k)+'\\sqrt{3}'; }
+  else areaDisp=texNum(areaExact,2);
+
+  const pres = state.present==='random' ? pick(['text','skizze']) : (state.present==='skizze'?'skizze':'text');
+  // Grundseite variieren (nur bei baseAny); Winkelecke beim Trig-Dreieck; Kipprichtung des Parallelogramms
+  let triBase=null, paraBase=null, trigVertex=null;
+  const pLean = Math.random()<0.5 ? 1 : -1;                       // Parallelogramm kippt zufällig nach rechts/links
+  if(formula.id==='a1') triBase = state.baseAny ? pick(['c','a','b']) : 'c';   // c=unten, a=rechts, b=links
+  if(formula.id==='p1') paraBase = state.baseAny ? pick(['bottom','top','left','right']) : 'bottom';
+  if(formula.id==='a2') trigVertex = pick([{s1:'a',s2:'b',ang:'gamma'},{s1:'b',s2:'c',ang:'alpha'},{s1:'a',s2:'c',ang:'beta'}]);
+  const concave = (formula.id==='d1' && state.concaveKite) ? Math.random()<0.5 : false;
+  state.task={shape,formula,v,unit,disp,mode,unknownSym,areaExact,areaDisp,gen,pres,seed:Math.random(),triBase,paraBase,pLean,trigVertex,concave,
+    answered:false, helpLevel:0};
+  if(state.gridAuto) state.gridStep=autoGridStep(state.task);   // nächst-kleinere Stufe (bei mehreren Größen von der kleineren)
+}
+// größte Rasterweite, die ECHT kleiner als die kleinste gegebene Länge ist (z. B. 2 -> 1)
+function autoGridStep(task){
+  const lens=task.formula.needs.filter(n=>n.kind==='len').map(n=>task.v[n.sym]).filter(x=>x>0);
+  if(!lens.length) return state.gridStep;
+  const mn=Math.min(...lens);
+  const cand=GRID_STEPS.filter(s=>s<mn-1e-9);
+  return cand.length? cand[cand.length-1] : GRID_STEPS[0];
+}
+
+/* ---------- 7. Rendering (Text/Skizze) ---------- */
+/* Farben für die Strecken, deren Länge gegeben ist (Reihenfolge der gegebenen Größen) */
+const LEN_COLORS=['#c0392b','#1f6fb2','#8e44ad','#b9770e','#117a65','#c2185b'];
+function symColor(task,sym){
+  if(!state.colorLen||!task||!task.formula) return null;
+  const ns=task.formula.needs.filter(n=>n.kind==='len');
+  const i=ns.findIndex(n=>n.sym===sym);
+  return i<0? null : LEN_COLORS[i%LEN_COLORS.length];
+}
+function symLabelText(task,n){ // Beschriftung an der Skizze (Name = Wert)
+  const nm=plainSym(needTexOf(task.formula,n));
+  if(task.mode==='umkehr'&&n.sym===task.unknownSym) return nm+' = ?';
+  if(n.kind==='angle') return nm+' = '+fmtDE(task.v[n.sym])+'°';
+  if(n.kind==='count') return nm+' = '+task.v[n.sym];
+  const du=(task.disp&&task.disp[n.sym])||task.unit;
+  return nm+' = '+fmtDE(dispVal(task,n.sym))+(state.useUnits?' '+du:'');
+}
+function buildSketch(task,mode,opt){
+  const {shape,formula,v}=task;
+  const geo=shape.geom(v,formula.id,mode,task.seed!=null?task.seed:0.5,task);
+  const labels=[];
+  formula.needs.forEach(n=>{ const sp=geo.spots&&geo.spots[n.sym]; if(!sp)return;
+    labels.push({text:symLabelText(task,n),at:sp.at,anchor:sp.anchor,dx:sp.dx||0,dy:sp.dy||0,bold:true,
+       color: (task.mode==='umkehr'&&n.sym===task.unknownSym)?'#c62828':(symColor(task,n.sym)||'#173')});});
+  // Formmerkmale: gleich lange Seiten nur mit dem Buchstaben beschriften (ohne Längenangabe)
+  (geo.plain||[]).forEach(pl=>{
+    const sym=triAware(formula.id, pl.sym, baseForRender(formula));   // g->a usw. wie bei den echten Maßen
+    labels.push({text:plainSym(sym),at:pl.at,anchor:pl.anchor,
+      dx:pl.dx||0,dy:pl.dy||0,bold:true,color:symColor(task,pl.sym)||'#173'});});
+  // Winkel-Label mit Buchstaben + Wert
+  if(geo.angles){ geo.angles.forEach(a=>{ if(a.label==='γ'){ const gsym=formula.needs.find(n=>n.kind==='angle');
+    const letter = task.trigVertex ? {gamma:'γ',alpha:'α',beta:'β'}[task.trigVertex.ang] : 'γ';
+    a.label = gsym? letter+' = '+fmtDE(v[gsym.sym])+'°' : letter; } }); }
+  // Flächen-Label nur bei Umkehraufgaben (dort ist A gegeben); bei Flächenberechnung kein „A=?"
+  if(geo.areaSpot && task.mode==='umkehr'){
+    const us=state.useUnits?' '+task.unit+'²':'';
+    const txt = 'A = '+ (formula.exact? asPlainArea(task): fmtDE(task.areaExact,2)+us);
+    labels.push({text:txt,at:geo.areaSpot,anchor:'middle',bold:true,color:'#245a8f'});
+  }
+  // Tickmarks (gleiche Seiten)
+  const helpers=(geo.helpers||[]).slice();
+  if(geo.ticks){ /* Tickmarks als kurze Striche */ }
+  // farbige Markierung der Strecken mit gegebener Länge (inkl. gleich langer Seiten)
+  const marks=[];
+  if(state.colorLen){
+    const addSeg=(sym,seg)=>{ const c=symColor(task,sym); if(c&&seg) marks.push({from:seg[0],to:seg[1],color:c}); };
+    Object.keys(geo.segs||{}).forEach(sym=>addSeg(sym,geo.segs[sym]));
+    Object.keys(geo.equal||{}).forEach(sym=>(geo.equal[sym]||[]).forEach(seg=>addSeg(sym,seg)));
+  }
+  const spec={points:geo.points,circle:geo.circle,helpers,marks,rightAngles:geo.rightAngles,angles:geo.angles,labels};
+  return svgSketch(spec,opt||{});
+}
+function asPlainArea(task){ // für Umkehr-Anzeige ohne LaTeX (Skizze): π/√3 exakt + gerundet
+  const us=state.useUnits?' '+task.unit+'²':'';
+  const approx=' ≈ '+fmtDE(task.areaExact,2)+us;
+  if(task.formula.exact==='pi'){const k=task.formula.id==='k2'?task.v.d*task.v.d/4:task.v.r*task.v.r;return fmtDE(k)+'·π'+us+approx;}
+  if(task.formula.exact==='sqrt3'){const k=task.v.a*task.v.a/4;return fmtDE(k)+'·√3'+us+approx;}
+  return fmtDE(task.areaExact,2)+us;
+}
+
+function ctxOf(task){   // erklärt bei einigen Formen, was die gegebenen Größen bedeuten
+  switch(task.formula.id){
+    case 'd1': return 'Dabei sind \\(e\\) und \\(f\\) die beiden Diagonalen des Drachenvierecks.';
+    case 'd2': return 'Dabei sind \\(a\\) und \\(b\\) die beiden ungleichen Seiten und \\(\\gamma\\) der von ihnen eingeschlossene Winkel.';
+    case 'rw1': return 'Die gegebenen Seiten \\(a\\) und \\(b\\) sind die beiden Katheten (die Seiten am rechten Winkel).';
+    case 't1': return 'Dabei sind \\(a\\) und \\(c\\) die beiden zueinander parallelen Seiten und \\(h\\) ihr Abstand (die Höhe).';
+    default: return '';
+  }
+}
+function taskTextTeX(task){
+  const {formula,v,unit,mode,disp}=task;
+  const parts=formula.needs.filter(n=> !(mode==='umkehr'&&n.sym===task.unknownSym))
+     .map(n=>{ if(n.kind==='angle') return needTexOf(formula,n)+'='+texNum(v[n.sym])+'^\\circ';
+               if(n.kind==='count') return needTexOf(formula,n)+'='+String(v[n.sym]);
+               const du=(disp&&disp[n.sym])||unit;
+               return needTexOf(formula,n)+'='+texNum(dispVal(task,n.sym))+uGiven(du,'len'); });
+  const ctx=ctxOf(task);
+  if(mode==='umkehr'){
+    const target=formula.needs.find(n=>n.sym===task.unknownSym);
+    let aDisp=task.areaDisp+uGiven(unit,'area');
+    if(formula.exact) aDisp+=' \\approx '+texNum(task.areaExact,2)+uGiven(unit,'area');   // neben dem exakten π-Wert auch gerundet
+    parts.push('A='+aDisp);
+    return {geg:'\\(\\text{geg.: }'+parts.join(',\\ ')+'\\)', ctx,
+            ask:'Berechne '+target.name+' \\('+needTexOf(formula,target)+'\\).'};
+  }
+  return {geg:'\\(\\text{geg.: }'+parts.join(',\\ ')+'\\)', ctx, ask:'Berechne den Flächeninhalt \\(A\\).'};
+}
+
+/* ---------- 8. Hilfen (mehrstufig) ---------- */
+// Bildliche Herleitungen für die übrigen Formen (Ghost-Shapes/Hilfslinien in der Skizze)
+function derivRect(){ const a=5,b=3;
+  return svgSketch({points:[[0,0],[a,0],[a,b],[0,b]],
+    labels:[{text:'a',at:[a/2,0],anchor:'middle',dy:16,bold:true},{text:'b',at:[0,b/2],anchor:'end',dx:-6,bold:true}]},{grid:{step:1}}); }
+function derivSquare(){ const a=4;
+  return svgSketch({points:[[0,0],[a,0],[a,a],[0,a]],
+    labels:[{text:'a',at:[a/2,0],anchor:'middle',dy:16,bold:true},{text:'a',at:[0,a/2],anchor:'end',dx:-6,bold:true}]},{grid:{step:1}}); }
+function derivKite(){ const e=6,ft=4.8,fb=3.2;
+  return svgSketch({points:[[0,ft],[e/2,0],[0,-fb],[-e/2,0]],
+    ghosts:[{points:[[-e/2,-fb],[e/2,-fb],[e/2,ft],[-e/2,ft]],fill:'rgba(47,111,176,.10)',dashed:true}],
+    helpers:[{from:[-e/2,0],to:[e/2,0],dashed:true},{from:[0,-fb],to:[0,ft],dashed:true}],
+    rightAngles:[{at:[0,0],d1:[1,0],d2:[0,1]}],
+    labels:[{text:'e',at:[e/4,0],anchor:'middle',dy:-8,bold:true},{text:'f',at:[0,(ft-fb)/2],anchor:'start',dx:8,bold:true}]}); }
+function derivRight(){ const a=6,b=4;
+  return svgSketch({points:[[0,0],[a,0],[0,b]],
+    ghosts:[{points:[[a,0],[a,b],[0,b]],fill:'rgba(47,111,176,.14)',dashed:true}],
+    rightAngles:[{at:[0,0],d1:[1,0],d2:[0,1]}],
+    labels:[{text:'a',at:[a/2,0],anchor:'middle',dy:16,bold:true},{text:'b',at:[0,b/2],anchor:'end',dx:-6,bold:true}]}); }
+function derivEqui(){ const a=6,h=a*Math.sqrt(3)/2;
+  return svgSketch({points:[[0,0],[a,0],[a/2,h]],
+    helpers:[{from:[a/2,0],to:[a/2,h],dashed:true}],
+    rightAngles:[{at:[a/2,0],d1:[1,0],d2:[0,1]}],
+    labels:[{text:'a',at:[a/2,0],anchor:'middle',dy:16,bold:true},{text:'h',at:[a/2,h/2],anchor:'start',dx:6,bold:true}]}); }
+function derivCircle(n){ if(typeof n!=='number'||!isFinite(n)) n=12; n=Math.max(6,Math.round(n/2)*2);
+  const R=3,b=2*Math.PI*R/n, cx=-6, half=n/2, x0=2.4;
+  const spokes=[]; for(let k=0;k<n;k++){const ang=k*2*Math.PI/n; spokes.push({from:[cx,0],to:[cx+R*Math.cos(ang),R*Math.sin(ang)],color:'#9ac79a'});}
+  const rang=rad(60); spokes.push({from:[cx,0],to:[cx+R*Math.cos(rang),R*Math.sin(rang)],color:'#173'});
+  const ghosts=[];
+  for(let j=0;j<half;j++) ghosts.push({points:[[x0+j*b,0],[x0+(j+1)*b,0],[x0+(j+0.5)*b,R]],fill:'rgba(76,175,80,.16)'});
+  for(let j=0;j<half;j++) ghosts.push({points:[[x0+(j+0.5)*b,R],[x0+(j+1.5)*b,R],[x0+(j+1)*b,0]],fill:'rgba(47,111,176,.12)'});
+  const stripW=half*b;
+  return svgSketch({circle:[cx,0,R], helpers:spokes, ghosts:ghosts,
+    labels:[{text:'r',at:[cx+R*Math.cos(rang)/2,R*Math.sin(rang)/2],anchor:'end',dx:-4,bold:true},
+            {text:'r',at:[x0,R/2],anchor:'end',dx:-6,bold:true},
+            {text:'≈ π·r',at:[x0+stripW/2,0],anchor:'middle',dy:18,bold:true}]},{w:340,h:150,pad:16}); }
+function derivPoly(){ const n=6,R=3.4; const pts=[]; const start=-Math.PI/2-Math.PI/n;
+  for(let k=0;k<n;k++){const ang=start+k*2*Math.PI/n; pts.push([R*Math.cos(ang),R*Math.sin(ang)]);}
+  const spokes=pts.map(p=>({from:[0,0],to:p,color:'#9ac79a'}));
+  const mid=[(pts[0][0]+pts[1][0])/2,(pts[0][1]+pts[1][1])/2];
+  return svgSketch({points:pts,
+    ghosts:[{points:[[0,0],pts[0],pts[1]],fill:'rgba(76,175,80,.18)'}],
+    helpers:spokes.concat([{from:[0,0],to:mid,dashed:true,color:'#173'}]),
+    rightAngles:[{at:mid,d1:[pts[1][0]-pts[0][0],pts[1][1]-pts[0][1]],d2:[-mid[0],-mid[1]]}],
+    labels:[{text:'a',at:mid,anchor:'middle',dy:16,bold:true},{text:'ρ',at:[mid[0]/2,mid[1]/2],anchor:'start',dx:6,bold:true}]}); }
+const DERIV_VISUAL={ rechteck:derivRect, quadrat:derivSquare, drache:derivKite, rechtwinklig:derivRight, gleichseitig:derivEqui, kreis:derivCircle, polygon:derivPoly };
+function DERIV_TEXT(id,formula){
+  switch(id){
+    case 'rechteck': return 'Legt man ein Einheitsquadrat-Raster hinein, passen \\(a\\) Kästchen in jede Reihe, und es gibt \\(b\\) solcher Reihen übereinander.';
+    case 'quadrat': return 'Ein Quadrat ist ein Rechteck mit gleich langen Seiten (\\(a=b\\)). Das Raster zeigt \\(a\\) Kästchen in \\(a\\) Reihen.';
+    case 'drache': return 'Die Diagonalen stehen senkrecht aufeinander. Das umschließende Rechteck hat die Seiten \\(e\\) und \\(f\\); der Drache füllt genau die Hälfte davon.';
+    case 'rechtwinklig': return 'Zwei gleiche rechtwinklige Dreiecke ergänzen sich zu einem Rechteck mit den Katheten \\(a\\) und \\(b\\). Das Dreieck ist die Hälfte davon.';
+    case 'gleichseitig': return 'Die Höhe teilt das Dreieck in zwei rechtwinklige Hälften. Mit dem Satz des Pythagoras lässt sich die Höhe \\(h\\) aus der Seitenlänge \\(a\\) bestimmen und in die Dreiecksformel einsetzen.';
+    case 'kreis': return 'Zerlegt man den Kreis in viele schmale Sektoren und legt sie abwechselnd aneinander, entsteht fast ein Rechteck: Die Höhe ist der Radius \\(r\\), die Breite der halbe Umfang.';
+    case 'polygon': return 'Ein reguläres \\(n\\)-Eck zerfällt in \\(n\\) gleiche Dreiecke mit der Grundseite \\(a\\) und der Höhe \\(\\rho\\) (Apothem). Die Gesamtfläche ist die Summe dieser \\(n\\) Dreiecke.';
+  }
+  return '';
+}
+function derivContent(task){
+  const {shape,formula}=task;
+  const d=shape.deriv;
+  if(d==='DERIV_PARA'){
+    const g=6,h=3.4,sk=2.2;
+    const svg=svgSketch({points:[[0,0],[g,0],[g+sk,h],[sk,h]],
+      ghosts:[{points:[[g,0],[g+sk,h],[g,h]],fill:'rgba(47,111,176,.15)',dashed:true}],
+      helpers:[{from:[0,0],to:[0,h],dashed:true},{from:[0,h],to:[g,h],dashed:true},{from:[sk,0],to:[sk,h],dashed:true,color:'#bbb'}],
+      rightAngles:[{at:[0,0],d1:[1,0],d2:[0,1]}],
+      labels:[{text:'g',at:[g/2,0],anchor:'middle',dy:16,bold:true},{text:'h',at:[0,h/2],anchor:'end',dx:-6,bold:true}]});
+    return svg+'<p>Schneidet man rechts das überstehende Dreieck ab und setzt es links an, entsteht ein <b>Rechteck</b> mit Grundseite \\(g\\) und Höhe \\(h\\).</p>';
+  }
+  if(d==='DERIV_TRI'){
+    const g=7,h=4,ax=2.6;
+    const svg=svgSketch({points:[[0,0],[g,0],[ax,h]],
+      ghosts:[{points:[[g,0],[ax,h],[ax+g,h]],fill:'rgba(47,111,176,.14)',dashed:true}],
+      helpers:[{from:[ax,0],to:[ax,h],dashed:true}], rightAngles:[{at:[ax,0],d1:[1,0],d2:[0,1]}],
+      labels:[{text:'g',at:[g/2,0],anchor:'middle',dy:16,bold:true},{text:'h',at:[ax,h/2],anchor:'start',dx:6,bold:true}]});
+    return svg+'<p>Ein zweites, punktgespiegeltes Dreieck (blau) ergänzt das Dreieck zu einem <b>Parallelogramm</b>. Das Parallelogramm hat denselben Flächeninhalt wie ein Rechteck mit der zugehörigen Höhe. Das Dreieck ist genau halb so groß wie dieses Parallelogramm.</p>';
+  }
+  if(d==='DERIV_TRAP'){
+    const a=7,c=4,h=3.4,off=(a-c)/2;
+    // T1 (durchgezogen): Grundseite a unten, c oben. T2 (gestrichelt): um 180° gedreht rechts angesetzt -> Parallelogramm mit Grundseite a+c.
+    const T1=[[0,0],[a,0],[off+c,h],[off,h]];
+    const T2=[[a,0],[a+c,0],[a+off+c,h],[off+c,h]];
+    const svg=svgSketch({points:T1,
+      ghosts:[{points:T2,fill:'rgba(47,111,176,.12)',dashed:true}],
+      helpers:[{from:[off,0],to:[off,h],dashed:true,color:'#bbb'}], rightAngles:[{at:[off,0],d1:[1,0],d2:[0,1]}],
+      labels:[{text:'a',at:[a/2,0],anchor:'middle',dy:16,bold:true},
+              {text:'c',at:[off+c/2,h],anchor:'middle',dy:-12,bold:true},
+              {text:'h',at:[off,h/2],anchor:'end',dx:-6,bold:true},
+              {text:'c',at:[a+c/2,0],anchor:'middle',dy:16,color:'#6f8fb3'},
+              {text:'a',at:[off+c+a/2,h],anchor:'middle',dy:-12,color:'#6f8fb3'}]});
+    return svg+'<p>Ein zweites, gleich großes Trapez (blau, um 180° gedreht) ergänzt das Trapez zu einem <b>Parallelogramm</b> mit Grundseite \\(a+c\\) und Höhe \\(h\\). Ein Trapez ist genau halb so groß wie dieses Parallelogramm.</p>';
+  }
+  // Bildliche Herleitung je Form (Rechteck-Raster, Sektoren, Dreieckszerlegung …)
+  const V=DERIV_VISUAL[shape.id];
+  if(V){ return V(formula)+'<p>'+DERIV_TEXT(shape.id,formula)+'</p>'; }
+  // Fallback: beschriftete allgemeine Skizze + Text
+  return buildSketch(task,'general')+'<p>'+d+'</p>';
+}
+// Manche Flächen sind Spezialfälle: allgemeinere Formel gilt auch (wird gelb markiert, mit Begründung)
+const GENERALIZES={
+  quadrat:[{id:'r1', why:'Ein Quadrat ist ein besonderes Rechteck – \\(A=a\\cdot b\\) gilt auch. Mit \\(a=b\\) ist \\(A=a^2\\) aber direkter.'}],
+  rechteck:[{id:'p1', why:'Ein Rechteck ist ein besonderes Parallelogramm – \\(A=g\\cdot h\\) gilt auch, \\(A=a\\cdot b\\) ist hier aber direkter.'}],
+  rechtwinklig:[{id:'a1', why:'Ein rechtwinkliges Dreieck ist auch ein allgemeines Dreieck – die allgemeine Dreiecksformel gilt, mit den Katheten geht es aber direkter.'}],
+  gleichseitig:[{id:'a1', why:'Ein gleichseitiges Dreieck ist auch ein allgemeines Dreieck – \\(A=\\tfrac12\\,g\\cdot h\\) gilt ebenfalls (mit passender Höhe).'}]
+};
+function formulaById(id){ for(const s of SHAPES){ const f=s.formulas.find(x=>x.id===id); if(f)return f; } return null; }
+function generalMap(task){ const m={}; (GENERALIZES[task.shape.id]||[]).forEach(gg=>{ const f=formulaById(gg.id); if(f)m[symOf(f)]=gg.why; }); return m; }
+function formulaChoices(task){
+  const correct=symOf(task.formula);
+  const forced=Object.keys(generalMap(task)).filter(s=>s!==correct); // allgemeinere Formeln aufnehmen
+  const pool=[];
+  SHAPES.forEach(s=>s.formulas.forEach(f=>{ const sy=symOf(f); if(sy!==correct&&!forced.includes(sy))pool.push(sy); }));
+  const need=Math.max(0,3-forced.length);
+  const distractors=shuffle([...new Set(pool)]).slice(0,need);
+  return shuffle([correct,...forced,...distractors]);
+}
+
+/* ---------- 9./10. UI-Aufbau + Init ---------- */
+let root;
+function mj(node){ if(window.MathJax&&MathJax.typesetPromise)return MathJax.typesetPromise([node]).catch(()=>{}); return Promise.resolve(); }
+
+function checkLine(checked,text,onChange){
+  const lab=el('label','check-line'); const cb=el('input'); cb.type='checkbox'; cb.checked=checked;
+  cb.onchange=()=>onChange(cb.checked); lab.append(cb, el('span',null,text)); return lab;
+}
+function buildTeacherSettings(){
+  TASKCTX=false;
+  const b=$('#teacherBody'); b.innerHTML='';
+  const g=el('div','settings-grid');
+  // Zahlen (+ einfache Winkel)
+  const c1=el('div','form-block'); c1.innerHTML='<div class="opt-line"><b>Zahlen</b></div>';
+  const seg=el('div','seg small'); [['int','ganzzahlig'],['dec1','1 Nachkomma'],['dec2','2 Nachkommastellen']].forEach(([val,lab])=>{
+    const btn=el('button',state.numberType===val?'on':'',lab); btn.onclick=()=>{state.numberType=val;afterTeacherChange();}; seg.appendChild(btn);});
+  c1.appendChild(seg);
+  c1.appendChild(checkLine(state.simpleAngles,'nur einfache Winkel (30°, 45°, 60°, …)',v=>{state.simpleAngles=v; afterTeacherChange();}));
+  g.appendChild(c1);
+  // Einheiten
+  const c3=el('div','form-block unitset');
+  c3.innerHTML='<div class="opt-line"><b>Einheiten</b></div>';
+  c3.appendChild(checkLine(state.useUnits,'mit Einheiten rechnen',v=>{state.useUnits=v; afterDisplayChange();}));
+  const dep=el('div'); dep.style.opacity=state.useUnits?'1':'.4'; if(!state.useUnits)dep.style.pointerEvents='none';
+  dep.appendChild(el('div','opt-line','<span class="small">erlaubte Einheiten:</span>'));
+  const ul=el('div','opt-line');
+  LENGTH_UNITS.forEach(u=>{ const btn=el('button', state.units.includes(u)?'on':'', u);
+    if(!state.units.includes(u)){btn.style.background='#fff';btn.style.color='#444';btn.style.border='1px solid #ccc';}
+    btn.onclick=()=>{ if(state.units.includes(u))state.units=state.units.filter(x=>x!==u); else state.units.push(u);
+      if(!state.units.length)state.units=[u]; afterTeacherChange(); };
+    ul.appendChild(btn);});
+  dep.appendChild(ul);
+  dep.appendChild(el('div','opt-line','<span class="small">in den Formeln:</span>'));
+  const segU=el('div','seg small');
+  [['through','durchgängig'],['end','erst am Ergebnis [ ]']].forEach(([v,lab])=>{
+    const btn=el('button',state.unitsMode===v?'on':'',lab); btn.onclick=()=>{state.unitsMode=v; afterDisplayChange();}; segU.appendChild(btn);});
+  dep.appendChild(segU);
+  dep.appendChild(el('div','opt-line','<span class="small">gemischte Einheiten:</span>'));
+  const segMix=el('div','seg small');
+  [['never','nie'],['sometimes','manchmal'],['always','immer']].forEach(([v,lab])=>{
+    const btn=el('button',state.mixMode===v?'on':'',lab); btn.onclick=()=>{state.mixMode=v; afterTeacherChange();}; segMix.appendChild(btn);});
+  dep.appendChild(segMix);
+  const mixHint=el('div','small'); mixHint.style.color='#888'; mixHint.style.marginTop='4px';
+  mixHint.textContent='(max. 1 Stufe Unterschied; die Längen werden im Lösungsweg zuerst in eine gemeinsame Einheit umgerechnet)';
+  dep.appendChild(mixHint);
+  c3.appendChild(dep); g.appendChild(c3);
+  // Hilfe (erste Stufe)
+  const c6=el('div','form-block'); c6.innerHTML='<div class="opt-line"><b>Hilfe (erste Stufe)</b></div>';
+  const segH=el('div','seg small');
+  [['herleitung','Herleitung (bildlich)'],['formelsammlung','Formelsammlung']].forEach(([v,lab])=>{
+    const btn=el('button',state.helpMode===v?'on':'',lab); btn.onclick=()=>{state.helpMode=v; afterDisplayChange();}; segH.appendChild(btn);});
+  c6.appendChild(segH); g.appendChild(c6);
+  // Formel-Schreibweise
+  const c7=el('div','form-block'); c7.innerHTML='<div class="opt-line"><b>Formel-Schreibweise</b></div>';
+  c7.appendChild(el('div','opt-line','<span class="small">Faktor ½:</span>'));
+  const segF=el('div','seg small');
+  [['fraction','Term/2 (im Nenner)'],['factor','½ als Faktor']].forEach(([v,lab])=>{
+    const btn=el('button',state.halfStyle===v?'on':'',lab); btn.onclick=()=>{state.halfStyle=v; afterFormulaStyleChange();}; segF.appendChild(btn);});
+  c7.appendChild(segF);
+  c7.appendChild(el('div','opt-line','<span class="small">Name der Grundseite und zugehörigen Höhe in Formeln:</span>'));
+  const segT=el('div','seg small');
+  [['g','g · h'],['c','c · h_c']].forEach(([v,lab])=>{
+    const btn=el('button',state.triSide===v?'on':'',lab); btn.onclick=()=>{state.triSide=v; afterFormulaStyleChange();}; segT.appendChild(btn);});
+  c7.appendChild(segT); g.appendChild(c7);
+  // Darstellung (andere Darstellung zusätzlich aufklappbar)
+  const c5=el('div','form-block'); c5.innerHTML='<div class="opt-line"><b>Darstellung</b></div>';
+  c5.appendChild(checkLine(state.analog,'andere Darstellung (Text/Skizze) zum Aufklappen anbieten',v=>{state.analog=v; afterDisplayChange();}));
+  c5.appendChild(checkLine(state.showName,'Namen der Fläche bei Skizze angeben',v=>{state.showName=v; afterDisplayChange();}));
+  c5.appendChild(checkLine(state.colorLen,'farbige Längenangaben (gegebene Strecken farbig markieren)',v=>{state.colorLen=v; afterDisplayChange();}));
+  c5.appendChild(checkLine(state.baseAny,'beliebige Seite als Grundseite (nicht nur die untere) – bei Dreieck & Parallelogramm',v=>{state.baseAny=v; afterDisplayChange();}));
+  c5.appendChild(checkLine(state.concaveKite,'konkave Drachen (Pfeilvierecke) zulassen',v=>{state.concaveKite=v; afterDisplayChange();}));
+  c5.appendChild(checkLine(state.autoUnit,'Antwort: Einheit automatisch vorgeben (sonst frei wählbar)',v=>{state.autoUnit=v; afterDisplayChange();}));
+  g.appendChild(c5);
+  b.appendChild(g);
+}
+function markIndividual(){ state.diff='individuell'; refreshDiffSeg(); serialize(); }
+let diffSeg;
+function refreshDiffSeg(){ if(!diffSeg)return; $$('button',diffSeg).forEach(btn=>btn.classList.toggle('on',btn.dataset.v===state.diff)); }
+
+function buildStudentPanel(){
+  TASKCTX=false;
+  const p=$('#studentPanel'); p.innerHTML='';
+
+  // Formen-Baum – direkt unter den Einstellungen, hervorgehoben; startet geschlossen
+  const prevTree=$('#shapeTree'); const treeOpen = prevTree? prevTree.open : false;
+  const det=el('details'); det.id='shapeTree'; det.open=treeOpen;
+  det.appendChild(el('summary',null,'🔷 Welche Flächen möchtest du üben?'));
+  const body=el('div');
+  const top=el('div','tree-top');
+  top.appendChild(el('span','tree-hint','Tippen = an/aus · lange gedrückt halten = nur diese · pro Kategorie „alle/keine".'));
+  const share=el('button','share-btn'); share.innerHTML='<span class="ico">🔗</span>Einstellungen teilen';
+  share.title='Aktuelle Einstellungen als Link kopieren'; share.onclick=copyShareLink;
+  top.appendChild(share); body.appendChild(top);
+  CATS.forEach(cat=>body.appendChild(buildCategory(cat)));
+  det.appendChild(body); p.appendChild(det);
+  refreshTree();
+
+  // Schwierigkeit
+  const b1=ctlBlock('Schwierigkeit');
+  diffSeg=el('div','seg');
+  [['einfuehrung','Einführung'],['leicht','Leicht'],['mittel','Mittel'],['herausfordernd','Herausfordernd'],['individuell','Individuell']].forEach(([v,lab])=>{
+    const btn=el('button',state.diff===v?'on':'',lab); btn.dataset.v=v;
+    btn.onclick=()=>{ state.diff=v; if(v==='individuell'){openTeacher();} else { applyPreset(v);} refreshDiffSeg(); rebuild(); newTask(); renderTask(); };
+    diffSeg.appendChild(btn);});
+  b1.appendChild(diffSeg); p.appendChild(b1);
+
+  // Aufgabentyp
+  const b2=ctlBlock('Aufgabentyp');
+  const segM=el('div','seg');
+  [['flaeche','Flächenberechnung'],['zufall','Zufällig'],['umkehr','Umkehraufgabe']].forEach(([v,lab])=>{
+    const btn=el('button',state.mode===v?'on':'',lab); btn.onclick=()=>{state.mode=v; setSeg(segM,btn); serialize(); newTask(); renderTask();}; segM.appendChild(btn);});
+  b2.appendChild(segM); p.appendChild(b2);
+
+  // Darstellung (Text/Zufall/Skizze) – exakt/allgemein steht direkt an der Skizze
+  const b3=ctlBlock('Darstellung');
+  const segP=el('div','seg');
+  [['text','Text'],['random','Zufall'],['skizze','Skizze']].forEach(([v,lab])=>{
+    const btn=el('button',state.present===v?'on':'',lab); btn.onclick=()=>{state.present=v; setSeg(segP,btn); serialize(); newTask(); renderTask();}; segP.appendChild(btn);});
+  b3.appendChild(segP); p.appendChild(b3);
+}
+function ctlBlock(label){ const d=el('div','ctl'); d.appendChild(el('span','lbl',label)); return d; }
+function setSeg(seg,onBtn){ $$('button',seg).forEach(b=>b.classList.toggle('on',b===onBtn)); }
+function openTeacher(){ const d=$('#teacherSettings'); d.open=true; d.classList.add('settings-flash'); setTimeout(()=>d.classList.remove('settings-flash'),1200); d.scrollIntoView({behavior:'smooth',block:'nearest'}); }
+
+/* Teilen-Button: aktuelle URL (=Einstellungen) kopieren */
+function copyShareLink(){
+  const qs=serialize(); const url=location.href.split('?')[0]+'?'+qs;
+  const done=()=>showToast('Link mit deinen Einstellungen kopiert');
+  if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(done,()=>fallbackCopy(url,done));
+  else fallbackCopy(url,done);
+}
+function fallbackCopy(text,cb){ try{ const ta=el('textarea'); ta.value=text; ta.style.position='fixed'; ta.style.opacity='0'; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); cb&&cb(); }catch(e){ showToast('Kopieren nicht möglich'); } }
+let toastEl,toastT;
+function showToast(msg){ if(!toastEl){toastEl=el('div','toast');document.body.appendChild(toastEl);} toastEl.textContent=msg; toastEl.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>toastEl.classList.remove('show'),1800); }
+
+function buildCategory(cat){
+  const wrap=el('div','cat');
+  const head=el('div','cat-head');
+  head.appendChild(el('span','cat-title',cat));
+  const acts=el('div','cat-actions');
+  const toggle=el('button','toggle-all','alle'); toggle.dataset.cat=cat;
+  toggle.onclick=()=>{ const fs=catFormulas(cat); const allOn=fs.every(f=>state.active.has(f.id));
+    if(allOn) fs.forEach(f=>state.active.delete(f.id)); else fs.forEach(f=>state.active.add(f.id));
+    refreshTree();serialize();newTask();renderTask(); };
+  acts.appendChild(toggle); head.appendChild(acts); wrap.appendChild(head);
+  const list=el('div','shape-list');
+  SHAPES.filter(s=>s.cat===cat).forEach(sh=>list.appendChild(buildShape(sh)));
+  wrap.appendChild(list);
+  return wrap;
+}
+function catFormulas(cat){ const out=[]; SHAPES.filter(s=>s.cat===cat).forEach(s=>s.formulas.forEach(f=>out.push(f))); return out; }
+
+function buildShape(sh){
+  const box=el('div','shape'); box.dataset.shape=sh.id;
+  const chip=el('div','chip'); chip.dataset.shape=sh.id;
+  chip.innerHTML='<span class="box"></span> '+sh.name;
+  attachToggle(chip,()=>{ // Klick: Form (alle Formeln) an/aus
+    const anyOn=sh.formulas.some(f=>state.active.has(f.id));
+    sh.formulas.forEach(f=> anyOn?state.active.delete(f.id):state.active.add(f.id));
+    refreshTree();serialize();newTask();renderTask();
+  },()=>{ // Long-Press: Solo diese Form
+    state.active.clear(); sh.formulas.filter(f=>!f.trig).forEach(f=>state.active.add(f.id));
+    if(![...state.active].length) state.active.add(sh.formulas[0].id);
+    refreshTree();serialize();newTask();renderTask();
+  });
+  box.appendChild(chip);
+  if(sh.formulas.length){ const fl=el('div','formulas');
+    sh.formulas.forEach(f=>{ const c=el('div','chip'); c.dataset.formula=f.id;
+      c.innerHTML='<span class="box"></span> '+labelOf(f)+(f.tag?' <span class="tag'+(f.trig?' trig':'')+'">'+f.tag+'</span>':'');
+      attachToggle(c,()=>{ if(state.active.has(f.id))state.active.delete(f.id); else state.active.add(f.id);
+        refreshTree();serialize();newTask();renderTask(); },
+        ()=>{ state.active.clear(); state.active.add(f.id); refreshTree();serialize();newTask();renderTask(); });
+      fl.appendChild(c);
+      fl.appendChild(el('div','leg',legendOf(f)));   // Bedeutung der Buchstaben
+    });
+    box.appendChild(fl);
+  }
+  return box;
+}
+// Klick vs. Long-Press
+function attachToggle(node,onClick,onLong){
+  let timer=null,longed=false;
+  const start=()=>{ longed=false; timer=setTimeout(()=>{longed=true; onLong();},500); };
+  const cancel=()=>{ if(timer){clearTimeout(timer);timer=null;} };
+  node.addEventListener('pointerdown',e=>{e.preventDefault();start();});
+  node.addEventListener('pointerup',()=>{ cancel(); if(!longed)onClick(); });
+  node.addEventListener('pointerleave',cancel);
+  node.addEventListener('pointercancel',cancel);
+}
+function refreshTree(){
+  TASKCTX=false;
+  SHAPES.forEach(sh=>{
+    const on=sh.formulas.filter(f=>state.active.has(f.id)).length;
+    const chip=$('.chip[data-shape="'+sh.id+'"]');
+    if(chip){ chip.classList.toggle('on',on>0&&on===sh.formulas.length); chip.classList.toggle('partial',on>0&&on<sh.formulas.length); }
+    sh.formulas.forEach(f=>{ const c=$('.chip[data-formula="'+f.id+'"]'); if(c)c.classList.toggle('on',state.active.has(f.id)); });
+  });
+  $$('.toggle-all').forEach(btn=>{ const fs=catFormulas(btn.dataset.cat); const allOn=fs.length&&fs.every(f=>state.active.has(f.id)); btn.textContent=allOn?'keine':'alle'; });
+}
+
+/* ---------- Skizzen-Figur (Umschalter + Raster direkt an der Skizze) ---------- */
+function buildFig(t){
+  const fig=el('div');
+  const draw=()=>{
+    fig.innerHTML='';
+    // exakt / allgemein direkt an der Skizze
+    const top=el('div','fig-top');
+    const seg=el('div','seg small');
+    [['exact','exakt (maßstäblich)'],['general','allgemein']].forEach(([v,lab])=>{
+      const btn=el('button',state.sketchType===v?'on':'',lab);
+      btn.onclick=()=>{ state.sketchType=v; serialize(); draw(); };
+      seg.appendChild(btn);});
+    top.appendChild(seg); fig.appendChild(top);
+    // Skizze
+    const wrap=el('div','sketch-wrap');
+    const gridOpt=(state.sketchType==='exact'&&state.gridOn)?{grid:{step:state.gridStep,unit:t.unit}}:null;
+    wrap.innerHTML=buildSketch(t,state.sketchType,gridOpt);
+    fig.appendChild(wrap);
+    if(state.sketchType==='general'){
+      fig.appendChild(el('div','not-scale','Skizze nicht maßstabsgetreu'));
+    } else {
+      const gc=el('div','grid-ctl');
+      const cbl=el('label'); cbl.style.cursor='pointer';
+      const cb=el('input'); cb.type='checkbox'; cb.checked=state.gridOn;
+      cbl.append(cb,document.createTextNode(' Raster einblenden'));
+      const sl=el('input'); sl.type='range'; sl.min='0'; sl.max=String(GRID_STEPS.length-1); sl.step='1';
+      let idx=GRID_STEPS.indexOf(state.gridStep); if(idx<0)idx=2; sl.value=String(idx);
+      const lab=el('span','gc-lbl');
+      const setLab=()=>{ const q=fmtDE(state.gridStep)+' '+t.unit; lab.textContent='1 Kästchen = '+q+' × '+q; };
+      const applyGrid=()=>{ wrap.innerHTML=buildSketch(t,'exact', state.gridOn?{grid:{step:state.gridStep,unit:t.unit}}:null); };
+      const syncEnabled=()=>{ sl.disabled=!state.gridOn; sl.style.opacity=state.gridOn?'1':'.35'; lab.style.opacity=state.gridOn?'1':'.35'; };
+      cb.onchange=()=>{ state.gridOn=cb.checked; syncEnabled(); serialize(); applyGrid(); };
+      sl.oninput=()=>{ state.gridStep=GRID_STEPS[+sl.value]; state.gridAuto=false; setLab(); serialize(); applyGrid(); };
+      setLab(); syncEnabled();
+      gc.append(cbl,document.createTextNode(' '),sl,lab);   // Zeile bleibt immer gleich hoch -> kein Springen
+      fig.appendChild(gc);
+    }
+  };
+  draw();
+  return fig;
+}
+function fitGeg(root){
+  $$('.geg-fit',root||document).forEach(box=>{
+    const inner=$('.geg-inner',box); if(!inner)return;
+    inner.style.transform='none';
+    const bw=box.clientWidth, iw=inner.scrollWidth;
+    if(bw>0&&iw>bw+1) inner.style.transform='scale('+(bw/iw).toFixed(3)+')';
+  });
+}
+
+/* ---------- Aufgabe rendern ---------- */
+function renderTask(){
+  TASKCTX=true;                     // ab hier: Symbole der aktuellen Aufgabe (Grundseite/Winkel)
+  const area=$('#taskArea'); area.innerHTML='';
+  // Kopfzeile mit „Neue Aufgabe"
+  const topRow=el('div','act-row');
+  const nb=el('button','btn-new','🔄 Neue Aufgabe'); nb.onclick=()=>{newTask();renderTask();};
+  topRow.appendChild(nb); area.appendChild(topRow);
+
+  const t=state.task;
+  if(!t){ area.appendChild(el('p','muted','Bitte wähle oben mindestens eine Fläche/Formel aus.')); return; }
+
+  const card=el('div','task-card');
+  const head=el('div','task-head');
+  const sketchShown=(t.pres==='skizze');
+  const titleWrap=el('span','task-title');
+  if(!sketchShown) titleWrap.appendChild(el('span','tt-name',t.shape.name));
+  if(sketchShown){
+    // Bei der Skizze wird der Name nur auf Wunsch verraten; das Auge schaltet ihn um
+    const eye=el('button','eye-btn');
+    const paint=()=>{
+      const on=state.showName;
+      $$('.tt-name,.tt-hidden',titleWrap).forEach(x=>x.remove());
+      if(on) titleWrap.insertBefore(el('span','tt-name',t.shape.name),eye);
+      else titleWrap.insertBefore(el('span','tt-hidden','Welche Fläche ist das?'),eye);
+      const EYE='<path d="M1.5 12S5 5.5 12 5.5 22.5 12 22.5 12 19 18.5 12 18.5 1.5 12 1.5 12Z" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="3.2" fill="none" stroke="currentColor" stroke-width="1.8"/>';
+      const SLASH='<path d="M4 20 20 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>';
+      eye.innerHTML='<svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true">'+EYE+(on?SLASH:'')+'</svg>';
+      eye.title = on?'Namen der Fläche ausblenden':'Namen der Fläche einblenden';
+    };
+    eye.onclick=()=>{ state.showName=!state.showName; serialize(); paint();
+      buildTeacherSettings();
+      const hc=$('.help-container',card); if(hc)hc.innerHTML=''; t.helpLevel=0; };
+    titleWrap.appendChild(eye); paint();
+  }
+  head.appendChild(titleWrap);
+  head.appendChild(el('span','badge'+(t.mode==='umkehr'?' inv':''), t.mode==='umkehr'?'Umkehraufgabe':'Fläche'));
+  card.appendChild(head);
+
+  const body=el('div','task-body');
+  const txt=el('div','task-text');
+  const skz=el('div','task-fig');
+
+  const tt=taskTextTeX(t);
+  const primaryText='<div class="geg-fit"><div class="geg-inner">'+tt.geg+'</div></div>'+(tt.ctx?'<p class="ctx">'+tt.ctx+'</p>':'')+'<p><b>'+tt.ask+'</b></p>';
+  const makeFig=()=>buildFig(t);
+
+  // Antwortzeile schon anlegen (wird beim Öffnen der Lösung gesperrt)
+  const ans=el('div','answer-row');
+  const inp=el('input'); inp.type='text'; inp.inputMode='decimal'; inp.placeholder='Antwort';
+  const chk=el('button','btn-ghost','Prüfen'); chk.style.background='var(--accent)'; chk.style.color='#fff';
+  const msg=el('span','result-msg');
+  // Dimension & Basiseinheit der Antwort bestimmen
+  let dim='area', fixedLabel = state.useUnits ? t.unit+'²' : '';
+  if(t.mode==='umkehr'){ const need=t.formula.needs.find(n=>n.sym===t.unknownSym);
+    if(need.kind==='angle'){ dim='angle'; fixedLabel='°'; }
+    else if(need.kind==='count'){ dim='count'; fixedLabel=''; }
+    else { dim='len'; fixedLabel = state.useUnits ? t.unit : ''; } }
+  let getUnit;
+  if(state.useUnits && (dim==='area'||dim==='len')){
+    const us=buildUnitSelect(dim, t.unit, state.autoUnit);   // bei „automatisch": korrekte Einheit vorausgewählt
+    ans.append(inp, us.wrap, chk, msg); getUnit=()=>us.sel;
+  } else {
+    ans.append(inp, el('span','unit',fixedLabel), chk, msg);
+    getUnit=()=> null;   // Winkel/Anzahl/ohne Einheiten: keine Umrechnung
+  }
+  chk.onclick=()=>checkAnswer(t,inp,msg,getUnit());
+  inp.addEventListener('keydown',e=>{if(e.key==='Enter')checkAnswer(t,inp,msg,getUnit());});
+
+  // Primäre Darstellung
+  if(t.pres==='skizze'){
+    skz.appendChild(makeFig()); body.appendChild(skz); card.appendChild(body);
+    // Bei der Skizze KEIN erklärender Text: Form, gegebene Längen und rechte Winkel
+    // sollen aus der Zeichnung selbst hervorgehen
+    const q=el('p','ask-line'); q.innerHTML='<b>'+tt.ask+'</b>'; card.appendChild(q);
+  } else {
+    txt.innerHTML=primaryText; txt.classList.add('full'); body.appendChild(txt); card.appendChild(body);
+  }
+  // andere Darstellung zum Aufklappen (falls aktiviert)
+  if(state.analog){
+    const other=el('details','alt-rep');
+    other.appendChild(el('summary',null, t.pres==='skizze'?'als Text anzeigen':'als Skizze anzeigen'));
+    const oc=el('div','alt-rep-body'); other.appendChild(oc);
+    let built=false;
+    other.addEventListener('toggle',()=>{ if(other.open&&!built){ built=true;
+      if(t.pres==='skizze') oc.innerHTML='<div class="geg-fit"><div class="geg-inner">'+tt.geg+'</div></div>'+(tt.ctx?'<p class="ctx">'+tt.ctx+'</p>':'');
+      else oc.appendChild(makeFig());
+      mj(oc).then(()=>fitGeg(oc)); } });
+    card.appendChild(other);
+  }
+
+  card.appendChild(ans);
+
+  // Hilfe (Button, mehrstufig) + Container
+  const acts=el('div','act-row center');
+  const hint=el('button','btn-hint','💡 Hilfe'); hint.onclick=()=>showHelp(t,card);
+  acts.append(hint); card.appendChild(acts);
+  card.appendChild(el('div','help-container'));
+
+  // Lösung als aufklappbarer Bereich; beim Öffnen wird die Eingabe gesperrt
+  const solD=el('details','sol-details'); solD.appendChild(el('summary',null,'🔎 Lösung'));
+  const solBody=el('div','sol-body'); solD.appendChild(solBody);
+  let solBuilt=false;
+  solD.addEventListener('toggle',()=>{ if(solD.open){
+      inp.disabled=true; chk.disabled=true; ans.classList.add('locked');
+      if(!msg.textContent){ msg.textContent='Lösung geöffnet – Eingabe gesperrt'; msg.className='result-msg muted'; }
+      if(!solBuilt){ solBuilt=true; buildSolution(t,solBody); }
+    } });
+  card.appendChild(solD);
+
+  area.appendChild(card);
+  mj(card).then(()=>fitGeg(card));
+}
+
+function unitTxt(u,dim){ return u+(dim==='area'?'²':dim==='vol'?'³':''); }
+function buildUnitSelect(dim0, defU, preselect){
+  const wrap=el('span','unit-select');
+  const btn=el('button','unit-btn'); btn.type='button';
+  const sel = preselect ? {u:defU, dim:dim0} : {u:null, dim:null};
+  const setBtn=()=>{ btn.textContent = sel.u ? unitTxt(sel.u,sel.dim) : 'Einheit'; };
+  const panel=el('div','unit-panel'); panel.style.display='none';
+  panel.appendChild(checkLine(state.autoUnit,'Einheit automatisch vorgeben', v=>{ state.autoUnit=v; serialize(); renderTask(); }));
+  const grid=el('table','unit-grid');
+  const head=el('tr'); ['Länge','Fläche','Volumen'].forEach(h=>{ const th=document.createElement('th'); th.textContent=h; head.appendChild(th); }); grid.appendChild(head);
+  ['mm','cm','dm','m','km'].forEach(u=>{ const tr=document.createElement('tr');
+    [['len',u],['area',u+'²'],['vol',u+'³']].forEach(([dim,label])=>{
+      const td=document.createElement('td'); const b=el('button','unit-cell',label); b.type='button';
+      if(sel.u && dim===sel.dim && u===sel.u) b.classList.add('sel');
+      b.onclick=()=>{ sel.u=u; sel.dim=dim; setBtn();
+        [...grid.querySelectorAll('.unit-cell')].forEach(x=>x.classList.remove('sel')); b.classList.add('sel');
+        panel.style.display='none'; };
+      td.appendChild(b); tr.appendChild(td); });
+    grid.appendChild(tr); });
+  panel.appendChild(grid);
+  btn.onclick=(e)=>{ e.stopPropagation(); panel.style.display = panel.style.display==='none'?'block':'none'; };
+  wrap.append(btn,panel); setBtn();
+  return {wrap, sel};
+}
+function checkAnswer(t,inp,msg,au){
+  const val=parseNum(inp.value);
+  if(!isFinite(val)){ msg.textContent='Bitte eine Zahl eingeben.'; msg.className='result-msg no'; return; }
+  if(au && au.u==null){ msg.textContent='Bitte zuerst eine Einheit wählen.'; msg.className='result-msg no'; return; }
+  const near=(a,b)=>Math.abs(a-b)<=Math.max(0.05,Math.abs(b)*0.015);
+  let target, stud, dimErr=null;
+  if(t.mode==='umkehr'){
+    target=t.v[t.unknownSym];
+    const need=t.formula.needs.find(n=>n.sym===t.unknownSym);
+    if(au && need.kind==='len'){ if(au.dim!=='len') dimErr='Das ist keine Längeneinheit.';
+      else stud=val*Math.pow(10, uIndex(au.u)-uIndex(t.unit)); }
+    else stud=val;
+  } else {
+    target=t.areaExact;
+    if(au){ if(au.dim!=='area') dimErr='Das ist keine Flächeneinheit.';
+      else stud=val*Math.pow(10, 2*(uIndex(au.u)-uIndex(t.unit))); }
+    else stud=val;
+  }
+  if(dimErr){ msg.textContent='✗ '+dimErr; msg.className='result-msg no'; return; }
+  if(near(stud,target)){ msg.textContent='✓ Richtig!'; msg.className='result-msg ok'; t.answered=true; }
+  else { msg.textContent='✗ Noch nicht. Tipp: 💡 Hilfe oder 🔎 Lösung.'; msg.className='result-msg no'; }
+}
+
+/* ---------- Hilfe (mehrstufig) ---------- */
+function buildCircleDeriv(container){
+  const fig=el('div'); fig.style.textAlign='center';
+  const ctl=el('div','grid-ctl');
+  const sl=el('input'); sl.type='range'; sl.min='6'; sl.max='32'; sl.step='2'; sl.value='12';
+  const lab=el('span','gc-lbl');
+  const render=()=>{ const n=+sl.value; fig.innerHTML=derivCircle(n); lab.textContent=n+' Sektoren'; };
+  sl.oninput=render;
+  ctl.append(document.createTextNode('Feinheit:'),sl,lab);
+  container.appendChild(fig); container.appendChild(ctl);
+  const p=el('p',null); p.innerHTML=DERIV_TEXT('kreis',null); container.appendChild(p);
+  render();
+}
+/* Formen, die zwar auch zutreffen, aber ungenauer sind (ein Quadrat ist auch ein Trapez …) */
+const SHAPE_GENERAL={
+  quadrat:['rechteck','parallelogramm','trapez','drache'],
+  rechteck:['parallelogramm','trapez'],
+  parallelogramm:['trapez'],
+  rechtwinklig:['dreieck'],
+  gleichseitig:['dreieck']
+};
+const SHAPE_ART={quadrat:'ein Quadrat',rechteck:'ein Rechteck',parallelogramm:'ein Parallelogramm',
+  trapez:'ein Trapez',drache:'ein Drachenviereck',dreieck:'ein Dreieck',
+  rechtwinklig:'ein rechtwinkliges Dreieck',gleichseitig:'ein gleichseitiges Dreieck',
+  kreis:'ein Kreis',polygon:'ein reguläres n-Eck'};
+function shapeWarnMap(sh){
+  const out={};
+  (SHAPE_GENERAL[sh.id]||[]).forEach(id=>{ const o=shapeById(id); if(!o)return;
+    out[o.name]='Stimmt – '+(SHAPE_ART[sh.id]||sh.name)+' ist auch '+(SHAPE_ART[id]||o.name)
+      +'. Gesucht ist aber die genaueste Bezeichnung.'; });
+  return out;
+}
+/* Hilfestufen hängen davon ab, ob der Name der Fläche noch verraten werden muss */
+function nameStepActive(t){ return t.pres==='skizze' && !state.showName; }
+function helpStepIds(t){ return (nameStepActive(t)?['name']:[]).concat(['herleitung','formel','ansatz','loesung']); }
+/* Gemerkte Antworten je Aufgabe: die Hilfebox wird bei jeder Stufe neu aufgebaut, deshalb
+   müssen bereits angeklickte Antworten (Farbe + Hinweistext) wiederhergestellt werden. */
+function pickStore(t,key){
+  if(!t.picks)t.picks={};
+  if(!t.picks[key])t.picks[key]={picked:{},why:''};
+  return t.picks[key];
+}
+function choiceRowFl(host,items,correct,opt){
+  opt=opt||{};
+  const st=opt.store;
+  const wrap=el('div','choices'), why=el('div','choice-why');
+  items.forEach(txt=>{ const ch=el('span','choice',opt.tex?('\\('+txt+'\\)'):txt);
+    const mark=(save)=>{
+      let cls,w='';
+      if(txt===correct) cls='choice ok';
+      else if(opt.warn&&opt.warn[txt]){ cls='choice warn';
+        w='<b>'+(opt.warnLead||'Geht auch, ist aber nicht optimal:')+'</b> '+opt.warn[txt]; }
+      else cls='choice no';
+      ch.className=cls;
+      if(save){ why.innerHTML=w; if(w)mj(why); if(st){ st.picked[txt]=1; st.why=w; } }
+    };
+    ch.onclick=()=>mark(true);
+    if(st && st.picked[txt]) mark(false);       // frühere Antwort wiederherstellen
+    wrap.appendChild(ch); });
+  if(st && st.why){ why.innerHTML=st.why; mj(why); }
+  host.appendChild(wrap); host.appendChild(why);
+}
+function showHelp(t,card){
+  const cont=$('.help-container',card);
+  const steps=helpStepIds(t), N=steps.length;
+  t.helpLevel=Math.min(t.helpLevel+1,N);
+  cont.innerHTML='';
+  const box=el('div','help-box'); box.innerHTML='<h4>Hilfe – Stufe '+t.helpLevel+' von '+N+'</h4>';
+  const lvl=id=>steps.indexOf(id)+1;             // Stufennummer je Schritt
+  const num=id=>lvl(id);
+  const shown=id=>lvl(id)>0 && t.helpLevel>=lvl(id);
+
+  // Stufe „Welche Fläche ist das?" – nur wenn der Name bei der Skizze verborgen ist
+  if(shown('name')){ const s=el('div','help-step');
+    s.innerHTML='<b>'+num('name')+') Welche Fläche ist das?</b>';
+    const opts=SHAPES.map(x=>x.name);
+    choiceRowFl(s,opts,t.shape.name,{warn:shapeWarnMap(t.shape),
+      warnLead:'Stimmt, aber nicht genau genug:',store:pickStore(t,'name')});
+    box.appendChild(s); }
+
+  if(shown('herleitung')){ const s=el('div','help-step');
+    if(state.helpMode==='formelsammlung'){
+      s.innerHTML='<b>'+num('herleitung')+') Passende Formel (Formelsammlung)</b><p>Für <b>'+t.shape.name+'</b> gilt:</p>\\['+symOf(t.formula)+'\\]';
+    } else if(t.shape.id==='kreis'){
+      s.innerHTML='<b>'+num('herleitung')+') Herleitung der Formel</b>'; buildCircleDeriv(s);
+    } else {
+      s.innerHTML='<b>'+num('herleitung')+') Herleitung der Formel</b>'+derivContent(t);
+    }
+    box.appendChild(s); }
+  if(shown('formel')){ const s=el('div','help-step'); s.innerHTML='<b>'+num('formel')+') Welche Formel passt?</b>';
+    if(!t.choices) t.choices=formulaChoices(t);
+    choiceRowFl(s,t.choices,symOf(t.formula),{tex:true,warn:generalMap(t),store:pickStore(t,'formel')});
+    box.appendChild(s); }
+  if(shown('ansatz')){ const s=el('div','help-step');
+    s.innerHTML='<b>'+num('ansatz')+') Ansatz (Werte einsetzen)</b>'+ansatzTeX(t); box.appendChild(s); }
+  if(shown('loesung')){ const s=el('div','help-step');
+    s.innerHTML='<b>'+num('loesung')+') Vollständiger Lösungsweg</b>'+stripResults(solutionTeX(t))
+      +'<p class="small" style="color:#8a7328;margin-top:6px;">Rechne nun selbst zu Ende – die vollständige Lösung steht im Bereich „Lösung".</p>';
+    box.appendChild(s); }
+
+  const more=el('div','act-row');
+  if(t.helpLevel<N){ const b=el('button','btn-hint','Nächste Hilfestufe ▸'); b.onclick=()=>showHelp(t,card); more.appendChild(b); }
+  box.appendChild(more);
+  cont.appendChild(box); mj(box);
+}
+function ansatzTeX(t){
+  const {formula}=t;
+  if(t.mode==='umkehr'){
+    const tg=formula.needs.find(n=>n.sym===t.unknownSym);
+    return '\\['+symOf(formula)+'\\]<p>Stelle die Formel nach \\('+needTexOf(formula,tg)+'\\) um und setze die gegebenen Werte (inkl. \\(A\\)) ein.</p>';
+  }
+  return '\\['+symOf(formula)+'\\]<p>Setze nun die gegebenen Werte ein und rechne den Flächeninhalt aus.</p>';
+}
+
+/* ---------- Lösung / Lösungsweg ---------- */
+/* Für die Hilfe: Ergebniszeilen am Ende jeder Rechenkette weglassen – dort sollen nur Formel
+   und eingesetzte Werte stehen, das Ergebnis rechnet man selbst aus. */
+function stripResults(html){
+  return String(html).replace(/\\\[\\begin\{aligned\}([\s\S]*?)\\end\{aligned\}\\\]/g,function(m,body){
+    const rows=body.split('\\\\');
+    const hasOp=function(r){
+      const clean=String(r).replace(/\\[,;]\\text\{[^}]*\}(\^\d+)?/g,'').replace(/\\text\{[^}]*\}(\^\d+)?/g,'');
+      return /\\cdot|\\dfrac|\\tfrac|\\sqrt|\\sin|\\cos|\\tan|\^|\+|\s-\s|\//.test(clean);
+    };
+    let end=rows.length;
+    while(end>1 && !hasOp(rows[end-1])) end--;
+    return '\\[\\begin{aligned}'+rows.slice(0,end).join('\\\\')+'\\end{aligned}\\]';
+  });
+}
+function solutionTeX(t){
+  const {formula,v,unit,mode}=t;
+  let raw = mode==='umkehr' ? formula.inv(t.unknownSym,v,unit,t.areaDisp) : formula.fwd(v,unit);
+  raw = triAware(formula.id, raw, baseForRender(formula));
+  raw = styleUnits(raw, unit, mode==='umkehr'?'len':'area');
+  return conversionBlock(t) + raw;   // Umrechnung (mit Einheiten) davor, dann Rechnung in Basiseinheit
+}
+function buildSolution(t,box){
+  const {formula,v,unit,mode}=t;
+  let resLine;
+  if(mode==='umkehr'){ const tg=formula.needs.find(n=>n.sym===t.unknownSym); resLine='\\('+needTexOf(formula,tg)+' = '+texNum(v[t.unknownSym])+uRes(unit,'len')+'\\)'; }
+  else { resLine = formula.exact ? '\\(A = '+t.areaDisp+uRes(unit,'area')+' \\approx '+texNum(t.areaExact,2)+uRes(unit,'area')+'\\)' : '\\(A = '+texNum(t.areaExact,2)+uRes(unit,'area')+'\\)'; }
+  box.appendChild(el('p','',resLine));
+  const wd=el('details','steps-details'); wd.appendChild(el('summary',null,'Lösungsweg anzeigen'));
+  const steps=el('div','steps'); wd.appendChild(steps);
+  let built=false;
+  wd.addEventListener('toggle',()=>{ if(wd.open&&!built){ built=true; steps.innerHTML=solutionTeX(t); mj(steps); } });
+  box.appendChild(wd);
+  mj(box);
+}
+
+/* ---------- Rebuild / Init ---------- */
+function rebuild(){ buildTeacherSettings(); serialize(); }
+function afterTeacherChange(){ markIndividual(); buildTeacherSettings(); newTask(); renderTask(); }
+function afterDisplayChange(){ buildTeacherSettings(); serialize(); renderTask(); }
+function afterFormulaStyleChange(){ buildTeacherSettings(); buildStudentPanel(); serialize(); renderTask(); }
+function boot(){
+  const fromURL=deserialize();
+  if(!fromURL){ state.active=defaultActive(); applyPreset(state.diff); }
+  buildTeacherSettings();
+  buildStudentPanel();
+  newTask(); renderTask();
+  serialize();
+  window.addEventListener('resize',()=>fitGeg(document));
+  // Ohne konkrete URL-Parameter: Flächen-Bereich per Animation hervorheben
+  if(!fromURL){ const tr=$('#shapeTree'); if(tr){ tr.classList.add('attn'); setTimeout(()=>tr.classList.remove('attn'),3400); } }
+}
+if(document.readyState!=='loading')boot(); else document.addEventListener('DOMContentLoaded',boot);
+
+</script>
+<script>
+(function(){
+"use strict";
+
+"use strict";
+const SVGNS="http://www.w3.org/2000/svg";
+const GRID_STEPS=[10,1,0.1];   // grob (dm) / normal (cm) / fein (mm) – ohne Einheiten
+const U=()=>GRID_STEPS[state.refine];        // Weltlänge pro Kästchen
+function snap(v){const u=U();return Math.round(v/u)*u;}
+const ORDER=['quadrat','rechteck','rechtdreieck','dreieck','parallelogramm','trapez','drache','kreis'];
+const MINPX=7;                 // Raster wird ab dieser Zellgröße (px) gezeigt und sonst gröber gewählt (nie ganz aus)
+
+const fmtNum=x=>{ const r=Math.round(x*1000)/1000;
+  return _fmt(r); };
+function _fmt(r){ return (Number.isInteger(r)?r.toString():r.toFixed(3).replace(/0+$/,'').replace(/\.$/,'')).replace('.',','); }
+const L=v=>fmtNum(v/U());
+const Ar=v=>fmtNum(v/(U()*U()));
+const mid=(P,Q)=>[(P[0]+Q[0])/2,(P[1]+Q[1])/2];
+const cen=(pts)=>[pts.reduce((a,p)=>a+p[0],0)/pts.length, pts.reduce((a,p)=>a+p[1],0)/pts.length];
+
+/* ================= Figuren ================= */
+const SHAPES={
+  rechteck:{ label:'Rechteck', names:['A','B','C','D'], init:{x0:-3,y0:-2,w:6,h:4}, calc:s=>L(s.h)+' · '+L(s.w),
+    pts:s=>[[s.x0,s.y0],[s.x0+s.w,s.y0],[s.x0+s.w,s.y0+s.h],[s.x0,s.y0+s.h]], area:s=>s.w*s.h,
+    drag(s,k,wx,wy,int){ let l=s.x0,r=s.x0+s.w,b=s.y0,t=s.y0+s.h,u=U(); if(int){wx=snap(wx);wy=snap(wy);}
+      if(k==='A'){l=Math.min(wx,r-u);b=Math.min(wy,t-u);} if(k==='B'){r=Math.max(wx,l+u);b=Math.min(wy,t-u);}
+      if(k==='C'){r=Math.max(wx,l+u);t=Math.max(wy,b+u);} if(k==='D'){l=Math.min(wx,r-u);t=Math.max(wy,b+u);}
+      s.x0=l;s.y0=b;s.w=r-l;s.h=t-b; },
+    sides:(s,C)=>[side(C[0],C[1],L(s.w)),side(C[3],C[2],L(s.w)),side(C[0],C[3],L(s.h)),side(C[1],C[2],L(s.h))],
+    derive:s=>({f:'A = a · b = '+L(s.h)+' · '+L(s.w)+' = <b>'+Ar(s.w*s.h)+'</b>',
+      e:'Zähle die Kästchen: '+L(s.h)+' Reihen mit je '+L(s.w)+' Kästchen. Die Anzahl der Einheitsquadrate ist das Produkt der Seiten – daher A = a · b.'}) },
+
+  quadrat:{ label:'Quadrat', names:['A','B','C','D'], init:{x0:-2,y0:-2,side:4}, calc:s=>L(s.side)+' · '+L(s.side),
+    pts:s=>[[s.x0,s.y0],[s.x0+s.side,s.y0],[s.x0+s.side,s.y0+s.side],[s.x0,s.y0+s.side]], area:s=>s.side*s.side,
+    drag(s,k,wx,wy,int){ const opp={A:2,B:3,C:0,D:1}[k],O=SHAPES.quadrat.pts(s)[opp];
+      let side=Math.max(Math.abs(wx-O[0]),Math.abs(wy-O[1])); if(int)side=snap(side); side=Math.max(U(),side);
+      s.x0=Math.min(O[0],O[0]+(wx<O[0]?-1:1)*side); s.y0=Math.min(O[1],O[1]+(wy<O[1]?-1:1)*side); s.side=side; },
+    sides:(s,C)=>[side(C[0],C[1],L(s.side)),side(C[0],C[3],L(s.side))],
+    derive:s=>({f:'A = a · a = a² = '+L(s.side)+'² = <b>'+Ar(s.side*s.side)+'</b>',
+      e:'Beim Quadrat sind alle Seiten gleich lang – ein Sonderfall des Rechtecks: A = a · a = a².'}) },
+
+  parallelogramm:{ label:'Parallelogramm', names:['A','B','C','D'], init:{ax:-3,ay:-2,b:6,h:4,s:1.5},
+    pts:s=>[[s.ax,s.ay],[s.ax+s.b,s.ay],[s.ax+s.b+s.s,s.ay+s.h],[s.ax+s.s,s.ay+s.h]], area:s=>s.b*s.h,
+    drag(s,k,wx,wy,int){ if(k==='A'){s.ax=int?snap(wx):wx;s.ay=int?snap(wy):wy;}
+      else if(k==='B'){let b=wx-s.ax;if(int)b=snap(b);s.b=Math.max(U(),b);}
+      else if(k==='C'){let h=wy-s.ay;if(int)h=snap(h);s.h=Math.max(U(),h);s.s=wx-s.ax-s.b;}
+      else if(k==='D'){let h=wy-s.ay;if(int)h=snap(h);s.h=Math.max(U(),h);s.s=wx-s.ax;} },
+    sides:(s,C)=>[side(C[0],C[1],'g = '+L(s.b))],
+    height(s){ const hx=s.ax+Math.max(0,s.s); return {foot:[hx,s.ay],top:[hx,s.ay+s.h],label:'h = '+L(s.h)}; },
+    helper(s,C){ const A=[s.ax,s.ay],B=[s.ax+s.b,s.ay],Rtr=[s.ax+s.b,s.ay+s.h],Rtl=[s.ax,s.ay+s.h],D=C[3],Cc=C[2];
+      let moved,gap,gapEdge; if(s.s>=0){moved=[B,Rtr,Cc];gap=[A,Rtl,D];gapEdge=[D,A];} else {moved=[A,Rtl,D];gap=[B,Rtr,Cc];gapEdge=[Cc,B];}
+      return {rect:[A,B,Rtr,Rtl],moved,gap,gapEdge}; },
+    derive:s=>({f:'A = g · h = '+L(s.b)+' · '+L(s.h)+' = <b>'+Ar(s.b*s.h)+'</b>',
+      e:'Schneide das Dreieck an der einen Seite ab und setze es an der anderen wieder an: Es entsteht ein Rechteck mit Grundseite g und Höhe h. Die Schräge ändert die Fläche nicht – daher A = g · h.'}) },
+
+  rechtdreieck:{ label:'Rechtw. Dreieck', names:['A','B','C'], init:{ax:-2,ay:-2,g:5,h:4},
+    pts:s=>[[s.ax,s.ay],[s.ax+s.g,s.ay],[s.ax,s.ay+s.h]], area:s=>s.g*s.h/2,
+    drag(s,k,wx,wy,int){ if(k==='A'){s.ax=int?snap(wx):wx;s.ay=int?snap(wy):wy;}
+      else if(k==='B'){let g=wx-s.ax;if(int)g=snap(g);s.g=Math.max(U(),g);}
+      else if(k==='C'){let h=wy-s.ay;if(int)h=snap(h);s.h=Math.max(U(),h);} },
+    sides:(s,C)=>[side(C[0],C[1],'g = '+L(s.g)),side(C[0],C[2],'h = '+L(s.h))],
+    rmark:s=>({c:[s.ax,s.ay],u1:[1,0],u2:[0,-1]}),
+    helper(s,C){ const A=C[0],B=C[1],Cc=C[2],Rtr=[s.ax+s.g,s.ay+s.h]; return {triRect:[A,B,Rtr,Cc],triAdd:[[B,Rtr,Cc]]}; },
+    derive:s=>({f:'A = ½ · g · h = (g · h) / 2 = ½ · '+L(s.g)+' · '+L(s.h)+' = <b>'+Ar(s.g*s.h/2)+'</b>',
+      e:'Das rechtwinklige Dreieck ist genau die Hälfte des Rechtecks aus seinen beiden Katheten g und h. Die zweite Hälfte – gedreht – ergänzt es zum Rechteck: A = ½ · g · h.'}) },
+
+  dreieck:{ label:'Dreieck', names:['A','B','C'], init:{ax:-3,ay:-2,g:6,h:4,cx:1.5},
+    pts:s=>[[s.ax,s.ay],[s.ax+s.g,s.ay],[s.ax+s.cx,s.ay+s.h]], area:s=>s.g*s.h/2,
+    drag(s,k,wx,wy,int){ if(k==='A'){s.ax=int?snap(wx):wx;s.ay=int?snap(wy):wy;}
+      else if(k==='B'){let g=wx-s.ax;if(int)g=snap(g);s.g=Math.max(U(),g); if(state.triangleMode==='rectangle')s.cx=Math.max(0,Math.min(s.g,s.cx));}
+      else if(k==='C'){let h=wy-s.ay;if(int)h=snap(h);s.h=Math.max(U(),h); let cx=wx-s.ax; if(int)cx=snap(cx); if(state.triangleMode==='rectangle')cx=Math.max(0,Math.min(s.g,cx)); s.cx=cx;} },
+    sides:(s,C)=>[side(C[0],C[1],'g = '+L(s.g))],
+    height(s){ const hx=s.ax+s.cx; return {foot:[hx,s.ay],top:[hx,s.ay+s.h],label:'h = '+L(s.h),baseA:[s.ax,s.ay],baseB:[s.ax+s.g,s.ay],topPoint:true}; },
+    helper(s,C){ const A=C[0],B=C[1],Cc=C[2];
+      if(state.triangleMode==='rectangle'){ const ax=s.ax,ay=s.ay,g=s.g,h=s.h;
+        const Atop=[ax,ay+h],Btop=[ax+g,ay+h];   // Rechteck genauso hoch wie das Dreieck
+        return {triRect:[A,B,Btop,Atop], triAdd:[[A,Atop,Cc],[Cc,Btop,B]]}; }
+      const M=mid(B,Cc),Ap=[2*M[0]-A[0],2*M[1]-A[1]]; return {para:[A,B,Ap,Cc],copy:[Ap,B,Cc]}; },
+    derive:s=>{ if(state.triangleMode==='rectangle') return {
+        f:'A = ½ · g · h = (g · h) / 2 = ½ · '+L(s.g)+' · '+L(s.h)+' = <b>'+Ar(s.g*s.h/2)+'</b>',
+        e:'Das Dreieck füllt genau die Hälfte des umschließenden Rechtecks (Grundseite g, Höhe h). Die beiden Teildreiecke – durch die Höhe geteilt – passen gedreht in die beiden oberen Ecken. Daher A = ½ · g · h. (Der Höhenfuß bleibt dabei auf der Grundseite.)'};
+      return {f:'A = ½ · g · h = (g · h) / 2 = ½ · '+L(s.g)+' · '+L(s.h)+' = <b>'+Ar(s.g*s.h/2)+'</b>',
+        e:'Ein zweites, um 180° gedrehtes Dreieck ergänzt zu einem Parallelogramm mit Grundseite g und Höhe h. Das Dreieck ist die Hälfte davon: A = ½ · g · h.'}; } },
+
+  trapez:{ label:'Trapez', names:['A','B','C','D'], init:{ax:-3,ay:-2,a:7,c:3,h:4,dx:2},
+    pts:s=>[[s.ax,s.ay],[s.ax+s.a,s.ay],[s.ax+s.dx+s.c,s.ay+s.h],[s.ax+s.dx,s.ay+s.h]], area:s=>(s.a+s.c)/2*s.h, fit:1.2,
+    extent(s){ const A=[s.ax,s.ay],B=[s.ax+s.a,s.ay],Cc=[s.ax+s.dx+s.c,s.ay+s.h],D=[s.ax+s.dx,s.ay+s.h],M=mid(B,Cc),refl=P=>[2*M[0]-P[0],2*M[1]-P[1]];
+      return [A,B,Cc,D,refl(A),refl(D)]; },
+    drag(s,k,wx,wy,int){ if(k==='A'){s.ax=int?snap(wx):wx;s.ay=int?snap(wy):wy;}
+      else if(k==='B'){let a=wx-s.ax;if(int)a=snap(a);s.a=Math.max(U(),a);}
+      else if(k==='D'){let h=wy-s.ay;if(int)h=snap(h);s.h=Math.max(U(),h);s.dx=wx-s.ax;}
+      else if(k==='C'){let h=wy-s.ay;if(int)h=snap(h);s.h=Math.max(U(),h);let c=wx-(s.ax+s.dx);if(int)c=snap(c);s.c=Math.max(U(),c);} },
+    sides:(s,C)=>{ const mut=(state.trapMode==='midline'&&state.deriveOn); return [side(C[0],C[1],'a = '+L(s.a),mut),side(C[3],C[2],'c = '+L(s.c),mut)]; },
+    height(s){ const hx=Math.max(s.ax,s.ax+s.dx); return {foot:[hx,s.ay],top:[hx,s.ay+s.h],label:'h = '+L(s.h)}; },
+    helper(s,C){ const A=C[0],B=C[1],Cc=C[2],D=C[3];
+      if(state.trapMode==='midline'){ const ax=s.ax,ay=s.ay,a=s.a,c=s.c,h=s.h,dx=s.dx;
+        const mlL=[ax+dx/2,ay+h/2], mlR=[ax+(a+dx+c)/2,ay+h/2];
+        const RBL=[mlL[0],ay],RTL=[mlL[0],ay+h],RBR=[mlR[0],ay],RTR=[mlR[0],ay+h], poly=[A,B,Cc,D];
+        const TlowL=[A,RBL,mlL],TupL=[mlL,RTL,D], loL=inPoly(cen(TlowL),poly);
+        const TlowR=[B,RBR,mlR],TupR=[mlR,RTR,Cc], loR=inPoly(cen(TlowR),poly);
+        return {trapMid:true, rect:[RBL,RBR,RTR,RTL], midline:[mlL,mlR],
+          moved:[loL?TlowL:TupL, loR?TlowR:TupR], gap:[loL?TupL:TlowL, loR?TupR:TlowR],
+          gapEdge:[loL?[mlL,D]:[A,mlL], loR?[mlR,Cc]:[B,mlR]]}; }
+      const M=mid(B,Cc),refl=P=>[2*M[0]-P[0],2*M[1]-P[1]],Ap=refl(A),Dp=refl(D);
+      return {copy:[Ap,Cc,B,Dp],para:[A,Dp,Ap,D]}; },
+    derive:s=>{ if(state.trapMode==='midline'){ const m=(s.a+s.c)/2;
+        return {f:'m = (a + c) / 2 = ('+L(s.a)+' + '+L(s.c)+') / 2 = '+L(m)+'<br>A = m · h = '+L(m)+' · '+L(s.h)+' = <b>'+Ar(m*s.h)+'</b>',
+          e:'Die Mittellinie m liegt auf halber Höhe und ist so lang wie der Durchschnitt der parallelen Seiten: m = (a + c) / 2. An jedem Ende wird ein überstehendes Dreieck abgeschnitten und in die Lücke darüber gedreht – so entsteht ein Rechteck mit Breite m und Höhe h. Daher A = m · h.'}; }
+      return {f:'A = ½ · (a + c) · h = ((a + c) · h) / 2 = ½ · ('+L(s.a)+' + '+L(s.c)+') · '+L(s.h)+' = <b>'+Ar((s.a+s.c)/2*s.h)+'</b>',
+        e:'Ein zweites, um 180° gedrehtes Trapez ergänzt zu einem Parallelogramm mit Grundseite (a + c) und Höhe h. Das Trapez ist die Hälfte: A = ½ · (a + c) · h.'}; } },
+
+  drache:{ label:'Drachen\u00ADviereck', names:['A','B','C','D'], init:{cx:0,yT:3,yB:-2,yH:0,e:6},
+    pts:s=>[[s.cx,s.yT],[s.cx+s.e/2,s.yH],[s.cx,s.yB],[s.cx-s.e/2,s.yH]], area:s=>s.e*(s.yT-s.yB)/2,
+    drag(s,k,wx,wy,int){ const R=v=>int?snap(v):v, u=U();
+      if(k==='A'){ s.yT=Math.max(s.yB+u,R(wy)); }
+      else if(k==='C'){ s.yB=Math.min(s.yT-u,R(wy)); }
+      else if(k==='B'){ let e=wx-s.cx; if(int)e=snap(e); s.e=Math.max(u,2*e); s.yH=R(wy); }
+      else if(k==='D'){ let e=s.cx-wx; if(int)e=snap(e); s.e=Math.max(u,2*e); s.yH=R(wy); } },
+    diagLabels:s=>{ const fy=(s.yH>=s.yB&&s.yH<=s.yT)?(s.yH+s.yT)/2:(s.yB+s.yT)/2;
+      return [ {at:[s.cx+s.e*0.27,s.yH],text:'e = '+L(s.e),dy:17,anchor:'middle'},
+               {at:[s.cx,fy],text:'f = '+L(s.yT-s.yB),dx:12,anchor:'start'} ]; },
+    perp:s=>({cx:s.cx,yH:s.yH,yT:s.yT,yB:s.yB,e:s.e,concave:(s.yH<s.yB||s.yH>s.yT)}),
+    helper(s){ if(s.yH<s.yB||s.yH>s.yT) return {};   // Pfeilviereck: keine Rechteck-Zerlegung
+      const l=s.cx-s.e/2,r=s.cx+s.e/2,T=[s.cx,s.yT],Bt=[s.cx,s.yB],L=[l,s.yH],R=[r,s.yH];
+      return {rectDiag:[[l,s.yB],[r,s.yB],[r,s.yT],[l,s.yT]],
+        tris:[ [[l,s.yT],T,L], [[r,s.yT],R,T], [[r,s.yB],Bt,R], [[l,s.yB],L,Bt] ]}; },
+    derive:s=>{ const concave=(s.yH<s.yB||s.yH>s.yT);
+      return {f:'A = ½ · e · f = (e · f) / 2 = ½ · '+L(s.e)+' · '+L(s.yT-s.yB)+' = <b>'+Ar(s.e*(s.yT-s.yB)/2)+'</b>',
+        e:concave?'Konkaver Drachen (Pfeilviereck): die waagerechte Diagonale liegt außerhalb der senkrechten, die Diagonalen schneiden sich nicht mehr. Die Flächenformel bleibt A = ½ · e · f (e, f = Diagonalenlängen).'
+                 :'Die Diagonalen stehen senkrecht aufeinander. Das umschließende Rechteck hat die Seiten e und f; das Drachenviereck füllt genau die Hälfte davon: A = ½ · e · f.'}; } },
+
+  kreis:{ label:'Kreis', isCircle:true, noCornerLabels:true, init:{cx:0,cy:0,r:4},
+    pts:s=>{ const N=64,a=[]; for(let i=0;i<N;i++){const t=2*Math.PI*i/N;a.push([s.cx+s.r*Math.cos(t),s.cy+s.r*Math.sin(t)]);} return a; },
+    handlePts:s=>[[s.cx+s.r,s.cy]],
+    names:[''],
+    area:s=>Math.PI*s.r*s.r,
+    drag(s,i,wx,wy,int){ let r=Math.hypot(wx-s.cx,wy-s.cy); if(int)r=snap(r); s.r=Math.max(U(),r); },
+    // Ausdehnung inkl. Hilfsfigur (fürs Zentrieren & Rastermaß)
+    extent(s){ if(!state.deriveOn) return SHAPES.kreis.pts(s);
+      if(state.circleMode==='sectors'){ const r=s.r,hw=Math.PI*r/2,top=s.cy-r-1.0;
+        return SHAPES.kreis.pts(s).concat([[s.cx-hw,top-r],[s.cx+hw,top-r],[s.cx+hw,top],[s.cx-hw,top]]); }
+      const r=s.r; return [[s.cx-r,s.cy-r],[s.cx+r,s.cy-r],[s.cx+r,s.cy+r],[s.cx-r,s.cy+r]]; },
+    derive:s=>{ if(state.deriveOn&&state.circleMode==='sectors') return {
+        f:'A ≈ (π·r) · r = '+L(Math.PI*s.r)+' · '+L(s.r)+' = π·r² ≈ <b>'+Ar(Math.PI*s.r*s.r)+'</b>',
+        e:'Zerlege den Kreis in viele gleiche Sektoren und lege sie abwechselnd aneinander. Es entsteht fast ein Rechteck mit Breite = halber Umfang = π·r und Höhe = r. Je mehr Sektoren, desto genauer: A = π·r·r = π·r².'};
+      // Der Vergleich stand früher als Fließtext MITTEN in der Formel („(kleiner als …)") und
+      // wurde von MathJax als Formel gesetzt -> unlesbar. Jetzt reine Mathematik in zwei Zeilen.
+      return { f:'A = π · r² ≈ <b>'+Ar(Math.PI*s.r*s.r)+'</b><br>π · r² &lt; 4 · r² = '+Ar(4*s.r*s.r),
+        e:'Der Kreis passt in ein Quadrat aus vier Teilquadraten der Seitenlänge r (Gesamtfläche 4·r²). Er füllt es nicht ganz aus – die Fläche ist etwas kleiner, nämlich π·r² ≈ 0,785 · 4·r².'}; } }
+};
+function side(P,Q,text,muted){ return {P,Q,text,muted}; }
+
+/* ================= Zustand ================= */
+const state={ tab:'rechteck', gridOn:true, gridEverywhere:false, refine:1, intOnly:true, deriveOn:true,
+  circleMode:'squares', sectors:12, triangleMode:'parallelogram', trapMode:'parallelogram', view:{ox:0,oy:0,scale:52,ready:false}, data:{} };
+for(const k in SHAPES) state.data[k]=Object.assign({},SHAPES[k].init);
+const S=()=>SHAPES[state.tab]; const D=()=>state.data[state.tab];
+
+const stage=document.getElementById('stage');
+function stageSize(){ return {w:stage.clientWidth||660,h:stage.clientHeight||480}; }
+function w2s(x,y){ return [state.view.ox+x*state.view.scale, state.view.oy-y*state.view.scale]; }
+function s2w(px,py){ return [(px-state.view.ox)/state.view.scale,(state.view.oy-py)/state.view.scale]; }
+function evtPt(e){ const r=stage.getBoundingClientRect(); return [e.clientX-r.left,e.clientY-r.top]; }
+function ptsW(){ return S().pts(D()); }
+function handlePtsW(){ const sh=S(),d=D(); return sh.handlePts?sh.handlePts(d):sh.pts(d); }
+
+function helperPolys(sh,d,P){ let out=[]; if(state.deriveOn&&sh.helper){ const H=sh.helper(d,P);
+  ['rect','para','rectDiag','gap','moved','copy','triRect'].forEach(k=>{ if(H[k]){ const v=H[k]; if(Array.isArray(v[0])&&Array.isArray(v[0][0])) v.forEach(pg=>out.push(pg)); else out.push(v); } }); if(H.tris) H.tris.forEach(t=>out.push(t)); if(H.triAdd) H.triAdd.forEach(t=>out.push(t)); } return out; }
+function constructionPts(){ const sh=S(),d=D();
+  if(sh.extent) return sh.extent(d);
+  let pts=sh.pts(d).slice(); helperPolys(sh,d,sh.pts(d)).forEach(p=>pts=pts.concat(p)); return pts; }
+function centerView(){ const s=stageSize(); const pts=constructionPts();
+  const xs=pts.map(p=>p[0]),ys=pts.map(p=>p[1]);
+  const minx=Math.min(...xs),maxx=Math.max(...xs),miny=Math.min(...ys),maxy=Math.max(...ys);
+  const spanx=(maxx-minx)||1,spany=(maxy-miny)||1;
+  const fit=(S().fit||1);
+  state.view.scale=Math.min(120,Math.max(18,Math.min(s.w*0.62*fit/spanx,s.h*0.6*fit/spany)));
+  const bcx=(minx+maxx)/2,bcy=(miny+maxy)/2;
+  state.view.ox=s.w/2-bcx*state.view.scale; state.view.oy=s.h*0.46+bcy*state.view.scale; state.view.ready=true; }
+
+/* ================= SVG-Helfer ================= */
+function el(tag,a){ const n=document.createElementNS(SVGNS,tag); for(const k in a){ if(k==='text') n.textContent=a[k]; else n.setAttribute(k,a[k]); } return n; }
+function polyW(pts,a){ const p=pts.map(q=>{const s=w2s(q[0],q[1]);return s[0].toFixed(1)+','+s[1].toFixed(1);}).join(' '); return el('polygon',Object.assign({points:p},a)); }
+function lineW(A,B,a){ const s1=w2s(A[0],A[1]),s2=w2s(B[0],B[1]); return el('line',Object.assign({x1:s1[0],y1:s1[1],x2:s2[0],y2:s2[1]},a)); }
+function rightAngle(cornerW,u1,u2,color){ const s=w2s(cornerW[0],cornerW[1]),d=Math.min(13,state.view.scale*0.24);
+  const p1=[s[0]+u1[0]*d,s[1]+u1[1]*d],p2=[p1[0]+u2[0]*d,p1[1]+u2[1]*d],p3=[s[0]+u2[0]*d,s[1]+u2[1]*d];
+  return el('path',{d:'M '+p1[0]+' '+p1[1]+' L '+p2[0]+' '+p2[1]+' L '+p3[0]+' '+p3[1],fill:'none',stroke:color||'var(--helper)','stroke-width':1.4}); }
+function arrowW(fromW,toW,color){ const a=w2s(fromW[0],fromW[1]),b=w2s(toW[0],toW[1]),g=el('g',{});
+  g.appendChild(el('line',{x1:a[0],y1:a[1],x2:b[0],y2:b[1],stroke:color,'stroke-width':2,'stroke-linecap':'round'}));
+  const ang=Math.atan2(b[1]-a[1],b[0]-a[0]),h=10;
+  g.appendChild(el('path',{d:'M '+b[0]+' '+b[1]+' L '+(b[0]-h*Math.cos(ang-0.4))+' '+(b[1]-h*Math.sin(ang-0.4))+' M '+b[0]+' '+b[1]+' L '+(b[0]-h*Math.cos(ang+0.4))+' '+(b[1]-h*Math.sin(ang+0.4)),stroke:color,'stroke-width':2,fill:'none','stroke-linecap':'round'})); return g; }
+function textAtW(P,s,a){ const q=w2s(P[0],P[1]); return el('text',Object.assign({x:q[0]+(a&&a.dx||0),y:q[1]+(a&&a.dy||0),text:s},a)); }
+
+/* ================= Rendering ================= */
+function render(){
+  if(!state.view.ready) centerView();
+  while(stage.firstChild) stage.removeChild(stage.firstChild);
+  const sh=S(),d=D(),P=ptsW();
+  if(sh.isCircle){ renderCircle(sh,d); drawHandles(); return; }
+
+  const H=(state.deriveOn&&sh.helper)?sh.helper(d,P):null;
+  const clipPolys=[P]; if(H) helperPolys(sh,d,P).forEach(p=>clipPolys.push(p));
+  if(state.gridOn) drawGrid(clipPolys);
+  if(H) drawHelperUnder(H);
+  const solidOutline=!(state.deriveOn && (state.tab==='parallelogramm' || (state.tab==='trapez'&&state.trapMode==='midline')));
+  stage.appendChild(polyW(P,{fill:'var(--shape-fill)',stroke:solidOutline?'var(--shape)':'none','stroke-width':2.5,'stroke-linejoin':'round'}));
+  if(H) drawHelperOver(H);
+  if(sh.height) drawHeight(sh.height(d,P));
+  if(sh.perp) drawPerp(sh.perp(d));
+  if(sh.rmark){ const m=sh.rmark(d); stage.appendChild(rightAngle(m.c,m.u1,m.u2,'var(--accent-dark)')); }
+  drawLabels(sh,d,P);
+  drawHandles();
+  updateDerive(sh,d);
+}
+function drawHandles(){ handlePtsW().forEach(p=>{ const s=w2s(p[0],p[1]);
+  stage.appendChild(el('circle',{cx:s[0],cy:s[1],r:16,fill:'rgba(76,175,80,.12)',stroke:'none'}));
+  stage.appendChild(el('circle',{cx:s[0],cy:s[1],r:9,fill:'#fff',stroke:'var(--accent-dark)','stroke-width':2.5}));
+  stage.appendChild(el('circle',{cx:s[0],cy:s[1],r:22,fill:'transparent','data-handle':'1',style:'cursor:grab'})); }); }
+
+function drawGrid(clipPolys){
+  const step=GRID_STEPS[state.refine];              // KEIN Vergröbern: gewählte Feinheit wird immer gezeigt
+  const cellPx=step*state.view.scale;
+  const sz=stageSize(), a=s2w(0,0), b=s2w(sz.w,sz.h);
+  const vminx=Math.min(a[0],b[0]),vmaxx=Math.max(a[0],b[0]),vminy=Math.min(a[1],b[1]),vmaxy=Math.max(a[1],b[1]);
+  let minx,maxx,miny,maxy,clip=false;
+  if(state.gridEverywhere){ minx=vminx;maxx=vmaxx;miny=vminy;maxy=vmaxy; }
+  else { let ux=[],uy=[]; clipPolys.forEach(poly=>poly.forEach(p=>{ux.push(p[0]);uy.push(p[1]);}));
+    minx=Math.max(Math.min(...ux),vminx); maxx=Math.min(Math.max(...ux),vmaxx);
+    miny=Math.max(Math.min(...uy),vminy); maxy=Math.min(Math.max(...uy),vmaxy); clip=true; }
+  if(maxx<=minx||maxy<=miny) return;
+  let host=stage;
+  if(clip){ const defs=el('defs',{}),cp=el('clipPath',{id:'clip-shape'}); clipPolys.forEach(poly=>cp.appendChild(polyW(poly,{}))); defs.appendChild(cp); stage.appendChild(defs);
+    host=el('g',{'clip-path':'url(#clip-shape)'}); stage.appendChild(host); }
+  const tl=w2s(minx,maxy), W=(maxx-minx)*state.view.scale, Hh=(maxy-miny)*state.view.scale;
+  if(cellPx<1.3){
+    // zu fein zum Auflösen -> grauer Schleier (verschmolzene Linien); wird beim Hineinzoomen stufenlos zu echten Linien
+    const op=Math.max(0.12,Math.min(0.4,0.55/Math.max(cellPx,0.05)*0.35));
+    host.appendChild(el('rect',{x:tl[0],y:tl[1],width:W,height:Hh,fill:'var(--grid)',opacity:op}));
+    return;
+  }
+  const eps=1e-6, base=clipPolys[0];
+  const ax0=Math.min(...base.map(p=>p[0])), ay0=Math.min(...base.map(p=>p[1]));   // Verankerung an der Figur-Ecke
+  for(let k=Math.ceil((minx-ax0)/step-eps);ax0+k*step<=maxx+eps;k++){ const x=ax0+k*step, bold=((k%10)+10)%10===0;
+    host.appendChild(lineW([x,miny],[x,maxy],{stroke:'var(--grid)','stroke-width':bold?1:0.6})); }
+  for(let k=Math.ceil((miny-ay0)/step-eps);ay0+k*step<=maxy+eps;k++){ const y=ay0+k*step, bold=((k%10)+10)%10===0;
+    host.appendChild(lineW([minx,y],[maxx,y],{stroke:'var(--grid)','stroke-width':bold?1:0.6})); }
+}
+
+/* Hilfsfigur: gefüllte Flächen statt Rahmen – „ergänzt" orange, „fehlt jetzt" ausgegraut, plus Pfeil */
+function drawHelperUnder(H){ const t=H.rect||H.para; if(t) stage.appendChild(polyW(t,{fill:'rgba(76,175,80,.05)',stroke:'none'})); }
+function inPoly(p,poly){ let x=p[0],y=p[1],inside=false;
+  for(let i=0,j=poly.length-1;i<poly.length;j=i++){ const xi=poly[i][0],yi=poly[i][1],xj=poly[j][0],yj=poly[j][1];
+    if(((yi>y)!==(yj>y)) && (x < (xj-xi)*(y-yi)/(yj-yi)+xi)) inside=!inside; }
+  return inside; }
+function drawHelperOver(H){
+  if(H.rect&&H.gap&&!H.trapMid){                                 // Parallelogramm -> Rechteck (didaktische Standarddarstellung)
+    stage.appendChild(polyW(H.gap,{fill:'var(--helper-fill)',stroke:'none'}));                 // neues (verschobenes) Dreieck: orange, ohne Rand
+    if(H.gapEdge) stage.appendChild(lineW(H.gapEdge[0],H.gapEdge[1],{stroke:'var(--shape-light)','stroke-width':1.8,'stroke-dasharray':'7 5'}));  // Kante zwischen orange Dreieck und Fläche: grün gestrichelt
+    stage.appendChild(polyW(H.moved,{fill:'rgba(255,255,255,.55)',stroke:'var(--shape-light)','stroke-width':1.8,'stroke-dasharray':'7 5'}));    // weggeschnitten: aufgehellt + grün gestrichelt
+    stage.appendChild(arrowW(cen(H.moved),cen(H.gap),'var(--accent-dark)'));                    // Pfeil vom weggeschnittenen zum neuen Dreieck
+    stage.appendChild(polyW(H.rect,{fill:'none',stroke:'var(--shape)','stroke-width':2.8,'stroke-linejoin':'round'}));  // Rechteck: grüne dicke Umrandung
+    return;
+  }
+  if(H.trapMid){                                                 // Trapez -> Rechteck (Mittellinie)
+    const triA=t=>Math.abs((t[1][0]-t[0][0])*(t[2][1]-t[0][1])-(t[2][0]-t[0][0])*(t[1][1]-t[0][1]))/2;
+    H.gap.forEach((g,i)=>{ if(triA(g)<1e-6) return; stage.appendChild(polyW(g,{fill:'var(--helper-fill)',stroke:'none'}));      // orange ergänzte Dreiecke
+      stage.appendChild(lineW(H.gapEdge[i][0],H.gapEdge[i][1],{stroke:'var(--shape-light)','stroke-width':1.8,'stroke-dasharray':'7 5'})); });  // Kante zur Fläche grün gestrichelt
+    H.moved.forEach((m,i)=>{ if(triA(m)<1e-6) return; stage.appendChild(polyW(m,{fill:'rgba(255,255,255,.55)',stroke:'var(--shape-light)','stroke-width':1.8,'stroke-dasharray':'7 5'}));  // weggeschnitten: aufgehellt
+      stage.appendChild(arrowW(cen(m),cen(H.gap[i]),'var(--accent-dark)')); });                                                 // Pfeil
+    stage.appendChild(lineW(H.midline[0],H.midline[1],{stroke:'var(--accent-dark)','stroke-width':3,'stroke-linecap':'round'}));  // Mittellinie deutlich hervorgehoben
+    { const p1=w2s(H.midline[0][0],H.midline[0][1]),p2=w2s(H.midline[1][0],H.midline[1][1]),dx0=p2[0]-p1[0],dy0=p2[1]-p1[1],ln=Math.hypot(dx0,dy0)||1,px=-dy0/ln*6,py=dx0/ln*6;
+      stage.appendChild(el('line',{x1:p1[0]+px,y1:p1[1]+py,x2:p1[0]-px,y2:p1[1]-py,stroke:'var(--accent-dark)','stroke-width':3,'stroke-linecap':'round'}));
+      stage.appendChild(el('line',{x1:p2[0]+px,y1:p2[1]+py,x2:p2[0]-px,y2:p2[1]-py,stroke:'var(--accent-dark)','stroke-width':3,'stroke-linecap':'round'})); }  // Maß-Häkchen an den Enden
+    { const d0=D(), hx0=Math.max(d0.ax,d0.ax+d0.dx), mMid=(H.midline[0][0]+H.midline[1][0])/2, farRight=(mMid>=hx0);
+      const mx=farRight?(H.midline[0][0]*0.25+H.midline[1][0]*0.75):(H.midline[0][0]*0.75+H.midline[1][0]*0.25);
+      const ms=w2s(mx,H.midline[0][1]);
+      stage.appendChild(el('text',{x:ms[0],y:ms[1]-11,text:'m = '+L(H.midline[1][0]-H.midline[0][0]),fill:'var(--accent-dark)','font-size':14,'font-weight':'bold','text-anchor':'middle','dominant-baseline':'middle'})); }  // Mittellinien-Länge, Gegenseite von h
+    stage.appendChild(polyW(H.rect,{fill:'none',stroke:'var(--shape)','stroke-width':2.8,'stroke-linejoin':'round'}));          // Rechteck grün gerahmt
+    return;
+  }
+  if(H.triRect){                                                 // Dreieck -> Rechteck (genauso hoch, Dreieck = halbes Rechteck)
+    H.triAdd.forEach(t=>stage.appendChild(polyW(t,{fill:'var(--helper-fill)',stroke:'none'})));                        // ergänzende obere Ecken orange
+    stage.appendChild(polyW(H.triRect,{fill:'none',stroke:'var(--shape)','stroke-width':2.8,'stroke-linejoin':'round'}));               // Rechteck grün gerahmt
+    return;
+  }
+  if(H.tris) H.tris.forEach(t=>stage.appendChild(polyW(t,{fill:'var(--helper-fill)',stroke:'none'})));  // Drache: ergänzende Dreiecke orange
+  if(H.copy) stage.appendChild(polyW(H.copy,{fill:'var(--helper-fill)',stroke:'var(--helper)','stroke-width':1.2}));
+  if(H.rectDiag) stage.appendChild(polyW(H.rectDiag,{fill:'none',stroke:'var(--accent-dark)','stroke-width':1.6}));
+}
+
+function drawHeight(H){
+  stage.appendChild(lineW(H.foot,H.top,{stroke:'var(--helper)','stroke-width':2,'stroke-dasharray':'6 5'}));
+  if(H.baseA&&H.baseB){ const fx=H.foot[0],lo=Math.min(H.baseA[0],H.baseB[0]),hi=Math.max(H.baseA[0],H.baseB[0]);
+    if(fx<lo-1e-6) stage.appendChild(lineW([lo,H.foot[1]],H.foot,{stroke:'#b9c7bd','stroke-width':1.3,'stroke-dasharray':'4 4'}));
+    else if(fx>hi+1e-6) stage.appendChild(lineW([hi,H.foot[1]],H.foot,{stroke:'#b9c7bd','stroke-width':1.3,'stroke-dasharray':'4 4'})); }
+  stage.appendChild(rightAngle(H.foot,[1,0],[0,-1]));
+  if(!H.topPoint) stage.appendChild(rightAngle(H.top,[1,0],[0,1]));
+  const m=mid(H.foot,H.top),sm=w2s(m[0],m[1]);
+  stage.appendChild(el('text',{x:sm[0]-9,y:sm[1],text:H.label,fill:'var(--helper)','font-weight':'bold','font-size':14,'text-anchor':'end','dominant-baseline':'middle'}));
+}
+function drawPerp(p){
+  stage.appendChild(lineW([p.cx-p.e/2,p.yH],[p.cx+p.e/2,p.yH],{stroke:'var(--helper)','stroke-width':1.6}));
+  stage.appendChild(lineW([p.cx,p.yB],[p.cx,p.yT],{stroke:'var(--helper)','stroke-width':1.6}));
+  if(p.concave){ const ye=p.yH>p.yT?p.yT:p.yB; stage.appendChild(lineW([p.cx,ye],[p.cx,p.yH],{stroke:'var(--helper)','stroke-width':1.2,'stroke-dasharray':'4 4'})); }
+  stage.appendChild(rightAngle([p.cx,p.yH],[1,0],[0,-1])); }
+
+function drawLabels(sh,d,P){
+  const c=cen(P);
+  const put=(labels)=>labels.forEach(L=>{
+    if(L.P){ const m=mid(L.P,L.Q),sm=w2s(m[0],m[1]),sc=w2s(c[0],c[1]);let dx=sm[0]-sc[0],dy=sm[1]-sc[1];const n=Math.hypot(dx,dy)||1;
+      stage.appendChild(el('text',{x:sm[0]+dx/n*18,y:sm[1]+dy/n*18,text:L.text,fill:L.muted?'var(--muted)':'var(--ink)','opacity':L.muted?0.4:1,'font-size':L.muted?12:14,'font-weight':L.muted?'400':'bold','text-anchor':'middle','dominant-baseline':'middle'})); }
+    else { const s=w2s(L.at[0],L.at[1]); stage.appendChild(el('text',{x:s[0]+(L.dx||0),y:s[1]+(L.dy||0),text:L.text,fill:L.muted?'var(--muted)':'var(--ink)','opacity':L.muted?0.4:1,'font-size':L.muted?12:14,'font-weight':L.muted?'400':'bold','text-anchor':L.anchor||'middle','dominant-baseline':'middle'})); }
+  });
+  if(sh.sides) put(sh.sides(d,P));
+  if(sh.diagLabels) put(sh.diagLabels(d));
+  if(!sh.noCornerLabels) P.forEach((p,i)=>{ const s=w2s(p[0],p[1]),sc=w2s(c[0],c[1]);let dx=s[0]-sc[0],dy=s[1]-sc[1];const n=Math.hypot(dx,dy)||1;
+    stage.appendChild(el('text',{x:s[0]+dx/n*18,y:s[1]+dy/n*18,text:sh.names[i],fill:'var(--accent-dark)','font-size':15,'font-weight':'bold','text-anchor':'middle','dominant-baseline':'middle'})); });
+  const sc=w2s(c[0],c[1]);
+  if(state.deriveOn && sh.calc){
+    const t=el('text',{x:sc[0],y:sc[1],'text-anchor':'middle','dominant-baseline':'middle','font-size':18,'font-weight':'700'});
+    t.appendChild(el('tspan',{fill:'var(--helper)',text:sh.calc(d)+' = '}));
+    t.appendChild(el('tspan',{fill:'var(--accent-dark)',text:Ar(sh.area(d))}));
+    stage.appendChild(t);
+  } else {
+    stage.appendChild(el('text',{x:sc[0],y:sc[1],text:Ar(sh.area(d)),'text-anchor':'middle','dominant-baseline':'middle','font-size':20,fill:'var(--accent-dark)','font-weight':'700'}));
+  }
+}
+
+/* ---- Kreis (zwei Herleitungen) ---- */
+function renderCircle(sh,d){
+  const clipPolys=[sh.pts(d)];
+  if(state.deriveOn && state.circleMode==='squares'){ const r=d.r; clipPolys.push([[d.cx-r,d.cy-r],[d.cx+r,d.cy-r],[d.cx+r,d.cy+r],[d.cx-r,d.cy+r]]); }
+  if(state.gridOn) drawGrid(clipPolys);
+  if(state.deriveOn && state.circleMode==='squares') drawCircleSquares(d);
+  if(state.deriveOn && state.circleMode==='sectors') drawCircleSectors(d,state.sectors);
+  const c=w2s(d.cx,d.cy);
+  stage.appendChild(el('circle',{cx:c[0],cy:c[1],r:d.r*state.view.scale,fill:'var(--shape-fill)',stroke:'var(--shape)','stroke-width':2.5}));
+  // Radius
+  const e=w2s(d.cx+d.r,d.cy);
+  stage.appendChild(el('line',{x1:c[0],y1:c[1],x2:e[0],y2:e[1],stroke:'var(--accent-dark)','stroke-width':1.6}));
+  const rm=w2s(d.cx+d.r/2,d.cy);
+  stage.appendChild(el('text',{x:rm[0],y:rm[1]-8,text:'r = '+L(d.r),fill:'var(--ink)','font-size':14,'font-weight':'bold','text-anchor':'middle'}));
+  stage.appendChild(el('text',{x:c[0],y:c[1],text:Ar(sh.area(d)),'text-anchor':'middle','dominant-baseline':'middle','font-size':20,fill:'var(--accent-dark)','font-weight':'700'}));
+  updateDerive(sh,d);
+}
+function drawCircleSquares(d){ const r=d.r,x0=d.cx-r,y0=d.cy-r;
+  stage.appendChild(polyW([[x0,y0],[x0+2*r,y0],[x0+2*r,y0+2*r],[x0,y0+2*r]],{fill:'var(--helper-fill)',stroke:'var(--helper)','stroke-width':1.4}));
+  stage.appendChild(lineW([d.cx,y0],[d.cx,y0+2*r],{stroke:'var(--helper)','stroke-width':1}));
+  stage.appendChild(lineW([x0,d.cy],[x0+2*r,d.cy],{stroke:'var(--helper)','stroke-width':1}));
+  const lb=w2s(x0+r/2,y0+r/2); stage.appendChild(el('text',{x:lb[0],y:lb[1],text:'r·r',fill:'var(--helper)','font-size':12,'text-anchor':'middle','dominant-baseline':'middle'}));
+}
+function drawCircleSectors(d,n){ const r=d.r;
+  for(let i=0;i<n;i++){ const t=2*Math.PI*i/n; stage.appendChild(lineW([d.cx,d.cy],[d.cx+r*Math.cos(t),d.cy+r*Math.sin(t)],{stroke:'var(--helper)','stroke-width':0.8,opacity:.7})); }
+  const s=2*Math.PI*r/n, half=Math.PI*r/2, xL=d.cx-half, top=d.cy-r-1.0, bot=top-r;
+  const wedge=(tip,P1,P2)=>{ const R=Math.hypot(P1[0]-tip[0],P1[1]-tip[1]); const a1=Math.atan2(P1[1]-tip[1],P1[0]-tip[0]); const a2=Math.atan2(P2[1]-tip[1],P2[0]-tip[0]);
+    let da=a2-a1; while(da>Math.PI)da-=2*Math.PI; while(da<-Math.PI)da+=2*Math.PI; const pts=[tip],N=8;
+    for(let k=0;k<=N;k++){const a=a1+da*k/N;pts.push([tip[0]+R*Math.cos(a),tip[1]+R*Math.sin(a)]);} return pts; };
+  for(let i=0;i<n;i++){ const x=xL+i*(s/2); let w;
+    if(i%2===0) w=wedge([x+s/2,bot],[x,top],[x+s,top]); else w=wedge([x+s/2,top],[x,bot],[x+s,bot]);
+    stage.appendChild(polyW(w,{fill:'var(--shape-fill)',stroke:'var(--shape)','stroke-width':0.9,'stroke-linejoin':'round'})); }
+  const rl=w2s(xL,(top+bot)/2); stage.appendChild(el('text',{x:rl[0]-10,y:rl[1],text:'r',fill:'var(--ink)','font-size':13,'font-weight':'bold','text-anchor':'end','dominant-baseline':'middle'}));
+  const ul=w2s(d.cx,bot); stage.appendChild(el('text',{x:ul[0],y:ul[1]+16,text:'Halber Umfang: π · r',fill:'var(--ink)','font-size':13,'font-weight':'bold','text-anchor':'middle'}));
+  stage.appendChild(el('text',{x:ul[0],y:ul[1]+34,text:'Aneinandergelegte Kreisstücke',fill:'var(--muted)','font-size':12,'text-anchor':'middle'}));
+}
+
+function toTeXone(h){ return '\\('+ h
+    .replace(/<b>(.*?)<\/b>/g,'\\mathbf{$1}')
+    .replace(/½/g,'\\tfrac12 ')
+    .replace(/²/g,'^{2}')
+    .replace(/·/g,'\\cdot ')
+    .replace(/π/g,'\\pi ')
+    .replace(/≈/g,'\\approx ')
+    .replace(/(\d),(\d)/g,'$1{,}$2')
+  +'\\)'; }
+function toTeX(h){ return h.split('<br>').map(toTeXone).join('<br>'); }
+function updateDerive(sh,d){ const box=document.getElementById('derive'); box.style.display=state.deriveOn?'':'none';
+  if(!state.deriveOn) return; const dv=sh.derive(d);
+  document.getElementById('formula').innerHTML=toTeX(dv.f); document.getElementById('explain').textContent=dv.e;
+  if(window.MathJax&&window.MathJax.typesetPromise){ window.MathJax.typesetPromise([document.getElementById('formula')]).catch(function(){}); } }
+
+/* ================= Interaktion (robust, Multi-Touch) ================= */
+const pointers=new Map(); let gesture=null;
+function targetHandle(e){ return e.target&&e.target.getAttribute&&e.target.getAttribute('data-handle') ? handleIndexAt(evtPt(e)) : null; }
+function handleIndexAt(pt){ const H=handlePtsW(); let bi=-1,bd=1e9; H.forEach((p,i)=>{const s=w2s(p[0],p[1]),dd=Math.hypot(s[0]-pt[0],s[1]-pt[1]);if(dd<bd){bd=dd;bi=i;}}); return bi; }
+function startPanZoom(){ const a=[...pointers.values()],M=[(a[0].x+a[1].x)/2,(a[0].y+a[1].y)/2],dd=Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y)||1;
+  gesture={mode:'panzoom',anchorW:s2w(M[0],M[1]),d0:dd,scale0:state.view.scale}; }
+function onDown(e){ const [px,py]=evtPt(e); pointers.set(e.pointerId,{x:px,y:py,type:e.pointerType});
+  if(pointers.size>=2){ startPanZoom(); stage.setPointerCapture&&stage.setPointerCapture(e.pointerId); e.preventDefault(); return; }
+  const hi=targetHandle(e);
+  if(hi!=null && hi>=0){ gesture={mode:'corner',index:hi}; stage.setPointerCapture&&stage.setPointerCapture(e.pointerId); e.preventDefault(); return; }
+  if(e.pointerType==='touch'){ gesture={mode:'scroll',lastY:e.clientY}; }   // ein Finger im Hintergrund -> Seite scrollen
+  else { gesture={mode:'pan',px,py,ox:state.view.ox,oy:state.view.oy}; stage.classList.add('grabbing'); }
+  stage.setPointerCapture&&stage.setPointerCapture(e.pointerId); e.preventDefault(); }
+function onMove(e){ if(!pointers.has(e.pointerId)) return; const [px,py]=evtPt(e); const p=pointers.get(e.pointerId); p.x=px;p.y=py;
+  if(!gesture) return;
+  if(gesture.mode==='corner'){ e.preventDefault(); const [wx,wy]=s2w(px,py); const key=S().isCircle?gesture.index:S().names[gesture.index]; S().drag(D(),key,wx,wy,state.intOnly); render(); }
+  else if(gesture.mode==='pan'){ e.preventDefault(); state.view.ox=gesture.ox+(px-gesture.px); state.view.oy=gesture.oy+(py-gesture.py); render(); }
+  else if(gesture.mode==='scroll'){ const dy=e.clientY-gesture.lastY; gesture.lastY=e.clientY; window.scrollBy(0,-dy); }
+  else if(gesture.mode==='panzoom'&&pointers.size>=2){ e.preventDefault(); const a=[...pointers.values()],M=[(a[0].x+a[1].x)/2,(a[0].y+a[1].y)/2],dd=Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y)||1;
+    state.view.scale=Math.min(2000,Math.max(6,gesture.scale0*dd/gesture.d0));
+    state.view.ox=M[0]-gesture.anchorW[0]*state.view.scale; state.view.oy=M[1]+gesture.anchorW[1]*state.view.scale; render(); } }
+function endPointer(e){ pointers.delete(e.pointerId);
+  if(pointers.size<2 && gesture && gesture.mode==='panzoom') gesture=null;   // nach Pinch kein Ein-Finger-Weiterzoomen
+  if(pointers.size===0){ gesture=null; stage.classList.remove('grabbing'); } }
+function onWheel(e){ e.preventDefault(); const [px,py]=evtPt(e),[wx,wy]=s2w(px,py),f=Math.exp(-e.deltaY*0.0016);
+  state.view.scale=Math.min(2000,Math.max(6,state.view.scale*f)); state.view.ox=px-wx*state.view.scale; state.view.oy=py+wy*state.view.scale; render(); }
+
+/* ================= Mini-Icons + Auswahl ================= */
+function iconMarkup(key){ const sh=SHAPES[key];
+  if(sh.isCircle) return '<svg viewBox="0 0 42 30" aria-hidden="true"><circle cx="21" cy="15" r="11" fill="var(--shape-fill)" stroke="var(--shape)" stroke-width="1.7"/></svg>';
+  const pts=sh.pts(sh.init),xs=pts.map(p=>p[0]),ys=pts.map(p=>p[1]);
+  const minx=Math.min(...xs),maxx=Math.max(...xs),miny=Math.min(...ys),maxy=Math.max(...ys);
+  const w=(maxx-minx)||1,h=(maxy-miny)||1,W=42,H=30,pad=4,sc=Math.min((W-2*pad)/w,(H-2*pad)/h),ox=(W-w*sc)/2,oy=(H-h*sc)/2;
+  const P=pts.map(p=>((ox+(p[0]-minx)*sc).toFixed(1))+','+((oy+(maxy-p[1])*sc).toFixed(1))).join(' ');
+  return '<svg viewBox="0 0 '+W+' '+H+'" aria-hidden="true"><polygon points="'+P+'" fill="var(--shape-fill)" stroke="var(--shape)" stroke-width="1.7" stroke-linejoin="round"/></svg>'; }
+function buildPicker(){ const bar=document.getElementById('picker');
+  for(const k of ORDER){ const b=document.createElement('button'); b.className='tile'; b.setAttribute('role','tab'); b.dataset.k=k;
+    b.setAttribute('aria-selected',k===state.tab); b.innerHTML=iconMarkup(k)+'<span>'+SHAPES[k].label+'</span>'; b.onclick=()=>switchTab(k); bar.appendChild(b); } }
+function switchTab(k){ state.tab=k; state.view.ready=false;
+  document.querySelectorAll('.tile').forEach(t=>t.setAttribute('aria-selected',t.dataset.k===k)); updateModeCtrls(); serialize(); render(); }
+function refineLabel(){ document.getElementById('l-refine').textContent=['grob','normal','fein'][state.refine]; }
+function updateWhereVisible(){ document.getElementById('ctrl-where').style.display=state.gridOn?'':'none'; }
+function updateModeCtrls(){ const isC=S().isCircle, isT=state.tab==='dreieck', isTr=state.tab==='trapez', off=!state.deriveOn;
+  const cm=document.getElementById('ctrl-cmode'); cm.style.display=isC?'':'none'; cm.classList.toggle('is-disabled',off);
+  const cs=document.getElementById('ctrl-sectors'); cs.style.display=(isC&&state.circleMode==='sectors')?'':'none'; cs.classList.toggle('is-disabled',off);
+  const ct=document.getElementById('ctrl-tmode'); ct.style.display=isT?'':'none'; ct.classList.toggle('is-disabled',off);
+  const cp=document.getElementById('ctrl-trapmode'); cp.style.display=isTr?'':'none'; cp.classList.toggle('is-disabled',off); }
+
+function serialize(){ let p; try{p=new URLSearchParams(location.search);}catch(e){p=new URLSearchParams();}
+  p.set('ef',state.tab); p.set('eg',state.gridOn?1:0); p.set('egw',state.gridEverywhere?1:0);
+  p.set('erf',state.refine); p.set('ei',state.intOnly?1:0); p.set('ed',state.deriveOn?1:0);
+  p.set('ecm',state.circleMode); p.set('esc',state.sectors); p.set('etm',state.triangleMode); p.set('etp',state.trapMode);
+  try{ history.replaceState(null,'','?'+p.toString()); }catch(e){} }
+function deserialize(){ let p; try{p=new URLSearchParams(location.search);}catch(e){return;}
+  if(p.has('ef')&&SHAPES[p.get('ef')]) state.tab=p.get('ef');
+  if(p.has('eg')) state.gridOn=p.get('eg')==='1';
+  if(p.has('egw')) state.gridEverywhere=p.get('egw')==='1';
+  if(p.has('erf')) state.refine=Math.min(2,Math.max(0,+p.get('erf')||0));
+  if(p.has('ei')) state.intOnly=p.get('ei')==='1';
+  if(p.has('ed')) state.deriveOn=p.get('ed')==='1';
+  if(p.has('ecm')) state.circleMode=p.get('ecm')==='sectors'?'sectors':'squares';
+  if(p.has('esc')) state.sectors=Math.min(48,Math.max(4,+p.get('esc')||12));
+  if(p.has('etm')) state.triangleMode=p.get('etm')==='rectangle'?'rectangle':'parallelogram';
+  if(p.has('etp')) state.trapMode=p.get('etp')==='midline'?'midline':'parallelogram'; }
+function syncControls(){
+  document.getElementById('c-grid').checked=state.gridOn;
+  document.getElementById('c-int').checked=state.intOnly;
+  document.getElementById('c-derive').checked=state.deriveOn;
+  document.getElementById('c-refine').value=state.refine;
+  document.getElementById('c-sectors').value=state.sectors; document.getElementById('l-sectors').textContent=state.sectors;
+  document.querySelectorAll('.tile').forEach(t=>t.setAttribute('aria-selected',t.dataset.k===state.tab));
+  document.querySelectorAll('#ctrl-where .seg button').forEach(b=>b.classList.toggle('on',b.dataset.where===(state.gridEverywhere?'all':'shape')));
+  document.querySelectorAll('#ctrl-cmode .seg button').forEach(b=>b.classList.toggle('on',b.dataset.cmode===state.circleMode));
+  const tm=document.querySelectorAll('#ctrl-tmode .seg button'); tm.forEach(b=>b.classList.toggle('on',b.dataset.tmode===state.triangleMode));
+  document.querySelectorAll('#ctrl-trapmode .seg button').forEach(b=>b.classList.toggle('on',b.dataset.trapmode===state.trapMode));
+  refineLabel(); }
+function wire(){
+  buildPicker(); deserialize(); syncControls();
+  document.getElementById('c-grid').onchange=e=>{state.gridOn=e.target.checked;updateWhereVisible();serialize();render();};
+  document.getElementById('c-int').onchange=e=>{state.intOnly=e.target.checked;serialize();render();};
+  document.getElementById('c-derive').onchange=e=>{state.deriveOn=e.target.checked;updateModeCtrls();serialize();render();};
+  document.getElementById('c-refine').oninput=e=>{state.refine=+e.target.value;refineLabel();serialize();render();};
+  document.getElementById('c-sectors').oninput=e=>{state.sectors=+e.target.value;document.getElementById('l-sectors').textContent=e.target.value;serialize();render();};
+  document.querySelectorAll('#ctrl-where .seg button').forEach(b=>b.onclick=()=>{ state.gridEverywhere=b.dataset.where==='all';
+    document.querySelectorAll('#ctrl-where .seg button').forEach(x=>x.classList.toggle('on',x===b)); serialize(); render(); });
+  document.querySelectorAll('#ctrl-cmode .seg button').forEach(b=>b.onclick=()=>{ state.circleMode=b.dataset.cmode;
+    document.querySelectorAll('#ctrl-cmode .seg button').forEach(x=>x.classList.toggle('on',x===b)); updateModeCtrls(); serialize(); state.view.ready=false; render(); });
+  document.querySelectorAll('#ctrl-tmode .seg button').forEach(b=>b.onclick=()=>{ state.triangleMode=b.dataset.tmode;
+    if(state.triangleMode==='rectangle'){ const d=state.data.dreieck; d.cx=Math.max(0,Math.min(d.g,d.cx)); }  // Höhenfuß auf der Grundseite halten
+    document.querySelectorAll('#ctrl-tmode .seg button').forEach(x=>x.classList.toggle('on',x===b)); serialize(); state.view.ready=false; render(); });
+  document.querySelectorAll('#ctrl-trapmode .seg button').forEach(b=>b.onclick=()=>{ state.trapMode=b.dataset.trapmode;
+    document.querySelectorAll('#ctrl-trapmode .seg button').forEach(x=>x.classList.toggle('on',x===b)); serialize(); render(); });
+  document.getElementById('b-reset').onclick=()=>{centerView();render();};
+  stage.addEventListener('pointerdown',onDown);
+  stage.addEventListener('pointermove',onMove);
+  stage.addEventListener('pointerup',endPointer);
+  stage.addEventListener('pointercancel',endPointer);
+  stage.addEventListener('wheel',onWheel,{passive:false});
+  window.addEventListener('resize',()=>render());
+  updateWhereVisible(); updateModeCtrls(); render();
+}
+if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',wire); else wire();
+if(typeof window!=='undefined') window.__api={state,SHAPES,ptsW,handlePtsW,render,S,D,GRID_STEPS,w2s,s2w,pointers,constructionPts};
+window.__erkActivate=function(){ state.view.ready=false; render(); if(window.MathJax&&window.MathJax.typesetPromise){window.MathJax.typesetPromise([document.getElementById('formula')]).catch(function(){});} };
+
+})();
+</script>
+<script>
+(function(){
+  var sw=document.getElementById('mode-switch');
+  var mu=document.getElementById('mode-uebung'), me=document.getElementById('mode-erkundung');
+  function setMode(m,write){
+    sw.querySelectorAll('button').forEach(function(x){ x.classList.toggle('on',x.dataset.mode===m); });
+    mu.classList.toggle('hidden', m!=='uebung');
+    me.classList.toggle('hidden', m!=='erkundung');
+    if(m==='erkundung' && window.__erkActivate) window.__erkActivate();
+    if(write){ try{ var p=new URLSearchParams(location.search); p.set('em',m); history.replaceState(null,'','?'+p.toString()); }catch(e){} }
+  }
+  sw.querySelectorAll('button').forEach(function(b){ b.addEventListener('click',function(){ setMode(b.dataset.mode,true); }); });
+  var m0='uebung'; try{ if(new URLSearchParams(location.search).get('em')==='erkundung') m0='erkundung'; }catch(e){}
+  setMode(m0,false);
+})();
+</script>
+</body>
+</html>

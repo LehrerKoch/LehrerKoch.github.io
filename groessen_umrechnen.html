@@ -9,186 +9,461 @@
   <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   <title>Größen umrechnen</title>
   <link rel="stylesheet" type="text/css" href="styles.css">
-  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-5K8WYYXDL2"></script>
     <script>
         window.dataLayer = window.dataLayer || [];
         function gtag(){dataLayer.push(arguments);}
         gtag('js', new Date());
-
         gtag('config', 'G-5K8WYYXDL2');
     </script>
   <style>
+    :root{
+      --green:#4CAF50; --green-d:#388e3c; --green-dd:#2e7d32; --green-l:#e8f5e9;
+      --ink:#333; --muted:#888; --blue:#5b9bd5; --blue-l:#eef5fc; --blue-d:#1c4e80;
+      --amber:#f0ad4e; --amber-l:#fff8ec; --amber-d:#8a5a00;
+    }
 
-    body { font-family: sans-serif; -webkit-user-select: none; user-select: none; overflow-x: hidden; }
+    html { scrollbar-gutter: stable; }
+    body { font-family: sans-serif; -webkit-user-select: none; user-select: none; overflow-x: hidden; max-width: 680px; margin: 0 auto; padding: 0 12px; }
     *:focus { outline: none; }
 
-    #flashOverlay {
-      position: fixed; inset: 0; pointer-events: none; z-index: 0;
-      opacity: 0; transition: opacity 1s;
+    
+    #lobby-spacer { 
+        flex: 1 1 0; 
+        min-height: 0; 
     }
+    .site-footer {
+        width: 100%; box-sizing: border-box; padding: 15px 15px;
+        border-top: 1px solid #ccc; margin-top: 4px; margin-bottom: 0px;
+        font-family: sans-serif; font-size: 0.6em; color: #333333d8;
+    }
+    .footer-content {
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        align-items: center;
+        margin: 0 auto;
+        max-width: 800px;
+    }
+    .footer-content > :first-child {
+        justify-self: start;
+    }
+    .footer-content > :nth-child(2) {
+        justify-self: center;
+    }
+    .footer-content > :last-child {
+        justify-self: end;
+    }
+    .footer-topic a { 
+        color: inherit; 
+        text-decoration: underline; 
+    }
+
+    #app { max-width: 680px; margin: 0 auto; width: 100%; position: relative; z-index: 1; }
+
+    #flashOverlay { position: fixed; inset: 0; pointer-events: none; z-index: 0; opacity: 0; transition: opacity 1s; }
     #toast {
       position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
       background: #333; color: #fff; padding: 12px 24px; border-radius: 10px;
-      font-size: 0.95em; opacity: 0; pointer-events: none;
-      transition: opacity 0.4s; z-index: 999; white-space: nowrap;
+      font-size: 0.95em; opacity: 0; pointer-events: none; transition: opacity 0.4s;
+      z-index: 999; white-space: nowrap; max-width: 92vw;
     }
     #toast.show { opacity: 1; }
 
-    /* Card area - Vereinfacht für reinen Eingabemodus */
+    h1 { text-align: center; }
+
+    /* ── Einheiten-Raster ── */
+    .unit-section { margin-bottom: 10px; }
+    .unit-section-head {
+      display: flex; align-items: center; gap: 10px; font-weight: bold; margin-bottom: 5px; font-size: 0.95rem;
+    }
+    .link-btn {
+      background: none; border: none; color: var(--green-d); text-decoration: underline;
+      font-size: 0.78rem; cursor: pointer; padding: 2px 3px; touch-action: manipulation;
+    }
+    .link-btn.liter { color: var(--blue-d); }
+    .unit-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; align-items: start; }
+
+    .unit-chip {
+      width: 100%; box-sizing: border-box; min-height: 46px; padding: 3px 2px;
+      display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+      border: 2px solid var(--green); border-radius: 6px; background: #fff; color: var(--green-dd);
+      cursor: pointer; user-select: none; touch-action: manipulation;
+      transition: background .12s, color .12s, transform .06s, box-shadow .12s;
+    }
+    .unit-chip:active { transform: scale(.95); }
+    .unit-chip.on { background: var(--green); color: #fff; box-shadow: 0 2px 5px rgba(76,175,80,.35); }
+    .unit-chip .u-sym  { font-size: 0.82rem; font-weight: 700; line-height: 1.15; height: 1.2em; }
+    .unit-chip .u-name { font-size: 0.5rem; font-weight: 500; opacity: .85; line-height: 1.02; text-align: center; height: 2.05em; overflow: hidden; margin-top: 2px; }
+
+    .vol-cell { display: flex; flex-direction: column; gap: 4px; }
+    .liter-wrap { display: flex; flex-direction: column; gap: 3px; }
+    .liter-chip {
+      width: 100%; box-sizing: border-box; min-height: 27px; padding: 2px 2px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      border: 2px dashed var(--blue); border-radius: 6px; background: #fff; color: var(--blue-d);
+      cursor: pointer; user-select: none; touch-action: manipulation; line-height: 1.02;
+      transition: background .12s, color .12s, transform .06s;
+    }
+    .liter-chip:active { transform: scale(.94); }
+    .liter-chip.on { background: var(--blue); color: #fff; border-style: solid; }
+    .liter-chip .l-sym  { font-size: 0.74rem; font-weight: 700; }
+    .liter-chip .l-name { font-size: 0.44rem; font-weight: 500; opacity: .85; }
+
+    /* ── kompakte Options-Checkboxen (Aufgabentypen / Hinweise) ── */
+    .opt-list { margin-top: 2px; }
+    .opt-row { display: flex; align-items: center; gap: 7px; padding: 2px 0; font-size: 0.9rem; cursor: pointer; }
+    .opt-row input[type="checkbox"] { width: 15px; height: 15px; accent-color: var(--green); cursor: pointer; margin: 0; flex-shrink: 0; }
+    .opt-row.sub { margin-left: 24px; font-size: 0.86rem; position: relative; }
+    .opt-row.sub::before { content: "↳"; position: absolute; left: -16px; color: #bbb; font-size: 0.85rem; }
+    .opt-row.dis { opacity: .5; cursor: default; }
+    .opt-tag { font-size: 0.68rem; color: #999; font-style: italic; margin-left: 4px; }
+    .block-label { font-weight: bold; display: block; margin-bottom: 4px; }
+    .hint-note { font-size: 0.74rem; color: #999; margin: 1px 0 3px 24px; }
+
+    /* ── Dimensions-Umschalter ── */
+    #quickControls { margin: 16px 0 4px; }
+    #dimToggles { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+    .dim-box {
+      flex: 1 1 0; min-width: 0; max-width: 200px; min-height: 34px; padding: 5px 8px; -webkit-touch-callout: none;
+      display: inline-flex; flex-direction: column; align-items: center; justify-content: center;
+      border: 2px solid var(--green); border-radius: 7px; background: #fff; color: var(--green-dd);
+      cursor: pointer; user-select: none; touch-action: manipulation; line-height: 1.05;
+      transition: background .12s, color .12s, transform .06s, box-shadow .12s;
+    }
+    .dim-box:active { transform: scale(.96); }
+    .dim-box.on { background: var(--green); color: #fff; box-shadow: 0 2px 5px rgba(76,175,80,.35); }
+    .dim-box .dim-name { font-weight: 700; font-size: 0.9rem; }
+    .dim-box .dim-sub  { font-size: 0.62rem; opacity: .9; }
+    .dim-hint-text { text-align: center; font-size: 0.74rem; color: #aaa; margin: 7px 0 4px; }
+
+    .unit-menu { position: fixed; z-index: 41; background: #fff; border: 1px solid #cfcfcf; border-radius: 10px;
+      box-shadow: 0 8px 24px rgba(0,0,0,.22); padding: 10px; width: 210px; max-height: 76vh; overflow-y: auto;
+      display: flex; flex-direction: column; }
+    .unit-menu .um-title { font-weight: 700; font-size: 0.86rem; color: var(--green-dd); text-align: center; margin-bottom: 8px; }
+    .unit-menu .um-list { display: flex; flex-direction: column; gap: 4px; }
+    .unit-menu .um-row { display: flex; align-items: center; gap: 8px; width: 100%; box-sizing: border-box;
+      text-align: left; height: 36px; overflow: hidden; padding: 0 9px; border: 1.5px solid var(--green); border-radius: 7px;
+      background: #fff; color: var(--green-dd); cursor: pointer; font: inherit; line-height: 1; }
+    .unit-menu .um-row.on { background: var(--green); color: #fff; }
+    .unit-menu .um-row .um-check, .unit-menu .um-row .um-sym, .unit-menu .um-row .um-name {
+      display: flex; align-items: center; height: 100%; line-height: 1; }
+    .unit-menu .um-row .um-check { flex: 0 0 1.1em; width: 1.1em; font-weight: 700; justify-content: center; }
+    .unit-menu .um-row .um-sym { flex: 0 0 2.6em; min-width: 2.6em; font-weight: 700; white-space: nowrap; }
+    .unit-menu .um-row .um-name { flex: 1 1 auto; min-width: 0; font-size: 0.72rem; opacity: .85;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .unit-menu .um-split { display: flex; gap: 6px; height: 36px; }
+    .unit-menu .um-split .um-half { flex: 1 1 0; min-width: 0; gap: 8px; height: 36px; }
+    .unit-menu .um-split .um-half .um-name { display: none; }
+    .unit-menu .um-split .um-half .um-sym { flex: 0 0 2.6em; min-width: 2.6em; justify-content: flex-start; }
+    .unit-menu .um-r { border-color: var(--blue); color: var(--blue-d); }
+    .unit-menu .um-r.on { background: var(--blue); color: #fff; }
+    .unit-menu .um-confirm { margin-top: 12px; padding: 8px; border: 2px solid var(--green-dd); border-radius: 7px;
+      background: var(--green); color: #fff; font-weight: 700; cursor: pointer; }
+    .unit-menu .um-confirm:active { transform: scale(.98); }
+
+    /* ── Segment-Schalter ── */
+    .seg-block { text-align: center; margin: 11px 0; }
+    .seg-block .seg-label { display: block; font-weight: bold; font-size: 0.84rem; color: #444; margin-bottom: 4px; }
+    .segmented { display: inline-flex; border: 2px solid var(--green); border-radius: 7px; overflow: hidden; max-width: 100%; }
+    .segmented label {
+      padding: 5px 12px; font-size: 0.82rem; cursor: pointer; background: #fff; color: var(--green-dd);
+      border-right: 2px solid var(--green); user-select: none; transition: background .12s;
+      display: flex; align-items: center; justify-content: center; touch-action: manipulation; line-height: 1.1; text-align: center;
+    }
+    .segmented label:last-child { border-right: none; }
+    .segmented label:active { background: var(--green-l); }
+    .segmented input { display: none; }
+    .segmented label:has(input:checked) { background: var(--green); color: #fff; }
+
+    /* ── Kopfzeile ── */
+    #topRow { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 14px; }
+    #counter { font-weight: bold; margin: 0; }
+
+    /* ── Karte ── */
     #taskWrap {
-      position: relative; width: 100%; height: 210px; margin-top: 20px;
-      border: 1px solid #eee; border-radius: 10px; z-index: 1;
-      display: flex; justify-content: center; align-items: center;
-      background-color: #fafafa;
+      position: relative; width: 100%; height: 200px; margin-top: 8px;
+      border: 1px solid #eee; border-radius: 14px; z-index: 1;
+      display: flex; justify-content: center; align-items: center; background-color: #fafafa;
     }
-
-    #taskCard {
-      position: relative;
-      text-align: center; border-radius: 15px;
-      width: calc(100% - 40px); max-width: 400px; height: 90%;
-      z-index: 2; box-sizing: border-box;
-    }
-
+    #taskCard { position: relative; text-align: center; border-radius: 15px; width: calc(100% - 40px); max-width: 400px; height: 90%; z-index: 2; box-sizing: border-box; }
     .card-face {
-      position: absolute; width: 100%; height: 100%;
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      border: 2px solid #ddd; border-radius: 15px; background: white;
-      transition: background-color 0.2s ease;
-      overflow: hidden; box-sizing: border-box;
+      position: absolute; width: 100%; height: 100%; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; border: 2px solid #ddd; border-radius: 15px;
+      background: white; transition: opacity 0.2s ease; overflow: hidden; box-sizing: border-box;
     }
+    .card-sub { font-size: 0.85em; color: var(--muted); margin-top: 10px; flex-shrink: 0; }
+    .scale-wrapper { overflow: visible; width: 90%; padding: 0.3em 0.5em; display: flex; justify-content: center; align-items: center; flex-shrink: 0; pointer-events: none; }
+    .scale-el { display: inline-block; transform-origin: center center; white-space: nowrap; font-size: 1.6em; pointer-events: none; }
 
-    .card-sub { font-size: 0.85em; color: #888; margin-top: 10px; flex-shrink: 0; }
+    #taskLabel { text-align: center; margin: 8px 0 0; font-weight: bold; color: #b00020; min-height: 0; }
 
-    .scale-wrapper {
-      overflow: visible; width: 90%; padding: 0.3em 0.5em;
-      display: flex; justify-content: center; align-items: center;
-      flex-shrink: 0; pointer-events: none;
-    }
-    .scale-el {
-      display: inline-block; transform-origin: center center;
-      white-space: nowrap; font-size: 1.6em; pointer-events: none;
-    }
-
-    /* Settings */
-    .radio-group { display: inline-flex; border-radius: 6px; overflow: hidden; border: 2px solid #4CAF50; margin: 6px 0 12px 0; }
-    .radio-group label { display: flex; align-items: center; padding: 5px 9px; font-weight: normal; font-size: 0.78em; cursor: pointer; background: #fff; border-right: 1px solid #4CAF50; transition: background 0.15s; line-height: 1.3; user-select: none; }
-    .radio-group label:last-child { border-right: none; }
-    .radio-group label:hover { background: #f1fbf1; }
-    .radio-group input[type="radio"] { display: none; }
-    .radio-group label:has(input:checked) { background: #4CAF50; color: #fff; }
-
-    .cb-grid { display: flex; flex-wrap: wrap; gap: 2px 4px; margin: 4px 0 8px 0; }
-    .cb-item { display: flex; align-items: center; width: 65px; gap: 3px; font-size: 0.85em; }
-    .cb-item input[type="checkbox"] { flex-shrink: 0; width: 14px; height: 14px; margin: 0; cursor: pointer; }
-    .cb-item label { cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    
-    .cb-item.wide { width: auto; margin-right: 15px; }
-
-    .section-toggle-btn {
-      font-size: 0.72em; padding: 1px 7px; margin-left: 7px;
-      border: 1px solid #aaa; border-radius: 4px; background: #f5f5f5;
-      cursor: pointer; vertical-align: middle; color: #333;
-      transition: background 0.12s;
-    }
-    .section-toggle-btn:hover { background: #e0e0e0; }
-
-    /* Input mode answer area */
-    #inputArea {
-      display: flex; flex-direction: column; align-items: center;
-      gap: 8px; margin: 20px 0 0 0; width: 100%;
-    }
+    /* ── Eingabe ── */
+    #inputArea { display: flex; flex-direction: column; align-items: center; gap: 10px; margin: 16px 0 0 0; width: 100%; }
     #answerInput {
-      width: min(320px, 90vw); padding: 8px 12px; font-size: 1.1em;
-      border: 2px solid #ccc; border-radius: 8px; text-align: center;
-      outline: none; transition: border-color 0.2s, background 0.2s;
+      width: min(320px, 90vw); padding: 9px 12px; font-size: 1.1em; border: 2px solid #ccc;
+      border-radius: 8px; text-align: center; outline: none; transition: border-color 0.2s, background 0.2s;
     }
-    #answerInput:focus { border-color: #4CAF50; }
+    #answerInput:focus { border-color: var(--green); }
     #answerInput.correct { border-color: #28a745; background: #d4edda; color: #155724; }
     #answerInput.wrong   { border-color: #dc3545; background: #f8d7da; color: #721c24; }
-    
+    #answerInput:disabled { background: #f4f4f4; color: #999; }
+
     #checkBtn {
-      padding: 9px 24px; font-size: 1em; border-radius: 8px;
-      border: 2px solid #4CAF50; background: #e8f5e9; color: #1b5e20;
-      cursor: pointer; font-weight: bold; transition: background 0.15s, border-color 0.15s;
-      letter-spacing: 0.02em;
+      padding: 8px 22px; font-size: 0.92em; border-radius: 6px; border: 2px solid var(--green);
+      background: var(--green-l); color: #1b5e20; cursor: pointer; font-weight: bold;
+      transition: background 0.15s, border-color 0.15s; letter-spacing: 0.02em; touch-action: manipulation;
     }
-    #checkBtn:hover { background: #c8e6c9; border-color: #388e3c; }
-    
+    #checkBtn:hover { background: #c8e6c9; border-color: var(--green-d); }
+    #checkBtn:active { transform: scale(.97); }
+    #checkBtn:disabled { opacity: .5; cursor: default; }
+
     #answerHint {
-      font-size: 0.9em; color: #721c24; background: #f8d7da;
-      border: 1px solid #dc3545; border-radius: 6px;
-      padding: 5px 10px; text-align: center;
-      display: none; max-width: min(320px, 90vw); font-weight: bold;
+      font-size: 0.9em; color: #721c24; background: #f8d7da; border: 1px solid #dc3545;
+      border-radius: 6px; padding: 5px 10px; text-align: center; display: none; max-width: min(320px, 90vw); font-weight: bold;
     }
     #answerHint.visible { display: block; }
+
+    #solutionBox {
+      display: none; padding: 8px 16px; border: 2px solid var(--blue); background: var(--blue-l);
+      color: var(--blue-d); border-radius: 8px; font-weight: 700; font-size: 1.05rem; text-align: center; max-width: min(340px, 90vw);
+    }
+    #solutionBox.show { display: block; }
+
+    /* ── Aktions-Buttons ── */
+    #actionRow { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 2px; }
+    .act-btn {
+      padding: 7px 14px; border-radius: 6px; border: 2px solid #bbb; background: #f5f5f5; color: #333;
+      font-size: 0.85rem; font-weight: 600; cursor: pointer; touch-action: manipulation; transition: background .12s, transform .06s;
+    }
+    .act-btn:active { transform: scale(.96); }
+    .act-btn:disabled { opacity: .45; cursor: default; }
+    .act-btn.hint   { border-color: var(--amber); background: var(--amber-l); color: var(--amber-d); }
+    .act-btn.reveal { border-color: var(--blue);  background: var(--blue-l);  color: var(--blue-d); }
+
+    /* ── Hinweis-Karten ── */
+    #hintArea { margin: 6px auto 0; max-width: min(480px, 94vw); display: flex; flex-direction: column; gap: 9px; width: 100%; }
+    .hint-card { border: 1px solid #e6d9b3; background: #fffdf5; border-left: 4px solid var(--amber); border-radius: 10px; padding: 11px 13px; font-size: 0.93rem; text-align: left; }
+    .hint-card.collapsed { padding: 7px 12px; background: #faf7ee; opacity: .95; }
+    .hint-title { font-weight: 700; color: var(--amber-d); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px; }
+    .hint-title-sm { font-weight: 700; color: var(--amber-d); font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.03em; margin-bottom: 3px; }
+    .hint-sum { font-size: 0.92rem; }
+    .hint-q { margin: 3px 0 7px; }
+    .hint-text { margin: 7px 0 2px; font-size: 0.86rem; color: #666; line-height: 1.4; }
+    .hint-seq { display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; align-items: center; margin: 6px 0; }
+    .hint-seq .u { padding: 4px 9px; border-radius: 8px; background: #eee; font-weight: 600; font-size: 0.9rem; }
+    .hint-seq .u.from  { background: #cfe8ff; }
+    .hint-seq .u.to    { background: #d4edda; }
+    .hint-seq .u.ghost { background: #f7f7f7; color: #bbb; border: 1px dashed #ccc; }
+    .hint-seq .arrow   { color: #bbb; font-size: 0.85rem; }
+    .hint-next-btn { display: block; margin: 12px auto 2px; padding: 7px 16px; border: 1.5px solid var(--amber-d);
+      border-radius: 20px; background: #fff; color: var(--amber-d); font-weight: 700; font-size: 0.82rem; cursor: pointer; }
+    .hint-next-btn:active { transform: scale(.97); background: var(--amber-l); }
+    .quiz-opts { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+    .quiz-btn {
+      padding: 6px 12px; border: 2px solid #bbb; border-radius: 6px; background: #fff; color: #333;
+      cursor: pointer; font-weight: 600; font-size: 0.85rem; touch-action: manipulation; transition: transform .06s;
+    }
+    .quiz-btn:active { transform: scale(.96); }
+    .quiz-btn.correct { border-color: #28a745; background: #d4edda; color: #155724; }
+    .quiz-btn.wrong   { border-color: #dc3545; background: #f8d7da; color: #721c24; }
+    .quiz-btn:disabled { cursor: default; }
+
+    /* ── Modus / Erkundung / Komma-Leiste ── */
+    .hidden { display: none !important; }
+    .stage { display: flex; align-items: center; gap: 6px; justify-content: center; margin: 8px 0 4px; width: 100%; }
+    .navbtn {
+      width: 44px; height: 44px; padding: 0; font-size: 1.3rem; line-height: 1; flex: 0 0 auto;
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      border: 2px solid var(--green); background: var(--green-l); color: var(--green-dd);
+      cursor: pointer; touch-action: manipulation; transition: transform .06s;
+    }
+    .navbtn:disabled { opacity: .35; cursor: default; }
+    .navbtn:active { transform: scale(.95); }
+    .stripwrap { flex: 1 1 0; min-width: 0; }
+    .stripwrap.fit-scale { overflow: hidden; display: flex; justify-content: center; }
+    .stripwrap.fit-scroll { overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch; padding: 2px 0; }
+    .stripbox { position: relative; margin: 0 auto; }
+    .strip { position: relative; transform-origin: top left; }
+    .inputrow { text-align: center; margin: 2px 0 6px; }
+    .inputrow label { font-weight: bold; margin-right: 6px; vertical-align: middle; }
+    .inputrow input[type=text], .inputrow select { height: 38px; font-size: 1.1rem; padding: 0 8px; border: 1px solid #888; border-radius: 4px; vertical-align: middle; background: #fff; }
+    .inputrow input[type=text] { width: 7em; text-align: center; }
+    .inputrow select { margin-left: 6px; padding: 0 6px; }
+    .inputbtn { text-align: center; margin-bottom: 14px; }
+    .strip.dragging .comma, .strip.dragging .connector, .strip.dragging .handle { transition: none; }
+    .digit { position: absolute; text-align: center; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--ink); line-height: 1; user-select: none; }
+    .digit.zero-added { color: var(--green-d); }
+    .comma { position: absolute; color: var(--green); font-weight: 900; transform: translateX(-50%); line-height: 1; user-select: none; transition: left .18s cubic-bezier(.2,.7,.2,1); }
+    .connector { position: absolute; width: 2px; background: var(--green); transform: translateX(-50%); opacity: .5; transition: left .18s cubic-bezier(.2,.7,.2,1); }
+    .rail { position: absolute; height: 3px; background: #9aa6ab; touch-action: none; cursor: pointer; }
+    .tick { position: absolute; width: 2px; background: #9aa6ab; opacity: .65; transform: translateX(-50%); touch-action: none; }
+    .tick.start { background: #555; opacity: .95; }
+    .handle {
+      position: absolute; width: 30px; height: 30px; border-radius: 50%; touch-action: none;
+      background: #fff; border: 3px solid var(--green); transform: translate(-50%,-50%); cursor: grab;
+      display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 4px rgba(0,0,0,.25);
+      transition: left .18s cubic-bezier(.2,.7,.2,1);
+    }
+    .handle:active { cursor: grabbing; }
+    .handle::after { content: ','; color: var(--green); font-weight: 900; font-size: 1.2rem; margin-top: -.35em; }
+    .strip.locked .handle { opacity: .45; cursor: default; }
+    .arcsvg { position: absolute; left: 0; top: 0; overflow: visible; pointer-events: none; }
+    .arcsvg path { fill: none; stroke: var(--green); stroke-width: 2.5; stroke-linecap: round; }
+    .arcsvg polygon { fill: var(--green); stroke: none; }
+    .arcsvg circle { fill: var(--green); }
+    .arcsvg text { fill: #fff; font-weight: 700; }
+    .tracklbl { position: absolute; transform: translateX(-50%); text-align: center; white-space: nowrap; font-size: .85rem; color: #555; user-select: none; line-height: 1.25; }
+    .tracklbl.active { color: #fff; background: var(--green); border-radius: 4px; padding: 1px 6px; font-weight: 700; }
+    .tracklbl sup { font-size: .7em; }
+    .rare-reveal { opacity: 0; transition: opacity .12s; cursor: help; }
+    .tracklbl:hover .rare-reveal, .tracklbl.active .rare-reveal { opacity: 1; }
+    .panels { margin-top: 14px; display: flex; flex-direction: column; gap: 10px; }
+    .panel { border: 1px solid #ccc; border-radius: 6px; padding: 10px 12px; background: #fafafa; text-align: center; }
+    .panel h3 { margin: 0 0 4px; font-size: .72rem; text-transform: uppercase; letter-spacing: .05em; color: #666; font-weight: 700; }
+    .panel .big { font-size: 1.3rem; }
+    .panel .muted { color: #777; }
+    .eq { font-variant-numeric: tabular-nums; }
+    .pow sup { font-size: .7em; }
+    .unitname.rare { color: #b26a00; font-style: italic; }
+    .k-note { font-size: .85rem; color: #b26a00; margin-top: 4px; }
+    .ex-sub { color: #555; margin: 2px 0 12px; font-size: .92rem; text-align: center; }
+    .opts .row { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; margin: 7px 0; justify-content: center; }
+    .opts label.chk { font-weight: normal; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; font-size: .9rem; }
+    .opts select { padding: 3px 6px; border: 1px solid #888; border-radius: 4px; font-size: .95rem; }
+    .comma-hint { text-align: center; font-size: 0.8rem; color: #888; margin: 2px 0 0; }
+    .ex-shape-cap { text-align: center; font-size: 0.92rem; color: #555; margin: 0 0 10px; }
+    .ex-dim-note { text-align: center; font-size: 0.82rem; color: var(--green-dd); margin: 6px 0 0; font-weight: 600; }
+    .ex-shape-cap b { color: var(--green-dd); }
+    #ex-shape-host { display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 40px; }
+    #ex-shape-host svg { max-width: 100%; height: auto; }
+    #ex-shape-host canvas { touch-action: none; border-radius: 6px; }
+    .shape-note { text-align: center; font-size: 0.82rem; color: #b26a00; margin-top: 8px; }
+    .shape-legend { margin-top: 10px; font-size: 0.86rem; color: #444; }
+    .shape-legend-row { display: flex; align-items: center; gap: 6px; margin: 3px 0; }
+    .shape-legend .sw { width: 14px; height: 14px; border: 1px solid #2e7d32; border-radius: 3px; display: inline-block; flex: 0 0 auto; }
+    .shape-legend .tag { color: #777; font-size: 0.8rem; }
   </style>
 </head>
 <body>
   <div id="flashOverlay"></div>
   <div id="toast"></div>
-  <div style="position:relative; z-index:1;">
+
+  <div id="app">
 
   <h1>Größen umrechnen</h1>
 
+  <div class="seg-block" style="margin-top:6px;">
+    <div class="segmented" id="modeSeg">
+      <label><input type="radio" name="mode" value="training" checked> Training</label>
+      <label><input type="radio" name="mode" value="explore"> Erkundung</label>
+    </div>
+  </div>
+
+  <div id="trainingView">
+
   <details>
-    <summary>Settings</summary>
+    <summary>Einstellungen</summary>
     <form id="settingsForm">
-      
-      <div class="form-block">
-        <b>Längenmaße:</b><button type="button" onclick="toggleGroup('length')">alle</button><br>
-        <div id="length" class="cb-grid"></div>
-        
-        <b>Flächenmaße:</b><button type="button" onclick="toggleGroup('area')">alle</button><br>
-        <div id="area" class="cb-grid"></div>
-        
-        <b>Raummaße:</b><button type="button" onclick="toggleGroup('volume')">alle</button><br>
-        <div id="volume" class="cb-grid"></div>
-      </div>
 
       <div class="form-block">
-        <b>Schrittweite:</b><br>
-        <div class="radio-group">
-          <label><input type="radio" name="stepMode" value="adjacent" checked> Nur benachbarte Größen</label>
-          <label><input type="radio" name="stepMode" value="skip"> Auch Größen überspringen</label>
-        </div>
-      </div>
-
-      <div class="form-block">
-        <b>Umrechnungsrichtung:</b><br>
-        <div class="radio-group">
-          <label><input type="radio" name="dirMode" value="up"> Klein nach Groß</label>
-          <label><input type="radio" name="dirMode" value="random" checked> Zufällig</label>
-          <label><input type="radio" name="dirMode" value="down"> Groß nach Klein</label>
-        </div>
-      </div>
-
-      <div class="form-block">
-        <b>Aufgabentypen (Zahlen):</b><br>
-        <div class="cb-grid" style="flex-direction: column;">
-          <div class="cb-item wide"><label><input type="checkbox" id="numInt" checked disabled> Ganze Zahlen</label></div>
-          <div class="cb-item wide"><label><input type="checkbox" id="numDec"> Kommazahlen</label></div>
-          <div class="cb-item wide"><label><input type="checkbox" id="numFrac"> Brüche</label></div>
-          <div class="cb-item wide"><label><input type="checkbox" id="numSci"> Wissenschaftliche Schreibweise</label></div>
-        </div>
-      </div>
-
-      <div class="form-block">
-        <b>Erweiterte Aufgaben:</b><br>
-        <div class="cb-grid" style="flex-direction: column;">
-          <div class="cb-item wide" style="opacity: 0.6;">
-            <label><input type="checkbox" id="mixUnits" disabled> Aufgaben verrechnen (z.B. 3m + 22cm) <i style="font-size:0.8em;">(In Entwicklung)</i></label>
+        <div class="unit-section">
+          <div class="unit-section-head">
+            Längenmaße
+            <button type="button" class="link-btn" onclick="toggleGroup('length')">alle&nbsp;an/aus</button>
           </div>
+          <div id="length" class="unit-grid"></div>
+        </div>
+
+        <div class="unit-section">
+          <div class="unit-section-head">
+            Flächenmaße
+            <button type="button" class="link-btn" onclick="toggleGroup('area')">alle&nbsp;an/aus</button>
+          </div>
+          <div id="area" class="unit-grid"></div>
+        </div>
+
+        <div class="unit-section" style="margin-bottom:2px;">
+          <div class="unit-section-head">
+            Raummaße
+            <button type="button" class="link-btn" onclick="toggleGroup('volume')">alle&nbsp;an/aus</button>
+            <button type="button" class="link-btn liter" onclick="toggleLiters()">Liter&nbsp;an/aus</button>
+          </div>
+          <div id="volume" class="unit-grid"></div>
+        </div>
+      </div>
+
+      <div class="form-block">
+        <span class="block-label">Aufgabentypen (Zahlen):</span>
+        <div class="opt-list">
+          <label class="opt-row"><input type="checkbox" id="numInt" checked> Ganze Zahlen</label>
+          <label class="opt-row sub" id="rowIntBoth"><input type="checkbox" id="numIntBoth"> Ergebnis &amp; Lösung ganzzahlig <span class="opt-tag" id="intBothTag"></span></label>
+          <div class="hint-note">Spezialfall von „Ganze Zahlen" – wenn aktiv, wird er immer genutzt.</div>
+          <label class="opt-row"><input type="checkbox" id="numKomma"> Kommazahlen</label>
+          <label class="opt-row dis"><input type="checkbox" disabled> Brüche <span class="opt-tag">in Entwicklung</span></label>
+          <label class="opt-row dis"><input type="checkbox" disabled> Wissenschaftl. Schreibweise <span class="opt-tag">in Entwicklung</span></label>
+        </div>
+      </div>
+
+      <div class="form-block">
+        <span class="block-label">Hinweise (welche anzeigen?):</span>
+        <div class="opt-list">
+          <label class="opt-row"><input type="checkbox" class="hintEnable" data-hint="0" checked> 1 &middot; Reihenfolge &amp; Stufen</label>
+          <label class="opt-row"><input type="checkbox" class="hintEnable" data-hint="1" checked> 2 &middot; Umrechnungszahl pro Stufe</label>
+          <label class="opt-row"><input type="checkbox" class="hintEnable" data-hint="2" checked> 3 &middot; Mal oder geteilt</label>
+          <label class="opt-row"><input type="checkbox" class="hintEnable" data-hint="3" checked> 4 &middot; Zusammenfassung</label>
+        </div>
+      </div>
+
+      <div class="form-block">
+        <span class="block-label">Rückmeldung bei falscher Antwort:</span>
+        <div class="opt-list">
+          <label class="opt-row"><input type="checkbox" id="errHints" checked> Passende Hinweise zu typischen Fehlern anzeigen (statt nur „Falsch")</label>
+        </div>
+      </div>
+
+      <div class="form-block">
+        <span class="block-label">Erweiterte Aufgaben:</span>
+        <div class="opt-list">
+          <label class="opt-row dis"><input type="checkbox" disabled> Aufgaben verrechnen (z.B. 3&nbsp;m + 22&nbsp;cm) <span class="opt-tag">in Entwicklung</span></label>
         </div>
       </div>
 
     </form>
   </details>
 
-  <p id="taskLabel" style="text-align:center; margin-top:12px; font-weight:bold;">Wähle Größen und starte&hellip;</p>
-  <p id="counter"   style="text-align:center; font-weight:bold;">Richtig: 0 / 0</p>
+  <div id="quickControls">
+    <div id="dimToggles">
+      <div class="dim-box on" data-cat="length"><div class="dim-name">Längen</div><div class="dim-sub">m</div></div>
+      <div class="dim-box on" data-cat="area"><div class="dim-name">Flächen</div><div class="dim-sub">m&sup2;</div></div>
+      <div class="dim-box on" data-cat="volume"><div class="dim-name">Raummaße</div><div class="dim-sub">m&sup3;</div></div>
+    </div>
+    <div class="dim-hint-text">Tippen: an&nbsp;/&nbsp;aus &nbsp;&middot;&nbsp; gedrückt halten: einzelne Einheiten wählen</div>
+
+    <div class="seg-block">
+      <span class="seg-label">Schrittweite</span>
+      <div class="segmented" id="stepSeg">
+        <label><input type="radio" name="stepMode" value="adjacent"> Nur benachbarte</label>
+        <label><input type="radio" name="stepMode" value="skip" checked> Auch Einheiten überspringen</label>
+      </div>
+    </div>
+
+    <div class="seg-block">
+      <span class="seg-label">Umrechnungsrichtung</span>
+      <div class="segmented" id="dirSeg">
+        <label><input type="radio" name="dirMode" value="up"> Klein&nbsp;→&nbsp;Groß</label>
+        <label><input type="radio" name="dirMode" value="random" checked> Zufällig</label>
+        <label><input type="radio" name="dirMode" value="down"> Groß&nbsp;→&nbsp;Klein</label>
+      </div>
+    </div>
+  </div>
+
+  <div id="topRow">
+    <button type="button" class="act-btn" id="newTaskBtn">Neue Aufgabe</button>
+    <span id="counter">Richtig: 0 / 0</span>
+  </div>
+
+  <p id="taskLabel"></p>
 
   <div id="taskWrap">
     <div id="taskCard">
@@ -199,350 +474,1241 @@
     </div>
   </div>
 
+  <div class="seg-block" style="margin-top:14px;">
+    <span class="seg-label">Antwort</span>
+    <div class="segmented" id="answerModeSeg">
+      <label><input type="radio" name="answerMode" value="input" checked> Lösung eingeben</label>
+      <label><input type="radio" name="answerMode" value="comma"> Komma verschieben</label>
+    </div>
+  </div>
+
   <div id="inputArea">
-    <input type="text" id="answerInput" inputmode="decimal" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Zahl eingeben...">
+    <div id="inputMethod" style="width:100%; display:flex; justify-content:center;">
+      <input type="text" id="answerInput" inputmode="decimal" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Zahl eingeben...">
+    </div>
+    <div id="commaMethod" class="hidden" style="width:100%;">
+      <div class="stage">
+        <button class="navbtn" id="cs-left" type="button" aria-label="Komma nach links">◀</button>
+        <div class="stripwrap fit-scale"><div class="stripbox" id="cs-stripbox"><div class="strip" id="cs-strip"></div></div></div>
+        <button class="navbtn" id="cs-right" type="button" aria-label="Komma nach rechts">▶</button>
+      </div>
+      <p class="comma-hint">Ziehe das Komma an die richtige Stelle und prüfe dann.</p>
+    </div>
+    <div id="solutionBox"></div>
     <div id="answerHint">Falsch.</div>
     <button id="checkBtn">Lösung überprüfen</button>
+    <div id="actionRow">
+      <button type="button" class="act-btn hint"   id="hintBtn">Hinweis</button>
+      <button type="button" class="act-btn reveal" id="revealBtn">Lösung anzeigen</button>
+    </div>
+    <div id="hintArea"></div>
   </div>
 
-  </div>
+  </div><!-- /trainingView -->
+
+  <div id="exploreView" class="hidden">
+    <details>
+      <summary>Anzeigeoptionen</summary>
+      <div class="opts">
+        <div class="row">
+          <label class="chk"><input type="checkbox" id="ex-tr-units" checked> Einheiten unter der Zahl</label>
+          <label class="chk">Potenz unter der Zahl:
+            <select id="ex-tr-pow">
+              <option value="none" selected>nichts</option>
+              <option value="pow-op">·10ⁿ bzw. :10ⁿ</option>
+              <option value="pow-neg">·10⁻ⁿ (immer Mult.)</option>
+              <option value="val-op">·100 bzw. :100</option>
+              <option value="val-frac">·100 bzw. ·1/100</option>
+            </select>
+          </label>
+        </div>
+        <div class="row" id="ex-hiderare-row" style="display:none;">
+          <label class="chk"><input type="checkbox" id="ex-hiderare"> dam / hm ausblenden</label>
+        </div>
+        <div class="row">
+          <label class="chk"><input type="checkbox" id="ex-t-stellen" checked> Panel: Verschiebung</label>
+          <label class="chk"><input type="checkbox" id="ex-t-pot" checked> Panel: Zehnerpotenz</label>
+          <label class="chk"><input type="checkbox" id="ex-t-unit" checked> Panel: Einheit</label>
+        </div>
+      </div>
+    </details>
+
+    <div class="seg-block">
+      <span class="seg-label">Dimension</span>
+      <div class="segmented" id="ex-dimSeg">
+        <label><input type="radio" name="exDim" value="1" checked> Länge</label>
+        <label><input type="radio" name="exDim" value="2"> Fläche</label>
+        <label><input type="radio" name="exDim" value="3"> Volumen</label>
+      </div>
+      <p class="ex-dim-note" id="ex-dim-note"></p>
+    </div>
+
+    <p class="ex-sub">Verschiebe das Komma – dieselbe Zahl, dargestellt in anderen Zehnerpotenzen bzw. Einheiten.</p>
+
+    <div class="inputrow">
+      <label for="ex-numin">Ausgangszahl</label>
+      <input type="text" id="ex-numin" value="3,45" inputmode="decimal" autocomplete="off" spellcheck="false">
+      <select id="ex-baseunit" aria-label="Einheit der Ausgangszahl"></select>
+    </div>
+    <div class="inputbtn">
+      <button type="button" class="act-btn" id="ex-reset">Komma zurücksetzen</button>
+    </div>
+
+    <div class="stage">
+      <button class="navbtn" id="ex-left" type="button" aria-label="Komma nach links">◀</button>
+      <div class="stripwrap fit-scale"><div class="stripbox" id="ex-stripbox"><div class="strip" id="ex-strip"></div></div></div>
+      <button class="navbtn" id="ex-right" type="button" aria-label="Komma nach rechts">▶</button>
+    </div>
+
+    <div class="panels">
+      <div class="panel" id="ex-p-stellen"><h3>Verschiebung</h3><div class="big" id="ex-stellen-txt">—</div></div>
+      <div class="panel" id="ex-p-pot"><h3>Als Zehnerpotenz</h3><div class="big eq pow" id="ex-pot-txt">—</div><div class="muted eq" id="ex-pot-plain"></div></div>
+      <div class="panel" id="ex-p-unit"><h3>Als Einheit</h3><div class="big eq" id="ex-unit-txt">—</div><div class="k-note hidden" id="ex-unit-note"></div></div>
+    </div>
+
+    <details id="ex-shape-details" style="margin-top:14px;">
+      <summary>Veranschaulichung</summary>
+      <div style="padding:10px 12px;">
+        <p class="ex-shape-cap" id="ex-shape-cap">—</p>
+        <div id="ex-shape-host"></div>
+      </div>
+    </details>
+  </div><!-- /exploreView -->
+
+  </div><!-- /app -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
 <script>
-/* ── MathJax / Scaling ───────────────────────────── */
-let _mjPending = false, _mjElements = new Set();
-function typesetMath(el) {
-  if (!window.MathJax) return;
-  if (el) _mjElements.add(el);
-  if (_mjPending) return;
-  _mjPending = true;
-  requestAnimationFrame(() => {
-    _mjPending = false;
-    const targets = _mjElements.size > 0 ? [..._mjElements] : null;
-    _mjElements = new Set();
-    if (!MathJax.typesetPromise) return;
-    if (targets && MathJax.typesetClear) MathJax.typesetClear(targets);
-    MathJax.typesetPromise(targets).catch(() => {});
-  });
+/* ── Helfer ── */
+function randInt(a, b) { return a + Math.floor(Math.random() * (b - a + 1)); }
+function unitLabel(id) { return id.replace('2', '²').replace('3', '³'); }
+function el(cls, html) { const d = document.createElement('div'); d.className = cls; if (html != null) d.innerHTML = html; return d; }
+function formatNum(x) {
+  if (Number.isInteger(x)) return x.toLocaleString('de-DE');
+  return parseFloat(x.toPrecision(12)).toString().replace('.', ',');
+}
+function formatNumTex(x) { return String(x).replace('.', '{,}'); }
+function nameHtml(u) {
+  if (u.name.startsWith('Quadrat')) return 'Quadrat<br>' + u.name.slice(7);
+  if (u.name.startsWith('Kubik'))   return 'Kubik<br>' + u.name.slice(5);
+  return u.name;
 }
 
+/* ── Scaling ── */
 function scaleToFit(el) {
   if (!el) return;
   el.style.transform = 'none';
-  const wrapper = el.parentElement;
-  if (!wrapper) return;
+  const wrapper = el.parentElement; if (!wrapper) return;
   requestAnimationFrame(() => {
-    const available = wrapper.clientWidth
-      - parseFloat(getComputedStyle(wrapper).paddingLeft)
-      - parseFloat(getComputedStyle(wrapper).paddingRight);
+    const available = wrapper.clientWidth - parseFloat(getComputedStyle(wrapper).paddingLeft) - parseFloat(getComputedStyle(wrapper).paddingRight);
     const natural = el.scrollWidth;
-    if (natural > available && available > 0) {
-      const scale = available / natural;
-      el.style.transform = `scale(${scale})`;
-      wrapper.style.height = (el.scrollHeight * scale) + 'px';
-    } else {
-      wrapper.style.height = '';
-    }
+    if (natural > available && available > 0) { const s = available / natural; el.style.transform = `scale(${s})`; wrapper.style.height = (el.scrollHeight * s) + 'px'; }
+    else { wrapper.style.height = ''; }
   });
 }
-
-function scaleAllElements() {
-  document.querySelectorAll('.scale-el').forEach(scaleToFit);
-}
+function scaleAllElements() { document.querySelectorAll('.scale-el').forEach(scaleToFit); }
 window.addEventListener('resize', scaleAllElements);
 
-/* ── Helpers ─────────────────────────────────────── */
-function showToast(msg, duration = 1800) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), duration);
-}
+function showToast(msg, d = 1800) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), d); }
+function flashResult(color) { const ov = document.getElementById('flashOverlay'); ov.style.transition = 'none'; ov.style.backgroundColor = color; ov.style.opacity = '1'; setTimeout(() => { ov.style.transition = 'opacity 1s'; ov.style.opacity = '0'; }, 50); }
 
-function flashResult(color) {
-  const ov = document.getElementById('flashOverlay');
-  ov.style.transition = 'none';
-  ov.style.backgroundColor = color;
-  ov.style.opacity = '1';
-  setTimeout(() => { ov.style.transition = 'opacity 1s'; ov.style.opacity = '0'; }, 50);
-}
-
-/* ── Einheiten-Definitionen ──────────────────────── */
-// powers: Faktor ist 10^power relativ zur Basiseinheit (z.B. Meter).
+/* ── Einheiten (power = 10^power relativ zur Basiseinheit) ──
+   Reihenfolge aufsteigend nach power. off = standardmäßig aus. rare = ungebräuchlich.
+   liter = Untereinheit (Litergruppe), under = zugehörige Kubik-Einheit. */
 const UNITS = {
   length: [
-    { id: 'mm', tex: '\\text{mm}', power: -3 },
-    { id: 'cm', tex: '\\text{cm}', power: -2 },
-    { id: 'dm', tex: '\\text{dm}', power: -1 },
-    { id: 'm',  tex: '\\text{m}',  power: 0 },
-    { id: 'km', tex: '\\text{km}', power: 3 }
+    { id: 'mm',  tex: '\\text{mm}',  power: -3, name: 'Millimeter' },
+    { id: 'cm',  tex: '\\text{cm}',  power: -2, name: 'Zentimeter' },
+    { id: 'dm',  tex: '\\text{dm}',  power: -1, name: 'Dezimeter' },
+    { id: 'm',   tex: '\\text{m}',   power:  0, name: 'Meter' },
+    { id: 'dam', tex: '\\text{dam}', power:  1, name: 'Dekameter', off: true, rare: true },
+    { id: 'hm',  tex: '\\text{hm}',  power:  2, name: 'Hektometer', off: true, rare: true },
+    { id: 'km',  tex: '\\text{km}',  power:  3, name: 'Kilometer' }
   ],
   area: [
-    { id: 'mm2', tex: '\\text{mm}^2', power: -6 },
-    { id: 'cm2', tex: '\\text{cm}^2', power: -4 },
-    { id: 'dm2', tex: '\\text{dm}^2', power: -2 },
-    { id: 'm2',  tex: '\\text{m}^2',  power: 0 },
-    { id: 'a',   tex: '\\text{a}',    power: 2 },
-    { id: 'ha',  tex: '\\text{ha}',   power: 4 },
-    { id: 'km2', tex: '\\text{km}^2', power: 6 }
+    { id: 'mm2', tex: '\\text{mm}^2', power: -6, name: 'Quadratmillimeter' },
+    { id: 'cm2', tex: '\\text{cm}^2', power: -4, name: 'Quadratzentimeter' },
+    { id: 'dm2', tex: '\\text{dm}^2', power: -2, name: 'Quadratdezimeter' },
+    { id: 'm2',  tex: '\\text{m}^2',  power:  0, name: 'Quadratmeter' },
+    { id: 'a',   tex: '\\text{a}',    power:  2, name: 'Ar' },
+    { id: 'ha',  tex: '\\text{ha}',   power:  4, name: 'Hektar' },
+    { id: 'km2', tex: '\\text{km}^2', power:  6, name: 'Quadratkilometer' }
   ],
   volume: [
-    { id: 'mm3', tex: '\\text{mm}^3', power: -9 },
-    { id: 'cm3', tex: '\\text{cm}^3', power: -6 },
-    { id: 'dm3', tex: '\\text{dm}^3', power: -3 },
-    { id: 'm3',  tex: '\\text{m}^3',  power: 0 }
+    { id: 'mm3', tex: '\\text{mm}^3', power: -9, name: 'Kubikmillimeter' },
+    { id: 'cm3', tex: '\\text{cm}^3', power: -6, name: 'Kubikzentimeter' },
+    { id: 'dm3', tex: '\\text{dm}^3', power: -3, name: 'Kubikdezimeter' },
+    { id: 'm3',  tex: '\\text{m}^3',  power:  0, name: 'Kubikmeter' },
+    { id: 'dam3',tex: '\\text{dam}^3',power:  3, name: 'Kubikdekameter', off: true, rare: true },
+    { id: 'hm3', tex: '\\text{hm}^3', power:  6, name: 'Kubikhektometer', off: true, rare: true },
+    { id: 'km3', tex: '\\text{km}^3', power:  9, name: 'Kubikkilometer', off: true, rare: true },
+    // Litergruppe (Untereinheiten) – nur l und ml, je auf geteiltem Button mit dm³ / cm³
+    { id: 'ml',  tex: '\\text{ml}',   power: -6, name: 'Milliliter', off: true, liter: true, under: 'cm3' },
+    { id: 'l',   tex: '\\text{l}',    power: -3, name: 'Liter',      off: true, liter: true, under: 'dm3' }
   ]
 };
 
+const DIM_FACTOR = { length: 10,  area: 100, volume: 1000 };
+const DIM_LOG    = { length: 1,   area: 2,   volume: 3 };
+const TITLES = [
+  'Hinweis 1 · Reihenfolge & Stufen',
+  'Hinweis 2 · Umrechnungszahl pro Stufe',
+  'Hinweis 3 · Mal oder geteilt?',
+  'Hinweis 4 · Zusammenfassung'
+];
+
+/* ── Zustand ── */
 let korrekteAntworten = 0, anzahlAufgaben = 0;
-let currentTask = null;
-let expectedAnswerFloat = null;
+let currentTask = null, expectedAnswerFloat = null, taskRevealed = false;
+let shownHints = [];
+let pendingTimeout = null;
+const dimActive = { length: true, area: true, volume: true };
 
-/* ── UI Checkboxen generieren ────────────────────── */
-function initCheckboxes() {
-  Object.keys(UNITS).forEach(category => {
-    const container = document.getElementById(category);
-    UNITS[category].forEach((unit, index) => {
-      const item = document.createElement('div');
-      item.className = 'cb-item';
+/* ── Chips aufbauen ── */
+function makeUnitChip(cat, u, symbolOnly) {
+  const chip = el('unit-chip' + (u.off ? '' : ' on'));
+  chip.dataset.category = cat; chip.dataset.id = u.id;
+  chip.innerHTML = symbolOnly ? `<span class="u-sym">${unitLabel(u.id)}</span>` : `<span class="u-sym">${unitLabel(u.id)}</span><span class="u-name">${nameHtml(u)}</span>`;
+  addPressHandlers(chip, () => { chip.classList.toggle('on'); onSettingsChange(); }, () => soloUnit(cat, u.id));
+  return chip;
+}
+function makeLiterChip(cat, u, symbolOnly) {
+  const chip = el('liter-chip' + (u.off ? '' : ' on'));
+  chip.dataset.category = cat; chip.dataset.id = u.id;
+  chip.innerHTML = symbolOnly ? `<span class="l-sym">${unitLabel(u.id)}</span>` : `<span class="l-sym">${unitLabel(u.id)}</span><span class="l-name">${u.name}</span>`;
+  addPressHandlers(chip, () => { chip.classList.toggle('on'); onSettingsChange(); }, () => soloUnit(cat, u.id));
+  return chip;
+}
+function soloUnit(cat, id) {
+  document.querySelectorAll(`[data-category="${cat}"]`).forEach(c => c.classList.toggle('on', c.dataset.id === id));
+  onSettingsChange();
+  if (openUnitMenuRef && openUnitMenuRef.cat === cat && openUnitMenuRef.refresh) openUnitMenuRef.refresh();
+}
+function initUnitChips() {
+  const lg = document.getElementById('length');
+  UNITS.length.slice().reverse().forEach(u => lg.appendChild(makeUnitChip('length', u)));
+  const ag = document.getElementById('area');
+  UNITS.area.slice().reverse().forEach(u => ag.appendChild(makeUnitChip('area', u)));
 
-      const cb = document.createElement('input');
-      cb.type = 'checkbox'; 
-      cb.value = index; 
-      cb.dataset.category = category;
-      cb.id = `cb_${category}_${unit.id}`;
-      cb.checked = true; // Default: Alles an
-      cb.addEventListener('change', onSettingsChange);
-
-      const lbl = document.createElement('label');
-      lbl.htmlFor = cb.id;
-      // Entferne MathJax Artefakte für das simple HTML Label
-      lbl.innerHTML = unit.tex.replace('\\text{', '').replace('}', '').replace('^2', '²').replace('^3', '³');
-
-      item.appendChild(cb);
-      item.appendChild(lbl);
-      container.appendChild(item);
-    });
-  });
-
-  // Listener für sonstige Einstellungen
-  document.querySelectorAll('input[name="stepMode"], input[name="dirMode"], #settingsForm input[type="checkbox"]').forEach(el => {
-    el.addEventListener('change', onSettingsChange);
+  const vg = document.getElementById('volume');
+  const cubics = UNITS.volume.filter(u => !u.liter).slice().reverse();
+  const liters = UNITS.volume.filter(u => u.liter);
+  cubics.forEach(cu => {
+    const cell = el('vol-cell');
+    cell.appendChild(makeUnitChip('volume', cu));
+    const sub = liters.find(l => l.under === cu.id);
+    if (sub) {
+      const wrap = el('liter-wrap');
+      wrap.appendChild(makeLiterChip('volume', sub));
+      cell.appendChild(wrap);
+    }
+    vg.appendChild(cell);
   });
 }
-
-function toggleGroup(category) {
-  const cbs = document.querySelectorAll(`input[data-category="${category}"]`);
-  if (cbs.length === 0) return;
-  const allOn = Array.from(cbs).every(cb => cb.checked);
-  cbs.forEach(cb => { cb.checked = !allOn; });
+function getActiveUnits(cat) {
+  const map = Object.fromEntries(UNITS[cat].map(u => [u.id, u]));
+  return Array.from(document.querySelectorAll(`[data-category="${cat}"].on`))
+    .map(c => map[c.dataset.id]).filter(Boolean).sort((a, b) => a.power - b.power);
+}
+function toggleGroup(cat) {
+  const chips = document.querySelectorAll(`.unit-chip[data-category="${cat}"]`);
+  if (!chips.length) return;
+  const allOn = Array.from(chips).every(c => c.classList.contains('on'));
+  chips.forEach(c => c.classList.toggle('on', !allOn));
+  onSettingsChange();
+}
+function toggleLiters() {
+  const chips = document.querySelectorAll('.liter-chip[data-category="volume"]');
+  if (!chips.length) return;
+  const allOn = Array.from(chips).every(c => c.classList.contains('on'));
+  chips.forEach(c => c.classList.toggle('on', !allOn));
   onSettingsChange();
 }
 
+/* ── Dimensions-Umschalter ── */
+function renderDimBoxes() { document.querySelectorAll('.dim-box').forEach(b => b.classList.toggle('on', dimActive[b.dataset.cat])); }
+function toggleDim(cat) { dimActive[cat] = !dimActive[cat]; if (!Object.values(dimActive).some(v => v)) dimActive[cat] = true; renderDimBoxes(); onSettingsChange(); }
+function soloDim(cat) { Object.keys(dimActive).forEach(k => dimActive[k] = (k === cat)); renderDimBoxes(); onSettingsChange(); }
+let openUnitMenuRef = null;
+let lastMenuCat = null, lastMenuClosedAt = 0;
+function closeUnitMenu() { if (openUnitMenuRef) { openUnitMenuRef.remove(); openUnitMenuRef = null; } }
+function openUnitMenu(cat, box) {
+  closeUnitMenu();
+  const catName = { length: 'Längenmaße', area: 'Flächenmaße', volume: 'Raummaße' }[cat] || 'Einheiten';
+  const chipOf = id => document.querySelector(`[data-category="${cat}"][data-id="${id}"]`);
+  const mains = UNITS[cat].filter(u => !u.liter).slice().sort((a, b) => b.power - a.power);
+  const applies = [];
+  const refresh = () => applies.forEach(a => a());
+  function makeCtl(u, cls) {
+    const chip = chipOf(u.id);
+    const b = document.createElement('button'); b.type = 'button'; b.className = cls;
+    b.innerHTML = `<span class="um-check"></span><span class="um-sym">${unitLabel(u.id)}</span><span class="um-name">${u.name || ''}</span>`;
+    const apply = () => { const on = chip.classList.contains('on'); b.classList.toggle('on', on); b.querySelector('.um-check').textContent = on ? '\u2713' : ''; };
+    apply(); applies.push(apply);
+    addPressHandlers(b, () => { chip.classList.toggle('on'); onSettingsChange(); refresh(); }, () => soloUnit(cat, u.id));
+    return b;
+  }
+
+  const menu = document.createElement('div'); menu.className = 'unit-menu';
+  const title = document.createElement('div'); title.className = 'um-title'; title.textContent = catName + ' wählen';
+  menu.appendChild(title);
+  const list = document.createElement('div'); list.className = 'um-list';
+  mains.forEach(u => {
+    const sub = UNITS[cat].find(x => x.liter && x.under === u.id);
+    if (sub) {
+      const split = document.createElement('div'); split.className = 'um-split';
+      split.appendChild(makeCtl(u, 'um-row um-half um-l'));
+      split.appendChild(makeCtl(sub, 'um-row um-half um-r'));
+      list.appendChild(split);
+    } else {
+      list.appendChild(makeCtl(u, 'um-row'));
+    }
+  });
+  menu.appendChild(list);
+  const confirm = document.createElement('button'); confirm.type = 'button'; confirm.className = 'um-confirm'; confirm.textContent = 'Bestätigen';
+  confirm.addEventListener('click', closeUnitMenu);
+  menu.appendChild(confirm);
+
+  // Klick außerhalb: Menü schließen, das Ereignis aber NICHT abfangen –
+  // der getroffene Button/Longpress führt seine eigene Aktion trotzdem aus.
+  const outside = e => {
+    if (menu.contains(e.target)) return;
+    lastMenuCat = cat; lastMenuClosedAt = Date.now();
+    closeUnitMenu();
+  };
+  document.addEventListener('pointerdown', outside, true);
+
+  document.body.appendChild(menu);
+  const r = box.getBoundingClientRect(), mw = menu.offsetWidth, mh = menu.offsetHeight;
+  let left = r.left + r.width / 2 - mw / 2;
+  left = Math.max(8, Math.min(left, window.innerWidth - mw - 8));
+  let top = r.bottom + 6;
+  if (top + mh > window.innerHeight - 8) top = Math.max(8, window.innerHeight - mh - 8);
+  menu.style.left = left + 'px'; menu.style.top = top + 'px';
+  openUnitMenuRef = { cat, refresh, remove() { document.removeEventListener('pointerdown', outside, true); menu.remove(); } };
+}
+function addPressHandlers(el, onTap, onLong) {
+  let timer = null, longFired = false, moved = false, sx = 0, sy = 0;
+  el.addEventListener('pointerdown', e => {
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    longFired = false; moved = false; sx = e.clientX; sy = e.clientY;
+    try { el.setPointerCapture(e.pointerId); } catch (_) {}
+    timer = setTimeout(() => { longFired = true; onLong(); }, 480);
+  });
+  el.addEventListener('pointermove', e => { if (Math.abs(e.clientX - sx) > 12 || Math.abs(e.clientY - sy) > 12) { moved = true; clearTimeout(timer); } });
+  el.addEventListener('pointerup', () => { clearTimeout(timer); if (!longFired && !moved) onTap(); });
+  el.addEventListener('pointercancel', () => clearTimeout(timer));
+  el.addEventListener('contextmenu', e => e.preventDefault());
+}
+
+/* ── Zahlen-Typen ── */
+function refreshIntBothAvailability() {
+  const adj = document.querySelector('input[name="stepMode"]:checked').value === 'adjacent';
+  const cb = document.getElementById('numIntBoth'), row = document.getElementById('rowIntBoth');
+  cb.disabled = !adj; row.classList.toggle('dis', !adj);
+  document.getElementById('intBothTag').textContent = adj ? '' : '(nur bei „Nur benachbarte")';
+  if (!adj) cb.checked = false;
+}
+function activeNumberTypes() {
+  const adj = document.querySelector('input[name="stepMode"]:checked').value === 'adjacent';
+  if (document.getElementById('numIntBoth').checked && adj) return ['intBoth'];
+  const types = [];
+  if (document.getElementById('numInt').checked)   types.push('int');
+  if (document.getElementById('numKomma').checked) types.push('komma');
+  return types;
+}
+function genKommaStart(dp) {
+  const goesSmaller = dp > 0;
+  const decPlaces = randInt(1, 3), scale = Math.pow(10, decPlaces);
+  const wantLess1 = Math.random() < (goesSmaller ? 0.6 : 0.3);
+  const frac = randInt(1, scale - 1);
+  const val = wantLess1 ? (frac / scale) : (randInt(1, 99) + frac / scale);
+  return parseFloat(val.toFixed(decPlaces));
+}
+
+/* ── Settings-Änderung ── */
 function onSettingsChange() {
-  korrekteAntworten = 0;
-  anzahlAufgaben = 0;
-  updateCounterDisplay();
-  document.getElementById('taskText').innerHTML = '';
+  refreshIntBothAvailability();
+  korrekteAntworten = 0; anzahlAufgaben = 0; updateCounterDisplay();
+  generateTask();
+}
+function updateCounterDisplay() { document.getElementById('counter').textContent = `Richtig: ${korrekteAntworten} / ${anzahlAufgaben}`; }
+function setControls(hasTask) {
+  document.getElementById('revealBtn').disabled = !hasTask;
+  document.getElementById('hintBtn').disabled = !hasTask || document.querySelectorAll('.hintEnable:checked').length === 0;
+}
+
+/* ── Aufgabe erzeugen ── */
+function generateTask() {
+  if (pendingTimeout) { clearTimeout(pendingTimeout); pendingTimeout = null; }
+  taskRevealed = false; shownHints = [];
+  const inp = document.getElementById('answerInput');
+  inp.disabled = false; inp.value = ''; inp.className = '';
+  document.getElementById('checkBtn').disabled = false;
   document.getElementById('answerHint').classList.remove('visible');
-  document.getElementById('answerInput').className = '';
-  document.getElementById('answerInput').value = '';
+  const sb = document.getElementById('solutionBox'); sb.classList.remove('show'); sb.innerHTML = '';
+  document.getElementById('hintArea').innerHTML = '';
+
+  const label = document.getElementById('taskLabel');
+  const taskTextEl = document.getElementById('taskText');
+  const noTask = (msg) => { label.textContent = msg; taskTextEl.innerHTML = ''; currentTask = null; setControls(false); };
+
+  if (!Object.values(dimActive).some(v => v)) return noTask('Bitte oben mindestens einen Größenbereich aktivieren.');
+
+  const activeCategories = [];
+  Object.keys(UNITS).forEach(cat => {
+    if (!dimActive[cat]) return;
+    const units = getActiveUnits(cat);
+    if (new Set(units.map(u => u.power)).size >= 2) activeCategories.push({ category: cat, units });
+  });
+  if (activeCategories.length === 0) return noTask('Bitte mind. 2 Einheiten eines aktiven Bereichs auswählen (Einstellungen).');
+
+  const numTypes = activeNumberTypes();
+  if (numTypes.length === 0) return noTask('Bitte in den Einstellungen einen Zahlen-Aufgabentyp wählen.');
+
+  const stepMode = document.querySelector('input[name="stepMode"]:checked').value;
+  const dirMode  = document.querySelector('input[name="dirMode"]:checked').value;
+
+  const catObj = activeCategories[Math.floor(Math.random() * activeCategories.length)];
+  const cat = catObj.category, enabledUnits = catObj.units;
+
+  const validPairs = [];
+  for (const u of enabledUnits) for (const v of enabledUnits) {
+    if (u === v || u.power === v.power) continue;
+    if (dirMode === 'up'   && u.power > v.power) continue;
+    if (dirMode === 'down' && u.power < v.power) continue;
+    if (stepMode === 'adjacent') {
+      const lo = Math.min(u.power, v.power), hi = Math.max(u.power, v.power);
+      if (enabledUnits.some(w => w.power > lo && w.power < hi)) continue;
+    }
+    validPairs.push({ from: u, to: v });
+  }
+  if (validPairs.length === 0) return noTask('Keine Aufgabe mit diesen Einstellungen möglich.');
+
+  const pair = validPairs[Math.floor(Math.random() * validPairs.length)];
+  const type = numTypes[Math.floor(Math.random() * numTypes.length)];
+  const dp = pair.from.power - pair.to.power;
+
+  let startValue;
+  if (type === 'intBoth') {
+    const need = Math.abs(dp);
+    const z = randInt(Math.max(1, need), Math.max(3, need));
+    const sig = (Math.random() < 0.5) ? randInt(1, 9) : randInt(10, 99);
+    startValue = sig * Math.pow(10, z);
+  } else if (type === 'komma') {
+    startValue = genKommaStart(dp);
+  } else {
+    startValue = randInt(1, 999);
+  }
+
+  const expected = parseFloat((startValue * Math.pow(10, dp)).toPrecision(12));
+  expectedAnswerFloat = expected;
+  currentTask = { startValue, from: pair.from, to: pair.to, cat, diffPower: dp, expected, type };
+
+  label.textContent = '';
+  const faceFront = document.getElementById('faceFront'); faceFront.style.opacity = '0';
+  const tex = `${formatNumTex(startValue)} \\, ${pair.from.tex} = \\text{$\\,\\,\\,\\,\\,$?$\\,\\,\\,\\,\\,$} ${pair.to.tex}`;
+  taskTextEl.innerHTML = `\\(${tex}\\)`;
+  if (window.MathJax && MathJax.typesetPromise) {
+    MathJax.typesetPromise([taskTextEl]).then(() => { scaleToFit(taskTextEl); faceFront.style.opacity = '1'; });
+  } else { faceFront.style.opacity = '1'; }
+  setControls(true);
+  if (answerMode === 'comma' && trainerStrip) setupCommaAnswer();
+}
+
+/* ── Überprüfung ── */
+function diagnoseError(kActual, digitsMatch) {
+  const dp = currentTask.diffPower, cat = currentTask.cat, dimLog = DIM_LOG[cat], fac = DIM_FACTOR[cat];
+  const catN = { length: 'Längen', area: 'Flächen', volume: 'Raummaßen' }[cat];
+  if (!digitsMatch) return 'Die Ziffernfolge passt nicht zur Ausgangszahl. Beim Umrechnen bleiben die Ziffern gleich – es wandert nur das Komma.';
+  const k = kActual;
+  if (k === dp) return null;
+  const off = k - dp, steps = Math.abs(dp) / dimLog, sgn = dp === 0 ? 0 : (dp > 0 ? 1 : -1);
+  if (Math.abs(off) === 1) return `Fast! Das Komma steht eine Stelle zu weit ${off > 0 ? 'rechts' : 'links'}.`;
+  if (k === -dp && dp !== 0) return `Falsche Richtung – du hast ${dp > 0 ? 'multipliziert statt dividiert' : 'dividiert statt multipliziert'}.`;
+  if (dimLog > 1) {
+    if (k === sgn * steps) return `Falsche Umrechnungszahl: bei ${catN} ist der Faktor je Stufe <b>·${fac}</b>, nicht ·10.`;
+    if (k === -sgn * steps) return `Zwei Fehler: falsche Richtung und ·10 statt ·${fac} je Stufe.`;
+    if (dimLog === 3 && Math.abs(k) === steps * 2) return `Falsche Umrechnungszahl: bei Raummaßen ist der Faktor je Stufe <b>·1000</b>, nicht ·100.`;
+  }
+  if (k % dimLog === 0) { const st = Math.abs(k) / dimLog; return `Falsche Stufenanzahl: gerechnet mit ${st} ${st === 1 ? 'Stufe' : 'Stufen'}, richtig sind ${steps}.`; }
+  return `Das Komma steht ${Math.abs(off)} Stellen zu weit ${off > 0 ? 'rechts' : 'links'}.`;
+}
+function checkAnswer() {
+  if (!currentTask || taskRevealed) return;
+  const inp = document.getElementById('answerInput');
+  let ok, given = null;
+  if (answerMode === 'comma') {
+    if (!trainerStrip) return;
+    ok = (trainerStrip.k === commaTarget);
+  } else {
+    const raw = inp.value.trim().replace(',', '.'); if (!raw) return;
+    given = parseFloat(raw);
+    if (isNaN(given)) { const h = document.getElementById('answerHint'); h.textContent = 'Bitte eine gültige Zahl eingeben.'; h.classList.add('visible'); return; }
+    const tol = 1e-9 * Math.max(1, Math.abs(expectedAnswerFloat));
+    ok = Math.abs(given - expectedAnswerFloat) <= tol;
+  }
+  flashResult(ok ? '#d4edda' : '#f8d7da'); anzahlAufgaben++;
+
+  if (ok) {
+    korrekteAntworten++;
+    if (answerMode === 'comma') trainerStrip.lock(); else inp.className = 'correct';
+    document.getElementById('answerHint').classList.remove('visible');
+    updateCounterDisplay(); currentTask = null; setControls(false);
+    pendingTimeout = setTimeout(generateTask, 1000);
+  } else {
+    let hint = 'Falsch.';
+    if (document.getElementById('errHints').checked) {
+      let kActual, digitsMatch;
+      if (answerMode === 'comma') { kActual = trainerStrip.k - trainerStrip.k0; digitsMatch = true; }
+      else { const g = parseNumToSig(given), s = parseNumToSig(currentTask.startValue); digitsMatch = (g.sig === s.sig); kActual = g.k0 - s.k0; }
+      const d = diagnoseError(kActual, digitsMatch); if (d) hint = d;
+    }
+    const h = document.getElementById('answerHint'); h.innerHTML = hint; h.classList.add('visible');
+    if (answerMode === 'input') { inp.className = 'wrong'; inp.select(); }
+    updateCounterDisplay();
+  }
+}
+
+/* ── Lösung / Neue Aufgabe ── */
+function revealSolution() {
+  if (!currentTask) return;
+  taskRevealed = true;
+  const sb = document.getElementById('solutionBox');
+  sb.innerHTML = `Lösung: ${formatNum(currentTask.expected)} ${unitLabel(currentTask.to.id)}`;
+  sb.classList.add('show');
+  if (answerMode === 'comma' && trainerStrip) { trainerStrip.setK(commaTarget); trainerStrip.lock(); }
+  else { document.getElementById('answerInput').disabled = true; }
+  document.getElementById('checkBtn').disabled = true;
+  document.getElementById('revealBtn').disabled = true;
+}
+function newTask() {
+  const dt = document.querySelector('details'); if (dt) dt.open = false;
+  if (currentTask) { anzahlAufgaben++; updateCounterDisplay(); }
   generateTask();
 }
 
-function updateCounterDisplay() {
-  document.getElementById('counter').textContent = `Richtig: ${korrekteAntworten} / ${anzahlAufgaben}`;
+/* ── Hinweis-Logik ── */
+function fmt(x) { return x.toLocaleString('de-DE'); }
+function hintData() {
+  const t = currentTask, cat = t.cat, dp = t.diffPower;
+  const isMul = dp > 0, totalFactor = Math.pow(10, Math.abs(dp));
+  let stepFactor = DIM_FACTOR[cat], steps = Math.abs(dp) / DIM_LOG[cat], fallback = false;
+  if (!Number.isInteger(steps) || steps < 1 || t.from.liter || t.to.liter) { stepFactor = totalFactor; steps = 1; fallback = true; }
+  return { t, cat, dp, isMul, totalFactor, stepFactor, steps, fallback };
 }
-
-/* ── Aufgaben Generierung ────────────────────────── */
-function generateTask() {
-  const activeCategories = [];
-  
-  // Finde alle aktiven Kategorien (min 2 Einheiten müssen ausgewählt sein)
-  Object.keys(UNITS).forEach(cat => {
-    const activeIndices = Array.from(document.querySelectorAll(`input[data-category="${cat}"]:checked`)).map(cb => parseInt(cb.value));
-    if (activeIndices.length >= 2) {
-      activeCategories.push({ category: cat, indices: activeIndices.sort((a,b) => a-b) });
-    }
+function buildSequence(d) {
+  const { t, cat } = d, from = t.from, to = t.to;
+  const clean = !from.liter && !to.liter;
+  let path;
+  if (clean) {
+    // immer von mm bis m (0), bei Bedarf hoch bis zur benötigten Einheit
+    const mains = UNITS[cat].filter(u => !u.liter).sort((a, b) => a.power - b.power);
+    const hi = Math.max(0, from.power, to.power);
+    path = mains.filter(u => u.power <= hi);
+  } else {
+    path = [from, to].slice().sort((a, b) => a.power - b.power);
+  }
+  const active = new Set(getActiveUnits(cat).map(u => u.id));
+  let hasRare = false;
+  const seq = el('hint-seq');
+  path.forEach((u, i) => {
+    if (i > 0) { const ar = document.createElement('span'); ar.className = 'arrow'; ar.textContent = '→'; seq.appendChild(ar); }
+    const s = document.createElement('span'); s.className = 'u'; s.innerHTML = unitLabel(u.id);
+    const isEnd = (u.id === from.id || u.id === to.id);
+    if (u.id === from.id) s.classList.add('from');
+    if (u.id === to.id)   s.classList.add('to');
+    if (!isEnd && !active.has(u.id)) { s.classList.add('ghost'); if (u.rare) hasRare = true; }
+    seq.appendChild(s);
   });
-
-  if (activeCategories.length === 0) {
-    document.getElementById('taskLabel').textContent = 'Bitte mindestens 2 Einheiten einer Kategorie auswählen!';
-    document.getElementById('taskText').innerHTML = '';
-    currentTask = null;
-    return;
-  }
-
-  document.getElementById('taskLabel').textContent = 'Rechne um:';
-  
-  // Wähle zufällige Kategorie
-  const catObj = activeCategories[Math.floor(Math.random() * activeCategories.length)];
-  const units = UNITS[catObj.category];
-  const indices = catObj.indices;
-
-  // Wende Einstellungen an
-  const stepMode = document.querySelector('input[name="stepMode"]:checked').value;
-  const dirMode = document.querySelector('input[name="dirMode"]:checked').value;
-
-  // Baue mögliche Paare (from, to)
-  let validPairs = [];
-  for (let i = 0; i < indices.length; i++) {
-    for (let j = 0; j < indices.length; j++) {
-      if (i === j) continue;
-      
-      const idxA = indices[i];
-      const idxB = indices[j];
-
-      // Step-Check: 
-      // i, j sind die Positionen im aktivierten Array, idxA, idxB im globalen Einheiten Array.
-      // "Benachbart" bedeutet in der Mathe-Didaktik meist die direkte Stufe, also idxA - idxB = +/- 1
-      const isAdjacent = Math.abs(idxA - idxB) === 1;
-      
-      if (stepMode === 'adjacent' && !isAdjacent) continue;
-
-      // Richtungs-Check:
-      // power kleiner -> Zahl größer. "Klein nach Groß" bei Einheiten: mm -> m (Zahl wird kleiner, Einheit größer)
-      // idxA < idxB bedeutet Start-Einheit ist kleiner als Ziel-Einheit.
-      if (dirMode === 'up' && idxA > idxB) continue; // Nur klein -> groß
-      if (dirMode === 'down' && idxA < idxB) continue; // Nur groß -> klein
-
-      validPairs.push({ from: units[idxA], to: units[idxB] });
-    }
-  }
-
-  if (validPairs.length === 0) {
-    // Fallback falls durch Settings (z.B. nur benachbarte aber Lücken angeklickt) nichts übrig bleibt
-    document.getElementById('taskLabel').textContent = 'Keine Aufgabe mit diesen Einstellungen möglich.';
-    document.getElementById('taskText').innerHTML = '';
-    currentTask = null;
-    return;
-  }
-
-  // Wähle zufälliges Paar
-  const pair = validPairs[Math.floor(Math.random() * validPairs.length)];
-  
-  // Generiere Startzahl (Vorerst nur Ganze Zahlen 1 - 999)
-  // TODO: Hier könnten später die Checkboxen für Kommazahlen etc. greifen
-  let startValue = Math.floor(Math.random() * 999) + 1;
-  
-  // Wenn wir von Groß nach Klein gehen, machen wir kleine Zahlen, damit das Ergebnis nicht riesig wird?
-  // Vorerst simple Integer.
-
-  const diffPower = pair.from.power - pair.to.power;
-  // expected = startValue * 10^diffPower
-  expectedAnswerFloat = startValue * Math.pow(10, diffPower);
-
-  currentTask = {
-    startValue: startValue,
-    from: pair.from,
-    to: pair.to,
-    expected: expectedAnswerFloat
-  };
-
-    // UI Update
-  const faceFront = document.getElementById('faceFront');
-  const taskTextEl = document.getElementById('taskText');
-  
-  faceFront.style.opacity = '0';
-  
-  // Nutze \( \) für Inline-Math, das ist oft stabiler beim dynamischen Laden
-  const aufgabeTex = `${startValue} \\, ${pair.from.tex} = \\text{$\\,\\,\\,\\,\\,$?$\\,\\,\\,\\,\\,$} ${pair.to.tex}`;
-  taskTextEl.innerHTML = `\\(${aufgabeTex}\\)`;
-
-  // Sicherstellen, dass MathJax fertig ist, bevor skaliert wird
-  if (window.MathJax && MathJax.typesetPromise) {
-    MathJax.typesetPromise([taskTextEl]).then(() => {
-      scaleToFit(taskTextEl);
-      faceFront.style.opacity = '1';
+  return { el: seq, hasRare };
+}
+function buildStepOptions(steps) {
+  const lo = Math.max(1, steps - 1);
+  let arr = [lo, lo + 1, lo + 2, lo + 3];
+  if (!arr.includes(steps)) arr = [steps, steps + 1, steps + 2, steps + 3];
+  return { options: arr.map(v => ({ label: String(v) })), correctIndex: arr.indexOf(steps) };
+}
+function addButtons(card, options, correctIndex, postHtml) {
+  const opts = el('quiz-opts');
+  let post = null;
+  if (postHtml) { post = el('hint-text', postHtml); post.style.display = 'none'; }
+  options.forEach((o, i) => {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'quiz-btn'; b.innerHTML = o.label;
+    b.addEventListener('click', () => {
+      if (card.dataset.answered) return;
+      card.dataset.answered = '1';
+      Array.from(opts.children).forEach(x => x.disabled = true);
+      if (i === correctIndex) b.classList.add('correct');
+      else { b.classList.add('wrong'); opts.children[correctIndex].classList.add('correct'); }
+      if (post) post.style.display = '';
     });
-  } else {
-    // Fallback falls MathJax noch nicht geladen ist
-    faceFront.style.opacity = '1';
-  }
-
-  const inp = document.getElementById('answerInput');
-  inp.value = '';
-  inp.className = '';
-  document.getElementById('answerHint').classList.remove('visible');
-  // inp.focus(); // GELÖSCHT, um Autofokus zu verhindern
+    opts.appendChild(b);
+  });
+  card.appendChild(opts);
+  if (post) card.appendChild(post);
+}
+function buildQuiz(card, questionHtml, preHtml, postHtml, options, correctIndex) {
+  card.appendChild(el('hint-q', questionHtml));
+  if (preHtml) card.appendChild(el('hint-text', preHtml));
+  addButtons(card, options, correctIndex, postHtml);
 }
 
-/* ── Überprüfung ─────────────────────────────────── */
-function checkAnswer() {
+function renderHintFull(id, hasMore) {
+  const d = hintData();
+  const card = el('hint-card');
+  card.appendChild(el('hint-title', TITLES[id]));
+
+  if (id === 0) {
+    card.appendChild(el('hint-q', 'Wie viele Stufen gehst du von der Start- zur Zieleinheit?'));
+    const s = buildSequence(d);
+    card.appendChild(s.el);
+    if (s.hasRare) card.appendChild(el('hint-text', 'Hinweis: Einheiten wie dam und hm (bzw. dam³, hm³) sind ungebräuchlich und werden im Alltag kaum verwendet – sie erklären aber die zusätzlichen Stufen.'));
+    const so = buildStepOptions(d.steps);
+    addButtons(card, so.options, so.correctIndex, null);
+  }
+  else if (id === 1) {
+    const dimN = DIM_LOG[d.cat];
+    const pre = (dimN > 1 && !d.fallback) ? `Beachte: die Umrechnung muss in <b>jeder</b> Dimension stattfinden – hier also in allen ${dimN} Dimensionen.` : '';
+    const post = `Faustregel: Länge (1D) → 10, Fläche (2D) → 10² = 100, Volumen (3D) → 10³ = ${fmt(1000)}. Pro Stufe zwischen diesen Einheiten: <b>${fmt(d.stepFactor)}</b>.`;
+    let vals = [10, 100, 1000];
+    if (!vals.includes(d.stepFactor)) vals = [d.stepFactor / 10, d.stepFactor, d.stepFactor * 10].filter(v => v >= 1);
+    buildQuiz(card, 'Welche Umrechnungszahl gehört zu <b>einer</b> Stufe?', pre, post, vals.map(v => ({ label: fmt(v) })), vals.indexOf(d.stepFactor));
+  }
+  else if (id === 2) {
+    const fromN = d.t.from.name, toN = d.t.to.name, toSmaller = d.t.to.power < d.t.from.power;
+    const pre = `Wenn du ${fromN} hast und diese in ${toN} darstellen möchtest: sind das dann <b>mehr</b> (→ multiplizieren) oder <b>weniger</b> (→ dividieren) ${toN}? Musst du also multiplizieren oder dividieren?`;
+    const post = `${toN} ist ${toSmaller ? 'kleiner' : 'größer'} als ${fromN}, du bekommst also ${toSmaller ? 'mehr' : 'weniger'} davon → hier <b>${d.isMul ? 'multiplizieren' : 'dividieren'}</b>.`;
+    buildQuiz(card, `Von <b>${unitLabel(d.t.from.id)}</b> zu <b>${unitLabel(d.t.to.id)}</b>: multiplizieren oder dividieren?`, pre, post, [{ label: 'multiplizieren' }, { label: 'dividieren' }], d.isMul ? 0 : 1);
+  }
+  else if (id === 3) {
+    const correctNum = d.totalFactor;
+    let otherNum = d.stepFactor;
+    if (d.stepFactor === d.totalFactor) otherNum = d.totalFactor * d.stepFactor;
+    const opts = [
+      { label: `&middot; ${fmt(correctNum)}`, op: true,  f: correctNum },
+      { label: `: ${fmt(correctNum)}`,        op: false, f: correctNum },
+      { label: `&middot; ${fmt(otherNum)}`,   op: true,  f: otherNum },
+      { label: `: ${fmt(otherNum)}`,          op: false, f: otherNum }
+    ];
+    for (let i = opts.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [opts[i], opts[j]] = [opts[j], opts[i]]; }
+    const ci = opts.findIndex(o => o.op === d.isMul && o.f === correctNum);
+    const post = (d.steps === 1)
+      ? `Du rechnest insgesamt <b>${d.isMul ? '&middot;' : ':'} ${fmt(d.totalFactor)}</b> – also die Startzahl ${d.isMul ? '&middot;' : ':'} ${fmt(d.totalFactor)}.`
+      : `Pro Stufe ${d.isMul ? '&middot;' : ':'} ${fmt(d.stepFactor)}, und das ${d.steps}-mal ⇒ insgesamt <b>${d.isMul ? '&middot;' : ':'} ${fmt(d.totalFactor)}</b>.`;
+    buildQuiz(card, `Du gehst <b>${d.steps}</b> Stufe${d.steps > 1 ? 'n' : ''} weit. Womit rechnest du <b>insgesamt</b>?`, '', post, opts, ci);
+  }
+  if (hasMore) {
+    const nb = document.createElement('button'); nb.type = 'button'; nb.className = 'hint-next-btn';
+    nb.textContent = 'Nächste Hilfestufe \u2192';
+    nb.addEventListener('click', showNextHint);
+    card.appendChild(nb);
+  }
+  return card;
+}
+
+function renderHintCollapsed(id) {
+  const d = hintData();
+  const card = el('hint-card collapsed');
+  card.appendChild(el('hint-title-sm', TITLES[id]));
+  if (id === 0) { const s = buildSequence(d); card.appendChild(s.el); card.appendChild(el('hint-sum', `${d.steps} Stufe${d.steps > 1 ? 'n' : ''}`)); }
+  else if (id === 1) card.appendChild(el('hint-sum', `Pro Stufe: <b>${fmt(d.stepFactor)}</b>`));
+  else if (id === 2) card.appendChild(el('hint-sum', `<b>${d.isMul ? 'multiplizieren' : 'dividieren'}</b>`));
+  else if (id === 3) card.appendChild(el('hint-sum', `Startzahl <b>${d.isMul ? '&middot;' : ':'} ${fmt(d.totalFactor)}</b>`));
+  return card;
+}
+
+function renderHints() {
+  const area = document.getElementById('hintArea'); area.innerHTML = '';
+  const enabled = Array.from(document.querySelectorAll('.hintEnable:checked')).map(c => parseInt(c.dataset.hint)).sort((a, b) => a - b);
+  shownHints.forEach((hid, i) => {
+    const last = (i === shownHints.length - 1);
+    area.appendChild(last ? renderHintFull(hid, shownHints.length < enabled.length) : renderHintCollapsed(hid));
+  });
+}
+function showNextHint() {
   if (!currentTask) return;
-  const inp = document.getElementById('answerInput');
-  const raw = inp.value.trim().replace(',', '.');
-  if (!raw) return;
-
-  const givenFloat = parseFloat(raw);
-  
-  if (isNaN(givenFloat)) {
-    document.getElementById('answerHint').textContent = "Bitte eine gültige Zahl eingeben.";
-    document.getElementById('answerHint').classList.add('visible');
-    return;
-  }
-
-  // Floating point vergleich mit Toleranz
-  const isCorrect = Math.abs(givenFloat - expectedAnswerFloat) < 1e-10;
-
-  flashResult(isCorrect ? '#d4edda' : '#f8d7da');
-  anzahlAufgaben++;
-
-  if (isCorrect) {
-    korrekteAntworten++;
-    inp.className = 'correct';
-    document.getElementById('answerHint').classList.remove('visible');
-    updateCounterDisplay();
-    currentTask = null; // Sperre bis neue Aufgabe kommt
-    setTimeout(generateTask, 1000);
-  } else {
-    inp.className = 'wrong';
-    document.getElementById('answerHint').textContent = "Falsch.";
-    document.getElementById('answerHint').classList.add('visible');
-    updateCounterDisplay();
-    inp.select();
-  }
+  const enabled = Array.from(document.querySelectorAll('.hintEnable:checked')).map(c => parseInt(c.dataset.hint)).sort((a, b) => a - b);
+  if (enabled.length === 0) { showToast('Keine Hinweise aktiviert (Einstellungen).'); return; }
+  if (shownHints.length >= enabled.length) { showToast('Keine weiteren Hinweise.'); return; }
+  shownHints.push(enabled[shownHints.length]);
+  renderHints();
+  if (shownHints.length >= enabled.length) document.getElementById('hintBtn').disabled = true;
 }
 
-/* ── Event Listener Setup ────────────────────────── */
-document.addEventListener('DOMContentLoaded', () => {
-  initCheckboxes();
+/* ══ Komma-Leiste (ziehbares Komma auf der Zahlengeraden) ══ */
+function makeStrip(cfg) {
+  const strip = cfg.strip, PAD = 18;
+  const stripbox = cfg.stripbox;
+  const stripwrap = stripbox ? stripbox.parentElement : strip.parentElement;
+  const fit = cfg.fit || 'scale';
+  const CELL = cfg.cell || 40;
+  const G = cfg.compact
+    ? { DIGIT_TOP: 26, DIGIT_H: 46, BAND_C: 92,  LABEL_TOP: 112, LABEL_H: 22, ARC_BASE: 26, ARC_APEX: 5 }
+    : { DIGIT_TOP: 36, DIGIT_H: 58, BAND_C: 108, LABEL_TOP: 128, LABEL_H: 22, ARC_BASE: 31, ARC_APEX: 6 };
+  const S = { sig: '0', k0: 1, k: 1, pre: 0, post: 0, total: 0, W: 0, scale: 1, dragging: false, locked: false, kMin: 0, kMax: 0 };
+  let autoRAF = null, lastClientX = 0;
+  const getStep = () => Math.max(1, (typeof cfg.step === 'function' ? cfg.step() : (cfg.step || 1)));
+  const snap = nk => S.k0 + Math.round((nk - S.k0) / getStep()) * getStep();
 
-  document.getElementById('checkBtn').addEventListener('click', checkAnswer);
-  document.getElementById('answerInput').addEventListener('keydown', e => {
-    if (e.key === 'Enter') checkAnswer();
-  });
-  
-  // Verhindere ungültige Zeichen
-  document.getElementById('answerInput').addEventListener('keypress', e => {
-    if (!/[\d\.,\-]/.test(e.key)) e.preventDefault();
-  });
+  function numStr(kk) {
+    const L = S.sig.length; let ip, fp;
+    if (kk >= L) { ip = S.sig + '0'.repeat(kk - L); fp = ''; }
+    else if (kk >= 1) { ip = S.sig.slice(0, kk); fp = S.sig.slice(kk); }
+    else { ip = '0'; fp = '0'.repeat(-kk) + S.sig; }
+    return fp ? ip + ',' + fp : ip;
+  }
+  const sup = n => `<sup>${String(n).replace('-', '\u2212')}</sup>`;
+  const grp = x => x.toLocaleString('de-DE');
+  const X = c => PAD + c * CELL;
+  function powLabel(mode, kk) {
+    const e = S.k0 - kk;
+    if (mode === 'pow-neg') return `·10${sup(e)}`;
+    if (mode === 'pow-op')  return e >= 0 ? `·10${sup(e)}` : `:10${sup(-e)}`;
+    if (mode === 'val-op')  return e === 0 ? '·1' : (e > 0 ? `·${grp(Math.pow(10, e))}` : `:${grp(Math.pow(10, -e))}`);
+    if (mode === 'val-frac')return e === 0 ? '·1' : (e > 0 ? `·${grp(Math.pow(10, e))}` : `·1/${grp(Math.pow(10, -e))}`);
+    return '';
+  }
+  function layout() {
+    const L = S.sig.length, r = cfg.range(S.k0, L);
+    S.kMin = r.kMin; S.kMax = r.kMax;
+    S.pre = Math.max(1, 1 - S.kMin);
+    S.post = Math.max(0, S.kMax - L);
+    S.total = S.pre + L + S.post;
+    S.W = S.total * CELL + 2 * PAD;
+  }
+  function render() {
+    S.k = Math.max(S.kMin, Math.min(S.kMax, S.k));
+    strip.classList.toggle('dragging', S.dragging);
+    strip.classList.toggle('locked', S.locked);
+    const L = S.sig.length, sigStart = S.pre, sigEnd = S.pre + L - 1;
+    const g = S.pre + S.k, g0 = S.pre + S.k0, fs = Math.round(CELL * 1.15);
+    const leftGap = S.pre + S.kMin, rightGap = S.pre + S.kMax;
+    const rows = cfg.tracks ? cfg.tracks() : [];
+    const stripH = rows.length ? (G.LABEL_TOP + rows.length * G.LABEL_H + 2) : (G.BAND_C + 30);
 
-  // Mobile Keyboard Scroll
-  if (window.visualViewport) {
-    ['resize', 'scroll'].forEach(event => {
-      window.visualViewport.addEventListener(event, () => {
-        if (document.activeElement === document.getElementById('answerInput')) {
-          const inp = document.getElementById('answerInput');
-          setTimeout(() => {
-            inp.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          }, 50);
+    strip.style.width = S.W + 'px';
+    strip.style.height = stripH + 'px';
+    strip.innerHTML = '';
+
+    for (let c = 0; c < S.total; c++) {
+      let ch = null, added = false;
+      if (c >= sigStart && c <= sigEnd) ch = S.sig[c - sigStart];
+      else if (S.k >= 1 && c > sigEnd && c <= g - 1) { ch = '0'; added = true; }
+      else if (S.k <= 0 && c === g - 1) ch = '0';
+      else if (S.k <= 0 && c >= g && c <= sigStart - 1) { ch = '0'; added = true; }
+      if (ch === null) continue;
+      const d = document.createElement('div');
+      d.className = 'digit' + (added ? ' zero-added' : '');
+      d.style.cssText = `left:${X(c)}px;width:${CELL}px;top:${G.DIGIT_TOP}px;height:${G.DIGIT_H}px;line-height:${G.DIGIT_H}px;font-size:${fs}px`;
+      d.textContent = ch;
+      strip.appendChild(d);
+    }
+    const comma = document.createElement('div');
+    comma.className = 'comma';
+    comma.style.cssText = `left:${X(g)}px;top:${G.DIGIT_TOP}px;height:${G.DIGIT_H}px;line-height:${G.DIGIT_H}px;font-size:${fs}px`;
+    comma.textContent = ',';
+    strip.appendChild(comma);
+    const conn = document.createElement('div');
+    conn.className = 'connector';
+    conn.style.cssText = `left:${X(g)}px;top:${G.DIGIT_TOP + G.DIGIT_H - 6}px;height:${G.BAND_C - (G.DIGIT_TOP + G.DIGIT_H - 6)}px`;
+    strip.appendChild(conn);
+    const rail = document.createElement('div');
+    rail.className = 'rail';
+    rail.style.cssText = `left:${X(leftGap)}px;top:${G.BAND_C - 1}px;width:${(rightGap - leftGap) * CELL}px`;
+    strip.appendChild(rail);
+    for (let gp = leftGap; gp <= rightGap; gp++) {
+      const isStart = (gp === g0);
+      const t = document.createElement('div');
+      t.className = 'tick' + (isStart ? ' start' : '');
+      t.style.cssText = `left:${X(gp)}px;top:${G.BAND_C - (isStart ? 8 : 6)}px;height:${isStart ? 16 : 12}px`;
+      strip.appendChild(t);
+    }
+    if (cfg.showArc && S.k !== S.k0) {
+      const n = S.k - S.k0;
+      const x0 = X(g0), x1 = X(g), span = x1 - x0, ins = span * 0.16;
+      const c1x = x0 + ins, c2x = x1 - ins;
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.setAttribute('class', 'arcsvg'); svg.setAttribute('width', S.W); svg.setAttribute('height', stripH);
+      const arc = document.createElementNS(svg.namespaceURI, 'path');
+      arc.setAttribute('d', `M ${x0} ${G.ARC_BASE} C ${c1x} ${G.ARC_APEX} ${c2x} ${G.ARC_APEX} ${x1} ${G.ARC_BASE}`);
+      svg.appendChild(arc);
+      const dx = x1 - c2x, dy = G.ARC_BASE - G.ARC_APEX, len = Math.hypot(dx, dy) || 1;
+      const ux = dx / len, uy = dy / len, bx = -ux, by = -uy;
+      const bl = 12, th = 0.40, ext = 3, cs = Math.cos(th), sn = Math.sin(th);
+      const tipx = x1 + ext * ux, tipy = G.ARC_BASE + ext * uy;
+      const p1x = tipx + bl * (bx * cs - by * sn), p1y = tipy + bl * (bx * sn + by * cs);
+      const p2x = tipx + bl * (bx * cs + by * sn), p2y = tipy + bl * (-bx * sn + by * cs);
+      const head = document.createElementNS(svg.namespaceURI, 'polygon');
+      head.setAttribute('points', `${tipx},${tipy} ${p1x},${p1y} ${p2x},${p2y}`);
+      svg.appendChild(head);
+      const cy = (G.ARC_APEX + G.ARC_BASE) / 2;
+      const badge = document.createElementNS(svg.namespaceURI, 'circle');
+      badge.setAttribute('cx', (x0 + x1) / 2); badge.setAttribute('cy', cy); badge.setAttribute('r', 11);
+      svg.appendChild(badge);
+      const tx = document.createElementNS(svg.namespaceURI, 'text');
+      tx.setAttribute('x', (x0 + x1) / 2); tx.setAttribute('y', cy);
+      tx.setAttribute('text-anchor', 'middle'); tx.setAttribute('dominant-baseline', 'central');
+      tx.setAttribute('font-size', '12'); tx.textContent = (n > 0 ? '+' : '\u2212') + Math.abs(n);
+      svg.appendChild(tx);
+      strip.appendChild(svg);
+    }
+    if (rows.length && cfg.trackLabel) {
+      rows.forEach((mode, ri) => {
+        for (let kk = S.kMin; kk <= S.kMax; kk++) {
+          const html = cfg.trackLabel(mode, kk, powLabel);
+          if (html == null) continue;
+          const lab = document.createElement('div');
+          lab.className = 'tracklbl' + (kk === S.k ? ' active' : '');
+          lab.style.left = X(S.pre + kk) + 'px';
+          lab.style.top = (G.LABEL_TOP + ri * G.LABEL_H) + 'px';
+          lab.innerHTML = html;
+          strip.appendChild(lab);
         }
       });
-    });
+    }
+    const handle = document.createElement('div');
+    handle.className = 'handle'; handle.style.left = X(g) + 'px'; handle.style.top = G.BAND_C + 'px';
+    handle.tabIndex = 0; handle.setAttribute('role', 'slider');
+    handle.setAttribute('aria-valuenow', S.k - S.k0); handle.setAttribute('aria-valuetext', numStr(S.k));
+    strip.appendChild(handle);
+
+    if (cfg.left) cfg.left.disabled = (S.k <= S.kMin) || S.locked;
+    if (cfg.right) cfg.right.disabled = (S.k >= S.kMax) || S.locked;
+
+    // Größe/Skalierung der Box
+    if (fit === 'scale') {
+      let avail = stripwrap.clientWidth || stripwrap.getBoundingClientRect().width;
+      if (avail > 0) {
+        if (cfg.fitContent) {
+          // Nur die aktuell sichtbare Zahl + Komma muss passen; erst beim Verlassen des Rands skalieren
+          const L = S.sig.length; let cL, cR;
+          if (S.k <= 0) { cL = S.pre + S.k - 1; cR = S.pre + L - 1; }
+          else { cL = S.pre; cR = S.pre + Math.max(L, S.k) - 1; }
+          const commaX = X(S.pre + S.k);
+          const leftX = Math.min(X(cL), commaX) - 8, rightX = Math.max(X(cR + 1), commaX + CELL * 0.45) + 8, contentW = Math.max(1, rightX - leftX);
+          S.scale = Math.min(1, avail / contentW);
+          const midX = (leftX + rightX) / 2, tx = avail / 2 - midX * S.scale;
+          strip.style.transformOrigin = 'left top';
+          strip.style.transform = `translate(${tx}px,0) scale(${S.scale})`;
+          if (stripbox) { stripbox.style.width = avail + 'px'; stripbox.style.height = (stripH * S.scale) + 'px'; }
+        } else {
+          S.scale = Math.min(1, (avail - 1) / S.W);
+          strip.style.transformOrigin = 'left top';
+          strip.style.transform = `scale(${S.scale})`;
+          if (stripbox) { stripbox.style.width = (S.W * S.scale) + 'px'; stripbox.style.height = (stripH * S.scale) + 'px'; }
+        }
+      }
+    } else {
+      S.scale = 1;
+      strip.style.transform = 'none';
+      if (stripbox) { stripbox.style.width = S.W + 'px'; stripbox.style.height = stripH + 'px'; }
+    }
+
+    if (cfg.onRender) cfg.onRender(S, numStr);
+  }
+  function setK(nk) { if (S.locked) return; const old = S.k; S.k = Math.max(S.kMin, Math.min(S.kMax, snap(nk))); if (S.k !== old || S.dragging) render(); }
+  function recalc() { layout(); S.k = Math.max(S.kMin, Math.min(S.kMax, snap(S.k))); render(); }
+  function setNumber(sig, k0) { S.sig = sig; S.k0 = k0; S.k = k0; S.locked = false; recalc(); }
+  function xToK(clientX) { const rect = strip.getBoundingClientRect(); const natX = (clientX - rect.left) / (S.scale || 1); return Math.round((natX - PAD) / CELL) - S.pre; }
+  function centerComma() {
+    if (fit !== 'scroll') return;
+    const g = S.pre + S.k, commaX = PAD + g * CELL;
+    const w = stripwrap.clientWidth || stripwrap.getBoundingClientRect().width;
+    if (w > 0) stripwrap.scrollLeft = Math.max(0, commaX - w / 2);
   }
 
+  // Auto-Scrollen am Rand (nur Scroll-Modus)
+  function autoTick() {
+    if (!S.dragging || fit !== 'scroll') { autoRAF = null; return; }
+    const wr = stripwrap.getBoundingClientRect(), edge = 46, maxV = 13;
+    let v = 0;
+    if (lastClientX < wr.left + edge) v = -(1 - Math.max(0, lastClientX - wr.left) / edge);
+    else if (lastClientX > wr.right - edge) v = (1 - Math.max(0, wr.right - lastClientX) / edge);
+    if (v !== 0) {
+      const before = stripwrap.scrollLeft;
+      stripwrap.scrollLeft = before + v * maxV;
+      if (stripwrap.scrollLeft !== before) setK(xToK(lastClientX));
+    }
+    autoRAF = requestAnimationFrame(autoTick);
+  }
+  function onMove(e) { if (S.dragging) { lastClientX = e.clientX; setK(xToK(e.clientX)); e.preventDefault(); } }
+  function onUp() { if (!S.dragging) return; S.dragging = false; if (autoRAF) { cancelAnimationFrame(autoRAF); autoRAF = null; } window.removeEventListener('pointermove', onMove); window.removeEventListener('pointerup', onUp); window.removeEventListener('pointercancel', onUp); render(); }
+  strip.addEventListener('pointerdown', e => {
+    if (S.locked) return;
+    const t = e.target;
+    if (t.classList.contains('handle') || t.classList.contains('rail') || t.classList.contains('tick')) {
+      S.dragging = true; lastClientX = e.clientX; setK(xToK(e.clientX));
+      window.addEventListener('pointermove', onMove); window.addEventListener('pointerup', onUp); window.addEventListener('pointercancel', onUp);
+      if (fit === 'scroll' && !autoRAF) autoRAF = requestAnimationFrame(autoTick);
+      e.preventDefault();
+    }
+  });
+  if (cfg.left)  cfg.left.addEventListener('click', () => setK(S.k - getStep()));
+  if (cfg.right) cfg.right.addEventListener('click', () => setK(S.k + getStep()));
+  strip.addEventListener('keydown', e => {
+    if (S.locked) return;
+    if (e.key === 'ArrowRight') { setK(S.k + getStep()); e.preventDefault(); }
+    else if (e.key === 'ArrowLeft') { setK(S.k - getStep()); e.preventDefault(); }
+    else if (e.key === 'Home') { setK(S.k0); e.preventDefault(); }
+  });
+  return { setNumber, setK, recalc, render, centerComma, lock() { S.locked = true; render(); }, get k() { return S.k; }, get k0() { return S.k0; }, state: S };
+}
+
+/* ── Trainer-Antwort „Komma verschieben" ── */
+let trainerStrip = null, commaTarget = 0, csMaxShift = 6, answerMode = 'input';
+function parseNumToSig(x) {
+  let str = String(x);
+  if (str.indexOf('e') >= 0 || str.indexOf('E') >= 0) str = Number(x).toFixed(12);
+  str = str.replace('.', ',');
+  let parts = str.split(','), intp = (parts[0] || '').replace(/[^0-9]/g, ''), fracp = (parts[1] || '').replace(/[^0-9]/g, '');
+  let raw = intp + fracp, p = intp.length;
+  if (raw === '') return { sig: '0', k0: 1 };
+  while (raw.length > 1 && raw[0] === '0') { raw = raw.slice(1); p -= 1; }
+  while (raw.length > 1 && raw[raw.length - 1] === '0') { raw = raw.slice(0, -1); }
+  return { sig: raw, k0: p };
+}
+function setupCommaAnswer() {
+  if (!currentTask || !trainerStrip) return;
+  const p = parseNumToSig(currentTask.startValue);
+  const powers = getActiveUnits(currentTask.cat).map(u => u.power);
+  csMaxShift = powers.length ? (Math.max(...powers) - Math.min(...powers)) : Math.abs(currentTask.diffPower);
+  csMaxShift = Math.max(csMaxShift, Math.abs(currentTask.diffPower), 1);
+  commaTarget = p.k0 + currentTask.diffPower;
+  trainerStrip.setNumber(p.sig, p.k0);
+  trainerStrip.centerComma();
+  requestAnimationFrame(() => trainerStrip.centerComma());
+}
+function setAnswerMode(mode) {
+  answerMode = mode;
+  document.getElementById('inputMethod').classList.toggle('hidden', mode !== 'input');
+  document.getElementById('commaMethod').classList.toggle('hidden', mode !== 'comma');
+  document.getElementById('answerHint').classList.remove('visible');
+  const inp = document.getElementById('answerInput'); inp.className = ''; inp.value = '';
+  document.getElementById('solutionBox').classList.remove('show');
+  if (mode === 'comma') { if (currentTask && trainerStrip) setupCommaAnswer(); }
+}
+function setMode(mode) {
+  document.getElementById('trainingView').classList.toggle('hidden', mode !== 'training');
+  document.getElementById('exploreView').classList.toggle('hidden', mode !== 'explore');
+  if (mode === 'explore') {
+    if (window.exploreStrip) { window.exploreStrip.recalc(); requestAnimationFrame(() => window.exploreStrip.render()); }
+    if (window.exploreShape) window.exploreShape.render(true);
+  } else if (window.exploreShape) { window.exploreShape.stop(); }
+  if (mode === 'training' && answerMode === 'comma' && trainerStrip) { trainerStrip.recalc(); requestAnimationFrame(() => trainerStrip.centerComma()); }
+}
+
+/* ── Erkundungsmodus (mit Dimensionen und Veranschaulichung) ── */
+(function initExplore() {
+  const el = id => document.getElementById(id);
+  if (!el('ex-strip')) return;
+  const NS = 'http://www.w3.org/2000/svg';
+  const LADDER = 3;
+  const DIMS = {
+    1: { step: 1, shape: 'line',   units: { '-3': 'mm', '-2': 'cm', '-1': 'dm', '0': 'm', '1': 'dam', '2': 'hm', '3': 'km' }, rare: new Set([1, 2]) },
+    2: { step: 2, shape: 'square', units: { '-6': 'mm²', '-4': 'cm²', '-2': 'dm²', '0': 'm²', '2': 'dam²', '4': 'hm²', '6': 'km²' }, rare: new Set() },
+    3: { step: 3, shape: 'cube',   units: { '-9': 'mm³', '-6': 'cm³', '-3': 'dm³', '0': 'm³', '3': 'dam³', '6': 'hm³', '9': 'km³' }, rare: new Set() }
+  };
+  let DIM = 1;
+  const cur = () => DIMS[DIM];
+  const baseU = () => parseInt(el('ex-baseunit').value, 10) || 0;
+  const sup = n => `<sup>${String(n).replace('-', '\u2212')}</sup>`;
+  const grp = x => x.toLocaleString('de-DE');
+  const unitLbl = pw => cur().units[String(pw)];
+
+  function exParse(str) {
+    str = String(str).trim().replace(/\s/g, '').replace('.', ',');
+    let parts = str.split(','), intp = (parts[0] || '').replace(/[^0-9]/g, ''), fracp = (parts[1] || '').replace(/[^0-9]/g, '');
+    let raw = intp + fracp, p = intp.length;
+    if (raw === '') return null;
+    while (raw.length > 1 && raw[0] === '0') { raw = raw.slice(1); p -= 1; }
+    while (raw.length > 1 && raw[raw.length - 1] === '0') { raw = raw.slice(0, -1); }
+    if (raw === '0') return { sig: '0', k0: 1 };
+    return { sig: raw, k0: p };
+  }
+  function rebuildBaseUnits(keep) {
+    const sel = el('ex-baseunit'), units = cur().units;
+    const powers = Object.keys(units).map(Number).sort((a, b) => a - b);
+    sel.innerHTML = '';
+    powers.forEach(pw => { const o = document.createElement('option'); o.value = pw; o.textContent = units[String(pw)]; sel.appendChild(o); });
+    sel.value = units.hasOwnProperty(String(keep)) ? keep : '0';
+  }
+
+  function updatePanels(S, numStr) {
+    const n = S.k - S.k0;
+    const showStellen = el('ex-t-stellen').checked, showPot = el('ex-t-pot').checked, showUnit = el('ex-t-unit').checked;
+    el('ex-p-stellen').classList.toggle('hidden', !showStellen);
+    if (showStellen) el('ex-stellen-txt').textContent = (n === 0) ? 'keine Verschiebung' : `${Math.abs(n)} ${Math.abs(n) === 1 ? 'Stelle' : 'Stellen'} nach ${n > 0 ? 'rechts' : 'links'}`;
+    el('ex-p-pot').classList.toggle('hidden', !showPot);
+    if (showPot) {
+      if (n === 0) { el('ex-pot-txt').innerHTML = `<span class="eq">${numStr(S.k0)}</span> = <span class="eq">${numStr(S.k)}</span>`; el('ex-pot-plain').textContent = '· 1  (unverändert)'; }
+      else { el('ex-pot-txt').innerHTML = `<span class="eq">${numStr(S.k0)}</span> = <span class="eq">${numStr(S.k)}</span> · 10${sup(-n)}`; el('ex-pot-plain').textContent = (n > 0) ? `= ${numStr(S.k)} : ${grp(Math.pow(10, n))}` : `= ${numStr(S.k)} · ${grp(Math.pow(10, -n))}`; }
+    }
+    el('ex-p-unit').classList.toggle('hidden', !showUnit);
+    if (showUnit) {
+      const u0 = baseU(), u = u0 - n, noteEl = el('ex-unit-note');
+      let out;
+      if (cur().units.hasOwnProperty(String(u))) {
+        const rare = (DIM === 1 && cur().rare.has(u)) ? ' rare' : '';
+        out = `${numStr(S.k0)} ${unitLbl(u0)} = <span class="eq">${numStr(S.k)}</span> <span class="unitname${rare}">${unitLbl(u)}</span>`;
+        if (DIM === 1 && cur().rare.has(u)) { noteEl.textContent = 'dam/hm sind gültige Einheiten, werden aber selten verwendet.'; noteEl.classList.remove('hidden'); }
+        else noteEl.classList.add('hidden');
+      } else { out = `<span class="muted">keine benannte Einheit an dieser Stelle</span>`; noteEl.classList.add('hidden'); }
+      el('ex-unit-txt').innerHTML = out;
+    }
+    renderShape(false);
+  }
+
+  const strip = makeStrip({
+    strip: el('ex-strip'), stripbox: el('ex-stripbox'), left: el('ex-left'), right: el('ex-right'),
+    fit: 'scale', cell: 40, showArc: true, step: () => cur().step,
+    range: (kk0) => ({ kMin: kk0 - LADDER * cur().step, kMax: kk0 + LADDER * cur().step }),
+    tracks: () => { const rows = []; if (el('ex-tr-units').checked) rows.push('units'); if (el('ex-tr-pow').value !== 'none') rows.push(el('ex-tr-pow').value); return rows; },
+    trackLabel: (mode, kk, powLabel) => {
+      if (mode === 'units') {
+        const u = baseU() + strip.k0 - kk;
+        if (!cur().units.hasOwnProperty(String(u))) return null;
+        if (cur().rare.has(u)) return `<span class="rare-reveal">${unitLbl(u)}</span>`;
+        return unitLbl(u);
+      }
+      return powLabel(mode, kk);
+    },
+    onRender: (S, numStr) => updatePanels(S, numStr)
+  });
+  window.exploreStrip = strip;
+
+  /* ── Veranschaulichung: Strecke / Quadrat / Würfel ── */
+  const cube = { renderer: null, raf: null, controls: null };
+  let lastSig = '';
+  function stopCube() {
+    if (cube.raf) { cancelAnimationFrame(cube.raf); cube.raf = null; }
+    if (cube.controls && cube.controls.dispose) { cube.controls.dispose(); }
+    cube.controls = null;
+    if (cube.renderer) {
+      if (cube.renderer.domElement && cube.renderer.domElement.parentNode) cube.renderer.domElement.parentNode.removeChild(cube.renderer.domElement);
+      if (cube.renderer.dispose) cube.renderer.dispose();
+      cube.renderer = null;
+    }
+  }
+  function addNote(host, n) { const p = document.createElement('p'); p.className = 'shape-note'; p.textContent = `Vereinfacht dargestellt – tatsächlich ${grp(n)} Teile je Richtung.`; host.appendChild(p); }
+  function svgText(x, y, str, o) {
+    o = o || {}; const t = document.createElementNS(NS, 'text');
+    t.setAttribute('x', x); t.setAttribute('y', y); t.setAttribute('text-anchor', o.anchor || 'middle');
+    t.setAttribute('font-size', o.size || 13); t.setAttribute('font-family', 'Calibri, sans-serif');
+    if (o.weight) t.setAttribute('font-weight', o.weight);
+    t.setAttribute('fill', o.color || '#333');
+    if (o.rotate) t.setAttribute('transform', `rotate(${o.rotate} ${x} ${y})`);
+    t.textContent = str; return t;
+  }
+  function svgArrow(svg, x1, y1, x2, y2, color) {
+    const ln = document.createElementNS(NS, 'line'); ln.setAttribute('x1', x1); ln.setAttribute('y1', y1); ln.setAttribute('x2', x2); ln.setAttribute('y2', y2); ln.setAttribute('stroke', color); ln.setAttribute('stroke-width', 1.4); svg.appendChild(ln);
+    const ang = Math.atan2(y2 - y1, x2 - x1), hl = 6, sp = 0.5;
+    const hx1 = x2 - hl * Math.cos(ang - sp), hy1 = y2 - hl * Math.sin(ang - sp);
+    const hx2 = x2 - hl * Math.cos(ang + sp), hy2 = y2 - hl * Math.sin(ang + sp);
+    const hd = document.createElementNS(NS, 'polygon'); hd.setAttribute('points', `${x2},${y2} ${hx1},${hy1} ${hx2},${hy2}`); hd.setAttribute('fill', color); svg.appendChild(hd);
+  }
+  function drawLine(host, n, wholeLbl, pieceLbl) {
+    const W = Math.min(host.clientWidth || 320, 520), BAR = 40, TOP = 24, BOT = (n > 1 ? 46 : 10), y0 = TOP, VH = TOP + BAR + BOT;
+    const cap = 400, drawN = Math.min(n, cap);
+    const svg = document.createElementNS(NS, 'svg'); svg.setAttribute('viewBox', `0 0 ${W} ${VH}`); svg.setAttribute('width', W); svg.setAttribute('height', VH);
+    const bg = document.createElementNS(NS, 'rect'); bg.setAttribute('x', 0.75); bg.setAttribute('y', y0 + 0.75); bg.setAttribute('width', W - 1.5); bg.setAttribute('height', BAR - 1.5); bg.setAttribute('fill', '#e8f5e9'); bg.setAttribute('stroke', '#2e7d32'); bg.setAttribute('stroke-width', 1.5); svg.appendChild(bg);
+    const cw = W / n;
+    // reales 1/n-Kästchen hervorheben (auch sehr dünn)
+    if (n > 1) { const c = document.createElementNS(NS, 'rect'); c.setAttribute('x', 0.75); c.setAttribute('y', y0 + 0.75); c.setAttribute('width', Math.max(cw - 1.5, 1.3)); c.setAttribute('height', BAR - 1.5); c.setAttribute('fill', '#4caf50'); svg.appendChild(c); }
+    // Unterteilungslinien gleichmäßig über die ganze Breite
+    for (let i = 1; i < drawN; i++) { const x = (i / drawN) * W; const ln = document.createElementNS(NS, 'line'); ln.setAttribute('x1', x); ln.setAttribute('y1', y0); ln.setAttribute('x2', x); ln.setAttribute('y2', y0 + BAR); ln.setAttribute('stroke', '#81c784'); ln.setAttribute('stroke-width', drawN > 150 ? 0.5 : 1); svg.appendChild(ln); }
+    // Gesamtlänge oben
+    svg.appendChild(svgText(W / 2, y0 - 8, `1 ${wholeLbl}`, { size: 13, weight: 700, color: '#2e7d32' }));
+    // kleines Kästchen unten mit Pfeil beschriften
+    if (n > 1) {
+      const xc = Math.max(cw / 2, 1), lx = Math.min(Math.max(xc, 42), W - 42), ly = y0 + BAR + 30;
+      svg.appendChild(svgText(lx, ly, `1 ${pieceLbl}`, { size: 12, weight: 700, color: '#2e7d32' }));
+      svgArrow(svg, lx, ly - 13, xc, y0 + BAR + 3, '#2e7d32');
+    }
+    host.appendChild(svg);
+    if (drawN < n) addNote(host, n);
+  }
+  function drawSquare(host, n, wholeLbl, pieceLbl) {
+    const avail = Math.min(host.clientWidth || 300, 340), PADL = 38, PADR = 12, PADT = (n > 1 ? 30 : 10), PADB = 30;
+    const Z = Math.max(120, avail - PADL - PADR), ox = PADL, oy = PADT, VW = Z + PADL + PADR, VH = Z + PADT + PADB, cap = 100, drawN = Math.min(n, cap);
+    const svg = document.createElementNS(NS, 'svg'); svg.setAttribute('viewBox', `0 0 ${VW} ${VH}`); svg.setAttribute('width', VW); svg.setAttribute('height', VH);
+    const bg = document.createElementNS(NS, 'rect'); bg.setAttribute('x', ox + 0.75); bg.setAttribute('y', oy + 0.75); bg.setAttribute('width', Z - 1.5); bg.setAttribute('height', Z - 1.5); bg.setAttribute('fill', '#e8f5e9'); bg.setAttribute('stroke', '#2e7d32'); bg.setAttribute('stroke-width', 1.5); svg.appendChild(bg);
+    const cw = Z / n;
+    if (n > 1) { const c = document.createElementNS(NS, 'rect'); c.setAttribute('x', ox + 0.75); c.setAttribute('y', oy + 0.75); c.setAttribute('width', Math.max(cw - 0.75, 1.2)); c.setAttribute('height', Math.max(cw - 0.75, 1.2)); c.setAttribute('fill', '#4caf50'); svg.appendChild(c); }
+    for (let i = 1; i < drawN; i++) {
+      const p = (i / drawN) * Z, sw = drawN > 40 ? 0.5 : 1;
+      const v = document.createElementNS(NS, 'line'); v.setAttribute('x1', ox + p); v.setAttribute('y1', oy); v.setAttribute('x2', ox + p); v.setAttribute('y2', oy + Z); v.setAttribute('stroke', '#81c784'); v.setAttribute('stroke-width', sw); svg.appendChild(v);
+      const h = document.createElementNS(NS, 'line'); h.setAttribute('x1', ox); h.setAttribute('y1', oy + p); h.setAttribute('x2', ox + Z); h.setAttribute('y2', oy + p); h.setAttribute('stroke', '#81c784'); h.setAttribute('stroke-width', sw); svg.appendChild(h);
+    }
+    // Seitenlänge (Länge!) unten und links
+    svg.appendChild(svgText(ox + Z / 2, oy + Z + 18, `1 ${wholeLbl}`, { size: 13, weight: 700, color: '#2e7d32' }));
+    svg.appendChild(svgText(ox - 15, oy + Z / 2, `1 ${wholeLbl}`, { size: 13, weight: 700, color: '#2e7d32', rotate: -90 }));
+    // kleines Kästchen: Seitenlänge oben UND links mit Pfeil
+    if (n > 1) {
+      const xc = ox + Math.max(cw / 2, 1), lxTop = ox + Math.min(Math.max(cw / 2, 24), Z - 24), lyTop = oy - 16;
+      svg.appendChild(svgText(lxTop, lyTop, `1 ${pieceLbl}`, { size: 11, weight: 700, color: '#2e7d32' }));
+      svgArrow(svg, lxTop, lyTop + 3, xc, oy - 1, '#2e7d32');
+      const yc = oy + Math.max(cw / 2, 1), lyLeft = oy + Math.min(Math.max(cw / 2, 24), Z - 24), lxLeft = ox - 18;
+      svg.appendChild(svgText(lxLeft, lyLeft, `1 ${pieceLbl}`, { size: 11, weight: 700, color: '#2e7d32', rotate: -90 }));
+      svgArrow(svg, lxLeft + 3, lyLeft, ox - 1, yc, '#2e7d32');
+    }
+    host.appendChild(svg);
+    if (drawN < n) addNote(host, n);
+  }
+  function gridGeometry(n) {
+    const pts = []; const a = -0.5, b = 0.5;
+    for (let i = 1; i < n; i++) {
+      const t = -0.5 + i / n;
+      [-0.5, 0.5].forEach(z => { pts.push(t, a, z, t, b, z, a, t, z, b, t, z); });
+      [-0.5, 0.5].forEach(y => { pts.push(t, y, a, t, y, b, a, y, t, b, y, t); });
+      [-0.5, 0.5].forEach(x => { pts.push(x, t, a, x, t, b, x, a, t, x, b, t); });
+    }
+    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3)); return g;
+  }
+  function makeLabel(text, color) {
+    const c = document.createElement('canvas'), CW = 256, CH = 88; c.width = CW; c.height = CH;
+    const ctx = c.getContext('2d'); ctx.clearRect(0, 0, CW, CH);
+    ctx.font = 'bold 46px Calibri, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    const tw = ctx.measureText(text).width + 26, tx = (CW - tw) / 2;
+    ctx.fillStyle = 'rgba(255,255,255,0.88)'; ctx.strokeStyle = color; ctx.lineWidth = 3;
+    ctx.beginPath(); const r = 14, x0 = tx, y0 = 14, w = tw, h = CH - 28;
+    ctx.moveTo(x0 + r, y0); ctx.arcTo(x0 + w, y0, x0 + w, y0 + h, r); ctx.arcTo(x0 + w, y0 + h, x0, y0 + h, r); ctx.arcTo(x0, y0 + h, x0, y0, r); ctx.arcTo(x0, y0, x0 + w, y0, r); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = color; ctx.fillText(text, CW / 2, CH / 2);
+    const tex = new THREE.CanvasTexture(c); tex.needsUpdate = true;
+    const spr = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false, depthWrite: false }));
+    spr.scale.set(0.32 * (CW / CH), 0.32, 1); return spr;
+  }
+  function drawCube(host, n, wholeLbl, pieceLbl) {
+    if (typeof THREE === 'undefined') { const p = document.createElement('p'); p.className = 'shape-note'; p.textContent = '3D-Ansicht konnte nicht geladen werden.'; host.appendChild(p); return; }
+    const size = Math.min(host.clientWidth || 300, 300), drawN = Math.min(n, 100);
+    const scene = new THREE.Scene(); scene.background = new THREE.Color(0xffffff);
+    const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 100); camera.position.set(1.7, 1.4, 2.1);
+    const renderer = new THREE.WebGLRenderer({ antialias: true }); renderer.setPixelRatio(window.devicePixelRatio || 1); renderer.setSize(size, size);
+    host.appendChild(renderer.domElement);
+    const geo = new THREE.BoxGeometry(1, 1, 1);
+    scene.add(new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color: 0xc8e6c9, transparent: true, opacity: 0.4 })));
+    scene.add(new THREE.LineSegments(new THREE.EdgesGeometry(geo), new THREE.LineBasicMaterial({ color: 0x2e7d32 })));
+    if (drawN > 1) scene.add(new THREE.LineSegments(gridGeometry(drawN), new THREE.LineBasicMaterial({ color: 0x81c784 })));
+    let s = 1;
+    if (drawN > 1) { s = 1 / drawN; const hc = new THREE.Mesh(new THREE.BoxGeometry(s, s, s), new THREE.MeshBasicMaterial({ color: 0x4caf50 })); hc.position.set(-0.5 + s / 2, -0.5 + s / 2, 0.5 - s / 2); scene.add(hc); }
+    // Kanten-Beschriftung (Kantenlänge, nicht Volumen)
+    const wl = makeLabel(`1 ${wholeLbl}`, '#2e7d32'); wl.position.set(0, -0.5, 0.72); scene.add(wl);
+    if (n > 1) { const pl = makeLabel(`1 ${pieceLbl}`, '#2e7d32'); pl.position.set(-0.5 + s / 2, -0.5 + s + 0.16, 0.5 + 0.05); scene.add(pl); }
+    let controls = null;
+    if (THREE.OrbitControls) { controls = new THREE.OrbitControls(camera, renderer.domElement); controls.enablePan = false; controls.enableZoom = true; controls.minDistance = 1.3; controls.maxDistance = 6; controls.rotateSpeed = 0.9; controls.zoomSpeed = 0.8; }
+    cube.renderer = renderer; cube.controls = controls;
+    (function loop() { cube.raf = requestAnimationFrame(loop); if (controls && controls.update) controls.update(); renderer.render(scene, camera); })();
+    if (drawN < n) addNote(host, n);
+  }
+  function caption(m, u) {
+    const u0 = baseU();
+    if (u === 0) return `Ausgangseinheit <b>${unitLbl(u0)}</b> – verschiebe das Komma, um die Unterteilung zu sehen.`;
+    const per = Math.pow(10, u), totalF = Math.pow(10, DIM * u);
+    const curPow = u0 - (strip.k - strip.k0);
+    const largerPow = Math.max(u0, curPow), smallerPow = Math.min(u0, curPow);
+    const dimTxt = DIM === 1 ? '' : (DIM === 2 ? ` (${grp(per)} × ${grp(per)})` : ` (${grp(per)} × ${grp(per)} × ${grp(per)})`);
+    return `1 <b>${unitLbl(largerPow)}</b> = ${grp(totalF)} <b>${unitLbl(smallerPow)}</b>${dimTxt}`;
+  }
+  function renderShape(force) {
+    const details = el('ex-shape-details');
+    if (!details || !details.open) { stopCube(); lastSig = ''; return; }
+    const host = el('ex-shape-host'), step = cur().step;
+    const m = Math.round((strip.k - strip.k0) / step), u = Math.abs(m);
+    const sig = DIM + ':' + m;
+    if (!force && sig === lastSig) return;
+    lastSig = sig;
+    el('ex-shape-cap').innerHTML = caption(m, u);
+    stopCube(); host.innerHTML = '';
+    const per = Math.pow(10, u), u0 = baseU(), curPow = u0 - (strip.k - strip.k0);
+    const largerPow = Math.max(u0, curPow), smallerPow = Math.min(u0, curPow);
+    const edge = s => s.replace(/[²³]/g, '');
+    const whole = unitLbl(largerPow), piece = unitLbl(smallerPow);
+    if (DIM === 1) drawLine(host, per, whole, piece);
+    else if (DIM === 2) drawSquare(host, per, edge(whole), edge(piece));
+    else drawCube(host, per, edge(whole), edge(piece));
+  }
+  window.exploreShape = { render: renderShape, stop: stopCube };
+
+  /* ── Verdrahtung ── */
+  function setDim(d) {
+    DIM = d;
+    const step = DIMS[d].step;
+    el('ex-dim-note').textContent = `Beim Wechsel zur nächsten Einheit wandert das Komma um ${step} ${step === 1 ? 'Stelle' : 'Stellen'} (${step} ${step === 1 ? 'Dimension' : 'Dimensionen'}).`;
+    const p = exParse(el('ex-numin').value) || { sig: '345', k0: 1 };
+    rebuildBaseUnits(0);
+    strip.setNumber(p.sig, p.k0);
+    renderShape(true);
+  }
+  el('ex-numin').addEventListener('input', () => { const p = exParse(el('ex-numin').value); if (p) { strip.setNumber(p.sig, p.k0); renderShape(true); } });
+  el('ex-reset').addEventListener('click', () => strip.setK(strip.k0));
+  el('ex-baseunit').addEventListener('change', () => { strip.recalc(); renderShape(true); });
+  document.querySelectorAll('input[name="exDim"]').forEach(r => r.addEventListener('change', () => setDim(parseInt(document.querySelector('input[name="exDim"]:checked').value, 10))));
+  ['ex-tr-units', 'ex-tr-pow', 'ex-t-stellen', 'ex-t-pot', 'ex-t-unit'].forEach(id => el(id).addEventListener('change', () => strip.render()));
+  el('ex-shape-details').addEventListener('toggle', () => { if (el('ex-shape-details').open) renderShape(true); else stopCube(); });
+
+  setDim(1);
+})();
+
+/* ── Setup ── */
+document.addEventListener('DOMContentLoaded', () => {
+  initUnitChips();
+  renderDimBoxes();
+  document.querySelectorAll('.dim-box').forEach(box => {
+    const cat = box.dataset.cat;
+    addPressHandlers(box,
+      () => { if (lastMenuCat === cat && Date.now() - lastMenuClosedAt < 600) { lastMenuCat = null; return; } toggleDim(cat); },
+      () => openUnitMenu(cat, box));
+  });
+
+  document.querySelectorAll('input[name="stepMode"], input[name="dirMode"], #settingsForm input[type="checkbox"]')
+    .forEach(elm => elm.addEventListener('change', onSettingsChange));
+
+  document.getElementById('checkBtn').addEventListener('click', checkAnswer);
+  document.getElementById('hintBtn').addEventListener('click', showNextHint);
+  document.getElementById('revealBtn').addEventListener('click', revealSolution);
+  document.getElementById('newTaskBtn').addEventListener('click', newTask);
+
+  trainerStrip = makeStrip({
+    strip: document.getElementById('cs-strip'), stripbox: document.getElementById('cs-stripbox'),
+    left: document.getElementById('cs-left'), right: document.getElementById('cs-right'),
+    fit: 'scale', fitContent: true, cell: 40, compact: true, showArc: true,
+    range: (k0) => ({ kMin: k0 - csMaxShift, kMax: k0 + csMaxShift })
+  });
+  document.querySelectorAll('input[name="mode"]').forEach(r => r.addEventListener('change', () => setMode(document.querySelector('input[name="mode"]:checked').value)));
+  document.querySelectorAll('input[name="answerMode"]').forEach(r => r.addEventListener('change', () => setAnswerMode(document.querySelector('input[name="answerMode"]:checked').value)));
+
+  let rzStrip;
+  window.addEventListener('resize', () => { clearTimeout(rzStrip); rzStrip = setTimeout(() => {
+    if (window.exploreStrip) window.exploreStrip.render();
+    if (trainerStrip) { trainerStrip.render(); if (answerMode === 'comma') trainerStrip.centerComma(); }
+    if (window.exploreShape) window.exploreShape.render(true);
+  }, 120); });
+
+  const answerInput = document.getElementById('answerInput');
+  answerInput.addEventListener('keydown', e => { if (e.key === 'Enter') checkAnswer(); });
+  answerInput.addEventListener('keypress', e => { if (!/[\d\.,\-]/.test(e.key)) e.preventDefault(); });
+  if (window.visualViewport) {
+    ['resize', 'scroll'].forEach(ev => window.visualViewport.addEventListener(ev, () => {
+      if (document.activeElement === answerInput) setTimeout(() => answerInput.scrollIntoView({ behavior: 'smooth', block: 'center' }), 50);
+    }));
+  }
+
+  refreshIntBothAvailability();
   onSettingsChange();
 });
 </script>
 
 <div id="lobby-spacer"></div>
 <footer class="site-footer">
-  <div class="footer-content">
+<div class="footer-content">
     M.&nbsp;Koch
     <span class="footer-topic"><a href="./index.html">Mathe-Tools</a></span>
-    <span class="footer-update">Last updated:&nbsp;<span id="last-update">…</span></span>
-  </div>
+    <span class="footer-update">Last updated:&nbsp;<span id="last-update">...</span></span>
+</div>
 </footer>
 <script src="last-update.js" defer></script>
+<script src="scale.js" defer></script>
 </body>
 </html>
