@@ -1,0 +1,2799 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" type="text/css" href="styles.css">
+  <link rel="stylesheet" href="scale.css">
+  <script src="scale.js" defer></script>
+  <script>
+  /* enableMenu:false nimmt den Formeln den Tab-Fokus – sonst landet man beim
+     Durchtabben der Eingabefelder zwischendurch auf einer Formel. */
+  window.MathJax = { options: { enableMenu: false } };
+</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <title>Lage zweier Geraden</title>
+<style>
+/* ===== gemeinsames Aussehen der Reihe – abgestimmt auf lgs.html ===== */
+html{ overflow-y:scroll; scrollbar-gutter:stable; }
+body{ font-family:Calibri,sans-serif; padding:0 2%; max-width:940px; margin:0 auto;
+      display:flex; flex-direction:column; min-height:100vh; }
+h1{ margin-bottom:4px; }
+h2{ margin:6px 0 2px; }
+.lead{ margin:0 0 10px; color:#555; font-size:.95em; }
+
+button{ background:#4CAF50; border:none; color:#fff; padding:8px 16px; font-size:12px; margin:3px 2px;
+        cursor:pointer; border-radius:5px; font-family:inherit; line-height:1.4; }
+input,select,textarea{ font-family:inherit; }
+input:focus-visible,button:focus-visible,select:focus-visible{ outline:2px solid #3a7ac0; outline-offset:1px; }
+
+details{ border:2px solid #000; margin-bottom:6px; }
+summary{ margin:5px; padding:0 3px 3px 3px; cursor:pointer; font-weight:bold; display:block; }
+summary::before{ content:'▶️'; display:inline-block; transition:.2s; margin-right:6px; }
+details[open]>summary::before{ transform:rotate(90deg); }
+
+.form-block{ border:1px solid #000; padding:4px 8px; margin:8px; }
+.form-block>b{ display:block; margin-bottom:2px; }
+.form-block .d{ font-size:.78em; color:#777; display:block; margin:1px 0 5px; }
+.settings-grid{ display:flex; flex-direction:column; }
+.row{ display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin:4px 0; font-size:.9em; }
+.row .sp{ color:#777; }
+input[type=number].sm{ width:60px; font-size:.95em; padding:3px 4px; border:1.5px solid #cbdccb; border-radius:5px; }
+select.sm{ font-size:.95em; padding:3px 5px; border:1.5px solid #cbdccb; border-radius:5px; background:#f8fff8; color:#1a3a1a; }
+label.opt{ display:flex; align-items:flex-start; gap:7px; font-size:.9em; margin:3px 0; cursor:pointer; padding-left:0; text-indent:0; }
+label.opt input[type=checkbox]{ appearance:none; -webkit-appearance:none; width:16px; height:16px; flex:0 0 16px;
+  border:1.5px solid #9c9; border-radius:4px; background:#fff; cursor:pointer; margin:2px 0 0; position:relative; }
+label.opt input[type=checkbox]:checked{ background:#4a9a4a; border-color:#4a9a4a; }
+label.opt input[type=checkbox]:checked::after{ content:''; position:absolute; left:4px; top:0; width:4px; height:9px;
+  border:solid #fff; border-width:0 2.5px 2.5px 0; transform:rotate(43deg); }
+.slider-row{ gap:7px; }
+.slider-row .sl-name{ flex:0 0 110px; }
+.slider-row .sl-end{ font-size:.78em; color:#888; }
+.slider-row .sl{ flex:1 1 90px; min-width:80px; accent-color:#4a9a4a; cursor:pointer; }
+.slider-row.aus{ opacity:.45; }
+.slider-row.aus .sl{ cursor:default; }
+.settings-foot{ text-align:center; margin:4px 0 6px; }
+.btn-secondary{ background:#eef4ee; color:#2a5a2a; border:1.5px solid #b8d8b8; }
+
+/* ── obere Steuerung ── */
+/* Umschalter zufällig / eigene Aufgabe: mittig und nur so breit wie nötig */
+#modeRow{ display:flex; justify-content:center; margin:10px 0 8px; }
+#modeRow .seg-switch{ flex:0 0 auto; }
+
+#manualBox{ border:1.5px solid #b8d8b8; border-radius:8px; padding:8px 12px 4px; margin:0 0 10px; background:#f6fdf6; }
+#manualBox > .row:first-child{ align-items:center; gap:8px; margin:0 0 8px; padding-bottom:8px;
+  border-bottom:1px dashed #cfe3cf; }
+#manualBox > .row:first-child > span{ font-weight:bold; color:#1a4a1a; font-size:.95em; }
+/* Auswahl des Aufgabentyps deutlich hervorheben */
+#manType{ flex:1 1 240px; min-width:0; font-size:1em; font-weight:bold; padding:7px 10px;
+  border:1.5px solid #4a9a4a; border-radius:7px; background:#eaf7ea; color:#1a4a1a;
+  box-shadow:0 1px 2px rgba(0,0,0,.06); cursor:pointer; }
+#manType:hover{ background:#e0f2e0; }
+#manFields .qz-inp-row{ align-items:center; gap:5px; }
+#manFields .qz-inp-row > .qz-lbl:first-child{ flex:0 0 96px; max-width:96px; white-space:normal;
+  font-weight:bold; color:#1a4a1a; }
+#manFields .qz-inp{ width:40px; }
+#manFields .vecin .cols{ padding:1px 2px; }
+.ptin .qz-lbl{ min-width:0 !important; margin-right:1px; }
+#manualBox .note{ margin:2px 0 6px; }
+/* stretch statt flex-start: sonst schrumpfen die Zeilen auf ihre Inhaltsbreite,
+   und die Kacheln werden je nach Beschriftung unterschiedlich breit */
+#topControls{ margin:8px 0 10px; display:flex; flex-direction:column; gap:10px; align-items:stretch; }
+.tc-item{ display:flex; flex-direction:column; align-items:flex-start; gap:4px; width:100%; max-width:100%; }
+.tc-label{ font-size:1em; font-weight:bold; color:#1a4a1a; letter-spacing:.02em; }
+.tc-sub{ font-size:.75em; color:#777; margin-top:-2px; }
+
+/* Segment-Schalter mit gleitendem Hintergrund */
+.seg-switch{ position:relative; display:inline-flex; background:#eef4ee; border:1.5px solid #b8d8b8;
+  border-radius:22px; padding:3px; box-sizing:border-box; }
+.seg-switch input{ position:absolute; opacity:0; width:0; height:0; pointer-events:none; }
+.seg-switch label{ position:relative; z-index:2; margin:0; padding:7px 15px; font-size:.9em; font-weight:bold;
+  color:#4a6a4a; cursor:pointer; border-radius:19px; white-space:nowrap; transition:color .25s; user-select:none; }
+.seg-switch input:checked+label{ color:#fff; }
+.seg-switch.no-glider input:checked+label{ background:#4a9a4a; }
+.diff-switch.no-glider input:checked+label{ background:#3a7ac0; }
+.seg-glider{ pointer-events:none; position:absolute; z-index:1; top:3px; bottom:3px; border-radius:19px; background:#4a9a4a;
+  box-shadow:0 1px 3px rgba(0,0,0,.2); transition:left .28s cubic-bezier(.4,1.3,.6,1), width .28s cubic-bezier(.4,1.3,.6,1);
+  left:3px; width:0; }
+.diff-switch{ flex-wrap:nowrap; max-width:100%; padding:clamp(2px,.5vw,3px); }
+.diff-switch label{ font-size:clamp(8px,2.6vw,11.5px); padding:clamp(2px,.8vw,5px) clamp(3px,1.3vw,9px);
+  border-radius:16px; white-space:nowrap; }
+.diff-switch .seg-glider{ background:#3a7ac0; border-radius:16px; }
+.tc-diff{ overflow-x:auto; scrollbar-width:none; }
+.tc-diff::-webkit-scrollbar{ display:none; }
+
+/* Mehrfachauswahl als Pillen */
+.pills{ display:flex; flex-wrap:wrap; gap:5px; width:100%; }
+.pill{ padding:6px 11px; border:1.5px solid #aaa; border-radius:18px; background:#f7f7f7; color:#222 !important;
+  font-size:.82em; margin:0; line-height:1.25; transition:background .15s,border-color .15s; }
+.pill.on{ background:#c8f0c8 !important; border-color:#4a9a4a !important; color:#1a4a1a !important; font-weight:bold; }
+
+/* Kacheln der Aufgabentypen */
+.tiles{ display:flex; flex-wrap:wrap; gap:7px; margin:2px 0 0; width:100%; }
+.tile{ position:relative; flex:1 1 265px; min-width:0; text-align:left; background:#f7f7f7; color:#222 !important;
+  border:1.5px solid #aaa; border-radius:9px; padding:5px 22px 5px 10px; margin:0; font-size:.88em; line-height:1.25; }
+.tile .tname{ font-weight:bold; display:block; }
+.tile .tsub{ display:block; font-size:.76em; color:#666; margin-top:1px; line-height:1.2; }
+.tile.on{ background:#c8f0c8 !important; border-color:#4a9a4a !important; }
+.tile.on .tname{ color:#1a4a1a; }
+.tile.on .tsub{ color:#3a6a3a; }
+.tile.empty{ border-style:dashed; }
+.tile .arr{ position:absolute; right:8px; top:50%; transform:translateY(-50%); color:#888; font-size:.7em; }
+.tilehint{ font-size:.75em; color:#777; margin:2px 0 0; line-height:1.25; }
+
+/* Longpress-Menü */
+.pop{ position:absolute; z-index:60; background:#fff; border:1.5px solid #4a9a4a; border-radius:10px;
+  padding:8px 10px 10px; box-shadow:0 6px 22px rgba(0,0,0,.18); min-width:230px; max-width:min(330px,92vw); }
+.pop h4{ margin:0 0 6px; font-size:.9em; color:#1a4a1a; display:flex; align-items:center;
+  justify-content:space-between; gap:10px; }
+.pop .allbtn{ font-size:.72em; padding:3px 9px; margin:0; flex:0 0 auto; }
+.pop label{ display:flex; align-items:flex-start; gap:7px; font-size:.88em; padding:3px 0; cursor:pointer; }
+.pop label input, .pop label span{ cursor:pointer; }
+.pop label span.d{ display:block; font-size:.8em; color:#888; }
+.pophint{ margin:6px 0 0; font-size:.72em; color:#888; border-top:1px dashed #cfe3cf; padding-top:5px; }
+
+/* Aufgabe */
+.task-head{ display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; }
+.share-btn{ background:none !important; color:inherit; border:none; font-size:1.05em; padding:3px 6px; line-height:1;
+  opacity:.3; transition:opacity .15s; }
+.share-btn.copied{ opacity:1; }
+#genRow{ margin:6px 0 8px; }
+#genBtn{ display:inline-block; width:auto; font-size:1em; padding:9px 20px; }
+.task{ border:1.5px solid #4a9a4a; border-radius:7px; padding:10px 14px; background:#f8fff8; }
+.task .qbody{ line-height:1.7; }
+.ask{ margin-top:8px; font-weight:bold; }
+.scrollx{ overflow-x:auto; overflow-y:hidden; }
+.scale-wrapper{ width:100%; padding:0.1em 0; box-sizing:border-box; }
+.res .scale-wrapper, .step .scale-wrapper, .qz-done-step .scale-wrapper{ padding:0; }
+/* MathJax soll seine natürliche Breite behalten – sonst misst scale.js die
+   Formel so breit wie den Kasten und verkleinert nie. */
+.scale-el mjx-container{ overflow:visible !important; }
+.scale-el mjx-container[display="true"]{ display:inline-block !important; text-align:left;
+  margin:0 !important; width:auto !important; max-width:none !important; }
+.scale-el mjx-container[jax="CHTML"][display="true"]{ min-width:0 !important; }
+/* Sicherheitsnetz nur für sehr breite Inhalte, die selbst verkleinert nicht passen */
+.scale-wrapper{ overflow:visible; }
+mjx-container{ margin:2px 0 !important; }
+
+/* Quiz */
+#quizArea{ margin:8px 0 6px; }
+.qz-stage{ font-weight:bold; font-size:.97em; color:#1a4a1a; margin-bottom:4px; }
+.qz-sub{ color:#444; font-size:.88em; margin:3px 0 5px; background:#fffbe8; border:1px solid #f0e0a0;
+  border-radius:5px; padding:5px 9px; }
+.hint-btn{ background:#fff6d8; color:#7a5b00 !important; border:1.5px solid #e8d48a; font-size:.78em;
+  padding:4px 10px; border-radius:14px; margin:2px 0; }
+.qz-btns{ display:flex; flex-wrap:wrap; gap:6px; margin:5px 0; }
+.qz-btn{ padding:5px 9px; border:1px solid #aaa; border-radius:16px; background:#f7f7f7; cursor:pointer;
+  font-family:inherit; font-size:.82em; color:#222 !important; line-height:1.25; margin:0;
+  transition:background .15s,border-color .15s; }
+.qc{ background:#c8f0c8 !important; border-color:#4a9a4a !important; color:#1a4a1a !important; font-weight:bold; pointer-events:none; }
+.qw{ background:#f8d8d8 !important; border-color:#c04040 !important; color:#6a0000 !important; }
+.qz-inp-row{ display:flex; align-items:center; gap:4px; flex-wrap:wrap; margin:5px 0; }
+.qz-lbl{ font-size:.86em; color:#333; white-space:nowrap; }
+.qz-inp{ font-family:monospace; font-size:.9em; padding:5px 2px; border:1.5px solid #aaa; border-radius:4px;
+  width:46px; box-sizing:border-box; text-align:center; }
+.vecin .qz-inp, .ptin .qz-inp{ width:42px; }
+.qz-inp:focus{ outline:none; border-color:#4a9a4a; }
+.qz-inp.ok{ border-color:#4a9a4a; background:#f4fff4; }
+.qz-inp.err{ border-color:#c04040; background:#fff4f4; }
+.qz-fb{ font-size:.87em; margin:3px 0 2px; }
+.qz-fb.ok{ color:#1a6a1a; }
+.qz-fb.err{ color:#9a1010; }
+.qz-fb.warn{ color:#8a6a00; }
+.qz-solved{ background:#f6fdf6 !important; border-color:#b8d8b8 !important; }
+.qz-solved .qz-stage{ color:#2a6a2a; }
+.qz-locked{ opacity:.45; filter:grayscale(.6); pointer-events:none; }
+.qz-locked .qz-btn.qc{ background:#dfe9df !important; border-color:#aaa !important; color:#333 !important; }
+.qz-btn:disabled, .qz-inp:disabled{ cursor:default; }
+.qz-btn:disabled:not(.qc):not(.qw){ opacity:.55; }
+.qz-cur-step{ border:1.5px solid #4a9a4a; border-radius:5px; padding:7px 12px; margin:5px 0; background:#fff; }
+.qz-all-done{ border:1.5px solid #4a9a4a; border-radius:5px; padding:7px 12px; margin:5px 0; background:#eefaee;
+  color:#1a4a1a; font-weight:bold; font-size:.93em; }
+.vecin{ display:inline-flex; align-items:stretch; gap:2px; vertical-align:middle; }
+.vecin .cols{ display:flex; flex-direction:column; gap:2px; padding:2px 2px; }
+.vecin .br{ width:8px; border:2px solid #444; align-self:stretch; }
+.vecin .br.l{ border-right:none; border-radius:9px 0 0 9px; }
+.vecin .br.r{ border-left:none; border-radius:0 9px 9px 0; }
+/* große eckige Klammern um die Normalenform-Eingabe */
+.sqbr{ width:7px; border:2px solid #444; align-self:stretch; }
+.sqbr.l{ border-right:none; }
+.sqbr.r{ border-left:none; }
+.qz-inp-row{ align-items:stretch; }
+.qz-inp-row > .qz-lbl{ display:flex; align-items:center; }
+.ptin{ display:inline-flex; align-items:center; gap:3px; vertical-align:middle; }
+.ptin .pb{ font-size:1.6em; line-height:1; color:#444; }
+.ptin .psep{ color:#777; font-size:1.1em; }
+
+/* Lösung */
+details.loesung{ margin-top:10px; background:#f0f7ff; border:2px solid #3a7ac0; border-radius:7px; padding:2px 8px; }
+details.loesung>summary{ color:#0d47a1; }
+.res{ background:#fff; border:1px solid #b6d4f0; border-radius:6px; padding:6px 10px; margin:4px 0; }
+.note{ font-size:.82em; color:#555; margin:4px 0 2px; }
+details.weg{ margin:8px 0 6px; background:#fff; border:1.5px solid #b6d4f0; border-radius:6px; padding:2px 8px; }
+details.weg>summary{ color:#1565c0; font-weight:bold; }
+.wegbox{ margin-top:4px; }
+.step{ margin:8px 0; }
+.step .sh{ font-weight:bold; font-size:.88em; color:#1a3a5a; }
+.step .sx{ font-size:.88em; color:#555; margin:2px 0; }
+.step .note-line{ color:#333; margin-top:2px; }
+.step-link{ display:inline-block; margin:5px 0 2px; background:#E07B00; color:#fff; text-decoration:none;
+  font-size:.8em; padding:5px 11px; border-radius:5px; }
+.varsw{ display:flex; flex-wrap:wrap; gap:5px; margin:2px 0 6px; }
+.varsw button{ background:#fff; color:#0d47a1 !important; font-size:.8em; padding:5px 11px; border-radius:16px;
+  border:1.5px solid #b6d4f0; margin:0; }
+.varsw button.on{ background:#3a7ac0; color:#fff !important; border-color:#3a7ac0; font-weight:bold; }
+.wegsel{ font-size:.8em; color:#555; margin:2px 0 0; }
+.extlink{ text-align:center; margin:8px 0 4px; display:flex; flex-wrap:wrap; gap:6px; justify-content:center; }
+.extlink a{ display:inline-block; background:#3a7ac0; color:#fff; text-decoration:none; font-size:.85em;
+  padding:8px 15px; border-radius:5px; }
+/* kurzes Hervorheben, wenn "Individuell" gewählt wurde */
+@keyframes blinkHint{ 0%,100%{ background:transparent; } 25%,75%{ background:#fff6cc; } }
+.form-block.hint{ animation:blinkHint 1s ease-in-out 2; border-color:#e0a800; }
+.extlink a.alt{ background:#E07B00; }
+.extlink .d{ flex-basis:100%; font-size:.75em; color:#666; }
+
+@media(max-width:520px){
+  .tile{ flex:1 1 100%; }
+  .qz-inp{ width:60px; }
+}
+
+/* Hervorhebung beim Überfahren nur mit Maus – nach einer Berührung bleibt sonst
+   der Knopf hell stehen, als wäre der Zeiger noch darauf. */
+@media (hover: hover) and (pointer: fine){
+  button:hover{ filter:brightness(.88); }
+  .btn-secondary:hover{ filter:none; background:#e2eee2; }
+  .pill:hover{ filter:none; background:#e8f0e8; border-color:#888; }
+  .tile:hover{ filter:none; background:#e8f0e8; border-color:#888; }
+  .share-btn:hover{ opacity:.75; }
+  .qz-btn:hover:not(.qc):not(.qw){ filter:none; background:#e8f0e8; border-color:#888; }
+  .varsw button:hover:not(.on){ filter:none; background:#eaf2fc; border-color:#7fb0e0; }
+  .varsw button.on:hover{ filter:none; background:#2a5a9a; }
+  .extlink a:hover{ background:#2a5a9a; }
+  .extlink a.alt:hover{ background:#b06200; }
+}
+@media (hover: none){
+  button:hover, a:hover{ filter:none; }
+}
+button:focus:not(:focus-visible), a:focus:not(:focus-visible), label:focus:not(:focus-visible){ outline:none; }
+
+@media(max-width:560px){
+  /* auf schmalen Schirmen nutzt die Schwierigkeitsleiste die volle Breite,
+     die Stufen verteilen sich gleichmäßig darauf */
+  .diff-switch{ width:100%; }
+  .diff-switch label{ flex:1 1 0; text-align:center; padding-left:2px; padding-right:2px; }
+  #manFields .qz-inp-row > .qz-lbl:first-child{ flex:1 0 100%; max-width:none; }
+  #manFields .qz-inp{ width:38px; }
+  .qz-inp{ width:40px; font-size:.84em; }
+  .vecin .qz-inp, .ptin .qz-inp{ width:34px; padding:4px 1px; }
+  .vecin .br{ width:6px; }
+  .qz-lbl{ font-size:.8em; }
+  .pill{ padding:5px 8px; font-size:.75em; }
+  .qz-btn{ padding:4px 7px; font-size:.74em; }
+}
+
+mjx-container:focus, mjx-container [tabindex]{ outline:none; }
+
+</style>
+</head>
+<body>
+<h1>Lage zweier Geraden</h1>
+<p class="lead">Untersuchen, ob zwei Geraden sich schneiden, parallel, identisch oder windschief sind.</p>
+
+<details id="dSettings">
+  <summary>Einstellungen</summary>
+  <div class="settings-grid" id="settingsGrid"></div>
+  <div class="settings-foot">
+    <button class="btn-secondary" id="btnShare">🔗 Link mit allen Einstellungen kopieren</button>
+    <button class="btn-secondary" id="btnReset">↺ Standard wiederherstellen</button>
+  </div>
+</details>
+
+<div id="modeRow"><div class="seg-switch" id="segMode"></div></div>
+<div id="manualBox"></div>
+
+<div id="topControls">
+  <div class="tc-item">
+    <span class="tc-label">Mögliche Fälle</span>
+    <span class="tc-sub">Nur die eingeschalteten Fälle kommen in den Aufgaben vor.</span>
+    <div class="pills" id="segCases"></div>
+  </div>
+
+  <div class="tc-item tc-diff">
+    <span class="tc-label">Schwierigkeit</span>
+    <div class="seg-switch diff-switch" id="segDiff"></div>
+  </div>
+</div>
+
+<div id="genRow"><button id="genBtn">Neue Aufgabe generieren</button></div>
+
+<div class="task" id="task"></div>
+
+<div id="genRow2"><button id="genBtn2">Neue Aufgabe generieren</button></div>
+
+<footer class="site-footer">
+  <div class="footer-content">
+    <span>M. Koch</span>
+    <span><a href="index.html">Mathe-Tools</a></span>
+    <span id="lastUpdate"></span>
+  </div>
+</footer>
+<script src="last-update.js" defer></script>
+<script>
+/* =========================================================================
+   GEMEINSAMER KERN der Reihe "Analytische Geometrie"
+   identisch in geraden_grundlagen.html, lage_gerade_gerade.html,
+   ebenen_grundlagen.html, lage_gerade_ebene.html, lage_ebene_ebene.html
+   ========================================================================= */
+
+/* ---------- DOM ---------- */
+const $  = (s, r) => (r || document).querySelector(s);
+const $$ = (s, r) => Array.prototype.slice.call((r || document).querySelectorAll(s));
+function el(tag, attrs, html){
+  const n = document.createElement(tag);
+  if (attrs) for (const k in attrs){
+    if (k === 'class') n.className = attrs[k];
+    else if (k === 'data') for (const d in attrs.data) n.dataset[d] = attrs.data[d];
+    else n.setAttribute(k, attrs[k]);
+  }
+  if (html != null) n.innerHTML = html;
+  return n;
+}
+function esc(s){ return String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+
+/* ---------- Zufall (Seed macht Aufgaben teilbar) ---------- */
+let _seed = 1;
+function setSeed(s){ _seed = (s >>> 0) || 1; }
+function rnd(){
+  _seed |= 0; _seed = (_seed + 0x6D2B79F5) | 0;
+  let t = Math.imul(_seed ^ (_seed >>> 15), 1 | _seed);
+  t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+  return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+}
+const ri   = (a, b) => (b < a) ? a : a + Math.floor(rnd() * (b - a + 1));
+const pick = arr => arr[Math.floor(rnd() * arr.length)];
+const coin = p => rnd() < (p == null ? 0.5 : p);
+function shuffle(a){ for (let i = a.length - 1; i > 0; i--){ const j = Math.floor(rnd() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+function newSeed(){ return (Math.random() * 4294967295) >>> 0; }
+
+/* ---------- Zahlen ---------- */
+const EPS = 1e-7;
+const P10 = 10;                       /* intern feiner rechnen als angezeigt wird */
+const rd  = (x, n) => Math.round(x * Math.pow(10, n == null ? 6 : n)) / Math.pow(10, n == null ? 6 : n);
+const eq0 = x => Math.abs(x) < EPS;
+const eqN = (a, b) => Math.abs(a - b) < 1e-6;
+function gcd(a, b){ a = Math.abs(a); b = Math.abs(b); while (b){ [a, b] = [b, a % b]; } return a; }
+function lcm(a, b){ a = Math.abs(Math.round(a)); b = Math.abs(Math.round(b)); return (!a || !b) ? 0 : a / gcd(a, b) * b; }
+/* =========================================================================
+   Exakte Brüche: jede erzeugte oder berechnete Zahl ist eine rationale Zahl.
+   Q.of() findet über einen Kettenbruch den exakten Bruch zu einem Gleitkomma-
+   wert, snap() legt Rechenergebnisse wieder genau darauf – so entstehen keine
+   Rundungsfehler wie 0.30000000000000004 oder 4.666667 statt 14/3.
+   ========================================================================= */
+const Q = {
+  /** exakter Bruch zu x als {n, d} mit d > 0 und gekürzt */
+  of(x){
+    if (!isFinite(x)) return { n: 0, d: 1 };
+    const r = Math.round(x);
+    if (Math.abs(x - r) < 1e-9) return { n: r, d: 1 };
+    let h0 = 0, h1 = 1, k0 = 1, k1 = 0, b = x;
+    for (let i = 0; i < 30; i++){
+      const a = Math.floor(b);
+      const h2 = a * h1 + h0, k2 = a * k1 + k0;
+      h0 = h1; h1 = h2; k0 = k1; k1 = k2;
+      if (k1 > 1e7) break;
+      if (k1 > 0 && Math.abs(x - h1 / k1) < 1e-11 * Math.max(1, Math.abs(x))) return Q.norm(h1, k1);
+      const fr = b - a;
+      if (Math.abs(fr) < 1e-13) break;
+      b = 1 / fr;
+    }
+    return Q.norm(Math.round(x * 1e9), 1e9);
+  },
+  norm(n, d){
+    n = Math.round(n); d = Math.round(d);
+    if (d < 0){ n = -n; d = -d; }
+    const g = gcd(n, d) || 1;
+    return { n: n / g, d: d / g };
+  },
+  isInt(q){ return q.d === 1; },
+  /** endet die Dezimaldarstellung? (nur Nenner aus 2ern und 5ern) */
+  terminates(q){
+    let d = q.d;
+    while (d % 2 === 0) d /= 2;
+    while (d % 5 === 0) d /= 5;
+    return d === 1;
+  },
+  val(q){ return q.n / q.d; }
+};
+/** Rechenergebnis wieder auf den exakten Bruch legen */
+function snap(x){
+  if (!isFinite(x)) return x;
+  const q = Q.of(x);
+  return q.n / q.d;
+}
+function denom(x, maxDen){
+  const q = Q.of(x);
+  return q.d <= (maxDen || 64) ? q.d : 0;
+}
+function fmt(x, maxDec){
+  const m = maxDec == null ? 4 : maxDec;
+  let s = rd(x, m).toFixed(m);
+  if (s.indexOf('.') >= 0) s = s.replace(/0+$/, '').replace(/\.$/, '');
+  if (s === '-0') s = '0';
+  return s.replace('.', ',');
+}
+const tfmt = (x, m) => fmt(x, m).replace(',', '{,}');
+function fracTeX(x){
+  const q = Q.of(x);
+  if (q.d === 1) return tfmt(q.n);
+  return (q.n < 0 ? '-' : '') + '\\frac{' + Math.abs(q.n) + '}{' + q.d + '}';
+}
+/** einheitliche Ausgabe berechneter Werte (Einstellung "Zahlen anzeigen als") */
+function numTeX(x){
+  const q = Q.of(x);
+  if (q.d === 1) return tfmt(q.n);
+  const style = (typeof S !== 'undefined' && S.numStyle) ? S.numStyle : 'auto';
+  if (style === 'dez')   return tfmt(q.n / q.d, (typeof S !== 'undefined' ? S.decN + 3 : 4));
+  if (style === 'bruch') return fracTeX(q.n / q.d);
+  /* automatisch: exakte Dezimalzahl mit höchstens drei Stellen, sonst exakter Bruch –
+     gerundet wird hier nie */
+  return (1000 % q.d === 0) ? tfmt(q.n / q.d, 3) : fracTeX(q.n / q.d);
+}
+/** wird die Zahl bei der Anzeige gerundet? Dann gehört \approx statt = davor. */
+function isRounded(x){
+  const q = Q.of(x);
+  if (q.d === 1) return false;
+  const style = (typeof S !== 'undefined' && S.numStyle) ? S.numStyle : 'auto';
+  return (style === 'dez') && !Q.terminates(q);
+}
+/** " = " oder " \approx " – je nachdem, ob gerundet wird */
+function EQ(x){ return isRounded(x) ? ' \\approx ' : ' = '; }
+function paren(x){ return x < 0 ? '\\left(' + numTeX(x) + '\\right)' : numTeX(x); }
+/** " + 3\cdot t" – Vorfaktor 1 entfällt, 0 liefert "" */
+function coef(c, sym){
+  if (eq0(c)) return '';
+  return (c < 0 ? ' - ' : ' + ') + (eqN(Math.abs(c), 1) ? '' : numTeX(Math.abs(c)) + '\\cdot ') + sym;
+}
+function term(c, sym, first){
+  if (eq0(c)) return '';
+  const abs = eqN(Math.abs(c), 1) ? '' : numTeX(Math.abs(c)) + '\\cdot ';
+  return first ? ((c < 0 ? '-' : '') + abs + sym) : coef(c, sym);
+}
+/** Summand ohne Malpunkt – Schreibweise im Gleichungssystem: "2x", "-y", " + 3z" */
+function varTerm(c, sym, first){
+  if (eq0(c)) return '';
+  const a = eqN(Math.abs(c), 1) ? '' : numTeX(Math.abs(c));
+  return first ? ((c < 0 ? '-' : '') + a + sym) : ((c < 0 ? ' - ' : ' + ') + a + sym);
+}
+function affine(p, c, sym){
+  if (eq0(c)) return numTeX(p);
+  if (eq0(p)) return term(c, sym, true);
+  return numTeX(p) + coef(c, sym);
+}
+function quotTeX(sym, z, n, val){
+  if (eqN(n, 1))  return sym + ' = ' + numTeX(z);
+  if (eqN(n, -1)) return sym + ' = ' + numTeX(-z);
+  return sym + ' = \\frac{' + numTeX(z) + '}{' + numTeX(n) + '} = ' + numTeX(val);
+}
+
+/* ---------- Zufallszahlen nach den Einstellungen ---------- */
+function genNum(cfg){
+  const lo = Math.min(cfg.min, cfg.max), hi = Math.max(cfg.min, cfg.max);
+  for (let i = 0; i < 300; i++){
+    let x; const r = rnd();
+    if (cfg.frac && r < 0.4){
+      const den = ri(2, Math.max(2, cfg.fracD || 4));
+      x = snap(ri(Math.ceil(lo * den), Math.floor(hi * den)) / den);
+    } else if (cfg.dec && r < 0.7){
+      const f = Math.pow(10, cfg.decN || 1);
+      x = rd(ri(Math.ceil(lo * f), Math.floor(hi * f)) / f, cfg.decN || 1);
+    } else {
+      x = ri(Math.ceil(lo - EPS), Math.floor(hi + EPS));
+    }
+    if (!cfg.zero && eq0(x)) continue;
+    if (x < lo - EPS || x > hi + EPS) continue;
+    return x;
+  }
+  return (!cfg.zero && lo <= 1 && hi >= 1) ? 1 : Math.round((lo + hi) / 2);
+}
+const cfgCoord = () => ({ min: S.pmin, max: S.pmax, zero: S.pzero, dec: S.pdec, decN: S.decN, frac: S.pfrac, fracD: S.fracD });
+const cfgVec   = () => ({ min: S.vmin, max: S.vmax, zero: S.vzero, dec: S.vdec, decN: S.decN, frac: S.vfrac, fracD: S.fracD });
+const cfgNorm  = () => ({ min: S.nmin, max: S.nmax, zero: S.nzero, dec: S.ndec, decN: S.decN, frac: S.nfrac, fracD: S.fracD });
+const cfgPar   = () => ({ min: S.tmin, max: S.tmax, zero: S.tzero, dec: false, decN: 1, frac: S.tfrac, fracD: S.fracD });
+
+function randPoint(){
+  for (let i = 0; i < 80; i++){
+    const p = [genNum(cfgCoord()), genNum(cfgCoord()), genNum(cfgCoord())];
+    if (!V.zero(p)) return p;
+  }
+  return [1, 2, 3];
+}
+function randDir(cfg){
+  const c = cfg || cfgVec();
+  for (let i = 0; i < 300; i++){
+    let u = [genNum(c), genNum(c), genNum(c)];
+    if (V.zero(u)) continue;
+    u = V.nice(u);
+    if (!V.zero(u)) return u;
+  }
+  return [1, 2, -1];
+}
+function randNormal(){
+  for (let i = 0; i < 300; i++){
+    const roh = [genNum(cfgNorm()), genNum(cfgNorm()), genNum(cfgNorm())];
+    if (!S.nzero && roh.some(eq0)) continue;
+    let n = V.intScale(roh);
+    n = V.reduce(n).v;
+    if (V.zero(n)) continue;
+    if (!S.nzero && n.some(eq0)) continue;
+    return n;
+  }
+  return [1, 2, 2];
+}
+function randT(noZero){
+  const c = cfgPar();
+  if (noZero) c.zero = false;
+  return genNum(c);
+}
+
+/* ---------- Ebenen erzeugen ---------- */
+/** kleine ganzzahlige Vektoren senkrecht zu n */
+function orthCandidates(n, rng){
+  const out = [];
+  for (let a = -rng; a <= rng; a++) for (let b = -rng; b <= rng; b++) for (let c = -rng; c <= rng; c++){
+    if (a === 0 && b === 0 && c === 0) continue;
+    if (!eq0(a * n[0] + b * n[1] + c * n[2])) continue;
+    if (gcd(gcd(a, b), c) !== 1) continue;                 /* nur gekürzte */
+    out.push([a, b, c]);
+  }
+  out.sort((x, y) => V.dot(x, x) - V.dot(y, y));
+  return out;
+}
+/** Ebene aus einem kleinen Normalenvektor: liefert p, u, v, n, d */
+function planeFromNormal(){
+  for (let i = 0; i < 60; i++){
+    const n = randNormal();
+    if (V.zero(n)) continue;
+    const cand = orthCandidates(n, Math.max(3, Math.abs(S.vmax)));
+    if (cand.length < 4) continue;
+    const kurz = cand.slice(0, Math.min(cand.length, 14));
+    const u = pick(kurz);
+    const rest = kurz.filter(w => !V.parallel(u, w));
+    if (!rest.length) continue;
+    const v = pick(rest);
+    const p = randPoint();
+    return { p: p, u: u, v: v, n: n, d: snap(V.dot(n, p)) };
+  }
+  const n = [1, 2, 2], p = [1, 0, 0];
+  return { p: p, u: [2, -1, 0], v: [0, 1, -1], n: n, d: V.dot(n, p) };
+}
+/** Ebene aus zwei Spannvektoren (Normalenvektor kann größer werden) */
+function planeFromSpan(){
+  for (let i = 0; i < 200; i++){
+    const u = randDir(), v = randDir();
+    if (V.parallel(u, v)) continue;
+    const p = randPoint(), n = V.nice(V.cross(u, v));
+    return { p: p, u: u, v: v, n: n, d: snap(V.dot(n, p)) };
+  }
+  return planeFromNormal();
+}
+/** Ebene mit ganzzahligen Spurpunkten auf allen drei Achsen */
+function planeSpur(){
+  for (let i = 0; i < 200; i++){
+    const s = [0, 1, 2].map(() => { let x = 0; let n = 0; while (!x && n++ < 40) x = Math.round(genNum({ min: S.pmin, max: S.pmax, zero: false, dec: false, decN: 1, frac: false, fracD: 2 })); return x || 2; });
+    if (s.some(x => !Number.isInteger(x))) continue;
+    const L = Math.abs(s[0] * s[1] * s[2]) / (gcd(gcd(Math.abs(s[0]), Math.abs(s[1])), Math.abs(s[2])) || 1);
+    let nv = s.map(x => snap(L / x));
+    if (!nv.every(Number.isInteger)) continue;
+    const g = gcd(gcd(Math.abs(nv[0]), Math.abs(nv[1])), Math.abs(nv[2])) || 1;
+    nv = nv.map(x => x / g);
+    const d = snap(L / g);
+    if (!Number.isInteger(d) || Math.abs(d) > 400) continue;
+    const pts = [[s[0], 0, 0], [0, s[1], 0], [0, 0, s[2]]];
+    return { n: nv, d: d, S: s, pts: pts, p: pts[0] };
+  }
+  return { n: [2, 3, 6], d: 6, S: [3, 2, 1], pts: [[3, 0, 0], [0, 2, 0], [0, 0, 1]], p: [3, 0, 0] };
+}
+/** Ebene aus Koordinatenform: Stützpunkt und zwei Spannvektoren dazu bestimmen */
+function planeFromKoo(n, d){
+  const i = [0, 1, 2].find(k => !eq0(n[k]));
+  let p = pointOnPlane(n, d, null);
+  if (!p || !eqN(V.dot(n, p), d)){ p = [0, 0, 0]; p[i] = snap(d / n[i]); }
+  const cand = orthCandidates(n, Math.max(3, Math.abs(S.vmax), Math.abs(S.vmin)));
+  const u = cand.length ? cand[0] : V.reduce(V.cross(n, [1, 0, 0])).v;
+  const v = cand.find(w => !V.parallel(u, w)) || V.reduce(V.cross(n, u)).v;
+  return { p: p, u: u, v: v, n: n, d: d };
+}
+
+/** Punkt der Ebene: möglichst mit Nullen (Spurpunkt), sonst ganzzahlig, sonst der bekannte Stützpunkt */
+function pointOnPlane(nv, d, fallback){
+  for (let i = 0; i < 3; i++){
+    if (eq0(nv[i])) continue;
+    const x = snap(d / nv[i]);
+    if (Number.isInteger(x) && eqN(nv[i] * x, d)){ const p = [0, 0, 0]; p[i] = x; return p; }
+  }
+  const i = [0, 1, 2].find(k => !eq0(nv[k])), o = [0, 1, 2].filter(k => k !== i);
+  for (let n = 0; n < 40; n++){
+    const p = [0, 0, 0];
+    p[o[0]] = randT(false); p[o[1]] = randT(false);
+    const x = snap((d - nv[o[0]] * p[o[0]] - nv[o[1]] * p[o[1]]) / nv[i]);
+    if (Number.isInteger(x) && eqN(V.dot(nv, [p[0], p[1], p[2]].map((y, k) => k === i ? x : y)), d)){
+      p[i] = x; return p;
+    }
+  }
+  return fallback ? fallback.slice() : [0, 0, 0];
+}
+
+
+/* ---------- Vektoren ---------- */
+const V = {
+  add : (a, b) => [snap(a[0] + b[0]), snap(a[1] + b[1]), snap(a[2] + b[2])],
+  sub : (a, b) => [snap(a[0] - b[0]), snap(a[1] - b[1]), snap(a[2] - b[2])],
+  mul : (a, k) => [snap(a[0] * k), snap(a[1] * k), snap(a[2] * k)],
+  dot : (a, b) => snap(a[0] * b[0] + a[1] * b[1] + a[2] * b[2]),
+  cross: (a, b) => [snap(a[1] * b[2] - a[2] * b[1]), snap(a[2] * b[0] - a[0] * b[2]), snap(a[0] * b[1] - a[1] * b[0])],
+  len : a => Math.sqrt(V.dot(a, a)),
+  zero: a => eq0(a[0]) && eq0(a[1]) && eq0(a[2]),
+  same: (a, b) => eq0(a[0] - b[0]) && eq0(a[1] - b[1]) && eq0(a[2] - b[2]),
+  factor(a, b){
+    let k = null;
+    for (let i = 0; i < 3; i++){
+      if (eq0(a[i])){ if (!eq0(b[i])) return null; }
+      else { const q = snap(b[i] / a[i]); if (k === null) k = q; else if (!eqN(k, q)) return null; }
+    }
+    return k;
+  },
+  parallel(a, b){ return !V.zero(a) && !V.zero(b) && V.zero(V.cross(a, b)); },
+  reduce(a){
+    if (!a.every(x => eq0(x - Math.round(x)))) return { v: a.slice(), k: 1 };
+    const r = a.map(Math.round);
+    const g = gcd(gcd(r[0], r[1]), r[2]);
+    if (!g) return { v: r, k: 1 };
+    let v = r.map(x => x / g), k = g;
+    if (v.filter(x => x < 0).length > v.filter(x => x > 0).length){ v = v.map(x => -x); k = -k; }
+    return { v: v, k: k };
+  },
+  /** Brüche/Kommazahlen im Vektor auf ganze Zahlen hochskalieren */
+  intScale(a){
+    let m = 1;
+    for (const x of a){ const d = denom(x, 5000); if (!d) return a.slice(); m = lcm(m, d) || m; }
+    if (m > 5000) return a.slice();                 /* sonst werden die Zahlen zu groß */
+    return V.reduce(a.map(x => snap(x * m))).v;
+  },
+  /** wie nice(), zusätzlich mit dem Faktor: a = k \\cdot v */
+  niceF(a){
+    const v = V.nice(a);
+    const k = V.factor(v, a);
+    return { v: v, k: (k === null ? 1 : k) };
+  },
+  /** Ergebnisvektor gemäß Einstellungen aufbereiten */
+  nice(a){
+    let v = a.slice();
+    if (typeof S !== 'undefined' && S.intVec) v = V.intScale(v);
+    if (typeof S !== 'undefined' && S.simp) v = V.reduce(v).v;
+    return v;
+  }
+};
+
+/* ---------- Schreibweisen ---------- */
+const PARTEX = { r: 'r', s: 's', t: 't', u: 'u', lam: '\\lambda', mu: '\\mu', tau: '\\tau', sig: '\\sigma' };
+const PARSETS = { lat: ['r', 's', 't'], gr: ['lam', 'mu', 'tau'] };
+const par  = () => PARTEX[S.par]  || 'r';
+const par2 = () => PARTEX[S.par2] || 's';
+const par3 = () => PARTEX[S.par3] || 't';
+const xsym = () => (S.vecX === 'X' ? 'X' : '\\vec{x}');
+/** Zeichen für das Skalarprodukt – einstellbar */
+const SP = () => (S.dotSym === 'cdot' ? '\\cdot ' : '\\circ ');
+/** Name der Koordinatenebene, in der die k-te Koordinate 0 ist */
+function koPlaneName(k){
+  const o = [0, 1, 2].filter(i => i !== k);
+  return '\\(' + axName(o[0]) + axName(o[1]) + '\\)-Ebene';
+}
+/** Name der k-ten Koordinatenachse */
+function achsName(k){ return '\\(' + axName(k) + '\\)-Achse'; }
+function axName(i){ return (S.ax === 'x123') ? 'x_{' + (i + 1) + '}' : ['x', 'y', 'z'][i]; }
+const TX = {
+  vec(v){ return '\\begin{pmatrix}' + v.map(x => numTeX(x)).join('\\\\') + '\\end{pmatrix}'; },
+  arrow(s){ return '\\overrightarrow{' + s + '}'; },
+  v(s){ return '\\vec{' + s + '}'; }
+};
+function ptTeX(name, p){
+  /* Zeichenketten (z. B. Platzhalter wie x oder a) werden unverändert übernommen */
+  const teil = p.map(x => (typeof x === 'string') ? x : numTeX(x));
+  return (name || '') + '(' + teil.join(S.sep === ';' ? ';\\,' : '\\,|\\,') + ')';
+}
+function lineTeX(name, p, u, ps){
+  return (name ? name + ':\\;' : '') + xsym() + ' = ' + TX.vec(p) + ' + ' + (ps || par()) + '\\cdot ' + TX.vec(u);
+}
+function lineTeX2(name, p, u){ return lineTeX(name, p, u, par2()); }
+function planeParTeX(name, p, u, v, p1, p2){
+  return (name ? name + ':\\;' : '') + xsym() + ' = ' + TX.vec(p)
+    + ' + ' + (p1 || par()) + '\\cdot ' + TX.vec(u) + ' + ' + (p2 || par2()) + '\\cdot ' + TX.vec(v);
+}
+function planeNorTeX(name, p, n){
+  return (name ? name + ':\\;' : '')
+    + (S.norSide === 'n'
+        ? TX.vec(n) + SP() + '\\left[' + xsym() + ' - ' + TX.vec(p) + '\\right] = 0'
+        : '\\left[' + xsym() + ' - ' + TX.vec(p) + '\\right]' + SP() + TX.vec(n) + ' = 0');
+}
+function kooLHS(nv){
+  let s = '';
+  for (let i = 0; i < 3; i++) s += varTerm(nv[i], axName(i), s === '');
+  return s || '0';
+}
+/** Koordinatenform, je nach Einstellung "= d" oder "− d = 0" */
+function planeKooTeX(name, nv, d){
+  const head = name ? name + ':\\;' : '';
+  if (S.kooForm === 'null'){
+    let s = kooLHS(nv);
+    if (!eq0(d)) s += (d > 0 ? ' - ' : ' + ') + numTeX(Math.abs(d));
+    return head + s + ' = 0';
+  }
+  return head + kooLHS(nv) + ' = ' + numTeX(d);
+}
+function expandNorTeX(n, p){
+  let s = '';
+  for (let i = 0; i < 3; i++){
+    if (eq0(n[i])) continue;
+    const body = (eqN(Math.abs(n[i]), 1) ? '' : numTeX(Math.abs(n[i])) + '\\cdot ')
+      + '\\left(' + axName(i) + ' - ' + paren(p[i]) + '\\right)';
+    s += (s === '') ? ((n[i] < 0 ? '-' : '') + body) : ((n[i] < 0 ? ' - ' : ' + ') + body);
+  }
+  return (s || '0') + ' = 0';
+}
+/** Gleichheitszeichen grün, Ungleichheitszeichen rot */
+function relTeX(ok){
+  return ok ? '\\;{\\color{#1a6a1a}{=}}\\;' : '\\;{\\color{#9a1010}{\\neq}}\\;';
+}
+/** eine Probezeile: linker Term = Wert  (=/≠)  Wert = rechter Term */
+function probeZeileTeX(lc, lu, lt, rc, ru, rt){
+  const l = snap(lc + lu * lt), r = snap(rc + ru * rt), ok = eqN(l, r);
+  return { ok: ok, l: l, r: r,
+    tex: '\\begin{array}{c}' + affine(lc, lu, paren(lt)) + ' = ' + numTeX(l)
+       + relTeX(ok) + numTeX(r) + ' = ' + affine(rc, ru, paren(rt)) + '\\end{array}' };
+}
+function dotTeX(a, b){ return [0, 1, 2].map(i => paren(a[i]) + '\\cdot ' + paren(b[i])).join(' + '); }
+function crossTeX(u, v){
+  const w = V.cross(u, v);
+  const m = (a, b, c2, d) => paren(a) + '\\cdot ' + paren(b) + ' - ' + paren(c2) + '\\cdot ' + paren(d);
+  return '\\begin{array}{rcl}' + TX.vec(u) + '\\times' + TX.vec(v) + ' &=& \\begin{pmatrix}'
+    + m(u[1], v[2], u[2], v[1]) + '\\\\' + m(u[2], v[0], u[0], v[2]) + '\\\\' + m(u[0], v[1], u[1], v[0])
+    + '\\end{pmatrix} \\\\ &=& ' + TX.vec(w) + '\\end{array}';
+}
+/** Kreuzprodukt und daraus der Normalenvektor – je nachdem, ob noch skaliert wird */
+function crossNorTeX(u, v, n){
+  const w = V.cross(u, v);
+  const m = (a, b, c2, d) => paren(a) + '\\cdot ' + paren(b) + ' - ' + paren(c2) + '\\cdot ' + paren(d);
+  const k = V.factor(w, n);
+  const kopf = TX.vec(u) + '\\times' + TX.vec(v) + ' &=& \\begin{pmatrix}'
+    + m(u[1], v[2], u[2], v[1]) + '\\\\' + m(u[2], v[0], u[0], v[2]) + '\\\\' + m(u[0], v[1], u[1], v[0])
+    + '\\end{pmatrix} \\\\ ';
+  if (k !== null && eqN(k, 1))
+    return '\\begin{array}{rcl}' + kopf + '&=& ' + TX.vec(w) + ' = \\vec{n}\\end{array}';
+  if (k !== null)
+    return '\\begin{array}{rcl}' + kopf + '&=& ' + TX.vec(w) + ' \\\\ '
+      + '\\rightarrow\\; \\vec{n} &=& ' + numTeX(k) + '\\cdot ' + TX.vec(w) + ' = ' + TX.vec(n) + '\\end{array}';
+  return '\\begin{array}{rcl}' + kopf + '&=& ' + TX.vec(w) + '\\end{array}';
+}
+
+/* ---------- Gleichungen spaltenweise/* ---------- Gleichungen spaltenweise (Format wie im LGS-Trainer) ---------- */
+const ROM = ['I', 'II', 'III'];
+/** Ein Schritt: Überschrift, Erklärung (HTML), Formel (TeX) und Anmerkung (HTML).
+    Fließtext ist immer HTML – nur echte Formelteile stehen in \\( \\) bzw. \\[ \\]. */
+/** Schritt mit eigenem Bedienfeld (z. B. eigenen Parameterwert ausprobieren) */
+function liveStep(h, x, bau){ return { h: h, x: x || '', tex: '', htm: '', live: bau }; }
+function step(h, x, tex, htm){ return { h: h, x: x || '', tex: tex || '', htm: htm || '' }; }
+/** Anmerkung hinter einer Probe */
+const OKNOTE = ok => ok ? '✓ Die Gleichung ist erfüllt.' : '✗ Widerspruch – die Gleichung ist nicht erfüllt.';
+function _lbl(l){ return (/[\\_{^]/.test(l) ? l : '\\text{' + l + '}'); }
+/** eine Gleichungsseite in Zellen: Konstante | (Vorzeichen | Term)* */
+function _sideCells(c0, coefs, syms){
+  const cells = [];
+  let first = true;
+  if (typeof c0 === 'string'){ cells.push(c0); first = false; }
+  else if (!eq0(c0) || coefs.every(eq0)){ cells.push(numTeX(c0)); first = false; }
+  else cells.push('');
+  syms.forEach((sym, i) => {
+    const c = coefs[i];
+    if (eq0(c)){ cells.push('', ''); return; }
+    const body = (eqN(Math.abs(c), 1) ? '' : numTeX(Math.abs(c))) + sym;
+    if (first){ cells.push('', (c < 0 ? '-' : '') + body); first = false; }
+    else cells.push(c < 0 ? '-' : '+', body);
+  });
+  return cells;
+}
+const _sideSpec = n => 'r' + ' c r'.repeat(n);
+/** Gleichungen mit Termen auf beiden Seiten, spaltenweise untereinander */
+function eqPairTeX(labels, lsyms, rsyms, rows){
+  const spec = (labels ? 'r ' : '') + _sideSpec(lsyms.length) + ' c ' + _sideSpec(rsyms.length);
+  const body = rows.map((r, i) => {
+    const cells = _sideCells(r.lc, r.l || [], lsyms).concat(['='], _sideCells(r.rc, r.r || [], rsyms));
+    return (labels ? _lbl(labels[i]) + ':\\qquad & ' : '') + cells.join(' & ');
+  }).join(' \\\\ ');
+  return '\\begin{array}{' + spec + '}' + body + '\\end{array}';
+}
+/** sortiertes System: Koeffizienten mal Unbekannte = Zahl.
+    Fällt links alles weg, steht dort eine 0. */
+function sysTeX(syms, rows, labels){
+  const n = syms.length;
+  const spec = (labels ? 'r ' : '') + 'r' + ' c r'.repeat(n - 1) + ' c r';
+  const body = rows.map((r, i) => {
+    const cells = [];
+    let erste = true;
+    syms.forEach((sym, k) => {
+      const co = r.coef[k];
+      if (eq0(co)){ if (k === 0) cells.push(''); else cells.push('', ''); return; }
+      const t = (eqN(Math.abs(co), 1) ? '' : numTeX(Math.abs(co))) + sym;
+      if (erste){ if (k > 0) cells.push(''); cells.push((co < 0 ? '-' : '') + t); erste = false; }
+      else cells.push(co < 0 ? '-' : '+', t);
+    });
+    if (erste){
+      cells.length = 0;
+      cells.push('0');
+      for (let k = 1; k < n; k++) cells.push('', '');
+    }
+    return (labels ? _lbl(labels[i]) + ':\\qquad & ' : '') + cells.join(' & ') + ' & = & ' + numTeX(r.rhs);
+  }).join(' \\\\ ');
+  return '\\begin{array}{' + spec + '}' + body + '\\end{array}';
+}
+
+/* ---------- Rechenschritte ---------- */
+function solveT(a, u, q, sym){
+  const P = sym || par(), ti = snap((q - a) / u);
+  let mid;
+  if (eqN(u, 1))       mid = numTeX(q) + ' - ' + paren(a);
+  else if (eqN(u, -1)) mid = numTeX(a) + ' - ' + paren(q);
+  else                 mid = '\\frac{' + numTeX(q) + ' - ' + paren(a) + '}{' + numTeX(u) + '}';
+  return { t: ti, tex: P + ' = ' + mid + EQ(ti) + numTeX(ti) };
+}
+function evalRow(a, u, ti){
+  const val = snap(a + u * ti);
+  return { val: val, tex: numTeX(a) + coef(u, paren(ti)) + EQ(val) + numTeX(val) };
+}
+function rowTeX(a, u, q, i){ return numTeX(q[i]) + ' = ' + affine(a[i], u[i], par()); }
+function lin2(A, B, C){
+  let s = varTerm(A, par(), true);
+  s += varTerm(B, par2(), s === '');
+  return (s || '0') + ' = ' + numTeX(C);
+}
+function eqChain(lhs, rhs){ return lhs === rhs ? lhs : lhs + '\\;\\Leftrightarrow\\;' + rhs; }
+/** 2x2-System A1·p + B1·q = C1 / A2·p + B2·q = C2 lösen und erklären */
+function solve2(A1, B1, C1, A2, B2, C2){
+  const D = snap(A1 * B2 - A2 * B1);
+  const t = snap((C1 * B2 - C2 * B1) / D), s = snap((A1 * C2 - A2 * C1) / D);
+  const st = [];
+  const back = (A, B, C, val, forT) => {
+    const rest = snap(C - (forT ? B * val : A * val)), coeff = forT ? A : B, sym = forT ? par() : par2();
+    if (eqN(coeff, 1))  return sym + ' = ' + numTeX(rest);
+    if (eqN(coeff, -1)) return sym + ' = ' + numTeX(-rest);
+    return sym + ' = \\frac{' + numTeX(rest) + '}{' + numTeX(coeff) + '} = ' + numTeX(snap(rest / coeff));
+  };
+  if (eq0(A1) || eq0(A2)){
+    const f = eq0(A1) ? [A1, B1, C1, 'I'] : [A2, B2, C2, 'II'];
+    const o = eq0(A1) ? [A2, B2, C2, 'II'] : [A1, B1, C1, 'I'];
+    st.push(step('Zeile ' + f[3] + '\' enthält kein \\(' + par() + '\\)', 'Sie liefert \\(' + par2() + '\\) direkt:',
+      eqChain(lin2(f[0], f[1], f[2]), quotTeX(par2(), f[2], f[1], s))));
+    st.push(step('Einsetzen in Zeile ' + o[3] + '\'', 'Damit ergibt sich der zweite Parameter:',
+      term(o[0], par(), true) + coef(o[1], paren(s)) + ' = ' + numTeX(o[2]) + '\\;\\Leftrightarrow\\;' + back(o[0], o[1], o[2], s, true)));
+  } else if (eq0(B1) || eq0(B2)){
+    const f = eq0(B1) ? [A1, B1, C1, 'I'] : [A2, B2, C2, 'II'];
+    const o = eq0(B1) ? [A2, B2, C2, 'II'] : [A1, B1, C1, 'I'];
+    st.push(step('Zeile ' + f[3] + '\' enthält kein \\(' + par2() + '\\)', 'Sie liefert \\(' + par() + '\\) direkt:',
+      eqChain(lin2(f[0], f[1], f[2]), quotTeX(par(), f[2], f[0], t))));
+    st.push(step('Einsetzen in Zeile ' + o[3] + '\'', 'Damit ergibt sich der zweite Parameter:',
+      term(o[0], paren(t), true) + coef(o[1], par2()) + ' = ' + numTeX(o[2]) + '\\;\\Leftrightarrow\\;' + back(o[0], o[1], o[2], t, false)));
+  } else {
+    const g = (Number.isInteger(A1) && Number.isInteger(A2)) ? gcd(A1, A2) : 1;
+    const m1 = snap(A2 / g), m2 = snap(A1 / g);
+    const nB = snap(B1 * m1 - B2 * m2), nC = snap(C1 * m1 - C2 * m2);
+    st.push(step('\\(' + par() + '\\) eliminieren',
+      'Zeile I\' wird mit \\(' + numTeX(m1) + '\\) und Zeile II\' mit \\(' + numTeX(m2) + '\\) multipliziert; beim Subtrahieren fällt \\(' + par() + '\\) weg:',
+      eqChain(varTerm(nB, par2(), true) + ' = ' + numTeX(nC), quotTeX(par2(), nC, nB, s))));
+    st.push(step('\\(' + par() + '\\) berechnen', 'Den Wert in Zeile I\' einsetzen:',
+      term(A1, par(), true) + coef(B1, paren(s)) + ' = ' + numTeX(C1) + '\\;\\Leftrightarrow\\;' + back(A1, B1, C1, s, true)));
+  }
+  return { t: t, s: s, steps: st };
+}
+
+/* ---------- MathJax + Skalierung (scale.css / scale.js) ---------- */
+/** abgesetzte Formeln bekommen einen Wrapper, der sie bei Bedarf verkleinert */
+/** Lange Gleichungsketten am Gleichheitszeichen umbrechen und untereinander
+    ausrichten: aus "a = b = c" wird ein Array mit ausgerichteten "="-Spalten. */
+/** grobe Schätzung der Zeilenbreite in Zeichen (Spaltenvektoren zählen breit) */
+function texWidth(s){
+  let t = String(s);
+  t = t.replace(/\\begin\{pmatrix\}[\\s\\S]*?\\end\{pmatrix\}/g, '####');
+  t = t.replace(/\\frac\{([^{}]*)\}\{([^{}]*)\}/g, '$1$2');
+  t = t.replace(/\\begin\{[a-z]*\}|\\end\{[a-z]*\}/g, '');
+  t = t.replace(/\\[a-zA-Z]+/g, 'x');
+  t = t.replace(/[{}]/g, '');
+  return t.length;
+}
+function chainTeX(tex){
+  const s = String(tex || '');
+  if (!s || s.indexOf('\\begin{array}') >= 0) return s;
+  const RELS = ['\\Leftrightarrow', '\\Rightarrow', '\\qquad', '\\neq', '\\approx'];
+  const teile = [];                       /* abwechselnd Text und Trenner */
+  let tiefe = 0, start = 0;
+  for (let i = 0; i < s.length; i++){
+    const ch = s[i];
+    if (ch === '\\'){
+      let tr = null;
+      for (const r of RELS) if (s.substr(i, r.length) === r) { tr = r; break; }
+      if (tr && tiefe === 0){
+        teile.push(s.slice(start, i)); teile.push(tr);
+        i += tr.length - 1; start = i + 1;
+      } else i++;                          /* andere Steuerfolge überspringen */
+      continue;
+    }
+    if (ch === '{') tiefe++;
+    else if (ch === '}') tiefe--;
+    else if (ch === '=' && tiefe === 0 && s[i - 1] !== '<' && s[i - 1] !== '>' && s[i + 1] !== '='){
+      teile.push(s.slice(start, i)); teile.push('=');
+      start = i + 1;
+    }
+  }
+  teile.push(s.slice(start));
+  if (teile.length < 3) return s;
+
+  const putz = x => x.trim().replace(/^(\\[;,!:])+/, '').replace(/(\\[;,!:])+$/, '').trim();
+  const zeilen = [];
+  let pre = '', links = putz(teile[0]), offen = true;
+  for (let k = 1; k < teile.length; k += 2){
+    const rel = teile[k], txt = putz(teile[k + 1] || '');
+    if (rel === '\\Leftrightarrow' || rel === '\\Rightarrow' || rel === '\\qquad'){
+      if (offen) zeilen.push(pre + links + ' & & ');
+      pre = (rel === '\\qquad') ? '' : (rel + '\\;');
+      links = txt; offen = true;
+    } else {
+      zeilen.push(pre + (offen ? links : '') + ' &' + (rel === '=' ? '=' : rel) + '& ' + txt);
+      pre = ''; offen = false;
+    }
+  }
+  if (offen && links) zeilen.push(pre + links + ' & & ');
+  /* kurze Zeilen bleiben in einer Zeile – Umbrüche nur, wo es eng wird */
+  if (zeilen.length < 2 || texWidth(s) <= 30) return s;
+  return '\\begin{array}{rcl}' + zeilen.join(' \\\\ ') + '\\end{array}';
+}
+function wrapMath(html){
+  return String(html).replace(/\\\[[\s\S]*?\\\]/g,
+    m => '<div class="scale-wrapper"><div class="scale-el">' + m + '</div></div>');
+}
+/** auch langes Inline-Mathe (z. B. eine ganze Geradengleichung) einpacken */
+function wrapInline(html){ return '<div class="scale-wrapper"><div class="scale-el">' + html + '</div></div>'; }
+
+/** Formel auf die Kastenbreite verkleinern.
+    scale.js misst über el.scrollWidth; bei MathJax-Blöcken liefert das oft genau
+    die Kastenbreite, sodass nie verkleinert wird. Deshalb messen wir die Formel
+    selbst über ihr Bounding-Rechteck. Nach dem Laden ersetzt diese Fassung das
+    globale scaleToFit, damit auch der resize-Handler aus scale.js sie benutzt. */
+function fitScale(el){
+  if (!el || !el.parentElement) return;
+  const wrap = el.parentElement;
+  /* Solange die Formel noch als roher LaTeX-Text dasteht, nicht messen –
+     sonst wird nach falschen Maßen skaliert und der Kasten fällt zusammen. */
+  const gesetzt = el.querySelector('mjx-container, .MathJax, math, svg');
+  if (!gesetzt && /\\[([]/.test(el.textContent || '')) return;
+  el.style.transformOrigin = 'top left';
+  el.style.transform = 'none';
+  wrap.style.height = 'auto';
+  const cs = window.getComputedStyle(wrap);
+  const pl = parseFloat(cs.paddingLeft) || 0, pr = parseFloat(cs.paddingRight) || 0;
+  const pt = parseFloat(cs.paddingTop) || 0, pb = parseFloat(cs.paddingBottom) || 0;
+  const avail = wrap.clientWidth - pl - pr;
+  if (!(avail > 0)) return;
+  let natural = el.scrollWidth || 0;
+  const inner = el.querySelectorAll('mjx-container, .MathJax, math, table');
+  for (let i = 0; i < inner.length; i++){
+    const n = inner[i];
+    natural = Math.max(natural, n.getBoundingClientRect().width || 0, n.scrollWidth || 0, n.offsetWidth || 0);
+  }
+  if (!(natural > avail + 0.5)) return;
+  const hoehe = el.getBoundingClientRect().height || el.scrollHeight || el.offsetHeight || 0;
+  if (!(hoehe > 0)) return;                     /* nichts messbar: lieber gar nicht skalieren */
+  const s = avail / natural;
+  el.style.transform = 'scale(' + s + ')';
+  wrap.style.height = (Math.ceil(hoehe * s) + pt + pb + 4) + 'px';
+}
+/** MathJax setzt tabindex auf seine Container – das stört beim Durchtabben */
+function stripTab(root){
+  $$('mjx-container[tabindex], mjx-container [tabindex]', root || document)
+    .forEach(n => n.setAttribute('tabindex', '-1'));
+}
+function rescale(){
+  const list = document.querySelectorAll('.scale-el');
+  for (let i = 0; i < list.length; i++) fitScale(list[i]);
+}
+/* scale.js hängt selbst am resize – dort soll dieselbe Messung greifen */
+window.addEventListener('load', () => { if (typeof window.scaleToFit === 'function') window.scaleToFit = fitScale; });
+function rescaleSoon(){
+  rescale();
+  setTimeout(rescale, 80);
+  setTimeout(rescale, 400);
+}
+/** wartet einmalig, bis MathJax geladen ist – sonst wird zu früh gemessen */
+let _mjWait = null;
+function mjReady(){
+  if (window.MathJax && MathJax.startup && MathJax.startup.promise) return MathJax.startup.promise.catch(() => {});
+  if (_mjWait) return _mjWait;
+  _mjWait = new Promise(res => {
+    let n = 0;
+    const iv = setInterval(() => {
+      if ((window.MathJax && MathJax.typesetPromise) || ++n > 60){ clearInterval(iv); res(); }
+    }, 50);
+  });
+  return _mjWait;
+}
+/** verhindert, dass ein hängendes Versprechen die gesamte Kette blockiert */
+function withTimeout(p, ms){
+  return Promise.race([Promise.resolve(p), new Promise(r => setTimeout(r, ms))]);
+}
+let _mjq = Promise.resolve();
+function mj(node){
+  _mjq = _mjq
+    .then(() => withTimeout(mjReady(), 6000))
+    .then(() => (window.MathJax && MathJax.typesetPromise)
+      ? withTimeout(MathJax.typesetPromise(node ? [node] : undefined), 8000) : null)
+    .then(() => new Promise(r => (window.requestAnimationFrame || setTimeout)(r, 0)))
+    .then(() => { stripTab(); rescaleSoon(); })
+    .catch(() => {});
+  return _mjq;
+}
+/* Auslöser, die unabhängig von MathJax greifen */
+document.addEventListener('toggle', () => setTimeout(rescale, 30), true);   /* toggle steigt nicht auf */
+window.addEventListener('load', rescaleSoon);
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(rescaleSoon).catch(() => {});
+
+/* ---------- Zustand <-> URL ---------- */
+const URLSTATE = {
+  _last: null,
+  read(defs, map){
+    const q = new URLSearchParams(location.search), s = JSON.parse(JSON.stringify(defs));
+    for (const key in map){
+      const p = map[key];
+      if (!q.has(p.q)) continue;
+      const raw = q.get(p.q);
+      if (p.t === 'b') s[key] = (raw === '1' || raw === 'true');
+      else if (p.t === 'n'){ const v = parseFloat(raw.replace(',', '.')); if (!isNaN(v)) s[key] = v; }
+      else if (p.t === 'j'){ try { s[key] = JSON.parse(raw); } catch (e) {} }
+      else s[key] = raw;
+    }
+    return s;
+  },
+  write(state, defs, map, extra){
+    const q = new URLSearchParams();
+    for (const key in map){
+      const p = map[key], v = state[key], d = defs[key];
+      if (p.t === 'j'){ if (JSON.stringify(v) !== JSON.stringify(d)) q.set(p.q, JSON.stringify(v)); }
+      else if (v !== d) q.set(p.q, p.t === 'b' ? (v ? '1' : '0') : String(v));
+    }
+    if (extra) for (const k in extra) if (extra[k] != null) q.set(k, extra[k]);
+    const url = location.pathname + (q.toString() ? '?' + q.toString() : '');
+    /* Nur schreiben, wenn sich wirklich etwas ändert – und Fehler abfangen:
+       Browser begrenzen die Zahl der replaceState-Aufrufe und werfen sonst eine
+       Ausnahme, die früher den ganzen Rest (u. a. das Zeichnen) verhindert hat. */
+    if (url !== URLSTATE._last){
+      URLSTATE._last = url;
+      try { history.replaceState(null, '', url); }
+      catch (e){ if (window.console) console.warn('URL konnte nicht aktualisiert werden:', e); }
+    }
+    return location.origin + url;
+  }
+};
+function copyText(txt, btn, okText){
+  const done = ok => {
+    if (!btn) return;
+    const t = btn.textContent;
+    btn.textContent = ok ? (okText || '✓ kopiert') : 'Kopieren nicht möglich';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = t; btn.classList.remove('copied'); }, 1600);
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText)
+    navigator.clipboard.writeText(txt).then(() => done(true), () => done(false));
+  else {
+    const ta = el('textarea'); ta.value = txt; document.body.appendChild(ta); ta.select();
+    let ok = false; try { ok = document.execCommand('copy'); } catch (e) {}
+    document.body.removeChild(ta); done(ok);
+  }
+}
+
+/* =========================================================================
+   Links auf andere Seiten des Portals
+   ========================================================================= */
+const VIS = {
+  page: 'analytische_geometrie.html',
+  /* exakt übergeben: ganze Zahl, kurze Dezimalzahl oder Bruch "14/3" */
+  n(x){
+    const q = Q.of(x);
+    if (q.d === 1) return String(q.n);
+    if (Q.terminates(q) && q.d <= 10000) return String(q.n / q.d);
+    return q.n + '/' + q.d;
+  },
+  co(v){ return v.map(VIS.n).join('|'); },
+  opt(o){
+    const all = Object.assign({}, o || {});
+    const p = [];
+    for (const k in all) if (all[k] != null) p.push(k + ':' + all[k]);
+    return p.length ? ' {' + p.join('; ') + '}' : '';
+  },
+  punkt(name, p, o){ return name + ' = Punkt(' + VIS.co(p) + ')' + VIS.opt(o); },
+  vektor(name, a, b, o){ return name + ' = Vektor(' + VIS.co(a) + '; ' + VIS.co(b) + ')' + VIS.opt(o); },
+  gerade(name, p, u, o){ return name + ' = Gerade(' + VIS.co(p) + '; ' + VIS.co(u) + ')' + VIS.opt(o); },
+  geradePP(name, a, b, o){ return name + ' = Gerade(' + VIS.co(a) + ' -> ' + VIS.co(b) + ')' + VIS.opt(o); },
+  ebenePar(name, p, u, v, o){ return name + ' = Ebene(' + VIS.co(p) + '; ' + VIS.co(u) + '; ' + VIS.co(v) + ')' + VIS.opt(o); },
+  ebeneNor(name, p, n, o){ return name + ' = Ebene(' + VIS.co(p) + '; ' + VIS.co(n) + ')' + VIS.opt(o); },
+  ebene3P(name, a, b, c, o){ return name + ' = Ebene(' + VIS.co(a) + ' -> ' + VIS.co(b) + ' -> ' + VIS.co(c) + ')' + VIS.opt(o); },
+  ebeneKoord(name, n0, d0, o){
+    /* Brüche vermeiden: die ganze Gleichung auf ganze Zahlen hochskalieren */
+    let m = 1;
+    n0.concat([d0]).forEach(x => { const q = Q.of(x); if (q.d > 1 && q.d < 1e6) m = lcm(m, q.d) || m; });
+    const n = n0.map(x => snap(x * m)), d = snap(d0 * m);
+    const t = ['x', 'y', 'z'].map((ax, i) => {
+      if (eq0(n[i])) return '';
+      const a = Math.abs(n[i]);
+      return (n[i] > 0 ? ' + ' : ' - ') + (eqN(a, 1) ? '' : VIS.n(a)) + ax;
+    }).join('').replace(/^ \+ /, '').replace(/^ - /, '-');
+    return name + ' = Ebene(' + t + ' = ' + VIS.n(d) + ')' + VIS.opt(o);
+  },
+  /** Vektor mit konkreten Zahlen an einem benannten Punkt, Optionen frei wählbar */
+  vektor2(name, ptName, u, o){ return name + ' = Vektor(' + ptName + '; ' + VIS.co(u) + ')' + VIS.opt(o); },
+  schnitt(name, a, b, o){ return name + ' = Schnitt(' + a + '; ' + b + ')' + VIS.opt(o); },
+  /** Vektor mit dem Parameter t: zeigt vom Stützpunkt aus zum gesuchten Punkt */
+  parVektor(name, ptName, u, o){
+    const co = u.map(x => eq0(x) ? '0' : (VIS.n(x) + 't')).join('|');
+    return name + ' = Vektor(' + ptName + '; ' + co + ')' + VIS.opt(o);
+  },
+  /* v=3d: 3D-Ansicht, pm=box: Ebenen bis zum Rand des Koordinatensystems,
+     die Hilfsvektoren zeichnen wir selbst als eigene Objekte */
+  url(lines, par){
+    let u = VIS.page + '?o=' + encodeURIComponent(lines.join(String.fromCharCode(10))) + '&v=3d&pm=box';
+    if (par){
+      /* Parameterwert und passender Bereich, damit der gesuchte Punkt erreichbar ist */
+      const w = snap(par), r = Math.max(3, Math.ceil(Math.abs(w) + 1));
+      u += '&tv=' + VIS.n(w) + '&tn=' + (-r) + '&tx=' + r;
+    }
+    return u;
+  }
+};
+/** Link in den LGS-Trainer – nur für quadratische Systeme (2x2 oder 3x3) */
+const LGS = {
+  page: 'lgs.html',
+  url(rows, names, method){
+    if (!rows.length || rows.length !== rows[0].coef.length) return null;
+    const sys = rows.map(r => r.coef.concat([r.rhs]).map(x => VIS.n(x)).join(',')).join(';');
+    return LGS.page + '?sys=' + encodeURIComponent(sys) + '&vn=' + encodeURIComponent(names.join(','))
+      + '&method=' + (method || 'add') + '&scaled=1';
+  }
+};
+/* ---------- Bausteine für die Verlinkung ----------
+   Gegebene Werte stehen als konkrete Zahlen da, alles andere verweist über den
+   Namen darauf. Die Hilfsvektoren zeichnen wir selbst, damit Stütz- und
+   Richtungsvektor genau die Rollen der Aufgabe zeigen. */
+const VC = { pkt: '#1565c0', hilf: '#1565c0', obj: '#2e7d32', zweit: '#ef6c00', erg: '#c62828' };
+const VIS_PKT  = c2 => ({ farbe: c2 || VC.pkt, stufe: 1 });
+const VIS_ORT  = c2 => ({ farbe: c2 || VC.hilf, strich: 'gepunktet' });
+const VIS_RICH = c2 => ({ farbe: c2 || VC.hilf, strich: 'durchgezogen', stufe: 2 });
+/* Standard: alle Hilfslinien; Ebenen zusätzlich mit quadratischem Ausschnitt
+   (bei Umwandlungen und zwei Ebenen wird stattdessen 'Achsen' gesetzt) */
+const VIS_OBJ  = c2 => ({ farbe: c2 || VC.obj, hilfsvektoren: 'alle' });
+const VIS_EB   = c2 => ({ farbe: c2 || VC.obj, hilfsvektoren: 'alle', ebene: 'Quadrat' });
+
+function vPunkt(n, p, c2){ return VIS.punkt(n, p, VIS_PKT(c2)); }
+/** Ortsvektor eines benannten Punktes */
+function vOrt(ptName, c2){ return 'O' + ptName + ' = Vektor(' + ptName + ')' + VIS.opt(VIS_ORT(c2)); }
+/** Vektor mit konkreten Zahlen, angetragen an einen benannten Punkt */
+function vVek(name, ptName, u, c2){
+  return name + ' = Vektor(' + ptName + '; ' + VIS.co(u) + ')' + VIS.opt(VIS_RICH(c2));
+}
+/** Verbindungsvektor zweier benannter Punkte */
+function vVekPP(name, a, b, c2){
+  return name + ' = Vektor(' + a + ' -> ' + b + ')' + VIS.opt(VIS_RICH(c2));
+}
+/** Gerade über Stützpunkt und Richtungsvektor (beide benannt) */
+function vGerade(name, ptName, vekName, c2){
+  return name + ' = Gerade(' + ptName + '; ' + vekName + ')' + VIS.opt(VIS_OBJ(c2));
+}
+function vEbenePar(name, ptName, u1, u2, c2){
+  return name + ' = Ebene(' + ptName + '; ' + u1 + '; ' + u2 + ')' + VIS.opt(VIS_EB(c2));
+}
+function vEbeneNor(name, ptName, nName, c2){
+  return name + ' = Ebene(' + ptName + '; ' + nName + ')' + VIS.opt(VIS_EB(c2));
+}
+
+/** Gerade aus gegebenem Stützpunkt und Richtungsvektor */
+function visLinePU(gName, ptName, p, uName, u, c2){
+  return [ vPunkt(ptName, p, c2), vOrt(ptName, c2), vVek(uName, ptName, u, c2), vGerade(gName, ptName, uName, c2) ];
+}
+/** Gerade mit zusätzlichem Parametervektor zum gesuchten Punkt */
+function visLineParam(gName, ptName, p, uName, u, t, zielName, ziel){
+  const l = visLinePU(gName, ptName, p, uName, u);
+  l.push(VIS.parVektor(uName + 't', ptName, u, { farbe: VC.erg, strich: 'durchgezogen', stufe: 3 }));
+  if (ziel) l.push(vPunkt(zielName, ziel, VC.erg));
+  return l;
+}
+/** Gerade durch zwei gegebene Punkte */
+function visLinePP(gName, aName, A, bName, B, c2){
+  const vn = aName + bName;
+  return [ vPunkt(aName, A, c2), vPunkt(bName, B, c2), vOrt(aName, c2),
+           vVekPP(vn, aName, bName, c2), vGerade(gName, aName, vn, c2) ];
+}
+/** Ebene in Parameterform aus gegebenem Punkt und zwei Spannvektoren */
+function visPlanePar(eName, ptName, p, u, v, c2){
+  return [ vPunkt(ptName, p, c2), vOrt(ptName, c2),
+           vVek(ptName + 'u', ptName, u, c2), vVek(ptName + 'v', ptName, v, c2),
+           vEbenePar(eName, ptName, ptName + 'u', ptName + 'v', c2) ];
+}
+/** Ebene in Normalenform aus gegebenem Punkt und Normalenvektor */
+function visPlaneNor(eName, ptName, p, n, c2){
+  return [ vPunkt(ptName, p, c2), vOrt(ptName, c2), vVek(ptName + 'n', ptName, n, c2),
+           vEbeneNor(eName, ptName, ptName + 'n', c2) ];
+}
+/** Ebene aus Punkt und zwei Spannvektoren, benannt */
+function visFormPar(nm, ptName, p, u, v, col, suffix, ausschnitt){
+  const s = suffix || '', aus = ausschnitt || 'Quadrat';
+  return [ vPunkt(ptName, p, col), VIS.vektor2('u' + s, ptName, u, { farbe: col, stufe: 1 }),
+           VIS.vektor2('v' + s, ptName, v, { farbe: col, stufe: 1 }),
+           nm + ' = Ebene(' + ptName + '; u' + s + '; v' + s + ') {farbe:' + col
+             + '; hilfsvektoren:alle; ebene:' + aus + '}' ];
+}
+/** Ebene aus Punkt und Normalenvektor, benannt */
+function visFormNor(nm, ptName, p, n, col, suffix, ausschnitt){
+  const s = suffix || '', aus = ausschnitt || 'Quadrat';
+  return [ vPunkt(ptName, p, col), VIS.vektor2('n' + s, ptName, n, { farbe: col, stufe: 2 }),
+           nm + ' = Ebene(' + ptName + '; n' + s + ') {farbe:' + col
+             + '; hilfsvektoren:alle; ebene:' + aus + '}' ];
+}
+/** Ebene in Koordinatenform, benannt */
+function visFormKoo(nm, n, d, col, ausschnitt){
+  return [ VIS.ebeneKoord(nm, n, d, { farbe: col, hilfsvektoren: 'alle', ebene: ausschnitt || 'Quadrat' }) ];
+}
+/** zwei Geraden mit der aufgespannten Ebene; Stützpunkt und zweiter Spannvektor
+    richten sich nach dem gewählten Lösungsweg */
+function visZweiGeraden(g, h, ptName, p0, u1, n1, u2, n2, schneidend){
+  const l = [ vPunkt('A', g.p), VIS.vektor2('u', 'A', g.u, { farbe: VC.pkt }),
+              'g = Gerade(A; u) {farbe:' + VC.pkt + '; hilfsvektoren:alle}',
+              vPunkt('B', h.p, VC.zweit), VIS.vektor2('v', 'B', h.u, { farbe: VC.zweit, strich: 'durchgezogen', stufe: 2 }),
+              'h = Gerade(B; v) {farbe:' + VC.zweit + '; hilfsvektoren:aus}' ];
+  let sp = ptName;
+  if (ptName === 'S'){ l.push(vPunkt('S', p0, VC.erg)); sp = 'S'; }
+  let zweit = n2;
+  if (n2 === 'AB'){ l.push(vVekPP('AB', 'A', 'B')); }
+  else if (n2 === 'BA'){ l.push(vVekPP('BA', 'B', 'A')); }
+  else zweit = 'v';
+  l.push('E = Ebene(' + sp + '; ' + (n1 === 'v' ? 'v' : 'u') + '; ' + zweit
+    + ') {farbe:' + VC.obj + '; hilfsvektoren:alle; ebene:Quadrat}');
+  return l;
+}
+/** dieselbe Ebene zweimal: einmal aus der gegebenen, einmal aus der errechneten Form */
+function visUmwandlung(gegeben, errechnet){
+  return gegeben.concat(errechnet);
+}
+/** Ebene in Koordinatenform – hier gibt es keine Hilfsvektoren */
+function visPlaneKoo(eName, n, d, c2){
+  return [ VIS.ebeneKoord(eName, n, d, VIS_EB(c2)) ];
+}
+
+function extLinks(visLines, extra, parWert){
+  const d = el('div', { class: 'extlink' });
+  let h = '<a href="' + esc(VIS.url(visLines, parWert)) + '" target="_blank" rel="noopener">Visualisieren im 3D-Koordinatensystem</a>';
+  const liste = !extra ? [] : (Array.isArray(extra) ? extra : [extra]);
+  liste.forEach(x => {
+    if (x && x.href) h += '<a class="alt" href="' + esc(x.href) + '" target="_blank" rel="noopener">' + esc(x.text) + '</a>';
+  });
+  h += '<span class="d">öffnet die Objekte dieser Aufgabe auf der Visualisierungs-Seite</span>';
+  d.innerHTML = h;
+  return d;
+}
+
+/* =========================================================================
+   Bedienelemente
+   ========================================================================= */
+let TASK = null, TASKSEED = null, LOCKED = false;
+
+function buildSegSwitch(host, name, opts, get, set){
+  host.innerHTML = opts.map((o, i) =>
+    '<input type="radio" name="' + name + '" id="' + name + '_' + i + '" value="' + esc(o.v) + '"'
+    + (String(get()) === String(o.v) ? ' checked' : '') + '>'
+    + '<label for="' + name + '_' + i + '"' + (o.title ? ' title="' + esc(o.title) + '"' : '') + '>' + esc(o.t) + '</label>').join('')
+    + '<span class="seg-glider"></span>';
+  host.addEventListener('change', ev => {
+    const r = ev.target.closest('input');
+    if (!r) return;
+    moveGlider(host);                       /* zuerst der Schalter, dann die Arbeit */
+    setTimeout(() => moveGlider(host), 0);
+    try { set(r.value); } finally { moveGlider(host); }
+  });
+  /* Zusätzlich direkt auf den Klick reagieren – falls das change-Ereignis
+     einmal ausbleibt (z. B. weil der Zeiger auf dem Gleiter landet). */
+  host.addEventListener('click', ev => {
+    const l = ev.target.closest('label');
+    if (!l) return;
+    const r = $('#' + l.getAttribute('for'), host);
+    if (r && !r.checked){
+      r.checked = true;
+      r.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+  });
+  const move = () => moveGlider(host);
+  if (window.requestAnimationFrame) requestAnimationFrame(move); else move();
+  setTimeout(move, 120);
+  window.addEventListener('load', move);
+  window.addEventListener('resize', move);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(move).catch(() => {});
+}
+function moveGlider(host){
+  if (!host) return;
+  const r = $('input:checked', host), g = $('.seg-glider', host);
+  if (!r || !g) return;
+  const l = $('label[for="' + r.id + '"]', host);
+  if (!l) return;
+  /* über die Bounding-Rechtecke, damit auch ein waagerecht scrollender
+     Schalter richtig getroffen wird */
+  const a = l.getBoundingClientRect(), b = host.getBoundingClientRect();
+  const wpx = a.width || l.offsetWidth;
+  const left = (a.width ? (a.left - b.left + host.scrollLeft) : l.offsetLeft);
+  g.style.left = left + 'px';
+  g.style.width = wpx + 'px';
+  /* Konnte nicht gemessen werden (z. B. Schalter noch unsichtbar), markiert die
+     gewählte Stufe ersatzweise der Knopf selbst – sonst sieht man gar nichts. */
+  host.classList.toggle('no-glider', !wpx);
+}
+function paintSegSwitch(host, get){
+  $$('input', host).forEach(i => { i.checked = (String(i.value) === String(get())); });
+  moveGlider(host);
+}
+function buildPills(host, opts, obj, onChange){
+  host.innerHTML = '';
+  opts.forEach(o => {
+    const b = el('button', { type: 'button', class: 'pill', data: { v: o.v } }, esc(o.t));
+    if (o.title) b.title = o.title;
+    b.addEventListener('click', () => {
+      if (obj[o.v] && !opts.filter(x => x.v !== o.v).some(x => obj[x.v])) return;
+      obj[o.v] = !obj[o.v];
+      paintPills(host, obj);
+      onChange();
+    });
+    host.appendChild(b);
+  });
+  paintPills(host, obj);
+}
+function paintPills(host, obj){ $$('button', host).forEach(b => b.classList.toggle('on', !!obj[b.dataset.v])); }
+
+/* Nach einer Berührung soll kein Knopf "aktiv" aussehen (Hover/Fokus hängen bleibt) */
+document.addEventListener('pointerup', ev => {
+  if (ev.pointerType === 'mouse') return;
+  const b = ev.target.closest('button, label, a');
+  if (b && b.blur) setTimeout(() => b.blur(), 0);
+}, true);
+
+const LONGPRESS_MS = 500;
+/** gemerkte Unterauswahl je Aufgabentyp, solange die Seite offen ist */
+const SUBMEMO = {};
+/** Aufgabentyp an- oder abschalten; beim Abschalten werden die Haken gemerkt */
+function toggleTile(def, state){
+  const an = !state.on[def.id];
+  if (!an){
+    SUBMEMO[def.id] = Object.assign({}, state.sub[def.id]);
+    def.subs.forEach(s => { state.sub[def.id][s.id] = false; });
+    state.on[def.id] = false;
+    return;
+  }
+  state.on[def.id] = true;
+  const memo = SUBMEMO[def.id];
+  if (memo && def.subs.some(s => memo[s.id])) def.subs.forEach(s => { state.sub[def.id][s.id] = !!memo[s.id]; });
+  else if (!def.subs.some(s => state.sub[def.id][s.id])) def.subs.forEach(s => { state.sub[def.id][s.id] = true; });
+}
+/** einen Unterpunkt setzen; ist der Aufgabentyp aus, wird er mit genau diesem Punkt aktiv */
+function setSub(def, state, subId, an){
+  if (!state.on[def.id] && an){
+    def.subs.forEach(s => { state.sub[def.id][s.id] = false; });
+    state.on[def.id] = true;
+  }
+  state.sub[def.id][subId] = an;
+  if (!def.subs.some(s => state.sub[def.id][s.id])) state.on[def.id] = false;
+}
+/** nur diesen einen Unterpunkt auswählen */
+function onlySub(def, state, subId){
+  def.subs.forEach(s => { state.sub[def.id][s.id] = (s.id === subId); });
+  state.on[def.id] = true;
+}
+let POPOWNER = null, POPJUSTCLOSED = false;
+function closePop(){
+  const p = $('.pop');
+  if (p) p.remove();
+  POPOWNER = null;
+}
+/* Ein Klick irgendwo neben dem Menü schließt es – der Klick selbst wirkt normal
+   weiter (andere Knöpfe lösen also aus). Nur der Knopf, dessen Menü offen ist,
+   schließt es lediglich. */
+document.addEventListener('pointerdown', ev => {
+  const p = $('.pop');
+  if (!p || p.contains(ev.target)) return;
+  const ownTile = POPOWNER && ev.target.closest('.tile') === POPOWNER;
+  closePop();
+  POPJUSTCLOSED = !!ownTile;
+  if (ownTile) setTimeout(() => { POPJUSTCLOSED = false; }, 400);
+}, true);
+document.addEventListener('keydown', ev => { if (ev.key === 'Escape') closePop(); });
+
+function buildTiles(host, defs, state, onChange){
+  host.innerHTML = '';
+  defs.forEach(def => {
+    const b = el('button', { class: 'tile', data: { t: def.id }, type: 'button' });
+    b.innerHTML = '<span class="tname">' + esc(def.name) + '</span><span class="tsub"></span><span class="arr">▼</span>';
+    host.appendChild(b);
+    let timer = null, longFired = false;
+    const openMenu = () => { longFired = true; tileMenu(b, def, state, onChange); };
+    b.addEventListener('pointerdown', ev => {
+      if (ev.button != null && ev.button !== 0) return;
+      longFired = false;
+      if (POPJUSTCLOSED) return;                      /* eigenes Menü wurde gerade geschlossen */
+      if (ev.target.classList.contains('arr')) return;
+      timer = setTimeout(openMenu, LONGPRESS_MS);
+    });
+    ['pointerup', 'pointerleave', 'pointercancel'].forEach(e => b.addEventListener(e, () => clearTimeout(timer)));
+    b.addEventListener('contextmenu', ev => { ev.preventDefault(); clearTimeout(timer); openMenu(); });
+    b.addEventListener('click', ev => {
+      clearTimeout(timer);
+      if (longFired){ longFired = false; return; }
+      if (POPJUSTCLOSED){ POPJUSTCLOSED = false; return; }
+      if (ev.target.classList.contains('arr')){ tileMenu(b, def, state, onChange); return; }
+      toggleTile(def, state);
+      onChange();
+    });
+  });
+  paintTiles(host, defs, state);
+}
+function paintTiles(host, defs, state){
+  defs.forEach(def => {
+    const b = $('.tile[data-t="' + def.id + '"]', host);
+    if (!b) return;
+    const act = def.subs.filter(s => state.sub[def.id][s.id]);
+    const on = !!state.on[def.id] && act.length > 0;
+    b.classList.toggle('on', on);
+    b.classList.toggle('empty', !!state.on[def.id] && act.length === 0);
+    $('.tsub', b).textContent = act.length === 0 ? 'keine Art gewählt'
+      : (act.length === def.subs.length ? def.hint : act.map(s => s.label).join(' · '));
+  });
+}
+function tileMenu(anchor, def, state, onChange){
+  closePop();
+  POPOWNER = anchor;
+  const pop = el('div', { class: 'pop' });
+  const allOn = def.subs.every(s => state.sub[def.id][s.id]);
+  pop.innerHTML = '<h4><span>' + esc(def.name) + '</span>'
+    + '<button class="allbtn btn-secondary" type="button" data-all="1">' + (allOn ? 'keine' : 'alle') + '</button></h4>'
+    + def.subs.map(s => '<label><input type="checkbox" data-s="' + s.id + '"' + (state.sub[def.id][s.id] ? ' checked' : '') + '>'
+      + '<span>' + esc(s.label) + (s.desc ? '<span class="d">' + esc(s.desc) + '</span>' : '') + '</span></label>').join('')
+    + '<p class="pophint">Langes Drücken wählt nur diese eine Art aus.</p>';
+  document.body.appendChild(pop);
+  const r = anchor.getBoundingClientRect();
+  pop.style.top = (window.scrollY + r.bottom + 5) + 'px';
+  pop.style.left = Math.max(6, Math.min(window.scrollX + r.left,
+    window.scrollX + document.documentElement.clientWidth - pop.offsetWidth - 8)) + 'px';
+  pop.addEventListener('click', ev => {
+    const all = ev.target.closest('[data-all]');
+    if (!all) return;
+    const v = !def.subs.every(s => state.sub[def.id][s.id]);
+    def.subs.forEach(s => { state.sub[def.id][s.id] = v; });
+    state.on[def.id] = v;
+    $$('input[data-s]', pop).forEach(i => { i.checked = v; });
+    all.textContent = v ? 'keine' : 'alle';
+    onChange();
+  });
+  pop.addEventListener('change', ev => {
+    const cb = ev.target.closest('input[data-s]');
+    if (!cb) return;
+    setSub(def, state, cb.dataset.s, cb.checked);
+    $$('input[data-s]', pop).forEach(i => { i.checked = !!state.sub[def.id][i.dataset.s]; });
+    onChange();
+  });
+  /* langes Drücken auf einen Unterpunkt: nur diesen auswählen */
+  $$('label', pop).forEach(l => {
+    const cb = $('input[data-s]', l);
+    if (!cb) return;
+    let t2 = null, lang = false;
+    const nur = () => {
+      lang = true;
+      onlySub(def, state, cb.dataset.s);
+      $$('input[data-s]', pop).forEach(i => { i.checked = !!state.sub[def.id][i.dataset.s]; });
+      onChange();
+    };
+    l.addEventListener('pointerdown', e2 => {
+      if (e2.button != null && e2.button !== 0) return;
+      lang = false;
+      t2 = setTimeout(nur, LONGPRESS_MS);
+    });
+    ['pointerup', 'pointerleave', 'pointercancel'].forEach(e2 => l.addEventListener(e2, () => clearTimeout(t2)));
+    l.addEventListener('contextmenu', e2 => { e2.preventDefault(); clearTimeout(t2); nur(); });
+    l.addEventListener('click', e2 => { if (lang){ e2.preventDefault(); lang = false; } });
+  });
+}
+
+function blk(title, desc){
+  const b = el('div', { class: 'form-block' });
+  b.appendChild(el('b', null, title));
+  if (desc) b.appendChild(el('span', { class: 'd' }, desc));
+  return b;
+}
+function cb(label, key, desc){
+  const l = el('label', { class: 'opt' });
+  const i = el('input', { type: 'checkbox' });
+  i.checked = !!S[key];
+  i.addEventListener('change', () => { S[key] = i.checked; touched(); });
+  l.appendChild(i);
+  l.appendChild(el('span', null, esc(label) + (desc ? '<span class="d">' + desc + '</span>' : '')));
+  return l;
+}
+function numInput(key, min, max, stp){
+  const i = el('input', { type: 'number', class: 'sm', min: min, max: max, step: stp || 1 });
+  i.value = S[key];
+  i.addEventListener('change', () => {
+    let v = parseFloat(String(i.value).replace(',', '.'));
+    if (isNaN(v)) v = DEF[key];
+    v = Math.max(min, Math.min(max, v));
+    i.value = v; S[key] = v; touched();
+  });
+  return i;
+}
+function numRow(label, key, min, max, stp){
+  const r = el('div', { class: 'row' });
+  r.appendChild(el('span', null, esc(label)));
+  r.appendChild(numInput(key, min, max, stp));
+  return r;
+}
+function rangeRow(label, kMin, kMax, min, max){
+  const r = el('div', { class: 'row' });
+  r.appendChild(el('span', null, esc(label)));
+  r.appendChild(el('span', { class: 'sp' }, 'von'));
+  r.appendChild(numInput(kMin, min, max));
+  r.appendChild(el('span', { class: 'sp' }, 'bis'));
+  r.appendChild(numInput(kMax, min, max));
+  return r;
+}
+/** Schieberegler mit fünf Stufen, links "seltener", rechts "häufiger" */
+function sliderRow(label, key, aus){
+  const r = el('div', { class: 'row slider-row' + (aus ? ' aus' : '') });
+  r.appendChild(el('span', { class: 'sl-name' }, label));
+  r.appendChild(el('span', { class: 'sl-end' }, 'seltener'));
+  const i = el('input', { type: 'range', min: 1, max: 5, step: 1, class: 'sl' });
+  i.value = S[key];
+  i.disabled = !!aus;
+  i.addEventListener('input', () => { S[key] = parseInt(i.value, 10); touched(); });
+  r.appendChild(i);
+  r.appendChild(el('span', { class: 'sl-end' }, 'häufiger'));
+  return r;
+}
+function selRow(label, key, opts){
+  const r = el('div', { class: 'row' });
+  r.appendChild(el('span', null, esc(label)));
+  const s = el('select', { class: 'sm' });
+  opts.forEach(o => s.appendChild(el('option', { value: o.v }, esc(o.t))));
+  s.value = String(S[key]);
+  s.addEventListener('change', () => {
+    S[key] = (typeof DEF[key] === 'number') ? parseFloat(s.value) : s.value;
+    if (key === 'parStyle'){ const p = PARSETS[S.parStyle] || PARSETS.lat; S.par = p[0]; S.par2 = p[1]; S.par3 = p[2]; }
+    touched();
+    if (key === 'parStyle') buildSettings();
+  });
+  r.appendChild(s);
+  return r;
+}
+
+function numberBlocks(opts){
+  const o = opts || {}, out = [];
+  const b1 = blk('Koordinaten der Punkte', 'Welche Zahlen dürfen als Punktkoordinaten auftreten?');
+  b1.appendChild(rangeRow('Bereich', 'pmin', 'pmax', -99, 99));
+  b1.appendChild(cb('auch 0', 'pzero'));
+  b1.appendChild(cb('auch Kommazahlen', 'pdec'));
+  b1.appendChild(cb('auch einfache Brüche', 'pfrac'));
+  out.push(b1);
+
+  const b2 = blk(o.vecName || 'Komponenten der Richtungsvektoren');
+  b2.appendChild(rangeRow('Bereich', 'vmin', 'vmax', -99, 99));
+  b2.appendChild(cb('auch 0', 'vzero', 'Zeilen ohne Parameter werden dann zu reinen Bedingungen.'));
+  b2.appendChild(cb('auch Kommazahlen', 'vdec'));
+  b2.appendChild(cb('auch einfache Brüche', 'vfrac'));
+  out.push(b2);
+
+  if (o.normal){
+    const b3 = blk('Komponenten der Normalenvektoren');
+    b3.appendChild(rangeRow('Bereich', 'nmin', 'nmax', -99, 99));
+    b3.appendChild(cb('auch 0', 'nzero', 'Eine Komponente \\(0\\) ist ein Sonderfall: die Ebene liegt dann parallel zu einer Achse.'));
+    b3.appendChild(cb('auch Kommazahlen', 'ndec'));
+    b3.appendChild(cb('auch einfache Brüche', 'nfrac'));
+    out.push(b3);
+  }
+
+  const b4 = blk('Parameterwerte', 'Werte, die beim Erzeugen der Aufgaben eingesetzt werden.');
+  b4.appendChild(rangeRow('Bereich', 'tmin', 'tmax', -99, 99));
+  b4.appendChild(cb('auch 0', 'tzero'));
+  b4.appendChild(cb('auch gebrochene Werte', 'tfrac'));
+  out.push(b4);
+
+  const b5 = blk('Zahlen allgemein');
+  b5.appendChild(numRow('Nachkommastellen', 'decN', 1, 3));
+  b5.appendChild(numRow('größter Nenner bei Brüchen', 'fracD', 2, 12));
+  b5.appendChild(selRow('berechnete Zahlen anzeigen als', 'numStyle',
+    [{ v: 'auto', t: 'automatisch (kurz)' }, { v: 'dez', t: 'immer Dezimalzahl' }, { v: 'bruch', t: 'immer Bruch' }]));
+  b5.appendChild(cb('Vektoren im Ergebnis ganzzahlig skalieren', 'intVec', 'Aus \\((0{,}5|1|1{,}5)\\) wird \\((1|2|3)\\).'));
+  b5.appendChild(cb('Vektoren im Ergebnis kürzen', 'simp', 'Gemeinsame Faktoren werden herausgezogen.'));
+  b5.appendChild(cb('Ergebnisse sollen ganzzahlig sein', 'intRes',
+    'Es werden nur Aufgaben gestellt, deren Lösung ohne Brüche auskommt.'));
+  out.push(b5);
+  return out;
+}
+function notationBlock(opts){
+  const o = opts || {};
+  const b = blk('Schreibweise');
+  b.appendChild(selRow('Achsen und Koordinaten', 'ax', [{ v: 'xyz', t: 'x, y, z' }, { v: 'x123', t: 'x₁, x₂, x₃' }]));
+  b.appendChild(selRow('Parameterbuchstaben', 'parStyle', [{ v: 'lat', t: 'lateinisch (r, s, t)' }, { v: 'gr', t: 'griechisch (λ, μ, τ)' }]));
+  const PO = [{ v: 'r', t: 'r' }, { v: 's', t: 's' }, { v: 't', t: 't' }, { v: 'u', t: 'u' },
+              { v: 'lam', t: 'λ' }, { v: 'mu', t: 'μ' }, { v: 'tau', t: 'τ' }, { v: 'sig', t: 'σ' }];
+  b.appendChild(selRow('erster Parameter', 'par', PO));
+  if (o.par2) b.appendChild(selRow('zweiter Parameter', 'par2', PO));
+  if (o.par3) b.appendChild(selRow('dritter Parameter', 'par3', PO));
+  if (o.koo) b.appendChild(selRow('Koordinatengleichung', 'kooForm',
+    [{ v: 'd', t: 'a·x + b·y + c·z = d' }, { v: 'null', t: 'a·x + b·y + c·z − d = 0' }]));
+  if (o.nor) b.appendChild(selRow('Normalenform', 'norSide',
+    [{ v: 'x', t: '[x − p] ∘ n = 0' }, { v: 'n', t: 'n ∘ [x − p] = 0' }]));
+  b.appendChild(selRow('linke Seite der Vektorgleichung', 'vecX', [{ v: 'vec', t: 'x mit Vektorpfeil' }, { v: 'X', t: 'X' }]));
+  b.appendChild(selRow('Trennzeichen in Punkten', 'sep', [{ v: '|', t: 'P(1|2|3)' }, { v: ';', t: 'P(1;2;3)' }]));
+  b.appendChild(selRow('Zeichen für das Skalarprodukt', 'dotSym',
+    [{ v: 'circ', t: 'a ∘ b' }, { v: 'cdot', t: 'a · b' }]));
+  return b;
+}
+function outputBlock(){
+  const b = blk('Aufgaben und Lösung');
+  b.appendChild(cb('Quiz anzeigen (eigene Lösung eingeben)', 'answer'));
+  b.appendChild(cb('Quiz beenden, sobald die Lösung geöffnet wird', 'lockOnSolve'));
+  b.appendChild(cb('Lösungsweg gleich mit aufklappen', 'autoWeg'));
+  return b;
+}
+function buildSettings(){
+  const g = $('#settingsGrid');
+  g.innerHTML = '';
+  settingsBlocks().forEach(b => g.appendChild(b));
+  mj(g);
+}
+
+/* =========================================================================
+   Quiz in Schritten
+   ========================================================================= */
+let QUIZ = null;
+function parseNum(s){
+  s = String(s == null ? '' : s).trim().replace(/\s+/g, '').replace(/−/g, '-').replace(',', '.');
+  if (!s) return null;
+  const m = s.match(/^(-?\d*\.?\d+)\/(-?\d*\.?\d+)$/);
+  if (m){ const b = parseFloat(m[2]); return b ? parseFloat(m[1]) / b : null; }
+  return /^-?\d*\.?\d+$/.test(s) ? parseFloat(s) : null;
+}
+function numField(w){
+  const i = el('input', { type: 'text', class: 'qz-inp', inputmode: 'decimal',
+    autocomplete: 'off', spellcheck: 'false', autocapitalize: 'off' });
+  if (w) i.classList.add(w);       /* Breite kommt aus dem Stylesheet */
+  i.addEventListener('focus', () => i.select());
+  return i;
+}
+function vecInput(id){
+  const w = el('span', { class: 'vecin' });
+  const cols = el('span', { class: 'cols' });
+  for (let i = 0; i < 3; i++) cols.appendChild(numField());
+  w.appendChild(el('span', { class: 'br l' }));
+  w.appendChild(cols);
+  w.appendChild(el('span', { class: 'br r' }));
+  if (id) w.id = id;
+  return w;
+}
+function readVec(w){
+  const v = $$('input', w).map(i => parseNum(i.value));
+  return v.some(x => x === null) ? null : v;
+}
+function ptInput(name, id){
+  const w = el('span', { class: 'ptin' });
+  if (name) w.appendChild(el('span', { class: 'qz-lbl' }, '\\(' + name + '\\)'));
+  w.appendChild(el('span', { class: 'pb' }, '('));
+  for (let i = 0; i < 3; i++){
+    if (i) w.appendChild(el('span', { class: 'psep' }, S.sep === ';' ? ';' : '|'));
+    w.appendChild(numField());
+  }
+  w.appendChild(el('span', { class: 'pb' }, ')'));
+  if (id) w.id = id;
+  return w;
+}
+function lblEl(tex){ return el('span', { class: 'qz-lbl' }, tex); }
+
+function quizStart(stages){
+  QUIZ = { stages: stages || [], idx: 0, st: (stages || []).map(() => ({ done: false, chosen: null, vals: null, wrong: {} })) };
+}
+function quizRender(host){
+  host.innerHTML = '';
+  if (!QUIZ || !QUIZ.stages.length) return;
+  QUIZ.stages.forEach((st, i) => {
+    if (i > QUIZ.idx) return;
+    host.appendChild(quizStageBox(st, i, host));
+  });
+  if (QUIZ.idx >= QUIZ.stages.length)
+    host.appendChild(el('div', { class: 'qz-all-done' }, 'Alles richtig gelöst.'));
+  mj(host);
+  if (LOCKED) lockQuiz();
+}
+/** kurzer Ansatz-Tipp zur aktuellen Aufgabe */
+function tippFuer(){
+  if (!TASK) return '';
+  if (TASK.tipp) return TASK.tipp;
+  if (typeof TIPPS !== 'undefined' && TIPPS[TASK.id]) return TIPPS[TASK.id];
+  return '';
+}
+function quizStageBox(st, i, host){
+  const s = QUIZ.st[i], fertig = s.done;
+  const box = el('div', { class: fertig ? 'qz-cur-step qz-solved' : 'qz-cur-step' });
+  /* Bei nur einem Schritt steht die Frage schon in der Aufgabe darüber */
+  if (QUIZ.stages.length > 1 || fertig)
+    box.appendChild(el('div', { class: 'qz-stage' }, (fertig ? '✓ ' : '') + st.title));
+  const tipp = (i === 0 && tippFuer()) ? tippFuer() : (st.sub || tippFuer());
+  if (tipp && !fertig){
+    const hb = el('button', { type: 'button', class: 'hint-btn' }, '💡 Tipp');
+    const ht = el('div', { class: 'qz-sub', style: 'display:none' }, tipp);
+    hb.addEventListener('click', () => {
+      const auf = ht.style.display === 'none';
+      ht.style.display = auf ? '' : 'none';
+      hb.textContent = auf ? '💡 Tipp ausblenden' : '💡 Tipp';
+      if (auf) mj(ht);
+    });
+    box.appendChild(hb);
+    box.appendChild(ht);
+  }
+
+  if (st.kind === 'choice'){
+    const row = el('div', { class: 'qz-btns' });
+    st.opts.forEach(o => {
+      const b = el('button', { type: 'button', class: 'qz-btn', data: { v: o.v } }, esc(o.t));
+      if (s.wrong[o.v]) b.classList.add('qw');
+      if (fertig && o.v === s.chosen) b.classList.add('qc');
+      if (fertig) b.disabled = true;
+      else b.addEventListener('click', () => {
+        if (LOCKED) return;
+        const res = st.verify(o.v);
+        if (res.ok){
+          s.done = true; s.chosen = o.v; s.raw = res.raw;
+          QUIZ.idx = Math.max(QUIZ.idx, i + 1);
+          quizRender(host);
+        } else {
+          s.wrong[o.v] = true;
+          b.classList.add('qw');
+          quizSay(box, 'err', res.msg);
+        }
+      });
+      row.appendChild(b);
+    });
+    box.appendChild(row);
+  } else {
+    const row = el('div', { class: 'qz-inp-row' });
+    st.build(row);
+    box.appendChild(row);
+    if (s.vals) $$('input', box).forEach((inp, k) => { inp.value = s.vals[k] == null ? '' : s.vals[k]; });
+    if (fertig){
+      $$('input', box).forEach(inp => { inp.disabled = true; inp.classList.add('ok'); });
+      $$('[id]', box).forEach(n => n.removeAttribute('id'));   /* Kennungen nur beim aktiven Schritt */
+    }
+    else {
+      const act = el('div', { class: 'qz-inp-row' });
+      const b = el('button', { type: 'button' }, 'Prüfen');
+      b.addEventListener('click', () => {
+        if (LOCKED) return;
+        s.vals = $$('input', box).map(inp => inp.value);
+        const res = st.verify(box);
+        if (res.ok){
+          s.done = true; s.raw = res.raw;
+          QUIZ.idx = Math.max(QUIZ.idx, i + 1);
+          quizRender(host);
+        } else quizSay(box, res.cls || 'err', res.msg);
+      });
+      act.appendChild(b);
+      box.appendChild(act);
+      box.addEventListener('keydown', ev => { if (ev.key === 'Enter'){ ev.preventDefault(); b.click(); } });
+    }
+  }
+  return box;
+}
+function quizSay(box, cls, msg){
+  let f = $('.qz-fb', box);
+  if (!f){ f = el('div', { class: 'qz-fb' }); box.appendChild(f); }
+  f.className = 'qz-fb ' + cls;
+  f.innerHTML = msg;
+  mj(f);
+}
+/** Antwortbereich ausgrauen, sobald die Lösung geöffnet wurde */
+function lockQuiz(){
+  const qa = $('#quizArea');
+  if (!qa) return;
+  qa.classList.add('qz-locked');
+  $$('input, button', qa).forEach(x => { x.disabled = true; });
+}
+
+/* =========================================================================
+   Aufgabe anzeigen
+   ========================================================================= */
+function render(){
+  const host = $('#task');
+  host.innerHTML = '';
+  if (!TASK){
+    host.innerHTML = '<p style="margin:6px 0;color:#b00020">Es ist kein Aufgabentyp ausgewählt. '
+      + 'Wähle oben mindestens eine Möglichkeit aus.</p>';
+    return;
+  }
+  LOCKED = false;
+  const head = el('div', { class: 'task-head' });
+  head.appendChild(el('b', null, esc(TASK.kap)));
+  const sh = el('button', { class: 'share-btn', type: 'button', 'aria-label': 'Aufgabe teilen',
+    title: 'Link zu genau dieser Aufgabe kopieren' }, '🔗');
+  sh.addEventListener('click', () => copyText(shareURL(true), sh, '✓'));
+  head.appendChild(sh);
+  host.appendChild(head);
+
+  const body = el('div', { class: 'qbody' });
+  body.innerHTML = '<div>' + wrapMath(TASK.q) + '</div><p class="ask">' + TASK.ask + '</p>';
+  host.appendChild(body);
+
+  if (S.answer && TASK.stages && TASK.stages.length){
+    quizStart(TASK.stages);
+    const qa = el('div', { id: 'quizArea' });
+    host.appendChild(qa);
+    quizRender(qa);
+  }
+  host.appendChild(solutionArea());
+  mj(host);
+}
+function solutionArea(){
+  const d = el('details', { class: 'loesung' });
+  d.appendChild(el('summary', null, 'Lösung'));
+  const res = el('div', { class: 'res' });
+  d.appendChild(res);
+  const noteBox = el('div');
+  d.appendChild(noteBox);
+
+  const w = el('details', { class: 'weg' });
+  w.open = !!S.autoWeg;
+  w.appendChild(el('summary', null, 'Lösungsweg'));
+  const box = el('div', { class: 'wegbox' });
+  let varIdx = 0, zeigeLinks = null;
+  if (TASK.variants.length > 1){
+    w.appendChild(el('p', { class: 'wegsel' }, 'Es gibt mehrere Wege – hier kannst du umschalten:'));
+    const sw = el('div', { class: 'varsw' });
+    TASK.variants.forEach((v, i) => {
+      const b = el('button', { type: 'button', data: { i: i } }, v.label);
+      b.addEventListener('click', () => {
+        $$('button', sw).forEach(x => x.classList.remove('on'));
+        b.classList.add('on');
+        varIdx = i;
+        paintWeg(box, TASK.variants[i]);
+        if (zeigeLinks) zeigeLinks();
+      });
+      sw.appendChild(b);
+    });
+    $('button', sw).classList.add('on');
+    w.appendChild(sw);
+    mj(sw);
+  }
+  w.appendChild(box);
+  d.appendChild(w);
+  /* Die Links hängen am gewählten Lösungsweg: hat eine Variante eigene Objekte,
+     zeigt die Zeichenseite genau diesen Weg. */
+  let links = extLinks(TASK.vis, TASK.extra, TASK.parWert);
+  d.appendChild(links);
+  zeigeLinks = () => {
+    const v = TASK.variants[varIdx];
+    const neu = extLinks(v && v.vis ? v.vis : TASK.vis,
+                         (v && v.extra) ? v.extra : TASK.extra,
+                         (v && v.parWert != null) ? v.parWert : TASK.parWert);
+    links.replaceWith(neu);
+    links = neu;
+  };
+
+  /* Formeln werden erst gesetzt, wenn der Bereich wirklich sichtbar ist –
+     in einem zugeklappten <details> misst MathJax sonst falsche Breiten und
+     die Skalierung fällt zu klein aus. */
+  const zeige = () => {
+    res.innerHTML = wrapMath(TASK.sol);
+    noteBox.innerHTML = TASK.note ? '<p class="note">' + TASK.note + '</p>' : '';
+    mj(d);
+    if (w.open) paintWeg(box, TASK.variants[varIdx]);
+  };
+  d.addEventListener('toggle', () => {
+    if (!d.open) return;
+    zeige();
+    if (S.lockOnSolve && S.answer){ LOCKED = true; lockQuiz(); }
+  });
+  w.addEventListener('toggle', () => { if (w.open && d.open) paintWeg(box, TASK.variants[varIdx]); });
+  return d;
+}
+function paintWeg(box, variant){
+  box.innerHTML = '';
+  let nr = 0;
+  variant.steps.forEach(s => {
+    nr++;
+    if (s.sub){ box.appendChild(subSwitch(s, nr)); return; }
+    box.appendChild(stepBox(s, nr));
+  });
+  mj(box);
+}
+/** einen Schritt als Kasten aufbauen (auch mit eigenem Bedienfeld) */
+function stepBox(s, nr){
+  const d = el('div', { class: 'step' },
+    '<div class="sh">' + (String(nr).indexOf('.') >= 0 ? nr : nr + '.') + ' ' + s.h + '</div>'
+    + (s.x ? '<div class="sx">' + s.x + '</div>' : '')
+    + (s.tex ? wrapMath('\\[' + chainTeX(s.tex) + '\\]') : '')
+    + (s.htm ? '<div class="sx note-line">' + s.htm + '</div>' : ''));
+  if (s.link && s.link.href){
+    const a2 = el('a', { class: 'step-link', href: s.link.href, target: '_blank', rel: 'noopener' }, esc(s.link.text));
+    d.appendChild(a2);
+  }
+  if (s.live) s.live(d);
+  return d;
+}
+/** Umschalter mitten im Lösungsweg (z. B. welche Zeile man umformt) */
+function subSwitch(s, nr){
+  const wrap = el('div', { class: 'substep' });
+  wrap.appendChild(el('p', { class: 'wegsel' }, s.sub.label));
+  const sw = el('div', { class: 'varsw' });
+  const box = el('div');
+  s.sub.opts.forEach((o, i) => {
+    const b = el('button', { type: 'button' }, o.label);
+    b.addEventListener('click', () => {
+      $$('button', sw).forEach(x => x.classList.remove('on'));
+      b.classList.add('on');
+      fillSteps(box, o.steps, nr + '.');
+    });
+    sw.appendChild(b);
+  });
+  $('button', sw).classList.add('on');
+  wrap.appendChild(sw);
+  wrap.appendChild(box);
+  fillSteps(box, s.sub.opts[0].steps, nr + '.');
+  mj(wrap);
+  return wrap;
+}
+function fillSteps(box, steps, praefix){
+  box.innerHTML = '';
+  steps.forEach((s, i) => {
+    const nr = praefix + (i + 1);
+    /* auch verschachtelte Umschalter werden aufgebaut */
+    box.appendChild(s.sub ? subSwitch(s, nr) : stepBox(s, nr));
+  });
+  mj(box);
+}
+/** Baustein: ein Umschalter als Schritt */
+function stepSwitch(label, opts){ return { h: '', sub: { label: label, opts: opts } }; }
+
+/* =========================================================================
+   Eigene Aufgabe: Werte selbst eingeben
+   ========================================================================= */
+let MANCUR = null;                                  /* {id, v} der aktuellen eigenen Aufgabe */
+const MV = (m, k, f) => (m && m[k] != null) ? m[k] : f();
+
+function manualEntry(id){ return (typeof MANUAL === 'undefined') ? null : MANUAL.find(x => x.id === id); }
+const MODES = [{ v: 'auto', t: 'Zufällige Aufgabe' }, { v: 'manuell', t: 'Eigene Aufgabe' }];
+function paintMode(){
+  const eigen = (S.mode === 'manuell');
+  const box = $('#manualBox');
+  if (box) box.style.display = eigen ? '' : 'none';
+  /* Aufgabentypen und Schwierigkeit ergeben nur bei zufälligen Aufgaben Sinn */
+  const top = $('#topControls');
+  if (top) top.style.display = eigen ? 'none' : '';
+}
+function buildManualPanel(){
+  const host = $('#manualBox');
+  if (!host || typeof MANUAL === 'undefined' || !MANUAL.length) return;
+  host.innerHTML = '';
+  const sel = el('select', { id: 'manType' });
+  MANUAL.forEach(m => sel.appendChild(el('option', { value: m.id }, esc(m.name))));
+  if (MANCUR) sel.value = MANCUR.id;
+  sel.addEventListener('change', () => { MANSEL = {}; manualFields(sel.value); });
+  if (MANUAL.length > 1){
+    const r = el('div', { class: 'row' });
+    r.appendChild(el('span', null, 'Aufgabentyp'));
+    r.appendChild(sel);
+    host.appendChild(r);
+  } else host.appendChild(el('div', { style: 'display:none' })).appendChild(sel);
+  host.appendChild(el('div', { id: 'manFields' }));
+  const act = el('div', { class: 'settings-foot' });
+  const go = el('button', { type: 'button' }, 'Aufgabe erzeugen');
+  go.addEventListener('click', () => manualGo(sel.value));
+  act.appendChild(go);
+  host.appendChild(act);
+  host.appendChild(el('p', { class: 'note' },
+    'Aufgabentext, Quiz und vollständiger Lösungsweg bleiben dieselben wie bei einer erzeugten Aufgabe.'));
+  manualFields(sel.value);
+  paintMode();
+}
+let MANSEL = {};
+/** Felder eines Eintrags – dürfen von den Auswahlfeldern abhängen */
+function fieldsOf(e){ return (typeof e.fields === 'function') ? e.fields(MANSEL) : e.fields; }
+function manualFields(id){
+  const box = $('#manFields'), e = manualEntry(id);
+  if (!box || !e) return;
+  box.innerHTML = '';
+  fieldsOf(e).forEach(f => {
+    const row = el('div', { class: 'qz-inp-row' });
+    if (f.label) row.appendChild(el('span', { class: 'qz-lbl' }, f.label));
+    manualField(row, f, id);
+    box.appendChild(row);
+  });
+  mj(box);
+}
+/** einen Wert aus der zuletzt benutzten eigenen Aufgabe oder die Vorgabe */
+function manVal(id, k, def){
+  return (MANCUR && MANCUR.id === id && MANCUR.v[k] != null) ? MANCUR.v[k] : def;
+}
+function setVec(node, val){ if (val) $$('input', node).forEach((i, k) => { i.value = String(val[k]); }); }
+function manualField(row, f, id){
+  const D = f.def || {};
+  if (f.t === 'line'){
+    /* wie in der Lösungseingabe: die ganze Geradengleichung */
+    row.appendChild(lblEl('\\(' + (f.name || 'g') + ':\\;' + xsym() + ' = \\)'));
+    const a = vecInput('man_' + f.kp); row.appendChild(a);
+    row.appendChild(lblEl('\\(+\\;' + par() + '\\cdot \\)'));
+    const b = vecInput('man_' + f.ku); row.appendChild(b);
+    setVec(a, manVal(id, f.kp, D.p));
+    setVec(b, manVal(id, f.ku, D.u));
+    return;
+  }
+  if (f.t === 'plane'){
+    const nm = f.name || 'E';
+    if (f.form === 'par'){
+      row.appendChild(lblEl('\\(' + nm + ':\\;' + xsym() + ' = \\)'));
+      const a = vecInput('man_' + f.kp); row.appendChild(a);
+      row.appendChild(lblEl('\\(+\\;' + par() + '\\cdot \\)'));
+      const b = vecInput('man_' + f.ku); row.appendChild(b);
+      row.appendChild(lblEl('\\(+\\;' + par2() + '\\cdot \\)'));
+      const cc = vecInput('man_' + f.kv); row.appendChild(cc);
+      setVec(a, manVal(id, f.kp, D.p)); setVec(b, manVal(id, f.ku, D.u)); setVec(cc, manVal(id, f.kv, D.v));
+      return;
+    }
+    if (f.form === 'nor'){
+      row.appendChild(lblEl('\\(' + nm + ':\\)'));
+      row.appendChild(el('span', { class: 'sqbr l' }));
+      row.appendChild(lblEl('\\(' + xsym() + ' - \\)'));
+      const a = vecInput('man_' + f.kp); row.appendChild(a);
+      row.appendChild(el('span', { class: 'sqbr r' }));
+      row.appendChild(lblEl('\\(' + SP() + '\\)'));
+      const b = vecInput('man_' + f.kn); row.appendChild(b);
+      row.appendChild(lblEl('\\(= 0\\)'));
+      setVec(a, manVal(id, f.kp, D.p)); setVec(b, manVal(id, f.kn, D.n));
+      return;
+    }
+    row.appendChild(lblEl('\\(' + nm + ':\\)'));
+    const nv = manVal(id, f.kn, D.n) || [1, 2, 2];
+    [0, 1, 2].forEach(i => {
+      const inp = numField(); inp.id = 'man_' + f.kn + '_' + i; inp.value = String(nv[i]);
+      row.appendChild(inp);
+      row.appendChild(lblEl('\\(' + axName(i) + (i < 2 ? ' + ' : '') + '\\)'));
+    });
+    row.appendChild(lblEl('\\(=\\)'));
+    const dd = numField(); dd.id = 'man_' + f.kd; dd.value = String(manVal(id, f.kd, D.d));
+    row.appendChild(dd);
+    return;
+  }
+  if (f.t === 'ptvar'){
+    /* Punkt, bei dem einzelne Koordinaten als Buchstabe eingetragen werden dürfen */
+    const w = el('span', { class: 'ptin' });
+    w.appendChild(el('span', { class: 'qz-lbl' }, '\\(' + (f.name || 'P') + '\\)'));
+    w.appendChild(el('span', { class: 'pb' }, '('));
+    const cur = manVal(id, f.k, D.v) || ['5', 'a', '1'];
+    for (let i = 0; i < 3; i++){
+      if (i) w.appendChild(el('span', { class: 'psep' }, S.sep === ';' ? ';' : '|'));
+      const inp = numField();
+      inp.id = 'man_' + f.k + '_' + i;
+      inp.setAttribute('inputmode', 'text');
+      inp.value = String(cur[i]);
+      w.appendChild(inp);
+    }
+    w.appendChild(el('span', { class: 'pb' }, ')'));
+    row.appendChild(w);
+    return;
+  }
+  const cur = manVal(id, f.k, f.def);
+  if (f.t === 'point' || f.t === 'vec'){
+    const w = f.t === 'point' ? ptInput(f.name || '', 'man_' + f.k) : vecInput('man_' + f.k);
+    row.appendChild(w);
+    setVec(w, cur);
+  } else if (f.t === 'sel'){
+    const s = el('select', { class: f.rebuild ? 'sm formsel' : 'sm', id: 'man_' + f.k });
+    (typeof f.opts === 'function' ? f.opts() : f.opts).forEach(o => s.appendChild(el('option', { value: o.v }, esc(o.t))));
+    const wert = (MANSEL[f.k] != null) ? MANSEL[f.k] : cur;
+    if (wert != null) s.value = String(wert);
+    MANSEL[f.k] = s.value;
+    if (f.rebuild) s.addEventListener('change', () => { MANSEL[f.k] = s.value; manualFields(id); });
+    row.appendChild(s);
+  } else {
+    const n = numField(); n.id = 'man_' + f.k;
+    if (cur != null) n.value = String(cur);
+    row.appendChild(n);
+  }
+}
+function manualRead(id){
+  const e = manualEntry(id), v = {};
+  const felder = fieldsOf(e);
+  const holVec = (k, label) => {
+    const q = readVec($('#man_' + k));
+    if (!q) throw new Error('Bitte alle Felder bei „' + label + '“ ausfüllen.');
+    v[k] = q;
+  };
+  try {
+    for (const f of felder){
+      const label = String(f.label || f.name || '').replace(/\\[()]/g, '');
+      if (f.t === 'line'){ holVec(f.kp, label + ' (Stützvektor)'); holVec(f.ku, label + ' (Richtungsvektor)'); continue; }
+      if (f.t === 'plane'){
+        if (f.form === 'par'){ holVec(f.kp, label); holVec(f.ku, label); holVec(f.kv, label); continue; }
+        if (f.form === 'nor'){ holVec(f.kp, label); holVec(f.kn, label); continue; }
+        const n = [0, 1, 2].map(i => parseNum($('#man_' + f.kn + '_' + i).value));
+        const d = parseNum($('#man_' + f.kd).value);
+        if (n.some(x => x === null) || d === null) throw new Error('Bitte alle Zahlen der Gleichung eintragen (auch die Nullen).');
+        v[f.kn] = n; v[f.kd] = d;
+        continue;
+      }
+      if (f.t === 'ptvar'){
+        const roh = [0, 1, 2].map(i => String($('#man_' + f.k + '_' + i).value).trim());
+        if (roh.some(x => !x)) throw new Error('Bitte alle drei Koordinaten eintragen.');
+        v[f.k] = roh;
+        continue;
+      }
+      const node = $('#man_' + f.k);
+      if (!node) throw new Error('Feld fehlt.');
+      if (f.t === 'point' || f.t === 'vec') holVec(f.k, label);
+      else if (f.t === 'sel') v[f.k] = node.value;
+      else {
+        const x = parseNum(node.value);
+        if (x === null) throw new Error('Bitte einen Wert bei „' + label + '“ eintragen.');
+        v[f.k] = x;
+      }
+    }
+  } catch (ex){ return { err: ex.message }; }
+  return { v: v };
+}
+function manualGo(id){
+  const res = manualRead(id);
+  const box = $('#manFields');
+  $$('.qz-fb', box.parentElement).forEach(x => x.remove());
+  if (!res || res.err){
+    box.parentElement.appendChild(el('div', { class: 'qz-fb err' }, res ? res.err : 'Eingabe unvollständig.'));
+    return;
+  }
+  let t = null, msg = null;
+  try { t = makeManual(id, res.v); } catch (ex){ msg = ex && ex.message; }
+  if (!t){
+    box.parentElement.appendChild(el('div', { class: 'qz-fb err' },
+      msg || 'Mit diesen Werten lässt sich keine sinnvolle Aufgabe bilden.'));
+    return;
+  }
+  MANCUR = { id: id, v: res.v };
+  S.mode = 'manuell';
+  TASK = t;
+  save();
+  render();
+  const tb = $('#task');
+  if (tb && tb.scrollIntoView) tb.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+}
+
+/* =========================================================================
+   Zustand, Schwierigkeit, Start
+   ========================================================================= */
+const DIFFS = [
+  { v: 'einf', t: 'Einführung' }, { v: 'leicht', t: 'Leicht' }, { v: 'mittel', t: 'Mittel' },
+  { v: 'schwer', t: 'Herausfordernd' }, { v: 'indiv', t: 'Individuell', title: 'öffnet die Einstellungen' }
+];
+const NUMPRESETS = {
+  /* Einführung: alles so einfach wie möglich – keine negativen Zahlen, kleine
+     Werte, glatte Ergebnisse; die Bereiche bleiben aber groß genug für viel Auswahl. */
+  einf:   { pmin: 0, pmax: 8, pzero: true, pdec: false, pfrac: false,
+            vmin: 0, vmax: 3, vzero: true, vdec: false, vfrac: false,
+            nmin: 1, nmax: 3, nzero: false, ndec: false, nfrac: false, tmin: 1, tmax: 5, tzero: false, tfrac: false,
+            simp: false, intVec: false, intRes: true },
+  /* Leicht: übersichtliche Ausgangswerte, die Ergebnisse dürfen aber krumm werden. */
+  leicht: { pmin: -6, pmax: 6, pzero: true, pdec: false, pfrac: false,
+            vmin: -4, vmax: 4, vzero: true, vdec: false, vfrac: false,
+            nmin: -4, nmax: 4, nzero: false, ndec: false, nfrac: false, tmin: -5, tmax: 5, tzero: false, tfrac: false,
+            simp: false, intVec: false, intRes: false },
+  /* Mittel: das übliche Niveau im Grundkurs. */
+  mittel: { pmin: -10, pmax: 10, pzero: true, pdec: false, pfrac: false,
+            vmin: -5, vmax: 5, vzero: true, vdec: false, vfrac: false,
+            nmin: -5, nmax: 5, nzero: true, ndec: false, nfrac: false, tmin: -8, tmax: 8, tzero: true, tfrac: true,
+            simp: false, intVec: false, intRes: false },
+  /* Herausfordernd: auch Kommazahlen und Brüche in den Ausgangswerten. */
+  schwer: { pmin: -12, pmax: 12, pzero: true, pdec: true, pfrac: true,
+            vmin: -6, vmax: 6, vzero: true, vdec: false, vfrac: true,
+            nmin: -6, nmax: 6, nzero: true, ndec: false, nfrac: false, tmin: -10, tmax: 10, tzero: true, tfrac: true,
+            simp: false, intVec: false, intRes: false }
+};
+function applyPreset(name){
+  const p = NUMPRESETS[name];
+  if (p) for (const k in p) S[k] = p[k];
+  if (typeof pagePreset === 'function') pagePreset(name);
+}
+function touched(){
+  if (S.diff !== 'indiv'){ S.diff = 'indiv'; paintSegSwitch($('#segDiff'), () => S.diff); }
+  save();
+}
+function save(){ shareURL(false); }
+function shareURL(withSeed){
+  const extra = {};
+  if (MANCUR) extra.mt = JSON.stringify(MANCUR);
+  else if (withSeed) extra.sd = TASKSEED;
+  return URLSTATE.write(S, DEF, PMAP, extra);
+}
+/** enthält die Lösung der Aufgabe gebrochene Werte? */
+function taskHasFraction(t){
+  if (!t) return false;
+  if (/\\frac\{/.test(t.sol || '')) return true;
+  const pruef = v => {
+    if (v == null) return false;
+    if (typeof v === 'number') return Math.abs(v - Math.round(v)) > 1e-9;
+    if (Array.isArray(v)) return v.some(pruef);
+    if (typeof v === 'object') return Object.keys(v).some(k => pruef(v[k]));
+    return false;
+  };
+  return pruef(t.answer);
+}
+/** bei „Ergebnisse ganzzahlig“ so lange neu würfeln, bis die Lösung glatt ist */
+function makeTaskChecked(){
+  let t = makeTask();
+  if (!S.intRes || !t) return t;
+  for (let i = 1; i <= 60 && taskHasFraction(t); i++){
+    setSeed(snap(TASKSEED + i * 7919) >>> 0);
+    t = makeTask();
+  }
+  return t;
+}
+function nextTask(seed){
+  MANCUR = null;
+  if (S.mode === 'manuell'){ S.mode = 'auto'; safe(paintMode); safe(() => paintSegSwitch($('#segMode'), () => S.mode)); }
+  TASKSEED = (seed == null) ? newSeed() : seed;
+  setSeed(TASKSEED);
+  try {
+    TASK = makeTaskChecked();
+  } catch (e){
+    if (window.console) console.error('Aufgabe konnte nicht erzeugt werden:', e);
+    TASK = null;
+    const host = $('#task');
+    if (host) host.innerHTML = '<p style="margin:6px 0;color:#b00020">Mit diesen Einstellungen ließ sich keine '
+      + 'Aufgabe erzeugen (' + esc(e && e.message ? e.message : e) + '). Bitte die Einstellungen prüfen.</p>';
+    return;
+  }
+  render();                       /* zeichnen hat Vorrang vor dem Merken in der URL */
+  safe(save);
+}
+/** führt aus und schluckt Fehler, damit ein Teilschritt nie den Rest blockiert */
+function safe(fn){
+  try { return fn(); }
+  catch (e){ if (window.console) console.error(e); return null; }
+}
+/** Einstellungen öffnen, hinscrollen und die Zahlenblöcke kurz hervorheben */
+function showSettings(){
+  const ds = $('#dSettings');
+  if (!ds) return;
+  ds.open = true;
+  const g = $('#settingsGrid');
+  if (!g) return;
+  const bl = $$('.form-block', g).slice(0, 5);
+  bl.forEach(b => b.classList.remove('hint'));
+  setTimeout(() => {
+    if (g.scrollIntoView) g.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    bl.forEach(b => b.classList.add('hint'));
+    setTimeout(() => bl.forEach(b => b.classList.remove('hint')), 2400);
+  }, 60);
+}
+function initPage(hookExtra){
+  buildSegSwitch($('#segDiff'), 'diff', DIFFS, () => S.diff, v => {
+    S.diff = v;
+    if (v !== 'indiv') safe(() => applyPreset(v));
+    nextTask();                    /* zuerst die Aufgabe – sie ist das Wichtigste */
+    safe(buildSettings);
+    if (v === 'indiv') safe(showSettings);
+  });
+  buildSettings();
+  if (hookExtra) hookExtra();
+  $$('#genBtn, #genBtn2').forEach(b => b.addEventListener('click', () => nextTask()));
+  $('#btnShare').addEventListener('click', () => copyText(shareURL(false), $('#btnShare'), '✓ Link kopiert'));
+  $('#btnReset').addEventListener('click', () => {
+    S = JSON.parse(JSON.stringify(DEF));
+    resetControls(); buildSettings(); paintSegSwitch($('#segDiff'), () => S.diff); save(); nextTask();
+  });
+  buildSegSwitch($('#segMode'), 'mode', MODES, () => S.mode, v => {
+    S.mode = v;
+    paintMode();
+    save();
+    if (v === 'auto') nextTask();
+  });
+  buildManualPanel();
+  const q = new URLSearchParams(location.search);
+  const mt = q.get('mt');
+  if (mt){
+    try {
+      const o = JSON.parse(mt);
+      const t = makeManual(o.id, o.v);
+      if (t){
+        MANCUR = o; TASK = t; S.mode = 'manuell';
+        buildManualPanel(); paintSegSwitch($('#segMode'), () => S.mode); render();
+        return;
+      }
+    } catch (e) {}
+  }
+  const sd = q.get('sd');
+  nextTask(sd != null ? (parseInt(sd, 10) >>> 0) : null);
+}
+function boot(hookExtra){
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => initPage(hookExtra));
+  else initPage(hookExtra);
+}
+
+/* gemeinsamer Teil von Zustand und URL-Abbildung */
+const NUMDEF = {
+  pmin: -6, pmax: 6, pzero: true, pdec: false, pfrac: false,
+  vmin: -4, vmax: 4, vzero: true, vdec: false, vfrac: false,
+  nmin: -4, nmax: 4, nzero: true, ndec: false, nfrac: false,
+  tmin: -5, tmax: 5, tzero: false, tfrac: false,
+  decN: 1, fracD: 4, numStyle: 'auto', intVec: false, simp: false, intRes: false,
+  ax: 'xyz', parStyle: 'lat', par: 'r', par2: 's', par3: 't',
+  vecX: 'vec', sep: '|', kooForm: 'd', norSide: 'x', dotSym: 'circ',
+  diff: 'leicht', mode: 'auto', answer: true, lockOnSolve: true, autoWeg: false
+};
+const NUMMAP = {
+  pmin: { q: 'pi', t: 'n' }, pmax: { q: 'pa', t: 'n' }, pzero: { q: 'p0', t: 'b' },
+  pdec: { q: 'pd', t: 'b' }, pfrac: { q: 'pf', t: 'b' },
+  vmin: { q: 'vi', t: 'n' }, vmax: { q: 'va', t: 'n' }, vzero: { q: 'v0', t: 'b' },
+  vdec: { q: 'vd', t: 'b' }, vfrac: { q: 'vf', t: 'b' },
+  nmin: { q: 'ni', t: 'n' }, nmax: { q: 'na', t: 'n' }, nzero: { q: 'n0', t: 'b' },
+  ndec: { q: 'nd2', t: 'b' }, nfrac: { q: 'nf2', t: 'b' }, nzero: { q: 'n0', t: 'b' },
+  ndec: { q: 'nd2', t: 'b' }, nfrac: { q: 'nf', t: 'b' },
+  tmin: { q: 'ti', t: 'n' }, tmax: { q: 'ta', t: 'n' }, tzero: { q: 't0', t: 'b' }, tfrac: { q: 'tf', t: 'b' },
+  decN: { q: 'dn', t: 'n' }, fracD: { q: 'fd', t: 'n' }, numStyle: { q: 'nz', t: 's' },
+  intVec: { q: 'iv', t: 'b' }, simp: { q: 'sm', t: 'b' }, intRes: { q: 'ir', t: 'b' },
+  ax: { q: 'ax', t: 's' }, parStyle: { q: 'ps', t: 's' }, par: { q: 'p1', t: 's' },
+  par2: { q: 'p2', t: 's' }, par3: { q: 'p3', t: 's' },
+  vecX: { q: 'vx', t: 's' }, sep: { q: 'sp', t: 's' }, kooForm: { q: 'kf', t: 's' },
+  norSide: { q: 'ns', t: 's' }, dotSym: { q: 'ds', t: 's' },
+  diff: { q: 'd', t: 's' }, mode: { q: 'mo', t: 's' }, answer: { q: 'an', t: 'b' }, lockOnSolve: { q: 'lk', t: 'b' }, autoWeg: { q: 'aw', t: 'b' }
+};
+
+/* ---------- fertige Quiz-Schritte ---------- */
+function stageChoice(title, opts, right, hints, answerTxt, sub){
+  return { kind: 'choice', title: title, sub: sub, opts: opts,
+    verify(v){
+      if (v === right) return { ok: true, answer: answerTxt || esc((opts.find(o => o.v === v) || {}).t || '') };
+      return { ok: false, msg: (hints && hints[v]) || 'Das stimmt noch nicht – rechne den Fall noch einmal nach.' };
+    } };
+}
+/** Geradengleichung eingeben: Stützvektor und Richtungsvektor */
+function stageLine(title, p0, u0, name, sub){
+  return { kind: 'input', title: title,
+    sub: sub || 'Jeder Punkt der Geraden und jedes Vielfache des Richtungsvektors sind erlaubt.',
+    build(row){
+      row.appendChild(lblEl('\\(' + (name || 'g') + ':\\;' + xsym() + ' = \\)'));
+      row.appendChild(vecInput('inP'));
+      row.appendChild(lblEl('\\(+\\;' + par() + '\\cdot \\)'));
+      row.appendChild(vecInput('inU'));
+    },
+    verify(box){
+      const p2 = readVec($('#inP', box)), u2 = readVec($('#inU', box));
+      if (!p2 || !u2) return { ok: false, cls: 'warn', msg: 'Bitte alle sechs Felder ausfüllen.' };
+      if (V.zero(u2)) return { ok: false, msg: 'Der Richtungsvektor darf nicht der Nullvektor sein – sonst beschreibt die Gleichung nur einen Punkt.' };
+      if (!V.parallel(u0, u2)) return { ok: false, msg: 'Der Richtungsvektor zeigt in eine andere Richtung. Er muss ein Vielfaches von \\(' + TX.vec(u0) + '\\) sein.' };
+      if (V.factor(u0, V.sub(p2, p0)) === null) return { ok: false, msg: 'Die Richtung stimmt, aber der Stützvektor gehört zu einem Punkt, der nicht auf der Geraden liegt.' };
+      const k = V.factor(u0, u2);
+      let extra = '';
+      if (!eqN(k, 1)) extra += ' (Richtungsvektor als \\(' + numTeX(k) + '\\)-faches – dieselbe Gerade)';
+      if (!V.same(p2, p0)) extra += ' (anderer Stützpunkt derselben Geraden)';
+      return { ok: true, answer: '\\(' + lineTeX('', p2, u2) + '\\)' + extra };
+    } };
+}
+function stagePoint(title, name, right, sub, hint){
+  return { kind: 'input', title: title, sub: sub,
+    build(row){ row.appendChild(ptInput(name, 'inQ')); },
+    verify(box){
+      const q = readVec($('#inQ', box));
+      if (!q) return { ok: false, cls: 'warn', msg: 'Bitte alle drei Koordinaten eintragen.' };
+      if (V.same(q, right)) return { ok: true, answer: '\\(' + ptTeX(name, right) + '\\)' };
+      const w = [0, 1, 2].filter(i => !eqN(q[i], right[i]));
+      return { ok: false, msg: w.length === 1
+        ? 'Die ' + (w[0] + 1) + '. Koordinate stimmt noch nicht.'
+        : (hint || 'Noch nicht richtig – rechne die Koordinaten noch einmal nach.') };
+    } };
+}
+function stageNums(title, labels, vals, sub, hint){
+  return { kind: 'input', title: title, sub: sub,
+    build(row){
+      labels.forEach((L, i) => {
+        row.appendChild(lblEl('\\(' + L + ' = \\)'));
+        const f = numField(); f.id = 'inN' + i;
+        row.appendChild(f);
+      });
+    },
+    verify(box){
+      const got = labels.map((L, i) => parseNum($('#inN' + i, box).value));
+      if (got.some(x => x === null)) return { ok: false, cls: 'warn', msg: 'Bitte alle Felder ausfüllen.' };
+      const bad = got.map((x, i) => eqN(x, vals[i]) ? -1 : i).filter(i => i >= 0);
+      if (!bad.length) return { ok: true, answer: '\\(' + labels.map((L, i) => L + ' = ' + numTeX(vals[i])).join(',\\quad ') + '\\)' };
+      return { ok: false, msg: 'Noch nicht richtig bei \\(' + bad.map(i => labels[i]).join('\\) und \\(') + '\\). ' + (hint || '') };
+    } };
+}
+/* =========================================================================
+   Seite: Lage zweier Geraden
+   ========================================================================= */
+const CASES = [
+  { v: 'schneidend', t: 'schneidend' },
+  { v: 'parallel',   t: 'echt parallel' },
+  { v: 'windschief', t: 'windschief' },
+  { v: 'identisch',  t: 'identisch' }
+];
+const CASENAME = { schneidend: 'schneidend', parallel: 'echt parallel',
+                   windschief: 'windschief', identisch: 'identisch' };
+
+const DEF = Object.assign({}, NUMDEF, {
+  cases: { schneidend: true, parallel: true, windschief: true, identisch: true },
+  wSchneidend: 4, wParallel: 3, wWindschief: 3, wIdentisch: 2,
+  askS: true, onlyActive: false
+});
+const PMAP = Object.assign({}, NUMMAP, {
+  cases: { q: 'ca', t: 'j' }, askS: { q: 'as', t: 'b' }, onlyActive: { q: 'oa', t: 'b' },
+  wSchneidend: { q: 'w1', t: 'n' }, wParallel: { q: 'w2', t: 'n' },
+  wWindschief: { q: 'w3', t: 'n' }, wIdentisch: { q: 'w4', t: 'n' }
+});
+let S = URLSTATE.read(DEF, PMAP);
+S.cases = Object.assign({}, DEF.cases, S.cases);
+if (!Object.keys(S.cases).some(k => S.cases[k])) S.cases = Object.assign({}, DEF.cases);
+
+function scaleFactor(){ return pick(S.simp ? [-1, 2, -2, 3] : [-1, 2, -2, 3, -3, 4]); }
+
+/* ---------- Lagebeziehung berechnen ---------- */
+function pairs(){ return [[0, 1], [0, 2], [1, 2]]; }
+function det2(g, h, i, j){ return g.u[i] * (-h.u[j]) - (-h.u[i]) * g.u[j]; }
+function solvePair(g, h, i, j){
+  const d = V.sub(h.p, g.p), D = det2(g, h, i, j);
+  if (eq0(D)) return null;
+  const t = snap((d[i] * (-h.u[j]) - (-h.u[i]) * d[j]) / D);
+  const s = snap((g.u[i] * d[j] - d[i] * g.u[j]) / D);
+  return { t: t, s: s, D: D };
+}
+function relation(g, h){
+  if (V.parallel(g.u, h.u))
+    return { kind: V.factor(g.u, V.sub(h.p, g.p)) !== null ? 'identisch' : 'parallel' };
+  const ps = pairs().filter(pr => !eq0(det2(g, h, pr[0], pr[1])));
+  const pr = ps[0], sol = solvePair(g, h, pr[0], pr[1]);
+  const k = [0, 1, 2].filter(x => x !== pr[0] && x !== pr[1])[0];
+  const l = snap(g.p[k] + sol.t * g.u[k]), r = snap(h.p[k] + sol.s * h.u[k]);
+  if (!eqN(l, r)) return { kind: 'windschief', pairs: ps };
+  return { kind: 'schneidend', t: sol.t, s: sol.s, P: V.add(g.p, V.mul(g.u, sol.t)), pairs: ps };
+}
+
+/* ---------- Erzeuger je Fall ---------- */
+function twoDirs(){
+  const u = randDir();
+  for (let i = 0; i < 300; i++){ const v = randDir(); if (!V.parallel(u, v)) return [u, v]; }
+  /* Notnagel: ein Kreuzprodukt steht senkrecht auf u und ist damit sicher nicht parallel */
+  const w = V.zero(V.cross(u, [1, 0, 0])) ? V.cross(u, [0, 1, 0]) : V.cross(u, [1, 0, 0]);
+  return [u, V.reduce(w).v];
+}
+function mkSchneidend(){
+  const [u, v] = twoDirs(), P = randPoint();
+  const a = randT(true), b = randT(true);
+  return { g: { p: V.add(P, V.mul(u, a)), u: u }, h: { p: V.add(P, V.mul(v, b)), u: v } };
+}
+function mkParallel(){
+  const u = randDir(), v = V.mul(u, scaleFactor()), p = randPoint();
+  for (let i = 0; i < 200; i++){
+    const q = V.add(p, randDir());
+    if (V.factor(u, V.sub(q, p)) === null) return { g: { p: p, u: u }, h: { p: q, u: v } };
+  }
+  return { g: { p: p, u: u }, h: { p: V.add(p, [0, 0, 1]), u: v } };
+}
+function mkIdentisch(){
+  const u = randDir(), v = V.mul(u, scaleFactor()), p = randPoint();
+  return { g: { p: p, u: u }, h: { p: V.add(p, V.mul(u, randT(true))), u: v } };
+}
+function mkWindschief(){
+  for (let i = 0; i < 400; i++){
+    const [u, v] = twoDirs(), g = { p: randPoint(), u: u }, h = { p: randPoint(), u: v };
+    if (relation(g, h).kind === 'windschief') return { g: g, h: h };
+  }
+  return { g: { p: [0, 0, 0], u: [1, 0, 0] }, h: { p: [0, 0, 1], u: [0, 1, 0] } };
+}
+const MK = { schneidend: mkSchneidend, parallel: mkParallel, windschief: mkWindschief, identisch: mkIdentisch };
+
+/* ---------- Lösungsweg: paralleler Zweig ---------- */
+function dirCompareStep(g, h, k){
+  return step('Richtungsvektoren vergleichen',
+    'Zuerst prüft man, ob die Richtungsvektoren Vielfache voneinander sind:',
+    TX.vec(h.u) + ' = ' + paren(k) + '\\cdot ' + TX.vec(g.u)
+    , 'Die Richtungsvektoren sind also Vielfache voneinander.');
+}
+/** Text unter der k-Tabelle */
+function hinweises(liste, verschieden){
+  const t = liste.slice();
+  if (verschieden) t.push('Die Zeilen liefern verschiedene Werte für \\(k\\).');
+  t.push('Die Richtungsvektoren sind also keine Vielfachen voneinander – die Geraden sind nicht parallel.');
+  return t.join(' ');
+}
+function dirDifferSteps(g, h){
+  const st = [
+    step('Ansatz für die Parallelität', 'Zwei Geraden sind genau dann parallel, wenn ihre Richtungsvektoren '
+      + 'Vielfache voneinander sind. Es müsste also ein \\(k\\) geben mit',
+      TX.vec(h.u) + ' = k\\cdot ' + TX.vec(g.u)),
+    step('Zeilenweise aufschreiben', 'Das sind drei Bedingungen, die alle dasselbe \\(k\\) liefern müssten:',
+      eqPairTeX(ROM, [], ['k'], [0, 1, 2].map(i => ({ lc: h.u[i], rc: 0, r: [g.u[i]] }))))
+  ];
+  /* nur Zeilen mit einem echten Bruch kommen in die Tabelle; Zeilen mit einer
+     Null im Richtungsvektor werden darunter im Text erklärt */
+  const zeilen = [], hinweise = [];
+  [0, 1, 2].forEach(i => {
+    if (eq0(g.u[i])){
+      hinweise.push(eq0(h.u[i])
+        ? 'In Zeile ' + ROM[i] + ' steht in beiden Vektoren eine \\(0\\) – diese Zeile ist für jedes \\(k\\) erfüllt.'
+        : 'In Zeile ' + ROM[i] + ' steht bei \\(\\vec{u}_g\\) eine \\(0\\), bei \\(\\vec{u}_h\\) aber \\('
+          + numTeX(h.u[i]) + '\\) – das kann kein \\(k\\) erfüllen.');
+      return;
+    }
+    const k2 = snap(h.u[i] / g.u[i]);
+    zeilen.push('k_{' + ROM[i] + '} &=& \\frac{' + numTeX(h.u[i]) + '}{' + numTeX(g.u[i]) + '} &=& ' + numTeX(k2));
+  });
+  const verschieden = zeilen.length > 1;
+  st.push(step('Jede Zeile einzeln nach \\(k\\) auflösen', '',
+    zeilen.length ? '\\begin{array}{r c l c l}' + zeilen.join(' \\\\ ') + '\\end{array}' : '',
+    hinweises(hinweise, verschieden)));
+  return st;
+}
+
+/** Punktprobe: liegt der Stützpunkt von B auf der Geraden A? */
+function probeSteps(A, B, nameA, nameB, drauf){
+  const st = [];
+  st.push(step('Punktprobe', 'Parallele Geraden sind entweder identisch oder echt parallel. '
+    + 'Deshalb prüft man, ob der Stützpunkt von \\(' + nameB + '\\) auch auf \\(' + nameA + '\\) liegt:',
+    TX.vec(B.p) + ' = ' + TX.vec(A.p) + ' + ' + par() + '\\cdot ' + TX.vec(A.u)));
+  st.push(step('Zeilenweise aufschreiben', '',
+    eqPairTeX(ROM, [], [par()], [0, 1, 2].map(k => ({ lc: B.p[k], rc: A.p[k], r: [A.u[k]] })))));
+  const solvable = [0, 1, 2].filter(k => !eq0(A.u[k]));
+  const fixedBad = [0, 1, 2].filter(k => eq0(A.u[k]) && !eqN(A.p[k], B.p[k]));
+  if (fixedBad.length){
+    st.push(step('Widerspruch in Zeile ' + ROM[fixedBad[0]],
+      'Diese Zeile enthält kein \\(' + par() + '\\); die Koordinaten müssten übereinstimmen:',
+      numTeX(B.p[fixedBad[0]]) + ' \\neq ' + numTeX(A.p[fixedBad[0]]), OKNOTE(false)));
+  } else if (solvable.length){
+    /* Welche Zeile aufgelöst wird, ist frei – die Probe läuft danach mit der
+       ganzen Vektorgleichung, also über alle drei Zeilen gleichzeitig. */
+    st.push(stepSwitch('Welche Zeile möchtest du nach \\(' + par() + '\\) auflösen?',
+      solvable.map(i => {
+        const sol = solveT(A.p[i], A.u[i], B.p[i]);
+        const probe = V.add(A.p, V.mul(A.u, sol.t));
+        const passt = V.same(probe, B.p);
+        return { label: 'Zeile ' + ROM[i], steps: [
+          step('Zeile ' + ROM[i] + ' auflösen', 'Aus dieser Zeile ergibt sich ein Parameterwert:', sol.tex),
+          step('Probe mit der ganzen Gleichung', 'Der Wert wird in die Geradengleichung eingesetzt. '
+            + 'Nur wenn dabei genau der gesuchte Punkt herauskommt, stimmen auch die übrigen Zeilen:',
+            TX.vec(A.p) + ' + ' + paren(sol.t) + '\\cdot ' + TX.vec(A.u) + ' = ' + TX.vec(probe)
+            + (passt ? ' = ' : ' \\neq ') + TX.vec(B.p),
+            passt ? '✓ Es kommt genau der Stützpunkt von \\(' + nameB + '\\) heraus.'
+                  : '✗ Es kommt ein anderer Punkt heraus.')
+        ] };
+      })));
+  }
+  st.push(step('Ergebnis der Punktprobe', 'Der Stützpunkt von \\(' + nameB + '\\) liegt '
+    + (drauf ? '' : 'nicht ') + 'auf \\(' + nameA + '\\).', ''));
+  return st;
+}
+
+/* ---------- Lösungsweg: Gleichsetzen ---------- */
+/* ---------- Bausteine ---------- */
+function gleichsetzenSteps(g, h){
+  return [
+    step('Geradengleichungen gleichsetzen', 'Ein gemeinsamer Punkt müsste sich mit beiden Gleichungen '
+      + 'darstellen lassen. Also setzt man die rechten Seiten gleich:',
+      TX.vec(g.p) + ' + ' + par() + '\\cdot ' + TX.vec(g.u) + ' = ' + TX.vec(h.p) + ' + ' + par2() + '\\cdot ' + TX.vec(h.u)),
+    step('Zeilenweise aufschreiben', 'Das ergibt drei Gleichungen mit zwei Unbekannten:',
+      eqPairTeX(ROM, [par()], [par2()], [0, 1, 2].map(m =>
+        ({ lc: g.p[m], l: [g.u[m]], rc: h.p[m], r: [h.u[m]] }))))
+  ];
+}
+/** Schritte für ein Zeilenpaar: sortieren, lösen, dritte Zeile prüfen */
+function paarSteps(g, h, i, j, mitAntwort){
+  const k = [0, 1, 2].filter(x => x !== i && x !== j)[0], d = V.sub(h.p, g.p);
+  const st = [ step('Zeilen ' + ROM[i] + ' und ' + ROM[j] + ' sortieren',
+    'Die Parameter kommen nach links, die Zahlen nach rechts:',
+    sysTeX([par(), par2()], [{ coef: [g.u[i], -h.u[i]], rhs: d[i] }, { coef: [g.u[j], -h.u[j]], rhs: d[j] }],
+           [ROM[i] + "'", ROM[j] + "'"])) ];
+  const sol = solve2(g.u[i], -h.u[i], d[i], g.u[j], -h.u[j], d[j]);
+  sol.steps.forEach(x => st.push(x));
+  const pz = probeZeileTeX(g.p[k], g.u[k], sol.t, h.p[k], h.u[k], sol.s);
+  const passt = pz.ok;
+  st.push(step('Probe in Zeile ' + ROM[k], 'Die dritte Zeile wurde noch nicht benutzt – sie entscheidet:',
+    pz.tex, OKNOTE(passt)));
+  if (mitAntwort && passt){
+    const P = V.add(g.p, V.mul(g.u, sol.t));
+    st.push(step('Schnittpunkt berechnen', 'Der Parameterwert wird in die Gleichung von \\(g\\) eingesetzt:',
+      TX.arrow('OS') + ' = ' + TX.vec(g.p) + ' + ' + paren(sol.t) + '\\cdot ' + TX.vec(g.u) + ' = ' + TX.vec(P)));
+  }
+  return { steps: st, passt: passt, sol: sol };
+}
+/** Umschalter über alle brauchbaren Zeilenpaare */
+function paarSwitch(g, h, rel, mitAntwort){
+  const prs = rel.pairs || pairs().filter(pr => !eq0(det2(g, h, pr[0], pr[1])));
+  return stepSwitch('Zwei der drei Zeilen genügen – welche möchtest du benutzen?',
+    prs.map(pr => ({ label: 'Zeilen ' + ROM[pr[0]] + ' und ' + ROM[pr[1]],
+                     steps: paarSteps(g, h, pr[0], pr[1], mitAntwort).steps })));
+}
+/** Umschalter über die beiden möglichen Punktproben */
+function probeSwitch(g, h, drauf){
+  return stepSwitch('Welchen Stützpunkt möchtest du einsetzen?', [
+    { label: 'Stützpunkt von h in g', steps: probeSteps(g, h, 'g', 'h', drauf) },
+    { label: 'Stützpunkt von g in h', steps: probeSteps(h, g, 'h', 'g', drauf) }
+  ]);
+}
+/** Beim Gleichsetzen paralleler Geraden fallen beide Parameter weg */
+function entartetStep(g, h){
+  const i = [0, 1, 2].find(x => !eq0(g.u[x]));
+  if (i == null) return step('Hinweis', 'Der Richtungsvektor von \\(g\\) ist der Nullvektor.', '');
+  const j = [0, 1, 2].find(x => x !== i);
+  const d = V.sub(h.p, g.p);
+  const c = snap(d[i] * g.u[j] - d[j] * g.u[i]);
+  return step('Parameter eliminieren',
+    'Multipliziert man Zeile ' + ROM[i] + ' mit \\(' + numTeX(g.u[j]) + '\\) und Zeile ' + ROM[j]
+    + ' mit \\(' + numTeX(g.u[i]) + '\\) und subtrahiert, fällt \\(' + par() + '\\) weg – '
+    + 'und weil die Richtungsvektoren Vielfache voneinander sind, verschwindet auch \\(' + par2() + '\\):',
+    '0 = ' + numTeX(c),
+    eq0(c) ? 'Eine wahre Aussage: das System hat unendlich viele Lösungen.'
+           : 'Eine falsche Aussage: das System hat keine Lösung.');
+}
+
+/* ---------- die beiden Lösungswege ---------- */
+function lageVariants(g, h, rel, k){
+  const parallelFall = (rel.kind === 'parallel' || rel.kind === 'identisch');
+  const drauf = (rel.kind === 'identisch');
+  const antwort = {
+    schneidend: 'Die Geraden schneiden sich' + (rel.P ? ' in \\(' + ptTeX('S', rel.P) + '\\)' : '') + '.',
+    parallel:   'Die Richtungsvektoren sind Vielfache voneinander, der Stützpunkt liegt aber nicht auf der '
+                + 'anderen Geraden: die Geraden sind echt parallel.',
+    windschief: 'Es gibt keinen gemeinsamen Punkt, und die Geraden sind auch nicht parallel: sie sind windschief.',
+    identisch:  'Die Richtungsvektoren sind Vielfache voneinander und ein Stützpunkt liegt auf der anderen '
+                + 'Geraden: die Geraden sind identisch.'
+  }[rel.kind];
+
+  /* Weg 1: erst die Richtungsvektoren ansehen */
+  const weg1 = parallelFall
+    ? [ dirCompareStep(g, h, k), probeSwitch(g, h, drauf), step('Antwort', antwort, '') ]
+    : dirDifferSteps(g, h).concat(gleichsetzenSteps(g, h), [ paarSwitch(g, h, rel, true), step('Antwort', antwort, '') ]);
+
+  /* Weg 2: erst gleichsetzen, danach das Ergebnis deuten */
+  const weg2 = parallelFall
+    ? gleichsetzenSteps(g, h).concat([
+        entartetStep(g, h),
+        step('Ergebnis deuten', drauf
+          ? 'Unendlich viele Lösungen bedeuten: jeder Punkt der einen Geraden liegt auch auf der anderen. '
+            + 'Zur Sicherheit prüft man das noch an einem Punkt nach.'
+          : 'Keine Lösung heißt: es gibt keinen gemeinsamen Punkt. Jetzt entscheidet der Blick auf die '
+            + 'Richtungsvektoren, ob die Geraden parallel oder windschief sind.', ''),
+        dirCompareStep(g, h, k), probeSwitch(g, h, drauf), step('Antwort', antwort, '')
+      ])
+    : gleichsetzenSteps(g, h).concat(
+        [ paarSwitch(g, h, rel, rel.kind === 'schneidend') ],
+        rel.kind === 'schneidend'
+          ? [ step('Ergebnis deuten', 'Alle drei Zeilen sind erfüllt – es gibt genau einen gemeinsamen Punkt.', ''),
+              step('Antwort', antwort, '') ]
+          : [ step('Ergebnis deuten', 'Das Gleichungssystem hat keine Lösung. Damit gibt es keinen gemeinsamen '
+                + 'Punkt – die Geraden sind entweder parallel oder windschief. Das entscheiden die Richtungsvektoren:', '')
+            ].concat(dirDifferSteps(g, h), [ step('Antwort', antwort, '') ]));
+
+  return [
+    { label: 'erst die Richtungsvektoren vergleichen', steps: weg1 },
+    { label: 'erst gleichsetzen', steps: weg2 }
+  ];
+}
+
+/* ---------- Aufgabe bauen ---------- */
+function genLage(kind, m){
+  let g, h;
+  if (m){
+    g = { p: m.gp, u: m.gu }; h = { p: m.hp, u: m.hu };
+    if (V.zero(g.u) || V.zero(h.u)) throw new Error('Die Richtungsvektoren dürfen nicht der Nullvektor sein.');
+  } else {
+    const pair = MK[kind]();
+    g = pair.g; h = pair.h;
+  }
+  const rel = relation(g, h);
+  const k = V.factor(g.u, h.u);
+  const variants = lageVariants(g, h, rel, k);
+  const sol = {
+    schneidend: 'Die Geraden schneiden sich in \\(' + (rel.P ? ptTeX('S', rel.P) : 'S') + '\\).',
+    parallel:   'Die Geraden sind echt parallel.',
+    windschief: 'Die Geraden sind windschief.',
+    identisch:  'Die Geraden sind identisch.'
+  }[rel.kind];
+
+  const vis = visLinePU('g', 'A', g.p, 'u', g.u, VC.obj)
+    .concat(visLinePU('h', 'B', h.p, 'v', h.u, VC.zweit));
+  if (rel.kind === 'schneidend') vis.push(VIS.schnitt('S', 'g', 'h', { farbe: VC.erg, stufe: 3 }));
+
+  return {
+    id: 'lage.' + rel.kind, kap: 'Lage zweier Geraden', kind: rel.kind,
+    q: 'Gegeben sind die Geraden<br>\\[' + lineTeX('g', g.p, g.u) + '\\]'
+       + '\\[' + lineTeX2('h', h.p, h.u) + '\\]',
+    ask: 'Untersuche die gegenseitige Lage von \\(g\\) und \\(h\\).'
+       + (S.askS ? ' Gib bei einem Schnittpunkt auch dessen Koordinaten an.' : ''),
+    answer: { right: rel.kind, P: rel.P || null, gu: g.u, hu: h.u },
+    tipp: 'Vergleiche zuerst die Richtungsvektoren: Sind sie Vielfache voneinander? Wenn ja, entscheidet eine '
+      + 'Punktprobe zwischen parallel und identisch. Wenn nein, setze beide Geradengleichungen gleich.',
+    stages: lageStages(rel, g, h),
+    sol: sol,
+    variants: variants,
+    vis: vis
+  };
+}
+const WKEY = { schneidend: 'wSchneidend', parallel: 'wParallel', windschief: 'wWindschief', identisch: 'wIdentisch' };
+function activeCases(){ return CASES.map(c => c.v).filter(v => S.cases[v]); }
+/** Fall nach den eingestellten Häufigkeiten ziehen */
+function pickCase(){
+  const act = activeCases();
+  if (!act.length) return null;
+  const gew = act.map(v => Math.max(1, Math.min(5, S[WKEY[v]] || 1)));
+  const summe = gew.reduce((a, b) => a + b, 0);
+  let x = rnd() * summe;
+  for (let i = 0; i < act.length; i++){ x -= gew[i]; if (x < 0) return act[i]; }
+  return act[act.length - 1];
+}
+function makeTask(){
+  const k = pickCase();
+  return k ? genLage(k) : null;
+}
+
+/* ---------- Quiz in Schritten ---------- */
+const HINT = {
+  'parallel>identisch':    'Die Richtungsvektoren sind wirklich Vielfache voneinander – so weit richtig. Mach zusätzlich die Punktprobe: der Stützpunkt von \\(h\\) liegt auf \\(g\\), die Geraden fallen also zusammen.',
+  'identisch>parallel':    'Die Richtungsvektoren sind Vielfache, aber die Punktprobe führt zum Widerspruch: der Stützpunkt von \\(h\\) liegt nicht auf \\(g\\).',
+  'schneidend>windschief': 'Aus zwei Zeilen bekommt man zwar Werte für die Parameter, sie erfüllen aber die dritte Zeile nicht. Die Probe in der dritten Zeile entscheidet.',
+  'windschief>schneidend': 'Die aus zwei Zeilen berechneten Parameterwerte erfüllen auch die dritte Zeile – es gibt also einen gemeinsamen Punkt.'
+};
+function lageStages(rel, g, h){
+  const opts = CASES.filter(o => !S.onlyActive || S.cases[o.v]).map(o => ({ v: o.v, t: o.t }));
+  const hints = {};
+  opts.forEach(o => {
+    if (o.v === rel.kind) return;
+    const parGot = (o.v === 'parallel' || o.v === 'identisch');
+    const parReal = (rel.kind === 'parallel' || rel.kind === 'identisch');
+    hints[o.v] = HINT[o.v + '>' + rel.kind] || (parGot && !parReal
+      ? 'Prüfe die Richtungsvektoren noch einmal: \\(' + TX.vec(h.u) + '\\) ist kein Vielfaches von \\(' + TX.vec(g.u) + '\\).'
+      : 'Prüfe die Richtungsvektoren noch einmal: \\(' + TX.vec(h.u) + '\\) <b>ist</b> ein Vielfaches von \\(' + TX.vec(g.u) + '\\).');
+  });
+  const s1 = stageChoice('Welche Lage haben \\(g\\) und \\(h\\)?', opts, rel.kind, hints, CASENAME[rel.kind]);
+  if (rel.kind !== 'schneidend' || !S.askS) return [s1];
+  return [s1, stagePoint('Berechne den Schnittpunkt \\(S\\).', 'S', rel.P,
+    'Setze den gefundenen Parameterwert in die Gleichung von \\(g\\) ein.',
+    'Noch nicht richtig – setze den Parameterwert in eine der beiden Geradengleichungen ein.')];
+}
+
+/* ---------- Einstellungen ---------- */
+function settingsBlocks(){
+  const h = blk('Häufigkeit der Fälle',
+    'Die Zahlen geben an, wie oft ein Fall im Verhältnis zu den anderen vorkommt. '
+    + 'Abgeschaltete Fälle zählen nicht mit.');
+  CASES.forEach(o => h.appendChild(sliderRow(o.t, WKEY[o.v], !S.cases[o.v])));
+  const b = blk('Aufgaben und Lösung');
+  b.appendChild(cb('Schnittpunkt zusätzlich abfragen', 'askS'));
+  b.appendChild(cb('nur die eingeschalteten Fälle zur Auswahl anbieten', 'onlyActive', 'Erleichtert die Aufgabe deutlich.'));
+  b.appendChild(cb('Quiz anzeigen (eigene Lösung eingeben)', 'answer'));
+  b.appendChild(cb('Quiz beenden, sobald die Lösung geöffnet wird', 'lockOnSolve'));
+  b.appendChild(cb('Lösungsweg gleich mit aufklappen', 'autoWeg'));
+  return numberBlocks({}).concat([h, notationBlock({ par2: true }), b]);
+}
+function resetControls(){ buildPills($('#segCases'), CASES, S.cases, () => { save(); buildSettings(); }); }
+boot(function(){ buildPills($('#segCases'), CASES, S.cases, () => { save(); buildSettings(); }); });
+
+/* =========================================================================
+   Eigene Aufgabe
+   ========================================================================= */
+const MANUAL = [
+  { id: 'lage', name: 'Lage zweier Geraden', fields: [
+      { t: 'line', name: 'g', label: 'Gerade', kp: 'gp', ku: 'gu', def: { p: [1, 2, 3], u: [2, 1, -1] } },
+      { t: 'line', name: 'h', label: 'Gerade', kp: 'hp', ku: 'hu', def: { p: [3, 0, 4], u: [1, -1, 2] } } ] }
+];
+function makeManual(id, v){ return genLage(null, v); }
+
+</script>
+</body>
+</html>

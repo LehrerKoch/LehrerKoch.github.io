@@ -61,7 +61,7 @@ const categoriesData = [
     "icon": "↗",
     "iconType": "text",
     "tooltip": "Vektoren im 2D- und 3D-Koordinatensystem, Basistransformation",
-    "cards": ["geo-3DKoord", "geo-koBasis"]
+    "cards": ["koordinatensystem3d", "geraden_grundlagen", "lage_gerade_gerade", "ebenen_grundlagen", "lage_gerade_ebene", "lage_ebene_ebene", "analytische_geometrie", "geo-3DKoord", "geo-koBasis"]
   },
   {
     "id": "trig",
@@ -125,6 +125,6 @@ const categoriesData = [
     "icon": "🕹️",
     "iconType": "emoji",
     "tooltip": "Spielerische mathematische Aktivitäten",
-    "cards": ["annomathematica","trio", "differenz_trifft", "ziegenproblem", "geographie"]
+    "cards": ["annomathematica", "trio", "differenz_trifft", "ziegenproblem", "zendo", "geographie"]
   }
 ];

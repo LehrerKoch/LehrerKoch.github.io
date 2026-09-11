@@ -1,0 +1,2230 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>3D-Koordinatensystem – Punkte einzeichnen</title>
+<link rel="stylesheet" href="styles.css">
+<!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-5K8WYYXDL2"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-5K8WYYXDL2');
+    </script>
+<style>
+/* ---- Basis (entspricht styles.css, damit die Seite auch einzeln funktioniert) ---- */
+html{scrollbar-gutter:stable;overflow-y:scroll}
+body{font-family:Calibri,"Segoe UI",system-ui,sans-serif;display:flex;flex-direction:column;padding:0 2%;margin:0;color:#111}
+button{background:#4CAF50;color:#fff;border:none;padding:10px 20px;font-size:12px;margin:4px 2px;border-radius:5px;cursor:pointer}
+details{border:2px solid #000;border-radius:6px;padding:8px 10px;margin:10px 0}
+summary{font-weight:bold;display:block;cursor:pointer}
+summary::before{content:'▶️';display:inline-block;margin-right:6px;transition:transform .2s}
+details[open]>summary::before{transform:rotate(90deg)}
+.form-block{border:1px solid #000;padding:6px 8px;margin-bottom:8px;border-radius:4px}
+/* .site-footer{width:100%;padding:15px 0;border-top:1px solid #ccc;margin-top:24px;font-size:14px}
+.footer-content{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px}
+.footer-content>:last-child{text-align:right} */
+#lobby-spacer { 
+        flex: 1 1 0; 
+        min-height: 0; 
+    }
+    .site-footer {
+        width: 100%; box-sizing: border-box; padding: 15px 15px;
+        border-top: 1px solid #ccc; margin-top: 4px; margin-bottom: 0px;
+        font-family: sans-serif; font-size: 0.6em; color: #333333d8;
+    }
+    .footer-content {
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        align-items: center;
+        margin: 0 auto;
+        max-width: 800px;
+    }
+    .footer-content > :first-child {
+        justify-self: start;
+    }
+    .footer-content > :nth-child(2) {
+        justify-self: center;
+    }
+    .footer-content > :last-child {
+        justify-self: end;
+    }
+    .footer-topic a { 
+        color: inherit; 
+        text-decoration: underline; 
+    }
+
+/* ---- Seiteneigenes ---- */
+:root{--k3-line:#222;--k3-muted:#6f7a83;--k3-soft:#f4f6f8;--k3-accent:#2e6fb7;--k3-hi:#ef6c00}
+h1{font-size:1.45rem;margin:14px 0 2px}
+.sub{color:var(--k3-muted);margin:0 0 8px;font-size:.95rem}
+.head-row{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap}
+/* (Badge entfernt) */
+
+/* Segmentierte Schalter */
+.seg{display:inline-flex;flex-wrap:wrap;max-width:100%;border:1px solid #bbb;border-radius:7px;overflow:hidden;background:#fff;vertical-align:middle}
+.seg button{background:#fff;color:#333;margin:0;border-radius:0;border-right:1px solid #ddd;font-size:13px;padding:8px 14px;font-weight:600}
+.seg button:last-child{border-right:none}
+.seg button.on{background:#4CAF50;color:#fff}
+.seg.small button{padding:4px 6px;font-size:11.5px;white-space:nowrap}
+.settings-grid .seg.small button{padding:3px 5px;font-size:11px}
+.settings-grid select{max-width:100%}
+.switch-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:center;margin:6px 0 10px}
+
+/* Zeichenfläche */
+#stageBox{position:relative;width:calc(100% - 92px);max-width:1200px;margin:0 auto;height:min(64vh,560px);
+  border:1px solid #ccd3da;border-radius:8px;background:#fff;overflow:hidden;touch-action:none;user-select:none}
+#stageBox svg{display:block;width:100%;height:100%;touch-action:none}
+#stageBox.resizable{border-color:#4CAF50;border-width:2px}
+#stageBox.resizable .stage-br{right:26px;bottom:24px}
+.rz{position:absolute;background:rgba(76,175,80,.28);display:none;touch-action:none;z-index:15}
+#stageBox.resizable .rz{display:block}
+.rz:hover{background:rgba(76,175,80,.55)}
+.rz.r{right:0;top:25%;height:50%;width:11px;cursor:ew-resize;border-radius:6px 0 0 6px}
+.rz.b{bottom:0;left:25%;width:50%;height:11px;cursor:ns-resize;border-radius:6px 6px 0 0}
+.rz.c{right:0;bottom:0;width:18px;height:18px;cursor:nwse-resize;border-radius:5px 0 0 0}
+.stage-info{position:absolute;left:8px;top:8px;font-size:13px;font-weight:bold;color:#333;pointer-events:none;
+  background:rgba(255,255,255,.78);border-radius:5px;padding:1px 6px;max-width:55%}
+.stage-hint{position:absolute;left:8px;bottom:7px;font-size:12px;color:var(--k3-muted);pointer-events:none;
+  background:rgba(255,255,255,.8);border-radius:5px;padding:1px 6px;max-width:62%;
+  display:flex;flex-wrap:wrap;gap:0 10px}
+.stage-hint span{white-space:nowrap}
+.sbtn{background:rgba(255,255,255,.92);color:#37474f;border:1px solid #cfd6dd;margin:0;padding:0;
+  width:32px;height:32px;font-size:15px;line-height:1;border-radius:7px;display:inline-flex;align-items:center;justify-content:center}
+.sbtn:hover{background:#eef4fb;color:#1b4f80}
+.stage-tools{position:absolute;right:7px;top:7px;display:flex;flex-direction:column;gap:5px;align-items:flex-end}
+.stage-tl{position:absolute;left:7px;top:7px;display:flex;gap:5px}
+.stage-br{position:absolute;right:7px;bottom:7px}
+.sbtn.vw{font-size:13px;font-weight:bold}
+.sbtn.wide{width:auto;padding:0 11px;font-size:12.5px;font-weight:600;gap:5px}
+.menu{position:absolute;right:0;top:150px;background:#fff;border:1px solid #cfd6dd;border-radius:8px;
+  box-shadow:0 6px 18px rgba(0,0,0,.16);padding:5px;display:flex;flex-direction:column;min-width:190px;z-index:20}
+.menu button{background:#fff;color:#26343d;text-align:left;font-size:13.5px;padding:8px 10px;margin:0;border-radius:5px}
+.menu button:hover{background:#eef4fb}
+.menu .sep{height:1px;background:#e4e9ed;margin:3px 2px}
+
+/* Schnelleinstellungen unter der Zeichenfläche */
+.quickbar{display:flex;flex-direction:column;gap:6px;align-items:center;margin:8px auto 10px;max-width:1200px}
+.quickbar select{font-size:11.5px;max-width:100%;min-width:0;flex:0 1 auto}
+.quickbar .seg.small button{font-size:11px;padding:3px 6px}
+.quickbar .qlbl{font-size:11.5px}
+.segchk label{display:inline-flex;align-items:center;gap:4px;padding:3px 6px;border-right:1px solid #ddd;
+  font-size:11px;font-weight:600;color:#333;background:#fff;cursor:pointer;line-height:1.2}
+.segchk label:last-child{border-right:none}
+.segchk label.on{background:#4CAF50;color:#fff}
+.segchk input[type=checkbox]{width:14px;height:14px;min-width:14px;border-width:2px;border-radius:4px}
+.segchk label.on input[type=checkbox]{background:#fff;border-color:#fff}
+.segchk label.on input[type=checkbox]:checked::after{left:4px;top:0;width:3px;height:8px;border-color:#3d8b40}
+.settings-grid .segchk label{font-size:11px;padding:3px 6px}
+.set-line select{min-width:0}
+.fs-prev{display:inline-block;color:#37474f;line-height:1.1;white-space:nowrap}
+.qgrp{display:flex;align-items:center;gap:7px;flex-wrap:wrap;min-width:0;max-width:100%}
+.qlbl{font-size:12.5px;color:var(--k3-muted);font-weight:bold}
+
+/* Schrittkarte */
+.stepcard{max-width:860px;margin:12px auto 0;border:2px solid #b9d3ee;border-left:7px solid var(--k3-accent);
+  border-radius:9px;background:#f2f8ff;padding:8px 12px 10px}
+.stepcard .bar{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap}
+.stepcard .bar .cnt{font-weight:bold;min-width:9em;text-align:center;font-size:14.5px;color:#1b4f80}
+.stepcard .nav{background:#2e6fb7;padding:7px 14px;font-size:14px;font-weight:bold}
+.stepcard .nav:disabled{background:#c3d3e2;cursor:default}
+.stepcard .txt{font-size:16px;line-height:1.4;margin-top:7px;min-height:3em;text-align:center}
+@media(max-width:620px){.stepcard .txt{min-height:4.6em;font-size:15px}}
+.stepcard .txt b{color:#1b4f80}
+
+/* Eingaben */
+.coord-row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin:12px 0 2px}
+.coord{display:flex;align-items:center;gap:6px;background:#fff;border:1px solid #d7dde3;border-radius:8px;padding:5px 9px}
+.coord label{font-weight:bold;min-width:2.2em}
+.coord input[type=number]{width:3.9em;text-align:center;font-size:15px;padding:4px 3px;border:1px solid #bfc7ce;border-radius:5px}
+.coord input.ok{border:2px solid #4CAF50;background:#eaf6ea;color:#1f5e22;font-weight:bold}
+.coord input.bad{border:2px solid #c62828;background:#fdecec;color:#8f2020;font-weight:bold}
+.coord input[type=range]{width:112px}
+.chk-row{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;margin:8px 0}
+label.chk{display:inline-flex;align-items:flex-start;gap:6px;font-size:14px;cursor:pointer;line-height:1.3}
+input[type=checkbox]{appearance:none;-webkit-appearance:none;width:18px;height:18px;min-width:18px;border:2px solid #8a949d;
+  border-radius:5px;background:#fff;position:relative;cursor:pointer;margin:0}
+input[type=checkbox]:checked{background:#4CAF50;border-color:#4CAF50}
+input[type=checkbox]:checked::after{content:'';position:absolute;left:5px;top:1px;width:4px;height:9px;
+  border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg)}
+input[type=checkbox]:disabled{background:#d8dee3;border-color:#b3bdc5}
+input[type=color]{width:38px;height:26px;padding:0;border:1px solid #bfc7ce;border-radius:4px;background:#fff;vertical-align:middle}
+input[type=text],input[type=number],select{font-family:inherit;font-size:14px;padding:3px 5px;border:1px solid #bfc7ce;border-radius:4px;background:#fff;color:#111}
+input:disabled,select:disabled{background:#e4e9ed;color:#78868f;border-color:#c3ccd3;-webkit-text-fill-color:#78868f;opacity:1}
+.mini{width:4.2em}.tiny{width:3.6em}
+
+/* Aufgabe / Rückmeldung */
+.task{max-width:860px;margin:12px auto 2px;text-align:center;font-size:1.05rem;
+  background:#fff7e8;border:2px solid #f0cf9a;border-left:7px solid #ef6c00;border-radius:9px;padding:8px 14px}
+.task .q{color:#8a4b00}
+.lay-hint{font-size:13.5px;color:#a3400b;font-weight:600;margin-top:5px;font-style:italic}
+.task .q{font-weight:bold;font-size:1.15rem}
+.actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:12px}
+.btn-check{background:#4CAF50;padding:11px 26px;font-size:15px;font-weight:bold}
+.btn-sol{background:#fff;color:#1b4f80;border:2px solid #2e6fb7;padding:9px 20px;font-size:14px;font-weight:bold}
+.btn-sol:hover{background:#eaf2fb}
+.btn-next{background:#455a64;padding:11px 22px;font-size:14.5px;font-weight:bold}
+.btn-next:hover{background:#37474f}
+.fb{max-width:860px;margin:10px auto 0;border-radius:7px;padding:9px 12px;font-size:14.5px;line-height:1.4;border:1px solid transparent}
+.fb.ok{background:#eaf6ea;border-color:#b6dbb6;color:#1f5e22}
+.fb.bad{background:#fdecec;border-color:#f0bcbc;color:#8f2020}
+.fb.warn{background:#fff5e6;border-color:#f2d3a4;color:#8a4b00}
+.fb.sol{background:#eef4fb;border-color:#b9d3ee;color:#1b4f80}
+.score{font-size:13px;color:var(--k3-muted);text-align:center;margin-top:6px}
+
+/* Einstellungen */
+.settings-grid{display:flex;flex-direction:column;margin-top:8px}
+.form-block>b{display:block;margin-bottom:4px}
+.set-line{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;margin:6px 0;font-size:14px}
+.set-line .lbl{min-width:9.5em;font-weight:600;color:#3b464e}
+.hint{color:var(--k3-muted);font-size:12.5px;margin:3px 0 0}
+.tip{cursor:help;text-decoration:underline dotted #8aa0b3;text-decoration-thickness:1px;text-underline-offset:3px}
+.tipbox{position:absolute;z-index:200;max-width:min(320px,88vw);background:#26343d;color:#fff;font-size:12.5px;
+  line-height:1.35;padding:7px 10px;border-radius:7px;box-shadow:0 5px 16px rgba(0,0,0,.28);pointer-events:none}
+.share{background:#eef4fb;color:#24557f;border:1px solid #c6d9ee;font-weight:bold}
+.hidden{display:none !important}
+.is-disabled{opacity:.55;pointer-events:none}
+.axgrid{display:grid;gap:5px 7px;align-items:center;font-size:14px;margin:2px 0 4px;width:max-content;max-width:100%}
+.axgrid.g5{grid-template-columns:2.7em repeat(4,4.7em)}
+.axgrid.g4{grid-template-columns:2.7em repeat(2,4.7em) auto}
+.axgrid .hd{font-size:11.5px;color:var(--k3-muted);text-align:center;line-height:1.15}
+.axgrid input,.axgrid select{box-sizing:border-box;max-width:100%}
+.axgrid input[type=number]{width:100%;text-align:right;padding:3px 4px}
+.axgrid input[type=color]{width:100%;height:24px}
+.axgrid select{width:100%;font-size:13px}
+.chip-list{display:flex;flex-wrap:wrap;gap:6px 14px}
+.sub-block{border:1px dashed #b9c4cd;border-radius:6px;padding:6px 8px;margin:6px 0 2px;background:#fafcfe}
+details.inner{border:1px solid #b9c4cd;border-radius:6px;padding:6px 8px;margin:6px 0 2px;background:#fafcfe}
+details.inner>summary{font-weight:600;font-size:13.5px}
+@keyframes k3flash{0%,100%{background:transparent}25%,75%{background:#ffe9a8}}
+.flash{animation:k3flash 1.1s ease-in-out 2}
+@media(max-width:700px){ .coord-row:not(.tight){flex-direction:column;align-items:center} }
+@media(max-width:430px){ .coord-row.tight{flex-direction:column;align-items:center} }
+@media(max-width:560px){
+  #stageBox{width:calc(100% - 64px);height:min(56vh,460px)}
+  .coord input[type=range]{width:84px}
+  h1{font-size:1.2rem}
+  .axgrid.g5{grid-template-columns:2.4em repeat(4,4.2em)}
+  .axgrid.g4{grid-template-columns:2.4em repeat(2,4.2em) auto}
+  .set-line .lbl{min-width:7.5em}
+}
+</style>
+</head>
+<body>
+<h1>Punkte im 3D-Koordinatensystem einzeichnen</h1>
+<p class="sub">Schrägbild zeichnen, Schritt für Schritt – und dieselbe Situation direkt im Raum ansehen.</p>
+
+<div class="switch-row">
+  <span class="seg" data-seg="mode"><button data-v="erk">Erkundungsmodus</button><button data-v="ueb">Übungsmodus</button></span>
+</div>
+
+<!-- ===== Einstellungen ===== -->
+<details id="settings">
+<summary>Einstellungen</summary>
+<div class="settings-grid">
+
+  <div class="form-block" id="blkAxes"><b class="tip" data-tip="Aussehen, Lage und Beschriftung der drei Koordinatenachsen.">Achsen</b>
+    <div class="set-line"><span class="lbl tip" data-tip="Namen der Achsen: x, y, z (Mittelstufe), x₁, x₂, x₃ (Oberstufe) oder frei wählbar. Die Namen werden überall übernommen.">Bezeichnung</span>
+      <span class="seg small" data-seg="naming"><button data-v="xyz">x, y, z</button><button data-v="x123">x₁, x₂, x₃</button><button data-v="custom">frei</button></span>
+      <span id="cnBox" class="hidden"><input type="text" class="tiny" id="cn0"><input type="text" class="tiny" id="cn1"><input type="text" class="tiny" id="cn2"></span>
+    </div>
+    <div class="set-line">
+      <label class="chk"><input type="checkbox" id="cbNames"> Achsen beschriften</label>
+      <label class="chk"><input type="checkbox" id="cbNums"> Zahlen</label>
+      <label class="chk"><input type="checkbox" id="cbTicks"> Striche</label>
+      <span>alle <input type="number" class="tiny" id="numEvery" min="0.5" step="0.5"> Einheiten</span>
+    </div>
+    <div class="set-line">
+      <label class="chk"><input type="checkbox" id="cbDeep2"> tiefe Achse nur jede 2. Stelle beschriften</label>
+      <label class="chk"><input type="checkbox" id="cbAxExt"> Achsen ein Kästchen länger als der letzte Wert</label>
+      <label class="chk"><input type="checkbox" id="cbHidDash"> verdeckte Achsen gestrichelt</label>
+    </div>
+    <div class="set-line"><span class="lbl tip" data-tip="Größe und Fettschrift aller Zahlen und Achsennamen in der Zeichnung.">Schrift</span>
+      <input type="range" id="fontRange" min="50" max="250" step="5" style="width:130px">
+      <input type="number" class="tiny" id="fontScale" min="50" max="250" step="5"> %
+      <label class="chk"><input type="checkbox" id="cbLblBold"> fett</label>
+      <span class="fs-prev" id="fsPrev">Beispiel 12</span>
+    </div>
+    <div class="set-line"><span class="lbl tip" data-tip="Farbe der Beschriftung: wie die jeweilige Achse, durchgehend schwarz oder je Achse eigene Farben.">Schriftfarbe</span>
+      <span class="seg small" data-seg="lblcol"><button data-v="axis">wie Achse</button><button data-v="black">schwarz</button><button data-v="custom">eigene</button></span>
+      <span id="lblColBox"><input type="color" id="lc0"><input type="color" id="lc1"><input type="color" id="lc2"></span>
+    </div>
+    <div class="set-line"><span class="lbl tip" data-tip="Welche Achse wohin zeigt. Standard ist x nach vorne, y nach rechts, z nach oben; alternativ x nach rechts, y nach oben, z nach vorne. Unter „frei&quot; lässt sich jede Achse einzeln zuordnen.">Achsenlage</span>
+      <span class="seg small" data-seg="lay"><button data-v="std1" id="layL1"></button><button data-v="std2" id="layL2"></button><button data-v="frei">frei</button></span>
+    </div>
+    <div class="axgrid g4 hidden" id="layGrid"></div>
+    <div class="set-line"><span class="lbl tip" data-tip="Art des Schrägbilds. Karopapier: eine Einheit der Tiefenachse ist ein Kästchen diagonal. Darunter lassen sich die Richtungen als 2D-Vektoren frei einstellen.">Richtung der Achsen</span>
+      <select id="selProj" class="sel-proj">
+        <option value="karo">Karopapier (1 Einheit = 1 Kästchen diagonal)</option>
+        <option value="kabinett">Kabinett (45°, Verkürzung ½)</option>
+        <option value="kavalier">Kavalier (45°, ohne Verkürzung)</option>
+        <option value="iso">isometrisch (30°/30°)</option>
+        <option value="frei">eigene Werte</option>
+      </select>
+    </div>
+    <div class="axgrid g4" id="dirGrid"></div>
+    <p class="hint">Angabe als 2D-Vektor in Kästchen: nach rechts / nach oben.</p>
+    <div class="set-line"><span class="lbl tip" data-tip="„dynamisch&quot; passt den sichtbaren Zahlenbereich automatisch an den Zeichenbereich an – beim Zoomen und Verschieben ändert er sich mit. Sonst gelten die eingetragenen Werte von/bis.">Bereich / Skalierung</span>
+      <label class="chk"><input type="checkbox" id="cbDyn"> dynamisch (füllt den Zeichenbereich)</label>
+      <label class="chk" id="axFullWrap"><input type="checkbox" id="cbAxFull"> Achsen bis zum Rand</label>
+      <label class="chk"><input type="checkbox" id="cbScaleEq"> überall gleiche Skalierung</label>
+      <label class="chk"><input type="checkbox" id="cbColEq"> überall gleiche Farbe</label>
+    </div>
+    <div class="axgrid g5" id="axGrid"></div>
+    <div class="set-line">
+      <label class="chk"><input type="checkbox" id="cbColorful"> farbige Achsen (x rot, y grün, z blau)</label>
+    </div>
+    <div class="set-line">
+      <label class="chk"><input type="checkbox" id="cbNeg"> negative Achsenteile zeichnen</label>
+      <span id="negBox">Farbe:
+        <span class="seg small" data-seg="neg"><button data-v="same">wie Achse</button><button data-v="gray">hellgrau</button><button data-v="custom">eigene</button></span>
+        <input type="color" id="negCol">
+      </span>
+    </div>
+  </div>
+
+  <div class="form-block" id="blkGrid"><b class="tip" data-tip="Welche Koordinatenebenen als Gitter gezeichnet werden und wie das Gitter aussieht.">Raster</b>
+    <div class="set-line"><label class="chk"><input type="checkbox" id="cbNoGrid"> kein Raster</label></div>
+    <div id="gridSettings">
+    <div class="set-line"><span class="lbl tip" data-tip="Karopapier zeigt das gewohnte Gitter der Zeichenebene, Boden und Wand die jeweilige Koordinatenebene, Ecke alle drei im positiven Bereich (wie eine Zimmerecke).">Ebenen</span>
+      <span class="seg small" data-seg="grid">
+        <button data-v="karo">Karo (<span class="nm-karo"></span>)</button>
+        <button data-v="boden">Boden (<span class="nm-boden"></span>)</button>
+        <button data-v="wand">Wand (<span class="nm-wand"></span>)</button>
+        <button data-v="ecke">Ecke</button>
+        <button data-v="frei">eigene</button>
+      </span>
+    </div>
+    <div class="sub-block hidden" id="gridFree">
+      <div class="set-line"><span style="width:100%;font-size:12.5px;color:#6f7a83">Welche Ebenen sollen gezeichnet werden – und jeweils auch der negative Teil?</span></div>
+      <div class="set-line"><label class="chk"><input type="checkbox" class="gpl" data-p="yz"> <span class="nm-yz"></span>-Ebene</label>
+        <label class="chk"><input type="checkbox" class="gneg" data-p="yz"> auch negativ</label></div>
+      <div class="set-line"><label class="chk"><input type="checkbox" class="gpl" data-p="xy"> <span class="nm-xy"></span>-Ebene</label>
+        <label class="chk"><input type="checkbox" class="gneg" data-p="xy"> auch negativ</label></div>
+      <div class="set-line"><label class="chk"><input type="checkbox" class="gpl" data-p="xz"> <span class="nm-xz"></span>-Ebene</label>
+        <label class="chk"><input type="checkbox" class="gneg" data-p="xz"> auch negativ</label></div>
+    </div>
+    <div class="set-line"><span class="lbl tip" data-tip="Kantenlänge der Rasterkästchen in Einheiten. 0,5 entspricht dem üblichen Karopapier mit zwei Kästchen je Einheit.">Abstand</span>
+      <label class="chk"><input type="checkbox" id="cbGridEq"> überall gleich</label>
+      <span id="gsBox"></span>
+    </div>
+    <div class="set-line"><span class="lbl tip" data-tip="Farbe und Linienart des Rasters. Betonte Linien helfen beim Abzählen ganzer Einheiten.">Aussehen</span>
+      <input type="color" id="gridCol">
+      <span class="seg small" data-seg="gridstyle"><button data-v="solid">durchgezogen</button><button data-v="dash">gestrichelt</button></span>
+      <label class="chk"><input type="checkbox" id="cbGridBold"> jede</label>
+      <input type="number" class="tiny" id="gridBoldN" min="2" max="20" step="1"> <span>. Linie betonen</span>
+    </div>
+    </div>
+  </div>
+
+  <div class="form-block"><b class="tip" data-tip="Wie eingezeichnete Punkte aussehen und beschriftet werden.">Darstellung der Punkte</b>
+    <div class="set-line"><span class="lbl tip" data-tip="Wie eingezeichnete Punkte dargestellt werden und in welcher Farbe.">Punktsymbol</span>
+      <span class="seg small" data-seg="ptstyle"><button data-v="dot">Punkt</button><button data-v="cross">Kreuz</button><button data-v="circle">Kreis</button></span>
+      <input type="color" id="ptCol">
+    </div>
+    <div class="set-line"><span class="lbl tip" data-tip="Ob am Punkt nur sein Name, Name und Koordinaten oder gar nichts steht.">Beschriftung</span>
+      <span class="seg small" data-seg="ptlabel"><button data-v="both">Name+Koord.</button><button data-v="name">nur Name</button><button data-v="none">keine</button></span>
+    </div>
+    <div class="set-line"><label class="chk"><input type="checkbox" id="cbBase"> Grundpunkt in der Grundebene mitzeichnen</label></div>
+  </div>
+
+  <div class="form-block" id="blkErk"><b class="tip" data-tip="Einstellungen für das freie Erkunden: Auf welchem Weg der Punkt Schritt für Schritt entsteht.">Erkundungsmodus</b>
+    <div class="set-line"><span class="lbl tip" data-tip="Reihenfolge der Konstruktion im Erkundungsmodus: Achse für Achse, erst die beiden Koordinaten der Zeichenebene, erst der Grundpunkt in der Grundebene oder über den Koordinatenquader.">Weg zum Punkt</span>
+      <span class="seg small" data-seg="app"></span>
+    </div>
+    <div class="set-line" id="orderLine"><span class="lbl tip" data-tip="Bei „Achse für Achse&quot;: welche Koordinate zuerst abgetragen wird.">Reihenfolge</span>
+      <span class="seg small" data-seg="order"><button data-v="012">1. – 2. – 3.</button><button data-v="102">2. – 1. – 3.</button><button data-v="201">3. – 1. – 2.</button></span>
+    </div>
+    <div class="set-line"><label class="chk"><input type="checkbox" class="cbInt" id="cbInt"> nur ganzzahlige Koordinaten eingeben</label></div>
+  </div>
+
+  <div class="form-block" id="blkUeb"><b class="tip" data-tip="Einstellungen für die Aufgaben: Art, Schwierigkeit, Zahlenbereich und Genauigkeit.">Übungsmodus</b>
+    <div class="set-line"><span class="lbl tip" data-tip="Voreinstellungen für alle Aufgaben-Einstellungen. „Individuell&quot; öffnet die Einzeleinstellungen.">Schwierigkeit</span>
+      <span class="seg small" data-seg="diff"><button data-v="einf">Einführung</button><button data-v="leicht">Leicht</button><button data-v="normal">Normal</button><button data-v="heraus">Herausfordernd</button><button data-v="indiv">Individuell</button></span>
+    </div>
+    <div class="set-line"><span class="lbl tip" data-tip="Welche Aufgabenarten gestellt werden. Mehrere möglich – es wird dann zufällig gewählt.">Aufgabentypen</span>
+      <span class="seg small segchk" data-chips="utypes"></span>
+    </div>
+    <div class="set-line" id="readAppLine"><span class="lbl tip" data-tip="Nach welchem Weg die Hilfsstrecken beim Ablesen gezeichnet werden. Mehrere Wege möglich; „wie im Erkundungsmodus&quot; übernimmt die dortige Einstellung.">Weg beim Ablesen</span>
+      <label class="chk"><input type="checkbox" id="cbReadLike"> wie im Erkundungsmodus</label>
+    </div>
+    <div class="set-line" id="readAppLine2"><span class="lbl"></span>
+      <span class="seg small segchk" data-chips="readapps"></span>
+    </div>
+    <details class="inner" id="findBox"><summary>Welche Fragen bei „Punkte gesucht"?</summary>
+      <div class="chip-list" id="findList" style="flex-direction:column;gap:4px;margin-top:6px"></div>
+      <div><button class="share" id="findAll">alle / keine</button></div>
+    </details>
+    <div class="set-line"><span class="lbl tip" data-tip="Woher die Zahlen der Aufgaben stammen: aus dem gerade sichtbaren Bereich oder aus einem festen Zahlenbereich. Punkte liegen immer im sichtbaren Ausschnitt.">Koordinaten</span>
+      <span class="seg small" data-seg="urange"><button data-v="view">sichtbar</button><button data-v="fix">fest</button></span>
+      <label class="chk" id="uEqWrap"><input type="checkbox" id="cbUEq"> überall gleich</label>
+    </div>
+    <div class="axgrid g4" id="uRngGrid"></div>
+    <div class="set-line">
+      <label class="chk"><input type="checkbox" id="cbUPos"> nur positive Werte</label>
+      <label class="chk"><input type="checkbox" id="cbUFrac"> auch gebrochene Zahlen</label>
+      <span>mit <input type="number" class="tiny" id="uFracP" min="0" max="100" step="5"> % je Koordinate</span>
+    </div>
+    <div class="set-line">
+      <label class="chk"><input type="checkbox" id="cbUEven"> nur gerade Werte auf der tiefen Achse</label>
+      <label class="chk"><input type="checkbox" id="cbUOnlySel"> nur ausgewählte Ansicht</label>
+    </div>
+    <div class="set-line"><span class="lbl tip" data-tip="Wie genau beim Einzeichnen getroffen werden muss.">Genauigkeit</span>
+      <span class="seg small" data-seg="tol"><button data-v="streng">streng</button><button data-v="normal">normal</button><button data-v="gross">großzügig</button></span>
+      <label class="chk"><input type="checkbox" id="cbAutoHelp"> bei falscher Antwort Lösung anzeigen</label>
+    </div>
+  </div>
+
+</div>
+<div style="text-align:center"><button class="share" id="btnReset">↺ Standard wiederherstellen</button></div>
+</details>
+
+<!-- ===== Schnelleinstellungen ===== -->
+<div class="quickbar">
+  <div class="qgrp"><span class="qlbl tip" data-tip="Art des Schrägbilds – wie die Tiefenachse gezeichnet wird.">Ansicht</span>
+    <select class="sel-proj">
+      <option value="karo">Karopapier (1 Einheit = 1 Kästchen diagonal)</option>
+      <option value="kabinett">Kabinett (45°, Verkürzung ½)</option>
+      <option value="kavalier">Kavalier (45°, ohne Verkürzung)</option>
+      <option value="iso">isometrisch (30°/30°)</option>
+      <option value="frei">eigene Werte</option>
+    </select>
+  </div>
+  <div class="qgrp"><span class="qlbl tip" data-tip="Welche Koordinatenebene als Gitter gezeichnet wird.">Raster</span>
+    <span class="seg small" data-seg="grid">
+      <button data-v="aus">aus</button>
+      <button data-v="karo">Karo (<span class="nm-karo"></span>)</button>
+      <button data-v="boden">Boden (<span class="nm-boden"></span>)</button>
+      <button data-v="wand">Wand (<span class="nm-wand"></span>)</button>
+      <button data-v="ecke">Ecke</button>
+      <button data-v="frei">eigene</button>
+    </span>
+  </div>
+  <div class="qgrp erk-only"><span class="qlbl tip" data-tip="Auf welchem Weg der Punkt Schritt für Schritt entsteht.">Weg zum Punkt</span><span class="seg small" data-seg="app"></span></div>
+  <div class="qgrp ueb-only"><span class="qlbl tip" data-tip="Welche Aufgabenarten gestellt werden – mehrere möglich.">Aufgabentyp</span><span class="seg small segchk" data-chips="utypes"></span></div>
+  <div class="qgrp ueb-only"><span class="qlbl tip" data-tip="Voreinstellung für alle Aufgaben-Einstellungen.">Schwierigkeit</span>
+    <span class="seg small" data-seg="diff"><button data-v="einf">Einführung</button><button data-v="leicht">Leicht</button><button data-v="normal">Normal</button><button data-v="heraus">Herausfordernd</button><button data-v="indiv">Individuell</button></span>
+  </div>
+</div>
+
+
+<!-- ===== Zeichenfläche ===== -->
+<div id="stageBox">
+  <div id="svgHolder" style="position:absolute;inset:0"></div>
+  <div class="stage-info" id="stageInfo"></div>
+  <div class="stage-tl"><button class="sbtn wide hidden" id="btnNewTop" title="Neue Aufgabe">↻ Neue Aufgabe</button></div>
+  <div class="stage-hint" id="stageHint"></div>
+  <div class="stage-tools">
+    <button class="sbtn" id="btnZoomIn" title="Vergrößern">+</button>
+    <button class="sbtn" id="btnZoomOut" title="Verkleinern">−</button>
+    <button class="sbtn" id="btnFit" title="Ansicht zurücksetzen">⌂</button>
+    <button class="sbtn" id="btnResize" title="Größe des Zeichenbereichs frei ziehen">⤡</button>
+    <button class="sbtn" id="btnMenu" title="Teilen und speichern">⤓</button>
+    <div class="menu hidden" id="expMenu">
+      <button data-x="link">🔗 Link mit allen Einstellungen kopieren</button>
+      <div class="sep"></div>
+      <button data-x="png">🖼️ Ansicht als PNG speichern</button>
+      <button data-x="svg">📐 Ansicht als SVG speichern</button>
+    </div>
+  </div>
+  <div class="stage-br"><button class="sbtn vw" id="btnView"></button></div>
+  <div class="rz r" data-rz="x"></div><div class="rz b" data-rz="y"></div><div class="rz c" data-rz="xy"></div>
+</div>
+
+<!-- ===== Erkundungsmodus ===== -->
+<section id="panelErk">
+  <div class="coord-row" id="coordRow"></div>
+  <div class="stepcard">
+    <div class="bar">
+      <button class="nav" id="stPrev">‹ zurück</button>
+      <span class="cnt" id="stCnt"></span>
+      <button class="nav" id="stNext">weiter ›</button>
+      <label class="chk" style="margin-left:6px"><input type="checkbox" id="cbAll"> alle Schritte</label>
+    </div>
+    <div class="txt" id="stNote"></div>
+  </div>
+  <div class="chk-row">
+    <label class="chk"><input type="checkbox" id="cbHelp"> Hilfsstrecken einblenden</label>
+    <label class="chk"><input type="checkbox" id="cbPt"> Punkt einzeichnen</label>
+    <label class="chk"><input type="checkbox" class="cbInt" id="cbInt2"> nur ganzzahlige Koordinaten</label>
+  </div>
+</section>
+
+<!-- ===== Übungsmodus ===== -->
+<section id="panelUeb" class="hidden">
+  <div id="taskBar" class="task hidden"></div>
+  <div id="readRow" class="coord-row tight hidden"></div>
+  <div class="actions">
+    <button class="btn-check hidden" id="btnCheck">Prüfen</button>
+    <button class="btn-sol" id="btnSol">Lösung zeigen</button>
+    <button class="btn-next" id="btnNext">Neue Aufgabe ↻</button>
+  </div>
+  <div class="fb hidden" id="fb"></div>
+  <div class="score" id="score"></div>
+  <div class="stepcard hidden" id="solCard">
+    <div class="bar">
+      <button class="nav" id="soPrev">‹ zurück</button>
+      <span class="cnt" id="soCnt"></span>
+      <button class="nav" id="soNext">weiter ›</button>
+    </div>
+    <div class="txt" id="solNote"></div>
+  </div>
+</section>
+
+<div id="lobby-spacer"></div>
+<footer class="site-footer">
+<div class="footer-content">
+    M.&nbsp;Koch
+    <span class="footer-topic"><a href="./index.html">Mathe-Tools</a></span>
+    <span class="footer-update">Last updated:&nbsp;<span id="last-update">...</span></span>
+</div>
+</footer>
+<script src="last-update.js" defer></script>
+<script>
+"use strict";
+/* =======================================================================
+   3D-Koordinatensystem – Punkte einzeichnen (Mathe-Tools, M. Koch)
+   1) Zustand/URL  2) Projektion + Bereiche  3) Szene/Rendering
+   4) Schritte     5) Übungsmodus           6) Oberfläche
+   ======================================================================= */
+const $  = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+
+/* ---------------------------------------------------------------- 1) Zustand */
+const FIND_IDS = ['urs','achse','ebene','grund','lage','spiegel','versch','gleich','mitte','ecke'];
+const DEF = {
+  mode:'erk', view:'2d',
+  naming:'xyz', cn:['x','y','z'],
+  showNames:true, showNums:true, showTicks:true, numEvery:1, fontScale:100, axExt:true,
+  lblColMode:'axis', lblCol:['#222222','#222222','#222222'], lblBold:true,
+  axColorful:false, hidDash:false, deep2:false,
+  layMode:'std1', lay:'012',
+  rolev:{f:[-0.5,-0.5], r:[1,0], u:[0,1]}, proj:'karo',
+  dynRange:true, axFull:true, scaleEq:true, sc:[1,1,1], rng:[[-2,5],[-2,7],[-2,5]],
+  colEq:true, col:['#222222','#222222','#222222'],
+  negOn:true, negMode:'same', negCol:'#b6b6b6',
+  gridMode:'karo', gpl:['yz'], gneg:{xy:true, xz:true, yz:true},
+  gridEq:true, gs:[0.5,0.5,0.5], gridCol:'#d9d9d9', gridStyle:'solid', gridBold:false, gridBoldN:2,
+  ptStyle:'dot', ptCol:'#d32f2f', ptLabel:'both', showBase:false,
+  helpers:true, showPt:true,
+  P:[2,4,3],
+  approach:'achsen', order:'012', intOnly:true, stepAll:false,
+  readApps:['achsen','zeichen','grund','quader'], readLikeErk:false,
+  diff:'normal',
+  uTypes:['draw','read','find'], uFinds:['urs','achse','ebene','grund','lage','versch','spiegel'],
+  uRangeMode:'view', uEqRange:true, uRng:[[-5,5],[-5,5],[-5,5]],
+  uPosOnly:false, uFrac:true, uFracP:10, uEvenDeep:false, uOnlySel:true, uTol:'normal', autoHelp:true
+};
+let S = JSON.parse(JSON.stringify(DEF));
+
+/* Laufzeit */
+let step = 0, solStep = 0, solVisible = false;
+let task = null, answered = false, clickOK = false, nRight = 0, nTotal = 0, clickPt = null;
+let cam = {az:0.393, el:0.433};
+let vw  = {cx:0, cy:0, k:60, set:false};
+let RNG = [[-2,5],[-2,7],[-2,5]];
+let AXR = [[-2,5],[-2,7],[-2,5]];
+let gridPrev = 'karo';
+let lastSVG = '', W = 900, H = 560;
+
+/* ---------------------------------------------------------------- URL */
+const num = n => Math.round(n*1e6)/1e6;
+const P2  = a => a.map(num).join(',');
+const R2  = a => a.map(P2).join(';');
+const RP  = s => s.split(';').map(t=>t.split(',').map(Number));
+const PMAP = [
+  ['mode','m',v=>v,s=>s], ['view','v',v=>v,s=>s],
+  ['naming','an',v=>v,s=>s], ['cn','cn',v=>v.join(','),s=>s.split(',')],
+  ['showNames','ab',v=>v?1:0,s=>s==='1'], ['showNums','az',v=>v?1:0,s=>s==='1'],
+  ['showTicks','at',v=>v?1:0,s=>s==='1'], ['numEvery','ne',v=>v,s=>+s],
+  ['fontScale','fs',v=>v,s=>+s], ['axExt','ae',v=>v?1:0,s=>s==='1'],
+  ['lblColMode','lc',v=>v,s=>s], ['lblCol','lk',v=>v.map(c=>c.slice(1)).join(','),s=>s.split(',').map(c=>'#'+c)],
+  ['lblBold','lb',v=>v?1:0,s=>s==='1'], ['axColorful','cf',v=>v?1:0,s=>s==='1'],
+  ['hidDash','hd',v=>v?1:0,s=>s==='1'], ['deep2','d2',v=>v?1:0,s=>s==='1'],
+  ['layMode','lm',v=>v,s=>s], ['lay','ly',v=>v,s=>s], ['proj','pj',v=>v,s=>s],
+  ['rolev','rv',v=>[v.f,v.r,v.u].map(P2).join(';'),s=>{const a=RP(s);return{f:a[0],r:a[1],u:a[2]};}],
+  ['dynRange','dy',v=>v?1:0,s=>s==='1'], ['axFull','af',v=>v?1:0,s=>s==='1'],
+  ['readApps','ra',v=>v.join(','),s=>s?s.split(','):[]], ['readLikeErk','rl',v=>v?1:0,s=>s==='1'],
+  ['scaleEq','sq',v=>v?1:0,s=>s==='1'], ['sc','sc',P2,s=>s.split(',').map(Number)],
+  ['rng','rg',R2,RP],
+  ['colEq','cq',v=>v?1:0,s=>s==='1'], ['col','co',v=>v.map(c=>c.slice(1)).join(','),s=>s.split(',').map(c=>'#'+c)],
+  ['negOn','ng',v=>v?1:0,s=>s==='1'], ['negMode','nm',v=>v,s=>s], ['negCol','nc',v=>v.slice(1),s=>'#'+s],
+  ['gridMode','gm',v=>v,s=>s], ['gpl','gp',v=>v.join(','),s=>s?s.split(','):[]],
+  ['gneg','gn',v=>['xy','xz','yz'].map(k=>v[k]?1:0).join(''),s=>({xy:s[0]==='1',xz:s[1]==='1',yz:s[2]==='1'})],
+  ['gridEq','gq',v=>v?1:0,s=>s==='1'], ['gs','gs',P2,s=>s.split(',').map(Number)],
+  ['gridCol','gc',v=>v.slice(1),s=>'#'+s], ['gridStyle','gy',v=>v,s=>s], ['gridBold','gb',v=>v?1:0,s=>s==='1'], ['gridBoldN','gbn',v=>v,s=>+s],
+  ['ptStyle','ps',v=>v,s=>s], ['ptCol','pc',v=>v.slice(1),s=>'#'+s], ['ptLabel','pl',v=>v,s=>s],
+  ['showBase','pb',v=>v?1:0,s=>s==='1'], ['helpers','hs',v=>v?1:0,s=>s==='1'], ['showPt','sp',v=>v?1:0,s=>s==='1'],
+  ['P','p',P2,s=>s.split(',').map(Number)],
+  ['approach','ap',v=>v,s=>s], ['order','or',v=>v,s=>s], ['intOnly','io',v=>v?1:0,s=>s==='1'],
+  ['stepAll','sa',v=>v?1:0,s=>s==='1'],
+  ['diff','df',v=>v,s=>s],
+  ['uTypes','ut',v=>v.join(','),s=>s?s.split(','):[]],
+  ['uFinds','uf',v=>v.join(','),s=>s?s.split(','):[]],
+  ['uRangeMode','um',v=>v,s=>s], ['uEqRange','ue',v=>v?1:0,s=>s==='1'], ['uRng','ur',R2,RP],
+  ['uPosOnly','up',v=>v?1:0,s=>s==='1'], ['uFrac','uc',v=>v?1:0,s=>s==='1'],
+  ['uFracP','fp',v=>v,s=>+s], ['uEvenDeep','ed',v=>v?1:0,s=>s==='1'],
+  ['uOnlySel','uo',v=>v?1:0,s=>s==='1'], ['uTol','uz',v=>v,s=>s], ['autoHelp','ah',v=>v?1:0,s=>s==='1']
+];
+function serialize(){
+  const q = new URLSearchParams();
+  for(const [key,par,enc] of PMAP){
+    if(String(enc(S[key])) !== String(enc(DEF[key]))) q.set(par, enc(S[key]));
+  }
+  const s = q.toString();
+  try{ history.replaceState(null,'', location.pathname + (s?('?'+s):'')); }catch(e){}
+}
+function deserialize(){
+  const q = new URLSearchParams(location.search);
+  for(const [key,par,,dec] of PMAP) if(q.has(par)){ try{ S[key]=dec(q.get(par)); }catch(e){} }
+}
+
+/* ---------------------------------------------------------------- Helfer */
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const fmt = n => { if(!isFinite(n)) return '?'; return String(Math.round(n*1000)/1000).replace('.',','); };
+const SUB=['₁','₂','₃'];
+function axName(i){
+  if(S.naming==='x123') return 'x'+SUB[i];
+  if(S.naming==='custom') return (S.cn[i]||['x','y','z'][i]);
+  return ['x','y','z'][i];
+}
+function axNameSVG(i){
+  if(S.naming==='x123') return 'x<tspan font-size="0.72em" dy="0.28em">'+(i+1)+'</tspan>';
+  return esc(axName(i));
+}
+function axNameHTML(i){
+  if(S.naming==='x123') return 'x<sub>'+(i+1)+'</sub>';
+  return esc(axName(i));
+}
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+const coordStr = p => p.map(fmt).join('|');
+const ptStr = (n,p) => n+'('+coordStr(p)+')';
+const planeName = k => k==='xy' ? axNameHTML(0)+'-'+axNameHTML(1)
+                     : k==='xz' ? axNameHTML(0)+'-'+axNameHTML(2) : axNameHTML(1)+'-'+axNameHTML(2);
+const axCol   = i => S.colEq ? S.col[0] : S.col[i];
+const axScale = i => Math.abs(S.scaleEq ? S.sc[0] : S.sc[i]) || 1;
+const gStep   = i => Math.abs(S.gridEq ? S.gs[0] : S.gs[i]) || 0.5;
+const fsz     = b => b * (S.fontScale||100)/100;
+function mixHex(hex, t){                       /* mit Schwarz mischen */
+  const n = parseInt(hex.slice(1),16);
+  const r = Math.round(((n>>16)&255)*(1-t)), g = Math.round(((n>>8)&255)*(1-t)), b = Math.round((n&255)*(1-t));
+  return '#'+((1<<24)+(r<<16)+(g<<8)+b).toString(16).slice(1);
+}
+function unit(i){ const e=[0,0,0]; e[i]=1; return e; }
+function unitP(i,t){ const p=[0,0,0]; p[i]=t; return p; }
+function pt3(i,vi,j,vj){ const p=[0,0,0]; p[i]=vi; p[j]=vj; return p; }
+const add  = (a,b)=>[a[0]+b[0],a[1]+b[1],a[2]+b[2]];
+const scal = (a,t)=>[a[0]*t,a[1]*t,a[2]*t];
+const alongAxis = (p,i,d)=>{ const q=p.slice(); q[i]+=d; return q; };
+
+/* Rollen: 0 = vorne (Tiefe), 1 = rechts, 2 = oben */
+const roleOf  = i => S.lay.indexOf(String(i));
+const axOfRole= r => +S.lay[r];
+const dirOf   = i => { const r=roleOf(i); return r===0?S.rolev.f : r===1?S.rolev.r : S.rolev.u; };
+const ROLE_TXT= ['vorne','rechts','oben'];
+
+/* ---------------------------------------------------------------- 2) Projektion */
+function proj(p){
+  const a=[p[0]*axScale(0), p[1]*axScale(1), p[2]*axScale(2)];
+  if(S.view==='2d'){
+    let X=0,Y=0;
+    for(let i=0;i<3;i++){ const d=dirOf(i); X+=a[i]*d[0]; Y+=a[i]*d[1]; }
+    return [X,Y,a[axOfRole(0)]];
+  }
+  const u=a[axOfRole(0)], v=a[axOfRole(1)], w=a[axOfRole(2)];
+  const ca=Math.cos(cam.az), sa=Math.sin(cam.az), ce=Math.cos(cam.el), se=Math.sin(cam.el);
+  return [ -u*sa + v*ca,
+           -u*ca*se - v*sa*se + w*ce,
+            u*ca*ce + v*sa*ce + w*se ];
+}
+const px    = q => [W/2 + (q[0]-vw.cx)*vw.k, H/2 - (q[1]-vw.cy)*vw.k];
+const projPx= p => px(proj(p));
+const unpx  = (sx,sy) => [ (sx-W/2)/vw.k + vw.cx, -(sy-H/2)/vw.k + vw.cy ];
+
+/* 3D-Blickrichtung = genau die Projektionsrichtung des Schrägbilds.
+   Dadurch liegen Punkte nach dem Umschalten weiterhin an derselben Stelle. */
+function fitCam(){
+  const K=projKernel();
+  if(K){
+    const f=axOfRole(0), r=axOfRole(1), u=axOfRole(2);
+    let n=[K[f]*axScale(f), K[r]*axScale(r), K[u]*axScale(u)];
+    const L=Math.hypot(n[0],n[1],n[2]);
+    if(L>1e-9){
+      n=n.map(x=>x/L);
+      if(n[0]<0) n=n.map(x=>-x);                       /* Betrachter steht vorne */
+      const el=Math.asin(clamp(n[2],-1,1));
+      const az=(Math.abs(n[0])+Math.abs(n[1])<1e-6) ? cam.az : Math.atan2(n[1],n[0]);
+      cam.az=az; cam.el=clamp(el,-1.52,1.52);
+      return;
+    }
+  }
+  fitCamFallback();
+}
+function fitCamFallback(){
+  const t=[S.rolev.f, S.rolev.r, S.rolev.u];
+  const err=(a,e)=>{
+    const m=[[-Math.sin(a),-Math.cos(a)*Math.sin(e)],[Math.cos(a),-Math.sin(a)*Math.sin(e)],[0,Math.cos(e)]];
+    let n=0,d=0;
+    for(let i=0;i<3;i++){ n+=m[i][0]*t[i][0]+m[i][1]*t[i][1]; d+=m[i][0]**2+m[i][1]**2; }
+    const sc=d?n/d:1; let q=0;
+    for(let i=0;i<3;i++) q+=(sc*m[i][0]-t[i][0])**2+(sc*m[i][1]-t[i][1])**2;
+    return q;
+  };
+  let best={q:1e9,a:0.393,e:0.433};
+  for(let ai=1; ai<=88; ai++) for(let ei=1; ei<=85; ei++){
+    const a=ai*Math.PI/180, e=ei*Math.PI/180, q=err(a,e);
+    if(q<best.q) best={q,a,e};
+  }
+  cam.az=best.a; cam.el=best.e;
+}
+
+/* Richtung zum Betrachter, in Koordinatenrichtungen (nur die Vorzeichen zählen) */
+function viewerDir(){
+  if(S.view==='2d'){
+    const K=projKernel();
+    if(!K) return unit(axOfRole(0));
+    const f=axOfRole(0);
+    return K[f]>=0 ? K : K.map(x=>-x);
+  }
+  const N=[Math.cos(cam.az)*Math.cos(cam.el), Math.sin(cam.az)*Math.cos(cam.el), Math.sin(cam.el)];
+  const v=[0,0,0];
+  v[axOfRole(0)]=N[0]; v[axOfRole(1)]=N[1]; v[axOfRole(2)]=N[2];
+  return v;
+}
+/* Welche Hälfte der Achse i liegt hinter einer gezeichneten Rasterebene? */
+function hiddenSide(i){
+  if(!S.hidDash) return 0;
+  const PL={xy:[0,1], xz:[0,2], yz:[1,2]};
+  let covered=false;
+  for(const key of S.gpl){
+    const pl=PL[key];
+    if(pl && pl.indexOf(i)<0 && S.gneg[key]) covered=true;
+  }
+  if(!covered) return 0;
+  const V=viewerDir();
+  if(Math.abs(V[i])<1e-9) return 0;
+  return V[i]>0 ? -1 : 1;
+}
+
+/* ------ dargestellter Achsenbereich (dynamisch aus dem Ausschnitt oder fest) ------ */
+function dynRangeFor(i){
+  const o=projPx([0,0,0]), q=projPx(unit(i));
+  const v=[q[0]-o[0], q[1]-o[1]];
+  const len=Math.hypot(v[0],v[1]);
+  if(len<1e-6) return {lab:[0,1], ax:[0,1]};
+  const ev=Math.max(0.05,S.numEvery), cell=gStep(i);
+  const full=S.axFull;
+  const m = full ? 1 : 16;                       /* Abstand zum Rand des Zeichenbereichs */
+  let t0=-1e7, t1=1e7, empty=false;
+  const clip=(pp,d,lo,hi)=>{
+    if(Math.abs(d)<1e-9){ if(pp<lo||pp>hi) empty=true; return; }
+    let a=(lo-pp)/d, b=(hi-pp)/d; if(a>b){const c=a;a=b;b=c;}
+    t0=Math.max(t0,a); t1=Math.min(t1,b);
+  };
+  clip(o[0],v[0],m,W-m); clip(o[1],v[1],m,H-m);
+  if(empty || !(t1>t0)) return {lab:[0,0], ax:[0,0]};
+  /* gezeichnete Achse: stufenlos bis (fast) an den Rand – springt beim Verschieben nicht */
+  const back = (full ? 1 : 8)/len;
+  const ahi = t1 - back, alo = t0 + back;
+  /* Beschriftung: letzte Zahl mindestens ein Kästchen vor dem Rand */
+  let hi = Math.floor((t1 - cell)/ev + 1e-9)*ev;
+  let lo = Math.ceil((t0 + 14/len)/ev - 1e-9)*ev;
+  const LIM=40*Math.max(1,ev);
+  hi=clamp(hi,-LIM,LIM); lo=clamp(lo,-LIM,LIM);
+  if(hi<lo) hi=lo;
+  if((hi-lo)/ev > 200) hi=lo+200*ev;
+  return {lab:[lo,hi], ax:[clamp(alo,-LIM-2*ev,LIM+2*ev), clamp(ahi,-LIM-2*ev,LIM+2*ev)]};
+}
+function updateRanges(){
+  if(S.dynRange){
+    const r=[0,1,2].map(dynRangeFor);
+    RNG=r.map(x=>x.lab); AXR=r.map(x=>x.ax);
+  } else {
+    RNG=S.rng.map(r=>[Math.min(r[0],r[1]), Math.max(r[0],r[1])]);
+    AXR=RNG.map((r,i)=>{ const e=S.axExt?gStep(i):0; return [r[0]-e, r[1]+e]; });
+  }
+}
+const rng = i => RNG[i];
+const axr = i => AXR[i];
+
+/* ---------------------------------------------------------------- 3) Szene */
+const LY = {grid:0, axneg:1, ax:2, help:4, obj:5, pt:6, txt:7};
+
+/* Parameterbereich einer Ebene, der den sichtbaren Zeichenbereich abdeckt */
+function planeSpan(i,j){
+  const o=projPx([0,0,0]), A=projPx(unit(i)), B=projPx(unit(j));
+  const ax=A[0]-o[0], ay=A[1]-o[1], bx=B[0]-o[0], by=B[1]-o[1];
+  const det=ax*by-ay*bx;
+  if(Math.abs(det)<1e-9) return null;
+  let u0=1e9,u1=-1e9,v0=1e9,v1=-1e9;
+  for(const c of [[0,0],[W,0],[0,H],[W,H]]){
+    const dx=c[0]-o[0], dy=c[1]-o[1];
+    const u=(dx*by-dy*bx)/det, v=(-dx*ay+dy*ax)/det;
+    u0=Math.min(u0,u); u1=Math.max(u1,u); v0=Math.min(v0,v); v1=Math.max(v1,v);
+  }
+  return {u:[u0,u1], v:[v0,v1]};
+}
+function gridItems(out){
+  if(!S.gpl.length) return;
+  const PL={xy:[0,1], xz:[0,2], yz:[1,2]};
+  const dash = S.gridStyle==='dash' ? '3 3' : null;
+  const boldC = mixHex(S.gridCol, 0.3);
+  const o = projPx([0,0,0]);
+  for(const key of S.gpl){
+    const pl=PL[key]; if(!pl) continue;
+    const neg=!!S.gneg[key];
+    const sp=planeSpan(pl[0],pl[1]); if(!sp) continue;
+    const E={};
+    E[pl[0]]=sp.u.slice(); E[pl[1]]=sp.v.slice();
+    for(const a of pl){
+      const c=gStep(a);
+      E[a]=[E[a][0]-c, E[a][1]+c];
+      if(!neg){ E[a][0]=Math.max(0,E[a][0]); E[a][1]=Math.max(0,E[a][1]); }
+    }
+    if(E[pl[0]][1]-E[pl[0]][0]<1e-9 || E[pl[1]][1]-E[pl[1]][0]<1e-9) continue;
+    for(const [a,b] of [[pl[0],pl[1]],[pl[1],pl[0]]]){
+      const st=gStep(a), Ea=E[a], Eb=E[b];
+      const A=projPx(unitP(a,st)), B=projPx(unit(b));
+      const av=[A[0]-o[0], A[1]-o[1]], bv=[B[0]-o[0], B[1]-o[1]];
+      const bl=Math.hypot(bv[0],bv[1]) || 1;
+      /* senkrechter Abstand benachbarter Linien – bei flachem Blickwinkel wird er klein */
+      const dPerp=Math.abs(av[0]*bv[1]-av[1]*bv[0])/bl;
+      if(dPerp < 2.2) continue;
+      const fade=clamp((dPerp-2.2)/5, 0, 1);
+      if(fade < 0.1) continue;
+      const n0=Math.ceil((Ea[0]-1e-9)/st), n1=Math.floor((Ea[1]+1e-9)/st);
+      if(n1-n0 > 500) continue;
+      const bn=Math.max(2, Math.round(S.gridBoldN)||2);
+      for(let n=n0;n<=n1;n++){
+        const t=n*st;
+        const bold = S.gridBold && Math.abs(t/(bn*st)-Math.round(t/(bn*st)))<1e-6;
+        out.push({k:'l', a:pt3(a,t,b,Eb[0]), b:pt3(a,t,b,Eb[1]),
+                  c: bold?boldC:S.gridCol, w: bold?1.35:0.8, d:dash,
+                  op: fade<1 ? Math.round(fade*100)/100 : null, ly:LY.grid});
+      }
+    }
+  }
+}
+
+function negColorOf(i){
+  const c=axCol(i);
+  return S.negMode==='same' ? c : (S.negMode==='gray' ? '#b6b6b6' : S.negCol);
+}
+function lblColor(i,neg){
+  if(S.lblColMode==='black')  return '#222222';
+  if(S.lblColMode==='custom') return S.lblCol[i]||'#222222';
+  return neg ? negColorOf(i) : axCol(i);
+}
+function axisItems(out){
+  const fw = S.lblBold ? 'bold' : 'normal';
+  const deep = axOfRole(0);
+  const o=projPx([0,0,0]);
+  for(let i=0;i<3;i++){
+    const [lo,hi]=rng(i), [alo,ahi]=axr(i), c=axCol(i);
+    const negC = S.negOn ? negColorOf(i) : null;
+    const hid = hiddenSide(i), hd = '7 5';
+    if(alo < -1e-9 && negC)
+      out.push({k:'l', a:unitP(i, alo), b:unitP(i, Math.min(0,ahi)), c:negC, w:1.7,
+                d: hid===-1 ? hd : null, ly:LY.axneg});
+    if(ahi > 1e-9)
+      out.push({k:'ar', a:unitP(i, Math.max(0,alo)), b:unitP(i, ahi), c:c, w:2,
+                d: hid===1 ? hd : null, ly:LY.ax});
+    const ev=Math.max(0.05, S.numEvery||1);
+    /* Beschriftungsdichte an den Bildschirmabstand anpassen (flacher Blickwinkel!) */
+    const q=projPx(unitP(i,ev));
+    const stepPx=Math.hypot(q[0]-o[0], q[1]-o[1]);
+    let mult=0;
+    for(const m of [1,2,5,10,20,50]){ if(stepPx*m >= fsz(19)){ mult=m; break; } }
+    if(S.deep2 && i===deep && mult) mult=Math.max(mult,2);
+    const showT = S.showTicks && stepPx>=4.5;
+    if(showT || (S.showNums && mult)){
+      const n0=Math.ceil((lo-1e-9)/ev), n1=Math.floor((hi+1e-9)/ev);
+      if(n1-n0 <= 400) for(let n=n0;n<=n1;n++){
+        const t=n*ev; if(Math.abs(t)<1e-9) continue;
+        if(t<0 && !S.negOn) continue;
+        const col = (t<0 && negC) ? negC : c;
+        if(showT) out.push({k:'tk', a:unitP(i,t), ax:i, c:col, ly:LY.ax});
+        if(S.showNums && mult && Math.abs(n)%mult===0)
+          out.push({k:'tx', a:unitP(i,t), s:esc(fmt(t)), c:lblColor(i,t<0), fs:fsz(12.5), fw:fw,
+                    off:fsz(13)+2, ax:i, an:'mid', va:'mid', ly:LY.txt, coll:true,
+                    prio:2 + (t<0?0.4:0) + Math.abs(n)/1000});
+      }
+    }
+    if(S.showNames && ahi > 1e-9)
+      out.push({k:'tx', a:unitP(i, ahi), s:axNameSVG(i), c:lblColor(i,false), fs:fsz(16), fw:fw, ax:i,
+                extPx:-fsz(2), off:(i===deep?-1:1)*(fsz(9)+3), an:'mid', va:'mid',
+                ly:LY.txt, coll:true, prio:0, clampIn:true});
+  }
+  if(S.showNums && rng(0)[0]<=0 && rng(0)[1]>=0)
+    out.push({k:'tx', a:[0,0,0], s:'0', c:lblColor(0,false), fs:fsz(12.5), fw:fw,
+              dxy:[-fsz(9), fsz(11)], an:'mid', va:'mid', ly:LY.txt, coll:true, prio:1});
+}
+
+function pointItem(out, p, name, color, opt){
+  opt = opt||{};
+  out.push({k:'pt', a:p, c:color, st:opt.style||S.ptStyle, ly:LY.pt});
+  if(S.ptLabel!=='none' && name){
+    const s = (S.ptLabel==='both' && !opt.shortLabel) ? ptStr(name,p) : name;
+    out.push({k:'tx', a:p, s:esc(s), c:color, fs:fsz(14.5), fw:'bold',
+              dxy:opt.dxy||[10,-9], an:'start', va:'mid', ly:LY.txt});
+  }
+}
+function buildScene(){
+  const out=[];
+  gridItems(out); axisItems(out);
+  out.push(...(S.mode==='erk' ? erkItems() : uebItems()));
+  return out;
+}
+
+/* ---------------------------------------------------------------- Rendering */
+function axPx(){
+  const o=projPx([0,0,0]);
+  const d=[0,1,2].map(i=>{ const q=projPx(unit(i)); const v=[q[0]-o[0],q[1]-o[1]];
+    const L=Math.hypot(v[0],v[1])||1; return [v[0]/L, v[1]/L]; });
+  const nrm=d.map((v,i)=>{
+    let sx=0, sy=0;
+    for(let j=0;j<3;j++) if(j!==i){ sx+=d[j][0]; sy+=d[j][1]; }
+    let n=[-v[1],v[0]];
+    const dot=n[0]*(-sx)+n[1]*(-sy);
+    if(dot < -1e-6) n=[v[1],-v[0]];
+    else if(Math.abs(dot)<1e-6 && n[1]>0) n=[v[1],-v[0]];
+    return n;
+  });
+  return {d,nrm};
+}
+const r2 = n => Math.round(n*100)/100;
+function svgLine(x1,y1,x2,y2,c,w,d,op){
+  return '<line x1="'+r2(x1)+'" y1="'+r2(y1)+'" x2="'+r2(x2)+'" y2="'+r2(y2)+'" stroke="'+c+'" stroke-width="'+w+'"'
+    +(d?' stroke-dasharray="'+d+'"':'')+(op!=null?' opacity="'+op+'"':'')+' stroke-linecap="round"/>';
+}
+function render(){
+  const box=$('#stageBox');
+  W=box.clientWidth||900; H=box.clientHeight||560;
+  if(!vw.set) fitView();
+  updateRanges();
+  syncRangeFields();
+  const items=buildScene(), A=axPx(), parts=[];
+  const proc=items.map((it,idx)=>{
+    if(it.k==='scr') return {it, P:[px(it.p)], dep:1e7, idx};
+    let dep=0,n=0; const P=[];
+    const push=p=>{ const q=proj(p); P.push(px(q)); dep+=q[2]; n++; };
+    if(it.k==='l'||it.k==='ar'){ push(it.a); push(it.b); }
+    else if(it.k==='pg') it.pts.forEach(push);
+    else push(it.a);
+    return {it,P,dep:n?dep/n:0,idx};
+  });
+  proc.sort((a,b)=>(a.it.ly-b.it.ly)||(a.dep-b.dep)||(a.idx-b.idx));
+  /* Beschriftungen, die sich überdecken würden, weglassen (wichtige zuerst) */
+  const boxes=[], skip=new Set(), fixPos=new Map();
+  const cand=proc.filter(e=>e.it.coll).sort((a,b)=>(a.it.prio||0)-(b.it.prio||0));
+  for(const e of cand){
+    const it=e.it, fs=it.fs||13;
+    let [x,y]=e.P[0];
+    if(it.dxy){ x+=it.dxy[0]; y+=it.dxy[1]; }
+    if(it.ax!=null){
+      const n=A.nrm[it.ax], d=A.d[it.ax];
+      if(it.extPx){ x+=d[0]*it.extPx; y+=d[1]*it.extPx; }
+      if(it.off){ x+=n[0]*it.off; y+=n[1]*it.off; }
+    }
+    const txt=String(it.s).replace(/<[^>]*>/g,'');
+    const w=Math.max(6, txt.length*fs*0.55)+3, h=fs*1.05;
+    if(it.clampIn){
+      /* Achsenname bleibt an der Pfeilspitze, wird aber so weit entlang der Achse
+         nach innen geschoben, bis er vollständig im Zeichenbereich liegt. */
+      const d=A.d[it.ax]||[0,0], m=4;
+      const inside=(px_,py)=>{
+        const b0 = it.an==='start' ? px_ : (it.an==='end' ? px_-w : px_-w/2);
+        return b0>=m && b0+w<=W-m && py-h*0.75>=m && py+h*0.45<=H-m;
+      };
+      if(!inside(x,y)) for(let sft=2; sft<=420; sft+=2){
+        const nx=x-d[0]*sft, ny=y-d[1]*sft;
+        if(inside(nx,ny)){ x=nx; y=ny; break; }
+      }
+      x=clamp(x, w/2+3, W-w/2-3); y=clamp(y, h*0.75+2, H-h*0.45-2);
+      fixPos.set(e.idx,[x,y]);
+    }
+    const x0 = it.an==='start' ? x : (it.an==='end' ? x-w : x-w/2);
+    const bx={x0:x0, x1:x0+w, y0:y-h*0.62, y1:y+h*0.42};
+    if(boxes.some(o=>bx.x0<o.x1 && bx.x1>o.x0 && bx.y0<o.y1 && bx.y1>o.y0)) skip.add(e.idx);
+    else boxes.push(bx);
+  }
+  for(const {it,P,idx} of proc){
+    if(skip.has(idx)) continue;
+    const c=it.c||'#222';
+    if(it.k==='l'){
+      parts.push(svgLine(P[0][0],P[0][1],P[1][0],P[1][1],c,it.w||1.5,it.d,it.op));
+    } else if(it.k==='ar'){
+      const [x1,y1]=P[0],[x2,y2]=P[1];
+      const L=Math.hypot(x2-x1,y2-y1)||1, ux=(x2-x1)/L, uy=(y2-y1)/L, h=9, wg=3.4;
+      parts.push(svgLine(x1,y1,x2-ux*h,y2-uy*h,c,it.w||1.5,it.d,it.op));
+      parts.push('<path d="M'+r2(x2)+' '+r2(y2)+'L'+r2(x2-ux*h-uy*wg)+' '+r2(y2-uy*h+ux*wg)
+        +'L'+r2(x2-ux*h+uy*wg)+' '+r2(y2-uy*h-ux*wg)+'Z" fill="'+c+'"/>');
+    } else if(it.k==='pg'){
+      parts.push('<path d="M'+P.map(p=>r2(p[0])+' '+r2(p[1])).join('L')+'Z" fill="'+(it.f||'#888')
+        +'" opacity="'+(it.op!=null?it.op:0.25)+'"/>');
+    } else if(it.k==='tk'){
+      const n=A.nrm[it.ax], L=4.6;
+      parts.push(svgLine(P[0][0]-n[0]*L,P[0][1]-n[1]*L,P[0][0]+n[0]*L,P[0][1]+n[1]*L,c,1.6));
+    } else if(it.k==='pt'){
+      const [x,y]=P[0], r=4.6;
+      if(it.st==='dot') parts.push('<circle cx="'+r2(x)+'" cy="'+r2(y)+'" r="4.1" fill="'+c+'"/>');
+      else if(it.st==='circle') parts.push('<circle cx="'+r2(x)+'" cy="'+r2(y)+'" r="4.4" fill="#fff" stroke="'+c+'" stroke-width="2.2"/>');
+      else parts.push(svgLine(x-r,y-r,x+r,y+r,c,2.4)+svgLine(x-r,y+r,x+r,y-r,c,2.4));
+    } else if(it.k==='scr'){
+      const [x,y]=P[0], r=6.5;
+      parts.push(svgLine(x-r,y-r,x+r,y+r,c,2.6)+svgLine(x-r,y+r,x+r,y-r,c,2.6));
+      parts.push('<circle cx="'+r2(x)+'" cy="'+r2(y)+'" r="'+(r+4)+'" fill="none" stroke="'+c+'" stroke-width="1.1" opacity=".55"/>');
+    } else if(it.k==='tx'){
+      let [x,y]=P[0];
+      if(fixPos.has(idx)) [x,y]=fixPos.get(idx);
+      else {
+        if(it.dxy){ x+=it.dxy[0]; y+=it.dxy[1]; }
+        if(it.ax!=null){
+          const n=A.nrm[it.ax], d=A.d[it.ax];
+          if(it.extPx){ x+=d[0]*it.extPx; y+=d[1]*it.extPx; }
+          if(it.off){ x+=n[0]*it.off; y+=n[1]*it.off; }
+        }
+      }
+      const fs=it.fs||13;
+      const va=it.va==='mid'?fs*0.35:(it.va==='top'?fs*0.95:-fs*0.3);
+      const an=it.an==='start'?'start':(it.an==='end'?'end':'middle');
+      const at=' x="'+r2(x)+'" y="'+r2(y+va)+'" font-family="Calibri, Segoe UI, sans-serif" font-size="'+r2(fs)
+        +'" font-weight="'+(it.fw||'normal')+'" text-anchor="'+an+'"';
+      parts.push('<text'+at+' fill="none" stroke="#ffffff" stroke-width="'+r2(Math.max(3,fs*0.26))+'" stroke-linejoin="round">'+it.s+'</text>');
+      parts.push('<text'+at+' fill="'+c+'">'+it.s+'</text>');
+    }
+  }
+  lastSVG='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+r2(W)+' '+r2(H)+'" width="100%" height="100%">'
+    +'<rect x="0" y="0" width="'+r2(W)+'" height="'+r2(H)+'" fill="#ffffff"/>'+parts.join('')+'</svg>';
+  $('#svgHolder').innerHTML = lastSVG;
+}
+
+/* Standardausschnitt */
+function fitView(){
+  if(S.dynRange){
+    const m=34;
+    const kFor=R=>{
+      let k=Infinity;
+      for(let i=0;i<3;i++){
+        const d=dirOf(i), sc=axScale(i);
+        const ax=Math.abs(d[0]*sc)*R, ay=Math.abs(d[1]*sc)*R;
+        if(ax>1e-9) k=Math.min(k, (W/2-m)/ax);
+        if(ay>1e-9) k=Math.min(k, (H/2-m)/ay);
+      }
+      return isFinite(k) ? k : 60;
+    };
+    /* kleinster Bildschirmabstand zweier beschrifteter Werte – darunter würde ausgedünnt */
+    const stepPx=k=>Math.min.apply(null,[0,1,2].map(i=>{
+      const d=dirOf(i); return Math.hypot(d[0],d[1])*axScale(i)*k*Math.max(0.05,S.numEvery);
+    }));
+    let k=kFor(6);
+    if(stepPx(k) < fsz(19)) k=Math.max(k, kFor(4));     /* lieber näher heran, dafür nur ±4 */
+    vw.k = clamp(k, 8, 400);
+    vw.cx = 0; vw.cy = 0; vw.set = true; return;
+  }
+  const pts=[];
+  for(let i=0;i<3;i++){ pts.push(proj(unitP(i,S.rng[i][0])), proj(unitP(i,S.rng[i][1]))); }
+  pts.push(proj(S.P));
+  let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9;
+  for(const q of pts){ x0=Math.min(x0,q[0]); x1=Math.max(x1,q[0]); y0=Math.min(y0,q[1]); y1=Math.max(y1,q[1]); }
+  const pad=46, dx=Math.max(.8,x1-x0), dy=Math.max(.8,y1-y0);
+  vw.k=clamp(Math.min((W-2*pad)/dx,(H-2*pad)/dy),6,400);
+  vw.cx=(x0+x1)/2; vw.cy=(y0+y1)/2; vw.set=true;
+}
+
+/* ---------------------------------------------------------------- 4) Schritte */
+const HC='#2e6fb7', HI='#ef6c00';
+const roleWord=(i,pos)=>{ const r=roleOf(i);
+  return r===0 ? (pos?'nach vorne':'nach hinten') : r===1 ? (pos?'nach rechts':'nach links') : (pos?'nach oben':'nach unten'); };
+function moveTxt(i,d,first){
+  const nm='<b>'+axNameHTML(i)+'</b>';
+  if(Math.abs(d)<1e-9) return 'Der Wert '+nm+' = 0 bedeutet: In Richtung der '+axNameHTML(i)+'-Achse geht es nicht weiter.';
+  const n=fmt(Math.abs(d)), w=roleWord(i,d>0);
+  if(first) return 'Trage '+nm+' = '+fmt(d)+' auf der '+axNameHTML(i)+'-Achse ab: '+n+' Einheiten '+w+'.';
+  return 'Gehe von dort aus '+n+' Einheiten parallel zur '+axNameHTML(i)+'-Achse – also '+w+' ('+nm+' = '+fmt(d)+').';
+}
+const APPS = [
+  {v:'achsen', lbl:()=>'Achse für Achse'},
+  {v:'zeichen',lbl:()=>axNameHTML(axOfRole(1))+'-'+axNameHTML(axOfRole(2))+' zuerst'},
+  {v:'grund',  lbl:()=>'Grundpunkt'},
+  {v:'quader', lbl:()=>'Quader'}
+];
+function stepsFor(P, appr, intro){
+  const AP = appr || S.approach;
+  const A=[0,0,0], st=[], f=axOfRole(0), r=axOfRole(1), u=axOfRole(2);
+  if(intro) st.push({txt:'Einzuzeichnen ist der Punkt <b>'+esc(ptStr('P',P))+'</b> mit '
+    +axNameHTML(0)+' = '+fmt(P[0])+', '+axNameHTML(1)+' = '+fmt(P[1])+' und '+axNameHTML(2)+' = '+fmt(P[2])
+    +'. Mit „weiter" siehst du Schritt für Schritt, wie er entsteht.', items:[]});
+  const D=P.slice();
+  const seg=(a,b)=>({k:'l', a:a.slice(), b:b.slice(), c:HC, w:2.4, d:'7 4', ly:LY.help, role:'seg'});
+  const dot=a=>({k:'pt', a:a.slice(), c:HC, st:'dot', ly:LY.pt, role:'dot'});
+
+  if(AP==='achsen'){
+    const ord = S.order.split('').map(Number);
+    let cur=A.slice();
+    ord.forEach((i,n)=>{
+      const nxt=alongAxis(cur,i,D[i]);
+      const items=[];
+      if(Math.abs(D[i])>1e-9) items.push(seg(cur,nxt));
+      if(n<2) items.push(dot(nxt));
+      st.push({txt:moveTxt(i,D[i],n===0), items});
+      cur=nxt;
+    });
+  } else if(AP==='grund' || AP==='zeichen'){
+    /* zwei Koordinaten in einer Ebene (als Rechteck bzw. Parallelogramm), dann die dritte */
+    const zc = AP==='zeichen';
+    const a1 = zc?r:f, a2 = zc?u:r, a3 = zc?f:u;
+    const p1=unitP(a1,D[a1]), p2=unitP(a2,D[a2]), corner=alongAxis(p1,a2,D[a2]);
+    const cName = zc ? 'P<tspan font-size="0.72em" dy="0.28em">0</tspan>' : "P'";
+    st.push({txt:(zc?'Zeichne den Punkt zuerst wie im gewohnten 2D-System: ':'')+moveTxt(a1,D[a1],true),
+             items: Math.abs(D[a1])>1e-9?[seg(A,p1),dot(p1)]:[dot(p1)]});
+    st.push({txt:'Trage genauso <b>'+axNameHTML(a2)+'</b> = '+fmt(D[a2])+' auf der '+axNameHTML(a2)+'-Achse ab.',
+             items: Math.abs(D[a2])>1e-9?[seg(A,p2),dot(p2)]:[dot(p2)]});
+    st.push({txt: zc
+        ? 'Ergänze die beiden Strecken zu einem <b>Rechteck</b>: Die Parallelen zu den Achsen schneiden sich im Punkt '
+          +'('+fmt(0)+'|'+fmt(D[a1])+'|'+fmt(D[a2])+') in der '+axNameHTML(a1)+'-'+axNameHTML(a2)+'-Ebene.'
+        : 'Zeichne durch beide Punkte die Parallelen zur jeweils anderen Achse. Ihr Schnittpunkt ist der <b>Grundpunkt</b> in der '
+          +axNameHTML(a1)+'-'+axNameHTML(a2)+'-Ebene.',
+             items:[{k:'l',a:p1,b:corner,c:HC,w:1.8,d:'4 4',ly:LY.help,role:'seg'},
+                    {k:'l',a:p2,b:corner,c:HC,w:1.8,d:'4 4',ly:LY.help,role:'seg'}, dot(corner),
+                    {k:'tx',a:corner,s:cName,c:HC,fs:fsz(13.5),fw:'bold',dxy:[8,12],an:'start',va:'mid',ly:LY.txt}]});
+    st.push({txt: (zc ? 'Jetzt kommt die dritte Koordinate dazu: von dort ' : 'Zum Schluss von dort ')
+             +fmt(Math.abs(D[a3]))+' Einheiten '+roleWord(a3,D[a3]>0)
+             +' (<b>'+axNameHTML(a3)+'</b> = '+fmt(D[a3])+').',
+             items: Math.abs(D[a3])>1e-9?[seg(corner,P)]:[]});
+  } else {
+    const e=[0,1,2].map(i=>scal(unit(i),D[i])), V=[];
+    for(let a=0;a<2;a++) for(let b=0;b<2;b++) for(let c=0;c<2;c++)
+      V.push(add(add(scal(e[0],a),scal(e[1],b)),scal(e[2],c)));
+    const idx=(a,b,c)=>a*4+b*2+c, first=[], rest=[];
+    for(let a=0;a<2;a++) for(let b=0;b<2;b++) for(let c=0;c<2;c++){
+      const from=idx(a,b,c);
+      if(a===0){ (b+c===0?first:rest).push([from, idx(1,b,c)]); }
+      if(b===0){ (a+c===0?first:rest).push([from, idx(a,1,c)]); }
+      if(c===0){ (a+b===0?first:rest).push([from, idx(a,b,1)]); }
+    }
+    st.push({txt:'Die drei Koordinaten sind die Kantenlängen eines Quaders: '+fmt(D[0])+' – '+fmt(D[1])+' – '+fmt(D[2])
+             +'. Zeichne die drei Kanten vom Ursprung aus.',
+             items:first.map(([a,b])=>({k:'l',a:V[a],b:V[b],c:HC,w:2.4,ly:LY.help,role:'seg'}))});
+    st.push({txt:'Ergänze den Quader – die verdeckten Kanten gestrichelt.',
+             items:rest.map(([a,b])=>({k:'l',a:V[a],b:V[b],c:HC,w:1.5,d:'5 4',op:.85,ly:LY.help,role:'seg'}))});
+    st.push({txt:'Der gesuchte Punkt liegt in der Ecke, die dem Ursprung gegenüberliegt.', items:[]});
+  }
+
+  const fin=[];
+  if(S.showPt || S.mode==='ueb') pointItem(fin, P, 'P', S.ptCol);
+  if(S.showBase){
+    const b=P.slice(); b[axOfRole(2)]=0;
+    fin.push({k:'pt',a:b,c:HC,st:'circle',ly:LY.pt});
+    fin.push({k:'tx',a:b,s:"P'",c:HC,fs:fsz(13),fw:'bold',dxy:[8,12],an:'start',va:'mid',ly:LY.txt});
+  }
+  st.push({txt:'Fertig: '+esc(ptStr('P',P))+' ist eingezeichnet.', items:fin});
+  return st;
+}
+function collectSteps(st, upto, highlight){
+  const out=[];
+  for(let i=0;i<=upto;i++) for(const it of st[i].items){
+    const o=Object.assign({},it);
+    if(!S.helpers && (o.role==='seg'||o.role==='dot')) continue;
+    if(o.role && i===upto && highlight){ o.c=HI; if(o.k==='l') o.w=Math.max(o.w||2,2.8); }
+    out.push(o);
+  }
+  return out;
+}
+function erkItems(){
+  const st=stepsFor(S.P, null, true);
+  const upto = S.stepAll ? st.length-1 : clamp(step,0,st.length-1);
+  return collectSteps(st, upto, !S.stepAll);
+}
+
+/* ---------------------------------------------------------------- 5) Übungsmodus */
+const TOL={streng:0.18, normal:0.34, gross:0.6};
+const ri=n=>Math.floor(Math.random()*n);
+const pick=a=>a[ri(a.length)];
+const eqP=(a,b)=>a.every((x,i)=>Math.abs(x-b[i])<1e-6);
+function taskRange(i){
+  const R=rng(i);
+  let lo,hi;
+  if(S.uRangeMode==='fix'){ const r=S.uEqRange?S.uRng[0]:S.uRng[i]; lo=Math.min(r[0],r[1]); hi=Math.max(r[0],r[1]); }
+  else { lo=R[0]+0.25; hi=R[1]-0.25; }
+  lo=Math.max(lo,R[0]+0.25,-9); hi=Math.min(hi,R[1]-0.25,9);
+  if(S.uPosOnly) lo=Math.max(lo,0);
+  lo=Math.ceil(lo-1e-9); hi=Math.floor(hi+1e-9);
+  if(hi<lo){ lo=0; hi=Math.max(0,hi); }
+  return [lo,hi];
+}
+const FRACS=[0.1,0.2,0.25,0.3,0.4,0.5,0.6,0.7,0.75,0.8,0.9];
+function randCoord(i,noFrac,halfOnly){
+  const [lo,hi]=taskRange(i);
+  let v=lo+ri(hi-lo+1);
+  if(S.uEvenDeep && i===axOfRole(0)){
+    v=2*Math.round(v/2);
+    if(v<lo) v+=2;
+    if(v>hi) v-=2;
+    if(v<lo||v>hi) v=0;
+    return v;
+  }
+  if(!noFrac && S.uFrac && Math.random()*100 < (S.uFracP||0)){
+    const fr = halfOnly ? 0.5 : pick(FRACS);
+    if(v+fr<=hi) v=Math.round((v+fr)*100)/100;
+  }
+  return v;
+}
+/* Liegt der Punkt im sichtbaren Zeichenbereich? */
+function onScreen(p){
+  const q=projPx(p);
+  return q[0]>38 && q[0]<W-38 && q[1]>30 && q[1]<H-30;
+}
+function randPoint(noFrac,halfOnly){
+  let p=[0,0,0];
+  for(let g=0; g<12 && p.every(v=>Math.abs(v)<1e-9); g++) p=[0,1,2].map(i=>randCoord(i,noFrac,halfOnly));
+  return p;
+}
+/* Richtung, in der die Projektion "blind" ist (2D-Schrägbild) */
+function proj2(p){
+  let X=0,Y=0;
+  for(let i=0;i<3;i++){ const d=dirOf(i), s=axScale(i); X+=p[i]*s*d[0]; Y+=p[i]*s*d[1]; }
+  return [X,Y];
+}
+function projKernel(){
+  const d=[0,1,2].map(i=>{ const v=dirOf(i), s=axScale(i); return [v[0]*s, v[1]*s]; });
+  const r1=[d[0][0],d[1][0],d[2][0]], r2v=[d[0][1],d[1][1],d[2][1]];
+  let k=[r1[1]*r2v[2]-r1[2]*r2v[1], r1[2]*r2v[0]-r1[0]*r2v[2], r1[0]*r2v[1]-r1[1]*r2v[0]];
+  const nz=k.filter(x=>Math.abs(x)>1e-9);
+  if(!nz.length) return null;
+  const mn=Math.min(...nz.map(Math.abs));
+  k=k.map(x=>x/mn);
+  if(k.every(x=>Math.abs(x-Math.round(x))<1e-6)) k=k.map(Math.round);
+  return k;
+}
+
+/* --- Fragen für „Punkte gesucht" --- */
+const FIND = {
+  urs:{lbl:'Koordinaten des Ursprungs', mk(){
+    return {q:'Gib die Koordinaten des Koordinatenursprungs an.', sol:[0,0,0], extra:{kind:'point'},
+            chk:v=>v.every(x=>Math.abs(x)<1e-9)}; }},
+  achse:{lbl:'Punkt auf einer bestimmten Achse', mk(){
+    const i=ri(3); let t=randCoord(i,true); if(Math.abs(t)<1e-9) t=1;
+    return {q:'Gib die Koordinaten eines Punktes an, der auf der '+axNameHTML(i)+'-Achse liegt (nicht der Ursprung).',
+      sol:unitP(i,t), many:true, extra:{kind:'axis', i:i}, chk:v=>Math.abs(v[i])>1e-9 && [0,1,2].every(j=>j===i||Math.abs(v[j])<1e-9)}; }},
+  ebene:{lbl:'Punkt in einer Koordinatenebene', mk(){
+    const k=ri(3), [i,j]=[0,1,2].filter(x=>x!==k);
+    const s=[0,0,0]; s[i]=randCoord(i,true)||1; s[j]=randCoord(j,true)||1;
+    return {q:'Gib die Koordinaten eines Punktes an, der in der '+axNameHTML(i)+'-'+axNameHTML(j)+'-Ebene liegt (nicht der Ursprung).',
+      sol:s, many:true, extra:{kind:'plane', i:i, j:j},
+      chk:v=>Math.abs(v[k])<1e-9 && v.some(x=>Math.abs(x)>1e-9)}; }},
+  grund:{lbl:'Grundpunkt (Schatten) eines Punktes', mk(){
+    const P=randPoint(), u=axOfRole(2), f=axOfRole(0), r=axOfRole(1), s=P.slice(); s[u]=0;
+    return {given:[{n:'P',p:P}], sol:s, chk:v=>eqP(v,s), extra:{kind:'drop', i:f, j:r},
+      q:'Gib die Koordinaten des Grundpunktes von P an – also des Punktes senkrecht darunter in der '
+        +axNameHTML(f)+'-'+axNameHTML(r)+'-Ebene.'}; }},
+  lage:{lbl:'Punkt in bestimmter Lage zu P', mk(){
+    const P=randPoint(true), f=axOfRole(0), r=axOfRole(1), u=axOfRole(2);
+    const R=[
+      {t:'genau über P', s:alongAxis(P,u,2),  c:v=>v[u]>P[u]+1e-9 && Math.abs(v[f]-P[f])<1e-9 && Math.abs(v[r]-P[r])<1e-9},
+      {t:'genau unter P',s:alongAxis(P,u,-2), c:v=>v[u]<P[u]-1e-9 && Math.abs(v[f]-P[f])<1e-9 && Math.abs(v[r]-P[r])<1e-9},
+      {t:'weiter vorne als P',  s:alongAxis(P,f,2),  c:v=>v[f]>P[f]+1e-9},
+      {t:'weiter hinten als P', s:alongAxis(P,f,-2), c:v=>v[f]<P[f]-1e-9},
+      {t:'weiter rechts als P', s:alongAxis(P,r,2),  c:v=>v[r]>P[r]+1e-9},
+      {t:'weiter links als P',  s:alongAxis(P,r,-2), c:v=>v[r]<P[r]-1e-9},
+      {t:'höher als P',         s:alongAxis(P,u,3),  c:v=>v[u]>P[u]+1e-9}
+    ], w=pick(R);
+    return {given:[{n:'P',p:P}], sol:w.s, chk:w.c, many:true, extra:{kind:'arrow'},
+      q:'Gib die Koordinaten eines Punktes an, der '+w.t+' liegt.'}; }},
+  spiegel:{lbl:'Punkt an Ebene/Achse/Ursprung spiegeln', mk(){
+    const P=randPoint(true), k=ri(3), [i,j]=[0,1,2].filter(x=>x!==k), m=ri(3);
+    let q,s,ex;
+    if(m===0){ s=P.slice(); s[k]=-s[k]; ex={kind:'mirror', mode:'plane', i:i, j:j};
+      q='Spiegle P an der '+axNameHTML(i)+'-'+axNameHTML(j)+'-Ebene. Gib die Koordinaten des Bildpunktes an.'; }
+    else if(m===1){ s=P.slice(); s[i]=-s[i]; s[j]=-s[j]; ex={kind:'mirror', mode:'axis', k:k};
+      q='Spiegle P an der '+axNameHTML(k)+'-Achse. Gib die Koordinaten des Bildpunktes an.'; }
+    else { s=P.map(x=>-x); ex={kind:'mirror', mode:'origin'};
+      q='Spiegle P am Koordinatenursprung. Gib die Koordinaten des Bildpunktes an.'; }
+    return {given:[{n:'P',p:P}], sol:s, chk:v=>eqP(v,s), extra:ex, q}; }},
+  versch:{lbl:'Punkt verschieben', mk(){
+    const P=randPoint(true), i=ri(3), d=pick([-3,-2,-1,1,2,3]);
+    const s=alongAxis(P,i,d);
+    return {given:[{n:'P',p:P}], sol:s, chk:v=>eqP(v,s), extra:{kind:'arrow'},
+      q:'Verschiebe P um '+Math.abs(d)+' Einheiten '+roleWord(i,d>0)+' (parallel zur '+axNameHTML(i)+'-Achse). '
+        +'Gib die Koordinaten des neuen Punktes an.'}; }},
+  gleich:{lbl:'Punkt, der an derselben Stelle gezeichnet wird', mk(){
+    const P=randPoint(true), K=projKernel();
+    if(!K) return FIND.grund.mk();
+    let s=add(P,K);
+    const t=proj2(P);
+    return {given:[{n:'P',p:P}], sol:s, many:true, extra:{kind:'line', dir:K},
+      note:'In der 3D-Ansicht siehst du, dass all diese Punkte auf einer Geraden hintereinander liegen.',
+      chk:v=>{ const w=proj2(v); return Math.abs(w[0]-t[0])<1e-6 && Math.abs(w[1]-t[1])<1e-6 && !eqP(v,P); },
+      q:'Gib die Koordinaten eines Punktes an, der im Schrägbild an <b>derselben Stelle</b> gezeichnet werden müsste wie P (aber nicht P selbst ist).'}; }},
+  mitte:{lbl:'Mittelpunkt zweier Punkte', mk(){
+    const A=randPoint(true), B=[0,1,2].map(i=>{ const [lo,hi]=taskRange(i);
+      let d=pick([-2,2,-4,4]); let v=A[i]+d; if(v<lo||v>hi) v=A[i]-d; if(v<lo||v>hi) v=A[i]; return v; });
+    const s=[0,1,2].map(i=>(A[i]+B[i])/2);
+    return {given:[{n:'A',p:A},{n:'B',p:B}], sol:s, chk:v=>eqP(v,s), extra:{kind:'segment'},
+      q:'Gib die Koordinaten des Mittelpunktes der Strecke AB an.'}; }},
+  ecke:{lbl:'weitere Ecke eines Quaders', mk(){
+    const A=randPoint(true), B=[0,1,2].map(i=>{ const [lo,hi]=taskRange(i);
+      let v=A[i]+pick([-3,-2,2,3]); if(v<lo||v>hi) v=A[i]-(v-A[i]); return clamp(v,lo,hi); });
+    for(let i=0;i<3;i++) if(Math.abs(B[i]-A[i])<1e-9) B[i]=A[i]+1;
+    const s=[B[0],A[1],A[2]];
+    return {given:[{n:'A',p:A},{n:'B',p:B}], sol:s, many:true, extra:{kind:'box'},
+      chk:v=>[0,1,2].every(i=>Math.abs(v[i]-A[i])<1e-9||Math.abs(v[i]-B[i])<1e-9) && !eqP(v,A) && !eqP(v,B),
+      q:'A und B sind gegenüberliegende Ecken eines Quaders, dessen Kanten parallel zu den Achsen verlaufen. '
+        +'Gib die Koordinaten einer <b>weiteren Ecke</b> dieses Quaders an.'}; }}
+};
+
+let viewBackup=null;
+function saveViewBackup(){
+  if(viewBackup) return;
+  viewBackup=JSON.parse(JSON.stringify({layMode:S.layMode, lay:S.lay, rolev:S.rolev, proj:S.proj,
+                                        gridMode:S.gridMode, gpl:S.gpl, gneg:S.gneg}));
+}
+function restoreViewBackup(){
+  if(!viewBackup) return false;
+  Object.assign(S, JSON.parse(JSON.stringify(viewBackup)));
+  viewBackup=null; fitCam(); vw.set=false;
+  return true;
+}
+/* Zufällige Ansicht: entweder z oben / x vorne oder y oben / z vorne */
+function randomizeView(){
+  saveViewBackup();
+  S.layMode = pick(['std1','std1','std2']);
+  S.lay = S.layMode==='std1' ? '012' : '201';
+  S.proj = pick(['karo','karo','karo','kabinett','kavalier']);
+  S.rolev = JSON.parse(JSON.stringify(PROJ[S.proj]));
+  S.gridMode = pick(['karo','karo','boden','wand','ecke']);
+  applyGridMode(); fitCam();
+}
+function newTask(){
+  const types = S.uTypes.length ? S.uTypes : ['draw'];
+  if(!S.uOnlySel){ randomizeView(); buildDynamicUI(); syncControls(); vw.set=false; }
+  else if(restoreViewBackup()){ buildDynamicUI(); syncControls(); }
+  const type = pick(types);
+  updateRanges();
+  let t;
+  if(type==='find'){
+    const ids = S.uFinds.filter(id=>FIND[id]);
+    const id = ids.length ? pick(ids) : 'urs';
+    for(let g=0; g<30; g++){
+      t = FIND[id].mk(); t.type='find'; t.id=id;
+      const pts=(t.given||[]).map(x=>x.p).concat([t.sol]);
+      if(pts.every(onScreen)) break;
+    }
+  } else {
+    let P=null, best=null;
+    for(let g=0; g<60; g++){
+      const c=randPoint(false, type==='read');   /* beim Ablesen höchstens halbe Einheiten */
+      if(c.every(v=>Math.abs(v)<1e-9)) continue;
+      if(task&&task.P&&c.join()===task.P.join()) continue;
+      if(!best) best=c;
+      if(onScreen(c)){ P=c; break; }
+    }
+    t = {type, P: P || best || [1,1,1]};
+    if(type==='read') t.appr = S.readLikeErk ? S.approach : pick(S.readApps.length ? S.readApps : ['achsen']);
+  }
+  if(S.view!=='2d'){ S.view='2d'; }
+  task=t; answered=false; clickPt=null; solVisible=false; solStep=0; clickOK=false;
+  $('#readRow').innerHTML='';
+  $('#btnCheck').disabled=false;
+  $('#fb').className='fb hidden';
+  $('#solCard').className='stepcard hidden';
+  paintTask(); serialize(); render();
+}
+const MULTI_COLORS=['#1565c0','#00838f','#6a1b9a'];
+const SOL_COL='#2e7d32';
+function boxEdges(A,B){
+  const V=[];
+  for(let a=0;a<2;a++) for(let b=0;b<2;b++) for(let c=0;c<2;c++)
+    V.push([a?B[0]:A[0], b?B[1]:A[1], c?B[2]:A[2]]);
+  const idx=(a,b,c)=>a*4+b*2+c, E=[];
+  for(let a=0;a<2;a++) for(let b=0;b<2;b++) for(let c=0;c<2;c++){
+    if(a===0) E.push([V[idx(a,b,c)], V[idx(1,b,c)]]);
+    if(b===0) E.push([V[idx(a,b,c)], V[idx(a,1,c)]]);
+    if(c===0) E.push([V[idx(a,b,c)], V[idx(a,b,1)]]);
+  }
+  return E;
+}
+function planePatch(i,j){
+  const a=rng(i).map(v=>clamp(v,-9,9)), b=rng(j).map(v=>clamp(v,-9,9));
+  return {k:'pg', pts:[pt3(i,a[0],j,b[0]), pt3(i,a[1],j,b[0]), pt3(i,a[1],j,b[1]), pt3(i,a[0],j,b[1])],
+          f:SOL_COL, op:0.13, ly:0.5};
+}
+/* Lösung samt Hilfsobjekten (Spiegelebene, Quader, Gerade …) einzeichnen */
+function solItems(out){
+  if(!task || task.type!=='find') return;
+  const e=task.extra||{}, sol=task.sol, G=task.given||[];
+  const P=G[0]?G[0].p:null, B=G[1]?G[1].p:null;
+  const ln=(a,b,d,w)=>({k:'l', a:a, b:b, c:SOL_COL, w:w||2, d:d||null, ly:LY.help});
+  const axisBar=i=>({k:'l', a:unitP(i,rng(i)[0]), b:unitP(i,rng(i)[1]), c:SOL_COL, w:5, op:.3, ly:LY.help});
+  if(e.kind==='axis') out.push(axisBar(e.i));
+  else if(e.kind==='plane') out.push(planePatch(e.i,e.j));
+  else if(e.kind==='drop'){ out.push(planePatch(e.i,e.j)); if(P) out.push(ln(P,sol,'5 4')); }
+  else if(e.kind==='arrow' && P) out.push({k:'ar', a:P, b:sol, c:SOL_COL, w:2.4, ly:LY.obj});
+  else if(e.kind==='mirror' && P){
+    if(e.mode==='plane') out.push(planePatch(e.i,e.j));
+    else if(e.mode==='axis') out.push(axisBar(e.k));
+    else out.push({k:'pt', a:[0,0,0], c:SOL_COL, st:'circle', ly:LY.pt});
+    out.push(ln(P,sol,'5 4',1.8));
+    out.push({k:'pt', a:[0,1,2].map(i=>(P[i]+sol[i])/2), c:SOL_COL, st:'circle', ly:LY.pt});
+  }
+  else if(e.kind==='line' && P && e.dir) out.push(ln(add(P,scal(e.dir,-4)), add(P,scal(e.dir,4)), '6 4', 1.8));
+  else if(e.kind==='segment' && P && B) out.push(ln(P,B,null,2.2));
+  else if(e.kind==='box' && P && B) boxEdges(P,B).forEach(([a,b])=>out.push(ln(a,b,'5 4',1.5)));
+  pointItem(out, sol, (task.many?'möglich: ':'')+ptStr('',sol), SOL_COL,
+            {style:'circle', shortLabel:true, dxy:[11,16]});
+}
+function givenItems(out){
+  if(!task || !task.given) return;
+  const many = task.given.length>1;
+  task.given.forEach((g,idx)=>{
+    const pc = idx===0 ? S.ptCol : MULTI_COLORS[(idx-1)%MULTI_COLORS.length];
+    const hc = many ? pc : HC;                       /* bei mehreren Punkten Hilfslinien in Punktfarbe */
+    const st=stepsFor(g.p);
+    for(const it of collectSteps(st, st.length-2, false)){
+      const o=Object.assign({}, it);
+      if(o.c===HC) o.c=hc;
+      out.push(o);
+    }
+    out.push({k:'pt', a:g.p, c:pc, st:S.ptStyle, ly:LY.pt});
+    out.push({k:'tx', a:g.p, s:esc(S.ptLabel==='both'?ptStr(g.n,g.p):g.n), c:pc, fs:fsz(14.5), fw:'bold',
+              dxy:[10,-9], an:'start', va:'mid', ly:LY.txt, coll:true, prio:-1});
+  });
+}
+function uebItems(){
+  const out=[];
+  if(!task) return out;
+  if(task.type==='read'){
+    const st=stepsFor(task.P, task.appr);
+    for(const it of collectSteps(st, st.length-1, false)) if(!(it.k==='tx' && !answered)) out.push(it);
+    out.push({k:'pt', a:task.P, c:S.ptCol, st:S.ptStyle, ly:LY.pt});
+    out.push({k:'tx', a:task.P, s: answered?esc(ptStr('P',task.P)):'P', c:S.ptCol, fs:fsz(14.5), fw:'bold',
+              dxy:[10,-9], an:'start', va:'mid', ly:LY.txt});
+    return out;
+  }
+  if(task.type==='find'){
+    givenItems(out);
+    if(solVisible || (answered && !clickOK)) solItems(out);
+    if(answered && task.ans)
+      pointItem(out, task.ans, ptStr('',task.ans), clickOK?'#1b5e20':'#7b1fa2', {style:'cross', shortLabel:true});
+    return out;
+  }
+  if(solVisible){
+    const st=stepsFor(task.P, task.appr);
+    const upto=clamp(solStep,0,st.length-1);
+    out.push(...collectSteps(st, upto, true));
+    if(upto < st.length-1) pointItem(out, task.P, 'P', S.ptCol);   /* Punkt sofort zeigen */
+  } else if(answered){
+    pointItem(out, task.P, 'P', S.ptCol);
+  }
+  if(clickPt) out.push({k:'scr', p:clickPt, c: clickOK?'#2e7d32':'#7b1fa2'});
+  return out;
+}
+function judge(q){
+  const t=proj(task.P);
+  const dpx=Math.hypot((q[0]-t[0])*vw.k, (q[1]-t[1])*vw.k);
+  const tol=Math.max(13, TOL[S.uTol]*vw.k);
+  if(dpx<=tol) return {ok:true};
+  const P=task.P, cand=[], nm=i=>axNameHTML(i);
+  for(const pm of [[0,2,1],[1,0,2],[1,2,0],[2,0,1],[2,1,0]]){
+    const diff=[0,1,2].filter(i=>pm[i]!==i);
+    cand.push({p:[P[pm[0]],P[pm[1]],P[pm[2]]],
+      msg: diff.length===2 ? 'Du hast '+nm(diff[0])+' und '+nm(diff[1])+' vertauscht.'
+                           : 'Die drei Koordinaten sind in der falschen Reihenfolge abgetragen.'});
+  }
+  for(let i=0;i<3;i++){
+    if(Math.abs(P[i])<1e-9) continue;
+    const s=P.slice(); s[i]=-s[i];
+    cand.push({p:s, msg:'Auf der '+nm(i)+'-Achse bist du in die falsche Richtung gegangen.'});
+    const z=P.slice(); z[i]=0;
+    cand.push({p:z, msg:'Der Wert '+nm(i)+' = '+fmt(P[i])+' wurde gar nicht abgetragen.'});
+    const d=P.slice(); d[i]=2*P[i];
+    cand.push({p:d, msg:'Auf der '+nm(i)+'-Achse hast du eine Einheit doppelt so lang gezeichnet wie vorgesehen.'});
+  }
+  let best=null;
+  for(const c of cand){
+    const cp=proj(c.p), d=Math.hypot((q[0]-cp[0])*vw.k,(q[1]-cp[1])*vw.k);
+    if(d<=Math.max(tol*1.3,20) && (!best||d<best.d)) best={d,msg:c.msg};
+  }
+  const dir=[];
+  if(Math.abs(q[0]-t[0])*vw.k>tol*.7) dir.push(q[0]>t[0]?'zu weit rechts':'zu weit links');
+  if(Math.abs(q[1]-t[1])*vw.k>tol*.7) dir.push(q[1]>t[1]?'zu weit oben':'zu weit unten');
+  return {ok:false, hint:best?best.msg:null, dir:dir.join(' und ')};
+}
+
+/* ---------------------------------------------------------------- 6) Oberfläche */
+const PROJ = {
+  karo:     {f:[-0.5,-0.5], r:[1,0], u:[0,1]},
+  kabinett: {f:[-0.354,-0.354], r:[1,0], u:[0,1]},
+  kavalier: {f:[-0.707,-0.707], r:[1,0], u:[0,1]},
+  iso:      {f:[-0.866,-0.5], r:[0.866,-0.5], u:[0,1]}
+};
+const AXL=['x','y','z'];
+const pKey=(a,b)=>{ const [i,j]=[a,b].sort((m,n)=>m-n); return AXL[i]+AXL[j]; };
+/* Karopapier = Ebene aus rechts+oben, Boden = vorne+rechts, Seitenwand = vorne+oben */
+const GRIDS = {
+  karo: ()=>({pl:[pKey(axOfRole(1),axOfRole(2))], neg:true}),
+  boden:()=>({pl:[pKey(axOfRole(0),axOfRole(1))], neg:true}),
+  wand: ()=>({pl:[pKey(axOfRole(0),axOfRole(2))], neg:true}),
+  ecke: ()=>({pl:['xy','xz','yz'], neg:false}),
+  aus:  ()=>({pl:[], neg:false})
+};
+const PRESETS = {
+  einf:  {readLikeErk:true, uTypes:['draw'], uPosOnly:true, uFrac:false, uFracP:10, uEvenDeep:true, uOnlySel:true, uTol:'gross',
+          uRangeMode:'fix', uEqRange:true, uRng:[[1,6],[1,6],[1,6]], uFinds:['urs','achse','ebene']},
+  leicht:{readLikeErk:true, uTypes:['draw','read'], uPosOnly:false, uFrac:false, uFracP:10, uEvenDeep:false, uOnlySel:true, uTol:'normal',
+          uRangeMode:'fix', uEqRange:true, uRng:[[-6,6],[-6,6],[-6,6]], uFinds:['urs','achse','ebene','grund','lage','versch']},
+  normal:{readLikeErk:false, readApps:['achsen','zeichen','grund','quader'], uTypes:['draw','read','find'], uPosOnly:false, uFrac:true, uFracP:10, uEvenDeep:false, uOnlySel:true, uTol:'normal',
+          uRangeMode:'view', uEqRange:true, uRng:[[-5,5],[-5,5],[-5,5]],
+          uFinds:['urs','achse','ebene','grund','lage','versch','spiegel']},
+  heraus:{readLikeErk:false, readApps:['achsen','zeichen','grund','quader'], uTypes:['draw','read','find'], uPosOnly:false, uFrac:true, uFracP:40, uEvenDeep:false, uOnlySel:false, uTol:'streng',
+          uRangeMode:'view', uEqRange:true, uRng:[[-5,5],[-5,5],[-5,5]], uFinds:FIND_IDS.slice()}
+};
+const TYPE_LBL = {draw:'Einzeichnen', read:'Ablesen', find:'Punkte gesucht'};
+
+function applyGridMode(){
+  const f=GRIDS[S.gridMode];
+  if(!f) return;                                   /* 'frei' bleibt unverändert */
+  const g=f();
+  S.gpl=g.pl.slice();
+  S.gneg={xy:g.neg, xz:g.neg, yz:g.neg};
+}
+function applyPreset(name){
+  if(name==='indiv'){ S.diff='indiv'; openSettings('#blkUeb'); syncControls(); serialize(); return; }
+  const p=PRESETS[name]; if(!p) return;
+  for(const k in p) S[k]=JSON.parse(JSON.stringify(p[k]));
+  if(S.uOnlySel) restoreViewBackup();
+  S.diff=name;
+  buildDynamicUI(); syncControls();
+  if(S.mode==='ueb') newTask(); else { serialize(); render(); }
+}
+const markIndiv = ()=>{ S.diff='indiv'; };
+function openSettings(sel){
+  const d=$('#settings'); d.open=true;
+  const el=$(sel); if(!el) return;
+  try{ el.scrollIntoView({behavior:'smooth', block:'center'}); }catch(e){}
+  el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
+}
+
+/* --- generische Schalter/Chips (Kopien in Einstellungen und Schnellleiste) --- */
+function segAll(name,val){ $$('[data-seg="'+name+'"] button').forEach(b=>b.classList.toggle('on', b.dataset.v===val)); }
+function segBind(name,fn){ $$('[data-seg="'+name+'"]').forEach(g=>g.addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(b&&g.contains(b)) fn(b.dataset.v);
+})); }
+
+/* --- Aufbau aller Bedienelemente, die von den Achsennamen abhängen --- */
+function buildDynamicUI(){
+  const pn=(r1,r2)=>axNameHTML(Math.min(axOfRole(r1),axOfRole(r2)))+'-'+axNameHTML(Math.max(axOfRole(r1),axOfRole(r2)));
+  $$('.nm-karo').forEach(e=>e.innerHTML=pn(1,2));
+  $$('.nm-boden').forEach(e=>e.innerHTML=pn(0,1));
+  $$('.nm-wand').forEach(e=>e.innerHTML=pn(0,2));
+  $$('.nm-yz').forEach(e=>e.innerHTML=axNameHTML(1)+'-'+axNameHTML(2));
+  $$('.nm-xy').forEach(e=>e.innerHTML=axNameHTML(0)+'-'+axNameHTML(1));
+  $$('.nm-xz').forEach(e=>e.innerHTML=axNameHTML(0)+'-'+axNameHTML(2));
+  $('#layL1').innerHTML = axNameHTML(0)+' vorne, '+axNameHTML(1)+' rechts, '+axNameHTML(2)+' oben';
+  $('#layL2').innerHTML = axNameHTML(0)+' rechts, '+axNameHTML(1)+' oben, '+axNameHTML(2)+' vorne';
+  $$('[data-seg="app"]').forEach(g=>{
+    g.innerHTML = APPS.map(a=>'<button data-v="'+a.v+'">'+a.lbl()+'</button>').join('');
+  });
+  $$('[data-chips="utypes"]').forEach(g=>{
+    g.innerHTML = Object.keys(TYPE_LBL).map(k=>'<label><input type="checkbox" class="utype" data-t="'+k+'"><span>'
+      +TYPE_LBL[k]+'</span></label>').join('');
+  });
+  $$('.utype').forEach(c=>c.addEventListener('change', ()=>{
+    const t=c.dataset.t;
+    let list=S.uTypes.filter(x=>x!==t);
+    if(c.checked) list.push(t);
+    if(!list.length) list=[t];
+    S.uTypes=Object.keys(TYPE_LBL).filter(k=>list.includes(k));
+    markIndiv(); syncControls(); serialize();
+    if(S.mode==='ueb' && !S.uTypes.includes(task&&task.type)) newTask();
+  }));
+  $$('[data-chips="readapps"]').forEach(g=>{
+    g.innerHTML = APPS.map(a=>'<label><input type="checkbox" class="rapp" data-a="'+a.v+'"><span>'+a.lbl()+'</span></label>').join('');
+  });
+  $$('.rapp').forEach(c=>c.addEventListener('change', ()=>{
+    const a=c.dataset.a;
+    let list=S.readApps.filter(x=>x!==a);
+    if(c.checked) list.push(a);
+    if(!list.length) list=[a];
+    S.readApps=APPS.map(x=>x.v).filter(v=>list.includes(v));
+    markIndiv(); syncControls(); serialize();
+  }));
+  buildAxGrid(); buildDirGrid(); buildLayGrid(); buildGsBox(); buildURngGrid(); buildFindList(); buildCoordRow();
+  if($('#q0')) buildReadRow();
+}
+function nIn(v,id,attr){ return '<input type="number" id="'+id+'" value="'+v+'" '+(attr||'')+'>'; }
+
+function buildAxGrid(){
+  let h='<span class="hd"></span><span class="hd">von</span><span class="hd">bis</span><span class="hd">1 Einheit</span><span class="hd">Farbe</span>';
+  for(let i=0;i<3;i++){
+    h+='<b>'+axNameHTML(i)+'</b>'
+      + nIn(S.rng[i][0],'rn'+i,'step="1"'+(S.dynRange?' disabled':''))
+      + nIn(S.rng[i][1],'rx'+i,'step="1"'+(S.dynRange?' disabled':''))
+      + nIn(S.sc[i],'sc'+i,'step="0.1" min="0.1"'+(i>0&&S.scaleEq?' disabled':''))
+      + '<input type="color" id="ac'+i+'" value="'+S.col[i]+'"'+(i>0&&S.colEq?' disabled':'')+'>';
+  }
+  $('#axGrid').innerHTML=h;
+  for(let i=0;i<3;i++){
+    $('#rn'+i).addEventListener('change',e=>{ S.rng[i][0]=+e.target.value; vw.set=false; refreshHard(); });
+    $('#rx'+i).addEventListener('change',e=>{ S.rng[i][1]=+e.target.value; vw.set=false; refreshHard(); });
+    $('#sc'+i).addEventListener('change',e=>{ const v=Math.max(0.1,Math.round((+e.target.value)*100)/100)||1;
+      if(S.scaleEq) S.sc=[v,v,v]; else S.sc[i]=v; vw.set=false; refreshHard(); });
+    $('#ac'+i).addEventListener('input',e=>{ const v=e.target.value;
+      if(S.colEq) S.col=[v,v,v]; else S.col[i]=v; refresh(); });
+  }
+}
+function buildDirGrid(){
+  let h='<span class="hd"></span><span class="hd">nach rechts</span><span class="hd">nach oben</span><span class="hd">Richtung</span>';
+  for(let i=0;i<3;i++){
+    const v=dirOf(i);
+    h+='<b>'+axNameHTML(i)+'</b>'+nIn(num(v[0]),'dx'+i,'step="0.1"')+nIn(num(v[1]),'dy'+i,'step="0.1"')
+      +'<span class="hd">'+ROLE_TXT[roleOf(i)]+'</span>';
+  }
+  $('#dirGrid').innerHTML=h;
+  const R=['f','r','u'];
+  for(let i=0;i<3;i++){
+    const upd=()=>{
+      S.rolev[R[roleOf(i)]]=[parseFloat($('#dx'+i).value)||0, parseFloat($('#dy'+i).value)||0];
+      S.proj='frei'; fitCam(); vw.set=false; refreshHard();
+    };
+    $('#dx'+i).addEventListener('change',upd); $('#dy'+i).addEventListener('change',upd);
+  }
+}
+function buildLayGrid(){
+  const g=$('#layGrid');
+  g.classList.toggle('hidden', S.layMode!=='frei');
+  if(S.layMode!=='frei'){ g.innerHTML=''; return; }
+  let h='<span class="hd"></span><span class="hd">zeigt …</span><span class="hd"></span><span class="hd"></span>';
+  for(let i=0;i<3;i++){
+    h+='<b>'+axNameHTML(i)+'</b><select id="ly'+i+'">'
+      + ROLE_TXT.map((t,r)=>'<option value="'+r+'"'+(roleOf(i)===r?' selected':'')+'>'+t+'</option>').join('')
+      + '</select><span></span><span></span>';
+  }
+  g.innerHTML=h;
+  for(let i=0;i<3;i++) $('#ly'+i).addEventListener('change',e=>{
+    const want=+e.target.value, old=roleOf(i), other=axOfRole(want);
+    const L=S.lay.split('');
+    L[want]=String(i); L[old]=String(other);
+    S.lay=L.join(''); applyGridMode(); fitCam(); vw.set=false; refreshHard();
+  });
+}
+function buildGsBox(){
+  let h='';
+  for(let i=0;i<3;i++){
+    if(i>0 && S.gridEq) break;
+    h+='<span style="margin-right:8px">'+(S.gridEq?'':axNameHTML(i)+': ')
+      +'<input type="number" class="tiny" id="gs'+i+'" step="0.1" min="0.1" value="'+S.gs[i]+'"></span>';
+  }
+  $('#gsBox').innerHTML=h;
+  for(let i=0;i<3;i++){
+    const el=$('#gs'+i); if(!el) continue;
+    el.addEventListener('change',e=>{ const v=Math.max(0.05,Math.round((+e.target.value)*1000)/1000)||0.5;
+      if(S.gridEq) S.gs=[v,v,v]; else S.gs[i]=v; refresh(); });
+  }
+}
+function buildURngGrid(){
+  const g=$('#uRngGrid');
+  g.classList.toggle('hidden', S.uRangeMode!=='fix');
+  if(S.uRangeMode!=='fix'){ g.innerHTML=''; return; }
+  let h='<span class="hd"></span><span class="hd">von</span><span class="hd">bis</span><span class="hd"></span>';
+  const rows = S.uEqRange ? [0] : [0,1,2];
+  for(const i of rows){
+    h+='<b>'+(S.uEqRange?'alle':axNameHTML(i))+'</b>'
+      +nIn(S.uRng[i][0],'un'+i,'step="1"')+nIn(S.uRng[i][1],'ux'+i,'step="1"')+'<span></span>';
+  }
+  g.innerHTML=h;
+  for(const i of rows){
+    $('#un'+i).addEventListener('change',e=>{ const v=+e.target.value;
+      if(S.uEqRange) S.uRng=S.uRng.map(r=>[v,r[1]]); else S.uRng[i][0]=v; markIndiv(); refresh(); });
+    $('#ux'+i).addEventListener('change',e=>{ const v=+e.target.value;
+      if(S.uEqRange) S.uRng=S.uRng.map(r=>[r[0],v]); else S.uRng[i][1]=v; markIndiv(); refresh(); });
+  }
+}
+function buildFindList(){
+  const l=$('#findList');
+  l.innerHTML = FIND_IDS.map(id=>'<label class="chk"><input type="checkbox" class="findc" data-i="'+id+'"> '
+    +FIND[id].lbl+'</label>').join('');
+  $$('.findc').forEach(c=>c.addEventListener('change',()=>{
+    let list=S.uFinds.filter(x=>x!==c.dataset.i);
+    if(c.checked) list.push(c.dataset.i);
+    if(!list.length) list=[c.dataset.i];
+    S.uFinds=FIND_IDS.filter(x=>list.includes(x));
+    markIndiv(); syncControls(); serialize();
+  }));
+}
+function buildCoordRow(){
+  const stp=S.intOnly?1:0.01;
+  let h='';
+  for(let i=0;i<3;i++){
+    h+='<div class="coord"><label for="c'+i+'">'+axNameHTML(i)+' =</label>'
+      +'<input type="number" id="c'+i+'" step="'+stp+'" value="'+S.P[i]+'">'
+      +'<input type="range" id="r'+i+'" step="'+stp+'" min="-10" max="10" value="'+S.P[i]+'"></div>';
+  }
+  $('#coordRow').innerHTML=h;
+  for(let i=0;i<3;i++){
+    const nEl=$('#c'+i), rEl=$('#r'+i);
+    const set=v=>{ S.P[i]=v; nEl.value=v; rEl.value=v; onPointChanged(); };
+    nEl.addEventListener('input',()=>{ const v=parseFloat(nEl.value); if(isFinite(v)) set(v); });
+    rEl.addEventListener('input',()=>set(parseFloat(rEl.value)));
+  }
+}
+function onPointChanged(){
+  step=Math.max(step,0); paintSteps(); serialize();
+  if(!S.dynRange) keepInView();
+  render();
+}
+function keepInView(){
+  if(!vw.set) return;
+  const q=projPx(S.P);
+  if(q[0]<30||q[0]>W-30||q[1]<30||q[1]>H-30) vw.set=false;
+}
+/* Felder mit dem aktuell gezeichneten Bereich füllen (bei „dynamisch") */
+function syncRangeFields(){
+  for(let i=0;i<3;i++){
+    const a=$('#rn'+i), b=$('#rx'+i);
+    if(a&&S.dynRange){ a.value=num(RNG[i][0]); b.value=num(RNG[i][1]); }
+    const r=$('#r'+i);
+    if(r){
+      const lo=Math.floor(RNG[i][0]), hi=Math.ceil(RNG[i][1]);
+      if(+r.min!==lo) r.min=lo;
+      if(+r.max!==hi) r.max=hi;
+    }
+  }
+}
+
+/* --- Schrittkarte --- */
+function paintSteps(){
+  const st=stepsFor(S.P, null, true);
+  step=clamp(step,0,st.length-1);
+  $('#stCnt').textContent = S.stepAll ? ('alle '+st.length+' Schritte') : ('Schritt '+(step+1)+' von '+st.length);
+  $('#stNote').innerHTML = S.stepAll ? st.map((s,i)=>'<b>'+(i+1)+'.</b> '+s.txt).join('<br>') : st[step].txt;
+  $('#stPrev').disabled = S.stepAll || step===0;
+  $('#stNext').disabled = S.stepAll || step===st.length-1;
+}
+/* --- Übungsmodus --- */
+/* Hinweis, wenn die Achsen nicht in der gewohnten Lage liegen */
+function layHint(){
+  if(S.lay==='012') return '';
+  return '<div class="lay-hint">⚠ Achtung: Die Achsen liegen hier anders als gewohnt – '
+    + axNameHTML(axOfRole(0))+' zeigt nach vorne, '
+    + axNameHTML(axOfRole(1))+' nach rechts und '
+    + axNameHTML(axOfRole(2))+' nach oben.</div>';
+}
+function paintTask(){
+  const bar=$('#taskBar');
+  const show = S.mode==='ueb' && !!task;
+  $('#btnNewTop').classList.toggle('hidden', !show);
+  if(!show){ bar.className='task hidden'; return; }
+  bar.className='task';
+  if(task.type==='draw')
+    bar.innerHTML='<div class="q">Zeichne den Punkt '+esc(ptStr('P',task.P))+' ein.</div>'
+      +'<div style="font-size:14px;color:#666">Tippe oder klicke an die Stelle, an der der Punkt liegt.</div>'+layHint();
+  else if(task.type==='read')
+    bar.innerHTML='<div class="q">Welche Koordinaten hat der eingezeichnete Punkt P?</div>'
+      +'<div style="font-size:14px;color:#666">Die Hilfsstrecken zeigen dir, wie er entstanden ist.</div>'+layHint();
+  else
+    bar.innerHTML='<div class="q">'+task.q+'</div>'
+      +(task.many?'<div style="font-size:14px;color:#666">Es gibt mehrere richtige Antworten.</div>':'')+layHint();
+  const withInput = task.type!=='draw';
+  $('#readRow').classList.toggle('hidden', !withInput);
+  $('#btnCheck').classList.toggle('hidden', !withInput);
+  if(withInput && !$('#q0')) buildReadRow();
+  $('#score').textContent = nTotal ? ('Richtig: '+nRight+' von '+nTotal) : '';
+  $('#btnSol').textContent = solVisible ? 'Lösung ausblenden' : 'Lösung zeigen';
+}
+function buildReadRow(){
+  let h='';
+  for(let i=0;i<3;i++) h+='<div class="coord"><label>'+axNameHTML(i)+' =</label>'
+    +'<input type="number" id="q'+i+'" step="'+(S.uFrac?0.05:1)+'"></div>';
+  $('#readRow').innerHTML=h;
+  for(let i=0;i<3;i++) $('#q'+i).addEventListener('keydown',e=>{ if(e.key==='Enter') checkAnswer(); });
+}
+function feedback(cls,html){ const f=$('#fb'); f.className='fb '+cls; f.innerHTML=html; }
+function checkAnswer(){
+  if(!task || task.type==='draw') return;
+  if(!$('#q0')) buildReadRow();
+  const v=[0,1,2].map(i=>parseFloat($('#q'+i).value));
+  if(v.some(x=>!isFinite(x))){ feedback('warn','Bitte trage alle drei Koordinaten ein.'); return; }
+  const first = !task.counted;          /* nur der erste Versuch zählt für den Punktestand */
+  if(first){ task.counted=true; nTotal++; }
+  answered=true;
+  const mark=(i,good)=>{ const el=$('#q'+i); if(el){ el.classList.remove('ok','bad'); el.classList.add(good?'ok':'bad'); } };
+  if(task.type==='read'){
+    const hit=[0,1,2].map(i=>Math.abs(v[i]-task.P[i])<0.12);
+    hit.forEach((good,i)=>mark(i,good));
+    const ok=hit.every(Boolean);
+    clickOK=ok;
+    if(ok){ if(first) nRight++; feedback('ok','Richtig! Der Punkt ist '+esc(ptStr('P',task.P))+'.'); }
+    else{
+      const wrong=[0,1,2].filter(i=>!hit[i]).map(i=>axNameHTML(i));
+      feedback('bad','Noch nicht richtig. Der Punkt ist '+esc(ptStr('P',task.P))+'. Sieh dir die '
+        +wrong.join('- und ')+'-Koordinate noch einmal an.');
+      if(S.autoHelp && first) showSolution(true);
+    }
+  } else {
+    task.ans=v;
+    const ok=!!task.chk(v);
+    clickOK=ok;
+    [0,1,2].forEach(i=>mark(i,ok));
+    if(ok){ if(first) nRight++; feedback('ok','Richtig! '+esc(ptStr('',v)).replace('(','(')+' erfüllt die Bedingung.'
+      +(task.many?' (Es gibt noch viele weitere Möglichkeiten.)':'')); }
+    else feedback('bad','Das passt noch nicht. Ein möglicher Punkt wäre '+esc(ptStr('',task.sol))+'.'
+      +(task.note?'<br>'+task.note:''));
+  }
+  paintTask(); render();
+}
+function showSolution(on){
+  solVisible = (on===undefined) ? !solVisible : on;
+  if(solVisible && task && (task.type==='draw' || task.type==='read')){
+    if(!task.counted){ task.counted=true; nTotal++; }
+    const first = !answered;
+    answered=true;
+    if(task.type==='read' && first)
+      feedback('sol','Der gesuchte Punkt ist <b>'+esc(ptStr('P',task.P))
+        +'</b>. Unten kannst du Schritt für Schritt nachvollziehen, wie er eingezeichnet wurde.');
+  }
+  if(task && task.type==='find'){
+    $('#solCard').className='stepcard hidden';
+    if(solVisible){
+      if(!task.counted){ task.counted=true; nTotal++; }
+      answered=true;
+      feedback('sol','Ein möglicher Punkt ist <b>'+esc(ptStr('',task.sol))+'</b>.'
+        +(task.many?' Es gibt noch weitere richtige Antworten.':'')
+        +(task.note?'<br>'+task.note:''));
+    }
+  } else {
+    $('#solCard').className = solVisible ? 'stepcard' : 'stepcard hidden';
+    if(solVisible){ solStep=clamp(solStep,0,99); paintSolNote(); }
+  }
+  paintTask(); render();
+}
+function paintSolNote(){
+  if(!task || task.type==='find') return;
+  const st=stepsFor(task.P, task.appr);
+  solStep=clamp(solStep,0,st.length-1);
+  $('#soCnt').textContent='Schritt '+(solStep+1)+' von '+st.length;
+  $('#solNote').innerHTML=st[solStep].txt;
+  $('#soPrev').disabled=solStep===0;
+  $('#soNext').disabled=solStep===st.length-1;
+}
+function tapAnswer(q){
+  if(!task||task.type!=='draw'||answered||solVisible) return;
+  if(S.view==='3d'){ feedback('warn','Zum Einzeichnen bitte auf das 2D-Schrägbild umschalten – im Raum ist die Stelle nicht eindeutig anzuklicken.'); return; }
+  clickPt=q;
+  const res=judge(q); clickOK=res.ok;
+  if(!task.counted){ task.counted=true; nTotal++; if(res.ok) nRight++; }
+  if(res.ok){
+    answered=true;
+    feedback('ok','Richtig! Genau dort liegt '+esc(ptStr('P',task.P))+'.');
+  } else {
+    let m='Noch nicht richtig – dein Kreuz liegt '+(res.dir||'neben der richtigen Stelle')+'.';
+    if(res.hint) m+='<br><b>Vermutung:</b> '+res.hint;
+    if(S.autoHelp){ answered=true; feedback('bad',m); showSolution(true); return; }
+    answered=false;                       /* ohne Lösung: neuer Versuch erlaubt */
+    feedback('bad', m+'<br>Du kannst es gleich noch einmal versuchen.');
+  }
+  paintTask(); render();
+}
+
+/* --- Bedienelemente spiegeln --- */
+function syncControls(){
+  segAll('mode',S.mode); segAll('naming',S.naming); segAll('lay',S.layMode); segAll('neg',S.negMode);
+  segAll('grid',S.gridMode); segAll('gridstyle',S.gridStyle); segAll('ptstyle',S.ptStyle);
+  segAll('ptlabel',S.ptLabel); segAll('app',S.approach); segAll('order',S.order);
+  segAll('diff',S.diff); segAll('urange',S.uRangeMode); segAll('tol',S.uTol);
+  $('#cnBox').classList.toggle('hidden', S.naming!=='custom');
+  for(let i=0;i<3;i++) $('#cn'+i).value=S.cn[i];
+  $('#cbNames').checked=S.showNames; $('#cbNums').checked=S.showNums; $('#cbTicks').checked=S.showTicks;
+  $('#numEvery').value=S.numEvery; $('#cbAxExt').checked=S.axExt;
+  $('#fontScale').value=S.fontScale; $('#fontRange').value=S.fontScale;
+  $('#fsPrev').style.fontSize=fsz(13)+'px';
+  $('#fsPrev').style.fontWeight=S.lblBold?'bold':'normal';
+  $('#cbLblBold').checked=S.lblBold; $('#cbHidDash').checked=S.hidDash; $('#cbDeep2').checked=S.deep2;
+  $('#cbColorful').checked=S.axColorful;
+  segAll('lblcol',S.lblColMode);
+  $('#lblColBox').classList.toggle('hidden', S.lblColMode!=='custom');
+  for(let i=0;i<3;i++) $('#lc'+i).value=S.lblCol[i];
+  $$('.sel-proj').forEach(e=>e.value=S.proj);
+  $('#cbDyn').checked=S.dynRange; $('#cbAxFull').checked=S.axFull;
+  $('#axFullWrap').classList.toggle('is-disabled', !S.dynRange);
+  $('#cbScaleEq').checked=S.scaleEq; $('#cbColEq').checked=S.colEq;
+  $('#cbNeg').checked=S.negOn; $('#negCol').value=S.negCol;
+  $('#negBox').classList.toggle('is-disabled', !S.negOn);
+  $('#cbNoGrid').checked = S.gridMode==='aus';
+  $('#gridSettings').classList.toggle('is-disabled', S.gridMode==='aus');
+  $('#gridFree').classList.toggle('hidden', S.gridMode!=='frei');
+  $$('.gpl').forEach(c=>c.checked=S.gpl.includes(c.dataset.p));
+  $$('.gneg').forEach(c=>{ c.checked=!!S.gneg[c.dataset.p]; c.disabled=!S.gpl.includes(c.dataset.p); });
+  $('#cbGridEq').checked=S.gridEq; $('#gridCol').value=S.gridCol; $('#cbGridBold').checked=S.gridBold;
+  $('#gridBoldN').value=S.gridBoldN; $('#gridBoldN').disabled=!S.gridBold;
+  $('#ptCol').value=S.ptCol; $('#cbBase').checked=S.showBase;
+  $('#cbHelp').checked=S.helpers; $('#cbPt').checked=S.showPt; $('#cbAll').checked=S.stepAll;
+  $('#cbUEq').checked=S.uEqRange; $('#cbUPos').checked=S.uPosOnly; $('#cbUFrac').checked=S.uFrac;
+  $('#uFracP').value=S.uFracP; $('#uFracP').disabled=!S.uFrac; $('#cbUEven').checked=S.uEvenDeep;
+  $('#uEqWrap').classList.toggle('hidden', S.uRangeMode!=='fix');
+  $('#cbUOnlySel').checked=S.uOnlySel; $('#cbAutoHelp').checked=S.autoHelp;
+  $$('.cbInt').forEach(c=>c.checked=S.intOnly);
+  $$('.utype').forEach(c=>{ c.checked=S.uTypes.includes(c.dataset.t);
+    if(c.parentNode.tagName==='LABEL') c.parentNode.classList.toggle('on', c.checked); });
+  $$('.rapp').forEach(c=>{ c.checked=S.readApps.includes(c.dataset.a);
+    if(c.parentNode.tagName==='LABEL') c.parentNode.classList.toggle('on', c.checked); });
+  $('#readAppLine').classList.toggle('is-disabled', !S.uTypes.includes('read'));
+  $('#readAppLine2').classList.toggle('is-disabled', !S.uTypes.includes('read'));
+  $('#cbReadLike').checked=S.readLikeErk;
+  $$('[data-chips="readapps"]').forEach(g=>g.classList.toggle('is-disabled', S.readLikeErk));
+  $$('.findc').forEach(c=>c.checked=S.uFinds.includes(c.dataset.i));
+  $('#findBox').classList.toggle('is-disabled', !S.uTypes.includes('find'));
+  $('#orderLine').classList.toggle('is-disabled', S.approach!=='achsen');
+  $('#panelErk').classList.toggle('hidden', S.mode!=='erk');
+  $('#panelUeb').classList.toggle('hidden', S.mode!=='ueb');
+  $$('.erk-only').forEach(e=>e.classList.toggle('hidden', S.mode!=='erk'));
+  $$('.ueb-only').forEach(e=>e.classList.toggle('hidden', S.mode!=='ueb'));
+  $('#btnNewTop').classList.toggle('hidden', S.mode!=='ueb' || !task);
+  $('#btnView').textContent = S.view==='2d' ? '3D' : '2D';
+  $('#btnView').title = S.view==='2d' ? 'In die räumliche Ansicht wechseln' : 'Zurück zum Schrägbild';
+  const drawTask = S.mode==='ueb' && task && task.type==='draw' && !answered;
+  const parts = S.view==='3d'
+    ? (drawTask ? ['Zum Einzeichnen auf 2D umschalten']
+                : ['Ziehen = drehen','rechte Maustaste / 2 Finger = verschieben','Mausrad = zoomen'])
+    : (drawTask ? ['Tippe an die Stelle, an der der Punkt liegt']
+                : ['Ziehen = verschieben','Mausrad = zoomen']);
+  $('#stageHint').innerHTML = parts.map(t=>'<span>'+t+'</span>').join('');
+  $('#stageInfo').innerHTML = S.mode==='erk' ? esc(ptStr('P',S.P)) : '';
+  $('#stageInfo').classList.toggle('hidden', S.mode!=='erk');
+}
+function refresh(){ serialize(); syncControls(); if(S.mode==='erk') paintSteps(); render(); }
+function refreshHard(){ buildDynamicUI(); refresh(); }
+
+/* --- Modus / Ansicht --- */
+function setMode(m){
+  S.mode=m; solVisible=false;
+  if(m==='erk' && restoreViewBackup()) buildDynamicUI();
+  if(m==='ueb' && S.view!=='2d') S.view='2d';
+  $('#solCard').className='stepcard hidden';
+  if(m==='ueb' && !task){ syncControls(); newTask(); serialize(); return; }
+  paintTask(); refresh();
+}
+function setView(v){
+  if(v===S.view) return;
+  S.view=v;
+  if(v==='3d') fitCam();            /* Blickrichtung passend zum Schrägbild, Ausschnitt bleibt */
+  refresh();
+}
+
+/* --- Zeigerbedienung --- */
+function initPointer(){
+  const box=$('#stageBox'), ptrs=new Map();
+  let pinch0=null;
+  const mid=()=>{ const a=[...ptrs.values()];
+    return {x:(a[0].x+a[1].x)/2, y:(a[0].y+a[1].y)/2, d:Math.hypot(a[0].x-a[1].x, a[0].y-a[1].y)}; };
+  box.addEventListener('contextmenu', e=>e.preventDefault());
+  box.addEventListener('pointerdown', e=>{
+    if(e.target.closest('button')||e.target.closest('.menu')||e.target.closest('.rz')) return;
+    closeMenu();
+    try{ box.setPointerCapture(e.pointerId); }catch(err){}
+    ptrs.set(e.pointerId,{x:e.clientX, y:e.clientY, moved:0, t:Date.now(),
+                          pan:(e.button===1||e.button===2||e.shiftKey)});
+    if(ptrs.size===2){ const m=mid(); pinch0={d:m.d,k:vw.k,cx:vw.cx,cy:vw.cy,x:m.x,y:m.y}; }
+  });
+  box.addEventListener('pointermove', e=>{
+    const p=ptrs.get(e.pointerId); if(!p) return;
+    const dx=e.clientX-p.x, dy=e.clientY-p.y;
+    p.moved+=Math.abs(dx)+Math.abs(dy); p.x=e.clientX; p.y=e.clientY;
+    if(ptrs.size===1){
+      if(p.pan){ vw.cx-=dx/vw.k; vw.cy+=dy/vw.k; render(); }
+      else if(S.view==='3d'){ cam.az-=dx*0.008; cam.el=clamp(cam.el+dy*0.008,-1.52,1.52); render(); }
+      else { vw.cx-=dx/vw.k; vw.cy+=dy/vw.k; render(); }
+    } else if(ptrs.size===2 && pinch0){
+      const m=mid(), f=clamp(m.d/Math.max(8,pinch0.d),0.2,5);
+      vw.k=clamp(pinch0.k*f,6,900);
+      vw.cx=pinch0.cx-(m.x-pinch0.x)/vw.k;
+      vw.cy=pinch0.cy+(m.y-pinch0.y)/vw.k;
+      render();
+    }
+  });
+  const end=e=>{
+    const p=ptrs.get(e.pointerId); ptrs.delete(e.pointerId);
+    if(ptrs.size<2) pinch0=null;
+    if(p && !p.pan && p.moved<9 && Date.now()-p.t<900 && S.mode==='ueb'){
+      const r=box.getBoundingClientRect();
+      tapAnswer(unpx(e.clientX-r.left-box.clientLeft, e.clientY-r.top-box.clientTop));
+    }
+  };
+  box.addEventListener('pointerup',end);
+  box.addEventListener('pointercancel',e=>{ ptrs.delete(e.pointerId); pinch0=null; });
+  box.addEventListener('wheel',e=>{
+    e.preventDefault();
+    const r=box.getBoundingClientRect(), sx=e.clientX-r.left, sy=e.clientY-r.top;
+    const b=unpx(sx,sy);
+    vw.k=clamp(vw.k*(e.deltaY<0?1.12:1/1.12),6,900);
+    const a=unpx(sx,sy);
+    vw.cx+=b[0]-a[0]; vw.cy+=b[1]-a[1];
+    render();
+  },{passive:false});
+}
+
+/* Zeichenbereich an Rand oder Ecke ziehen. Der Kasten ist zentriert – damit die rechte
+   Kante genau der Maus folgt, wächst die Breite um 2*dx. Oben bleibt der Ausschnitt stehen. */
+function initResize(){
+  const box=$('#stageBox');
+  $$('.rz').forEach(h=>{
+    h.addEventListener('pointerdown', e=>{
+      e.preventDefault(); e.stopPropagation();
+      try{ h.setPointerCapture(e.pointerId); }catch(err){}
+      const dir=h.dataset.rz, x0=e.clientX, y0=e.clientY;
+      const w0=box.clientWidth, h0=box.clientHeight;
+      const move=ev=>{
+        if(dir.indexOf('x')>=0){
+          const w=clamp(w0 + 2*(ev.clientX-x0), 260, Math.max(280, window.innerWidth-24));
+          box.style.maxWidth='none'; box.style.width=Math.round(w)+'px';
+        }
+        if(dir.indexOf('y')>=0){
+          const hh=clamp(h0 + (ev.clientY-y0), 200, 2400);
+          box.style.height=Math.round(hh)+'px';
+        }
+        const dH=box.clientHeight-H;
+        if(dH && vw.set) vw.cy -= dH/(2*vw.k);          /* obere Kante bleibt stehen */
+        render();
+      };
+      const up=()=>{
+        try{ h.releasePointerCapture(e.pointerId); }catch(err){}
+        h.removeEventListener('pointermove',move); h.removeEventListener('pointerup',up);
+        render();
+      };
+      h.addEventListener('pointermove',move);
+      h.addEventListener('pointerup',up);
+    });
+  });
+}
+
+/* --- Teilen / Speichern --- */
+function closeMenu(){ $('#expMenu').classList.add('hidden'); }
+function exportName(ext){
+  const p = (S.mode==='ueb'&&task&&task.P) ? task.P : S.P;
+  return 'koordinatensystem_'+p.map(v=>String(v).replace('.','-')).join('_')+'.'+ext;
+}
+const svgForExport = () => lastSVG.replace('width="100%" height="100%"','width="'+Math.round(W)+'" height="'+Math.round(H)+'"');
+function saveBlob(blob,name){
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob); a.download=name;
+  document.body.appendChild(a); a.click();
+  setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); },400);
+}
+function expSVG(){ saveBlob(new Blob([svgForExport()],{type:'image/svg+xml;charset=utf-8'}), exportName('svg')); }
+function expPNG(){
+  const img=new Image();
+  img.onload=()=>{
+    const cv=document.createElement('canvas');
+    cv.width=Math.round(W*2); cv.height=Math.round(H*2);
+    const c=cv.getContext('2d');
+    c.fillStyle='#fff'; c.fillRect(0,0,cv.width,cv.height);
+    c.drawImage(img,0,0,cv.width,cv.height);
+    cv.toBlob(b=>saveBlob(b,exportName('png')),'image/png');
+  };
+  img.onerror=()=>alert('Das Bild konnte nicht erzeugt werden.');
+  img.src='data:image/svg+xml;base64,'+btoa(unescape(encodeURIComponent(svgForExport())));
+}
+async function copyLink(btn){
+  serialize();
+  let ok=true;
+  try{ await navigator.clipboard.writeText(location.href); }catch(e){ ok=false; }
+  btn.textContent = ok ? '✓ Link kopiert' : 'Link steht in der Adresszeile';
+  setTimeout(()=>{ btn.textContent='🔗 Link mit allen Einstellungen kopieren'; closeMenu(); },1400);
+}
+
+/* --- Verdrahtung --- */
+function bindChk(id,key,after){ $(id).addEventListener('change',e=>{ S[key]=e.target.checked; (after||refresh)(); }); }
+/* Hilfetexte: Maus = nach kurzem Verweilen, Touch = antippen. Bleiben immer im Bild. */
+function initTips(){
+  const tip=document.createElement('div');
+  tip.className='tipbox hidden';
+  document.body.appendChild(tip);
+  let timer=null, cur=null;
+  const hide=()=>{ clearTimeout(timer); tip.classList.add('hidden'); cur=null; };
+  const show=el=>{
+    tip.innerHTML=el.dataset.tip;
+    tip.classList.remove('hidden');
+    tip.style.left='0px'; tip.style.top='0px';
+    const r=el.getBoundingClientRect(), tw=tip.offsetWidth||220, th=tip.offsetHeight||40;
+    let x=r.left + r.width/2 - tw/2;
+    x=Math.max(6, Math.min(x, (window.innerWidth||900) - tw - 6));
+    let y=r.top - th - 8;
+    if(y < 6) y = r.bottom + 8;
+    tip.style.left=Math.round(x + (window.scrollX||0))+'px';
+    tip.style.top =Math.round(y + (window.scrollY||0))+'px';
+    cur=el;
+  };
+  document.addEventListener('pointerover', e=>{
+    if(e.pointerType && e.pointerType!=='mouse') return;
+    const el=e.target.closest && e.target.closest('[data-tip]');
+    clearTimeout(timer);
+    if(!el){ if(cur) hide(); return; }
+    if(el===cur) return;
+    timer=setTimeout(()=>show(el), 400);
+  });
+  document.addEventListener('pointerdown', e=>{
+    const el=e.target.closest && e.target.closest('[data-tip]');
+    if(el && e.pointerType && e.pointerType!=='mouse'){
+      e.preventDefault();
+      if(cur===el) hide(); else show(el);
+    } else if(!el) hide();
+  });
+  window.addEventListener('scroll', hide, {passive:true});
+}
+function initUI(){
+  segBind('mode',setMode);
+  segBind('naming',v=>{ S.naming=v; refreshHard(); });
+  segBind('lay',v=>{
+    S.layMode=v;
+    if(v==='std1') S.lay='012'; else if(v==='std2') S.lay='201';
+    applyGridMode(); fitCam(); vw.set=false; refreshHard();
+  });
+  segBind('neg',v=>{ S.negMode=v; refresh(); });
+  segBind('grid',v=>{
+    if(v!=='aus') gridPrev=v;
+    S.gridMode=v; applyGridMode();
+    if(v==='frei') openSettings('#blkGrid');
+    refresh();
+  });
+  segBind('gridstyle',v=>{ S.gridStyle=v; refresh(); });
+  segBind('ptstyle',v=>{ S.ptStyle=v; refresh(); });
+  segBind('ptlabel',v=>{ S.ptLabel=v; refresh(); });
+  segBind('app',v=>{ S.approach=v; step=0; refresh(); });
+  segBind('order',v=>{ S.order=v; step=0; refresh(); });
+  segBind('diff',applyPreset);
+  segBind('urange',v=>{ S.uRangeMode=v; markIndiv(); buildURngGrid(); refresh(); });
+  segBind('tol',v=>{ S.uTol=v; markIndiv(); refresh(); });
+  for(let i=0;i<3;i++) $('#cn'+i).addEventListener('change',e=>{ S.cn[i]=e.target.value||['x','y','z'][i]; refreshHard(); });
+  bindChk('#cbNames','showNames'); bindChk('#cbNums','showNums'); bindChk('#cbTicks','showTicks');
+  bindChk('#cbAxExt','axExt');
+  $('#numEvery').addEventListener('change',e=>{ S.numEvery=Math.max(0.05,+e.target.value||1); refresh(); });
+  const setFont=v=>{ S.fontScale=clamp(Math.round(v)||100,50,250); refresh(); };
+  $('#fontScale').addEventListener('change',e=>setFont(+e.target.value));
+  $('#fontRange').addEventListener('input',e=>setFont(+e.target.value));
+  $('#fontRange').addEventListener('change',e=>setFont(+e.target.value));
+  bindChk('#cbLblBold','lblBold'); bindChk('#cbHidDash','hidDash'); bindChk('#cbDeep2','deep2');
+  segBind('lblcol',v=>{ S.lblColMode=v; refresh(); });
+  for(let i=0;i<3;i++) ['input','change'].forEach(ev=>$('#lc'+i).addEventListener(ev,e=>{
+    S.lblCol[i]=e.target.value; S.lblColMode='custom'; refresh(); }));
+  $('#cbColorful').addEventListener('change',e=>{
+    S.axColorful=e.target.checked;
+    if(S.axColorful){ S.colEq=false; S.col=['#d32f2f','#2e7d32','#1565c0']; }
+    else { S.colEq=true; S.col=['#222222','#222222','#222222']; }
+    refreshHard();
+  });
+  $$('.sel-proj').forEach(el=>el.addEventListener('change',e=>{
+    S.proj=e.target.value;
+    if(PROJ[S.proj]) S.rolev=JSON.parse(JSON.stringify(PROJ[S.proj]));
+    fitCam(); refreshHard();
+  }));
+  $('#cbNoGrid').addEventListener('change',e=>{
+    if(e.target.checked){ gridPrev = S.gridMode==='aus' ? gridPrev : S.gridMode; S.gridMode='aus'; }
+    else S.gridMode = gridPrev||'karo';
+    applyGridMode(); refresh();
+  });
+  bindChk('#cbDyn','dynRange',()=>{ if(!S.dynRange) S.rng=RNG.map(r=>[Math.round(r[0]),Math.round(r[1])]);
+    vw.set=false; refreshHard(); });
+  bindChk('#cbAxFull','axFull');
+  bindChk('#cbScaleEq','scaleEq',()=>{ if(S.scaleEq) S.sc=[S.sc[0],S.sc[0],S.sc[0]]; vw.set=false; refreshHard(); });
+  bindChk('#cbColEq','colEq',()=>{ if(S.colEq) S.col=[S.col[0],S.col[0],S.col[0]]; refreshHard(); });
+  bindChk('#cbNeg','negOn');
+  $('#negCol').addEventListener('input',e=>{ S.negCol=e.target.value; S.negMode='custom'; refresh(); });
+  $$('.gpl').forEach(c=>c.addEventListener('change',()=>{
+    S.gpl=$$('.gpl').filter(x=>x.checked).map(x=>x.dataset.p);
+    S.gridMode='frei'; refresh();
+  }));
+  $$('.gneg').forEach(c=>c.addEventListener('change',()=>{
+    S.gneg[c.dataset.p]=c.checked; S.gridMode='frei'; refresh();
+  }));
+  bindChk('#cbGridEq','gridEq',()=>{ if(S.gridEq) S.gs=[S.gs[0],S.gs[0],S.gs[0]]; buildGsBox(); refresh(); });
+  $('#gridCol').addEventListener('input',e=>{ S.gridCol=e.target.value; refresh(); });
+  bindChk('#cbGridBold','gridBold');
+  $('#gridBoldN').addEventListener('change',e=>{ S.gridBoldN=clamp(Math.round(+e.target.value)||2,2,20); refresh(); });
+  $('#btnResize').addEventListener('click',()=>{
+    const b=$('#stageBox'), on=!b.classList.contains('resizable');
+    b.classList.toggle('resizable', on);
+    $('#btnResize').style.background = on ? '#4CAF50' : '';
+    $('#btnResize').style.color = on ? '#fff' : '';
+    render();
+  });
+  initResize();
+  $('#ptCol').addEventListener('input',e=>{ S.ptCol=e.target.value; refresh(); });
+  bindChk('#cbBase','showBase'); bindChk('#cbHelp','helpers'); bindChk('#cbPt','showPt');
+  bindChk('#cbAll','stepAll');
+  $$('.cbInt').forEach(c=>c.addEventListener('change',e=>{
+    S.intOnly=e.target.checked;
+    if(S.intOnly) S.P=S.P.map(v=>Math.round(v));
+    buildCoordRow(); refresh();
+  }));
+  bindChk('#cbUEq','uEqRange',()=>{ markIndiv(); buildURngGrid(); refresh(); });
+  bindChk('#cbUPos','uPosOnly',()=>{ markIndiv(); refresh(); });
+  bindChk('#cbUFrac','uFrac',()=>{ markIndiv(); refresh(); });
+  bindChk('#cbUEven','uEvenDeep',()=>{ markIndiv(); refresh(); });
+  bindChk('#cbReadLike','readLikeErk',()=>{ markIndiv(); refresh(); });
+  $('#uFracP').addEventListener('change',e=>{ S.uFracP=clamp(+e.target.value||0,0,100); markIndiv(); refresh(); });
+  bindChk('#cbUOnlySel','uOnlySel',()=>{
+    markIndiv();
+    if(S.uOnlySel && restoreViewBackup()) buildDynamicUI();
+    refresh();
+  });
+  bindChk('#cbAutoHelp','autoHelp',()=>{ markIndiv(); refresh(); });
+  $('#findAll').addEventListener('click',()=>{
+    S.uFinds = S.uFinds.length===FIND_IDS.length ? [FIND_IDS[0]] : FIND_IDS.slice();
+    markIndiv(); syncControls(); serialize();
+  });
+  $('#stPrev').addEventListener('click',()=>{ step--; refresh(); });
+  $('#stNext').addEventListener('click',()=>{ step++; refresh(); });
+  $('#soPrev').addEventListener('click',()=>{ solStep--; paintSolNote(); render(); });
+  $('#soNext').addEventListener('click',()=>{ solStep++; paintSolNote(); render(); });
+  $('#btnNext').addEventListener('click',()=>newTask());
+  $('#btnNewTop').addEventListener('click',()=>newTask());
+  $('#btnSol').addEventListener('click',()=>showSolution());
+  $('#btnCheck').addEventListener('click',checkAnswer);
+  $('#btnZoomIn').addEventListener('click',()=>{ vw.k=clamp(vw.k*1.2,6,900); render(); });
+  $('#btnZoomOut').addEventListener('click',()=>{ vw.k=clamp(vw.k/1.2,6,900); render(); });
+  $('#btnFit').addEventListener('click',()=>{ if(S.view==='3d') fitCam(); vw.set=false; render(); });
+  $('#btnView').addEventListener('click',()=>setView(S.view==='2d'?'3d':'2d'));
+  $('#btnMenu').addEventListener('click',e=>{ e.stopPropagation(); $('#expMenu').classList.toggle('hidden'); });
+  $('#expMenu').addEventListener('click',e=>{
+    const b=e.target.closest('button'); if(!b) return;
+    if(b.dataset.x==='png'){ expPNG(); closeMenu(); }
+    else if(b.dataset.x==='svg'){ expSVG(); closeMenu(); }
+    else copyLink(b);
+  });
+  document.addEventListener('click',e=>{ if(!e.target.closest('.stage-tools')) closeMenu(); });
+  $('#btnReset').addEventListener('click',()=>{
+    S=JSON.parse(JSON.stringify(DEF)); step=0; task=null; nRight=nTotal=0; solVisible=false; viewBackup=null;
+    applyGridMode(); fitCam(); vw.set=false;
+    buildDynamicUI(); syncControls();
+    if(S.mode==='ueb') newTask(); else refresh();
+  });
+  window.addEventListener('keydown',e=>{
+    const t=e.target&&e.target.tagName;
+    if(t==='INPUT'||t==='SELECT'||t==='TEXTAREA') return;
+    if(e.key!=='ArrowRight'&&e.key!=='ArrowLeft') return;
+    const d=e.key==='ArrowRight'?1:-1;
+    if(S.mode==='erk'&&!S.stepAll){ step+=d; e.preventDefault(); refresh(); }
+    else if(S.mode==='ueb'&&solVisible&&task&&task.type!=='find'){ solStep+=d; e.preventDefault(); paintSolNote(); render(); }
+  });
+  let rT=null;
+  window.addEventListener('resize',()=>{ clearTimeout(rT); rT=setTimeout(render,120); });
+  initPointer();
+}
+function init(){
+  deserialize();
+  if(!new URLSearchParams(location.search).has('rv') && PROJ[S.proj])
+    S.rolev=JSON.parse(JSON.stringify(PROJ[S.proj]));
+  if(S.gridMode!=='aus') gridPrev=S.gridMode;
+  if(S.gridMode!=='frei') applyGridMode();
+  fitCam();
+  buildDynamicUI(); initUI(); initTips(); syncControls();
+  paintSteps(); render();
+  if(S.mode==='ueb'){ if(!task) newTask(); }
+}
+if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', init); else init();
+
+</script>
+</body>
+</html>
