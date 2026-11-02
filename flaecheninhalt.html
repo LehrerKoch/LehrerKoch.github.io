@@ -3,7 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Flächeninhalte berechnen &amp; visualisieren</title>
+<link rel="shortcut icon" type="image/x-icon" href="aleph_zero_logo.ico">
+<script>try{var t=localStorage.getItem('matheToolsTheme');if(t==='dark'||(!t&&window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.classList.add('dark');}catch(e){}</script>
+<title data-de="Flächeninhalte berechnen &amp; visualisieren" data-en="Calculating &amp; visualising areas">Flächeninhalte berechnen &amp; visualisieren</title>
+<script src="theme-language.js" defer></script>
 
 <!-- MathJax -->
 <script>
@@ -20,20 +23,26 @@ window.MathJax = {
 
 <!-- Portal-Basisstil (im Repo vorhanden); Inline-Stile unten überschreiben/ergänzen -->
 <link rel="stylesheet" href="styles.css">
-<!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-5K8WYYXDL2"></script>
-    <script>
+<!-- gemeinsames Aussehen der Aufgabengeneratoren -->
+<link rel="stylesheet" href="aufgaben.css">
+    <!-- Besuchszaehlung (Google Analytics). Geladen wird sie erst, wenn der
+         Besucher zustimmt - siehe einwilligung.js. -->
+<script>
         window.dataLayer = window.dataLayer || [];
         function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-        gtag('config', 'G-5K8WYYXDL2');
+        window.TK_GA_ID = 'G-5K8WYYXDL2';   /* Google Analytics laedt erst nach Einwilligung, siehe einwilligung.js */
     </script>
+<script src="einwilligung.js" defer></script>
 
 <style>
 /* ---- Basis (Fallback, falls styles.css fehlt / für die Vorschau) ---- */
-html{scrollbar-gutter:stable;overflow-y:scroll;}
+html{scrollbar-gutter:stable;}
 body{font-family:Calibri,'Segoe UI',sans-serif;display:flex;flex-direction:column;padding:0 2%;margin:0;color:#1a1a1a;line-height:1.4;background:#fff;}
-h1{font-size:1.5em;margin:.5em 0 .3em;}
+/* Inhaltsspalte nimmt den uebrigen Platz, damit die Fussleiste darin unten sitzt */
+.wrap{display:flex;flex-direction:column;flex:1 0 auto;}
+.site-footer{margin-top:auto;}
+h1{font-size:1.5em;margin:.5em 0 .3em;padding-right:150px;}
+@media(max-width:560px){h1{padding-right:0;margin-top:52px;}}
 button{background:#4CAF50;color:#fff;border:none;padding:10px 20px;font-size:12px;margin:4px 2px;border-radius:5px;cursor:pointer;}
 button:hover{filter:brightness(1.05);}
 details{border:2px solid #000;border-radius:6px;margin:10px 0;padding:6px 10px;}
@@ -50,15 +59,24 @@ details[open]>summary::before{transform:rotate(90deg);}
   --chip:#eef2ef; --chip-active:#4CAF50; --blue:#2f6fb0; --amber:#e08b00;
 }
 *{box-sizing:border-box;}
-.wrap{max-width:820px;width:100%;margin:0 auto;}
+.wrap{max-width:var(--tk-breite,960px);width:100%;margin:0 auto;}
 .muted{color:#666;font-size:.9em;}
 .small{font-size:.85em;}
 .hidden{display:none !important;}
 
 /* Segmented switches */
+/* Die Schalter über der Aufgabe stehen in derselben Leiste wie auf den
+   anderen Seiten (#topControls mit .tc-item/.tc-label aus aufgaben.css). */
+.btn-new{font-size:14px;font-weight:bold;padding:10px 24px;border-radius:9px;
+  border:2px solid var(--accent-d);box-shadow:0 2px 6px rgba(76,175,80,.28);}
+
+/* Rahmen der Modusleiste - dieselbe Form wie in aufgaben.css. */
+.seg-block{text-align:center;margin:11px 0;}
+.seg-block .seg-label{display:block;font-weight:bold;font-size:.84rem;color:#5a6b5c;margin-bottom:4px;}
 .seg{display:inline-flex;flex-wrap:wrap;gap:0;border:1.5px solid var(--accent);border-radius:8px;overflow:hidden;background:#fff;vertical-align:middle;}
 .seg button{background:#fff;color:#2a2a2a;border:none;border-right:1px solid var(--line);margin:0;padding:7px 12px;font-size:12px;border-radius:0;}
 .seg button:last-child{border-right:none;}
+@media(max-width:620px){ #mode-switch{display:flex;width:100%;} #mode-switch button{flex:1 1 0;min-width:0;} }
 .seg button.on{background:var(--accent);color:#fff;font-weight:bold;}
 .seg.small button{padding:5px 9px;font-size:11px;}
 .ctl-row{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;margin:8px 0;}
@@ -83,13 +101,17 @@ details[open]>summary::before{transform:rotate(90deg);}
 .formulas .chip .tag.trig{background:#8552c9;}
 
 /* Aufgabenkarte */
-.task-card{border:2px solid #222;border-radius:12px;padding:14px 16px;margin:14px 0;background:#fff;}
+/* Der Aufgabenrahmen wie auf den anderen Seiten: grün und hell hinterlegt. */
+.task-card{position:relative;border:1.5px solid var(--ab-gr,#4a9a4a);border-radius:12px;
+  padding:14px 16px;margin:14px 0;background:var(--ab-flaeche,#f8fff8);}
 .task-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px;}
 .task-title{font-weight:bold;display:inline-flex;align-items:center;gap:6px;}
 .tt-hidden{font-weight:normal;color:#6b7a6b;font-style:italic;}
 .eye-btn{background:none;border:none;padding:2px;margin:0;color:#4a6a4a;opacity:.38;cursor:pointer;line-height:0;border-radius:4px;transition:opacity .15s,color .15s;}
 .eye-btn:hover,.eye-btn:focus{opacity:1;color:#256b2a;background:#eef7ee;}
-.badge{font-size:11px;padding:2px 8px;border-radius:10px;background:#eef2ef;color:#3c6b3c;border:1px solid #cfe0cf;}
+/* Das Schild sitzt oben rechts auf dem Rand des Aufgabenfelds. */
+.badge{position:absolute;top:-10px;right:14px;z-index:2;font-size:11px;padding:2px 9px;
+  border-radius:10px;background:#eef7ee;color:#3c6b3c;border:1px solid #cfe0cf;}
 .badge.inv{background:#fff3e0;color:#a35a00;border-color:#ffd699;}
 .task-body{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start;}
 .task-text{flex:1 1 240px;min-width:0;}
@@ -115,10 +137,18 @@ svg.sketch{max-width:100%;height:auto;}
 
 .act-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
 .act-row.center{justify-content:center;}
-.btn-hint{background:#fff;color:var(--amber);border:1.5px solid var(--amber);font-weight:bold;}
+/* Hilfestellungen sind überall gelb und rund - wie der Hinweis-Knopf auf
+   den anderen Seiten. Die nächste Hilfestufe bleibt der leise Knopf darunter. */
+.btn-hint{background:var(--ab-ge-knopf,#E0A800);color:var(--ab-ge-schrift,#3a2c00);
+  border:none;border-radius:22px;padding:9px 18px;font-size:1em;font-weight:bold;}
+.btn-hint-next{background:#fff;color:var(--amber);border:1.5px solid var(--amber);
+  font-weight:bold;}
 .btn-sol{background:#fff;color:var(--blue);border:1.5px solid var(--blue);font-weight:bold;}
 .btn-new{background:var(--accent);color:#fff;}
 .btn-ghost{background:#fff;color:#444;border:1px solid var(--line);}
+/* Pruefen-Knopf – frueher per style-Attribut gesetzt, damit der Dunkelmodus greift */
+.btn-check{background:var(--accent);color:#fff;}
+.btn-check:hover{filter:brightness(1.05);}
 
 /* Hilfe / Lösung Boxen */
 .help-box{border:1.5px solid var(--amber);border-radius:10px;background:#fffdf6;padding:10px 12px;margin-top:10px;}
@@ -144,6 +174,9 @@ svg.sketch{max-width:100%;height:auto;}
 .check-line>span{flex:1 1 auto;line-height:1.35;padding-top:1px;}
 .opt-line label{font-size:.9em;}
 .unitset button{padding:5px 9px;font-size:11px;}
+/* nicht ausgewaehlte Einheit – frueher per style-Attribut, damit der Dunkelmodus greift */
+.unitset button.unit-off{background:#fff;color:#444;border:1px solid #ccc;}
+html.dark .unitset button.unit-off{background:#242b33;color:#b6c0c9;border-color:#4a545e;}
 
 /* Footer (Portal-Markup) */
 /* #lobby-spacer{flex:1 0 30px;}
@@ -167,7 +200,7 @@ svg.sketch{max-width:100%;height:auto;}
     grid-template-columns: 1fr auto 1fr;
     align-items: center;
     margin: 0 auto;
-    max-width: 800px;
+    max-width: var(--tk-breite, 960px);
 }
 .footer-content > :first-child {
     justify-self: start;
@@ -193,15 +226,13 @@ svg.sketch{display:block;width:100%;max-width:360px;height:auto;margin:0 auto;}
 .grid-ctl input[type=range]{width:120px;}
 .grid-ctl .gc-lbl{white-space:nowrap;}
 
-/* Steuerblöcke: Abstand VOR der Bezeichnung, Schalter direkt darunter */
-.ctl{margin-top:14px;}
-.ctl:first-child{margin-top:4px;}
-.ctl>.lbl{display:block;font-weight:bold;font-size:.9em;margin-bottom:4px;}
-.ctl .seg{margin:0;}
+/* Der Einstellungskasten sitzt so eng am Rand wie auf den anderen Seiten. */
+details.einst{padding:0;}
 
 /* Formen-Auswahl auffälliger */
-details#shapeTree{border:2px solid var(--accent);background:linear-gradient(#f2faf3,#eaf6ec);}
-details#shapeTree>summary{color:#256b2a;font-size:1.05em;padding:2px 0;}
+/* Das Kleid kommt aus aufgaben.css (details.auswahl); rechts steht hier
+   kein „alle"-Knopf, deshalb braucht die Überschrift dort keinen Platz. */
+details#shapeTree>summary{padding-right:0;}
 .tree-top{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin:8px 0 4px;}
 .tree-hint{color:#567;font-size:.82em;}
 
@@ -227,9 +258,7 @@ details.alt-rep>summary{cursor:pointer;font-size:.85em;color:#4a6a4a;}
 .ask-line{margin:8px 0 0;}
 .ctx{color:#555;font-size:.95em;margin:6px 0 0;}
 /* Lösung als aufklappbarer Bereich */
-details.sol-details{margin-top:10px;border:1.5px solid var(--blue);border-radius:10px;padding:8px 12px;background:#f0f7ff;}
-details.sol-details>summary{cursor:pointer;font-weight:bold;color:#245a8f;list-style:none;}
-details.sol-details>summary::-webkit-details-marker{display:none;}
+/* Die Lösung klappt mit dem blauen Balken auf - siehe aufgaben.css. */
 .sol-body{margin-top:8px;}
 details.steps-details{margin-top:8px;}
 details.steps-details>summary{cursor:pointer;color:#245a8f;font-size:.9em;}
@@ -295,23 +324,120 @@ details#shapeTree.attn>summary{animation:treeAttnText 1.6s ease 2;}
 #mode-erkundung .tile span{font-size:.72rem;}}
 @media (max-width:560px){#mode-erkundung svg#stage{height:400px;}
 #mode-erkundung .ctrl{font-size:.88rem;}}
+/* ══════════════════════════════════════════════════════════════
+   Dunkelmodus – nur Zusaetze; der Hellmodus oben bleibt unveraendert.
+   ══════════════════════════════════════════════════════════════ */
+html.dark{
+  --accent:#5cb860; --accent-d:#4a9a4e; --line:#3a434b; --soft:#1e2429;
+  --chip:#242b33; --chip-active:#4CAF50; --blue:#6fb0e8; --amber:#ffb74d;
+}
+html.dark body{background:#14181c;color:#e7eae8;}
+html.dark h1{color:#e7eae8;}
+html.dark .muted{color:#9aa5b1;}
+html.dark details{border-color:#4a545e;}
+html.dark .form-block{border-color:#4a545e;}
+html.dark .seg{background:#1b2026;}
+html.dark .seg button{background:#1b2026;color:#d7dee4;border-right-color:#3a434b;}
+html.dark .seg button.on{background:#3d7a48;color:#fff;}
+html.dark .cat{background:var(--soft);border-color:var(--line);}
+html.dark .shape{background:#1b2026;border-color:var(--line);}
+html.dark .cat-actions button{background:#1b2026;color:#c3ccd4;border-color:var(--line);}
+html.dark .cat-actions .toggle-all{background:#1b2026;color:#8fce92;border-color:var(--accent);}
+html.dark .chip .box{border-color:#6b7780;}
+html.dark .formulas .chip{border-top-color:#2c343b;}
+html.dark .formulas{border-top-color:var(--line);}
+html.dark .task-card{background:#10220f;border-color:#4a9a4a;}
+html.dark .tt-hidden{color:#9db09d;}
+html.dark .eye-btn{color:#8fce92;}
+html.dark .eye-btn:hover,html.dark .eye-btn:focus{color:#a5dba8;background:#1f2e20;}
+html.dark .badge{background:#22302a;color:#9ed3a1;border-color:#3a5a3e;}
+html.dark .badge.inv{background:#33301c;color:#ffb74d;border-color:#6d5a24;}
+html.dark .sketch-wrap{background:#161b20;border-color:var(--line);}
+html.dark .answer-row input[type=text]{background:#242b33;color:#e7eae8;border-color:#4a545e;}
+html.dark .unit-btn{background:#1f2e20;color:#c9e6cb;border-color:var(--accent);}
+html.dark .unit-panel{background:#1b2026;color:#e7eae8;border-color:var(--accent);
+  box-shadow:0 6px 18px rgba(0,0,0,.5);}
+html.dark .unit-grid th{color:#9aa5b1;}
+html.dark .unit-cell{background:#242b33;color:#e7eae8;border-color:#3f5a41;}
+html.dark .unit-cell:hover{background:#2c3a2e;}
+html.dark .unit-cell.sel{background:var(--accent);color:#14181c;border-color:var(--accent);}
+html.dark .result-msg.ok{color:#81c784;}
+html.dark .result-msg.no{color:#ef9a9a;}
+html.dark .result-msg.muted{color:#9aa5b1;}
+html.dark .btn-hint{background:var(--ab-ge-knopf,#E0A800);color:var(--ab-ge-schrift,#3a2c00);border:none;}
+html.dark .btn-hint-next{background:#1b2026;color:var(--amber);border-color:var(--amber);}
+html.dark .btn-sol{background:#1b2026;color:var(--blue);border-color:var(--blue);}
+html.dark .btn-ghost{background:#1b2026;color:#c3ccd4;border-color:var(--line);}
+html.dark .help-box{background:#241f14;border-color:var(--amber);}
+html.dark .help-box h4{color:var(--amber);}
+html.dark .help-step{border-top-color:#5a4a26;}
+html.dark .sol-box{background:#16202b;border-color:var(--blue);}
+html.dark .sol-box h4{color:var(--blue);}
+html.dark details.steps-details>summary{color:var(--blue);}
+html.dark .choice{background:#1b2026;border-color:var(--line);color:#e7eae8;}
+html.dark .choice.ok{border-color:#4caf50;background:#1d3524;color:#a5d6a7;}
+html.dark .choice.no{border-color:#e57373;background:#3a2224;color:#ef9a9a;}
+html.dark .choice.warn{border-color:#c9a227;background:#332c12;color:#e8d9a0;}
+html.dark .choice-why{color:#c8bd8a;}
+html.dark details.alt-rep{background:#1a1f24;border-color:var(--line);}
+html.dark details.alt-rep>summary{color:#9db09d;}
+html.dark .tree-hint{color:#95a8b3;}
+html.dark .share-btn{background:#1b2026;color:#a5d6a7;border-color:var(--accent);}
+html.dark .toast{background:#3d7a48;color:#fff;}
+html.dark .leg{color:#9db09d;}
+html.dark .not-scale{color:#9aa5b1;}
+html.dark .grid-ctl{color:#a8b3bd;}
+html.dark .ctx{color:#b6c0c9;}
+html.dark .check-line>input{background:#242b33;border-color:var(--accent);}
+html.dark .check-line>input:checked{background:var(--accent);border-color:var(--accent);}
+html.dark .site-footer{border-top-color:#3a434b;color:#9aa5b1;}
+html.dark button:disabled{background:#3a434b;color:#8b949c;}
+/* Gruene Knoepfe bleiben im dunklen Satz beim kraeftigeren Gruen,
+   damit die weisse Schrift genug Kontrast behaelt. */
+html.dark .btn-new,html.dark .btn-check{background:#3d8b41;color:#fff;}
+html.dark .btn-new:hover,html.dark .btn-check:hover{background:#469a4b;}
+/* Formel-Kennzeichen (blaues bzw. violettes Faehnchen) */
+html.dark .formulas .chip .tag{background:#2c5f8f;color:#eaf1f7;}
+html.dark .formulas .chip .tag.trig{background:#5e3a93;}
+/* Aufmerksamkeits-Animation des Flaechen-Bereichs */
+html.dark details#shapeTree.attn>summary{animation:treeAttnTextDunkel 1.6s ease 2;}
+@keyframes treeAttnTextDunkel{0%,100%{color:#a5d6a7;} 40%{color:#ef9a9a;}}
+/* Erkundungsmodus */
+html.dark #mode-erkundung{ color:#e7eae8;
+  --accent:#5cb860; --accent-dark:#8fce92; --ink:#e7eae8; --muted:#9aa5b1;
+  --line:#3a434b; --paper:#1b2026; --bg:#14181c; --shape:#5cb860; --shape-fill:rgba(92,184,96,.20);
+  --helper:#e8934f; --helper-fill:rgba(232,147,79,.30); --shape-light:#74a877;
+  --shape-lightfill:rgba(92,184,96,.10); --grid:#3c4a3e; }
+html.dark #mode-erkundung .erk-intro{color:#9aa5b1;}
+html.dark #mode-erkundung .tile[aria-selected="true"]{background:#1f2e20;}
+html.dark #mode-erkundung .stage-hint{background:rgba(20,24,28,.85);}
+/* Grautoene, die direkt im style-Attribut stehen */
+html.dark [style*="color:#888"],
+html.dark [style*="color:#777"],
+html.dark [style*="color:#666"],
+html.dark [style*="color:#555"],
+html.dark [style*="color:#444"]{color:#9aa5b1 !important}
 </style>
 </head>
-<body>
+<body class="tk-seite">
 <div class="wrap">
-  <h1>Flächeninhalte berechnen &amp; visualisieren</h1>
-  <p class="muted small" id="intro">Übe das Berechnen von Flächeninhalten — mit Text- oder Skizzenaufgaben, Umkehraufgaben und gestuften Hilfen.</p>
+  <header class="tool-kopf">
+    <div class="tk-text">
+      <h1 data-de="Flächeninhalte berechnen &amp; visualisieren" data-en="Calculating &amp; visualising areas">Flächeninhalte berechnen &amp; visualisieren</h1>
+      <p class="tk-unter" data-de="Flächeninhalte berechnen – mit Text- und Skizzenaufgaben" data-en="Calculate areas – with worded and sketch questions">Flächeninhalte berechnen – mit Text- und Skizzenaufgaben</p>
+    </div>
+  </header>
 
-  <div style="text-align:center;margin:6px 0 12px;"><div id="mode-switch" class="seg" role="tablist">
-    <button data-mode="erkundung">Erkundungsmodus</button>
-    <button data-mode="uebung" class="on">Übungsmodus</button>
+  <div class="seg-block"><div id="mode-switch" class="seg" role="tablist">
+    <button data-mode="erkundung" data-de="Erkundung" data-en="Exploration">Erkundung</button>
+    <button data-mode="uebung" class="on" data-de="Training" data-en="Practice">Training</button>
   </div></div>
 
   <div id="mode-uebung">
 
     <!-- ================= LEHRER-EINSTELLUNGEN ================= -->
-  <details id="teacherSettings">
-    <summary>Einstellungen</summary>
+  <details class="einst" id="teacherSettings">
+    <summary data-de="Einstellungen" data-en="Settings">Einstellungen</summary>
     <div id="teacherBody" style="margin-top:8px;"></div>
   </details>
 
@@ -325,41 +451,41 @@ details#shapeTree.attn>summary{animation:treeAttnText 1.6s ease 2;}
   </div><!-- /mode-uebung -->
 
   <div id="mode-erkundung" class="hidden">
-    <p class="erk-intro">Zieh an den Ecken und erkunde, woher die Flächenformeln kommen. Mit zwei Fingern verschiebst und zoomst du; mit einem Finger im Hintergrund scrollst du die Seite.</p>
+    <p class="erk-intro" data-de="Zieh an den Ecken und erkunde, woher die Flächenformeln kommen. Mit zwei Fingern verschiebst und zoomst du; mit einem Finger im Hintergrund scrollst du die Seite." data-en="Drag the corners and explore where the area formulae come from. Two fingers pan and zoom; one finger on the background scrolls the page.">Zieh an den Ecken und erkunde, woher die Flächenformeln kommen. Mit zwei Fingern verschiebst und zoomst du; mit einem Finger im Hintergrund scrollst du die Seite.</p>
 <div class="picker" id="picker" role="tablist"></div>
 
   <div class="toolbar">
-    <div class="ctrl"><label><input type="checkbox" id="c-grid" checked> Raster</label></div>
+    <div class="ctrl"><label><input type="checkbox" id="c-grid" checked> <span data-de="Raster" data-en="Grid">Raster</span></label></div>
     <div class="ctrl" id="ctrl-where">
-      <span class="muted">nur</span>
-      <div class="seg"><button data-where="shape" class="on">in der Fläche</button><button data-where="all">überall</button></div>
+      <span class="muted" data-de="nur" data-en="only">nur</span>
+      <div class="seg"><button data-where="shape" class="on" data-de="in der Fläche" data-en="inside the shape">in der Fläche</button><button data-where="all" data-de="überall" data-en="everywhere">überall</button></div>
     </div>
-    <div class="ctrl"><label for="c-refine">Feinheit</label><input type="range" id="c-refine" min="0" max="2" step="1" value="1"><span class="cell" id="l-refine">1 × 1</span></div>
-    <div class="ctrl"><label><input type="checkbox" id="c-int" checked> ganzzahlige Seiten</label></div>
-    <div class="ctrl"><label><input type="checkbox" id="c-derive" checked> Herleitung</label></div>
+    <div class="ctrl"><label for="c-refine" data-de="Feinheit" data-en="Detail">Feinheit</label><input type="range" id="c-refine" min="0" max="2" step="1" value="1"><span class="cell" id="l-refine">1 × 1</span></div>
+    <div class="ctrl"><label><input type="checkbox" id="c-int" checked> <span data-de="ganzzahlige Seiten" data-en="whole-number sides">ganzzahlige Seiten</span></label></div>
+    <div class="ctrl"><label><input type="checkbox" id="c-derive" checked> <span data-de="Herleitung" data-en="Derivation">Herleitung</span></label></div>
     <div class="ctrl" id="ctrl-cmode" style="display:none">
-      <span class="muted">Ansatz</span>
-      <div class="seg"><button data-cmode="squares" class="on">Quadrate</button><button data-cmode="sectors">Sektoren</button></div>
+      <span class="muted" data-de="Ansatz" data-en="Approach">Ansatz</span>
+      <div class="seg"><button data-cmode="squares" class="on" data-de="Quadrate" data-en="squares">Quadrate</button><button data-cmode="sectors" data-de="Sektoren" data-en="sectors">Sektoren</button></div>
     </div>
     <div class="ctrl" id="ctrl-tmode" style="display:none">
-      <span class="muted">Ansatz</span>
-      <div class="seg"><button data-tmode="parallelogram" class="on">Parallelogramm</button><button data-tmode="rectangle">Rechteck</button></div>
+      <span class="muted" data-de="Ansatz" data-en="Approach">Ansatz</span>
+      <div class="seg"><button data-tmode="parallelogram" class="on" data-de="Parallelogramm" data-en="parallelogram">Parallelogramm</button><button data-tmode="rectangle" data-de="Rechteck" data-en="rectangle">Rechteck</button></div>
     </div>
     <div class="ctrl" id="ctrl-trapmode" style="display:none">
-      <span class="muted">Ansatz</span>
-      <div class="seg"><button data-trapmode="parallelogram" class="on">Parallelogramm</button><button data-trapmode="midline">Mittellinie</button></div>
+      <span class="muted" data-de="Ansatz" data-en="Approach">Ansatz</span>
+      <div class="seg"><button data-trapmode="parallelogram" class="on" data-de="Parallelogramm" data-en="parallelogram">Parallelogramm</button><button data-trapmode="midline" data-de="Mittellinie" data-en="midline">Mittellinie</button></div>
     </div>
-    <div class="ctrl" id="ctrl-sectors" style="display:none"><label for="c-sectors">Sektoren</label><input type="range" id="c-sectors" min="4" max="48" step="2" value="12"><span class="cell" id="l-sectors">12</span></div>
+    <div class="ctrl" id="ctrl-sectors" style="display:none"><label for="c-sectors" data-de="Sektoren" data-en="Sectors">Sektoren</label><input type="range" id="c-sectors" min="4" max="48" step="2" value="12"><span class="cell" id="l-sectors">12</span></div>
     <div class="spacer"></div>
-    <button class="btn" id="b-reset">Ansicht zurücksetzen</button>
+    <button class="btn" id="b-reset" data-de="Ansicht zurücksetzen" data-en="Reset view">Ansicht zurücksetzen</button>
   </div>
 
   <div class="stage-wrap">
     <svg id="stage" xmlns="http://www.w3.org/2000/svg"></svg>
-    <div class="stage-hint">Ecke ziehen · 2 Finger: verschieben & zoomen · 1 Finger im Hintergrund: Seite scrollen</div>
+    <div class="stage-hint" data-de="Ecke ziehen · 2 Finger: verschieben &amp; zoomen · 1 Finger im Hintergrund: Seite scrollen" data-en="Drag a corner · 2 fingers: pan &amp; zoom · 1 finger on the background: scroll the page">Ecke ziehen · 2 Finger: verschieben &amp; zoomen · 1 Finger im Hintergrund: Seite scrollen</div>
   </div>
 
-  <div class="derive" id="derive"><h2>Herleitung</h2><p class="formula" id="formula"></p><p id="explain"></p></div>
+  <div class="derive" id="derive"><h2 data-de="Herleitung" data-en="Derivation">Herleitung</h2><p class="formula" id="formula"></p><p id="explain"></p></div>
   </div><!-- /mode-erkundung -->
 
   <div id="lobby-spacer"></div>
@@ -367,7 +493,7 @@ details#shapeTree.attn>summary{animation:treeAttnText 1.6s ease 2;}
   <div class="footer-content">
       M.&nbsp;Koch
       <span class="footer-topic"><a href="./index.html">Mathe-Tools</a></span>
-      <span class="footer-update">Last updated:&nbsp;<span id="last-update">...</span></span>
+      <span class="footer-update"><span class="fu-wort" data-de="Zuletzt aktualisiert:" data-en="Last updated:">Zuletzt aktualisiert:</span><span id="last-update">...</span></span>
   </div>
   </footer>
 <script src="last-update.js" defer></script>
@@ -386,6 +512,122 @@ details#shapeTree.attn>summary{animation:treeAttnText 1.6s ease 2;}
      5. State + Presets + URL    10. UI-Aufbau + Init
    ===================================================================== */
 
+/* ---------- 0. Sprache, Theme, Farben ---------- */
+// Kurzhelfer: uebersetzt, solange theme-language.js geladen ist – sonst Deutsch.
+function T(de, en){ return (typeof tlText === 'function') ? tlText(de, en) : de; }
+function EN(){ return (typeof tlSprache === 'function') && tlSprache() === 'en'; }
+function DUNKEL(){ return (typeof tlDunkel === 'function') ? tlDunkel()
+  : document.documentElement.classList.contains('dark'); }
+// Dezimaltrennzeichen: im Englischen der Punkt, sonst das Komma
+function DEZ(){ return EN() ? '.' : ','; }
+
+/* Woerterbuch fuer die Bezeichnungen in den Daten (SHAPES, CATS, …).
+   Die Daten bleiben deutsch; uebersetzt wird erst beim Anzeigen. */
+const WB = {
+  // Formen
+  'Quadrat':'Square', 'Rechteck':'Rectangle', 'Parallelogramm':'Parallelogram',
+  'Trapez':'Trapezium', 'Drache (Deltoid)':'Kite (deltoid)', 'beliebiges Dreieck':'Any triangle',
+  'rechtwinkliges Dreieck':'Right-angled triangle', 'gleichseitiges Dreieck':'Equilateral triangle',
+  'Kreis':'Circle', 'reguläres n-Eck':'Regular n-gon',
+  // Kategorien
+  'Vierecke':'Quadrilaterals', 'Dreiecke':'Triangles', 'Kreise':'Circles',
+  'Reguläre Polygone':'Regular polygons',
+  // Groessen
+  'Seite':'side', 'Seitenlänge':'side length', 'Höhe':'height', 'Grundseite':'base',
+  'Länge':'length', 'Breite':'width', 'Diagonale':'diagonal', 'Kathete':'leg',
+  'Radius':'radius', 'Durchmesser':'diameter', 'Eckenzahl':'number of vertices',
+  'Apothem (Inkreisradius)':'apothem (inradius)',
+  'längere Parallelseite':'longer parallel side', 'kürzere Parallelseite':'shorter parallel side',
+  'eingeschl. Winkel':'included angle', 'eingeschlossener Winkel':'included angle',
+  // Formel-Kennzeichen
+  'mit Trig.':'with trig.', 'ohne Trig.':'without trig.', 'Grundseite·Höhe':'base·height',
+  'Heron':'Heron', 'Katheten':'legs', 'Umfang·Apothem':'perimeter·apothem',
+  // Artikelformen fuer die Begruendungstexte
+  'ein Quadrat':'a square', 'ein Rechteck':'a rectangle', 'ein Parallelogramm':'a parallelogram',
+  'ein Trapez':'a trapezium', 'ein Drachenviereck':'a kite', 'ein Dreieck':'a triangle',
+  'ein rechtwinkliges Dreieck':'a right-angled triangle',
+  'ein gleichseitiges Dreieck':'an equilateral triangle',
+  'ein Kreis':'a circle', 'ein reguläres n-Eck':'a regular n-gon',
+  // Beschriftungen der Auswahlkacheln im Erkundungsmodus
+  'Rechtw. Dreieck':'Right-angled tri.', 'Dreieck':'Triangle',
+  'Drachen\u00ADviereck':'Kite',
+};
+function W(de){ if(de==null) return de; return EN() ? (WB[de] || de) : de; }
+
+/* Farben der Skizzen – im Dunkelmodus heller, sonst unveraendert. */
+function SF(){
+  return DUNKEL()
+    ? { stroke:'#8fce92', fill:'rgba(92,184,96,.18)', grid:'#334035', ghost:'#6fb0e8',
+        ghostFill:'rgba(111,176,232,.16)', helper:'#9aa5b1', right:'#b6c0c9',
+        arc:'#b58fe0', arcText:'#c9aef0', label:'#a8dcab', labelSoft:'#8fa9c9' }
+    : { stroke:'#28502a', fill:'rgba(76,175,80,.13)', grid:'#cfe0cf', ghost:'#2f6fb0',
+        ghostFill:'rgba(47,111,176,.10)', helper:'#666', right:'#444',
+        arc:'#8552c9', arcText:'#6b3fa0', label:'#173', labelSoft:'#6f8fb3' };
+}
+/* Laengenfarben: im Dunkelmodus aufgehellt */
+const LEN_COLORS_HELL=['#c0392b','#1f6fb2','#8e44ad','#b9770e','#117a65','#c2185b'];
+const LEN_COLORS_DUNKEL=['#ef8a80','#7fb8ea','#c79bea','#e5b567','#5fc7ad','#f48fb1'];
+function LENC(){ return DUNKEL()?LEN_COLORS_DUNKEL:LEN_COLORS_HELL; }
+/* Fest im Code stehende Skizzenfarben fuer den Dunkelmodus aufhellen */
+const FARB_DUNKEL={'#bbb':'#6b7780','#173':'#a8dcab','#245a8f':'#6fb0e8',
+  '#6f8fb3':'#8fa9c9','#9ac79a':'#7fb082','#666':'#9aa5b1','#444':'#b6c0c9'};
+function FC(c){ if(!c) return null; return DUNKEL() ? (FARB_DUNKEL[c]||c) : c; }
+
+/* Laengere Texte (Herleitungen, Erlaeuterungen). Auch hier bleiben die Daten
+   deutsch; W() sucht beim Anzeigen die englische Fassung heraus. */
+Object.assign(WB, {
+'Dabei sind \\(e\\) und \\(f\\) die beiden Diagonalen des Drachenvierecks.':
+ 'Here \\(e\\) and \\(f\\) are the two diagonals of the kite.',
+'Dabei sind \\(a\\) und \\(b\\) die beiden ungleichen Seiten und \\(\\gamma\\) der von ihnen eingeschlossene Winkel.':
+ 'Here \\(a\\) and \\(b\\) are the two unequal sides and \\(\\gamma\\) is the angle between them.',
+'Die gegebenen Seiten \\(a\\) und \\(b\\) sind die beiden Katheten (die Seiten am rechten Winkel).':
+ 'The given sides \\(a\\) and \\(b\\) are the two legs (the sides at the right angle).',
+'Dabei sind \\(a\\) und \\(c\\) die beiden zueinander parallelen Seiten und \\(h\\) ihr Abstand (die Höhe).':
+ 'Here \\(a\\) and \\(c\\) are the two parallel sides and \\(h\\) is the distance between them (the height).',
+'Legt man ein Einheitsquadrat-Raster hinein, passen \\(a\\) Kästchen in jede Reihe, und es gibt \\(b\\) solcher Reihen übereinander.':
+ 'Lay a unit-square grid inside it: \\(a\\) squares fit in each row, and there are \\(b\\) such rows.',
+'Ein Quadrat ist ein Rechteck mit gleich langen Seiten (\\(a=b\\)). Das Raster zeigt \\(a\\) Kästchen in \\(a\\) Reihen.':
+ 'A square is a rectangle with equal sides (\\(a=b\\)). The grid shows \\(a\\) squares in \\(a\\) rows.',
+'Die Diagonalen stehen senkrecht aufeinander. Das umschließende Rechteck hat die Seiten \\(e\\) und \\(f\\); der Drache füllt genau die Hälfte davon.':
+ 'The diagonals are perpendicular. The surrounding rectangle has sides \\(e\\) and \\(f\\); the kite fills exactly half of it.',
+'Zwei gleiche rechtwinklige Dreiecke ergänzen sich zu einem Rechteck mit den Katheten \\(a\\) und \\(b\\). Das Dreieck ist die Hälfte davon.':
+ 'Two congruent right-angled triangles make up a rectangle with legs \\(a\\) and \\(b\\). The triangle is half of it.',
+'Die Höhe teilt das Dreieck in zwei rechtwinklige Hälften. Mit dem Satz des Pythagoras lässt sich die Höhe \\(h\\) aus der Seitenlänge \\(a\\) bestimmen und in die Dreiecksformel einsetzen.':
+ 'The height splits the triangle into two right-angled halves. Pythagoras gives the height \\(h\\) from the side length \\(a\\), which then goes into the triangle formula.',
+'Zerlegt man den Kreis in viele schmale Sektoren und legt sie abwechselnd aneinander, entsteht fast ein Rechteck: Die Höhe ist der Radius \\(r\\), die Breite der halbe Umfang.':
+ 'Cut the circle into many thin sectors and lay them alternately side by side: the result is almost a rectangle, with height the radius \\(r\\) and width half the circumference.',
+'Ein reguläres \\(n\\)-Eck zerfällt in \\(n\\) gleiche Dreiecke mit der Grundseite \\(a\\) und der Höhe \\(\\rho\\) (Apothem). Die Gesamtfläche ist die Summe dieser \\(n\\) Dreiecke.':
+ 'A regular \\(n\\)-gon splits into \\(n\\) congruent triangles with base \\(a\\) and height \\(\\rho\\) (the apothem). The total area is the sum of these \\(n\\) triangles.',
+'<p>Schneidet man rechts das überstehende Dreieck ab und setzt es links an, entsteht ein <b>Rechteck</b> mit Grundseite \\(g\\) und Höhe \\(h\\).</p>':
+ '<p>Cut off the triangle sticking out on the right and attach it on the left: the result is a <b>rectangle</b> with base \\(g\\) and height \\(h\\).</p>',
+'<p>Ein zweites, punktgespiegeltes Dreieck (blau) ergänzt das Dreieck zu einem <b>Parallelogramm</b>. Das Parallelogramm hat denselben Flächeninhalt wie ein Rechteck mit der zugehörigen Höhe. Das Dreieck ist genau halb so groß wie dieses Parallelogramm.</p>':
+ '<p>A second triangle (blue), rotated by half a turn, completes the triangle into a <b>parallelogram</b>. The parallelogram has the same area as a rectangle with the matching height. The triangle is exactly half of this parallelogram.</p>',
+'<p>Ein zweites, gleich großes Trapez (blau, um 180° gedreht) ergänzt das Trapez zu einem <b>Parallelogramm</b> mit Grundseite \\(a+c\\) und Höhe \\(h\\). Ein Trapez ist genau halb so groß wie dieses Parallelogramm.</p>':
+ '<p>A second trapezium of the same size (blue, rotated by 180°) completes the trapezium into a <b>parallelogram</b> with base \\(a+c\\) and height \\(h\\). A trapezium is exactly half of this parallelogram.</p>',
+'Ein Quadrat ist ein Rechteck mit vier gleich langen Seiten. Da alle Seiten die Länge \\(a\\) haben.':
+ 'A square is a rectangle with four equal sides, all of length \\(a\\).',
+'Legt man in das Rechteck ein Einheitsquadrat-Raster, so passen \\(a\\) Quadrate in eine Reihe und es gibt \\(b\\) Reihen.':
+ 'Lay a unit-square grid into the rectangle: \\(a\\) squares fit in a row and there are \\(b\\) rows.',
+'Die Diagonalen eines Drachens stehen senkrecht aufeinander. Das umschließende Rechteck hat die Seiten \\(e\\) und \\(f\\); der Drache füllt genau die Hälfte davon.':
+ 'The diagonals of a kite are perpendicular. The surrounding rectangle has sides \\(e\\) and \\(f\\); the kite fills exactly half of it.',
+'Zwei rechtwinklige Dreiecke ergeben zusammen ein Rechteck mit den Seiten \\(a\\) und \\(b\\). Ein Dreieck ist also halb so groß wie dieses Rechteck.':
+ 'Two right-angled triangles together make a rectangle with sides \\(a\\) and \\(b\\). One triangle is therefore half of that rectangle.',
+'Die Höhe halbiert das Dreieck; mit dem Satz des Pythagoras gilt \\(h=\\tfrac{a}{2}\\sqrt3\\). Diese Höhe wird anschließend in die Dreiecksformel eingesetzt.':
+ 'The height bisects the triangle; Pythagoras gives \\(h=\\tfrac{a}{2}\\sqrt3\\). This height then goes into the triangle formula.',
+'Zerschneidet man den Kreis in viele schmale Sektoren und legt sie abwechselnd aneinander, entsteht näherungsweise ein Rechteck mit der Höhe \\(r\\) und der Breite \\(\\tfrac{u}{2}=\\pi r\\).':
+ 'Cut the circle into many thin sectors and lay them alternately side by side: the result is approximately a rectangle with height \\(r\\) and width \\(\\tfrac{u}{2}=\\pi r\\).',
+'Ein reguläres \\(n\\)-Eck lässt sich in \\(n\\) gleiche Dreiecke mit der Grundseite \\(a\\) und der Höhe \\(\\rho\\) (Apothem) zerlegen. Ein Dreieck hat den Flächeninhalt \\(\\tfrac12 a\\rho\\).':
+ 'A regular \\(n\\)-gon can be split into \\(n\\) congruent triangles with base \\(a\\) and height \\(\\rho\\) (the apothem). Each triangle has area \\(\\tfrac12 a\\rho\\).',
+'Ein Quadrat ist ein besonderes Rechteck – \\(A=a\\cdot b\\) gilt auch. Mit \\(a=b\\) ist \\(A=a^2\\) aber direkter.':
+ 'A square is a special rectangle, so \\(A=a\\cdot b\\) holds too. With \\(a=b\\), however, \\(A=a^2\\) is more direct.',
+'Ein Rechteck ist ein besonderes Parallelogramm – \\(A=g\\cdot h\\) gilt auch, \\(A=a\\cdot b\\) ist hier aber direkter.':
+ 'A rectangle is a special parallelogram, so \\(A=g\\cdot h\\) holds too, but \\(A=a\\cdot b\\) is more direct here.',
+'Ein rechtwinkliges Dreieck ist auch ein allgemeines Dreieck – die allgemeine Dreiecksformel gilt, mit den Katheten geht es aber direkter.':
+ 'A right-angled triangle is also a general triangle, so the general triangle formula holds, but the legs give it more directly.',
+'Ein gleichseitiges Dreieck ist auch ein allgemeines Dreieck – \\(A=\\tfrac12\\,g\\cdot h\\) gilt ebenfalls (mit passender Höhe).':
+ 'An equilateral triangle is also a general triangle, so \\(A=\\tfrac12\\,g\\cdot h\\) holds too (with the matching height).',
+});
+
 /* ---------- 1. Hilfsfunktionen ---------- */
 const $  = (s,r=document)=>r.querySelector(s);
 const $$ = (s,r=document)=>[...r.querySelectorAll(s)];
@@ -395,8 +637,8 @@ const pick=a=>a[Math.floor(Math.random()*a.length)];
 const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
 const rad=d=>d*Math.PI/180;
 
-function fmtDE(x,md=4){ if(!isFinite(x))return '—'; const r=Math.round(x*10**md)/10**md; let s=r.toFixed(md); s=s.replace(/0+$/,'').replace(/\.$/,''); return s.replace('.',','); }
-function texNum(x,md=4){ return fmtDE(x,md).replace(',', '{,}'); }
+function fmtDE(x,md=4){ if(!isFinite(x))return '—'; const r=Math.round(x*10**md)/10**md; let s=r.toFixed(md); s=s.replace(/0+$/,'').replace(/\.$/,''); return s.replace('.',DEZ()); }
+function texNum(x,md=4){ return fmtDE(x,md).replace(',', '{,}'); }   // im Englischen bleibt der Punkt stehen
 function parseNum(s){
   if(typeof s!=='string')return NaN;
   s=s.trim().replace(/\s/g,'').replace('·','*');
@@ -476,7 +718,7 @@ function conversionBlock(t){
     const du=(disp&&disp[n.sym])||unit; if(du===unit)return;
     lines.push(needTexOf(formula,n)+' &= '+texNum(convLen(v[n.sym],unit,du))+uTex(du)+' = '+texNum(v[n.sym])+uTex(unit)); });
   if(!lines.length) return '';
-  return '<p><b>Zuerst alles in \\('+unit+'\\) umrechnen:</b></p>'+A0.apply(null,lines);
+  return T('<p><b>Zuerst alles in \\('+unit+'\\) umrechnen:</b></p>','<p><b>First convert everything to \\('+unit+'\\):</b></p>')+A0.apply(null,lines);
 }
 
 function genNum(S){
@@ -500,8 +742,9 @@ function svgSub(text){ // '_c' -> echter Tiefindex im SVG
   return String(text).replace(/_\{?([A-Za-z0-9]+)\}?/g,'<tspan baseline-shift="-22%" font-size="10.5">$1</tspan>');
 }
 function svgSketch(spec,opt={}){
+  const C=SF();
   const o=Object.assign({w:340,h:250,pad:20,preserveAspect:true,
-     stroke:'#28502a', fill:'rgba(76,175,80,.13)'},opt);
+     stroke:C.stroke, fill:C.fill},opt);
   const P=[];
   (spec.points||[]).forEach(p=>P.push(p));
   (spec.ghosts||[]).forEach(g=>g.points.forEach(p=>P.push(p)));
@@ -545,7 +788,7 @@ function svgSketch(spec,opt={}){
     const x0=wx(0),x1=wx(o.w),y0=wy(o.h),y1=wy(0);
     const kx0=Math.floor(Math.min(x0,x1)/step), kx1=Math.ceil(Math.max(x0,x1)/step);
     const ky0=Math.floor(Math.min(y0,y1)/step), ky1=Math.ceil(Math.max(y0,y1)/step);
-    let gl='<g stroke="#cfe0cf" stroke-width="1">';
+    let gl='<g stroke="'+C.grid+'" stroke-width="1">';
     for(let k=kx0;k<=kx1;k++){ const X=M([k*step,miny])[0]; gl+=`<line x1="${X.toFixed(1)}" y1="0" x2="${X.toFixed(1)}" y2="${o.h}"/>`; }
     for(let k=ky0;k<=ky1;k++){ const Y=M([minx,k*step])[1]; gl+=`<line x1="0" y1="${Y.toFixed(1)}" x2="${o.w}" y2="${Y.toFixed(1)}"/>`; }
     gl+='</g>'; out+=gl;
@@ -553,7 +796,8 @@ function svgSketch(spec,opt={}){
   // Ghosts (Hilfsflächen)
   (spec.ghosts||[]).forEach(g=>{
     const d='M'+g.points.map(M).map(q=>q[0].toFixed(1)+' '+q[1].toFixed(1)).join(' L ')+' Z';
-    out+=`<path d="${d}" fill="${g.fill||'rgba(47,111,176,.10)'}" stroke="#2f6fb0" stroke-width="1.3" ${g.dashed?'stroke-dasharray="5 4"':''}/>`;
+    const gf = DUNKEL() ? C.ghostFill : (g.fill||'rgba(47,111,176,.10)');
+    out+=`<path d="${d}" fill="${gf}" stroke="${C.ghost}" stroke-width="1.3" ${g.dashed?'stroke-dasharray="5 4"':''}/>`;
   });
   // Umriss
   if(spec.points&&spec.points.length){
@@ -564,24 +808,24 @@ function svgSketch(spec,opt={}){
     out+=`<circle cx="${c[0].toFixed(1)}" cy="${c[1].toFixed(1)}" r="${rr.toFixed(1)}" fill="${o.fill}" stroke="${o.stroke}" stroke-width="2"/>`;}
   // Hilfslinien
   (spec.helpers||[]).forEach(h=>{const a=M(h.from),b=M(h.to);
-    out+=`<line x1="${a[0].toFixed(1)}" y1="${a[1].toFixed(1)}" x2="${b[0].toFixed(1)}" y2="${b[1].toFixed(1)}" stroke="${h.color||'#666'}" stroke-width="1.4" ${h.dashed?'stroke-dasharray="5 4"':''}/>`;});
+    out+=`<line x1="${a[0].toFixed(1)}" y1="${a[1].toFixed(1)}" x2="${b[0].toFixed(1)}" y2="${b[1].toFixed(1)}" stroke="${FC(h.color)||C.helper}" stroke-width="1.4" ${h.dashed?'stroke-dasharray="5 4"':''}/>`;});
   // farbige Markierungen der gegebenen Strecken (über dem Umriss)
   (spec.marks||[]).forEach(mk=>{const a=M(mk.from),b=M(mk.to);
-    out+=`<line x1="${a[0].toFixed(1)}" y1="${a[1].toFixed(1)}" x2="${b[0].toFixed(1)}" y2="${b[1].toFixed(1)}" stroke="${mk.color}" stroke-width="3.4" stroke-linecap="round"/>`;});
+    out+=`<line x1="${a[0].toFixed(1)}" y1="${a[1].toFixed(1)}" x2="${b[0].toFixed(1)}" y2="${b[1].toFixed(1)}" stroke="${FC(mk.color)}" stroke-width="3.4" stroke-linecap="round"/>`;});
   // rechte Winkel
   (spec.rightAngles||[]).forEach(ra=>{const p=M(ra.at);const d1=svgDir(ra.d1),d2=svgDir(ra.d2);const k=11;
-    const A=[p[0]+d1[0]*k,p[1]+d1[1]*k], B=[p[0]+d1[0]*k+d2[0]*k,p[1]+d1[1]*k+d2[1]*k], C=[p[0]+d2[0]*k,p[1]+d2[1]*k];
-    out+=`<path d="M${A[0].toFixed(1)} ${A[1].toFixed(1)} L${B[0].toFixed(1)} ${B[1].toFixed(1)} L${C[0].toFixed(1)} ${C[1].toFixed(1)}" fill="none" stroke="#444" stroke-width="1.2"/>`;});
+    const A=[p[0]+d1[0]*k,p[1]+d1[1]*k], B=[p[0]+d1[0]*k+d2[0]*k,p[1]+d1[1]*k+d2[1]*k], Cc=[p[0]+d2[0]*k,p[1]+d2[1]*k];
+    out+=`<path d="M${A[0].toFixed(1)} ${A[1].toFixed(1)} L${B[0].toFixed(1)} ${B[1].toFixed(1)} L${Cc[0].toFixed(1)} ${Cc[1].toFixed(1)}" fill="none" stroke="${C.right}" stroke-width="1.2"/>`;});
   // Winkelbögen
   (spec.angles||[]).forEach(an=>{const p=M(an.at);const d1=svgDir(an.d1),d2=svgDir(an.d2);const rr=an.r||24;
     const A=[p[0]+d1[0]*rr,p[1]+d1[1]*rr], B=[p[0]+d2[0]*rr,p[1]+d2[1]*rr];
     const cross=d1[0]*d2[1]-d1[1]*d2[0]; const sweep=cross<0?1:0;
-    out+=`<path d="M${A[0].toFixed(1)} ${A[1].toFixed(1)} A ${rr} ${rr} 0 0 ${sweep} ${B[0].toFixed(1)} ${B[1].toFixed(1)}" fill="none" stroke="#8552c9" stroke-width="1.6"/>`;
+    out+=`<path d="M${A[0].toFixed(1)} ${A[1].toFixed(1)} A ${rr} ${rr} 0 0 ${sweep} ${B[0].toFixed(1)} ${B[1].toFixed(1)}" fill="none" stroke="${C.arc}" stroke-width="1.6"/>`;
     if(an.label){const mid=nrm([d1[0]+d2[0],d1[1]+d2[1]]);const lp=[p[0]+mid[0]*(rr+12),p[1]+mid[1]*(rr+12)];
-      out+=`<text x="${lp[0].toFixed(1)}" y="${lp[1].toFixed(1)}" font-size="14" fill="#6b3fa0" text-anchor="middle" dominant-baseline="middle">${svgSub(an.label)}</text>`;}});
+      out+=`<text x="${lp[0].toFixed(1)}" y="${lp[1].toFixed(1)}" font-size="14" fill="${C.arcText}" text-anchor="middle" dominant-baseline="middle">${svgSub(an.label)}</text>`;}});
   // Labels
   (spec.labels||[]).forEach(l=>{const p=M(l.at);
-    out+=`<text x="${(p[0]+(l.dx||0)).toFixed(1)}" y="${(p[1]+(l.dy||0)).toFixed(1)}" font-size="14" fill="${l.color||'#173'}" text-anchor="${l.anchor||'middle'}" dominant-baseline="middle" ${l.bold?'font-weight="bold"':''}>${svgSub(l.text)}</text>`;});
+    out+=`<text x="${(p[0]+(l.dx||0)).toFixed(1)}" y="${(p[1]+(l.dy||0)).toFixed(1)}" font-size="14" fill="${FC(l.color)||C.label}" text-anchor="${l.anchor||'middle'}" dominant-baseline="middle" ${l.bold?'font-weight="bold"':''}>${svgSub(l.text)}</text>`;});
   out+='</svg>';
   return out;
 }
@@ -639,7 +883,7 @@ function htmlSub(s){ return s.replace(/_\{?([A-Za-z0-9]+)\}?/g,'<sub>$1</sub>');
 function legendOf(f){
   const groups=[];
   f.needs.forEach(n=>{ const sy=htmlSub(plainSym(triAware(f.id,n.tex))); const g=groups.find(x=>x.name===n.name); if(g)g.syms.push(sy); else groups.push({name:n.name,syms:[sy]}); });
-  return groups.map(g=>g.syms.join(', ')+': '+g.name).join(' · ');
+  return groups.map(g=>g.syms.join(', ')+': '+W(g.name)).join(' · ');
 }
 
 // kleine Bausteine für Lösungswege
@@ -952,13 +1196,13 @@ const CATS=['Vierecke','Dreiecke','Kreise','Reguläre Polygone'];
 const PRESETS={
   einfuehrung:{numberType:'int',  min:1, max:10,  units:['cm'], simpleAngles:true,  mixMode:'never', baseAny:false},
   leicht:     {numberType:'int',  min:2, max:20,  units:['cm','m'], simpleAngles:true,  mixMode:'never', baseAny:false},
-  mittel:     {numberType:'dec1', min:2, max:30,  units:['mm','cm','dm','m'], simpleAngles:false, mixMode:'never', baseAny:true},
+  normal:     {numberType:'dec1', min:2, max:30,  units:['mm','cm','dm','m'], simpleAngles:false, mixMode:'never', baseAny:true},
   herausfordernd:{numberType:'dec2',min:2,max:100,units:['mm','cm','dm','m','km'], simpleAngles:false, mixMode:'sometimes', baseAny:true}
 };
 const ANGLE_POOL=[30,45,60,120,135,150];
 
 const state={
-  diff:'mittel',
+  diff:'normal',
   mode:'flaeche',            // flaeche | zufall | umkehr
   present:'random',          // text | skizze | random (Zufall ist Default)
   sketchType:'exact',        // exact | general  (exakt ist Default)
@@ -1013,7 +1257,8 @@ function serialize(){
 function deserialize(){
   const p=new URLSearchParams(location.search); if(![...p.keys()].length)return false;
   const g=(k,d)=>p.has(k)?p.get(k):d;
-  state.diff=g('d','mittel'); state.mode=g('m','flaeche'); state.present=g('pr','random');
+  /* Früher hieß die mittlere Stufe „mittel" - alte Links sollen weiter gehen. */
+  state.diff=g('d','normal'); if(state.diff==='mittel') state.diff='normal'; state.mode=g('m','flaeche'); state.present=g('pr','random');
   state.sketchType=g('st','exact'); state.analog=g('an','1')==='1';
   state.gridOn=g('gr','0')==='1'; state.gridStep=Math.max(0.25,+g('gs',1)||1); state.gridAuto=g('ga','1')==='1';
   state.numberType=g('nt','dec1'); state.min=+g('mn',2); state.max=+g('mx',30);
@@ -1128,12 +1373,12 @@ function autoGridStep(task){
 
 /* ---------- 7. Rendering (Text/Skizze) ---------- */
 /* Farben für die Strecken, deren Länge gegeben ist (Reihenfolge der gegebenen Größen) */
-const LEN_COLORS=['#c0392b','#1f6fb2','#8e44ad','#b9770e','#117a65','#c2185b'];
 function symColor(task,sym){
   if(!state.colorLen||!task||!task.formula) return null;
   const ns=task.formula.needs.filter(n=>n.kind==='len');
   const i=ns.findIndex(n=>n.sym===sym);
-  return i<0? null : LEN_COLORS[i%LEN_COLORS.length];
+  const LC=LENC();
+  return i<0? null : LC[i%LC.length];
 }
 function symLabelText(task,n){ // Beschriftung an der Skizze (Name = Wert)
   const nm=plainSym(needTexOf(task.formula,n));
@@ -1187,6 +1432,9 @@ function asPlainArea(task){ // für Umkehr-Anzeige ohne LaTeX (Skizze): π/√3 
 }
 
 function ctxOf(task){   // erklärt bei einigen Formen, was die gegebenen Größen bedeuten
+  return W(ctxDE(task));
+}
+function ctxDE(task){
   switch(task.formula.id){
     case 'd1': return 'Dabei sind \\(e\\) und \\(f\\) die beiden Diagonalen des Drachenvierecks.';
     case 'd2': return 'Dabei sind \\(a\\) und \\(b\\) die beiden ungleichen Seiten und \\(\\gamma\\) der von ihnen eingeschlossene Winkel.';
@@ -1195,6 +1443,8 @@ function ctxOf(task){   // erklärt bei einigen Formen, was die gegebenen Größ
     default: return '';
   }
 }
+// „geg.:" bzw. „given:" im Aufgabentext
+function GEG(){ return T('\\text{geg.: }','\\text{given: }'); }
 function taskTextTeX(task){
   const {formula,v,unit,mode,disp}=task;
   const parts=formula.needs.filter(n=> !(mode==='umkehr'&&n.sym===task.unknownSym))
@@ -1208,10 +1458,10 @@ function taskTextTeX(task){
     let aDisp=task.areaDisp+uGiven(unit,'area');
     if(formula.exact) aDisp+=' \\approx '+texNum(task.areaExact,2)+uGiven(unit,'area');   // neben dem exakten π-Wert auch gerundet
     parts.push('A='+aDisp);
-    return {geg:'\\(\\text{geg.: }'+parts.join(',\\ ')+'\\)', ctx,
-            ask:'Berechne '+target.name+' \\('+needTexOf(formula,target)+'\\).'};
+    return {geg:'\\('+GEG()+parts.join(',\\ ')+'\\)', ctx,
+            ask:T('Berechne ','Work out ')+W(target.name)+' \\('+needTexOf(formula,target)+'\\).'};
   }
-  return {geg:'\\(\\text{geg.: }'+parts.join(',\\ ')+'\\)', ctx, ask:'Berechne den Flächeninhalt \\(A\\).'};
+  return {geg:'\\('+GEG()+parts.join(',\\ ')+'\\)', ctx, ask:T('Berechne den Flächeninhalt \\(A\\).','Work out the area \\(A\\).')};
 }
 
 /* ---------- 8. Hilfen (mehrstufig) ---------- */
@@ -1282,7 +1532,7 @@ function derivContent(task){
       helpers:[{from:[0,0],to:[0,h],dashed:true},{from:[0,h],to:[g,h],dashed:true},{from:[sk,0],to:[sk,h],dashed:true,color:'#bbb'}],
       rightAngles:[{at:[0,0],d1:[1,0],d2:[0,1]}],
       labels:[{text:'g',at:[g/2,0],anchor:'middle',dy:16,bold:true},{text:'h',at:[0,h/2],anchor:'end',dx:-6,bold:true}]});
-    return svg+'<p>Schneidet man rechts das überstehende Dreieck ab und setzt es links an, entsteht ein <b>Rechteck</b> mit Grundseite \\(g\\) und Höhe \\(h\\).</p>';
+    return svg+W('<p>Schneidet man rechts das überstehende Dreieck ab und setzt es links an, entsteht ein <b>Rechteck</b> mit Grundseite \\(g\\) und Höhe \\(h\\).</p>');
   }
   if(d==='DERIV_TRI'){
     const g=7,h=4,ax=2.6;
@@ -1290,7 +1540,7 @@ function derivContent(task){
       ghosts:[{points:[[g,0],[ax,h],[ax+g,h]],fill:'rgba(47,111,176,.14)',dashed:true}],
       helpers:[{from:[ax,0],to:[ax,h],dashed:true}], rightAngles:[{at:[ax,0],d1:[1,0],d2:[0,1]}],
       labels:[{text:'g',at:[g/2,0],anchor:'middle',dy:16,bold:true},{text:'h',at:[ax,h/2],anchor:'start',dx:6,bold:true}]});
-    return svg+'<p>Ein zweites, punktgespiegeltes Dreieck (blau) ergänzt das Dreieck zu einem <b>Parallelogramm</b>. Das Parallelogramm hat denselben Flächeninhalt wie ein Rechteck mit der zugehörigen Höhe. Das Dreieck ist genau halb so groß wie dieses Parallelogramm.</p>';
+    return svg+W('<p>Ein zweites, punktgespiegeltes Dreieck (blau) ergänzt das Dreieck zu einem <b>Parallelogramm</b>. Das Parallelogramm hat denselben Flächeninhalt wie ein Rechteck mit der zugehörigen Höhe. Das Dreieck ist genau halb so groß wie dieses Parallelogramm.</p>');
   }
   if(d==='DERIV_TRAP'){
     const a=7,c=4,h=3.4,off=(a-c)/2;
@@ -1305,13 +1555,13 @@ function derivContent(task){
               {text:'h',at:[off,h/2],anchor:'end',dx:-6,bold:true},
               {text:'c',at:[a+c/2,0],anchor:'middle',dy:16,color:'#6f8fb3'},
               {text:'a',at:[off+c+a/2,h],anchor:'middle',dy:-12,color:'#6f8fb3'}]});
-    return svg+'<p>Ein zweites, gleich großes Trapez (blau, um 180° gedreht) ergänzt das Trapez zu einem <b>Parallelogramm</b> mit Grundseite \\(a+c\\) und Höhe \\(h\\). Ein Trapez ist genau halb so groß wie dieses Parallelogramm.</p>';
+    return svg+W('<p>Ein zweites, gleich großes Trapez (blau, um 180° gedreht) ergänzt das Trapez zu einem <b>Parallelogramm</b> mit Grundseite \\(a+c\\) und Höhe \\(h\\). Ein Trapez ist genau halb so groß wie dieses Parallelogramm.</p>');
   }
   // Bildliche Herleitung je Form (Rechteck-Raster, Sektoren, Dreieckszerlegung …)
   const V=DERIV_VISUAL[shape.id];
-  if(V){ return V(formula)+'<p>'+DERIV_TEXT(shape.id,formula)+'</p>'; }
+  if(V){ return V(formula)+'<p>'+W(DERIV_TEXT(shape.id,formula))+'</p>'; }
   // Fallback: beschriftete allgemeine Skizze + Text
-  return buildSketch(task,'general')+'<p>'+d+'</p>';
+  return buildSketch(task,'general')+'<p>'+W(d)+'</p>';
 }
 // Manche Flächen sind Spezialfälle: allgemeinere Formel gilt auch (wird gelb markiert, mit Begründung)
 const GENERALIZES={
@@ -1321,7 +1571,7 @@ const GENERALIZES={
   gleichseitig:[{id:'a1', why:'Ein gleichseitiges Dreieck ist auch ein allgemeines Dreieck – \\(A=\\tfrac12\\,g\\cdot h\\) gilt ebenfalls (mit passender Höhe).'}]
 };
 function formulaById(id){ for(const s of SHAPES){ const f=s.formulas.find(x=>x.id===id); if(f)return f; } return null; }
-function generalMap(task){ const m={}; (GENERALIZES[task.shape.id]||[]).forEach(gg=>{ const f=formulaById(gg.id); if(f)m[symOf(f)]=gg.why; }); return m; }
+function generalMap(task){ const m={}; (GENERALIZES[task.shape.id]||[]).forEach(gg=>{ const f=formulaById(gg.id); if(f)m[symOf(f)]=W(gg.why); }); return m; }
 function formulaChoices(task){
   const correct=symOf(task.formula);
   const forced=Object.keys(generalMap(task)).filter(s=>s!==correct); // allgemeinere Formeln aufnehmen
@@ -1345,65 +1595,65 @@ function buildTeacherSettings(){
   const b=$('#teacherBody'); b.innerHTML='';
   const g=el('div','settings-grid');
   // Zahlen (+ einfache Winkel)
-  const c1=el('div','form-block'); c1.innerHTML='<div class="opt-line"><b>Zahlen</b></div>';
-  const seg=el('div','seg small'); [['int','ganzzahlig'],['dec1','1 Nachkomma'],['dec2','2 Nachkommastellen']].forEach(([val,lab])=>{
+  const c1=el('div','form-block'); c1.innerHTML=T('<div class="opt-line"><b>Zahlen</b></div>','<div class="opt-line"><b>Numbers</b></div>');
+  const seg=el('div','seg small'); [['int',T('ganzzahlig','whole numbers')],['dec1',T('1 Nachkomma','1 decimal place')],['dec2',T('2 Nachkommastellen','2 decimal places')]].forEach(([val,lab])=>{
     const btn=el('button',state.numberType===val?'on':'',lab); btn.onclick=()=>{state.numberType=val;afterTeacherChange();}; seg.appendChild(btn);});
   c1.appendChild(seg);
-  c1.appendChild(checkLine(state.simpleAngles,'nur einfache Winkel (30°, 45°, 60°, …)',v=>{state.simpleAngles=v; afterTeacherChange();}));
+  c1.appendChild(checkLine(state.simpleAngles,T('nur einfache Winkel (30°, 45°, 60°, …)','simple angles only (30°, 45°, 60°, …)'),v=>{state.simpleAngles=v; afterTeacherChange();}));
   g.appendChild(c1);
   // Einheiten
   const c3=el('div','form-block unitset');
-  c3.innerHTML='<div class="opt-line"><b>Einheiten</b></div>';
-  c3.appendChild(checkLine(state.useUnits,'mit Einheiten rechnen',v=>{state.useUnits=v; afterDisplayChange();}));
+  c3.innerHTML=T('<div class="opt-line"><b>Einheiten</b></div>','<div class="opt-line"><b>Units</b></div>');
+  c3.appendChild(checkLine(state.useUnits,T('mit Einheiten rechnen','work with units'),v=>{state.useUnits=v; afterDisplayChange();}));
   const dep=el('div'); dep.style.opacity=state.useUnits?'1':'.4'; if(!state.useUnits)dep.style.pointerEvents='none';
-  dep.appendChild(el('div','opt-line','<span class="small">erlaubte Einheiten:</span>'));
+  dep.appendChild(el('div','opt-line',T('<span class="small">erlaubte Einheiten:</span>','<span class="small">units allowed:</span>')));
   const ul=el('div','opt-line');
   LENGTH_UNITS.forEach(u=>{ const btn=el('button', state.units.includes(u)?'on':'', u);
-    if(!state.units.includes(u)){btn.style.background='#fff';btn.style.color='#444';btn.style.border='1px solid #ccc';}
+    if(!state.units.includes(u))btn.classList.add('unit-off');
     btn.onclick=()=>{ if(state.units.includes(u))state.units=state.units.filter(x=>x!==u); else state.units.push(u);
       if(!state.units.length)state.units=[u]; afterTeacherChange(); };
     ul.appendChild(btn);});
   dep.appendChild(ul);
-  dep.appendChild(el('div','opt-line','<span class="small">in den Formeln:</span>'));
+  dep.appendChild(el('div','opt-line',T('<span class="small">in den Formeln:</span>','<span class="small">in the formulae:</span>')));
   const segU=el('div','seg small');
-  [['through','durchgängig'],['end','erst am Ergebnis [ ]']].forEach(([v,lab])=>{
+  [['through',T('durchgängig','throughout')],['end',T('erst am Ergebnis [ ]','only at the result [ ]')]].forEach(([v,lab])=>{
     const btn=el('button',state.unitsMode===v?'on':'',lab); btn.onclick=()=>{state.unitsMode=v; afterDisplayChange();}; segU.appendChild(btn);});
   dep.appendChild(segU);
-  dep.appendChild(el('div','opt-line','<span class="small">gemischte Einheiten:</span>'));
+  dep.appendChild(el('div','opt-line',T('<span class="small">gemischte Einheiten:</span>','<span class="small">mixed units:</span>')));
   const segMix=el('div','seg small');
-  [['never','nie'],['sometimes','manchmal'],['always','immer']].forEach(([v,lab])=>{
+  [['never',T('nie','never')],['sometimes',T('manchmal','sometimes')],['always',T('immer','always')]].forEach(([v,lab])=>{
     const btn=el('button',state.mixMode===v?'on':'',lab); btn.onclick=()=>{state.mixMode=v; afterTeacherChange();}; segMix.appendChild(btn);});
   dep.appendChild(segMix);
   const mixHint=el('div','small'); mixHint.style.color='#888'; mixHint.style.marginTop='4px';
-  mixHint.textContent='(max. 1 Stufe Unterschied; die Längen werden im Lösungsweg zuerst in eine gemeinsame Einheit umgerechnet)';
+  mixHint.textContent=T('(max. 1 Stufe Unterschied; die Längen werden im Lösungsweg zuerst in eine gemeinsame Einheit umgerechnet)','(at most 1 step apart; in the worked solution the lengths are first converted to a common unit)');
   dep.appendChild(mixHint);
   c3.appendChild(dep); g.appendChild(c3);
   // Hilfe (erste Stufe)
-  const c6=el('div','form-block'); c6.innerHTML='<div class="opt-line"><b>Hilfe (erste Stufe)</b></div>';
+  const c6=el('div','form-block'); c6.innerHTML=T('<div class="opt-line"><b>Hilfe (erste Stufe)</b></div>','<div class="opt-line"><b>Help (first step)</b></div>');
   const segH=el('div','seg small');
-  [['herleitung','Herleitung (bildlich)'],['formelsammlung','Formelsammlung']].forEach(([v,lab])=>{
+  [['herleitung',T('Herleitung (bildlich)','Derivation (visual)')],['formelsammlung',T('Formelsammlung','Formula sheet')]].forEach(([v,lab])=>{
     const btn=el('button',state.helpMode===v?'on':'',lab); btn.onclick=()=>{state.helpMode=v; afterDisplayChange();}; segH.appendChild(btn);});
   c6.appendChild(segH); g.appendChild(c6);
   // Formel-Schreibweise
-  const c7=el('div','form-block'); c7.innerHTML='<div class="opt-line"><b>Formel-Schreibweise</b></div>';
-  c7.appendChild(el('div','opt-line','<span class="small">Faktor ½:</span>'));
+  const c7=el('div','form-block'); c7.innerHTML=T('<div class="opt-line"><b>Formel-Schreibweise</b></div>','<div class="opt-line"><b>Formula notation</b></div>');
+  c7.appendChild(el('div','opt-line',T('<span class="small">Faktor ½:</span>','<span class="small">factor ½:</span>')));
   const segF=el('div','seg small');
-  [['fraction','Term/2 (im Nenner)'],['factor','½ als Faktor']].forEach(([v,lab])=>{
+  [['fraction',T('Term/2 (im Nenner)','term/2 (as denominator)')],['factor',T('½ als Faktor','½ as a factor')]].forEach(([v,lab])=>{
     const btn=el('button',state.halfStyle===v?'on':'',lab); btn.onclick=()=>{state.halfStyle=v; afterFormulaStyleChange();}; segF.appendChild(btn);});
   c7.appendChild(segF);
-  c7.appendChild(el('div','opt-line','<span class="small">Name der Grundseite und zugehörigen Höhe in Formeln:</span>'));
+  c7.appendChild(el('div','opt-line',T('<span class="small">Name der Grundseite und zugehörigen Höhe in Formeln:</span>','<span class="small">names of the base and matching height in formulae:</span>')));
   const segT=el('div','seg small');
   [['g','g · h'],['c','c · h_c']].forEach(([v,lab])=>{
     const btn=el('button',state.triSide===v?'on':'',lab); btn.onclick=()=>{state.triSide=v; afterFormulaStyleChange();}; segT.appendChild(btn);});
   c7.appendChild(segT); g.appendChild(c7);
   // Darstellung (andere Darstellung zusätzlich aufklappbar)
-  const c5=el('div','form-block'); c5.innerHTML='<div class="opt-line"><b>Darstellung</b></div>';
-  c5.appendChild(checkLine(state.analog,'andere Darstellung (Text/Skizze) zum Aufklappen anbieten',v=>{state.analog=v; afterDisplayChange();}));
-  c5.appendChild(checkLine(state.showName,'Namen der Fläche bei Skizze angeben',v=>{state.showName=v; afterDisplayChange();}));
-  c5.appendChild(checkLine(state.colorLen,'farbige Längenangaben (gegebene Strecken farbig markieren)',v=>{state.colorLen=v; afterDisplayChange();}));
-  c5.appendChild(checkLine(state.baseAny,'beliebige Seite als Grundseite (nicht nur die untere) – bei Dreieck & Parallelogramm',v=>{state.baseAny=v; afterDisplayChange();}));
-  c5.appendChild(checkLine(state.concaveKite,'konkave Drachen (Pfeilvierecke) zulassen',v=>{state.concaveKite=v; afterDisplayChange();}));
-  c5.appendChild(checkLine(state.autoUnit,'Antwort: Einheit automatisch vorgeben (sonst frei wählbar)',v=>{state.autoUnit=v; afterDisplayChange();}));
+  const c5=el('div','form-block'); c5.innerHTML=T('<div class="opt-line"><b>Darstellung</b></div>','<div class="opt-line"><b>Presentation</b></div>');
+  c5.appendChild(checkLine(state.analog,T('andere Darstellung (Text/Skizze) zum Aufklappen anbieten','offer the other presentation (text/sketch) to expand'),v=>{state.analog=v; afterDisplayChange();}));
+  c5.appendChild(checkLine(state.showName,T('Namen der Fläche bei Skizze angeben','show the name of the shape with the sketch'),v=>{state.showName=v; afterDisplayChange();}));
+  c5.appendChild(checkLine(state.colorLen,T('farbige Längenangaben (gegebene Strecken farbig markieren)','coloured length labels (mark the given segments in colour)'),v=>{state.colorLen=v; afterDisplayChange();}));
+  c5.appendChild(checkLine(state.baseAny,T('beliebige Seite als Grundseite (nicht nur die untere) – bei Dreieck & Parallelogramm','any side as the base (not just the bottom one) – for triangle & parallelogram'),v=>{state.baseAny=v; afterDisplayChange();}));
+  c5.appendChild(checkLine(state.concaveKite,T('konkave Drachen (Pfeilvierecke) zulassen','allow concave kites (darts)'),v=>{state.concaveKite=v; afterDisplayChange();}));
+  c5.appendChild(checkLine(state.autoUnit,T('Antwort: Einheit automatisch vorgeben (sonst frei wählbar)','answer: fill the unit in automatically (otherwise free to choose)'),v=>{state.autoUnit=v; afterDisplayChange();}));
   g.appendChild(c5);
   b.appendChild(g);
 }
@@ -1417,62 +1667,65 @@ function buildStudentPanel(){
 
   // Formen-Baum – direkt unter den Einstellungen, hervorgehoben; startet geschlossen
   const prevTree=$('#shapeTree'); const treeOpen = prevTree? prevTree.open : false;
-  const det=el('details'); det.id='shapeTree'; det.open=treeOpen;
-  det.appendChild(el('summary',null,'🔷 Welche Flächen möchtest du üben?'));
+  const det=el('details','auswahl'); det.id='shapeTree'; det.open=treeOpen;
+  det.appendChild(el('summary',null,T('🔷 Welche Flächen möchtest du üben?','🔷 Which shapes would you like to practise?')));
   const body=el('div');
   const top=el('div','tree-top');
-  top.appendChild(el('span','tree-hint','Tippen = an/aus · lange gedrückt halten = nur diese · pro Kategorie „alle/keine".'));
-  const share=el('button','share-btn'); share.innerHTML='<span class="ico">🔗</span>Einstellungen teilen';
-  share.title='Aktuelle Einstellungen als Link kopieren'; share.onclick=copyShareLink;
+  top.appendChild(el('span','tree-hint',T('Tippen = an/aus · lange gedrückt halten = nur diese · pro Kategorie „alle/keine".','Tap = on/off · press and hold = only this one · per category “all/none”.')));
+  const share=el('button','share-btn'); share.innerHTML=T('<span class="ico">🔗</span>Einstellungen teilen','<span class="ico">🔗</span>Share settings');
+  share.title=T('Aktuelle Einstellungen als Link kopieren','Copy the current settings as a link'); share.onclick=copyShareLink;
   top.appendChild(share); body.appendChild(top);
   CATS.forEach(cat=>body.appendChild(buildCategory(cat)));
   det.appendChild(body); p.appendChild(det);
   refreshTree();
 
+  // Die drei Schalter stehen in derselben Leiste wie auf den anderen Seiten.
+  const tcRow=el('div'); tcRow.id='topControls'; p.appendChild(tcRow);
+
   // Schwierigkeit
-  const b1=ctlBlock('Schwierigkeit');
-  diffSeg=el('div','seg');
-  [['einfuehrung','Einführung'],['leicht','Leicht'],['mittel','Mittel'],['herausfordernd','Herausfordernd'],['individuell','Individuell']].forEach(([v,lab])=>{
+  const b1=ctlBlock(T('Schwierigkeit','Difficulty')); b1.classList.add('tc-diff');
+  diffSeg=el('div','seg stufen');
+  [['einfuehrung',T('Einführung','Introduction')],['leicht',T('Leicht','Easy')],['normal',T('Normal','Normal')],['herausfordernd',T('Herausfordernd','Challenging')],['individuell',T('Individuell','Custom')]].forEach(([v,lab])=>{
     const btn=el('button',state.diff===v?'on':'',lab); btn.dataset.v=v;
     btn.onclick=()=>{ state.diff=v; if(v==='individuell'){openTeacher();} else { applyPreset(v);} refreshDiffSeg(); rebuild(); newTask(); renderTask(); };
     diffSeg.appendChild(btn);});
-  b1.appendChild(diffSeg); p.appendChild(b1);
+  b1.appendChild(diffSeg); tcRow.appendChild(b1);
 
   // Aufgabentyp
-  const b2=ctlBlock('Aufgabentyp');
+  const b2=ctlBlock(T('Aufgabentyp','Question type'));
   const segM=el('div','seg');
-  [['flaeche','Flächenberechnung'],['zufall','Zufällig'],['umkehr','Umkehraufgabe']].forEach(([v,lab])=>{
+  [['flaeche',T('Flächenberechnung','Area calculation')],['zufall',T('Zufällig','Random')],['umkehr',T('Umkehraufgabe','Reverse question')]].forEach(([v,lab])=>{
     const btn=el('button',state.mode===v?'on':'',lab); btn.onclick=()=>{state.mode=v; setSeg(segM,btn); serialize(); newTask(); renderTask();}; segM.appendChild(btn);});
-  b2.appendChild(segM); p.appendChild(b2);
+  b2.appendChild(segM); tcRow.appendChild(b2);
 
   // Darstellung (Text/Zufall/Skizze) – exakt/allgemein steht direkt an der Skizze
-  const b3=ctlBlock('Darstellung');
+  const b3=ctlBlock(T('Darstellung','Presentation'));
   const segP=el('div','seg');
-  [['text','Text'],['random','Zufall'],['skizze','Skizze']].forEach(([v,lab])=>{
+  [['text',T('Text','Text')],['random',T('Zufall','Random')],['skizze',T('Skizze','Sketch')]].forEach(([v,lab])=>{
     const btn=el('button',state.present===v?'on':'',lab); btn.onclick=()=>{state.present=v; setSeg(segP,btn); serialize(); newTask(); renderTask();}; segP.appendChild(btn);});
-  b3.appendChild(segP); p.appendChild(b3);
+  b3.appendChild(segP); tcRow.appendChild(b3);
 }
-function ctlBlock(label){ const d=el('div','ctl'); d.appendChild(el('span','lbl',label)); return d; }
+function ctlBlock(label){ const d=el('div','tc-item tc-mitte'); d.appendChild(el('span','tc-label',label)); return d; }
 function setSeg(seg,onBtn){ $$('button',seg).forEach(b=>b.classList.toggle('on',b===onBtn)); }
 function openTeacher(){ const d=$('#teacherSettings'); d.open=true; d.classList.add('settings-flash'); setTimeout(()=>d.classList.remove('settings-flash'),1200); d.scrollIntoView({behavior:'smooth',block:'nearest'}); }
 
 /* Teilen-Button: aktuelle URL (=Einstellungen) kopieren */
 function copyShareLink(){
   const qs=serialize(); const url=location.href.split('?')[0]+'?'+qs;
-  const done=()=>showToast('Link mit deinen Einstellungen kopiert');
+  const done=()=>showToast(T('Link mit deinen Einstellungen kopiert','Link with your settings copied'));
   if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(done,()=>fallbackCopy(url,done));
   else fallbackCopy(url,done);
 }
-function fallbackCopy(text,cb){ try{ const ta=el('textarea'); ta.value=text; ta.style.position='fixed'; ta.style.opacity='0'; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); cb&&cb(); }catch(e){ showToast('Kopieren nicht möglich'); } }
+function fallbackCopy(text,cb){ try{ const ta=el('textarea'); ta.value=text; ta.style.position='fixed'; ta.style.opacity='0'; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); cb&&cb(); }catch(e){ showToast(T('Kopieren nicht möglich','Could not copy')); } }
 let toastEl,toastT;
 function showToast(msg){ if(!toastEl){toastEl=el('div','toast');document.body.appendChild(toastEl);} toastEl.textContent=msg; toastEl.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>toastEl.classList.remove('show'),1800); }
 
 function buildCategory(cat){
   const wrap=el('div','cat');
   const head=el('div','cat-head');
-  head.appendChild(el('span','cat-title',cat));
+  head.appendChild(el('span','cat-title',W(cat)));
   const acts=el('div','cat-actions');
-  const toggle=el('button','toggle-all','alle'); toggle.dataset.cat=cat;
+  const toggle=el('button','toggle-all',T('alle','all')); toggle.dataset.cat=cat;
   toggle.onclick=()=>{ const fs=catFormulas(cat); const allOn=fs.every(f=>state.active.has(f.id));
     if(allOn) fs.forEach(f=>state.active.delete(f.id)); else fs.forEach(f=>state.active.add(f.id));
     refreshTree();serialize();newTask();renderTask(); };
@@ -1487,7 +1740,7 @@ function catFormulas(cat){ const out=[]; SHAPES.filter(s=>s.cat===cat).forEach(s
 function buildShape(sh){
   const box=el('div','shape'); box.dataset.shape=sh.id;
   const chip=el('div','chip'); chip.dataset.shape=sh.id;
-  chip.innerHTML='<span class="box"></span> '+sh.name;
+  chip.innerHTML='<span class="box"></span> '+W(sh.name);
   attachToggle(chip,()=>{ // Klick: Form (alle Formeln) an/aus
     const anyOn=sh.formulas.some(f=>state.active.has(f.id));
     sh.formulas.forEach(f=> anyOn?state.active.delete(f.id):state.active.add(f.id));
@@ -1500,7 +1753,7 @@ function buildShape(sh){
   box.appendChild(chip);
   if(sh.formulas.length){ const fl=el('div','formulas');
     sh.formulas.forEach(f=>{ const c=el('div','chip'); c.dataset.formula=f.id;
-      c.innerHTML='<span class="box"></span> '+labelOf(f)+(f.tag?' <span class="tag'+(f.trig?' trig':'')+'">'+f.tag+'</span>':'');
+      c.innerHTML='<span class="box"></span> '+labelOf(f)+(f.tag?' <span class="tag'+(f.trig?' trig':'')+'">'+W(f.tag)+'</span>':'');
       attachToggle(c,()=>{ if(state.active.has(f.id))state.active.delete(f.id); else state.active.add(f.id);
         refreshTree();serialize();newTask();renderTask(); },
         ()=>{ state.active.clear(); state.active.add(f.id); refreshTree();serialize();newTask();renderTask(); });
@@ -1529,7 +1782,7 @@ function refreshTree(){
     if(chip){ chip.classList.toggle('on',on>0&&on===sh.formulas.length); chip.classList.toggle('partial',on>0&&on<sh.formulas.length); }
     sh.formulas.forEach(f=>{ const c=$('.chip[data-formula="'+f.id+'"]'); if(c)c.classList.toggle('on',state.active.has(f.id)); });
   });
-  $$('.toggle-all').forEach(btn=>{ const fs=catFormulas(btn.dataset.cat); const allOn=fs.length&&fs.every(f=>state.active.has(f.id)); btn.textContent=allOn?'keine':'alle'; });
+  $$('.toggle-all').forEach(btn=>{ const fs=catFormulas(btn.dataset.cat); const allOn=fs.length&&fs.every(f=>state.active.has(f.id)); btn.textContent=allOn?T('keine','none'):T('alle','all'); });
 }
 
 /* ---------- Skizzen-Figur (Umschalter + Raster direkt an der Skizze) ---------- */
@@ -1540,7 +1793,7 @@ function buildFig(t){
     // exakt / allgemein direkt an der Skizze
     const top=el('div','fig-top');
     const seg=el('div','seg small');
-    [['exact','exakt (maßstäblich)'],['general','allgemein']].forEach(([v,lab])=>{
+    [['exact',T('exakt (maßstäblich)','exact (to scale)')],['general',T('allgemein','general')]].forEach(([v,lab])=>{
       const btn=el('button',state.sketchType===v?'on':'',lab);
       btn.onclick=()=>{ state.sketchType=v; serialize(); draw(); };
       seg.appendChild(btn);});
@@ -1551,16 +1804,16 @@ function buildFig(t){
     wrap.innerHTML=buildSketch(t,state.sketchType,gridOpt);
     fig.appendChild(wrap);
     if(state.sketchType==='general'){
-      fig.appendChild(el('div','not-scale','Skizze nicht maßstabsgetreu'));
+      fig.appendChild(el('div','not-scale',T('Skizze nicht maßstabsgetreu','Sketch not to scale')));
     } else {
       const gc=el('div','grid-ctl');
       const cbl=el('label'); cbl.style.cursor='pointer';
       const cb=el('input'); cb.type='checkbox'; cb.checked=state.gridOn;
-      cbl.append(cb,document.createTextNode(' Raster einblenden'));
+      cbl.append(cb,document.createTextNode(T(' Raster einblenden',' show grid')));
       const sl=el('input'); sl.type='range'; sl.min='0'; sl.max=String(GRID_STEPS.length-1); sl.step='1';
       let idx=GRID_STEPS.indexOf(state.gridStep); if(idx<0)idx=2; sl.value=String(idx);
       const lab=el('span','gc-lbl');
-      const setLab=()=>{ const q=fmtDE(state.gridStep)+' '+t.unit; lab.textContent='1 Kästchen = '+q+' × '+q; };
+      const setLab=()=>{ const q=fmtDE(state.gridStep)+' '+t.unit; lab.textContent=T('1 Kästchen = ','1 square = ')+q+' × '+q; };
       const applyGrid=()=>{ wrap.innerHTML=buildSketch(t,'exact', state.gridOn?{grid:{step:state.gridStep,unit:t.unit}}:null); };
       const syncEnabled=()=>{ sl.disabled=!state.gridOn; sl.style.opacity=state.gridOn?'1':'.35'; lab.style.opacity=state.gridOn?'1':'.35'; };
       cb.onchange=()=>{ state.gridOn=cb.checked; syncEnabled(); serialize(); applyGrid(); };
@@ -1588,29 +1841,33 @@ function renderTask(){
   const area=$('#taskArea'); area.innerHTML='';
   // Kopfzeile mit „Neue Aufgabe"
   const topRow=el('div','act-row');
-  const nb=el('button','btn-new','🔄 Neue Aufgabe'); nb.onclick=()=>{newTask();renderTask();};
+  const nb=el('button','btn-new');
+  /* derselbe Knopf wie auf den anderen Aufgabenseiten */
+  nb.appendChild(el('span','auto-kreis','\u27F3'));
+  nb.appendChild(document.createTextNode('\u00A0'+T('Neue Aufgabe generieren','Generate a new task')));
+  nb.onclick=()=>{newTask();renderTask();};
   topRow.appendChild(nb); area.appendChild(topRow);
 
   const t=state.task;
-  if(!t){ area.appendChild(el('p','muted','Bitte wähle oben mindestens eine Fläche/Formel aus.')); return; }
+  if(!t){ area.appendChild(el('p','muted',T('Bitte wähle oben mindestens eine Fläche/Formel aus.','Please select at least one shape/formula above.'))); return; }
 
   const card=el('div','task-card');
   const head=el('div','task-head');
   const sketchShown=(t.pres==='skizze');
   const titleWrap=el('span','task-title');
-  if(!sketchShown) titleWrap.appendChild(el('span','tt-name',t.shape.name));
+  if(!sketchShown) titleWrap.appendChild(el('span','tt-name',W(t.shape.name)));
   if(sketchShown){
     // Bei der Skizze wird der Name nur auf Wunsch verraten; das Auge schaltet ihn um
     const eye=el('button','eye-btn');
     const paint=()=>{
       const on=state.showName;
       $$('.tt-name,.tt-hidden',titleWrap).forEach(x=>x.remove());
-      if(on) titleWrap.insertBefore(el('span','tt-name',t.shape.name),eye);
-      else titleWrap.insertBefore(el('span','tt-hidden','Welche Fläche ist das?'),eye);
+      if(on) titleWrap.insertBefore(el('span','tt-name',W(t.shape.name)),eye);
+      else titleWrap.insertBefore(el('span','tt-hidden',T('Welche Fläche ist das?','Which shape is this?')),eye);
       const EYE='<path d="M1.5 12S5 5.5 12 5.5 22.5 12 22.5 12 19 18.5 12 18.5 1.5 12 1.5 12Z" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="3.2" fill="none" stroke="currentColor" stroke-width="1.8"/>';
       const SLASH='<path d="M4 20 20 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>';
       eye.innerHTML='<svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true">'+EYE+(on?SLASH:'')+'</svg>';
-      eye.title = on?'Namen der Fläche ausblenden':'Namen der Fläche einblenden';
+      eye.title = on?T('Namen der Fläche ausblenden','Hide the name of the shape'):T('Namen der Fläche einblenden','Show the name of the shape');
     };
     eye.onclick=()=>{ state.showName=!state.showName; serialize(); paint();
       buildTeacherSettings();
@@ -1618,7 +1875,7 @@ function renderTask(){
     titleWrap.appendChild(eye); paint();
   }
   head.appendChild(titleWrap);
-  head.appendChild(el('span','badge'+(t.mode==='umkehr'?' inv':''), t.mode==='umkehr'?'Umkehraufgabe':'Fläche'));
+  head.appendChild(el('span','badge'+(t.mode==='umkehr'?' inv':''), t.mode==='umkehr'?T('Umkehraufgabe','Reverse question'):T('Fläche','Area')));
   card.appendChild(head);
 
   const body=el('div','task-body');
@@ -1631,8 +1888,8 @@ function renderTask(){
 
   // Antwortzeile schon anlegen (wird beim Öffnen der Lösung gesperrt)
   const ans=el('div','answer-row');
-  const inp=el('input'); inp.type='text'; inp.inputMode='decimal'; inp.placeholder='Antwort';
-  const chk=el('button','btn-ghost','Prüfen'); chk.style.background='var(--accent)'; chk.style.color='#fff';
+  const inp=el('input'); inp.type='text'; inp.inputMode='decimal'; inp.placeholder=T('Antwort','Answer');
+  const chk=el('button','btn-check',T('Prüfen','Check'));
   const msg=el('span','result-msg');
   // Dimension & Basiseinheit der Antwort bestimmen
   let dim='area', fixedLabel = state.useUnits ? t.unit+'²' : '';
@@ -1663,7 +1920,7 @@ function renderTask(){
   // andere Darstellung zum Aufklappen (falls aktiviert)
   if(state.analog){
     const other=el('details','alt-rep');
-    other.appendChild(el('summary',null, t.pres==='skizze'?'als Text anzeigen':'als Skizze anzeigen'));
+    other.appendChild(el('summary',null, t.pres==='skizze'?T('als Text anzeigen','show as text'):T('als Skizze anzeigen','show as a sketch')));
     const oc=el('div','alt-rep-body'); other.appendChild(oc);
     let built=false;
     other.addEventListener('toggle',()=>{ if(other.open&&!built){ built=true;
@@ -1677,17 +1934,20 @@ function renderTask(){
 
   // Hilfe (Button, mehrstufig) + Container
   const acts=el('div','act-row center');
-  const hint=el('button','btn-hint','💡 Hilfe'); hint.onclick=()=>showHelp(t,card);
+  const hint=el('button','btn-hint',T('💡 Hilfe','💡 Help')); hint.onclick=()=>showHelp(t,card);
   acts.append(hint); card.appendChild(acts);
   card.appendChild(el('div','help-container'));
 
   // Lösung als aufklappbarer Bereich; beim Öffnen wird die Eingabe gesperrt
-  const solD=el('details','sol-details'); solD.appendChild(el('summary',null,'🔎 Lösung'));
+  const solD=el('details','loesung');
+  solD.appendChild(el('summary',null,
+    '<span class="wenn-zu">'+T('Lösung einblenden','Show answer')+'</span>'+
+    '<span class="wenn-auf">'+T('Lösung ausblenden','Hide answer')+'</span>'));
   const solBody=el('div','sol-body'); solD.appendChild(solBody);
   let solBuilt=false;
   solD.addEventListener('toggle',()=>{ if(solD.open){
       inp.disabled=true; chk.disabled=true; ans.classList.add('locked');
-      if(!msg.textContent){ msg.textContent='Lösung geöffnet – Eingabe gesperrt'; msg.className='result-msg muted'; }
+      if(!msg.textContent){ msg.textContent=T('Lösung geöffnet – Eingabe gesperrt','Solution open – input locked'); msg.className='result-msg muted'; }
       if(!solBuilt){ solBuilt=true; buildSolution(t,solBody); }
     } });
   card.appendChild(solD);
@@ -1701,11 +1961,11 @@ function buildUnitSelect(dim0, defU, preselect){
   const wrap=el('span','unit-select');
   const btn=el('button','unit-btn'); btn.type='button';
   const sel = preselect ? {u:defU, dim:dim0} : {u:null, dim:null};
-  const setBtn=()=>{ btn.textContent = sel.u ? unitTxt(sel.u,sel.dim) : 'Einheit'; };
+  const setBtn=()=>{ btn.textContent = sel.u ? unitTxt(sel.u,sel.dim) : T('Einheit','Unit'); };
   const panel=el('div','unit-panel'); panel.style.display='none';
-  panel.appendChild(checkLine(state.autoUnit,'Einheit automatisch vorgeben', v=>{ state.autoUnit=v; serialize(); renderTask(); }));
+  panel.appendChild(checkLine(state.autoUnit,T('Einheit automatisch vorgeben','Fill in the unit automatically'), v=>{ state.autoUnit=v; serialize(); renderTask(); }));
   const grid=el('table','unit-grid');
-  const head=el('tr'); ['Länge','Fläche','Volumen'].forEach(h=>{ const th=document.createElement('th'); th.textContent=h; head.appendChild(th); }); grid.appendChild(head);
+  const head=el('tr'); [T('Länge','Length'),T('Fläche','Area'),T('Volumen','Volume')].forEach(h=>{ const th=document.createElement('th'); th.textContent=h; head.appendChild(th); }); grid.appendChild(head);
   ['mm','cm','dm','m','km'].forEach(u=>{ const tr=document.createElement('tr');
     [['len',u],['area',u+'²'],['vol',u+'³']].forEach(([dim,label])=>{
       const td=document.createElement('td'); const b=el('button','unit-cell',label); b.type='button';
@@ -1722,25 +1982,25 @@ function buildUnitSelect(dim0, defU, preselect){
 }
 function checkAnswer(t,inp,msg,au){
   const val=parseNum(inp.value);
-  if(!isFinite(val)){ msg.textContent='Bitte eine Zahl eingeben.'; msg.className='result-msg no'; return; }
-  if(au && au.u==null){ msg.textContent='Bitte zuerst eine Einheit wählen.'; msg.className='result-msg no'; return; }
+  if(!isFinite(val)){ msg.textContent=T('Bitte eine Zahl eingeben.','Please enter a number.'); msg.className='result-msg no'; return; }
+  if(au && au.u==null){ msg.textContent=T('Bitte zuerst eine Einheit wählen.','Please choose a unit first.'); msg.className='result-msg no'; return; }
   const near=(a,b)=>Math.abs(a-b)<=Math.max(0.05,Math.abs(b)*0.015);
   let target, stud, dimErr=null;
   if(t.mode==='umkehr'){
     target=t.v[t.unknownSym];
     const need=t.formula.needs.find(n=>n.sym===t.unknownSym);
-    if(au && need.kind==='len'){ if(au.dim!=='len') dimErr='Das ist keine Längeneinheit.';
+    if(au && need.kind==='len'){ if(au.dim!=='len') dimErr=T('Das ist keine Längeneinheit.','That is not a unit of length.');
       else stud=val*Math.pow(10, uIndex(au.u)-uIndex(t.unit)); }
     else stud=val;
   } else {
     target=t.areaExact;
-    if(au){ if(au.dim!=='area') dimErr='Das ist keine Flächeneinheit.';
+    if(au){ if(au.dim!=='area') dimErr=T('Das ist keine Flächeneinheit.','That is not a unit of area.');
       else stud=val*Math.pow(10, 2*(uIndex(au.u)-uIndex(t.unit))); }
     else stud=val;
   }
   if(dimErr){ msg.textContent='✗ '+dimErr; msg.className='result-msg no'; return; }
-  if(near(stud,target)){ msg.textContent='✓ Richtig!'; msg.className='result-msg ok'; t.answered=true; }
-  else { msg.textContent='✗ Noch nicht. Tipp: 💡 Hilfe oder 🔎 Lösung.'; msg.className='result-msg no'; }
+  if(near(stud,target)){ msg.textContent=T('✓ Richtig!','✓ Correct!'); msg.className='result-msg ok'; t.answered=true; }
+  else { msg.textContent=T('✗ Noch nicht. Tipp: 💡 Hilfe oder 🔎 Lösung.','✗ Not yet. Try 💡 Help or 🔎 Solution.'); msg.className='result-msg no'; }
 }
 
 /* ---------- Hilfe (mehrstufig) ---------- */
@@ -1749,9 +2009,9 @@ function buildCircleDeriv(container){
   const ctl=el('div','grid-ctl');
   const sl=el('input'); sl.type='range'; sl.min='6'; sl.max='32'; sl.step='2'; sl.value='12';
   const lab=el('span','gc-lbl');
-  const render=()=>{ const n=+sl.value; fig.innerHTML=derivCircle(n); lab.textContent=n+' Sektoren'; };
+  const render=()=>{ const n=+sl.value; fig.innerHTML=derivCircle(n); lab.textContent=n+T(' Sektoren',' sectors'); };
   sl.oninput=render;
-  ctl.append(document.createTextNode('Feinheit:'),sl,lab);
+  ctl.append(document.createTextNode(T('Feinheit:','Detail:')),sl,lab);
   container.appendChild(fig); container.appendChild(ctl);
   const p=el('p',null); p.innerHTML=DERIV_TEXT('kreis',null); container.appendChild(p);
   render();
@@ -1771,8 +2031,8 @@ const SHAPE_ART={quadrat:'ein Quadrat',rechteck:'ein Rechteck',parallelogramm:'e
 function shapeWarnMap(sh){
   const out={};
   (SHAPE_GENERAL[sh.id]||[]).forEach(id=>{ const o=shapeById(id); if(!o)return;
-    out[o.name]='Stimmt – '+(SHAPE_ART[sh.id]||sh.name)+' ist auch '+(SHAPE_ART[id]||o.name)
-      +'. Gesucht ist aber die genaueste Bezeichnung.'; });
+    out[W(o.name)]=T('Stimmt – ','Correct – ')+W(SHAPE_ART[sh.id]||sh.name)+T(' ist auch ',' is also ')+W(SHAPE_ART[id]||o.name)
+      +T('. Gesucht ist aber die genaueste Bezeichnung.','. The most precise name is what is wanted, though.'); });
   return out;
 }
 /* Hilfestufen hängen davon ab, ob der Name der Fläche noch verraten werden muss */
@@ -1794,7 +2054,7 @@ function choiceRowFl(host,items,correct,opt){
       let cls,w='';
       if(txt===correct) cls='choice ok';
       else if(opt.warn&&opt.warn[txt]){ cls='choice warn';
-        w='<b>'+(opt.warnLead||'Geht auch, ist aber nicht optimal:')+'</b> '+opt.warn[txt]; }
+        w='<b>'+(opt.warnLead||T('Geht auch, ist aber nicht optimal:','That works too, but is not the best choice:'))+'</b> '+opt.warn[txt]; }
       else cls='choice no';
       ch.className=cls;
       if(save){ why.innerHTML=w; if(w)mj(why); if(st){ st.picked[txt]=1; st.why=w; } }
@@ -1810,41 +2070,41 @@ function showHelp(t,card){
   const steps=helpStepIds(t), N=steps.length;
   t.helpLevel=Math.min(t.helpLevel+1,N);
   cont.innerHTML='';
-  const box=el('div','help-box'); box.innerHTML='<h4>Hilfe – Stufe '+t.helpLevel+' von '+N+'</h4>';
+  const box=el('div','help-box'); box.innerHTML='<h4>'+T('Hilfe – Stufe '+t.helpLevel+' von '+N,'Help – step '+t.helpLevel+' of '+N)+'</h4>';
   const lvl=id=>steps.indexOf(id)+1;             // Stufennummer je Schritt
   const num=id=>lvl(id);
   const shown=id=>lvl(id)>0 && t.helpLevel>=lvl(id);
 
   // Stufe „Welche Fläche ist das?" – nur wenn der Name bei der Skizze verborgen ist
   if(shown('name')){ const s=el('div','help-step');
-    s.innerHTML='<b>'+num('name')+') Welche Fläche ist das?</b>';
-    const opts=SHAPES.map(x=>x.name);
-    choiceRowFl(s,opts,t.shape.name,{warn:shapeWarnMap(t.shape),
-      warnLead:'Stimmt, aber nicht genau genug:',store:pickStore(t,'name')});
+    s.innerHTML='<b>'+num('name')+T(') Welche Fläche ist das?</b>',') Which shape is this?</b>');
+    const opts=SHAPES.map(x=>W(x.name));
+    choiceRowFl(s,opts,W(t.shape.name),{warn:shapeWarnMap(t.shape),
+      warnLead:T('Stimmt, aber nicht genau genug:','Correct, but not precise enough:'),store:pickStore(t,'name')});
     box.appendChild(s); }
 
   if(shown('herleitung')){ const s=el('div','help-step');
     if(state.helpMode==='formelsammlung'){
-      s.innerHTML='<b>'+num('herleitung')+') Passende Formel (Formelsammlung)</b><p>Für <b>'+t.shape.name+'</b> gilt:</p>\\['+symOf(t.formula)+'\\]';
+      s.innerHTML='<b>'+num('herleitung')+T(') Passende Formel (Formelsammlung)</b><p>Für <b>',') Matching formula (formula sheet)</b><p>For <b>')+W(t.shape.name)+T('</b> gilt:</p>\\[','</b>:</p>\\[')+symOf(t.formula)+'\\]';
     } else if(t.shape.id==='kreis'){
-      s.innerHTML='<b>'+num('herleitung')+') Herleitung der Formel</b>'; buildCircleDeriv(s);
+      s.innerHTML='<b>'+num('herleitung')+T(') Herleitung der Formel</b>',') Derivation of the formula</b>'); buildCircleDeriv(s);
     } else {
-      s.innerHTML='<b>'+num('herleitung')+') Herleitung der Formel</b>'+derivContent(t);
+      s.innerHTML='<b>'+num('herleitung')+T(') Herleitung der Formel</b>',') Derivation of the formula</b>')+derivContent(t);
     }
     box.appendChild(s); }
-  if(shown('formel')){ const s=el('div','help-step'); s.innerHTML='<b>'+num('formel')+') Welche Formel passt?</b>';
+  if(shown('formel')){ const s=el('div','help-step'); s.innerHTML='<b>'+num('formel')+T(') Welche Formel passt?</b>',') Which formula fits?</b>');
     if(!t.choices) t.choices=formulaChoices(t);
     choiceRowFl(s,t.choices,symOf(t.formula),{tex:true,warn:generalMap(t),store:pickStore(t,'formel')});
     box.appendChild(s); }
   if(shown('ansatz')){ const s=el('div','help-step');
-    s.innerHTML='<b>'+num('ansatz')+') Ansatz (Werte einsetzen)</b>'+ansatzTeX(t); box.appendChild(s); }
+    s.innerHTML='<b>'+num('ansatz')+T(') Ansatz (Werte einsetzen)</b>',') Set-up (substitute the values)</b>')+ansatzTeX(t); box.appendChild(s); }
   if(shown('loesung')){ const s=el('div','help-step');
-    s.innerHTML='<b>'+num('loesung')+') Vollständiger Lösungsweg</b>'+stripResults(solutionTeX(t))
-      +'<p class="small" style="color:#8a7328;margin-top:6px;">Rechne nun selbst zu Ende – die vollständige Lösung steht im Bereich „Lösung".</p>';
+    s.innerHTML='<b>'+num('loesung')+T(') Vollständiger Lösungsweg</b>',') Full worked solution</b>')+stripResults(solutionTeX(t))
+      +T('<p class="small" style="color:#8a7328;margin-top:6px;">Rechne nun selbst zu Ende – die vollständige Lösung steht im Bereich „Lösung".</p>','<p class="small" style="color:#8a7328;margin-top:6px;">Now finish the calculation yourself – the full solution is in the “Solution” section.</p>');
     box.appendChild(s); }
 
   const more=el('div','act-row');
-  if(t.helpLevel<N){ const b=el('button','btn-hint','Nächste Hilfestufe ▸'); b.onclick=()=>showHelp(t,card); more.appendChild(b); }
+  if(t.helpLevel<N){ const b=el('button','btn-hint-next',T('Nächste Hilfestufe ▸','Next level of help ▸')); b.onclick=()=>showHelp(t,card); more.appendChild(b); }
   box.appendChild(more);
   cont.appendChild(box); mj(box);
 }
@@ -1852,9 +2112,9 @@ function ansatzTeX(t){
   const {formula}=t;
   if(t.mode==='umkehr'){
     const tg=formula.needs.find(n=>n.sym===t.unknownSym);
-    return '\\['+symOf(formula)+'\\]<p>Stelle die Formel nach \\('+needTexOf(formula,tg)+'\\) um und setze die gegebenen Werte (inkl. \\(A\\)) ein.</p>';
+    return '\\['+symOf(formula)+T('\\]<p>Stelle die Formel nach \\(','\\]<p>Rearrange the formula for \\(')+needTexOf(formula,tg)+T('\\) um und setze die gegebenen Werte (inkl. \\(A\\)) ein.</p>','\\) and substitute the given values (including \\(A\\)).</p>');
   }
-  return '\\['+symOf(formula)+'\\]<p>Setze nun die gegebenen Werte ein und rechne den Flächeninhalt aus.</p>';
+  return '\\['+symOf(formula)+T('\\]<p>Setze nun die gegebenen Werte ein und rechne den Flächeninhalt aus.</p>','\\]<p>Now substitute the given values and work out the area.</p>');
 }
 
 /* ---------- Lösung / Lösungsweg ---------- */
@@ -1885,7 +2145,7 @@ function buildSolution(t,box){
   if(mode==='umkehr'){ const tg=formula.needs.find(n=>n.sym===t.unknownSym); resLine='\\('+needTexOf(formula,tg)+' = '+texNum(v[t.unknownSym])+uRes(unit,'len')+'\\)'; }
   else { resLine = formula.exact ? '\\(A = '+t.areaDisp+uRes(unit,'area')+' \\approx '+texNum(t.areaExact,2)+uRes(unit,'area')+'\\)' : '\\(A = '+texNum(t.areaExact,2)+uRes(unit,'area')+'\\)'; }
   box.appendChild(el('p','',resLine));
-  const wd=el('details','steps-details'); wd.appendChild(el('summary',null,'Lösungsweg anzeigen'));
+  const wd=el('details','steps-details'); wd.appendChild(el('summary',null,T('Lösungsweg anzeigen','Show the worked solution')));
   const steps=el('div','steps'); wd.appendChild(steps);
   let built=false;
   wd.addEventListener('toggle',()=>{ if(wd.open&&!built){ built=true; steps.innerHTML=solutionTeX(t); mj(steps); } });
@@ -1898,6 +2158,39 @@ function rebuild(){ buildTeacherSettings(); serialize(); }
 function afterTeacherChange(){ markIndividual(); buildTeacherSettings(); newTask(); renderTask(); }
 function afterDisplayChange(){ buildTeacherSettings(); serialize(); renderTask(); }
 function afterFormulaStyleChange(){ buildTeacherSettings(); buildStudentPanel(); serialize(); renderTask(); }
+/* ══════════════════════════════════════════════════════════════════════════
+   Sprach- und Themawechsel
+   Es wird nur neu gezeichnet: state.task bleibt unangetastet, es entsteht
+   also nie eine neue Aufgabe und keine Eingabe geht verloren.
+   ══════════════════════════════════════════════════════════════════════════ */
+function neuZeichnen(){
+  try{
+    buildTeacherSettings();
+    buildStudentPanel();
+    renderTask();
+  }catch(e){}
+  // Erkundungsmodus (eigenes Skript) mitziehen
+  try{ if(window.__erkNeu) window.__erkNeu(); }catch(e){}
+}
+window.addEventListener('tl-sprache', neuZeichnen);
+window.addEventListener('tl-theme',   neuZeichnen);
+
+/* ── Kontext für den Fehler-melden-Knopf ─────────────────────────────────── */
+window.fehlerKontext=function(){
+  // Die Einstellungen stehen bereits in der URL; hier zaehlt die Aufgabe selbst.
+  const t=state.task;
+  if(!t) return T('keine Aufgabe','no task');
+  // Kurze, neutrale Schluessel – sie stehen so in der Fehlermail.
+  const z=['shape='+t.shape.id, 'formula='+t.formula.id, 'mode='+t.mode, 'present='+t.pres];
+  if(t.unknownSym) z.push('wanted='+t.unknownSym);
+  const v=Object.keys(t.v||{}).map(k=>k+'='+t.v[k]).join(' ');
+  if(v) z.push('values: '+v);
+  if(t.unit) z.push('unit='+t.unit);
+  if(t.disp) { const d=Object.keys(t.disp).map(k=>k+'→'+t.disp[k]).join(' '); if(d) z.push('display: '+d); }
+  z.push('help='+(t.helpLevel||0));
+  return z.join('; ');
+};
+
 function boot(){
   const fromURL=deserialize();
   if(!fromURL){ state.active=defaultActive(); applyPreset(state.diff); }
@@ -1926,7 +2219,7 @@ const MINPX=7;                 // Raster wird ab dieser Zellgröße (px) gezeigt
 
 const fmtNum=x=>{ const r=Math.round(x*1000)/1000;
   return _fmt(r); };
-function _fmt(r){ return (Number.isInteger(r)?r.toString():r.toFixed(3).replace(/0+$/,'').replace(/\.$/,'')).replace('.',','); }
+function _fmt(r){ return (Number.isInteger(r)?r.toString():r.toFixed(3).replace(/0+$/,'').replace(/\.$/,'')).replace('.',(typeof DEZ==='function'?DEZ():',')); }
 const L=v=>fmtNum(v/U());
 const Ar=v=>fmtNum(v/(U()*U()));
 const mid=(P,Q)=>[(P[0]+Q[0])/2,(P[1]+Q[1])/2];
@@ -1942,7 +2235,7 @@ const SHAPES={
       s.x0=l;s.y0=b;s.w=r-l;s.h=t-b; },
     sides:(s,C)=>[side(C[0],C[1],L(s.w)),side(C[3],C[2],L(s.w)),side(C[0],C[3],L(s.h)),side(C[1],C[2],L(s.h))],
     derive:s=>({f:'A = a · b = '+L(s.h)+' · '+L(s.w)+' = <b>'+Ar(s.w*s.h)+'</b>',
-      e:'Zähle die Kästchen: '+L(s.h)+' Reihen mit je '+L(s.w)+' Kästchen. Die Anzahl der Einheitsquadrate ist das Produkt der Seiten – daher A = a · b.'}) },
+      e:T('Zähle die Kästchen: ','Count the squares: ')+L(s.h)+T(' Reihen mit je ',' rows of ')+L(s.w)+T(' Kästchen. Die Anzahl der Einheitsquadrate ist das Produkt der Seiten – daher A = a · b.',' squares each. The number of unit squares is the product of the sides – hence A = a · b.')}) },
 
   quadrat:{ label:'Quadrat', names:['A','B','C','D'], init:{x0:-2,y0:-2,side:4}, calc:s=>L(s.side)+' · '+L(s.side),
     pts:s=>[[s.x0,s.y0],[s.x0+s.side,s.y0],[s.x0+s.side,s.y0+s.side],[s.x0,s.y0+s.side]], area:s=>s.side*s.side,
@@ -1951,7 +2244,7 @@ const SHAPES={
       s.x0=Math.min(O[0],O[0]+(wx<O[0]?-1:1)*side); s.y0=Math.min(O[1],O[1]+(wy<O[1]?-1:1)*side); s.side=side; },
     sides:(s,C)=>[side(C[0],C[1],L(s.side)),side(C[0],C[3],L(s.side))],
     derive:s=>({f:'A = a · a = a² = '+L(s.side)+'² = <b>'+Ar(s.side*s.side)+'</b>',
-      e:'Beim Quadrat sind alle Seiten gleich lang – ein Sonderfall des Rechtecks: A = a · a = a².'}) },
+      e:T('Beim Quadrat sind alle Seiten gleich lang – ein Sonderfall des Rechtecks: A = a · a = a².','In a square all sides are equal – a special case of the rectangle: A = a · a = a².')}) },
 
   parallelogramm:{ label:'Parallelogramm', names:['A','B','C','D'], init:{ax:-3,ay:-2,b:6,h:4,s:1.5},
     pts:s=>[[s.ax,s.ay],[s.ax+s.b,s.ay],[s.ax+s.b+s.s,s.ay+s.h],[s.ax+s.s,s.ay+s.h]], area:s=>s.b*s.h,
@@ -1965,7 +2258,7 @@ const SHAPES={
       let moved,gap,gapEdge; if(s.s>=0){moved=[B,Rtr,Cc];gap=[A,Rtl,D];gapEdge=[D,A];} else {moved=[A,Rtl,D];gap=[B,Rtr,Cc];gapEdge=[Cc,B];}
       return {rect:[A,B,Rtr,Rtl],moved,gap,gapEdge}; },
     derive:s=>({f:'A = g · h = '+L(s.b)+' · '+L(s.h)+' = <b>'+Ar(s.b*s.h)+'</b>',
-      e:'Schneide das Dreieck an der einen Seite ab und setze es an der anderen wieder an: Es entsteht ein Rechteck mit Grundseite g und Höhe h. Die Schräge ändert die Fläche nicht – daher A = g · h.'}) },
+      e:T('Schneide das Dreieck an der einen Seite ab und setze es an der anderen wieder an: Es entsteht ein Rechteck mit Grundseite g und Höhe h. Die Schräge ändert die Fläche nicht – daher A = g · h.','Cut the triangle off one side and attach it to the other: the result is a rectangle with base g and height h. The slant does not change the area – hence A = g · h.')}) },
 
   rechtdreieck:{ label:'Rechtw. Dreieck', names:['A','B','C'], init:{ax:-2,ay:-2,g:5,h:4},
     pts:s=>[[s.ax,s.ay],[s.ax+s.g,s.ay],[s.ax,s.ay+s.h]], area:s=>s.g*s.h/2,
@@ -1976,7 +2269,7 @@ const SHAPES={
     rmark:s=>({c:[s.ax,s.ay],u1:[1,0],u2:[0,-1]}),
     helper(s,C){ const A=C[0],B=C[1],Cc=C[2],Rtr=[s.ax+s.g,s.ay+s.h]; return {triRect:[A,B,Rtr,Cc],triAdd:[[B,Rtr,Cc]]}; },
     derive:s=>({f:'A = ½ · g · h = (g · h) / 2 = ½ · '+L(s.g)+' · '+L(s.h)+' = <b>'+Ar(s.g*s.h/2)+'</b>',
-      e:'Das rechtwinklige Dreieck ist genau die Hälfte des Rechtecks aus seinen beiden Katheten g und h. Die zweite Hälfte – gedreht – ergänzt es zum Rechteck: A = ½ · g · h.'}) },
+      e:T('Das rechtwinklige Dreieck ist genau die Hälfte des Rechtecks aus seinen beiden Katheten g und h. Die zweite Hälfte – gedreht – ergänzt es zum Rechteck: A = ½ · g · h.','A right-angled triangle is exactly half of the rectangle formed by its two legs g and h. The second half, rotated, completes it into the rectangle: A = ½ · g · h.')}) },
 
   dreieck:{ label:'Dreieck', names:['A','B','C'], init:{ax:-3,ay:-2,g:6,h:4,cx:1.5},
     pts:s=>[[s.ax,s.ay],[s.ax+s.g,s.ay],[s.ax+s.cx,s.ay+s.h]], area:s=>s.g*s.h/2,
@@ -1992,9 +2285,9 @@ const SHAPES={
       const M=mid(B,Cc),Ap=[2*M[0]-A[0],2*M[1]-A[1]]; return {para:[A,B,Ap,Cc],copy:[Ap,B,Cc]}; },
     derive:s=>{ if(state.triangleMode==='rectangle') return {
         f:'A = ½ · g · h = (g · h) / 2 = ½ · '+L(s.g)+' · '+L(s.h)+' = <b>'+Ar(s.g*s.h/2)+'</b>',
-        e:'Das Dreieck füllt genau die Hälfte des umschließenden Rechtecks (Grundseite g, Höhe h). Die beiden Teildreiecke – durch die Höhe geteilt – passen gedreht in die beiden oberen Ecken. Daher A = ½ · g · h. (Der Höhenfuß bleibt dabei auf der Grundseite.)'};
+        e:T('Das Dreieck füllt genau die Hälfte des umschließenden Rechtecks (Grundseite g, Höhe h). Die beiden Teildreiecke – durch die Höhe geteilt – passen gedreht in die beiden oberen Ecken. Daher A = ½ · g · h. (Der Höhenfuß bleibt dabei auf der Grundseite.)','The triangle fills exactly half of the surrounding rectangle (base g, height h). The two part-triangles, split by the height, fit rotated into the two upper corners. Hence A = ½ · g · h. (The foot of the height stays on the base.)')};
       return {f:'A = ½ · g · h = (g · h) / 2 = ½ · '+L(s.g)+' · '+L(s.h)+' = <b>'+Ar(s.g*s.h/2)+'</b>',
-        e:'Ein zweites, um 180° gedrehtes Dreieck ergänzt zu einem Parallelogramm mit Grundseite g und Höhe h. Das Dreieck ist die Hälfte davon: A = ½ · g · h.'}; } },
+        e:T('Ein zweites, um 180° gedrehtes Dreieck ergänzt zu einem Parallelogramm mit Grundseite g und Höhe h. Das Dreieck ist die Hälfte davon: A = ½ · g · h.','A second triangle rotated by 180° completes it into a parallelogram with base g and height h. The triangle is half of it: A = ½ · g · h.')}; } },
 
   trapez:{ label:'Trapez', names:['A','B','C','D'], init:{ax:-3,ay:-2,a:7,c:3,h:4,dx:2},
     pts:s=>[[s.ax,s.ay],[s.ax+s.a,s.ay],[s.ax+s.dx+s.c,s.ay+s.h],[s.ax+s.dx,s.ay+s.h]], area:s=>(s.a+s.c)/2*s.h, fit:1.2,
@@ -2019,9 +2312,9 @@ const SHAPES={
       return {copy:[Ap,Cc,B,Dp],para:[A,Dp,Ap,D]}; },
     derive:s=>{ if(state.trapMode==='midline'){ const m=(s.a+s.c)/2;
         return {f:'m = (a + c) / 2 = ('+L(s.a)+' + '+L(s.c)+') / 2 = '+L(m)+'<br>A = m · h = '+L(m)+' · '+L(s.h)+' = <b>'+Ar(m*s.h)+'</b>',
-          e:'Die Mittellinie m liegt auf halber Höhe und ist so lang wie der Durchschnitt der parallelen Seiten: m = (a + c) / 2. An jedem Ende wird ein überstehendes Dreieck abgeschnitten und in die Lücke darüber gedreht – so entsteht ein Rechteck mit Breite m und Höhe h. Daher A = m · h.'}; }
+          e:T('Die Mittellinie m liegt auf halber Höhe und ist so lang wie der Durchschnitt der parallelen Seiten: m = (a + c) / 2. An jedem Ende wird ein überstehendes Dreieck abgeschnitten und in die Lücke darüber gedreht – so entsteht ein Rechteck mit Breite m und Höhe h. Daher A = m · h.','The midline m lies at half the height and is as long as the average of the parallel sides: m = (a + c) / 2. At each end an overhanging triangle is cut off and rotated into the gap above it – this gives a rectangle of width m and height h. Hence A = m · h.')}; }
       return {f:'A = ½ · (a + c) · h = ((a + c) · h) / 2 = ½ · ('+L(s.a)+' + '+L(s.c)+') · '+L(s.h)+' = <b>'+Ar((s.a+s.c)/2*s.h)+'</b>',
-        e:'Ein zweites, um 180° gedrehtes Trapez ergänzt zu einem Parallelogramm mit Grundseite (a + c) und Höhe h. Das Trapez ist die Hälfte: A = ½ · (a + c) · h.'}; } },
+        e:T('Ein zweites, um 180° gedrehtes Trapez ergänzt zu einem Parallelogramm mit Grundseite (a + c) und Höhe h. Das Trapez ist die Hälfte: A = ½ · (a + c) · h.','A second trapezium rotated by 180° completes it into a parallelogram with base (a + c) and height h. The trapezium is half of it: A = ½ · (a + c) · h.')}; } },
 
   drache:{ label:'Drachen\u00ADviereck', names:['A','B','C','D'], init:{cx:0,yT:3,yB:-2,yH:0,e:6},
     pts:s=>[[s.cx,s.yT],[s.cx+s.e/2,s.yH],[s.cx,s.yB],[s.cx-s.e/2,s.yH]], area:s=>s.e*(s.yT-s.yB)/2,
@@ -2040,8 +2333,8 @@ const SHAPES={
         tris:[ [[l,s.yT],T,L], [[r,s.yT],R,T], [[r,s.yB],Bt,R], [[l,s.yB],L,Bt] ]}; },
     derive:s=>{ const concave=(s.yH<s.yB||s.yH>s.yT);
       return {f:'A = ½ · e · f = (e · f) / 2 = ½ · '+L(s.e)+' · '+L(s.yT-s.yB)+' = <b>'+Ar(s.e*(s.yT-s.yB)/2)+'</b>',
-        e:concave?'Konkaver Drachen (Pfeilviereck): die waagerechte Diagonale liegt außerhalb der senkrechten, die Diagonalen schneiden sich nicht mehr. Die Flächenformel bleibt A = ½ · e · f (e, f = Diagonalenlängen).'
-                 :'Die Diagonalen stehen senkrecht aufeinander. Das umschließende Rechteck hat die Seiten e und f; das Drachenviereck füllt genau die Hälfte davon: A = ½ · e · f.'}; } },
+        e:concave?T('Konkaver Drachen (Pfeilviereck): die waagerechte Diagonale liegt außerhalb der senkrechten, die Diagonalen schneiden sich nicht mehr. Die Flächenformel bleibt A = ½ · e · f (e, f = Diagonalenlängen).','Concave kite (dart): the horizontal diagonal lies outside the vertical one, so the diagonals no longer cross. The area formula stays A = ½ · e · f (e, f = lengths of the diagonals).')
+                 :T('Die Diagonalen stehen senkrecht aufeinander. Das umschließende Rechteck hat die Seiten e und f; das Drachenviereck füllt genau die Hälfte davon: A = ½ · e · f.','The diagonals are perpendicular. The surrounding rectangle has sides e and f; the kite fills exactly half of it: A = ½ · e · f.')}; } },
 
   kreis:{ label:'Kreis', isCircle:true, noCornerLabels:true, init:{cx:0,cy:0,r:4},
     pts:s=>{ const N=64,a=[]; for(let i=0;i<N;i++){const t=2*Math.PI*i/N;a.push([s.cx+s.r*Math.cos(t),s.cy+s.r*Math.sin(t)]);} return a; },
@@ -2056,11 +2349,11 @@ const SHAPES={
       const r=s.r; return [[s.cx-r,s.cy-r],[s.cx+r,s.cy-r],[s.cx+r,s.cy+r],[s.cx-r,s.cy+r]]; },
     derive:s=>{ if(state.deriveOn&&state.circleMode==='sectors') return {
         f:'A ≈ (π·r) · r = '+L(Math.PI*s.r)+' · '+L(s.r)+' = π·r² ≈ <b>'+Ar(Math.PI*s.r*s.r)+'</b>',
-        e:'Zerlege den Kreis in viele gleiche Sektoren und lege sie abwechselnd aneinander. Es entsteht fast ein Rechteck mit Breite = halber Umfang = π·r und Höhe = r. Je mehr Sektoren, desto genauer: A = π·r·r = π·r².'};
+        e:T('Zerlege den Kreis in viele gleiche Sektoren und lege sie abwechselnd aneinander. Es entsteht fast ein Rechteck mit Breite = halber Umfang = π·r und Höhe = r. Je mehr Sektoren, desto genauer: A = π·r·r = π·r².','Cut the circle into many equal sectors and lay them alternately side by side. The result is almost a rectangle with width = half the circumference = π·r and height = r. The more sectors, the closer: A = π·r·r = π·r².')};
       // Der Vergleich stand früher als Fließtext MITTEN in der Formel („(kleiner als …)") und
       // wurde von MathJax als Formel gesetzt -> unlesbar. Jetzt reine Mathematik in zwei Zeilen.
       return { f:'A = π · r² ≈ <b>'+Ar(Math.PI*s.r*s.r)+'</b><br>π · r² &lt; 4 · r² = '+Ar(4*s.r*s.r),
-        e:'Der Kreis passt in ein Quadrat aus vier Teilquadraten der Seitenlänge r (Gesamtfläche 4·r²). Er füllt es nicht ganz aus – die Fläche ist etwas kleiner, nämlich π·r² ≈ 0,785 · 4·r².'}; } }
+        e:T('Der Kreis passt in ein Quadrat aus vier Teilquadraten der Seitenlänge r (Gesamtfläche 4·r²). Er füllt es nicht ganz aus – die Fläche ist etwas kleiner, nämlich π·r² ≈ 0,785 · 4·r².','The circle fits into a square made of four sub-squares of side r (total area 4·r²). It does not fill it completely – the area is a little smaller, namely π·r² ≈ 0.785 · 4·r².')}; } }
 };
 function side(P,Q,text,muted){ return {P,Q,text,muted}; }
 
@@ -2273,8 +2566,8 @@ function drawCircleSectors(d,n){ const r=d.r;
     if(i%2===0) w=wedge([x+s/2,bot],[x,top],[x+s,top]); else w=wedge([x+s/2,top],[x,bot],[x+s,bot]);
     stage.appendChild(polyW(w,{fill:'var(--shape-fill)',stroke:'var(--shape)','stroke-width':0.9,'stroke-linejoin':'round'})); }
   const rl=w2s(xL,(top+bot)/2); stage.appendChild(el('text',{x:rl[0]-10,y:rl[1],text:'r',fill:'var(--ink)','font-size':13,'font-weight':'bold','text-anchor':'end','dominant-baseline':'middle'}));
-  const ul=w2s(d.cx,bot); stage.appendChild(el('text',{x:ul[0],y:ul[1]+16,text:'Halber Umfang: π · r',fill:'var(--ink)','font-size':13,'font-weight':'bold','text-anchor':'middle'}));
-  stage.appendChild(el('text',{x:ul[0],y:ul[1]+34,text:'Aneinandergelegte Kreisstücke',fill:'var(--muted)','font-size':12,'text-anchor':'middle'}));
+  const ul=w2s(d.cx,bot); stage.appendChild(el('text',{x:ul[0],y:ul[1]+16,text:T('Halber Umfang: π · r','Half the circumference: π · r'),fill:'var(--ink)','font-size':13,'font-weight':'bold','text-anchor':'middle'}));
+  stage.appendChild(el('text',{x:ul[0],y:ul[1]+34,text:T('Aneinandergelegte Kreisstücke','Sectors laid side by side'),fill:'var(--muted)','font-size':12,'text-anchor':'middle'}));
 }
 
 function toTeXone(h){ return '\\('+ h
@@ -2328,11 +2621,13 @@ function iconMarkup(key){ const sh=SHAPES[key];
   const P=pts.map(p=>((ox+(p[0]-minx)*sc).toFixed(1))+','+((oy+(maxy-p[1])*sc).toFixed(1))).join(' ');
   return '<svg viewBox="0 0 '+W+' '+H+'" aria-hidden="true"><polygon points="'+P+'" fill="var(--shape-fill)" stroke="var(--shape)" stroke-width="1.7" stroke-linejoin="round"/></svg>'; }
 function buildPicker(){ const bar=document.getElementById('picker');
+  bar.innerHTML='';
   for(const k of ORDER){ const b=document.createElement('button'); b.className='tile'; b.setAttribute('role','tab'); b.dataset.k=k;
-    b.setAttribute('aria-selected',k===state.tab); b.innerHTML=iconMarkup(k)+'<span>'+SHAPES[k].label+'</span>'; b.onclick=()=>switchTab(k); bar.appendChild(b); } }
+    b.setAttribute('aria-selected',k===state.tab); b.innerHTML=iconMarkup(k)+'<span>'+W(SHAPES[k].label)+'</span>'; b.onclick=()=>switchTab(k); bar.appendChild(b); } }
 function switchTab(k){ state.tab=k; state.view.ready=false;
   document.querySelectorAll('.tile').forEach(t=>t.setAttribute('aria-selected',t.dataset.k===k)); updateModeCtrls(); serialize(); render(); }
-function refineLabel(){ document.getElementById('l-refine').textContent=['grob','normal','fein'][state.refine]; }
+function refineLabel(){ document.getElementById('l-refine').textContent=
+  [T('grob','coarse'),T('normal','normal'),T('fein','fine')][state.refine]; }
 function updateWhereVisible(){ document.getElementById('ctrl-where').style.display=state.gridOn?'':'none'; }
 function updateModeCtrls(){ const isC=S().isCircle, isT=state.tab==='dreieck', isTr=state.tab==='trapez', off=!state.deriveOn;
   const cm=document.getElementById('ctrl-cmode'); cm.style.display=isC?'':'none'; cm.classList.toggle('is-disabled',off);
@@ -2386,6 +2681,9 @@ function wire(){
     document.querySelectorAll('#ctrl-trapmode .seg button').forEach(x=>x.classList.toggle('on',x===b)); serialize(); render(); });
   document.getElementById('b-reset').onclick=()=>{centerView();render();};
   stage.addEventListener('pointerdown',onDown);
+  // Die rechte Maustaste verschiebt die Zeichnung - dann darf das Kontextmenü
+  // des Browsers nicht aufgehen.
+  stage.addEventListener('contextmenu',e=>e.preventDefault());
   stage.addEventListener('pointermove',onMove);
   stage.addEventListener('pointerup',endPointer);
   stage.addEventListener('pointercancel',endPointer);
@@ -2396,6 +2694,8 @@ function wire(){
 if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',wire); else wire();
 if(typeof window!=='undefined') window.__api={state,SHAPES,ptsW,handlePtsW,render,S,D,GRID_STEPS,w2s,s2w,pointers,constructionPts};
 window.__erkActivate=function(){ state.view.ready=false; render(); if(window.MathJax&&window.MathJax.typesetPromise){window.MathJax.typesetPromise([document.getElementById('formula')]).catch(function(){});} };
+// Sprach-/Themawechsel: Auswahlleiste und Zeichnung neu aufbauen, Figur bleibt
+window.__erkNeu=function(){ try{ buildPicker(); refineLabel(); render(); }catch(e){} };
 
 })();
 </script>

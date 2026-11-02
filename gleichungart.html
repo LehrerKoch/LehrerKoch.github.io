@@ -3,1314 +3,1504 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="shortcut icon" type="image/x-icon" href="aleph_zero_logo.ico">
+<script>try{var t=localStorage.getItem('matheToolsTheme');if(t==='dark'||(!t&&window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.classList.add('dark');}catch(e){}</script>
+<title data-de="Gleichungsart erkennen" data-en="Identifying equation types">Gleichungsart erkennen</title>
+<script src="theme-language.js" defer></script>
+<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="aufgaben.css">
 <link rel="stylesheet" href="scale.css">
 <script src="scale.js" defer></script>
-<title>Lösungsverfahren erkennen</title>
-<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-<link rel="stylesheet" type="text/css" href="styles.css">
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-5K8WYYXDL2"></script>
+<script src="aufgaben.js" defer></script>
+<script src="polynome.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 <script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-5K8WYYXDL2');
+/* Faellt ohne theme-language.js auf Deutsch zurueck. */
+function T(de, en){ return (typeof tlText === 'function') ? tlText(de, en) : de; }
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+window.TK_GA_ID = 'G-5K8WYYXDL2';   /* Google Analytics laedt erst nach Einwilligung, siehe einwilligung.js */
 </script>
+<script src="einwilligung.js" defer></script>
 <style>
-body {
-  font-family: Calibri, sans-serif;
-  padding: 2%;
-}
-
-h1 {
-  margin-bottom: 20px;
-}
-
-/* Settings-Bereich */
-details summary {
-  cursor: pointer;
-  font-weight: bold;
-  padding: 5px;
-}
-
-details[open] {
-  border: 2px solid #000;
-  padding: 10px;
-  margin-bottom: 20px;
-}
-
-.form-block {
-  margin-bottom: 10px;
-}
-
-/* Buttons */
-#buttonsArea {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
-  margin-top: 20px;
-}
-
-.answer-btn {
-  background-color: #aee6ff;
-  border: 1px solid #0077b6;
-  color: #000;
-  padding: 5px 10px; /* vertikales Padding kleiner, damit Platz für Höhe bleibt */
-  font-size: 14px;
-  border-radius: 5px;
-  white-space: normal;
-  word-wrap: break-word;
-  text-align: center;
-  cursor: pointer;
-  transition: 0.2s;
-  height: 50px;      /* feste Höhe für 2 Zeilen */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-sizing: border-box; /* damit Padding in Höhe einbezogen wird */
-}
-
-.answer-btn:hover {
-  background-color: #89dcff;
-}
-
-.answer-btn.correct {
-  background-color: #4CAF50 !important;
-  color: white;
-}
-
-.answer-btn.wrong {
-  background-color: #ff4d4d !important;
-  color: white;
-}
-
-/* Button über beide Spalten */
-.wide-btn {
-  grid-column: span 2;
-}
-
-/* Gleichung zentriert */
-#formula {
-  text-align: center;
-  font-size: 1.5em;
-  margin-bottom: 20px;
-}
-
-/* Horizontale Linie vor Lösung */
-hr {
-  width: 100%;
-  margin: 20px 0 10px 0;
-}
-
-/* Lösung anzeigen */
-#showSolutionsBtn {
-  background-color: #aee6ff;
-  border: 1px solid #0077b6;
-  color: #000;
-  padding: 10px;
-  border-radius: 5px;
-  font-size: 14px;
-  cursor: pointer;
-  grid-column: span 2;
-}
-
-#showSolutionsBtn:hover {
-  background-color: #89dcff;
-}
-
-#solutionsArea {
-  margin-top: 15px;
-  text-align: center;
-  font-size: 1.5em;
-}
-
+/* Nur, was diese Seite zusätzlich braucht - alles Übrige kommt aus
+   aufgaben.css, damit die Seite genauso aussieht wie die anderen. */
+#task { font-size: 1.5em; }
+#loesung { font-size: 1.2em; }
+/* Die Auswahl der Lösungswege: breite Knöpfe, die umbrechen dürfen */
+.wege { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin: 4px auto 0;
+  max-width: min(760px, 96vw); }
+.wege button { flex: 1 1 210px; max-width: 320px; min-height: 52px; font-size: .97em;
+  line-height: 1.25; padding: 8px 10px; }
+.wege button .unter { display: block; font-size: .82em; opacity: .8; font-weight: normal; }
+/* Kurzfassung des Lösungswegs */
+.kurzweg { margin: .2em auto .6em; max-width: min(620px, 94vw); text-align: left; }
+.kurzweg li { margin: .25em 0; }
+.art-name { font-weight: bold; color: var(--ab-gr-dunkel); }
+/* Der Link auf die Übungsseite soll aussehen wie ein Knopf - ein <a> erbt
+   die Knopfform nicht von selbst. */
+a.art-link { display: inline-block; margin-top: .5em; text-decoration: none;
+  padding: 8px 14px; border-radius: 8px; font-size: .95em; font-weight: bold;
+  background: var(--ab-gr-hell); color: #2a5a2a; border: 1.5px solid var(--ab-gr-rand); }
+a.art-link:hover { background: #e2eee2; }
+html.dark a.art-link { background: #1f2a20; color: #a5d6a7; border-color: #3d5a3d; }
+html.dark a.art-link:hover { background: #26352a; }
+a.art-link.blanko { color: var(--ab-leise); text-decoration: none; font-weight: normal;
+  background: none; border: none; border-bottom: 1px dashed var(--ab-neutral-r);
+  border-radius: 0; padding: 2px 0; cursor: not-allowed; opacity: .8; font-size: .92em; }
+html.dark a.art-link.blanko { background: none; border: none;
+  border-bottom: 1px dashed var(--ab-neutral-r); color: var(--ab-leise); }
+.art-link.blanko::after { content: " ↗"; }
 </style>
 </head>
-<body>
+<body class="tk-seite">
 
-<h1>Gleichungen Übungsaufgaben</h1>
+<header class="tool-kopf">
+  <div class="tk-text">
+    <h1 data-de="Gleichungsart erkennen" data-en="Identifying equation types">Gleichungsart erkennen</h1>
+    <p class="tk-unter" data-de="Welche Gleichungsart liegt vor – und wie löst man sie am schnellsten?" data-en="Which type of equation is it – and what is the quickest way to solve it?">Welche Gleichungsart liegt vor – und wie löst man sie am schnellsten?</p>
+  </div>
+</header>
 
-<details>
-  <summary>Settings</summary>
-  <form id="settingsForm">
-    <div class="form-block">
-      <label><b>Welche Gleichungen sollen möglich sein?</b></label><br>
-      <input type="checkbox" id="linear" checked> lineare Gleichungen<br>
-      <input type="checkbox" id="potenz" checked> Potenzgleichungen<br>
-      <input type="checkbox" id="quadratisch" checked> Quadratische Gleichungen<br>
-      <input type="checkbox" id="biquadratisch" checked> Biquadratische Gleichungen<br>
-      <input type="checkbox" id="ausklammern" checked> Gleichungen mit x-ausklammern<br>
-      <input type="checkbox" id="nullprodukt" checked> Nullprodukte<br>
-      <input type="checkbox" id="polynom" checked> Beliebige Polynomgleichungen<br>
-    </div>
-    <!-- <div class="form-block">
-      <input type="checkbox" id="eineSeiteNull"> eine Seite Null (zurzeit ohne Effekt)
-    </div> -->
-  </form>
+<!-- ═══ Einstellungen ═══════════════════════════════════════════════════════
+     Hier stehen ALLE Einstellungen - auch die, die oben über der Aufgabe noch
+     einmal als Schalter erscheinen, und die, die der Schwierigkeitsgrad von
+     selbst setzt.                                                          -->
+<details class="einst" id="dSettings">
+<summary data-de="Einstellungen" data-en="Settings">Einstellungen</summary>
+<div class="settings-grid">
+
+  <div class="form-block">
+    <b data-de="Welche Gleichungsarten sollen vorkommen?" data-en="Which kinds of equation should appear?">Welche Gleichungsarten sollen vorkommen?</b>
+    <span class="d" data-de="Jede Art lässt sich einzeln schalten; der Regler sagt, wie oft sie drankommt." data-en="Each kind can be switched separately; the slider says how often it comes up.">Jede Art lässt sich einzeln schalten; der Regler sagt, wie oft sie drankommt.</span>
+    <div class="slider-row opt-regler" data-fuer="artLinear"><label class="opt"><input type="checkbox" id="artLinear" checked><span data-de="lineare Gleichungen" data-en="linear equations">lineare Gleichungen</span></label><span class="sl-end" data-de="seltener" data-en="less often">seltener</span><input type="range" class="sl" id="wartLinear" min="1" max="10" value="7"><span class="sl-end" data-de="häufiger" data-en="more often">häufiger</span><span class="d" data-de="nur x, kein x²" data-en="only x, no x²">nur x, kein x²</span></div>
+    <div class="slider-row opt-regler" data-fuer="artQuadratisch"><label class="opt"><input type="checkbox" id="artQuadratisch" checked><span data-de="quadratische Gleichungen" data-en="quadratic equations">quadratische Gleichungen</span></label><span class="sl-end" data-de="seltener" data-en="less often">seltener</span><input type="range" class="sl" id="wartQuadratisch" min="1" max="10" value="8"><span class="sl-end" data-de="häufiger" data-en="more often">häufiger</span><span class="d" data-de="x² und x" data-en="x² and x">x² und x</span></div>
+    <div class="slider-row opt-regler" data-fuer="artPotenz"><label class="opt"><input type="checkbox" id="artPotenz" checked><span data-de="Potenzgleichungen" data-en="power equations">Potenzgleichungen</span></label><span class="sl-end" data-de="seltener" data-en="less often">seltener</span><input type="range" class="sl" id="wartPotenz" min="1" max="10" value="6"><span class="sl-end" data-de="häufiger" data-en="more often">häufiger</span><span class="d" data-de="nur eine Potenz und eine Zahl" data-en="only one power and a number">nur eine Potenz und eine Zahl</span></div>
+    <div class="slider-row opt-regler" data-fuer="artNullprodukt"><label class="opt"><input type="checkbox" id="artNullprodukt" checked><span data-de="Nullprodukte" data-en="zero products">Nullprodukte</span></label><span class="sl-end" data-de="seltener" data-en="less often">seltener</span><input type="range" class="sl" id="wartNullprodukt" min="1" max="10" value="6"><span class="sl-end" data-de="häufiger" data-en="more often">häufiger</span><span class="d" data-de="ein Produkt steht gleich 0" data-en="a product equals 0">ein Produkt steht gleich 0</span></div>
+    <div class="slider-row opt-regler" data-fuer="artAusklammern"><label class="opt"><input type="checkbox" id="artAusklammern" checked><span data-de="x ausklammern" data-en="factoring out x">x ausklammern</span></label><span class="sl-end" data-de="seltener" data-en="less often">seltener</span><input type="range" class="sl" id="wartAusklammern" min="1" max="10" value="6"><span class="sl-end" data-de="häufiger" data-en="more often">häufiger</span><span class="d" data-de="kein Absolutglied" data-en="no constant term">kein Absolutglied</span></div>
+    <div class="slider-row opt-regler" data-fuer="artBiquadratisch"><label class="opt"><input type="checkbox" id="artBiquadratisch" checked><span data-de="biquadratische Gleichungen" data-en="biquadratic equations">biquadratische Gleichungen</span></label><span class="sl-end" data-de="seltener" data-en="less often">seltener</span><input type="range" class="sl" id="wartBiquadratisch" min="1" max="10" value="5"><span class="sl-end" data-de="häufiger" data-en="more often">häufiger</span><span class="d" data-de="nur gerade Potenzen – Substitution" data-en="only even powers – substitution">nur gerade Potenzen – Substitution</span></div>
+    <div class="slider-row opt-regler" data-fuer="artPolynom"><label class="opt"><input type="checkbox" id="artPolynom" checked><span data-de="Nullstelle raten" data-en="guessing a root">Nullstelle raten</span></label><span class="sl-end" data-de="seltener" data-en="less often">seltener</span><input type="range" class="sl" id="wartPolynom" min="1" max="10" value="4"><span class="sl-end" data-de="häufiger" data-en="more often">häufiger</span><span class="d" data-de="Polynom, das anders nicht geht" data-en="a polynomial that needs this">Polynom, das anders nicht geht</span></div>
+  </div>
+
+  <div class="form-block">
+    <b data-de="Was steht rechts vom Gleichheitszeichen?" data-en="What is on the right of the equals sign?">Was steht rechts vom Gleichheitszeichen?</b>
+    <span class="d" data-de="Steht die Gleichung schon gleich 0, ist die Art sofort zu sehen. Sonst muss man erst umstellen – und dann kann sich die Art noch ändern." data-en="If the equation already equals 0, the type is plain to see. Otherwise you have to rearrange first – and the type may still change.">Steht die Gleichung schon gleich 0, ist die Art sofort zu sehen. Sonst muss man erst umstellen – und dann kann sich die Art noch ändern.</span>
+    <div class="slider-row opt-regler" data-fuer="rNull"><label class="opt"><input type="checkbox" id="rNull" checked><span data-de="schon gleich 0" data-en="already equal to 0">schon gleich 0</span></label><span class="sl-end" data-de="seltener" data-en="less often">seltener</span><input type="range" class="sl" id="wrNull" min="1" max="10" value="6"><span class="sl-end" data-de="häufiger" data-en="more often">häufiger</span><span class="d" data-de="z. B. x² − 5x + 6 = 0" data-en="e.g. x² − 5x + 6 = 0">z. B. x² − 5x + 6 = 0</span></div>
+    <div class="slider-row opt-regler" data-fuer="rZahl"><label class="opt"><input type="checkbox" id="rZahl" checked><span data-de="eine Zahl" data-en="a number">eine Zahl</span></label><span class="sl-end" data-de="seltener" data-en="less often">seltener</span><input type="range" class="sl" id="wrZahl" min="1" max="10" value="5"><span class="sl-end" data-de="häufiger" data-en="more often">häufiger</span><span class="d" data-de="z. B. x² − 5x = −6" data-en="e.g. x² − 5x = −6">z. B. x² − 5x = −6</span></div>
+    <div class="slider-row opt-regler" data-fuer="rX"><label class="opt"><input type="checkbox" id="rX"><span data-de="ein x-Term" data-en="an x term">ein x-Term</span></label><span class="sl-end" data-de="seltener" data-en="less often">seltener</span><input type="range" class="sl" id="wrX" min="1" max="10" value="4"><span class="sl-end" data-de="häufiger" data-en="more often">häufiger</span><span class="d" data-de="z. B. x² + 6 = 5x" data-en="e.g. x² + 6 = 5x">z. B. x² + 6 = 5x</span></div>
+    <div class="slider-row opt-regler" data-fuer="rPoly"><label class="opt"><input type="checkbox" id="rPoly"><span data-de="ein Polynom" data-en="a polynomial">ein Polynom</span></label><span class="sl-end" data-de="seltener" data-en="less often">seltener</span><input type="range" class="sl" id="wrPoly" min="1" max="10" value="3"><span class="sl-end" data-de="häufiger" data-en="more often">häufiger</span><span class="d" data-de="z. B. x² + 2 = 5x − 4" data-en="e.g. x² + 2 = 5x − 4">z. B. x² + 2 = 5x − 4</span></div>
+    <div class="slider-row opt-regler" data-fuer="rHoch"><label class="opt"><input type="checkbox" id="rHoch"><span data-de="ein Polynom höheren Grades" data-en="a polynomial of higher degree">ein Polynom höheren Grades</span></label><span class="sl-end" data-de="seltener" data-en="less often">seltener</span><input type="range" class="sl" id="wrHoch" min="1" max="10" value="3"><span class="sl-end" data-de="häufiger" data-en="more often">häufiger</span><span class="d" data-de="z. B. x⁴ + x² − 2 = x² – nach dem Umstellen bleibt eine Potenzgleichung" data-en="e.g. x⁴ + x² − 2 = x² – after rearranging a power equation is left">z. B. x⁴ + x² − 2 = x² – nach dem Umstellen bleibt eine Potenzgleichung</span></div>
+  </div>
+
+
+  <div class="form-block">
+    <b data-de="Was die Lösung zeigt" data-en="What the answer shows">Was die Lösung zeigt</b>
+    <label class="opt"><input type="checkbox" id="zeigeMenge" checked><span><span data-de="Lösungsmenge" data-en="solution set">Lösungsmenge</span><span class="d" data-de="die Zahlen selbst, nicht den Rechenweg" data-en="the numbers themselves, not the working">die Zahlen selbst, nicht den Rechenweg</span></span></label>
+    <label class="opt"><input type="checkbox" id="zeigeSchritte" checked><span><span data-de="Weg in Stichworten" data-en="method in key words">Weg in Stichworten</span><span class="d" data-de="zwei bis drei Schritte – gerechnet wird auf der jeweiligen Seite" data-en="two or three steps – the working is done on the matching page">zwei bis drei Schritte – gerechnet wird auf der jeweiligen Seite</span></span></label>
+    <label class="opt"><input type="checkbox" id="zeigeLink" checked><span><span data-de="Link auf die passende Übungsseite" data-en="link to the matching practice page">Link auf die passende Übungsseite</span></span></label>
+  </div>
+
+  <div class="form-block">
+    <b data-de="Schreibweise der Lösungen" data-en="How solutions are written">Schreibweise der Lösungen</b>
+    <span class="d" data-de="Wie sollen die Lösungen am Ende dastehen?" data-en="How should the solutions be written in the end?">Wie sollen die Lösungen am Ende dastehen?</span>
+    <label class="opt"><input type="radio" name="loesForm" value="index" checked><span><span data-de="durchnummeriert" data-en="numbered">durchnummeriert</span><span class="d" data-de="x₁ = …  x₂ = … – eine doppelte Lösung als x₁,₂ = …" data-en="x₁ = …  x₂ = … – a double solution as x₁,₂ = …">x₁ = …  x₂ = … – eine doppelte Lösung als x₁,₂ = …</span></span></label>
+    <label class="opt"><input type="radio" name="loesForm" value="oder"><span><span data-de="mit „oder“" data-en="with “or”">mit „oder“</span><span class="d">x = … ∨ x = …</span></span></label>
+    <label class="opt"><input type="radio" name="loesForm" value="menge"><span><span data-de="Lösungsmenge" data-en="solution set">Lösungsmenge</span><span class="d">L = { … }</span></span></label>
+    <label class="opt"><input type="checkbox" id="loesWedge"><span><span data-de="beim Durchnummerieren mit ∧ statt Leerraum" data-en="use ∧ instead of a gap when numbering">beim Durchnummerieren mit ∧ statt Leerraum</span></span></label>
+  </div>
+
+
+  </div>
+  <div class="seed-zeile">
+    <label class="opt"><input type="checkbox" id="seedAn"><span data-de="fester Zufalls-Seed" data-en="fixed random seed">fester Zufalls-Seed</span></label>
+    <input type="text" id="seedWert" autocomplete="off" inputmode="numeric" aria-label="Seed" data-de-aria-label="Seed" data-en-aria-label="Seed">
+    <button type="button" class="btn-secondary" id="seedNeu" title="neuen Seed würfeln" data-de-title="neuen Seed würfeln" data-en-title="roll a new seed">⟳</button>
+    <span class="d" data-de="Mit demselben Seed bekommen alle dieselbe Folge von Aufgaben – der Seed steht dann im geteilten Link." data-en="With the same seed everyone gets the same sequence of tasks – the seed is then part of the shared link.">Mit demselben Seed bekommen alle dieselbe Folge von Aufgaben – der Seed steht dann im geteilten Link.</span>
+  </div>
+<div class="settings-foot">
+  <button class="btn-secondary" id="btnShare" data-de="🔗 Link mit allen Einstellungen kopieren" data-en="🔗 Copy link with all settings">🔗 Link mit allen Einstellungen kopieren</button>
+  <button class="btn-secondary" id="btnReset" data-de="↺ Standard wiederherstellen" data-en="↺ Restore defaults">↺ Standard wiederherstellen</button>
+  </div>
 </details>
-<br>
-<button id="neueGleichungBtn">Neue Gleichung</button>
 
-<p class="scale-wrapper">
-      <div id="formula" class="scale-el"></p>
-</div>
-<div id="buttonsArea">
+<!-- ═══ Schalter über der Aufgabe ═══════════════════════════════════════ -->
+<div id="topControls">
+  <div class="tc-item">
+    <details class="auswahl" id="artBox" open>
+      <summary><span data-de="Gleichungsarten" data-en="Kinds of equation">Gleichungsarten</span><span class="ausw-zahl" id="artZahl"></span></summary>
+      <button type="button" class="btn-secondary ausw-alle" id="artAlle"></button>
+      <div class="tiles eng drei" id="segArten"></div>
+    </details>
+  </div>
+  <div class="tc-row">
+    <div class="tc-item tc-mitte">
+      <span class="tc-label" data-de="Rechts vom Gleichheitszeichen" data-en="On the right of the equals sign">Rechts vom Gleichheitszeichen</span>
+      <div class="pills" id="segForm"></div>
+    </div>
+  </div>
+  <div class="tc-item tc-diff tc-mitte">
+    <span class="tc-label" data-de="Schwierigkeit" data-en="Difficulty">Schwierigkeit</span>
+    <div class="seg-switch diff-switch" id="segDiff">
+      <input type="radio" name="diff" id="diffEinf" value="einf"><label for="diffEinf" data-de="Einführung" data-en="Introduction">Einführung</label>
+      <input type="radio" name="diff" id="diffLeicht" value="leicht"><label for="diffLeicht" data-de="Leicht" data-en="Easy">Leicht</label>
+      <input type="radio" name="diff" id="diffNormal" value="normal" checked><label for="diffNormal" data-de="Normal" data-en="Normal">Normal</label>
+      <input type="radio" name="diff" id="diffSchwer" value="schwer"><label for="diffSchwer" data-de="Herausfordernd" data-en="Challenging">Herausfordernd</label>
+      <input type="radio" name="diff" id="diffIndiv" value="indiv"><label for="diffIndiv" data-de="Individuell" data-en="Custom" data-de-title="öffnet die Einstellungen" data-en-title="opens the settings" title="öffnet die Einstellungen">Individuell</label>
+      <span class="seg-glider"></span>
+    </div>
+  </div>
+  </div>
 
-  <button class="answer-btn" data-type="linear">Gleichung umstellen</button>
-  <button class="answer-btn" data-type="potenz">Umstellen,<br>Wurzel ziehen</button>
-  <button class="answer-btn" data-type="quadratisch">p-q-Formel<br>(evtl. vorher umstellen)</button>
-  <button class="answer-btn" data-type="biquadratisch">Substitution z=x²,<br>p-q-Formel</button>
-  <button class="answer-btn" data-type="ausklammern">x-ausklammern</button>
-  <button class="answer-btn" data-type="nullprodukt">Nullprodukt</button>
-  <button class="answer-btn wide-btn" data-type="polynom">Nullstelle raten,<br>Polynomdivision</button>
+<div id="genRow">
+  <button id="genBtn" data-de='<span class="auto-kreis">&#x27F3;</span>&nbsp;Neue Aufgabe generieren' data-en='<span class="auto-kreis">&#x27F3;</span>&nbsp;Generate a new task'><span class="auto-kreis">&#x27F3;</span>&nbsp;Neue Aufgabe generieren</button>
+  <button id="manualBtn" class="btn-secondary" type="button" title="Eigene Gleichung" data-de-title="Eigene Gleichung" data-en-title="Your own equation" data-de='&#9998;<span class="mb-text">&nbsp;Eigene Gleichung</span>' data-en='&#9998;<span class="mb-text">&nbsp;Your own equation</span>'>&#9998;<span class="mb-text">&nbsp;Eigene Gleichung</span></button>
+  <span class="punkte rechts"><button id="btnPunkteReset" type="button" title="Punktzahl zurücksetzen" data-de-title="Punktzahl zurücksetzen" data-en-title="Reset the score">↺</button><span id="counter">Richtig: 0 / 0</span></span>
+  </div>
 
-</div>
-  <hr>
-  <button id="showSolutionsBtn">Lösung(-en) anzeigen</button>
+<div id="manualPanel" hidden>
+  <div class="mp-kopf" data-de="Eigene Gleichung eingeben" data-en="Enter your own equation">Eigene Gleichung eingeben</div>
+  <div class="mp-hinweis" data-de="Hier kannst du eine Gleichung eintippen, z. B. x^4-5x^2+4=0. Sie wird als Aufgabe übernommen." data-en="Type an equation here, e.g. x^4-5x^2+4=0. It is then used as the task.">Hier kannst du eine Gleichung eintippen, z. B. x^4-5x^2+4=0. Sie wird als Aufgabe übernommen.</div>
+  <div class="mp-zeile">
+    <input type="text" id="eigeneEingabe" autocomplete="off" placeholder="x^4-5x^2+4=0" data-de-placeholder="x^4-5x^2+4=0" data-en-placeholder="x^4-5x^2+4=0">
+    <button type="button" id="eigeneBtn" data-de="übernehmen" data-en="use it">übernehmen</button>
+    <button type="button" class="btn-secondary" id="eigeneAbbruch" data-de="Abbrechen" data-en="Cancel">Abbrechen</button>
+  </div>
+  <div class="meld" id="eigeneMeldung"></div>
+  </div>
 
-<div class="scale-wrapper">
-      <div id="solutionsArea" class="scale-el"></div>
+
+<div class="task" id="taskBox">
+  <div class="task-head">
+    <h2 data-de="Aufgabe" data-en="Task">Aufgabe</h2>
+    <button class="share-btn" id="btnTeilen" title="Diese Aufgabe teilen (Link kopieren)" data-de-title="Diese Aufgabe teilen (Link kopieren)" data-en-title="Share this task (copy link)" data-de="🔗&nbsp;Teilen" data-en="🔗&nbsp;Share">🔗&nbsp;Teilen</button>
+  </div>
+
+  <p id="taskText" class="task-hinweis"></p>
+  <div class="scale-wrapper">
+    <div id="task" class="scale-el"></div>
+  </div>
+  </div>
+
+<div id="antwortBereich"></div>
+
+<details class="quizklapp" id="quizDetails">
+  <summary><span class="linie" aria-hidden="true"></span><span class="reiter" data-de="Quiz als Hilfestellung" data-en="Quiz as a hint">Quiz als Hilfestellung</span><span class="linie" aria-hidden="true"></span></summary>
+  <div id="quizArea"></div>
+</details>
+
+<details class="loesung" id="dLoesung" style="margin-top:16px;">
+  <summary><span class="wenn-zu" data-de="Lösung einblenden" data-en="Show answer">Lösung einblenden</span><span class="wenn-auf" data-de="Lösung ausblenden" data-en="Hide answer">Lösung ausblenden</span></summary>
+  <div class="scale-wrapper"><div id="loesung" class="scale-el"></div></div>
+  <div id="weg"></div>
+</details>
+
+<div id="lobby-spacer"></div>
+<footer class="site-footer">
+  <div class="footer-content">
+      M.&nbsp;Koch
+      <span class="footer-topic"><a href="./index.html">Mathe-Tools</a></span>
+      <span class="footer-update"><span class="fu-wort" data-de="Zuletzt aktualisiert:" data-en="Last updated:">Zuletzt aktualisiert:</span><span id="last-update">...</span></span>
+  </div>
+</footer>
+<script src="last-update.js" defer></script>
 
 <script>
-let currentEqType = null;
-let currentFormula = '';
-let currentSolution = '';
-let currentCoeffs = [];  // neue globale Variable
-
-function monomText(coefficient, exponent, printPlusSign = 1, printNull = 0, printKlammernBeiNegativen = 0, variable = 'x') {
-    let coefficientText = '';
-
-    // Bruch erkennen
-    let isFraction = typeof coefficient === 'object';
-    let coeffVal = isFraction ? coefficient.num / coefficient.den : coefficient;
-
-    // Null
-    if (coeffVal === 0) {
-        return printNull === 1 ? '0' : '';
-    }
-
-    // Vorzeichen und Text
-    if (!isFraction) {
-        if (coefficient === 1 && exponent > 0) coefficientText = '';
-        else if (coefficient === -1 && exponent > 0) coefficientText = '-';
-        else coefficientText = `${coefficient}`.replace('.', '{,}');
-    } else {
-        let sign = coefficient.num < 0 ? '-' : '';
-        let absNum = Math.abs(coefficient.num);
-        if (absNum === coefficient.den && exponent > 0) {
-            coefficientText = sign; // ±1 als - oder leer
-        } else {
-            coefficientText = (coefficient.num < 0 && printKlammernBeiNegativen === 1 ? '(' : sign) +
-                              `\\frac{${absNum}}{${coefficient.den}}` +
-                              (coefficient.num < 0 && printKlammernBeiNegativen === 1 ? ')' : '');
-        }
-    }
-
-    // Exponent
-    let exponentText = '';
-    if (exponent === 0) exponentText = '';
-    else if (exponent === 1) exponentText = variable;
-    else exponentText = `${variable}^${exponent}`;
-
-    // Pluszeichen
-    let plusSign = '';
-    if (printPlusSign === 1 && coeffVal > 0) plusSign = '+';
-
-    return `${plusSign} ${coefficientText}${exponentText}`;
-}
-
-
-function randomChoice(arr){ return arr[Math.floor(Math.random()*arr.length)]; }// Hilfsfunktionen für Zahlen
-
-function randomInteger(min,max, darf0=true){ 
-    let zahl = Math.floor(Math.random()*(max-min+1))+min; 
-    while (!darf0 && zahl===0)
-        zahl = Math.floor(Math.random()*(max-min+1))+min;
-    return zahl;
-}
-    
-function randomDecimal(min,max){
-    const decimals = [0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,0.125,0.25,0.375,0.5,0.625,0.75,0.875];
-    let base = Math.random()*(max-min)+min;
-    let sign = base<0?-1:1;
-    base = Math.abs(base);
-    let frac = randomChoice(decimals);
-    let val = (Math.floor(base) + frac) * sign;
-    return Number(val.toFixed(3));
-}
-
-// Brüche erzeugen und kürzen
-function randomFraction(maxDenominator=20, darf0=true){
-    let denominator = 1;
-    let numerator = 0;
-    while (denominator===1) {
-        denominator = randomInteger(2,maxDenominator);
-        numerator = randomInteger(-5*denominator,5*denominator);
-        while (!darf0 && numerator===0)
-            numerator = randomInteger(-5*denominator,5*denominator);
-        const gcd = (a,b)=>b===0?Math.abs(a):gcd(b,a%b);
-        let g = gcd(numerator,denominator);
-        numerator/=g; denominator/=g;
-    }
-    if(denominator<0){ numerator*=-1; denominator*=-1; }
-    return {num:numerator,den:denominator};
-}
-
-// Zahl als String darstellen (Bruch oder Dezimalzahl)
-function numberToString(n) {
-    if (typeof n === 'object') {
-        if (n.den === 1) return `${n.num}`;
-        return `\\frac{${n.num}}{${n.den}}`;
-    }
-    return n.toString();
-}
-
-function decimalToFractionExact(val){
-    if(typeof val !== 'number') return val; // nur Zahlen behandeln
-    let sign = val < 0 ? -1 : 1;
-    val = Math.abs(val);
-
-    let str = val.toString(); // z.B. "0.25" oder "1.375"
-    if(!str.includes('.')) return {num: val*sign, den: 1}; // ganze Zahl
-
-    let decimals = str.split('.')[1].length;
-    let denominator = Math.pow(10, decimals);
-    let numerator = Math.round(val * denominator);
-
-    // kürzen
-    const gcd = (a,b)=>b===0?a:gcd(b,a%b);
-    let g = gcd(numerator, denominator);
-    numerator = (numerator/g) * sign;
-    denominator /= g;
-
-    return {num: numerator, den: denominator};
-}
-
-
-function generateLinear() {
-    currentEqType = 'linear';
-
-    // Zufallskategorien
-    const aCatRand = Math.floor(Math.random()*20);
-    const bCatRand = Math.floor(Math.random()*20);
-    const aCat = aCatRand < 10 ? 'ganz_int' : (aCatRand < 15 ? "int" : (aCatRand < 17 ? 'decimal' : 'fraction'));
-    const bCat = bCatRand < 10 ? 'ganz_int' : (bCatRand < 15 ? "int" : (bCatRand < 17 ? 'decimal' : 'fraction'));
-
-    // a erzeugen
-    let a;
-    if(aCat==='ganz_int') a = randomInteger(-10,10,false);
-    else if(aCat==='int') a = randomInteger(-20,20,false);
-    else if(aCat==='decimal') a = randomDecimal(-10,10);
-    else a = randomFraction(10,false);
-
-    // b erzeugen
-    let b;
-    if(bCat==='ganz_int') b = a*randomInteger(-10,10,false);
-    else if(bCat==='int') b = randomInteger(-20,20,false);
-    else if(bCat==='decimal') b = randomDecimal(-10,10);
-    else b = randomFraction(10,false);
-
-    // currentFormula
-    let aDisplay = monomText(a, 1, 0, 0); // keine führende +
-    let bDisplay = monomText(b, 0, 1, 0); // mit führendem + falls positiv
-    currentFormula = `${aDisplay} ${bDisplay} = 0`;
-
-    // Brüche für Lösung vorbereiten
-    function toFraction(val) {
-        if(typeof val === 'object') return {num: val.num, den: val.den};
-        if(Number.isInteger(val)) return {num: val, den:1};
-        // Dezimalzahl in Bruch umwandeln
-        let str = val.toString();
-        let sign = val<0?-1:1;
-        str = str.replace('-','');
-        const decimals = str.split('.')[1].length;
-        let numerator = parseInt(str.replace('.',''));
-        let denominator = Math.pow(10,decimals);
-        const gcd = (a,b)=>b===0?a:gcd(b,a%b);
-        let g = gcd(numerator,denominator);
-        numerator = (numerator/g)*sign;
-        denominator/=g;
-        return {num: numerator, den: denominator};
-    }
-
-    const aFrac = toFraction(a);
-    const bFrac = toFraction(b);
-
-    // Lösung x = -b/a als Bruch
-    let num = -bFrac.num * aFrac.den;
-    let den = bFrac.den * aFrac.num;
-    const gcd = (x,y)=>y===0?Math.abs(x):gcd(y,x%y);
-    let g = gcd(num, den);
-    num/=g; den/=g;
-    if(den<0){ num*=-1; den*=-1; }
-
-    let solutionFrac = den===1 ? num : {num: num, den: den};
-    currentSolution = 'x = ' + monomText(solutionFrac,0,0,1); // kein x, kein Klammern bei negativen Brüchen
-
-    // Koeffizientenliste
-    const aVal = aFrac.num/aFrac.den;
-    const bVal = bFrac.num/bFrac.den;
-    currentCoeffs = [bVal,aVal];
-}
-
-
-function generatePotenz() {
-    currentEqType = 'potenz';
-
-    const n = randomChoice([2,2,2,2,3,3,3,3,4,4,5,5,6,7]);
-
-    // Kategorien wie linear
-    const aCatRand = Math.floor(Math.random()*20);
-    const bCatRand = Math.floor(Math.random()*20);
-    const aCat = aCatRand < 15 ? 'int' : (aCatRand < 17 ? 'decimal' : 'fraction');
-    const bCat = bCatRand < 15 ? 'int' : (bCatRand < 17 ? 'decimal' : 'fraction');
-
-    let a,b;
-
-    // a erzeugen
-    if(aCat==='int') a = randomInteger(-20,20,false);
-    else if(aCat==='decimal') a = randomDecimal(-10,10);
-    else a = randomFraction(20,false);
-
-    // b erzeugen
-    if(bCat==='int') b = randomInteger(-20,20,false);
-    else if(bCat==='decimal') b = randomDecimal(-10,10);
-    else b = randomFraction(20,false);
-
-    // currentFormula
-    let aDisplay = monomText(a,n,0);
-    let bDisplay = monomText(b,0,1);
-    currentFormula = `${aDisplay} ${bDisplay} = 0`;
-
-    // Koeffizientenliste
-    let aVal = (typeof a==='object'?a.num/a.den:a);
-    let bVal = (typeof b==='object'?b.num/b.den:b);
-    currentCoeffs = Array(n+1).fill(0);
-    currentCoeffs[0] = bVal;
-    currentCoeffs[n] = aVal;
-
-    // RHS als Bruch berechnen
-    let rhsNum, rhsDen;
-    if(typeof a==='object'){
-        let aNum=a.num, aDen=a.den;
-        if(typeof b==='object'){ let bNum=b.num, bDen=b.den;
-            rhsNum = -bNum*aDen;
-            rhsDen = bDen*aNum;
-        } else { rhsNum = -b*aDen; rhsDen = aNum; }
-    } else {
-        if(typeof b==='object'){ rhsNum = -b.num; rhsDen = b.den*a; }
-        else { rhsNum = -b; rhsDen = a; }
-    }
-    // Kürzen
-    const gcd = (x,y)=>y===0?Math.abs(x):gcd(y,x%y);
-    let g = gcd(rhsNum,rhsDen);
-    rhsNum/=g; rhsDen/=g;
-    if(rhsDen<0){ rhsNum*=-1; rhsDen*=-1; }
-
-    const rhsSign = rhsNum/rhsDen < 0 ? '-' : '';
-    const absRhs = Math.abs(rhsNum/rhsDen);
-
-let rootLatex, rootApprox;
-
-// Gerade n & negatives Ergebnis → keine reelle Lösung
-if(n % 2 === 0 && rhsNum / rhsDen < 0){
-    ausgabeText = "\\text{n.l.}";
-} else {
-    // Betrag für Wurzel
-    const value = Math.abs(rhsNum / rhsDen);
-    const root = Math.pow(value, 1 / n);
-    const isGlatt = Math.abs(root - Math.round(root)) < 1e-6;
-
-    // Bruch als String
-    const fracStr = rhsDen === 1 ? `${Math.abs(rhsNum)}` : `\\frac{${Math.abs(rhsNum)}}{${rhsDen}}`;
-
-    // Wurzel-Text
-    if(n === 2) rootLatex = `\\sqrt{${fracStr}}`;
-    else rootLatex = `\\sqrt[${n}]{${fracStr}}`;
-
-    // Gerundeter Wert
-    rootApprox = root.toFixed(3);
-
-    // Vorzeichen bestimmen
-    const sign = (rhsNum / rhsDen < 0) ? '-' : '';
-
-    if(n % 2 === 0){
-        // zwei Lösungen
-        ausgabeText = `x_1 = ${sign}${rootLatex} \\approx ${sign}${rootApprox}, \\qquad x_2 = ${sign}-${rootLatex} \\approx ${sign}-${rootApprox}`;
-    } else {
-        // eine Lösung
-        ausgabeText = `x = ${sign}${rootLatex} \\approx ${sign}${rootApprox}`;
-    }
-}
-
-currentSolution = ausgabeText;
-
-}
-
-
-function generateQuadratisch() {
-    currentEqType = 'quadratisch';
-
-    // 1. Anzahl der Lösungen
-    const r = Math.random();
-    let numLsg;
-    if (r < 0.3) numLsg = 0;      // 30% keine Lösung
-    else if (r < 0.4) numLsg = 1; // 10% eine Lösung
-    else numLsg = 2;               // 60% zwei Lösungen
-
-    // document.title = `Fall: ${numLsg} Lsg`;
-
-    // 2. a wählen
-    let a;
-    const aCatRand = Math.random();
-    if(aCatRand < 0.8) {
-        const aChoices = [1,1,1,1,1,1,-1,-1,-1,2,2,2,-2,-2,3,-3,4,-4,5,-5];
-        a = randomChoice(aChoices);
-    } else if(aCatRand < 0.9) a = randomDecimal(-2,2);
-    else a = randomFraction(5, false);
-
-    // 3. Lösungen auswählen
-    let x1, x2;
-    const lsgR = Math.random();
-    if(numLsg === 0) {
-        x1 = x2 = null;
-        // keine Lösung → x1,x2 bleiben undefiniert
-    } else if(numLsg === 1) {
-        if(lsgR < 0.5) x1 = randomInteger(-20,20);
-        else if(lsgR < 0.8) x1 = randomInteger(-20,20)/2;
-        else if(lsgR < 0.9) x1 = randomDecimal(-10,10);
-        else x1 = randomFraction(5);
-        x2 = x1; // Doppelte Lösung
-    } else { // 2 Lösungen
-        x1 = 0; x2 = 0;
-        while (x1 === x2) {
-            if(lsgR < 0.5) { x1 = randomInteger(-20,20); x2 = randomInteger(-20,20); }
-            else if(lsgR < 0.8) { x1 = randomInteger(-20,20)/2; x2 = randomInteger(-20,20)/2; }
-            else if(lsgR < 0.9) { x1 = randomDecimal(-10,10); x2 = randomDecimal(-10,10); }
-            else { x1 = randomFraction(5); x2 = randomFraction(5); }
-        }
-    }
-
-    // 4. Koeffizienten bestimmen (Satz von Vieta)
-    let bVal, cVal;
-    if(numLsg === 0) {
-        // generiere zufällig b und c, sodass Diskriminante < 0
-        let discriminant;
-        do {
-            // b und c können int, decimal oder fraction sein
-            const typeRandB = Math.floor(Math.random()*20);
-            const typeRandC = Math.floor(Math.random()*20);
-
-            if(typeRandB<15) bVal = randomInteger(-20,20);
-            else if(typeRandB<17) bVal = randomDecimal(-10,10);
-            else bVal = randomFraction(20);
-
-            if(typeRandC<15) cVal = randomInteger(-20,20);
-            else if(typeRandC<17) cVal = randomDecimal(-10,10);
-            else cVal = randomFraction(20);
-
-            const aVal = typeof a==='object'?a.num/a.den:a;
-            const bNum = typeof bVal==='object'?bVal.num/bVal.den:bVal;
-            const cNum = typeof cVal==='object'?cVal.num/cVal.den:cVal;
-            discriminant = Math.pow(bNum,2) - 4*aVal*cNum;
-        } while(discriminant >= 0);
-    } else {
-        // numLsg 1 oder 2: Satz von Vieta: x1+x2 = -b/a, x1*x2 = c/a
-        const aVal = typeof a==='object'?a.num/a.den:a;
-
-        // Prüfe, ob x1 oder x2 Bruch ist
-        const x1IsFrac = typeof x1 === 'object';
-        const x2IsFrac = typeof x2 === 'object';
-
-        if(x1IsFrac || x2IsFrac) {
-            // Brüche bleiben als Bruch
-            function multiplyFrac(x,y) {
-                let n1=x.num, d1=x.den;
-                let n2, d2;
-                if(typeof y==='object'){ n2=y.num; d2=y.den; }
-                else { n2=y; d2=1; }
-                return {num: n1*d2 + n2*d1, den: d1*d2}; // für Summe
-            }
-
-            // b = -(x1+x2)*a
-            let sumX;
-            if(x1IsFrac && x2IsFrac) sumX = {num: x1.num*x2.den + x2.num*x1.den, den: x1.den*x2.den};
-            else if(x1IsFrac) sumX = {num: x1.num + x2*x1.den, den: x1.den};
-            else if(x2IsFrac) sumX = {num: x1*x2.den + x2.num, den: x2.den};
-            else sumX = x1 + x2; // Zahl
-
-            if(typeof sumX==='object') {
-                if(typeof a==='object') {
-                    bVal = {num: -sumX.num*a.num, den: sumX.den*a.den};
-                    const g = gcd(bVal.num, bVal.den); bVal.num/=g; bVal.den/=g;
-                } else {
-                    bVal = {num: -sumX.num*a, den: sumX.den};
-                    const g = gcd(bVal.num, bVal.den); bVal.num/=g; bVal.den/=g;
-                }
-            } else {
-                bVal = -sumX * aVal;
-            }
-
-            // c = x1*x2*a
-            let prodX;
-            if(x1IsFrac && x2IsFrac) prodX = {num: x1.num*x2.num, den: x1.den*x2.den};
-            else if(x1IsFrac) prodX = {num: x1.num*x2, den: x1.den};
-            else if(x2IsFrac) prodX = {num: x2.num*x1, den: x2.den};
-            else prodX = x1*x2;
-
-            if(typeof prodX==='object') {
-                if(typeof a==='object') {
-                    cVal = {num: prodX.num*a.num, den: prodX.den*a.den};
-                    const g = gcd(cVal.num, cVal.den); cVal.num/=g; cVal.den/=g;
-                } else {
-                    cVal = {num: prodX.num*a, den: prodX.den};
-                    const g = gcd(cVal.num, cVal.den); cVal.num/=g; cVal.den/=g;
-                }
-            } else {
-                cVal = prodX * aVal;
-            }
-        } else {
-            // beide Zahlen, normale Berechnung
-            bVal = - (x1 + x2) * aVal;
-            cVal = x1 * x2 * aVal;
-        }
-    }
-
-    // 4.5. Koeffizienten runden falls keine Brüche
-    function roundIfNumber(x) { 
-        if(typeof x==='object') return x; 
-        return Math.round(x*10000)/10000; 
-    }
-    bVal = roundIfNumber(bVal);
-    cVal = roundIfNumber(cVal);
-
-    // 5. currentFormula darstellen
-    const aDisplay = monomText(a, 2, 0);
-    const bDisplay = monomText(bVal,1,1);
-    const cDisplay = monomText(cVal,0,1);
-    currentFormula = `${aDisplay} ${bDisplay} ${cDisplay} = 0`;
-
-    // 6. currentSolution
-    if(numLsg===0) {
-        currentSolution = "\\text{n.l.}";
-    } else {
-        const aVal = typeof a==='object'?a.num/a.den:a;
-        const discriminantVal = bVal*bVal - 4*aVal*cVal;
-
-        function formatRoot(disc) {
-            if(disc < 0) return "\\text{n.l.}";
-            if(typeof a==='object') {
-                // Bruch-Diskriminante, als Bruch darstellen
-                return `\\sqrt{${disc}} \\approx ${Math.sqrt(disc).toFixed(3)}`;
-            } else {
-                // Dezimaldiskriminante, runde glatte Zahl
-                const sqrtDisc = Math.sqrt(disc);
-                if(Math.abs(Math.round(sqrtDisc)**2 - disc) < 1e-6) return Math.round(sqrtDisc);
-                return `\\sqrt{${disc}} \\approx ${sqrtDisc.toFixed(3)}`;
-            }
-        }
-
-        if(numLsg===1) {
-            currentSolution = `x_{1,2} = ${monomText(x1,0,0,1)}`;
-        } else {
-            const sqrtDisc = Math.sqrt(discriminantVal);
-            const x1Val = (-bVal + sqrtDisc)/(2*aVal);
-            const x2Val = (-bVal - sqrtDisc)/(2*aVal);
-            currentSolution = `x_1 = ${monomText(x1,0,0,1)},\\qquad x_2 = ${monomText(x2,0,0,1)}`; // kein x, kein Klammern bei negativen Brüchen
-        }
-    }
-
-    // 7. Koeffizientenliste
-    currentCoeffs = [cVal, bVal, typeof a==='object'?a.num/a.den:a];
-}
-
-
-function generateBiquadratisch() {
-    currentEqType = 'biquadratisch';
-
-    // 1. Lösungstyp bestimmen
-    const r = Math.random();
-    let solutionType;
-    if(r < 0.25) solutionType = '0Lsg';
-    else if(r < 0.25+0.30) solutionType = '2LsgEinzeln';
-    else if(r < 0.25+0.30+0.05) solutionType = '2LsgDoppelt0';
-    else if(r < 0.25+0.30+0.05+0.30) solutionType = '4LsgEinzeln';
-    else if(r < 0.25+0.30+0.05+0.30+0.05) solutionType = '4LsgDoppelt0';
-    else solutionType = '4LsgBeideDoppelt';
-
-    // document.title = `Fall: ${solutionType}`;
-    
-    // 2. a wählen
-    const aRand = Math.random();
-    let a;
-    if(aRand < 0.8) a = randomChoice([1,1,1,1,1,1,1,1,1,1,1,-1,-1,-1, 2, 2, -2, -2, 3, -3, 4, -4, 5 ,-5]);
-    else if(aRand < 0.9) a = randomDecimal(-2,2);
-    else a = randomFraction(5,false);
-
-    // --- 3. z-Lösungen wählen ---
-    let zSolutions = [];
-    const zRange = [-100,-81,-64,-49,-36,-25,-16,-9,-4,-1,1,4,9,16,25,36,49,64,81,100];
-
-    function randomZ(allowPositives=true, allowNegatives=true, allowZero=true) {
-        let z = 0;
-        if (!allowPositives) z = 1;
-        else if (!allowNegatives) z = -1;
-        let r = 0;
-        while (z < 0 && !allowNegatives || z > 0 && !allowPositives || z === 0 && !allowZero) {    
-            r = Math.random();
-            if(r < 0.4) z = randomChoice(zRange);          // 40% Quadratzahlen
-            else if(r < 0.8) z = randomInteger(-20,20);    // 40% ganze Zahlen
-            else if(r < 0.9) z = randomDecimal(-10,10);    // 10% Dezimalzahlen
-            else z = randomFraction(5, false);             // 10% Brüche
-        }
-        return z;
-    }
-
-    // Lösung je nach Typ generieren
-    if(solutionType === '0Lsg') {
-        zSolutions = [randomZ(false, true, false), randomZ(false, true, false)];
-    } else if(solutionType === '2LsgEinzeln') {
-        zSolutions = [randomZ(true, false, false), randomZ(false, true, false)];
-    } else if(solutionType === '2LsgDoppelt0') {
-        zSolutions = [0, randomZ(false, true, false)];
-    } else if(solutionType === '4LsgEinzeln') {
-        zSolutions = [randomZ(true, false, false), randomZ(true, false, false)];
-    } else if(solutionType === '4LsgDoppelt0') {
-        zSolutions = [0, randomZ(true, false, false)];
-    } else if(solutionType === '4LsgBeideDoppelt') {
-        const z = randomZ(true, false, false);
-        zSolutions = [z, z];
-    }
-
-    // --- 4. Koeffizienten bestimmen ---
-    let aVal = typeof a === 'object' ? a.num / a.den : a;
-    let bVal, cVal;
-
-    // Brüche berücksichtigen
-    function multiplyQuadratics(z1, z2) {
-        // (x^2 - z1)*(x^2 - z2) = x^4 - (z1+z2)x^2 + z1*z2
-        let sumZ, prodZ;
-
-        const toNum = (v) => typeof v==='object' ? v.num/v.den : v;
-
-        sumZ = toNum(z1) + toNum(z2);
-        prodZ = toNum(z1) * toNum(z2);
-
-        if(typeof z1==='object' || typeof z2==='object' || typeof a==='object') {
-            // Brüche behalten
-            function toFrac(v) { return typeof v==='object'?v:{num:v,den:1}; }
-            z1 = toFrac(z1); z2 = toFrac(z2);
-            const numSum = z1.num*z2.den + z2.num*z1.den;
-            const denSum = z1.den*z2.den;
-            sumZ = {num:numSum, den:denSum};
-            const numProd = z1.num*z2.num;
-            const denProd = z1.den*z2.den;
-            prodZ = {num:numProd, den:denProd};
-
-            if(typeof a==='object') {
-                // multipliziere a als Bruch
-                bVal = {num: -sumZ.num*a.num, den: sumZ.den*a.den};
-                cVal = {num: prodZ.num*a.num, den: prodZ.den*a.den};
-                // kürzen
-                let g = gcd(bVal.num, bVal.den); bVal.num/=g; bVal.den/=g;
-                g = gcd(cVal.num, cVal.den); cVal.num/=g; cVal.den/=g;
-            } else {
-                bVal = {num: -sumZ.num*aVal, den: sumZ.den};
-                cVal = {num: prodZ.num*aVal, den: prodZ.den};
-                let g = gcd(bVal.num, bVal.den); bVal.num/=g; bVal.den/=g;
-                g = gcd(cVal.num, cVal.den); cVal.num/=g; cVal.den/=g;
-            }
-        } else {
-            // normale Zahlen
-            bVal = -sumZ * aVal;
-            cVal = prodZ * aVal;
-        }
-    }
-    multiplyQuadratics(zSolutions[0], zSolutions[1]);
-
-
-    // 4.5. Koeffizienten runden falls keine Brüche
-    function roundIfNumber(x){ if(typeof x==='object') return x; return Math.round(x*10000)/10000; }
-    bVal = roundIfNumber(bVal);
-    cVal = roundIfNumber(cVal);
-
-    // 5. currentFormula darstellen
-    const aDisplay = monomText(a,4,0);
-    const bDisplay = monomText(bVal,2,1);
-    const cDisplay = monomText(cVal,0,1);
-    currentFormula = `${aDisplay} ${bDisplay} ${cDisplay} = 0`;
-
-// 6. currentSolution
-{
-    // Hilfsfunktionen
-    function toNumber(val) {
-        if(val === "\\text{n.l.}") return null;
-        if(typeof val === 'object') return val.num / val.den;
-        return val;
-    }
-
-    function sqrtText(val, isNegative=false) {
-        if(val === 0) return "0";
-        if(val < 0) return "\\text{n.l.}";
-        const sqrtVal = Math.sqrt(val);
-        vz = isNegative ? '-' : '';
-        if(Math.abs(sqrtVal - Math.round(sqrtVal)) < 1e-6) return `${vz}${Math.round(sqrtVal)}`;
-        return `${vz}\\sqrt{${val}} \\approx ${vz}${sqrtVal.toFixed(3)}`;
-    }
-
-    let lines = [];
-
-    // --- z-Werte ---
-    let zLine = "";
-    let hasNL = false;
-    for(let i = 0; i < zSolutions.length; i++) {
-        const z = zSolutions[i];
-        if(z === "\\text{n.l.}") {
-            if(!hasNL) {
-                zLine += `z_${i+1} &= \\text{n.l.} `;
-                hasNL = true; // nur einmal n.l.
-            } else {
-                zLine += ` && `;
-            }
-        } else {
-            zLine += `z_${i+1} &= ${z} `;
-            if(i < zSolutions.length - 1) zLine += " &&& ";
-        }
-    }
-    lines.push(zLine);
-
-    // --- Resubstitution zentriert ---
-    let resubLine = "";
-    for(let i = 0; i < zSolutions.length; i++) {
-        if(i === 0) resubLine += "&& \\text{Resubstitution} &&&";
-    }
-    lines.push(resubLine);
-
-    // --- x-Werte ---
-    let x1Line = "";
-    let x2Line = "";
-    for (let i = 0; i < zSolutions.length; i++) {
-        const zNum = toNumber(zSolutions[i]);
-        let rootStr;
-
-        // Linke Spalte
-        if (zNum === null || sqrtText(zNum) === "\\text{n.l.}") {
-            x1Line += "&\\text{n.l.} &&& ";
-            x2Line += " &&&& ";
-        } else if (zNum === 0) {
-            x1Line += `x_{${2*i+1},${2*i+2}} & = 0 &&& `;
-            x2Line += " &&&& ";
-        } else {
-            x1Line += `x_${2*i+1} & = ${sqrtText(zNum)} &&& `;
-            x2Line += `x_${2*i+2} & = ${sqrtText(zNum, true)} &&& `;
-        }
-    }
-
-    // Entferne überflüssige "&&" am Ende der Zeilen
-    x1Line = x1Line.replace(/ && $/, "");
-    x2Line = x2Line.replace(/ && $/, "");
-
-    lines.push(x1Line.trim());
-    lines.push(x2Line.trim());
-
-    currentSolution = `\\displaystyle \\begin{aligned} ${lines.join(" \\\\ ")} \\end{aligned}`;
-}
-
-
-    // 7. Koeffizientenliste
-    currentCoeffs = [cVal,bVal,aVal];
-}
-
-// Hilfsfunktion zum Multiplizieren von Zahl oder Bruch
-function multiplyValue(a,val){
-    if(typeof a==='object') return {num:a.num*val, den:a.den};
-    return a*val;
-}
-
-
-function generateAusklammern() {
-
-    // 1. Zuerst eine zufällige Ausgangsgleichung erzeugen
-    const r = Math.random();
-    if(r < 0.70) {
-        generateQuadratisch();
-    } else if(r < 0.90) {
-        generateAusklammern(); // rekursiv
-    } else if(r < 0.95) {
-        generatePotenz();      // Potenzgleichung
-    } else {
-        generateLinear();      // Lineare Gleichung
-    }
-    // document.title = `Fall: ${currentFormula}`;
-
-    // 2. Exponenten erhöhen
-    // Alte Koeffizienten: [c0, c1, c2, ..., cn]
-    // Neue Koeffizienten: [0, c0, c1, ..., cn-1] für Exponenten +1
-    const oldFormula = currentFormula; // für Lösungstext merken
-    const oldCoeffs = currentCoeffs.slice(); // Kopie
-    const newCoeffs = oldCoeffs.slice(); // Kopie
-    newCoeffs.unshift(0); // vorne 0 einfügen
-    currentCoeffs = newCoeffs;
-
-
-    // 3. currentFormula anpassen (Exponenten erhöhen)
-    const degree = currentCoeffs.length - 1;
-    let formulaParts = [];
-    formulaParts.push(monomText(currentCoeffs[degree], degree, 0, 0)); // erstes Monom ohne führendes +
-
-    for(let i = degree-1; i >= 0; i--) {
-        const coeff = currentCoeffs[i];
-        if(coeff !== 0) {
-            formulaParts.push(monomText(coeff, i, 1, i === degree ? 0 : 1)); // kein führendes + beim ersten
-        }
-    }
-
-    currentFormula = formulaParts.join(" ") + " = 0";
-
-    // 4. currentSolution: x = 0 ist immer eine Lösung
-    currentSolution = `
-    \\begin{aligned}
-    &x = 0 \\\\
-    \\text{und Lsg. der Gleichung mit geringeren Exponenten:}\\qquad& \\\\
-    &${oldFormula}
-    \\end{aligned}
-    `;
-    
-    currentEqType = 'ausklammern';
-}
-
-
-function generateNullprodukt() {
-    let lines = [];
-
-    // --- 1. Anzahl Gleichungen bestimmen ---
-    const rNum = Math.random();
-    let numEquations;
-    if (rNum < 0.05) numEquations = 1;
-    else if (rNum < 0.35) numEquations = 2;
-    else if (rNum < 0.75) numEquations = 3;
-    else if (rNum < 0.95) numEquations = 4;
-    else numEquations = 5;
-
-    // --- 2. Optional letzte Gleichung fix zu x^2+1 ---
-    let addConstLast = Math.random() < 0.5;
-    if (addConstLast && numEquations > 1) numEquations -= 1;
-
-    // --- 3. Typen generieren ---
-    const typeRand = () => {
-        const r = Math.random();
-        if (r < 0.3) return 0;
-        else if (r < 0.6) return 1;
-        else if (r < 0.8) return 3;
-        else if (r < 0.9) return 4;
-        else if (r < 0.95) return 5;
-        else return 6;
-    };
-
-    let typeArray = [];
-    for (let i = 0; i < numEquations; i++) typeArray.push(typeRand());
-    typeArray.sort((a, b) => a - b);
-
-    // --- 4. optionaler globaler Faktor a ---
-    let a = 1;
-    if (Math.random() < 0.5) {
-        const aCatRand = Math.random();
-        if (aCatRand < 0.7) a = randomInteger(-20, 20, false);
-        else if (aCatRand < 0.9) a = randomDecimal(-10, 10);
-        else a = randomFraction(20, false);
-    }
-
-    // --- 5. Gleichung pro Typ erzeugen ---
-    const makeEquation = (type) => {
-        // --- Exponent ---
-        let expRand = Math.random();
-        let exponent = 1;
-        if(expRand < 0.85) exponent = 1;
-        else if(expRand < 0.95) exponent = 2;
-        else exponent = 3;
-
-        let formulaWith, formulaPlain, formulaPlainWithExp;
-
-        if (type === 0) {
-            const tRand = Math.random();
-            let t;
-            if (tRand < 0.3) t = 0;
-            else {
-                const aCatRand = Math.random();
-                if (aCatRand < 0.7) t = randomInteger(-20, 20, false);
-                else if (aCatRand < 0.9) t = randomDecimal(-10, 10);
-                else t = randomFraction(20, false);
-            }
-
-            if (typeof t === 'object' && t.num < 0) {
-                t = { num: Math.abs(t.num), den: t.den, _neg: true };
-            }
-
-            const formatT = (val) => typeof val === 'object' 
-                ? `\\frac{${val.num}}{${val.den}}`
-                : (typeof val === 'number' && !Number.isInteger(val) ? val.toFixed(3).replace('.', '{,}') : `${Math.abs(val)}`);
-
-            const isZero = (t === 0) || (typeof t === 'object' && t.num === 0);
-            if (isZero) {
-                formulaWith = ` x${exponent>1 ? '^'+exponent : ''}`;
-                formulaPlain = ` x${exponent>1 ? '^'+exponent : ''}`;
-                formulaPlainWithExp = ` x${exponent>1 ? '^'+exponent : ''}`;
-            } else {
-                const isNegative = (typeof t === 'object') ? t._neg === true : t < 0;
-                const sign = isNegative ? '+' : '-';
-                const absT = formatT(t);
-
-                formulaWith = `\\left(x ${sign} ${absT}\\right)${exponent>1 ? '^'+exponent : ''}`;
-                formulaPlain = `x ${sign} ${absT}`;
-                formulaPlainWithExp = `x ${sign} ${absT}${exponent>1 ? '^'+exponent : ''}`;
-            }
-        } else {
-            // Andere Typen
-            switch(type) {
-                case 1: generateLinear(); break;
-                case 3: generatePotenz(); break;
-                case 4: generateQuadratisch(); break;
-                case 5: generateAusklammern(); break;
-                case 6: generateBiquadratisch(); break;
-            }
-            formulaWith = `\\left(${currentFormula.replace('= 0','')}\\right)${exponent>1 ? '^'+exponent : ''}`;
-            formulaPlain = `${currentFormula.replace('= 0','')}`;
-            formulaPlainWithExp = `${currentFormula.replace('= 0','')}${exponent>1 ? '^'+exponent : ''}`;
-        }
-
-        return { formulaWith, formulaPlain, formulaPlainWithExp, exponent };
-    };
-
-    
-
-    // --- 6. Alle Gleichungen erzeugen ---
-    const equations = typeArray.map(makeEquation);
-
-    if (addConstLast) equations.push({ formulaWith: '\\left(x^2 + 1\\right)', formulaPlain: 'x^2 + 1', formulaPlainWithExp: 'x^2 + 1', exponent: 1 });
-
-    // --- 7. Gesamtformel ---
-    const joinedFormulas = equations.map(eq => eq.formulaWith).join(' \\cdot ');
-    const aText = (typeof a === 'number' && a === 1) ? '' : `${monomText(a, 0, 0)}\\cdot`;
-    currentFormula = `${aText}${joinedFormulas} = 0`;
-
-    // --- 8. Lösungen anzeigen (aligned, ohne Klammern) ---
-    const alignedLines = [];
-    alignedLines.push('\\text{Nullproduktregel: Mindestens ein Faktor ist null} \\\\');
-    alignedLines.push('\\text{Wir setzen jeden Faktor einzeln 0:} \\\\');
-    equations.forEach((eq, i) => {
-        let expText = eq.exponent > 1 ? `\\,(${eq.exponent}\\text{-fach})` : '';
-        alignedLines.push(`\\text{${i+1}. Faktor}${expText}\\text: && ${eq.formulaPlain} &= 0`);
-    });
-    
-    currentEqType = 'nullprodukt';
-    currentSolution = `\\displaystyle \\begin{aligned} ${alignedLines.join(' \\\\ ')} \\end{aligned}`;
-}
-
-
-function generatePolynom() {
-    currentEqType = 'polynom';
-    let degree;
-    const r = Math.random();
-
-    // 1. Grad wählen
-    if (r < 0.55) degree = 3;
-    else if (r < 0.55 + 0.35) degree = 4;
-    else degree = 5;
-
-    // 2. Koeffizienten erzeugen (a = 1)
-    const coeffs = [1]; // a_n = 1
-    for (let i = 1; i < degree; i++) {
-        coeffs.push(randomInteger(-10, 10, true));
-    }
-
-    // 3. x0 wählen
-    const x0Options = [1, -1, 2, -2, 3, -3];
-    const x0 = randomChoice(x0Options);
-
-
-    // 4. a0 so wählen, dass P(x0) = 0
-    let sum = 0;
-    for (let i = 0; i < degree; i++) {
-        sum += coeffs[i] * Math.pow(x0, degree - i);
-    }
-    const a0 = -sum;
-    coeffs.push(a0); // a0 = const term
-
-    // 5. currentFormula darstellen
-    function formatCoeff(c, power) {
-        if (c === 0) return '';
-        const sign = c > 0 ? '+' : '-';
-        const absC = Math.abs(c);
-        if (power === 0) return `${sign} ${absC}`;
-        else if (power === 1) return `${sign} ${absC !== 1 ? absC : ''}x`;
-        else return `${sign} ${absC !== 1 ? absC : ''}x^{${power}}`;
-    }
-
-    let formula = '';
-    for (let i = 0; i <= degree; i++) {
-        const power = degree - i;
-        const term = formatCoeff(coeffs[i], power);
-        if (i === 0) {
-            formula += (coeffs[i] === 1 ? '' : coeffs[i]) + `x^${power}`;
-        } else {
-            formula += ' ' + term;
-        }
-    }
-    // Formel mit =0
-    currentFormula = formula + ' = 0';
-
-    let divisor = x0 > 0 ? `(x - ${x0})` : `(x + ${-x0})`;
-
-    // 6. currentSolution: x1 = x0, Hinweis Polynomdivision
-    currentSolution = `\\begin{aligned}
-        x_1 &= ${x0} \\\\
-        \\text{Dann Restpolynom mittels Polynomdivision ermitteln: }& \\\\
-        \\left(${formula}\\right) : ${divisor} & \\\\
-        \\text{Dieses Polynom hat dann Grad ${degree - 1} und kann weiter gelöst werden.}
-        \\end{aligned}`;
-
-    // 7. Koeffizientenliste
-    currentCoeffs = coeffs;
-}
-
-
-// --- Prüffunktionen für jeden Button ---
-// Hilfsfunktion: prüft, ob eine Zahl ≈ 0 ist
-// Hilfsfunktionen
-function isZero(val, eps = 1e-9) {
-    if (val === null || val === undefined) return true;
-    // Bruch-Objekt {num, den}
-    if (typeof val === 'object' && val !== null && 'num' in val && 'den' in val) {
-        return Math.abs(val.num / val.den) < eps;
-    }
-    return Math.abs(val) < eps;
-}
-
-// Entfernt hinten liegende Nullen (aber lässt mindestens ein Element stehen)
-function trimTrailingZeros(coeffs) {
-    if (!Array.isArray(coeffs)) return [];
-    const arr = coeffs.slice(); // kopieren
-    while (arr.length > 1 && isZero(arr[arr.length - 1])) {
-        arr.pop();
-    }
-    return arr;
-}
-
-// Erkennungsfunktionen (gemäß deinen Regeln)
-
-// linear: Länge == 2 (nach Entfernen hinterer Nullen)
-function is_solvable_by_linear() {
-    if (currentEqType === 'nullprodukt') return false;
-    if (currentEqType === 'linear') return true; // wenn es generiert wurde, ist es linear
-    const coeffs = trimTrailingZeros(currentCoeffs || []);
-    return coeffs.length === 2;
-}
-
-// quadratisch: Länge == 3 (nach Entfernen hinterer Nullen)
-function is_solvable_by_quadratisch() {
-    if (currentEqType === 'nullprodukt') return false;
-    if (currentEqType === 'quadratisch') return true; // wenn es generiert wurde, ist es quadratisch
-    if (currentEqType === 'biquadratisch') return false;
-    const coeffs = trimTrailingZeros(currentCoeffs || []);
-    return coeffs.length === 3;
-}
-
-// potenz: bis auf Index 0 gibt es nur noch ein Element != 0
-// potenz: bis auf Index 0 gibt es nur noch ein Element != 0
-// UND dieses Element muss Index >= 2 haben (nicht Index 1, das wäre linear)
-function is_solvable_by_potenz() {
-    if (currentEqType === 'nullprodukt') return false;
-    if (currentEqType === 'potenz') return true; // wenn es generiert wurde, ist es Potenz
-    const coeffs = currentCoeffs || [];
-    
-    // sammle Indizes mit nicht-null
-    const nonZeroIdx = [];
-    for (let i = 0; i < coeffs.length; i++) {
-        if (!isZero(coeffs[i])) nonZeroIdx.push(i);
-    }
-    
-    if (nonZeroIdx.length === 0) return false; // 0 ≡ keine Gleichung
-    
-    // Nur ein Nicht-Null-Term (außer Index 0)
-    if (nonZeroIdx.length === 1) {
-        // Dieser muss Index >= 2 haben (nicht 0, nicht 1)
-        return nonZeroIdx[0] >= 2;
-    }
-    
-    // Genau zwei Nicht-Null: einer muss Index 0 sein, der andere >= 2
-    if (nonZeroIdx.length === 2 && nonZeroIdx.includes(0)) {
-        const otherIdx = nonZeroIdx.find(i => i !== 0);
-        return otherIdx >= 2; // nicht Index 1 (das wäre linear)
-    }
-    
-    return false;
-}
-
-// biquadratisch: nur gerade Indizes belegt (d.h. alle ungeraden Indizes sind 0)
-// zusätzlich: höchster belegter Index muss gerade sein und es sollten mind. 2 gerade Indizes != 0 sein (z.B. a x^4 + b x^2 + c)
-function is_solvable_by_biquadratisch() {
-    if (currentEqType === 'nullprodukt') return false;
-    if (currentEqType === 'biquadratisch') return true; // wenn es generiert wurde, ist es biquadratisch
-    const coeffs = currentCoeffs || [];
-    // prüfe, ob alle ungeraden Indizes null sind
-    for (let i = 1; i < coeffs.length; i += 2) {
-        if (!isZero(coeffs[i])) return false;
-    }
-    // suche belegte gerade Indizes
-    const evenNonZero = [];
-    for (let i = 0; i < coeffs.length; i += 2) {
-        if (!isZero(coeffs[i])) evenNonZero.push(i);
-    }
-    if (evenNonZero.length < 2) return false; // mindestens zwei gerade Koeffizienten für biquadratisch sinnvoll
-    // höchster belegter Index muss gerade (ist per Konstruktion), also ok
-    return true;
-}
-
-// ausklammern: konstantes Glied (Index 0) ist 0
-function is_solvable_by_ausklammern() {
-    if (currentEqType === 'nullprodukt') return false;
-    if (currentEqType === 'ausklammern') return true; // wenn es generiert wurde, ist es Ausklammern
-    if (!Array.isArray(currentCoeffs) || currentCoeffs.length === 0) return false;
-    return isZero(currentCoeffs[0]);
-}
-
-
-// --- 6. Nullprodukt ---
-function is_solvable_by_nullprodukt() {
-    return currentEqType === 'nullprodukt';
-}
-
-function is_solvable_by_polynom() {
-    if (currentEqType === 'nullprodukt') return false;
-    return currentEqType === 'polynom';
-}
-
-const generators = {
-  linear: generateLinear,
-  quadratisch: generateQuadratisch,
-  potenz: generatePotenz,
-  biquadratisch: generateBiquadratisch,
-  ausklammern: generateAusklammern,
-  nullprodukt: generateNullprodukt,
-  polynom: generatePolynom
+"use strict";
+/* ═══════════════════════════════════════════════════════════════════════════
+   Gleichungsart erkennen
+   ───────────────────────────────────────────────────────────────────────────
+     1. Einstellungen, Stufen und Adresszeile
+     2. Polynom-Werkzeuge
+     3. Aufgabe würfeln (eine Gleichung je Art)
+     4. Welche Wege führen zum Ziel?
+     5. Aufgabe, Antwortknöpfe und Kurzlösung zeichnen
+     6. Quiz
+     7. Verdrahtung
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── 1. Einstellungen ───────────────────────────────────────────────────── */
+var STD = {
+  artLinear: true, artQuadratisch: true, artPotenz: true, artNullprodukt: true,
+  artAusklammern: true, artBiquadratisch: true, artPolynom: true,
+  rNull: true, rZahl: true, rX: false, rPoly: false, rHoch: false,
+  zeigeMenge: true, zeigeSchritte: true, zeigeLink: true,
+  loesForm: 'index', loesWedge: false,
+  diff: 'normal'
+};
+/* Der Schwierigkeitsgrad bestimmt hier vor allem, WELCHE Gleichungsarten
+   überhaupt vorkommen - genau das unterscheidet die Stufen. */
+var STUFEN = {
+  einf:   { artLinear:true, artQuadratisch:true, artPotenz:false, artNullprodukt:false,
+            artAusklammern:false, artBiquadratisch:false, artPolynom:false,
+            rNull:true, rZahl:false, rX:false, rPoly:false, rHoch:false,
+            regler:{ artLinear:10, artQuadratisch:9 } },
+  /* Jede Stufe nimmt die vorige und legt zwei Arten dazu. */
+  leicht: { artLinear:true, artQuadratisch:true, artPotenz:true, artNullprodukt:false,
+            artAusklammern:true, artBiquadratisch:false, artPolynom:false,
+            rNull:true, rZahl:true, rX:false, rPoly:false, rHoch:false,
+            regler:{ artLinear:9, artQuadratisch:9, artPotenz:5, artAusklammern:5 } },
+  normal: { artLinear:true, artQuadratisch:true, artPotenz:true, artNullprodukt:true,
+            artAusklammern:true, artBiquadratisch:true, artPolynom:false,
+            rNull:true, rZahl:true, rX:true, rPoly:false, rHoch:false,
+            regler:{ artLinear:7, artQuadratisch:8, artPotenz:6, artNullprodukt:6,
+                     artAusklammern:6, artBiquadratisch:5 } },
+  schwer: { artLinear:true, artQuadratisch:true, artPotenz:true, artNullprodukt:true,
+            artAusklammern:true, artBiquadratisch:true, artPolynom:true,
+            rNull:true, rZahl:true, rX:true, rPoly:true, rHoch:true,
+            regler:{ artLinear:5, artQuadratisch:8, artPotenz:6, artNullprodukt:6,
+                     artAusklammern:6, artBiquadratisch:6, artPolynom:6 } }
 };
 
-function randomChoice(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+/* Der Standard ist genau die Standard-Schwierigkeit: so stimmen Kästchen,
+   Kacheln, Regler und der Schwierigkeitsbalken von Anfang an überein. */
+(function(){
+  var p = STUFEN[STD.diff] || {};
+  Object.keys(p).forEach(function(k){ if (k !== 'regler') STD[k] = p[k]; });
+})();
 
-function getEnabledTypes(){ 
-  const enabled = [];
-  document.querySelectorAll('#settingsForm input[type="checkbox"]').forEach(cb=>{
-    if(cb.checked && generators[cb.id]) enabled.push(cb.id);
+var KURZ = {
+  loesForm:'lf', loesWedge:'lw',
+  artLinear:'al', artQuadratisch:'aq', artPotenz:'ap', artNullprodukt:'an',
+  artAusklammern:'ak', artBiquadratisch:'ab', artPolynom:'ar',
+  rNull:'r0', rZahl:'rz', rX:'rx', rPoly:'rp', rHoch:'rh',
+  zeigeMenge:'zm', zeigeSchritte:'zs', zeigeLink:'zl', diff:'d'
+};
+/* Reihenfolge der Knöpfe und Kacheln */
+var ARTEN = ['linear', 'quadratisch', 'potenz', 'nullprodukt', 'ausklammern', 'biquadratisch', 'polynom'];
+var ART_ID = { linear:'artLinear', quadratisch:'artQuadratisch', potenz:'artPotenz',
+               nullprodukt:'artNullprodukt', ausklammern:'artAusklammern',
+               biquadratisch:'artBiquadratisch', polynom:'artPolynom' };
+/* Name, Kurzweg und Übungsseite je Art */
+var INFO = {
+  linear: {
+    name: ['lineare Gleichung', 'linear equation'],
+    weg:  ['Gleichung umstellen', 'Rearrange the equation'],
+    schritte: [['alle x-Terme auf eine Seite, alle Zahlen auf die andere',
+                'move all x terms to one side, all numbers to the other'],
+               ['durch den Faktor vor dem x teilen', 'divide by the factor in front of x']],
+    /* Die Waagen-Seite kennt den Parameter ?gl= nicht - dort steht der Link ohne. */
+    seite: 'waage.html', glParam: false
+  },
+  quadratisch: {
+    name: ['quadratische Gleichung', 'quadratic equation'],
+    weg:  ['p-q-Formel oder Mitternachtsformel', 'pq formula or quadratic formula'],
+    schritte: [['alles auf eine Seite bringen', 'move everything to one side'],
+               ['durch den Vorfaktor teilen (Normalform)', 'divide by the leading factor (normal form)'],
+               ['p-q-Formel anwenden', 'apply the pq formula']],
+    seite: 'quadratische_gleichungen.html'
+  },
+  potenz: {
+    name: ['Potenzgleichung', 'power equation'],
+    weg:  ['nach der Potenz auflösen, Wurzel ziehen', 'solve for the power, take the root'],
+    schritte: [['die Zahl auf die andere Seite bringen', 'move the number to the other side'],
+               ['durch den Vorfaktor teilen', 'divide by the leading factor'],
+               ['n-te Wurzel ziehen – bei geradem n mit ±', 'take the n-th root – with ± for even n']],
+    seite: 'potenzgleichungen.html'
+  },
+  nullprodukt: {
+    name: ['Nullprodukt', 'zero product'],
+    weg:  ['Satz vom Nullprodukt', 'zero product property'],
+    schritte: [['jeden Faktor einzeln gleich 0 setzen', 'set each factor equal to 0 separately'],
+               ['die entstehenden kleinen Gleichungen lösen', 'solve the small equations that appear']],
+    seite: 'nullprodukt.html'
+  },
+  ausklammern: {
+    name: ['Gleichung ohne Absolutglied', 'equation without a constant term'],
+    weg:  ['x ausklammern, dann Nullprodukt', 'factor out x, then zero product'],
+    schritte: [['die höchste gemeinsame x-Potenz ausklammern', 'factor out the highest common power of x'],
+               ['x = 0 ist damit schon eine Lösung', 'x = 0 is then already a solution'],
+               ['die Restklammer gleich 0 setzen und lösen', 'set the remaining bracket equal to 0 and solve']],
+    seite: 'ausklammern.html'
+  },
+  biquadratisch: {
+    name: ['biquadratische Gleichung', 'biquadratic equation'],
+    weg:  ['substituieren z = x², p-q-Formel', 'substitute z = x², pq formula'],
+    schritte: [['u = x² setzen – es entsteht eine quadratische Gleichung',
+                'set u = x² – a quadratic equation appears'],
+               ['die Gleichung in u lösen', 'solve the equation in u'],
+               ['zurücksubstituieren: x = ±√u (nur für u ≥ 0)',
+                'substitute back: x = ±√u (only for u ≥ 0)']],
+    seite: 'biquadratische_gleichungen.html'
+  },
+  polynom: {
+    name: ['Polynomgleichung höheren Grades', 'polynomial equation of higher degree'],
+    weg:  ['Nullstelle raten, Polynomdivision', 'guess a root, polynomial division'],
+    schritte: [['Teiler des Absolutglieds als Kandidaten probieren',
+                'try the divisors of the constant term as candidates'],
+               ['durch den gefundenen Linearfaktor dividieren', 'divide by the linear factor found'],
+               ['die Restgleichung lösen', 'solve the remaining equation']],
+    seite: 'nullstelle_raten.html'
+  }
+};
+
+function haken(id){ var e = document.getElementById(id); return !!(e && e.checked); }
+function setzeHaken(id, v){ var e = document.getElementById(id); if (e) e.checked = !!v; }
+function radioWert(name){ var e = document.querySelector('input[name="' + name + '"]:checked'); return e ? e.value : null; }
+function radioSetzen(name, wert){
+  var e = document.querySelector('input[name="' + name + '"][value="' + wert + '"]');
+  if (e) e.checked = true;
+  return !!e;
+}
+function einstellungen(){
+  var s = {};
+  Object.keys(STD).forEach(function(k){
+    if (typeof STD[k] === 'boolean') s[k] = haken(k);
+    else s[k] = radioWert(k) || STD[k];
   });
-  return enabled;
+  s.diff      = radioWert('diff')      || STD.diff;
+  return s;
+}
+function einstellungenSetzen(s){
+  Object.keys(STD).forEach(function(k){
+    if (typeof STD[k] === 'boolean') setzeHaken(k, s[k]);
+  });
+  radioSetzen('loesForm', s.loesForm);
+  radioSetzen('diff', s.diff);
+  obenAbgleichen();
+  if (window.abGliderAlle) abGliderAlle();
+  kachelnMalen();
+}
+/* Von Hand geänderte Einstellungen werden gemerkt. Die Stufe bleibt stehen –
+   sie sagt weiterhin, wie schwer die Zahlen sein sollen –, überschreibt aber
+   nichts mehr, was man selbst eingestellt hat. */
+var VON_HAND = {};
+function aufIndividuell(){ /* die Stufe bleibt, wie sie ist */ }
+function vonHandMerken(ziel){
+  if (!ziel) return;
+  var k = ziel.id || ziel.name;
+  if (k && k !== 'diff') VON_HAND[k] = true;
+}
+document.addEventListener('change', function(ev){
+  var t = ev.target;
+  if (!t || t.name === 'diff') return;
+  vonHandMerken(t);
+}, true);
+/** Die Häufigkeiten einer Stufe, ohne die Regler, die von Hand stehen.
+    Der Regler zu ‚keine Lösung‘ heißt wfallKeine, das Kästchen fallKeine -
+    beide Namen gelten als ‚von Hand‘. */
+function reglerOhneHand(regler){
+  var raus = {};
+  Object.keys(regler || {}).forEach(function(k){
+    if (VON_HAND[k] || VON_HAND['w' + k]) return;
+    raus[k] = regler[k];
+  });
+  return raus;
+}
+function stufeAnwenden(stufe){
+  var p = STUFEN[stufe];
+  if (!p) return;
+  Object.keys(p).forEach(function(k){
+    if (k === 'regler' || VON_HAND[k]) return;      /* von Hand gewählt bleibt */
+    if (typeof p[k] === 'boolean') setzeHaken(k, p[k]);
+    else radioSetzen(k, p[k]);
+  });
+  /* Die Stufe stellt auch ein, wie oft welcher Fall drankommt - aber nur
+     dort, wo man den Regler nicht selbst angefasst hat. */
+  if (p.regler && window.abReglerSetzen) abReglerSetzen(reglerOhneHand(p.regler));
+  obenAbgleichen();
+  kachelnMalen();
+}
+function obenAbgleichen(){
+  if (window.abKachelnMalen) abKachelnMalen(document.getElementById('segForm'));
+  if (window.abGliderAlle) abGliderAlle();
+  if (window.abReglerAbgleichen) abReglerAbgleichen();
 }
 
-function pickRandomEquation() {
-    // 1️⃣ Enabled Typen aus Settings holen
-    const enabledTypes = Array.from(document.querySelectorAll('#settingsForm input[type="checkbox"]:checked'))
-                              .map(cb => cb.id);
-
-    if(enabledTypes.length === 0) {
-        document.getElementById('formula').innerHTML = '$$\\text{Keine Gleichung möglich — wähle mindestens einen Typ}$$';
-        document.getElementById('solutionsArea').innerHTML = '';
-        MathJax.typeset();
-        return;
-    }
-
-    // 2️⃣ Zufälligen Typ auswählen
-    const type = randomChoice(enabledTypes);
-
-    // 3️⃣ Entsprechenden Generator aufrufen
-    generators[type]();
-    
-    // document.title = `${currentEqType}`;
-
-    // 4️⃣ Gleichung anzeigen
-    document.getElementById('formula').innerHTML = `$$${currentFormula}$$`;
-
-    // 5️⃣ Buttons zurücksetzen
-    document.querySelectorAll('.answer-btn').forEach(b => {
-        b.classList.remove('correct','wrong');
-        b.disabled = false;
-    });
-
-    // 6️⃣ Lösungen ausblenden
-    document.getElementById('solutionsArea').innerHTML = '';
-    document.getElementById('solutionsArea').classList.add('hidden');
-
-    MathJax.typeset();
-    
-    scaleToFit(document.getElementById('formula'));
+/** Adresszeile aus den Einstellungen; mit Aufgabe auch die konkreten Zahlen. */
+function urlSchreiben(mitAufgabe){
+  var s = einstellungen(), p = new URLSearchParams();
+  Object.keys(KURZ).forEach(function(k){
+    if (String(s[k]) === String(STD[k])) return;
+    p.set(KURZ[k], (typeof s[k] === 'boolean') ? (s[k] ? '1' : '0') : s[k]);
+  });
+  if (mitAufgabe && A){
+    p.set('t', A.art + '_' + A.p.join('.'));
+    /* Was rechts steht, gehoert mit in den Link - sonst stellt die Gegenseite
+       dieselbe Gleichung in einer anderen Form. */
+    if (A.rechts && !(A.rechts.length === 1 && Math.abs(A.rechts[0]) < 1e-9))
+      p.set('r', A.rechts.join('.'));
+  }
+  var qs = p.toString();
+  var url = location.origin + location.pathname + (qs ? '?' + qs : '');
+  /* Ein fester Seed gehoert mit in den Link - sonst wuerfelt die
+     Gegenseite andere Aufgaben. */
+  return window.abSeedAnhaengen ? abSeedAnhaengen(url) : url;
+}
+function urlLesen(){
+  var p = new URLSearchParams(location.search), s = {};
+  Object.keys(STD).forEach(function(k){ s[k] = STD[k]; });
+  Object.keys(KURZ).forEach(function(k){
+    var v = p.get(KURZ[k]);
+    if (v === null) v = p.get(k);
+    if (v === null) return;
+    s[k] = (typeof STD[k] === 'boolean') ? (v === '1' || v === 'true') : v;
+  });
+  return s;
+}
+function linkKopieren(text, knopf){
+  if (window.abKopiere){ abKopiere(text, knopf, T('✓ Link kopiert', '✓ Link copied')); return; }
+  try { if (navigator.clipboard) navigator.clipboard.writeText(text); } catch (e) {}
 }
 
-document.querySelectorAll('.answer-btn').forEach(b=>{
-  b.addEventListener('click',()=>{
-    document.querySelectorAll('.answer-btn').forEach(bb=>bb.disabled=true);
-    if(b.dataset.type===currentType) b.classList.add('correct');
-    else{
-      b.classList.add('wrong');
-      const correct = document.querySelector(`.answer-btn[data-type="${currentType}"]`);
-      if(correct) correct.classList.add('correct');
-    }
-  });
-});
-// Alle Antwort-Buttons auswählen
-const buttons = Array.from(document.querySelectorAll('.answer-btn'));
-
-// --- Event-Listener mit neuen Prüffunktionen ---
-buttons.forEach(b => {
-    b.addEventListener('click', () => {
-        if(!currentEqType) return;
-
-        const btnType = b.getAttribute('data-type');
-
-        // Buttons sperren
-        buttons.forEach(bb => bb.disabled = true);
-
-        let correct = false;
-        switch(btnType) {
-            case 'linear': correct = is_solvable_by_linear(); break;
-            case 'potenz': correct = is_solvable_by_potenz(); break;
-            case 'quadratisch': correct = is_solvable_by_quadratisch(); break;
-            case 'biquadratisch': correct = is_solvable_by_biquadratisch(); break;
-            case 'ausklammern': correct = is_solvable_by_ausklammern(); break;
-            case 'nullprodukt': correct = is_solvable_by_nullprodukt(); break;
-            case 'polynom': correct = is_solvable_by_polynom(); break;
-        }
-
-        if(correct) {
-            b.classList.add('correct');
-        } else {
-            b.classList.add('wrong');
-            const correctBtn = buttons.find(bb => {
-                switch(bb.getAttribute('data-type')) {
-                    case 'linear': return is_solvable_by_linear();
-                    case 'potenz': return is_solvable_by_potenz();
-                    case 'quadratisch': return is_solvable_by_quadratisch();
-                    case 'biquadratisch': return is_solvable_by_biquadratisch();
-                    case 'ausklammern': return is_solvable_by_ausklammern();
-                    case 'nullprodukt': return is_solvable_by_nullprodukt();
-                    case 'polynom': return is_solvable_by_polynom();
-                }
-            });
-            if(correctBtn) correctBtn.classList.add('correct');
-        }
+/* ── 2. Polynom-Werkzeuge ──────────────────────────────────────────────────
+   Ein Polynom ist ein Feld [aₙ, …, a₁, a₀] - höchste Potenz zuerst.        */
+function polyMal(a, b){
+  var out = [];
+  for (var i = 0; i < a.length + b.length - 1; i++) out.push(0);
+  for (var i2 = 0; i2 < a.length; i2++)
+    for (var j = 0; j < b.length; j++) out[i2 + j] += a[i2] * b[j];
+  return out;
+}
+function polyWert(k, x){ var w = 0; for (var i = 0; i < k.length; i++) w = w * x + k[i]; return w; }
+function polyKurz(k){
+  var i = 0;
+  while (i < k.length - 1 && Math.abs(k[i]) < 1e-9) i++;
+  return k.slice(i);
+}
+function divLinear(k, p, q){
+  var b = [];
+  for (var i = 0; i < k.length - 1; i++) b.push((k[i] + (i ? p * b[i - 1] : 0)) / q);
+  return b;
+}
+function teilerListe(n){
+  n = Math.abs(Math.round(n));
+  var l = [];
+  if (!n) return [1];
+  for (var i = 1; i <= n; i++) if (n % i === 0) l.push(i);
+  return l;
+}
+function kandidaten(k){
+  var a0 = k[k.length - 1], an = k[0], out = [];
+  if (Math.abs(a0) < 1e-9) return [0];
+  teilerListe(a0).forEach(function(P){
+    teilerListe(an).forEach(function(Q){
+      [1, -1].forEach(function(vz){
+        var v = vz * P / Q;
+        if (!out.some(function(w){ return Math.abs(w - v) < 1e-9; })) out.push(v);
+      });
     });
+  });
+  out.sort(function(a, b){ return Math.abs(a) - Math.abs(b) || b - a; });
+  return out;
+}
+/** Eine Lösung der quadratischen Gleichung a x² + b x + c = 0 als TeX. */
+function quadTeX(a, b, c, vz){
+  var D = b * b - 4 * a * c, w = Math.sqrt(D), x = (-b + vz * w) / (2 * a);
+  if (pgGanz(x)) return pgZahl(x);
+  var br = pgBruch(x);
+  if (pgGanz(w) && br && br.d <= 100) return pgZahl(x);
+  var zaehler = (Math.abs(b) < 1e-9 ? '' : pgZahl(-b)) + (vz < 0 ? '-' : (Math.abs(b) < 1e-9 ? '' : '+')) + pgWurzel(D);
+  if (Math.abs(2 * a - 1) < 1e-9) return zaehler;
+  return '\\frac{' + zaehler + '}{' + pgZahl(2 * a) + '}';
+}
+/** Löst ein Polynom so weit, wie es die Schulmethoden hergeben. */
+function loesePoly(k){
+  k = polyKurz(k);
+  var grad = k.length - 1;
+  if (grad < 1) return [];
+  if (grad === 1) return [{ x: -k[1] / k[0], tex: pgZahl(-k[1] / k[0]) }];
+  if (grad === 2) return quadLoes(k[0], k[1], k[2]);
+  /* nur gerade Potenzen und Grad 4: Substitution u = x² */
+  if (grad === 4 && Math.abs(k[1]) < 1e-9 && Math.abs(k[3]) < 1e-9){
+    var us = quadLoes(k[0], k[2], k[4]), out = [];
+    us.forEach(function(u){
+      if (u.x > 1e-9){
+        out.push({ x: -Math.sqrt(u.x), tex: '-' + wurzelTeX(u) });
+        out.push({ x: Math.sqrt(u.x), tex: wurzelTeX(u) });
+      } else if (Math.abs(u.x) <= 1e-9) out.push({ x: 0, tex: '0' });
+    });
+    return sortiere(out);
+  }
+  /* sonst: rationale Nullstellen abspalten */
+  var rest = k.slice(), gefunden = [], schutz = 0;
+  while (rest.length > 3 && schutz++ < 6){
+    var kand = kandidaten(rest), r = null;
+    for (var i = 0; i < kand.length; i++)
+      if (Math.abs(polyWert(rest, kand[i])) < 1e-7){ r = kand[i]; break; }
+    if (r === null) break;
+    var br = pgBruch(r) || { n: Math.round(r), d: 1 };
+    gefunden.push({ x: r, tex: pgZahl(r) });
+    rest = divLinear(rest, br.n, br.d);
+  }
+  if (rest.length === 3) gefunden = gefunden.concat(quadLoes(rest[0], rest[1], rest[2]));
+  else if (rest.length === 2) gefunden.push({ x: -rest[1] / rest[0], tex: pgZahl(-rest[1] / rest[0]) });
+  else if (rest.length > 3) return null;                 /* mit Schulmitteln nicht lösbar */
+  return sortiere(gefunden);
+}
+function quadLoes(a, b, c){
+  var D = b * b - 4 * a * c;
+  if (D < -1e-9) return [];
+  if (Math.abs(D) <= 1e-9) return [{ x: -b / (2 * a), tex: pgZahl(-b / (2 * a)) }];
+  return sortiere([{ x: (-b - Math.sqrt(D)) / (2 * a), tex: quadTeX(a, b, c, -1) },
+                   { x: (-b + Math.sqrt(D)) / (2 * a), tex: quadTeX(a, b, c, 1) }]);
+}
+function wurzelTeX(u){
+  return pgGanz(Math.sqrt(u.x)) ? pgZahl(Math.sqrt(u.x)) : ('\\sqrt{' + u.tex + '}');
+}
+function sortiere(l){
+  l = l.filter(function(e, i){ return l.findIndex(function(f){ return Math.abs(f.x - e.x) < 1e-7; }) === i; });
+  l.sort(function(e, f){ return e.x - f.x; });
+  return l;
+}
+
+/* ── 3. Aufgabe würfeln ─────────────────────────────────────────────────── */
+var A = null;
+var richtig = 0, gesamt = 0;
+
+function zufall(n){ return Math.floor(Math.random() * n); }
+function waehle(liste){ return liste[zufall(liste.length)]; }
+function zufallOhne0(g){ var v = 0; while (!v) v = zufall(2 * g + 1) - g; return v; }
+function aktiveArten(s){
+  var l = ARTEN.filter(function(a){ return s[ART_ID[a]]; });
+  return l.length ? l : ['linear'];
+}
+/** Welche Art kommt dran? Nach den Häufigkeiten aus den Einstellungen. */
+function zieheArt(s){
+  var id = (window.abZiehe ? abZiehe(ARTEN.map(function(a){ return ART_ID[a]; })) : null);
+  if (id){
+    for (var i = 0; i < ARTEN.length; i++) if (ART_ID[ARTEN[i]] === id) return ARTEN[i];
+  }
+  return waehle(aktiveArten(s));
+}
+/** Wie groß dürfen Lösungen und Vorfaktoren sein? Ab „Herausfordernd" kommen
+    auch Vorfaktoren dazu - sonst bleiben die Zahlen klein und lesbar. */
+function grenzen(s){
+  if (s.diff === 'einf' || s.diff === 'leicht') return { wurzel: 5, vor: 1 };
+  if (s.diff === 'schwer') return { wurzel: 9, vor: 4 };
+  return { wurzel: 9, vor: 2 };
+}
+/** Die Verschiebung steckt jetzt in der rechten Seite - siehe rechteSeite(). */
+function verschiebung(s){ return 0; }
+
+/* ── Was steht rechts vom Gleichheitszeichen? ────────────────────────────
+   Die eigentliche Gleichung steht immer in a.koeff (schon umgestellt). Was
+   rechts erscheint, wird einfach auf beiden Seiten addiert - die Art ändert
+   sich dadurch nicht, wohl aber das, was man auf den ersten Blick sieht. */
+var RECHTS = ['rNull', 'rZahl', 'rX', 'rPoly', 'rHoch'];
+function polyPlus(a, b){
+  var n = Math.max(a.length, b.length), out = [];
+  for (var i = 0; i < n; i++){
+    var av = a[a.length - 1 - i] || 0, bv = b[b.length - 1 - i] || 0;
+    out.unshift(av + bv);
+  }
+  return out;
+}
+/** Zieht eine rechte Seite passend zur Gleichung. Rueckgabe: Koeffizienten
+    des Polynoms, das rechts steht (oben beginnend). */
+function rechteSeite(koeff){
+  var art = (window.abZiehe ? abZiehe(RECHTS) : null) || 'rNull';
+  var grad = polyKurz(koeff).length - 1;
+  if (art === 'rNull') return [0];
+  if (art === 'rZahl') return [zufallOhne0(9)];
+  if (art === 'rX')    return [zufallOhne0(5), 0];
+  if (art === 'rPoly') return [zufallOhne0(5), zufallOhne0(9)];
+  /* rHoch: ein Term, dessen Grad zwischen 2 und grad-1 liegt. Genau das sind
+     die Fallen: x^4 + x^2 - 2 = x^2 ist nach dem Umstellen keine
+     biquadratische, sondern eine Potenzgleichung. */
+  if (grad < 3) return [zufallOhne0(5), zufallOhne0(9)];
+  var e = 2 + zufall(grad - 2);                     /* 2 .. grad-1 */
+  var r = [zufallOhne0(4)];
+  for (var i = 0; i < e; i++) r.push(0);
+  if (Math.random() < 0.5) r[r.length - 1] = zufallOhne0(9);
+  return r;
+}
+/** Die gezogene rechte Seite auf eine fertige Aufgabe anwenden. */
+function rechtsAnwenden(a, R){
+  if (!a || !R) return a;
+  if (a.art === 'nullprodukt' || a.art === 'eigen') return a;   /* bleibt, wie es ist */
+  if (R.length === 1 && Math.abs(R[0]) < 1e-9){
+    /* „schon gleich 0" heißt wirklich gleich 0 - auch bei linearen
+       Gleichungen, die ihre rechte Seite sonst selbst mitbringen. */
+    a.rechts = [0];
+    a.links = polyKurz(a.koeff);
+    a.anzeige = pgPoly(a.links) + ' = 0';
+    if (window.pgPolyText) a.glText = pgPolyText(a.links) + '=0';
+    return a;
+  }
+  a.rechts = R.slice();
+  a.links = polyPlus(a.koeff, R);
+  a.anzeige = pgPoly(a.links) + ' = ' + pgPoly(R);
+  if (window.pgPolyText) a.glText = pgPolyText(a.links) + '=' + pgPolyText(R);
+  return a;
+}
+
+/** Würfelt die Kennzahlen einer Gleichung der gewünschten Art. */
+function wuerfelP(art, s){
+  var g = grenzen(s), v = verschiebung(s);
+  var vor = function(){ return (g.vor > 1 && Math.random() < 0.6) ? (1 + zufall(g.vor)) : 1; };
+  if (art === 'linear'){
+    var a = vor() * (Math.random() < 0.3 ? -1 : 1);
+    var c = (Math.random() < 0.5) ? zufallOhne0(g.vor + 2) : 0;
+    while (Math.abs(a - c) < 1e-9) c = zufallOhne0(g.vor + 2);
+    var x0 = zufallOhne0(g.wurzel), b = zufallOhne0(9);
+    return [a, b, c, (a - c) * x0 + b];
+  }
+  if (art === 'quadratisch'){
+    var a2 = vor(), r1 = zufallOhne0(g.wurzel), r2 = zufallOhne0(g.wurzel);
+    return [a2, -a2 * (r1 + r2), a2 * r1 * r2, v];
+  }
+  if (art === 'potenz'){
+    /* Die Zahl rechts wächst mit der Potenz - deshalb bleibt die Lösung klein. */
+    var n = waehle([2, 3, 3, 4]), a3 = vor();
+    var maxW = (n >= 4) ? 3 : (n === 3 ? 4 : 9);
+    var w = 1 + zufall(Math.min(g.wurzel, maxW));
+    return [a3, n, -a3 * Math.pow(w, n), v];
+  }
+  if (art === 'nullprodukt'){
+    var anz = waehle([2, 2, 3]), wurzeln = [];
+    for (var i = 0; i < anz; i++) wurzeln.push(zufall(2 * g.wurzel + 1) - g.wurzel);
+    return [anz].concat(wurzeln);
+  }
+  if (art === 'ausklammern'){
+    var k2 = waehle([1, 1, 2]);                        /* ausgeklammerte Potenz */
+    var a4 = vor(), s1 = zufallOhne0(g.wurzel), s2 = zufallOhne0(g.wurzel);
+    return [k2, a4, -a4 * (s1 + s2), a4 * s1 * s2, v];
+  }
+  if (art === 'biquadratisch'){
+    var u1 = waehle([1, 4, 9, 2, 3, 5]), u2 = waehle([1, 4, 9, 16, 2, 6]);
+    var a5 = vor();
+    /* das Absolutglied ist a·u₁·u₂ - ohne Bremse wird es dreistellig */
+    while (a5 * u1 * u2 > 150){
+      if (a5 > 1) a5 = 1;
+      else if (u2 > 4) u2 = waehle([1, 2, 4]);
+      else u1 = waehle([1, 2, 3]);
+    }
+    return [a5, -a5 * (u1 + u2), a5 * u1 * u2, v];
+  }
+  /* polynom: (x − r)·(x² + bx + c) mit Absolutglied ≠ 0 */
+  for (var t = 0; t < 200; t++){
+    var r = zufallOhne0(Math.min(g.wurzel, 6));
+    var b2 = zufallOhne0(7), c2 = zufallOhne0(9);
+    var kk = polyMal([1, -r], [1, b2, c2]);
+    if (Math.abs(kk[3]) < 1e-9) continue;
+    if (Math.abs(kk[2]) < 1e-9 && Math.abs(kk[1]) < 1e-9) continue;   /* reine Potenz */
+    if (Math.abs(kk[2]) < 1e-9 && Math.abs(kk[1]) > 1e-9) { /* ok */ }
+    if (kk.some(function(z){ return Math.abs(z) > 90; })) continue;
+    return [r, b2, c2, v];
+  }
+  return [1, 2, -3, 0];
+}
+
+/** Baut aus Art und Kennzahlen die ganze Aufgabe. */
+function bauen(art, p){
+  var links, rechts = [0], koeff, anzeige, v = 0;
+  if (art === 'eigen'){
+    /* selbst eingetippt: p sind die Koeffizienten der schon umgestellten Form */
+    koeff = p.slice();
+    return { art: 'eigen', p: p.slice(), koeff: koeff,
+             anzeige: pgPoly(koeff) + ' = 0',
+             glText: (window.pgPolyText ? (pgPolyText(koeff) + '=0') : ''),
+             loes: loesePoly(koeff) };
+  }
+  if (art === 'linear'){
+    links = [p[0], p[1]]; rechts = [p[2], p[3]];
+    koeff = [p[0] - p[2], p[1] - p[3]];
+  } else if (art === 'quadratisch'){
+    koeff = [p[0], p[1], p[2]]; v = p[3] || 0;
+    links = [p[0], p[1], p[2] + v]; rechts = [v];
+  } else if (art === 'potenz'){
+    var n = p[1];
+    koeff = [p[0]];
+    for (var i = 1; i < n; i++) koeff.push(0);
+    koeff.push(p[2]);
+    v = p[3] || 0;
+    links = koeff.slice(); links[links.length - 1] += v; rechts = [v];
+  } else if (art === 'nullprodukt'){
+    var anz = p[0], wurzeln = p.slice(1, 1 + anz);
+    koeff = [1];
+    wurzeln.forEach(function(r){ koeff = polyMal(koeff, [1, -r]); });
+    anzeige = wurzeln.map(function(r){
+      /* Die Nullstelle 0 gibt den Faktor x - „(x+0)" wäre nur Ballast. */
+      if (Math.abs(r) < 1e-9) return 'x';
+      return '\\left(x' + (r > 0 ? '-' : '+') + pgZahl(Math.abs(r)) + '\\right)';
+    }).join('') + ' = 0';
+    return { art: art, p: p.slice(), koeff: koeff, anzeige: anzeige,
+             wurzeln: wurzeln.slice(),
+             glText: wurzeln.map(function(r){
+               if (Math.abs(r) < 1e-9) return 'x';
+               return '(x' + (r > 0 ? '-' : '+') + Math.abs(r) + ')';
+             }).join('') + '=0',
+             loes: sortiere(wurzeln.map(function(r){ return { x: r, tex: pgZahl(r) }; })) };
+  } else if (art === 'ausklammern'){
+    var k2 = p[0];
+    koeff = polyMal([p[1], p[2], p[3]], (k2 === 2) ? [1, 0, 0] : [1, 0]);
+    v = p[4] || 0;
+    links = koeff.slice(); links[links.length - 1] += v; rechts = [v];
+  } else if (art === 'biquadratisch'){
+    koeff = [p[0], 0, p[1], 0, p[2]]; v = p[3] || 0;
+    links = koeff.slice(); links[links.length - 1] += v; rechts = [v];
+  } else {
+    koeff = polyMal([1, -p[0]], [1, p[1], p[2]]); v = p[3] || 0;
+    links = koeff.slice(); links[links.length - 1] += v; rechts = [v];
+  }
+  anzeige = pgPoly(links) + ' = ' + pgPoly(rechts);
+  return { art: art, p: p.slice(), koeff: koeff, anzeige: anzeige,
+           links: links.slice(), rechts: rechts.slice(),
+           glText: (window.pgPolyText ? (pgPolyText(links) + '=' + pgPolyText(rechts)) : ''),
+           loes: loesePoly(koeff) };
+}
+
+function neueAufgabe(){
+  var s = einstellungen();
+  try { history.replaceState({}, '', urlSchreiben(false)); } catch (e) {}
+  var art = zieheArt(s);
+  A = bauen(art, wuerfelP(art, s));
+  rechtsAnwenden(A, rechteSeite(A.koeff));
+  A.wege = wege(A);
+  A.gewaehlt = null;
+  zeichne();
+}
+
+/* ── 4. Welche Wege führen zum Ziel? ────────────────────────────────────────
+   Mehrere Antworten dürfen richtig sein: x² − 4 = 0 lässt sich mit der
+   p-q-Formel UND durch Wurzelziehen lösen.                                 */
+function wege(a){
+  if (a.art === 'nullprodukt') return ['nullprodukt'];
+  var k = polyKurz(a.koeff), grad = k.length - 1, out = [];
+  var a0 = k[k.length - 1];
+  var besetzt = [];
+  for (var e = 0; e <= grad; e++) if (Math.abs(k[grad - e]) > 1e-9) besetzt.push(e);
+  if (grad === 1) out.push('linear');
+  if (grad === 2) out.push('quadratisch');
+  var hoch = besetzt.filter(function(e){ return e > 0; });
+  if (hoch.length === 1 && hoch[0] >= 2 && besetzt.length <= 2) out.push('potenz');
+  if (grad === 4 && besetzt.every(function(e){ return e % 2 === 0; }) && besetzt.length >= 2)
+    out.push('biquadratisch');
+  if (Math.abs(a0) < 1e-9 && grad >= 2) out.push('ausklammern');
+  if (grad >= 3 && Math.abs(a0) > 1e-9 &&
+      out.indexOf('biquadratisch') < 0 && out.indexOf('potenz') < 0) out.push('polynom');
+  return out.length ? out : ['linear'];
+}
+/** Der Kurzweg mit den Zahlen DIESER Gleichung - nicht nur allgemein.
+    Jeder Eintrag ist fertiger HTML-Text (Formeln in \( … \)). */
+function kurzSchritte(a, weg){
+  var k = polyKurz(a.koeff), grad = k.length - 1;
+  var F = function(t){ return '\\(' + t + '\\)'; };
+  var nullForm = (a.anzeige.indexOf('= 0') >= 0);
+  var out = [];
+  if (!nullForm && weg !== 'linear')
+    out.push(T('alles auf eine Seite bringen: ', 'move everything to one side: ') + F(pgPoly(k) + ' = 0'));
+  if (weg === 'linear'){
+    var al = (a.links || k)[0], bl = (a.links || k)[1] || 0;
+    var ar = (a.rechts || [0])[0] || 0, br = (a.rechts || [0, 0])[1];
+    if (br === undefined){ br = ar; ar = 0; }
+    var m = al - ar, n = br - bl;
+    out.push(T('alle x auf eine Seite, alle Zahlen auf die andere: ',
+               'all x terms on one side, all numbers on the other: ') + F(pgPoly([m, -n]) + ' = 0'));
+    out.push((Math.abs(Math.abs(m) - 1) < 1e-9)
+      ? T('damit steht die Lösung schon da: ', 'that already gives the solution: ') + F('x = ' + pgZahl(n / m))
+      : T('durch den Faktor vor dem x teilen: ', 'divide by the factor in front of x: ')
+        + F('x = \\frac{' + pgZahl(n) + '}{' + pgZahl(m) + '} = ' + pgZahl(n / m)));
+    return out;
+  }
+  if (weg === 'quadratisch'){
+    var a2 = k[0], b2 = k[1], c2 = k[2];
+    if (Math.abs(a2 - 1) > 1e-9)
+      out.push(T('durch ', 'divide by ') + F(pgZahl(a2)) + T(' teilen: ', ': ')
+             + F(pgPoly([1, b2 / a2, c2 / a2]) + ' = 0'));
+    out.push(T('p und q ablesen: ', 'read off p and q: ')
+           + F('p = ' + pgZahl(b2 / a2) + ',\\quad q = ' + pgZahl(c2 / a2)));
+    var pq = b2 / a2, qq = c2 / a2, mq = -pq / 2, Dq = mq * mq - qq;
+    out.push(T('in die p-q-Formel einsetzen: ', 'substitute into the pq formula: ')
+           + F('x_{1,2} = -\\frac{p}{2} \\pm \\sqrt{\\left(\\frac{p}{2}\\right)^{2}-q}'
+               + ' = ' + pgZahl(mq) + ' \\pm \\sqrt{' + pgZahl(Dq) + '}'));
+    out.push(Dq < -1e-9
+      ? T('Unter der Wurzel steht eine negative Zahl – es gibt keine Lösung.',
+          'Under the root there is a negative number – there is no solution.')
+      : T('ausrechnen: ', 'work it out: ') + F(loesungsMengeTeX()));
+    return out;
+  }
+  if (weg === 'potenz'){
+    var n2 = grad, an2 = k[0], d2 = k[k.length - 1];
+    out.push(T('die Zahl auf die andere Seite: ', 'move the number to the other side: ')
+           + F((Math.abs(an2 - 1) < 1e-9 ? '' : (Math.abs(an2 + 1) < 1e-9 ? '-' : pgZahl(an2)))
+               + 'x^{' + n2 + '} = ' + pgZahl(-d2)));
+    if (Math.abs(an2 - 1) > 1e-9)
+      out.push(T('durch den Vorfaktor teilen: ', 'divide by the leading factor: ')
+             + F('x^{' + n2 + '} = ' + pgZahl(-d2 / an2)));
+    out.push((n2 % 2 === 0)
+      ? T('die Wurzel ziehen – bei geradem Exponenten mit ±: ',
+          'take the root – with an even exponent you get ±: ') + F('x = \\pm\\sqrt[' + n2 + ']{' + pgZahl(-d2 / an2) + '}')
+      : T('die Wurzel ziehen: ', 'take the root: ') + F('x = \\sqrt[' + n2 + ']{' + pgZahl(-d2 / an2) + '}'));
+    out.push((A.loes && A.loes.length)
+      ? T('ausrechnen: ', 'work it out: ') + F(loesungsMengeTeX())
+      : T('Unter der Wurzel steht eine negative Zahl – es gibt keine Lösung.',
+          'Under the root there is a negative number – there is no solution.'));
+    return out;
+  }
+  if (weg === 'nullprodukt'){
+    out.push(T('Ein Produkt ist 0, wenn ein Faktor 0 ist – also jeden Faktor einzeln gleich 0 setzen.',
+               'A product is 0 if one factor is 0 – so set each factor equal to 0 on its own.'));
+    (a.wurzeln || []).forEach(function(r){
+      out.push(F('x' + (r > 0 ? '-' : '+') + pgZahl(Math.abs(r)) + ' = 0')
+             + ' → ' + F('x = ' + pgZahl(r)));
+    });
+    return out;
+  }
+  if (weg === 'ausklammern'){
+    var tief = 0;
+    while (tief < grad && Math.abs(k[grad - tief]) < 1e-9) tief++;
+    var rest = k.slice(0, k.length - tief);
+    out.push(T('x ausklammern: ', 'factor out x: ')
+           + F((tief === 1 ? 'x' : 'x^{' + tief + '}') + '\\left(' + pgPoly(rest) + '\\right) = 0'));
+    out.push(T('Satz vom Nullprodukt: ', 'zero product property: ')
+           + F('x = 0') + T(' oder ', ' or ') + F(pgPoly(rest) + ' = 0'));
+    var rl = loesePoly(rest);
+    out.push(rl.length
+      ? T('den Restterm lösen: ', 'solve the remaining term: ')
+        + F(rl.map(function(l, i){ return 'x_{' + (i + 2) + '} = ' + l.tex; }).join('\\quad '))
+      : T('der Restterm hat keine Lösung – es bleibt nur ', 'the remaining term has no solution – only ')
+        + F('x = 0') + T(' übrig.', ' is left.'));
+    return out;
+  }
+  if (weg === 'biquadratisch'){
+    var A4 = k[0], B4 = k[2], C4 = k[4];
+    out.push(T('substituieren: ', 'substitute: ') + F('z = x^{2}')
+           + ' → ' + F(pgPoly([A4, B4, C4], { v: 'z' }) + ' = 0'));
+    var zl = loesePoly([A4, B4, C4]);
+    out.push(zl.length
+      ? T('die quadratische Gleichung in z lösen: ', 'solve the quadratic equation in z: ')
+        + F(zl.map(function(l, i){ return 'z_{' + (i + 1) + '} = ' + l.tex; }).join('\\quad '))
+      : T('die quadratische Gleichung in z hat keine Lösung.', 'the quadratic equation in z has no solution.'));
+    out.push(T('rücksubstituieren: ', 'substitute back: ') + F('x = \\pm\\sqrt{z}')
+           + T(' – negative z liefern keine Lösung: ', ' – negative z give no solution: ')
+           + F(loesungsMengeTeX()));
+    return out;
+  }
+  /* polynom */
+  var a0 = k[k.length - 1];
+  out.push(T('Teiler des Absolutglieds ', 'divisors of the constant term ') + F(pgZahl(a0))
+         + T(' durchprobieren, bis 0 herauskommt.', ' until you get 0.'));
+  var r0 = null;
+  (a.loes || []).forEach(function(l){ if (r0 === null && pgGanz(l.x)) r0 = l.x; });
+  if (r0 !== null)
+    out.push(T('hier klappt ', 'here ') + F('x = ' + pgZahl(r0)) + T(' – also durch ', ' works – so divide by ')
+           + F('\\left(x' + (r0 > 0 ? '-' : '+') + pgZahl(Math.abs(r0)) + '\\right)') + T(' dividieren.', '.'));
+  else
+    out.push(T('durch den gefundenen Linearfaktor dividieren.', 'divide by the linear factor you found.'));
+  if (r0 !== null){
+    var rest2 = polyTeilen(k, r0);
+    if (rest2){
+      out.push(T('Die Division ergibt: ', 'The division gives: ') + F(pgPoly(rest2) + ' = 0'));
+      var l2 = loesePoly(rest2);
+      out.push(l2.length
+        ? T('die Restgleichung lösen: ', 'solve the remaining equation: ')
+          + F(l2.map(function(l, i){ return 'x_{' + (i + 2) + '} = ' + l.tex; }).join('\\quad '))
+        : T('die Restgleichung hat keine weitere Lösung.', 'the remaining equation has no further solution.'));
+      return out;
+    }
+  }
+  out.push(T('die Restgleichung lösen (meist quadratisch).', 'solve the remaining equation (usually quadratic).'));
+  return out;
+}
+/** Ein Polynom durch (x - r) teilen - Horner, ohne Rest. */
+function polyTeilen(k, r){
+  if (!k || k.length < 2) return null;
+  var b = [k[0]];
+  for (var i = 1; i < k.length - 1; i++) b.push(k[i] + r * b[i - 1]);
+  var rest = k[k.length - 1] + r * b[b.length - 1];
+  if (Math.abs(rest) > 1e-7) return null;
+  return b.map(function(z){ return Math.round(z * 1e6) / 1e6; });
+}
+
+/* Wenn mehrere Wege gehen, ist das der kürzeste: x² − 4 = 0 löst man schneller
+   durch Wurzelziehen als mit der p-q-Formel. */
+var VORZUG = ['nullprodukt', 'ausklammern', 'potenz', 'biquadratisch', 'quadratisch', 'linear', 'polynom'];
+/** Der Verweis auf die Übungsseite - mit der konkreten Gleichung im Gepäck. */
+function uebungsLink(weg){
+  var seite = INFO[weg].seite;
+  if (!seite) return '#';
+  if (INFO[weg].glParam === false) return seite;
+  var g = A && A.glText ? A.glText : '';
+  return seite + (g ? ('?gl=' + encodeURIComponent(g)) : '');
+}
+
+/* ── Ablaufplan: welcher Zweig gehört zu dieser Gleichung? ───────────────
+   Dieselben Fragen, die man sich beim Hinschauen stellt - von oben nach
+   unten. Der aktive Zweig wird hervorgehoben.                            */
+var PLAN = [
+  { frage: ['Steht ein Produkt gleich 0?', 'Is a product equal to 0?'], id: 'produkt',
+    aeste: [{ id: 'jaProdukt', wenn: ['ja', 'yes'], weg: 'nullprodukt' },
+            { id: 'neinProdukt', wenn: ['nein', 'no'], weiter: true }] },
+  { frage: ['Welchen Grad hat die Gleichung?', 'What is the degree of the equation?'], id: 'grad',
+    aeste: [{ id: 'g1', wenn: ['1', '1'], weg: 'linear' },
+            { id: 'g2', wenn: ['2', '2'], weg: 'quadratisch' },
+            { id: 'g3', wenn: ['3 oder mehr', '3 or more'], weiter: true }] },
+  { frage: ['Gibt es ein Absolutglied?', 'Is there a constant term?'], id: 'abs',
+    aeste: [{ id: 'ohneAbs', wenn: ['nein', 'no'], weg: 'ausklammern' },
+            { id: 'mitAbs', wenn: ['ja', 'yes'], weiter: true }] },
+  { frage: ['Welche Potenzen kommen vor?', 'Which powers occur?'], id: 'potenzen',
+    aeste: [{ id: 'einePotenz', wenn: ['nur eine', 'only one'], weg: 'potenz' },
+            { id: 'nurGerade', wenn: ['nur gerade', 'only even'], weg: 'biquadratisch' },
+            { id: 'gemischt', wenn: ['gemischte', 'mixed'], weg: 'polynom' }] }
+];
+/** Die Knoten, die für diese Gleichung gelten. */
+function planPfad(a){
+  var pfad = ['produkt'];
+  if (a.art === 'nullprodukt') return pfad.concat(['jaProdukt']);
+  pfad.push('neinProdukt', 'grad');
+  var k = polyKurz(a.koeff), grad = k.length - 1;
+  if (grad <= 1) return pfad.concat(['g1']);
+  if (grad === 2) return pfad.concat(['g2']);
+  pfad.push('g3', 'abs');
+  var a0 = k[k.length - 1];
+  if (Math.abs(a0) < 1e-9) return pfad.concat(['ohneAbs']);
+  pfad.push('mitAbs', 'potenzen');
+  var besetzt = [];
+  for (var e = 0; e <= grad; e++) if (Math.abs(k[grad - e]) > 1e-9) besetzt.push(e);
+  var hoch = besetzt.filter(function(e){ return e > 0; });
+  if (hoch.length === 1) return pfad.concat(['einePotenz']);
+  if (besetzt.every(function(e){ return e % 2 === 0; })) return pfad.concat(['nurGerade']);
+  return pfad.concat(['gemischt']);
+}
+/** Der Ablaufplan als HTML; der Zweig dieser Gleichung ist hervorgehoben. */
+function planHTML(a){
+  var an = a ? planPfad(a) : [];
+  var h = '<div class="plan">';
+  PLAN.forEach(function(st, i){
+    var aktiv = an.indexOf(st.id) >= 0;
+    h += '<div class="plan-stufe' + (aktiv ? ' an' : '') + '">';
+    h += '<div class="plan-frage' + (aktiv ? ' an' : '') + '">' + T(st.frage[0], st.frage[1]) + '</div>';
+    /* Von der Frage gehen Linien zu den Aesten - erst dadurch sieht man den
+       Baum. Der Ast, der hier gilt, ist durchgezogen und gr\u00fcn. */
+    h += '<div class="plan-gabel"><span class="plan-stiel"></span></div>';
+    h += '<div class="plan-aeste">';
+    st.aeste.forEach(function(ast){
+      var aa = an.indexOf(ast.id) >= 0;
+      h += '<div class="plan-zweig' + (aa ? ' an' : '') + '">'
+         + '<span class="plan-arm"></span>'
+         + '<div class="plan-ast' + (aa ? ' an' : '') + '">'
+         +   '<span class="plan-wenn">' + T(ast.wenn[0], ast.wenn[1]) + '</span>'
+         +   (ast.weg
+              ? ('<span class="plan-weg">' + T(INFO[ast.weg].weg[0], INFO[ast.weg].weg[1]) + '</span>')
+              : ('<span class="plan-weiter">' + T('weiterfragen', 'ask on') + ' \u2193</span>'))
+         + '</div></div>';
+    });
+    h += '</div></div>';
+  });
+  h += '</div>';
+  return h;
+}
+
+/** Der Weg, den die Lösung als „den" Weg nennt. */
+function hauptWeg(a){
+  for (var i = 0; i < VORZUG.length; i++) if (a.wege.indexOf(VORZUG[i]) >= 0) return VORZUG[i];
+  return a.wege[0];
+}
+
+/* ── 5. Zeichnen ────────────────────────────────────────────────────────── */
+function zeichne(){
+  if (!A) return;
+  document.getElementById('taskText').innerHTML =
+    T('Welcher Weg führt hier am schnellsten zum Ziel?', 'Which way is quickest here?');
+  document.getElementById('task').innerHTML = '\\[' + A.anzeige + '\\]';
+  antwortZeichnen();
+  loesungZeichnen();
+  quizBauen();
+  var d = document.getElementById('dLoesung'); if (d) d.open = false;
+  mj(document.getElementById('taskBox'));
+}
+/* Formeln setzen. Zwei Dinge sind dabei wichtig:
+   - Ein zweiter Lauf über schon gesetzte Formeln würde die unsichtbare
+     MathML-Fassung als neue Formel ansehen; die Zeile wird dann zu hoch
+     und oben wie unten abgeschnitten. Darum wird nur gesetzt, wo noch
+     echte \( … \) stehen.
+   - Zwei Läufe gleichzeitig kämen sich in die Quere, deshalb laufen sie
+     nacheinander. */
+var mjKette = null;
+function mj(node){
+  if (!node) return;
+  var nachmessen = function(){
+    if (window.scaleToFit) node.querySelectorAll('.scale-el').forEach(function(e){ scaleToFit(e); });
+  };
+  if (!(window.MathJax && MathJax.typesetPromise)){ nachmessen(); return; }
+  mjKette = (mjKette || Promise.resolve()).then(function(){
+    var t = node.textContent || '';
+    if (t.indexOf('\\(') < 0 && t.indexOf('\\[') < 0) return null;
+    return MathJax.typesetPromise([node]);
+  }).then(function(){
+    nachmessen();
+    /* Zu breite Formeln verkleinern, damit nichts über den Rand ragt. */
+    if (window.abFormelnPassen) abFormelnPassen(node);
+  }).catch(function(){});
+}
+
+function antwortZeichnen(){
+  var host = document.getElementById('antwortBereich');
+  host.innerHTML = '';
+  host.className = 'pg-antwort';
+  var frage = document.createElement('div');
+  frage.className = 'pg-frage';
+  frage.innerHTML = T('Wie löst man diese Gleichung?', 'How do you solve this equation?');
+  host.appendChild(frage);
+
+  var reihe = document.createElement('div');
+  reihe.className = 'wege';
+  var fb = document.createElement('div');
+  fb.className = 'pg-fb';
+  ARTEN.forEach(function(art){
+    var b = document.createElement('button');
+    b.type = 'button'; b.className = 'pg-wahl-knopf';
+    b.innerHTML = T(INFO[art].weg[0], INFO[art].weg[1])
+                + '<span class="unter">' + T(INFO[art].name[0], INFO[art].name[1]) + '</span>';
+    b.addEventListener('click', function(){
+      if (A.gewaehlt) return;
+      A.gewaehlt = art;
+      var geht = A.wege.indexOf(art) >= 0;
+      var kurz = hauptWeg(A);
+      /* Drei Fälle: der kürzeste Weg (grün), ein Weg, der auch zum Ziel
+         führt, aber länger ist (gelb), und ein Weg, der gar nicht geht. */
+      b.classList.add(geht ? (art === kurz ? 'ok' : 'warn') : 'err');
+      [].forEach.call(reihe.children, function(x){ x.disabled = true; });
+      [].forEach.call(reihe.children, function(x, i){
+        if (ARTEN[i] === kurz) x.classList.add('ok');
+        else if (A.wege.indexOf(ARTEN[i]) >= 0 && !geht) x.classList.add('warn');
+      });
+      if (!geht){
+        fb.className = 'pg-fb err';
+        fb.innerHTML = T('So kommt man hier nicht weiter. Am schnellsten geht: ',
+                         'That does not get you anywhere here. The quickest way is: ')
+                     + T(INFO[kurz].weg[0], INFO[kurz].weg[1]);
+      } else if (art !== kurz){
+        fb.className = 'pg-fb warn';
+        fb.innerHTML = T('Das führt zum Ziel – aber es geht kürzer: ',
+                         'That does lead to the answer – but there is a shorter way: ')
+                     + T(INFO[kurz].weg[0], INFO[kurz].weg[1]);
+      } else {
+        fb.className = 'pg-fb ok';
+        fb.innerHTML = (A.wege.length > 1)
+          ? T('✓ Richtig – und das ist hier der kürzeste Weg.', '✓ Correct – and that is the shortest way here.')
+          : T('✓ Richtig!', '✓ Correct!');
+      }
+      zaehle(geht);
+    });
+    reihe.appendChild(b);
+  });
+  host.appendChild(reihe);
+  host.appendChild(fb);
+}
+
+function loesungZeichnen(){
+  var box = document.getElementById('loesung');
+  var weg = hauptWeg(A);
+  box.innerHTML = '\\[\\text{' + T(INFO[weg].name[0], INFO[weg].name[1]) + '}\\]';
+
+  var z = [];
+  z.push('<p style="text-align:center;margin:.1em 0 .5em;">'
+       + T('Weg: ', 'Method: ') + '<span class="art-name">'
+       + T(INFO[weg].weg[0], INFO[weg].weg[1]) + '</span>'
+       + (A.wege.length > 1
+          ? '<br><span class="weg-merke">' + T('Es geht auch mit: ', 'It also works with: ')
+            + A.wege.filter(function(w){ return w !== weg; })
+                    .map(function(w){ return T(INFO[w].weg[0], INFO[w].weg[1]); }).join(', ')
+            + '</span>'
+          : '') + '</p>');
+
+  z.push(planHTML(A));
+  if (haken('zeigeSchritte')){
+    z.push('<ul class="kurzweg">' + kurzSchritte(A, weg).map(function(p){
+      return '<li>' + p + '</li>';
+    }).join('') + '</ul>');
+  }
+  if (haken('zeigeMenge')){
+    z.push('<div style="text-align:center;">\\[' + loesungsMengeTeX() + '\\]</div>');
+  }
+  if (haken('zeigeLink')){
+    var seite = INFO[weg].seite;
+    z.push('<p style="text-align:center;">' + (seite
+      ? '<a class="btn-secondary art-link" href="' + uebungsLink(weg) + '">'
+        + T('Diese Gleichung dort üben: ', 'Practise this equation there: ')
+        + T(INFO[weg].name[0], INFO[weg].name[1]) + ' →</a>'
+      : '<a class="art-link blanko" href="#" onclick="return false;">'
+        + T('Lineare Gleichungen (Seite folgt)', 'Linear equations (page to come)') + '</a>') + '</p>');
+  }
+  document.getElementById('weg').innerHTML = z.join('');
+  mj(document.getElementById('dLoesung'));
+}
+/** Ableitung eines Polynoms [aₙ, …, a₀]. */
+function polyAbleitung(k){
+  var g = k.length - 1, out = [];
+  for (var i = 0; i < g; i++) out.push(k[i] * (g - i));
+  return out.length ? out : [0];
+}
+/** Wie oft ist x Nullstelle? Eine doppelte Nullstelle ist auch Nullstelle der
+    Ableitung - so zählt es auch bei krummen Werten richtig. */
+function vielfachheit(x){
+  if (!A || !A.koeff || !isFinite(x)) return 1;
+  var k = A.koeff.slice(), n = 0;
+  var gross = Math.max.apply(null, A.koeff.map(Math.abs).concat([1]));
+  while (k.length > 1 && Math.abs(polyWert(k, x)) < 1e-7 * gross * Math.max(1, Math.abs(x)) && n < 8){
+    k = polyAbleitung(k); n++;
+  }
+  return Math.max(1, n);
+}
+/** Die Lösungen in der eingestellten Schreibweise. */
+function loesAusgabe(liste, opt){
+  opt = opt || {};
+  if (!window.pgLoesungen){
+    if (!liste.length) return '\\mathbb{L} = \\{\\,\\}';
+    return '\\mathbb{L} = \\left\\{' + liste.map(function(e){ return (typeof e === 'string') ? e : e.tex; }).join(';\\ ') + '\\right\\}';
+  }
+  var art = radioWert('loesForm') || 'index';
+  var t = pgLoesungen(liste, { art: art, trenner: haken('loesWedge') ? 'wedge' : 'komma',
+                               v: opt.v || 'x', keine: opt.keine });
+  /* Bei der Lösungsmenge sagt das leere Klammerpaar allein wenig. */
+  if (!liste.length && art === 'menge')
+    t += ' \\quad \\text{(' + (opt.keine || T('keine Lösung', 'no solution')) + ')}';
+  return t;
+}
+function loesungsMengeTeX(){
+  if (A.loes === null)
+    return '\\text{' + T('mit Schulmitteln nicht lösbar', 'not solvable with school methods') + '}';
+  return loesAusgabe(A.loes.map(function(l){ return { tex: l.tex, n: vielfachheit(l.x) }; }));
+}
+function zaehle(ok){
+  gesamt++; if (ok) richtig++;
+  var c = document.getElementById('counter');
+  if (c) c.textContent = T('Richtig: ', 'Correct: ') + richtig + ' / ' + gesamt;
+}
+
+/* ── 6. Quiz ────────────────────────────────────────────────────────────── */
+/** Ist die eingetippte Gleichung dieselbe wie die umgestellte? */
+function pruefeUmformung(txt){
+  var g = window.pgLeseGleichung ? pgLeseGleichung(txt) : null;
+  if (!g) return T('Das konnte ich nicht lesen. Schreibe z.&nbsp;B. <code>x^2-5x+6=0</code>.',
+                   'I could not read that. Write e.g. <code>x^2-5x+6=0</code>.');
+  var diff = {};
+  [g.links, g.rechts].forEach(function(seite, i){
+    Object.keys(seite).forEach(function(e){ diff[e] = (diff[e] || 0) + (i ? -1 : 1) * seite[e]; });
+  });
+  var soll = polyKurz(A.koeff), grad = soll.length - 1, f = null, ok = true;
+  for (var e = 0; e <= grad; e++){
+    var s0 = soll[grad - e];
+    if (Math.abs(s0) < 1e-12) continue;
+    var h = (diff[e] || 0) / s0;
+    if (f === null) f = h; else if (Math.abs(h - f) > 1e-6) ok = false;
+  }
+  Object.keys(diff).forEach(function(e){
+    var s1 = soll[grad - Number(e)] || 0;
+    if (Math.abs(diff[e]) > 1e-9 && Math.abs(s1) < 1e-12) ok = false;
+  });
+  if (!ok || f === null || Math.abs(f) < 1e-9)
+    return T('Noch nicht – bringe wirklich alle Terme auf eine Seite.',
+             'Not yet – move really every term to one side.');
+  return true;
+}
+
+function quizBauen(){
+  var host = document.getElementById('quizArea');
+  if (!host || !window.pgQuiz) return;
+  var schritte = [];
+  var schonNull = A.anzeige.indexOf('= 0') >= 0;
+  var nullTeX = (A.art === 'nullprodukt') ? A.anzeige : (pgPoly(polyKurz(A.koeff)) + ' = 0');
+
+  if (window.pgSchrittNullForm)
+    schritte.push(pgSchrittNullForm(schonNull, A.anzeige));
+  /* Fehlte bisher: der Schritt, in dem wirklich umgestellt wird. Danach steht
+     in der Kopfzeile die Nullform - mit ihr wird weitergefragt. */
+  if (!schonNull){
+    schritte.push({ titel: T('Umstellen', 'Rearranging'), art: 'eingabe',
+      gleichung: A.anzeige,
+      frage: T('Bringe alles auf eine Seite. Wie heißt die Gleichung dann?',
+               'Move everything to one side. What is the equation then?'),
+      platzhalter: T('z. B. x^2-5x+6=0', 'e.g. x^2-5x+6=0'),
+      kurz: '\\(' + nullTeX + '\\)',
+      pruefe: function(txt){ return pruefeUmformung(txt); },
+      hilfe: [T('Ziehe die rechte Seite von beiden Seiten ab.',
+                'Subtract the right-hand side from both sides.'),
+              T('Danach steht da \\(' + nullTeX + '\\).',
+                'Afterwards you get \\(' + nullTeX + '\\).')] });
+  }
+  var abNull = schritte.length;
+
+  /* Die Fragen des Ablaufplans ersetzen das frühere Abfragen von Grad und
+     Absolutglied - sie kommen dort ohnehin vor. */
+
+  var weg = hauptWeg(A);
+  /* Der Entscheidungsbaum: dieselben Fragen wie im Ablaufplan, eine nach der
+     anderen - am Ende steht der Weg von selbst da. */
+  var pfad = planPfad(A);
+  PLAN.forEach(function(st){
+    if (pfad.indexOf(st.id) < 0) return;
+    var treffer = -1;
+    st.aeste.forEach(function(ast, i){ if (pfad.indexOf(ast.id) >= 0) treffer = i; });
+    if (treffer < 0) return;
+    schritte.push({ titel: T(st.frage[0], st.frage[1]).replace(/\?$/, ''), art: 'wahl',
+      frage: T(st.frage[0], st.frage[1]),
+      optionen: st.aeste.map(function(ast){
+        return T(ast.wenn[0], ast.wenn[1])
+             + (ast.weg ? ('<span class="unter">' + T(INFO[ast.weg].weg[0], INFO[ast.weg].weg[1]) + '</span>')
+                        : '<span class="unter">' + T('weiterfragen', 'ask on') + '</span>');
+      }),
+      richtig: treffer,
+      kurz: T(st.aeste[treffer].wenn[0], st.aeste[treffer].wenn[1]),
+      falschText: T('Schau noch einmal genau auf die Gleichung.', 'Have another close look at the equation.'),
+      hilfe: [T('Der Ablaufplan in der Lösung zeigt alle Fragen auf einen Blick.',
+                'The flow chart in the solution shows all the questions at a glance.')] });
+  });
+  schritte.push({ titel: T('Ablaufplan', 'Flow chart'), art: 'info',
+    frage: T('Damit steht der Weg fest: ', 'That settles the method: ')
+         + '<b>' + T(INFO[weg].weg[0], INFO[weg].weg[1]) + '</b>'
+         + planHTML(A),
+    kurz: T(INFO[weg].weg[0], INFO[weg].weg[1]) });
+  schritte.push({ titel: T('Erster Schritt', 'First step'), art: 'info',
+    frage: '<ul class="kurzweg">' + kurzSchritte(A, weg).map(function(p){
+             return '<li>' + p + '</li>'; }).join('') + '</ul>'
+         + (INFO[weg].seite
+            ? '<a class="btn-secondary art-link" href="' + uebungsLink(weg) + '">'
+              + T('Diese Gleichung dort üben: ', 'Practise this equation there: ')
+              + T(INFO[weg].name[0], INFO[weg].name[1]) + ' →</a>'
+            : ''),
+    kurz: false });
+  pgQuiz(host, schritte, { gleichung: function(st, i){
+    return (i < abNull) ? A.anzeige : nullTeX;
+  } });
+}
+
+/* ── 7. Verdrahtung ─────────────────────────────────────────────────────── */
+/* Unter jeder Kachel steht ein Beispiel - daran erkennt man die Art schneller
+   als an ihrem Namen. Bewusst als normaler Text, nicht als Formel: die
+   Kacheln werden bei jedem Sprachwechsel neu gezeichnet. */
+var ARTBEISPIEL = {
+  linear:        '3x + 5 = 11',
+  quadratisch:   'x² − 5x + 6 = 0',
+  potenz:        '2x⁴ = 162',
+  nullprodukt:   '(x − 2)(x + 5) = 0',
+  ausklammern:   'x³ − 4x² = 0',
+  biquadratisch: 'x⁴ − 13x² + 36 = 0',
+  polynom:       'x³ − 2x² − 5x + 6 = 0'
+};
+var KACHELN = ARTEN.map(function(a){
+  return { haupt: ART_ID[a], nurDieser: true,
+           hinweis: ARTBEISPIEL[a], hinweisEn: ARTBEISPIEL[a] };
+});
+function kachelnMalen(){
+  if (window.abKachelnMalen) abKachelnMalen(document.getElementById('segArten'));
+  var n = ARTEN.filter(function(a){ return haken(ART_ID[a]); }).length;
+  var z = document.getElementById('artZahl');
+  if (z) z.textContent = ' (' + n + '/' + ARTEN.length + ')';
+  var alle = document.getElementById('artAlle');
+  if (alle) alle.textContent = (n === ARTEN.length) ? T('keine', 'none') : T('alle', 'all');
+}
+
+/** Eine eingetippte Gleichung übernehmen. */
+function eigeneUebernehmen(){
+  var feld = document.getElementById('eigeneEingabe');
+  var meld = document.getElementById('eigeneMeldung');
+  var g = window.pgLeseGleichung ? pgLeseGleichung(feld.value) : null;
+  if (!g){
+    meld.className = 'meld err';
+    meld.textContent = T('Das konnte ich nicht lesen. Beispiel: x^4-5x^2+4=0',
+                         'I could not read that. Example: x^4-5x^2+4=0');
+    return;
+  }
+  var diff = {}, grad = 0;
+  Object.keys(g.links).forEach(function(e){ diff[e] = (diff[e] || 0) + g.links[e]; });
+  Object.keys(g.rechts).forEach(function(e){ diff[e] = (diff[e] || 0) - g.rechts[e]; });
+  Object.keys(diff).forEach(function(e){ if (Math.abs(diff[e]) > 1e-9) grad = Math.max(grad, Number(e)); });
+  if (grad < 1 || grad > 5){
+    meld.className = 'meld err';
+    meld.textContent = T('Diese Seite rechnet mit Gleichungen vom Grad 1 bis 5.',
+                         'This page works with equations of degree 1 to 5.');
+    return;
+  }
+  var k = [];
+  for (var e2 = grad; e2 >= 0; e2--) k.push(Math.round((diff[e2] || 0) * 1e6) / 1e6);
+  var links = {}, rechts = {};
+  Object.keys(g.links).forEach(function(e){ links[e] = g.links[e]; });
+  Object.keys(g.rechts).forEach(function(e){ rechts[e] = g.rechts[e]; });
+  A = { art: 'eigen', p: k.slice(), koeff: k, loes: loesePoly(k),
+        anzeige: pgPoly(links) + ' = ' + pgPoly(rechts), gewaehlt: null };
+  A.wege = wege(A);
+  meld.className = 'meld ok';
+  meld.textContent = T('Übernommen.', 'Taken over.');
+  zeichne();
+}
+
+/** Eine Gleichung, die eine andere Seite übergeben hat (?gl=…), übernehmen. */
+function gleichungAusURL(){
+  var g = new URLSearchParams(location.search).get('gl');
+  if (!g) return false;
+  var feld = document.getElementById('eigeneEingabe');
+  if (!feld) return false;
+  feld.value = g;
+  eigeneUebernehmen();
+  return !!A;
+}
+
+/** Eine geteilte Aufgabe wiederherstellen. */
+function aufgabeAusURL(){
+  var v = new URLSearchParams(location.search).get('t');
+  if (!v) return false;
+  var i = v.indexOf('_');
+  if (i < 0) return false;
+  var art = v.slice(0, i), p = v.slice(i + 1).split('.').map(Number);
+  if ((art !== 'eigen' && !INFO[art]) || p.some(function(z){ return !isFinite(z); })) return false;
+  A = bauen(art, p);
+  var r = new URLSearchParams(location.search).get('r');
+  if (r){
+    var R = r.split('.').map(Number);
+    if (!R.some(function(z){ return !isFinite(z); })) rechtsAnwenden(A, R);
+  }
+  A.wege = wege(A);
+  A.gewaehlt = null;
+  zeichne();
+  return true;
+}
+
+/* Notbehelf, falls polynome.js fehlt. */
+function notbehelf(){
+  if (typeof window.pgZahl === 'function') return;
+  window.pgGanz  = function(x){ return Math.abs(x - Math.round(x)) < 1e-9; };
+  window.pgBruch = function(x){
+    for (var d = 1; d <= 100; d++){ var n = x * d; if (Math.abs(n - Math.round(n)) < 1e-9) return { n: Math.round(n), d: d }; }
+    return null;
+  };
+  window.pgZahl = function(x){
+    if (pgGanz(x)) return String(Math.round(x));
+    var b = pgBruch(x);
+    return (b && b.d <= 100) ? ((b.n < 0 ? '-' : '') + '\\frac{' + Math.abs(b.n) + '}{' + b.d + '}')
+                             : String(Math.round(x * 1e6) / 1e6).replace('.', '{,}');
+  };
+  window.pgZahlText = function(x){
+    return pgGanz(x) ? String(Math.round(x)) : String(Math.round(x * 1e6) / 1e6).replace('.', ',');
+  };
+  window.pgWurzel = function(r){ var w = Math.sqrt(r); return pgGanz(w) ? String(Math.round(w)) : '\\sqrt{' + pgZahl(r) + '}'; };
+  window.pgGleich = function(a, b){ return Math.abs(a - b) < 1e-6; };
+  window.pgPoly = function(o){
+    var liste;
+    if (Array.isArray(o)){
+      liste = [];
+      var g = o.length - 1;
+      o.forEach(function(k, i){ liste.push([g - i, k]); });
+    } else {
+      liste = Object.keys(o).map(function(e){ return [Number(e), o[e]]; });
+      liste.sort(function(a, b){ return b[0] - a[0]; });
+    }
+    var out = '', erst = true;
+    liste.forEach(function(p){
+      var k = p[1], e = p[0];
+      if (Math.abs(k) < 1e-12) return;
+      var vz = erst ? (k < 0 ? '-' : '') : (k < 0 ? '-' : '+');
+      var a = Math.abs(k);
+      var zahl = (e !== 0 && Math.abs(a - 1) < 1e-9) ? '' : pgZahl(a);
+      out += vz + zahl + (e === 0 ? '' : (e === 1 ? 'x' : 'x^{' + e + '}'));
+      erst = false;
+    });
+    return out || '0';
+  };
+}
+
+window.addEventListener('load', function(){
+  notbehelf();
+  einstellungenSetzen(urlLesen());
+  if (window.abSeedAusURL) abSeedAusURL();
+  if (window.abKacheln) abKacheln(document.getElementById('segArten'), KACHELN, function(){
+    if (!ARTEN.filter(function(x){ return haken(ART_ID[x]); }).length) setzeHaken('artLinear', true);
+    obenAbgleichen(); aufIndividuell(); kachelnMalen(); neueAufgabe();
+  });
+  kachelnMalen();
+
+  /* Die Ovale über der Aufgabe bedienen dieselben Kästchen wie unten. */
+  if (window.abPillen)
+    abPillen(document.getElementById('segForm'), RECHTS.map(function(id){ return { haupt: id }; }), function(){
+      if (!RECHTS.filter(haken).length) setzeHaken('rNull', true);
+      obenAbgleichen(); aufIndividuell(); neueAufgabe();
+    });
+  RECHTS.forEach(function(id){
+    var e = document.getElementById(id);
+    if (e) e.addEventListener('change', function(){
+      if (!RECHTS.filter(haken).length) setzeHaken('rNull', true);
+      obenAbgleichen(); aufIndividuell(); kachelnMalen(); neueAufgabe();
+    });
+  });
+  ARTEN.forEach(function(a){
+    var e = document.getElementById(ART_ID[a]);
+    if (e) e.addEventListener('change', function(){
+      if (!ARTEN.filter(function(x){ return haken(ART_ID[x]); }).length) setzeHaken('artLinear', true);
+      obenAbgleichen(); kachelnMalen(); aufIndividuell(); neueAufgabe();
+    });
+  });
+  /* Die Regler ändern nur die Häufigkeit - und damit die nächste Aufgabe. */
+  document.querySelectorAll('.slider-row input[type="range"]').forEach(function(e){
+    e.addEventListener('change', function(){ aufIndividuell(); neueAufgabe(); });
+  });
+  document.querySelectorAll('#zeigeMenge, #zeigeSchritte, #zeigeLink').forEach(function(e){
+    e.addEventListener('change', function(){ aufIndividuell(); if (A) loesungZeichnen(); });
+  });
+  document.querySelectorAll('input[name="diff"]').forEach(function(e){
+    e.addEventListener('change', function(){
+      if (e.value !== 'indiv') stufeAnwenden(e.value);
+      neueAufgabe();
+      if (e.value === 'indiv' && window.abEinstellungenOeffnen) abEinstellungenOeffnen('#dSettings');
+    });
+  });
+
+  var alle = document.getElementById('artAlle');
+  if (alle) alle.addEventListener('click', function(){
+    var an = ARTEN.filter(function(a){ return haken(ART_ID[a]); }).length < ARTEN.length;
+    ARTEN.forEach(function(a){ setzeHaken(ART_ID[a], an); });
+    if (!ARTEN.filter(function(a){ return haken(ART_ID[a]); }).length) setzeHaken('artLinear', true);
+    kachelnMalen(); aufIndividuell(); neueAufgabe();
+  });
+
+  /* Schreibweise der Lösungen: nur die Anzeige ändert sich, nicht die Aufgabe. */
+  document.querySelectorAll('input[name="loesForm"], #loesWedge').forEach(function(e){
+    e.addEventListener('change', function(){
+      if (!A) return;
+      loesungZeichnen();
+      if (typeof quizBauen === 'function') quizBauen();
+    });
+  });
+  document.getElementById('genBtn').addEventListener('click', function(){ neueAufgabe(); });
+  document.getElementById('btnShare').addEventListener('click', function(){ linkKopieren(urlSchreiben(false), this); });
+  document.getElementById('btnTeilen').addEventListener('click', function(){ linkKopieren(urlSchreiben(true), this); });
+  document.getElementById('btnReset').addEventListener('click', function(){
+    VON_HAND = {};
+    var s = {}; Object.keys(STD).forEach(function(k){ s[k] = STD[k]; });
+    einstellungenSetzen(s); neueAufgabe();
+  });
+  /* „Eigene Gleichung": der Knopf neben „Neue Aufgabe generieren" klappt das
+     Feld auf und wieder zu. */
+  var mKnopf = document.getElementById('manualBtn');
+  var mFeld  = document.getElementById('manualPanel');
+  function manualAuf(zeigen){
+    if (!mFeld) return;
+    mFeld.hidden = !zeigen;
+    if (mKnopf) mKnopf.classList.toggle('on', !!zeigen);
+    if (zeigen){
+      var e = document.getElementById('eigeneEingabe');
+      if (e) { try { e.focus(); } catch (x) {} }
+    }
+  }
+  if (mKnopf) mKnopf.addEventListener('click', function(){ manualAuf(mFeld.hidden); });
+  var mAb = document.getElementById('eigeneAbbruch');
+  if (mAb) mAb.addEventListener('click', function(){ manualAuf(false); });
+  document.getElementById('eigeneBtn').addEventListener('click', eigeneUebernehmen);
+  document.getElementById('eigeneEingabe').addEventListener('keydown', function(ev){
+    if (ev.key === 'Enter') eigeneUebernehmen();
+  });
+  document.getElementById('btnPunkteReset').addEventListener('click', function(){
+    richtig = 0; gesamt = 0;
+    document.getElementById('counter').textContent = T('Richtig: ', 'Correct: ') + '0 / 0';
+  });
+  document.getElementById('dLoesung').addEventListener('toggle', function(){
+    if (this.open) mj(document.getElementById('dLoesung'));
+  });
+
+  if (!gleichungAusURL() && !aufgabeAusURL()) neueAufgabe();
 });
 
-document.getElementById('neueGleichungBtn').addEventListener('click',pickRandomEquation);
-document.getElementById('showSolutionsBtn').addEventListener('click',()=>{
-  document.getElementById('solutionsArea').innerHTML=`<div style="color:red;">$$${currentSolution}$$</div>`;
-  MathJax.typeset();
-  scaleToFit(document.getElementById('solutionsArea'));
-});
+/* Sprach- und Themewechsel: dieselbe Aufgabe neu beschriften. */
+function neuZeichnen(){ if (A) zeichne(); kachelnMalen(); }
+window.addEventListener('tl-sprache', neuZeichnen);
+window.addEventListener('tl-theme',   function(){ if (A) loesungZeichnen(); });
 
-// Initial
-
-MathJax.startup.promise.then(() => pickRandomEquation());
-scaleToFit(document.getElementById('formula'));
+window.fehlerKontext = function(){
+  var el = document.getElementById('task');
+  var aufgabe = el ? ((typeof tlFormelText === 'function') ? tlFormelText(el) : el.innerText) : '';
+  return [A ? A.art : '', aufgabe].filter(Boolean).join(' \u00b7 ');
+};
 </script>
-
 </body>
 </html>

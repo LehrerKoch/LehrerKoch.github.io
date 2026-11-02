@@ -1,0 +1,1203 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="shortcut icon" type="image/x-icon" href="aleph_zero_logo.ico">
+<script>try{var t=localStorage.getItem('matheToolsTheme');if(t==='dark'||(!t&&window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.classList.add('dark');}catch(e){}</script>
+<title data-de="Symmetrie bei Polynomen" data-en="Symmetry of polynomials">Symmetrie bei Polynomen</title>
+<script src="theme-language.js" defer></script>
+<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="aufgaben.css">
+<link rel="stylesheet" href="scale.css">
+<script src="scale.js" defer></script>
+<script src="aufgaben.js" defer></script>
+<script src="polynome.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<script>
+/* Faellt ohne theme-language.js auf Deutsch zurueck. */
+function T(de, en){ return (typeof tlText === 'function') ? tlText(de, en) : de; }
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+window.TK_GA_ID = 'G-5K8WYYXDL2';   /* Google Analytics laedt erst nach Einwilligung, siehe einwilligung.js */
+</script>
+<script src="einwilligung.js" defer></script>
+<style>
+/* Nur, was diese Seite zusätzlich braucht - alles Übrige kommt aus
+   aufgaben.css, damit die Seite genauso aussieht wie die anderen. */
+#task { font-size: 1.5em; }
+#loesung { font-size: 1.25em; }
+#weg { font-size: 1.05em; line-height: 1.55; }
+#antwortBereich .pg-jn { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+.weg-schritt { margin: .35em 0; }
+.weg-merke { color: var(--ab-leise); font-size: .9em; }
+/* Der Umschalter über dem Lösungsweg */
+.weg-wahl { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; margin: 0 0 10px; }
+/* Legende zu den Farben im Lösungsweg */
+.sym-legende { display: flex; gap: 14px; flex-wrap: wrap; font-size: .88em; margin: 2px 0 8px; }
+.sym-legende span { display: inline-flex; align-items: center; gap: 5px; }
+.sym-punkt { width: .78em; height: .78em; border-radius: 50%; display: inline-block; }
+/* Der gezeichnete Graph steht mittig und bleibt auf dem Handy lesbar. */
+#graphBox { max-width: 540px; margin: 0 auto; }
+#graphBox svg { width: 100%; height: auto; }
+.sym-frage { font-size: .78em; line-height: 1.5; }
+</style>
+</head>
+<body class="tk-seite">
+
+<header class="tool-kopf">
+  <div class="tk-text">
+    <h1 data-de="Symmetrie bei Polynomen" data-en="Symmetry of polynomials">Symmetrie bei Polynomen</h1>
+    <p class="tk-unter" data-de="Achsensymmetrie zur y-Achse und Punktsymmetrie zum Ursprung erkennen" data-en="Recognising symmetry about the y-axis and about the origin">Achsensymmetrie zur y-Achse und Punktsymmetrie zum Ursprung erkennen</p>
+  </div>
+</header>
+
+<!-- ═══ Einstellungen ═══════════════════════════════════════════════════════
+     Hier stehen ALLE Einstellungen - auch die, die oben über der Aufgabe noch
+     einmal als Schalter erscheinen, und die, die der Schwierigkeitsgrad von
+     selbst setzt.                                                          -->
+<details class="einst" id="dSettings">
+<summary data-de="Einstellungen" data-en="Settings">Einstellungen</summary>
+<div class="settings-grid">
+
+  <div class="form-block">
+    <b data-de="Aufgabenstile" data-en="Kinds of task">Aufgabenstile</b>
+    <span class="d" data-de="Welche Aufgabenstellungen sollen vorkommen? Die Kacheln über der Aufgabe zeigen dieselbe Auswahl." data-en="Which kinds of question should appear? The tiles above the task show the same choice.">Welche Aufgabenstellungen sollen vorkommen? Die Kacheln über der Aufgabe zeigen dieselbe Auswahl.</span>
+    <label class="opt"><input type="checkbox" id="stilGleichung" checked><span><span data-de="Symmetrie an der Gleichung erkennen" data-en="Recognise the symmetry from the equation">Symmetrie an der Gleichung erkennen</span><span class="d" data-de="die Funktionsgleichung steht da" data-en="the function is given as an equation">die Funktionsgleichung steht da</span></span></label>
+    <label class="opt"><input type="checkbox" id="stilGraph" checked><span><span data-de="Symmetrie am Graphen erkennen" data-en="Recognise the symmetry from the graph">Symmetrie am Graphen erkennen</span><span class="d" data-de="nur die Zeichnung, am Ursprung zentriert" data-en="only the drawing, centred at the origin">nur die Zeichnung, am Ursprung zentriert</span></span></label>
+    <label class="opt"><input type="checkbox" id="stilVerst"><span><span data-de="Verständnisfragen" data-en="Understanding questions">Verständnisfragen</span><span class="d" data-de="Nachweis, Funktionswerte, Extrema und Rechenregeln" data-en="proofs, function values, extrema and rules">Nachweis, Funktionswerte, Extrema und Rechenregeln</span></span></label>
+  </div>
+
+  <div class="form-block">
+    <b data-de="Grad der Funktion" data-en="Degree of the function">Grad der Funktion</b>
+    <span class="d" data-de="Bis zu welchem Grad darf die Funktion gehen?" data-en="Up to which degree may the function go?">Bis zu welchem Grad darf die Funktion gehen?</span>
+    <label class="opt"><input type="radio" name="gradBis" value="3" checked><span><span data-de="höchstens 3" data-en="at most 3">höchstens 3</span><span class="d" data-de="x³, x², x und Zahlen" data-en="x³, x², x and numbers">x³, x², x und Zahlen</span></span></label>
+    <label class="opt"><input type="radio" name="gradBis" value="5"><span><span data-de="höchstens 5" data-en="at most 5">höchstens 5</span></span></label>
+    <label class="opt"><input type="radio" name="gradBis" value="7"><span><span data-de="höchstens 7" data-en="at most 7">höchstens 7</span></span></label>
+  </div>
+
+  <div class="form-block">
+    <b data-de="Fälle" data-en="Cases">Fälle</b>
+    <span class="d" data-de="Welche Antworten sollen vorkommen? Die Regler bestimmen, wie oft." data-en="Which answers should occur? The sliders set how often.">Welche Antworten sollen vorkommen? Die Regler bestimmen, wie oft.</span>
+    <div class="slider-row opt-regler" data-fuer="fallAchse"><label class="opt"><input type="checkbox" id="fallAchse" checked><span data-de="achsensymmetrisch" data-en="symmetric about the y-axis">achsensymmetrisch</span></label><span class="sl-end" data-de="seltener" data-en="less often">seltener</span><input type="range" class="sl" id="wfallAchse" min="1" max="10" value="9"><span class="sl-end" data-de="häufiger" data-en="more often">häufiger</span><span class="d" data-de="nur gerade Exponenten" data-en="only even exponents">nur gerade Exponenten</span></div>
+    <div class="slider-row opt-regler" data-fuer="fallPunkt"><label class="opt"><input type="checkbox" id="fallPunkt" checked><span data-de="punktsymmetrisch" data-en="symmetric about the origin">punktsymmetrisch</span></label><span class="sl-end" data-de="seltener" data-en="less often">seltener</span><input type="range" class="sl" id="wfallPunkt" min="1" max="10" value="9"><span class="sl-end" data-de="häufiger" data-en="more often">häufiger</span><span class="d" data-de="nur ungerade Exponenten" data-en="only odd exponents">nur ungerade Exponenten</span></div>
+    <div class="slider-row opt-regler" data-fuer="fallKeine"><label class="opt"><input type="checkbox" id="fallKeine" checked><span data-de="keine der beiden" data-en="neither of the two">keine der beiden</span></label><span class="sl-end" data-de="seltener" data-en="less often">seltener</span><input type="range" class="sl" id="wfallKeine" min="1" max="10" value="6"><span class="sl-end" data-de="häufiger" data-en="more often">häufiger</span><span class="d" data-de="gerade und ungerade Exponenten gemischt" data-en="even and odd exponents mixed">gerade und ungerade Exponenten gemischt</span></div>
+  </div>
+
+  <div class="form-block">
+    <b data-de="Zahlen" data-en="Numbers">Zahlen</b>
+    <span class="d" data-de="Wie schwer sollen die Vorfaktoren sein?" data-en="How hard should the coefficients be?">Wie schwer sollen die Vorfaktoren sein?</span>
+    <label class="opt"><input type="radio" name="zahlArt" value="ganz" checked><span><span data-de="ganze Zahlen" data-en="whole numbers">ganze Zahlen</span></span></label>
+    <label class="opt"><input type="radio" name="zahlArt" value="bruch"><span><span data-de="auch Brüche" data-en="fractions too">auch Brüche</span><span class="d">½x⁴ − 3x²</span></span></label>
+    <label class="opt"><input type="radio" name="zahlArt" value="komma"><span><span data-de="auch Kommazahlen" data-en="decimals too">auch Kommazahlen</span><span class="d">1,5x⁴ − 3x²</span></span></label>
+    <label class="opt"><input type="checkbox" id="mitFaktor"><span><span data-de="Faktor vor der ganzen Funktion" data-en="factor in front of the whole function">Faktor vor der ganzen Funktion</span><span class="d" data-de="f(x) = 2·(x⁴ − 3x²)" data-en="f(x) = 2·(x⁴ − 3x²)">f(x) = 2·(x⁴ − 3x²)</span></span></label>
+  </div>
+
+  <div class="form-block">
+    <b data-de="Darstellung der Funktion" data-en="How the function is written">Darstellung der Funktion</b>
+    <label class="opt"><input type="checkbox" id="mitFaktorisiert"><span><span data-de="auch faktorisiert" data-en="also in factored form">auch faktorisiert</span><span class="d" data-de="f(x) = x²·(x − 2)·(x + 2) – mit Vielfachheiten und ggf. Restterm" data-en="f(x) = x²·(x − 2)·(x + 2) – with multiplicities and possibly a remaining term">f(x) = x²·(x − 2)·(x + 2) – mit Vielfachheiten und ggf. Restterm</span></span></label>
+    <label class="opt"><input type="checkbox" id="mitSkizze" checked><span><span data-de="Skizze in der Lösung" data-en="sketch in the solution">Skizze in der Lösung</span></span></label>
+  </div>
+
+  <div class="form-block">
+    <b data-de="Lösungsweg" data-en="Worked solution">Lösungsweg</b>
+    <span class="d" data-de="Womit soll der Lösungsweg zuerst argumentieren? Über der Lösung lässt sich jederzeit umschalten." data-en="Which argument should the worked solution show first? You can switch above the solution at any time.">Womit soll der Lösungsweg zuerst argumentieren? Über der Lösung lässt sich jederzeit umschalten.</span>
+    <label class="opt"><input type="radio" name="wegArt" value="exp" checked><span><span data-de="über die Exponenten" data-en="via the exponents">über die Exponenten</span><span class="d" data-de="nur gerade bzw. nur ungerade Hochzahlen" data-en="only even or only odd exponents">nur gerade bzw. nur ungerade Hochzahlen</span></span></label>
+    <label class="opt"><input type="radio" name="wegArt" value="einsetzen"><span><span data-de="über f(−x)" data-en="via f(−x)">über f(−x)</span><span class="d" data-de="einsetzen und mit f(x) bzw. −f(x) vergleichen" data-en="substitute and compare with f(x) resp. −f(x)">einsetzen und mit f(x) bzw. −f(x) vergleichen</span></span></label>
+  </div>
+
+  </div>
+  <div class="seed-zeile">
+    <label class="opt"><input type="checkbox" id="seedAn"><span data-de="fester Zufalls-Seed" data-en="fixed random seed">fester Zufalls-Seed</span></label>
+    <input type="text" id="seedWert" autocomplete="off" inputmode="numeric" aria-label="Seed" data-de-aria-label="Seed" data-en-aria-label="Seed">
+    <button type="button" class="btn-secondary" id="seedNeu" title="neuen Seed würfeln" data-de-title="neuen Seed würfeln" data-en-title="roll a new seed">⟳</button>
+    <span class="d" data-de="Mit demselben Seed bekommen alle dieselbe Folge von Aufgaben – der Seed steht dann im geteilten Link." data-en="With the same seed everyone gets the same sequence of tasks – the seed is then part of the shared link.">Mit demselben Seed bekommen alle dieselbe Folge von Aufgaben – der Seed steht dann im geteilten Link.</span>
+  </div>
+<div class="settings-foot">
+  <button class="btn-secondary" id="btnShare" data-de="🔗 Link mit allen Einstellungen kopieren" data-en="🔗 Copy link with all settings">🔗 Link mit allen Einstellungen kopieren</button>
+  <button class="btn-secondary" id="btnReset" data-de="↺ Standard wiederherstellen" data-en="↺ Restore defaults">↺ Standard wiederherstellen</button>
+  </div>
+</details>
+
+<!-- ═══ Schalter über der Aufgabe ═══════════════════════════════════════ -->
+<div id="topControls">
+  <div class="tc-item">
+    <details class="auswahl" id="stilBox" open>
+      <summary><span data-de="Aufgabenstile" data-en="Kinds of task">Aufgabenstile</span><span class="ausw-zahl" id="stilZahl"></span></summary>
+      <button type="button" class="btn-secondary ausw-alle" id="stilAlle"></button>
+      <div class="tiles eng drei" id="segStile"></div>
+    </details>
+  </div>
+  <div class="tc-item tc-mitte">
+    <span class="tc-label"><span data-de="Fälle" data-en="Cases">Fälle</span></span>
+    <div class="pills" id="segFaelle"></div>
+  </div>
+  <div class="tc-item tc-diff tc-mitte">
+    <span class="tc-label" data-de="Schwierigkeit" data-en="Difficulty">Schwierigkeit</span>
+    <div class="seg-switch diff-switch" id="segDiff">
+      <input type="radio" name="diff" id="diffEinf" value="einf"><label for="diffEinf" data-de="Einführung" data-en="Introduction">Einführung</label>
+      <input type="radio" name="diff" id="diffLeicht" value="leicht"><label for="diffLeicht" data-de="Leicht" data-en="Easy">Leicht</label>
+      <input type="radio" name="diff" id="diffNormal" value="normal" checked><label for="diffNormal" data-de="Normal" data-en="Normal">Normal</label>
+      <input type="radio" name="diff" id="diffSchwer" value="schwer"><label for="diffSchwer" data-de="Herausfordernd" data-en="Challenging">Herausfordernd</label>
+      <input type="radio" name="diff" id="diffIndiv" value="indiv"><label for="diffIndiv" data-de="Individuell" data-en="Custom" data-de-title="öffnet die Einstellungen" data-en-title="opens the settings" title="öffnet die Einstellungen">Individuell</label>
+      <span class="seg-glider"></span>
+    </div>
+  </div>
+  </div>
+
+<div id="genRow">
+  <button id="genBtn" data-de='<span class="auto-kreis">&#x27F3;</span>&nbsp;Neue Aufgabe generieren' data-en='<span class="auto-kreis">&#x27F3;</span>&nbsp;Generate a new task'><span class="auto-kreis">&#x27F3;</span>&nbsp;Neue Aufgabe generieren</button>
+  <button id="manualBtn" class="btn-secondary" type="button" title="Eigene Funktion" data-de-title="Eigene Funktion" data-en-title="Your own function" data-de='&#9998;<span class="mb-text">&nbsp;Eigene Funktion</span>' data-en='&#9998;<span class="mb-text">&nbsp;Your own function</span>'>&#9998;<span class="mb-text">&nbsp;Eigene Funktion</span></button>
+  <span class="punkte rechts"><button id="btnPunkteReset" type="button" title="Punktzahl zurücksetzen" data-de-title="Punktzahl zurücksetzen" data-en-title="Reset the score">↺</button><span id="counter">Richtig: 0 / 0</span></span>
+  </div>
+
+<div id="manualPanel" hidden>
+  <div class="mp-kopf" data-de="Eigene Funktion eingeben" data-en="Enter your own function">Eigene Funktion eingeben</div>
+  <div class="mp-hinweis" data-de="Tippe eine Funktionsgleichung ein, z. B. x^4-3x^2+1 oder x³-4x. Exponenten gehen mit ^ oder als ², ³, …" data-en="Type a function, e.g. x^4-3x^2+1 or x³-4x. Exponents work with ^ or as ², ³, …">Tippe eine Funktionsgleichung ein, z. B. x^4-3x^2+1 oder x³-4x. Exponenten gehen mit ^ oder als ², ³, …</div>
+  <div class="mp-zeile">
+    <input type="text" id="eigeneEingabe" autocomplete="off" placeholder="x^4-3x^2+1" data-de-placeholder="x^4-3x^2+1" data-en-placeholder="x^4-3x^2+1">
+    <button type="button" id="eigeneBtn" data-de="übernehmen" data-en="use it">übernehmen</button>
+    <button type="button" class="btn-secondary" id="eigeneAbbruch" data-de="Abbrechen" data-en="Cancel">Abbrechen</button>
+  </div>
+  <div class="meld" id="eigeneMeldung"></div>
+  </div>
+
+<div class="task" id="taskBox">
+  <div class="task-head">
+    <h2 data-de="Aufgabe" data-en="Task">Aufgabe</h2>
+    <button class="share-btn" id="btnTeilen" title="Diese Aufgabe teilen (Link kopieren)" data-de-title="Diese Aufgabe teilen (Link kopieren)" data-en-title="Share this task (copy link)" data-de="🔗&nbsp;Teilen" data-en="🔗&nbsp;Share">🔗&nbsp;Teilen</button>
+  </div>
+
+  <p id="taskText" class="task-hinweis"></p>
+  <div class="scale-wrapper">
+    <div id="task" class="scale-el"></div>
+  </div>
+  <div id="graphBox"></div>
+  </div>
+
+<div id="antwortBereich"></div>
+
+<details class="quizklapp" id="quizDetails">
+  <summary><span class="linie" aria-hidden="true"></span><span class="reiter" data-de="Quiz als Hilfestellung" data-en="Quiz as a hint">Quiz als Hilfestellung</span><span class="linie" aria-hidden="true"></span></summary>
+  <div id="quizArea"></div>
+</details>
+
+<details class="loesung" id="dLoesung" style="margin-top:16px;">
+  <summary><span class="wenn-zu" data-de="Lösung einblenden" data-en="Show answer">Lösung einblenden</span><span class="wenn-auf" data-de="Lösung ausblenden" data-en="Hide answer">Lösung ausblenden</span></summary>
+  <div class="scale-wrapper"><div id="loesung" class="scale-el"></div></div>
+  <div class="pg-skizze" id="skizze"></div>
+  <details class="weg" id="dWeg">
+    <summary data-de="Vollständiger Lösungsweg" data-en="Complete worked solution">Vollständiger Lösungsweg</summary>
+    <div id="weg"></div>
+  </details>
+</details>
+
+<div id="lobby-spacer"></div>
+
+<footer class="site-footer">
+  <div class="footer-content">
+      M.&nbsp;Koch
+      <span class="footer-topic"><a href="./index.html">Mathe-Tools</a></span>
+      <span class="footer-update"><span class="fu-wort" data-de="Zuletzt aktualisiert:" data-en="Last updated:">Zuletzt aktualisiert:</span><span id="last-update">...</span></span>
+  </div>
+</footer>
+
+<script src="last-update.js" defer></script>
+
+<script>
+"use strict";
+/* ═══════════════════════════════════════════════════════════════════════════
+   Symmetrie bei Polynomen
+   ───────────────────────────────────────────────────────────────────────────
+     1. Einstellungen, Stufen und Adresszeile
+     2. Aufgabe würfeln
+     3. Aufgabe, Lösung und Lösungsweg zeichnen
+     4. Eigene Lösung eingeben
+     5. Quiz
+     6. Verständnisfragen
+     7. Verdrahtung
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── 1. Einstellungen ───────────────────────────────────────────────────── */
+var STD = {
+  stilGleichung: true, stilGraph: true, stilVerst: false,
+  fallAchse: true, fallPunkt: true, fallKeine: true,
+  gradBis: '5', zahlArt: 'ganz', wegArt: 'exp',
+  mitFaktor: false, mitFaktorisiert: false, mitSkizze: true,
+  diff: 'normal'
+};
+/* Was eine Schwierigkeitsstufe setzt. Die Aufgabenstile bleiben die Wahl der
+   Nutzerin - sie sagen, was geübt wird, nicht wie schwer es ist. */
+var STUFEN = {
+  einf:   { gradBis: '3', zahlArt: 'ganz',  mitFaktor: false, mitFaktorisiert: false,
+            fallAchse: true, fallPunkt: true, fallKeine: false,
+            regler: { fallAchse: 10, fallPunkt: 10, fallKeine: 1 } },
+  leicht: { gradBis: '3', zahlArt: 'ganz',  mitFaktor: false, mitFaktorisiert: false,
+            fallAchse: true, fallPunkt: true, fallKeine: true,
+            regler: { fallAchse: 9, fallPunkt: 9, fallKeine: 4 } },
+  normal: { gradBis: '5', zahlArt: 'ganz',  mitFaktor: true,  mitFaktorisiert: false,
+            fallAchse: true, fallPunkt: true, fallKeine: true,
+            regler: { fallAchse: 8, fallPunkt: 8, fallKeine: 6 } },
+  schwer: { gradBis: '7', zahlArt: 'bruch', mitFaktor: true,  mitFaktorisiert: true,
+            fallAchse: true, fallPunkt: true, fallKeine: true,
+            regler: { fallAchse: 7, fallPunkt: 7, fallKeine: 7 } }
+};
+/* Der Standard ist genau die Standard-Schwierigkeit: so stimmen Kästchen,
+   Kacheln, Regler und der Schwierigkeitsbalken von Anfang an überein. */
+(function(){
+  var p = STUFEN[STD.diff] || {};
+  Object.keys(p).forEach(function(k){ if (k !== 'regler') STD[k] = p[k]; });
+})();
+
+var KURZ = {
+  stilGleichung: 'sg', stilGraph: 'sz', stilVerst: 'sv',
+  fallAchse: 'fa', fallPunkt: 'fp', fallKeine: 'fk',
+  gradBis: 'gb', zahlArt: 'za', wegArt: 'wa',
+  mitFaktor: 'mf', mitFaktorisiert: 'mz', mitSkizze: 'sk', diff: 'd'
+};
+var STILE  = ['stilGleichung', 'stilGraph', 'stilVerst'];
+var FAELLE = ['fallAchse', 'fallPunkt', 'fallKeine'];
+
+function haken(id){ var e = document.getElementById(id); return !!(e && e.checked); }
+function setzeHaken(id, v){ var e = document.getElementById(id); if (e) e.checked = !!v; }
+function radioWert(name){ var e = document.querySelector('input[name="' + name + '"]:checked'); return e ? e.value : null; }
+function radioSetzen(name, wert){
+  var e = document.querySelector('input[name="' + name + '"][value="' + wert + '"]');
+  if (e) e.checked = true;
+  return !!e;
+}
+function einstellungen(){
+  var s = {};
+  Object.keys(STD).forEach(function(k){
+    if (typeof STD[k] === 'boolean') s[k] = haken(k);
+    else s[k] = radioWert(k) || STD[k];
+  });
+  return s;
+}
+function einstellungenSetzen(s){
+  Object.keys(STD).forEach(function(k){
+    if (typeof STD[k] === 'boolean') setzeHaken(k, s[k]);
+    else radioSetzen(k, s[k]);
+  });
+  obenAbgleichen();
+  if (window.abGliderAlle) abGliderAlle();
+  kachelnMalen();
+}
+/* Von Hand geänderte Einstellungen werden gemerkt. Die Stufe bleibt stehen –
+   sie sagt weiterhin, wie schwer die Zahlen sein sollen –, überschreibt aber
+   nichts mehr, was man selbst eingestellt hat. */
+var VON_HAND = {};
+function aufIndividuell(){ /* die Stufe bleibt, wie sie ist */ }
+function vonHandMerken(ziel){
+  if (!ziel) return;
+  var k = ziel.id || ziel.name;
+  if (k && k !== 'diff') VON_HAND[k] = true;
+}
+document.addEventListener('change', function(ev){
+  var t = ev.target;
+  if (!t || t.name === 'diff') return;
+  vonHandMerken(t);
+}, true);
+/** Die Häufigkeiten einer Stufe, ohne die Regler, die von Hand stehen. */
+function reglerOhneHand(regler){
+  var raus = {};
+  Object.keys(regler || {}).forEach(function(k){
+    if (VON_HAND[k] || VON_HAND['w' + k]) return;
+    raus[k] = regler[k];
+  });
+  return raus;
+}
+function stufeAnwenden(stufe){
+  var p = STUFEN[stufe];
+  if (!p) return;
+  Object.keys(p).forEach(function(k){
+    if (k === 'regler' || VON_HAND[k]) return;
+    if (typeof p[k] === 'boolean') setzeHaken(k, p[k]);
+    else radioSetzen(k, p[k]);
+  });
+  if (p.regler && window.abReglerSetzen) abReglerSetzen(reglerOhneHand(p.regler));
+  obenAbgleichen();
+  kachelnMalen();
+}
+function obenAbgleichen(){
+  if (window.abReglerAbgleichen) abReglerAbgleichen();
+  if (window.abGliderAlle) abGliderAlle();
+}
+
+function urlSchreiben(mitAufgabe){
+  var s = einstellungen(), p = new URLSearchParams();
+  Object.keys(KURZ).forEach(function(k){
+    if (String(s[k]) === String(STD[k])) return;
+    p.set(KURZ[k], (typeof s[k] === 'boolean') ? (s[k] ? '1' : '0') : s[k]);
+  });
+  if (mitAufgabe && A){
+    if (A.stil === 'verst') p.set('t', 'v_' + A.nr);
+    else p.set('t', [A.stil, A.P.map(function(z){ return Math.round(z * 1e6) / 1e6; }).join(',')].join('_'));
+  }
+  var qs = p.toString();
+  var url = location.origin + location.pathname + (qs ? '?' + qs : '');
+  if (window.abSeedFuerLink){ var ss = abSeedFuerLink(); if (ss) url += (qs ? '&' : '?') + 'seed=' + ss; }
+  return url;
+}
+function urlLesen(){
+  var p = new URLSearchParams(location.search), s = {};
+  Object.keys(STD).forEach(function(k){ s[k] = STD[k]; });
+  Object.keys(KURZ).forEach(function(k){
+    var v = p.get(KURZ[k]);
+    if (v === null) v = p.get(k);
+    if (v === null) return;
+    s[k] = (typeof STD[k] === 'boolean') ? (v === '1' || v === 'true') : v;
+  });
+  return s;
+}
+function linkKopieren(text, knopf){
+  if (window.abKopiere){ abKopiere(text, knopf, T('✓ Link kopiert', '✓ Link copied')); return; }
+  try { if (navigator.clipboard) navigator.clipboard.writeText(text); } catch (e) {}
+}
+
+/* ── 2. Aufgabe würfeln ─────────────────────────────────────────────────── */
+var A = null, richtig = 0, gesamt = 0;
+
+function pick(a){ return a[Math.floor(Math.random() * a.length)]; }
+function coin(p){ return Math.random() < (p === undefined ? 0.5 : p); }
+function ri(a, b){ return a + Math.floor(Math.random() * (b - a + 1)); }
+function rund(x){ return Math.round(x * 1e9) / 1e9; }
+
+function gradMax(){ var v = parseInt(radioWert('gradBis') || STD.gradBis, 10); return (v >= 1 && v <= 9) ? v : 5; }
+function zahlArt(){ return radioWert('zahlArt') || STD.zahlArt; }
+function wegArt(){ return radioWert('wegArt') || STD.wegArt; }
+
+/** Ein Vorfaktor nach der eingestellten Zahlenschwierigkeit. */
+function koeff(){
+  var k = ri(1, 6) * (coin() ? 1 : -1), art = zahlArt();
+  if (art === 'bruch' && coin(0.45)) return rund(k / pick([2, 3, 4]));
+  if (art === 'komma' && coin(0.45)) return rund(k + (k < 0 ? -0.5 : 0.5));
+  return k;
+}
+/** Welche Symmetrie hat das Polynom? P[i] ist der Faktor vor x^i. */
+function symArt(P){
+  var gerade = false, ungerade = false;
+  for (var e = 0; e < P.length; e++){
+    if (Math.abs(P[e] || 0) < 1e-12) continue;
+    if (e % 2 === 0) gerade = true; else ungerade = true;
+  }
+  if (!gerade && !ungerade) return 'achse';          /* die Nullfunktion */
+  if (gerade && ungerade) return 'keine';
+  return gerade ? 'achse' : 'punkt';
+}
+function pGrad(P){ for (var i = P.length - 1; i >= 0; i--) if (Math.abs(P[i] || 0) > 1e-12) return i; return 0; }
+function pWert(P, x){ var y = 0; for (var i = P.length - 1; i >= 0; i--) y = y * x + (P[i] || 0); return y; }
+function pMal(Aa, B){
+  var o = [];
+  for (var i = 0; i < Aa.length; i++) for (var j = 0; j < B.length; j++)
+    o[i + j] = rund((o[i + j] || 0) + Aa[i] * B[j]);
+  return o;
+}
+function pSkal(P, k){ return P.map(function(z){ return rund(z * k); }); }
+
+/** Ein Polynom zum gewünschten Fall würfeln. */
+function wuerfelPoly(fall){
+  var gmax = gradMax();
+  var gerade = [], ungerade = [];
+  for (var e = 0; e <= gmax; e++) (e % 2 === 0 ? gerade : ungerade).push(e);
+  var erlaubt, grad;
+  if (fall === 'achse'){
+    erlaubt = gerade.filter(function(e){ return e >= 2; });
+    grad = erlaubt.length ? pick(erlaubt) : 2;
+    erlaubt = gerade.filter(function(e){ return e <= grad; });
+  } else if (fall === 'punkt'){
+    erlaubt = ungerade.filter(function(e){ return e >= 1; });
+    grad = erlaubt.length ? pick(erlaubt) : 1;
+    erlaubt = ungerade.filter(function(e){ return e <= grad; });
+  } else {
+    grad = Math.max(2, ri(2, gmax));
+    erlaubt = [];
+    for (var k = 0; k <= grad; k++) erlaubt.push(k);
+  }
+  /* Den höchsten Exponenten immer nehmen, dazu ein bis zwei weitere. */
+  var rest = erlaubt.filter(function(e){ return e !== grad; });
+  var wie = Math.min(rest.length, (gmax >= 5 && coin(0.45)) ? 2 : 1);
+  var dabei = [grad];
+  for (var i = 0; i < wie; i++){
+    var w = pick(rest);
+    rest = rest.filter(function(e){ return e !== w; });
+    dabei.push(w);
+  }
+  if (fall === 'keine'){
+    /* Es muss wirklich gemischt sein - sonst wäre die Antwort eine andere. */
+    var hatG = dabei.some(function(e){ return e % 2 === 0; });
+    var hatU = dabei.some(function(e){ return e % 2 === 1; });
+    if (!hatG) dabei.push(pick(gerade.filter(function(e){ return e < grad; })) || 0);
+    if (!hatU) dabei.push(pick(ungerade.filter(function(e){ return e < grad; })) || 1);
+  }
+  var P = [];
+  for (var j = 0; j <= grad; j++) P[j] = 0;
+  dabei.forEach(function(e){ P[e] = koeff(); });
+  if (Math.abs(P[grad]) < 1e-12) P[grad] = koeff() || 1;
+  if (haken('mitFaktor') && coin(0.5)) P = pSkal(P, pick([2, 3, -2, -1]));
+  return P;
+}
+
+/** Eine faktorisierte Form mit der gewünschten Symmetrie. */
+function wuerfelFaktorisiert(fall){
+  var gmax = gradMax();
+  var a = haken('mitFaktor') && coin(0.6) ? pick([2, 3, -1, -2]) : 1;
+  var P = [a], teile = [];
+  if (a !== 1) teile.push({ art: 'zahl', k: a });
+  var rest = gmax;
+  /* Ein Paar (x − r)(x + r) ist achsensymmetrisch, ein einzelnes x ist
+     punktsymmetrisch - daraus lässt sich jeder Fall zusammensetzen. */
+  var paare = [];
+  var moeglich = [1, 2, 3, 4].filter(function(r){ return true; });
+  var wieviele = (rest >= 4) ? ri(1, 2) : 1;
+  for (var i = 0; i < wieviele && rest >= 2; i++){
+    var r = pick(moeglich);
+    moeglich = moeglich.filter(function(z){ return z !== r; });
+    paare.push(r); rest -= 2;
+    P = pMal(P, pMal([-r, 1], [r, 1]));
+    teile.push({ art: 'paar', r: r });
+  }
+  var xPot = 0;
+  if (fall === 'punkt'){ xPot = pick(rest >= 3 ? [1, 3] : [1]); }
+  else if (fall === 'achse'){ xPot = (rest >= 2 && coin(0.5)) ? 2 : 0; }
+  else { xPot = 0; }
+  if (xPot){ var xp = []; for (var m = 0; m < xPot; m++) xp = xp.length ? pMal(xp, [0, 1]) : [0, 1];
+             P = pMal(P, xp); teile.push({ art: 'x', n: xPot }); rest -= xPot; }
+  if (fall === 'keine'){
+    /* ein einzelner Linearfaktor bricht die Symmetrie */
+    var s = pick([1, 2, 3]);
+    P = pMal(P, [-s, 1]);
+    teile.push({ art: 'linear', r: s });
+  }
+  if (!teile.length){ P = pMal(P, pMal([-1, 1], [1, 1])); teile.push({ art: 'paar', r: 1 }); }
+  return { P: P, teile: teile };
+}
+
+function faktorTeX(teile){
+  return teile.map(function(t){
+    if (t.art === 'zahl') return pgZahl(t.k) + '\\cdot ';
+    if (t.art === 'x') return 'x' + (t.n > 1 ? '^{' + t.n + '}' : '') + '\\cdot ';
+    if (t.art === 'paar') return '\\left(x - ' + t.r + '\\right)\\cdot \\left(x + ' + t.r + '\\right)\\cdot ';
+    return '\\left(x - ' + t.r + '\\right)\\cdot ';
+  }).join('').replace(/\\cdot $/, '');
+}
+
+function neueAufgabe(){
+  if (window.abSeedNeu) abSeedNeu();
+  var stile = STILE.filter(haken);
+  if (!stile.length){ setzeHaken('stilGleichung', true); stile = ['stilGleichung']; kachelnMalen(); }
+  var stil = pick(stile).replace('stil', '').toLowerCase();   /* gleichung | graph | verst */
+  if (stil === 'verst'){ A = wuerfelFrage(); zeichne(); return; }
+  var fall = (window.abZiehe ? abZiehe(FAELLE) : pick(FAELLE.filter(haken)));
+  if (!fall){ setzeHaken('fallAchse', true); fall = 'fallAchse'; }
+  fall = fall.replace('fall', '').toLowerCase();              /* achse | punkt | keine */
+  var P, fakt = null;
+  if (stil === 'gleichung' && haken('mitFaktorisiert') && coin(0.45)){
+    var f = wuerfelFaktorisiert(fall);
+    P = f.P; fakt = f.teile;
+    if (symArt(P) !== fall) fakt = null;                      /* lieber ausmultipliziert */
+  }
+  if (!fakt) P = wuerfelPoly(fall);
+  if (symArt(P) !== fall && !fakt) P = wuerfelPoly(fall);
+  A = { stil: stil, P: P, fakt: fakt, art: symArt(P) };
+  zeichne();
+}
+
+/* ── 3. Zeichnen ────────────────────────────────────────────────────────── */
+/** Farben für die Hervorhebungen - im Dunkelmodus hellere Töne. */
+function DUNKEL(){ return document.documentElement.classList.contains('dark'); }
+var FARBEN = {
+  gerade:   function(){ return DUNKEL() ? '#7fb6ff' : '#1565c0'; },
+  ungerade: function(){ return DUNKEL() ? '#ffb27f' : '#c05a00'; },
+  passt:    function(){ return DUNKEL() ? '#81c784' : '#1a6a1a'; },
+  passtNicht: function(){ return DUNKEL() ? '#ef9a9a' : '#a01818'; }
+};
+function farbe(tex, c){ return c ? '{\\color{' + c + '}{' + tex + '}}' : tex; }
+
+/** Ein einzelner Summand ohne Vorzeichen. */
+function termTeX(k, e){
+  var abs = Math.abs(k), s = '';
+  if (e === 0) return pgZahl(abs);
+  if (Math.abs(abs - 1) > 1e-9) s = pgZahl(abs);
+  s += 'x' + (e > 1 ? '^{' + e + '}' : '');
+  return s;
+}
+/** Das ganze Polynom. opt.farbe(e, k) darf je Summand eine Farbe liefern. */
+function polyTeX(P, opt){
+  opt = opt || {};
+  var out = '', erst = true;
+  for (var e = P.length - 1; e >= 0; e--){
+    var k = P[e] || 0;
+    if (Math.abs(k) < 1e-12) continue;
+    var vz = (k < 0) ? '-' : (erst ? '' : '+');
+    var t = (vz ? (erst ? vz : vz + ' ') : '') + termTeX(k, e);
+    if (opt.farbe) t = farbe(t, opt.farbe(e, k));
+    out += (erst ? '' : ' ') + t;
+    erst = false;
+  }
+  return out || '0';
+}
+/** Dasselbe Polynom, aber mit \(-x\) an jeder Stelle von \(x\). */
+function minusTeX(P, opt){
+  opt = opt || {};
+  var out = '', erst = true;
+  for (var e = P.length - 1; e >= 0; e--){
+    var k = P[e] || 0;
+    if (Math.abs(k) < 1e-12) continue;
+    var vz = (k < 0) ? '-' : (erst ? '' : '+');
+    var abs = Math.abs(k), t = '';
+    if (e === 0) t = pgZahl(abs);
+    else {
+      if (Math.abs(abs - 1) > 1e-9) t = pgZahl(abs) + '\\cdot ';
+      t += '\\left(-x\\right)' + (e > 1 ? '^{' + e + '}' : '');
+    }
+    t = (vz ? (erst ? vz : vz + ' ') : '') + t;
+    if (opt.farbe) t = farbe(t, opt.farbe(e, k));
+    out += (erst ? '' : ' ') + t;
+    erst = false;
+  }
+  return out || '0';
+}
+/** f(−x): jeder Summand mit geradem Exponenten bleibt, jeder ungerade kippt. */
+function spiegelP(P){ return P.map(function(k, e){ return (e % 2 === 0) ? k : rund(-k); }); }
+
+function aufgabeTeX(){
+  if (!A) return '';
+  var rechts = A.fakt ? faktorTeX(A.fakt) : polyTeX(A.P);
+  return 'f(x) = ' + rechts;
+}
+function aufgabenText(){
+  if (!A) return '';
+  if (A.stil === 'verst') return '';
+  if (A.stil === 'graph')
+    return T('Die Zeichnung zeigt den Graphen einer Funktion. Welche Symmetrie hat er?',
+             'The drawing shows the graph of a function. Which symmetry does it have?');
+  return T('Untersuche die Funktion auf Symmetrie.', 'Investigate the function for symmetry.');
+}
+function artWort(art){
+  return art === 'achse' ? T('achsensymmetrisch zur \\(y\\)-Achse', 'symmetric about the \\(y\\)-axis')
+       : art === 'punkt' ? T('punktsymmetrisch zum Ursprung', 'symmetric about the origin')
+       : T('weder achsen- noch punktsymmetrisch', 'neither symmetry');
+}
+function artKurz(art){
+  return art === 'achse' ? T('achsensymmetrisch', 'axis-symmetric')
+       : art === 'punkt' ? T('punktsymmetrisch', 'point-symmetric')
+       : T('keine der beiden', 'neither');
+}
+
+function zeichne(){
+  if (!A) return;
+  document.getElementById('taskText').innerHTML = aufgabenText();
+  var task = document.getElementById('task'), gb = document.getElementById('graphBox');
+  gb.innerHTML = '';
+  if (A.stil === 'verst'){
+    task.innerHTML = '<p class="vfrage sym-frage">' + A.frage + '</p>';
+  } else if (A.stil === 'graph'){
+    task.innerHTML = '';
+    graphZeichnen(gb, A.P);
+  } else {
+    task.innerHTML = '\\[' + aufgabeTeX() + '\\]';
+  }
+  loesungZeichnen();
+  antwortZeichnen();
+  quizBauen();
+  var d = document.getElementById('dLoesung'); if (d) d.open = false;
+  var w = document.getElementById('dWeg');     if (w) w.open = false;
+  mj(document.getElementById('taskBox'));
+}
+/** Der Graph, am Ursprung zentriert - sonst sähe man die Symmetrie nicht. */
+function graphZeichnen(host, P){
+  if (!window.pgSkizze) return;
+  /* Der Ausschnitt wird so weit verkleinert, bis die Werte am Rand nicht mehr
+     davonlaufen - sonst drückt eine steile Potenz alles Übrige platt. */
+  var R = 3.2;
+  for (var i = 0; i < 24 && R > 1.2; i++){
+    if (Math.abs(pWert(P, R)) <= 10) break;
+    R = Math.round((R - 0.1) * 10) / 10;
+  }
+  pgSkizze(host, { f: function(x){ return pWert(P, x); }, xMin: -R, xMax: R, hoehe: 250 });
+}
+
+var mjKette = null;
+function mj(node){
+  if (!node) return;
+  var nachmessen = function(){
+    if (window.scaleToFit) node.querySelectorAll('.scale-el').forEach(function(e){ scaleToFit(e); });
+  };
+  if (!(window.MathJax && MathJax.typesetPromise)){ nachmessen(); return; }
+  mjKette = (mjKette || Promise.resolve()).then(function(){
+    var t = node.textContent || '';
+    if (t.indexOf('\\(') < 0 && t.indexOf('\\[') < 0) return null;
+    return MathJax.typesetPromise([node]);
+  }).then(function(){
+    nachmessen();
+    if (window.abFormelnPassen) abFormelnPassen(node);
+  }).catch(function(){});
+}
+
+function loesungZeichnen(){
+  var l = document.getElementById('loesung'), sk = document.getElementById('skizze');
+  if (!l) return;
+  if (A.stil === 'verst'){
+    l.innerHTML = '<p>' + A.opt[A.r] + '</p>';
+  } else {
+    l.innerHTML = '\\[\\text{' + artWort(A.art).replace(/\\\(|\\\)/g, '') + '}\\]';
+  }
+  sk.innerHTML = '';
+  if (A.stil !== 'verst' && A.stil !== 'graph' && haken('mitSkizze')) graphZeichnen(sk, A.P);
+  wegZeichnen();
+  mj(document.getElementById('dLoesung'));
+}
+
+/* ── Lösungsweg mit zwei Wegen ──────────────────────────────────────────── */
+function wegSchalterHTML(){
+  var w = wegArt();
+  return '<div class="weg-wahl"><span class="tc-label">' + T('Begründung', 'Reasoning') + '</span>'
+    + '<div class="seg klein">'
+    + '<label><input type="radio" name="wegSeg" value="exp"' + (w === 'exp' ? ' checked' : '') + '>'
+    + '<span>' + T('über die Exponenten', 'via the exponents') + '</span></label>'
+    + '<label><input type="radio" name="wegSeg" value="einsetzen"' + (w === 'einsetzen' ? ' checked' : '') + '>'
+    + '<span>' + T('über f(−x)', 'via f(−x)') + '</span></label></div></div>';
+}
+function legendeHTML(welche){
+  var s = '<div class="sym-legende">';
+  if (welche === 'exp'){
+    s += '<span><i class="sym-punkt" style="background:' + FARBEN.gerade() + '"></i>'
+       + T('gerader Exponent', 'even exponent') + '</span>'
+       + '<span><i class="sym-punkt" style="background:' + FARBEN.ungerade() + '"></i>'
+       + T('ungerader Exponent', 'odd exponent') + '</span>';
+  } else {
+    s += '<span><i class="sym-punkt" style="background:' + FARBEN.passt() + '"></i>'
+       + T('Vorzeichen bleibt', 'sign stays') + '</span>'
+       + '<span><i class="sym-punkt" style="background:' + FARBEN.passtNicht() + '"></i>'
+       + T('Vorzeichen kippt', 'sign flips') + '</span>';
+  }
+  return s + '</div>';
+}
+function wegZeichnen(){
+  var w = document.getElementById('weg');
+  if (!w || !A) return;
+  if (A.stil === 'verst'){
+    w.innerHTML = '<p>' + A.erkl + '</p>';
+    mj(w);
+    return;
+  }
+  var z = [wegSchalterHTML()];
+  if (wegArt() === 'exp') z = z.concat(wegExponenten());
+  else z = z.concat(wegEinsetzen());
+  w.innerHTML = z.join('');
+  /* Der Schalter schaltet sofort um, ohne eine neue Aufgabe zu ziehen. */
+  w.querySelectorAll('input[name="wegSeg"]').forEach(function(e){
+    e.addEventListener('change', function(){
+      radioSetzen('wegArt', e.value);
+      wegZeichnen();
+      if (window.abGliderAlle) abGliderAlle();
+    });
+  });
+  if (window.abGliderAlle) abGliderAlle();
+  mj(w);
+}
+/** Weg 1: an den Hochzahlen ablesen. */
+function wegExponenten(){
+  var z = [], P = A.P;
+  var exps = [];
+  for (var e = P.length - 1; e >= 0; e--) if (Math.abs(P[e] || 0) > 1e-12) exps.push(e);
+  var farbF = function(ex){ return (ex % 2 === 0) ? FARBEN.gerade() : FARBEN.ungerade(); };
+  z.push(legendeHTML('exp'));
+  if (A.fakt)
+    z.push('<p class="weg-schritt">' + T('Zuerst ausmultiplizieren:', 'First expand the brackets:')
+      + '</p>\\[f(x) = ' + faktorTeX(A.fakt) + ' = ' + polyTeX(P, { farbe: function(ex){ return farbF(ex); } }) + '\\]');
+  else
+    z.push('<p class="weg-schritt">' + T('Die Hochzahlen anschauen:', 'Look at the exponents:')
+      + '</p>\\[f(x) = ' + polyTeX(P, { farbe: function(ex){ return farbF(ex); } }) + '\\]');
+  z.push('<p class="weg-schritt">' + T('Vorkommende Exponenten: ', 'Exponents that occur: ')
+    + exps.map(function(ex){ return '\\(' + farbe(String(ex), farbF(ex)) + '\\)'; }).join(', ')
+    + T(' (die Zahl ganz hinten ist \\(x^{0}\\) – auch sie zählt als gerade)',
+        ' (a constant counts as \\(x^{0}\\) – that is even, too)') + '</p>');
+  if (A.art === 'achse')
+    z.push('<p class="weg-schritt">' + T('Alle Exponenten sind <b>gerade</b> – damit ist der Graph achsensymmetrisch zur \\(y\\)-Achse.',
+                                         'All exponents are <b>even</b> – so the graph is symmetric about the \\(y\\)-axis.') + '</p>');
+  else if (A.art === 'punkt')
+    z.push('<p class="weg-schritt">' + T('Alle Exponenten sind <b>ungerade</b> – damit ist der Graph punktsymmetrisch zum Ursprung.',
+                                         'All exponents are <b>odd</b> – so the graph is symmetric about the origin.') + '</p>');
+  else {
+    /* Störend ist die kleinere Gruppe; sind beide gleich groß, zählt die,
+       die nicht zum höchsten Exponenten passt. */
+    var g = exps.filter(function(ex){ return ex % 2 === 0; });
+    var u = exps.filter(function(ex){ return ex % 2 === 1; });
+    var stoerer = (g.length < u.length) ? g
+                : (u.length < g.length) ? u
+                : (exps[0] % 2 === 0 ? u : g);
+    z.push('<p class="weg-schritt">' + T('Es kommen <b>gerade und ungerade</b> Exponenten vor – damit liegt keine der beiden Symmetrien vor.',
+                                         'There are <b>even and odd</b> exponents – so neither symmetry holds.')
+      + (stoerer.length ? ' ' + T('Schon ', 'Already ')
+          + stoerer.map(function(ex){ return '\\(' + farbe(termTeX(P[ex], ex), FARBEN.passtNicht()) + '\\)'; }).join(', ')
+          + T(' passt nicht dazu.', ' does not fit.') : '') + '</p>');
+  }
+  z.push('<p class="weg-merke">' + T('Merke: nur gerade Hochzahlen → achsensymmetrisch, nur ungerade → punktsymmetrisch, gemischt → keine der beiden.',
+                                     'Remember: only even exponents → axis-symmetric, only odd → point-symmetric, mixed → neither.') + '</p>');
+  return z;
+}
+/** Weg 2: f(−x) ausrechnen und vergleichen. */
+function wegEinsetzen(){
+  var z = [], P = A.P, S = spiegelP(P);
+  var gleich = function(ex){ return Math.abs((P[ex] || 0) - (S[ex] || 0)) < 1e-12; };
+  z.push(legendeHTML('einsetzen'));
+  z.push('<p class="weg-schritt">' + T('\\(-x\\) einsetzen – bei geraden Hochzahlen hebt sich das Minus weg, bei ungeraden bleibt es:',
+                                       'Substitute \\(-x\\) – for even exponents the minus cancels, for odd ones it stays:')
+    + '</p>\\[f(-x) = ' + minusTeX(P, { farbe: function(ex){ return (ex % 2 === 0) ? FARBEN.passt() : FARBEN.passtNicht(); } }) + '\\]');
+  z.push('\\[f(-x) = ' + polyTeX(S, { farbe: function(ex){ return gleich(ex) ? FARBEN.passt() : FARBEN.passtNicht(); } }) + '\\]');
+  z.push('<p class="weg-schritt">' + T('Zum Vergleich:', 'For comparison:') + '</p>'
+    + '\\[\\begin{aligned} f(x) &= ' + polyTeX(P) + ' \\\\ -f(x) &= ' + polyTeX(pSkal(P, -1)) + ' \\end{aligned}\\]');
+  if (A.art === 'achse')
+    z.push('<p class="weg-schritt">' + T('Es gilt \\(f(-x) = f(x)\\): <b>kein</b> Vorzeichen hat sich geändert – der Graph ist achsensymmetrisch zur \\(y\\)-Achse.',
+                                         'We get \\(f(-x) = f(x)\\): <b>no</b> sign has changed – the graph is symmetric about the \\(y\\)-axis.') + '</p>');
+  else if (A.art === 'punkt')
+    z.push('<p class="weg-schritt">' + T('Es gilt \\(f(-x) = -f(x)\\): <b>alle</b> Vorzeichen haben sich gedreht – der Graph ist punktsymmetrisch zum Ursprung.',
+                                         'We get \\(f(-x) = -f(x)\\): <b>all</b> signs have flipped – the graph is symmetric about the origin.') + '</p>');
+  else {
+    var hin = [], her = [];
+    for (var e = 0; e < P.length; e++){
+      if (Math.abs(P[e] || 0) < 1e-12) continue;
+      (gleich(e) ? hin : her).push(termTeX(P[e], e));
+    }
+    z.push('<p class="weg-schritt">' + T('Ein Teil der Vorzeichen bleibt, ein anderer dreht sich: ', 'Some signs stay, others flip: ')
+      + (hin.length ? '\\(' + farbe(hin.join(',\\;'), FARBEN.passt()) + '\\)' : '')
+      + (hin.length && her.length ? T(' bleibt, ', ' stays, ') : '')
+      + (her.length ? '\\(' + farbe(her.join(',\\;'), FARBEN.passtNicht()) + '\\)' : '')
+      + T(' kippt. Damit ist \\(f(-x)\\) weder \\(f(x)\\) noch \\(-f(x)\\) – es liegt keine der beiden Symmetrien vor.',
+          ' flips. So \\(f(-x)\\) is neither \\(f(x)\\) nor \\(-f(x)\\) – neither symmetry holds.') + '</p>');
+  }
+  z.push('<p class="weg-merke">' + T('Merke: \\(f(-x) = f(x)\\) heißt achsensymmetrisch, \\(f(-x) = -f(x)\\) punktsymmetrisch.',
+                                     'Remember: \\(f(-x) = f(x)\\) means axis-symmetric, \\(f(-x) = -f(x)\\) point-symmetric.') + '</p>');
+  return z;
+}
+
+/* ── 4. Eigene Lösung eingeben ──────────────────────────────────────────── */
+function zaehle(ok){
+  gesamt++; if (ok) richtig++;
+  var c = document.getElementById('counter');
+  if (c) c.textContent = T('Richtig: ', 'Correct: ') + richtig + ' / ' + gesamt;
+}
+function antwortZeichnen(){
+  var host = document.getElementById('antwortBereich');
+  host.innerHTML = ''; host.className = '';
+  if (!A) return;
+  var frage = document.createElement('div');
+  frage.className = 'pg-frage';
+  var knoepfe = document.createElement('div');
+  knoepfe.className = 'pg-jn';
+  var fb = document.createElement('div');
+  fb.className = 'pg-fb';
+  var paare, richtigWert;
+  if (A.stil === 'verst'){
+    frage.innerHTML = T('Welche Antwort stimmt?', 'Which answer is correct?');
+    paare = A.opt.map(function(t, i){ return [i, t]; });
+    richtigWert = A.r;
+  } else {
+    frage.innerHTML = T('Welche Symmetrie liegt vor?', 'Which symmetry is there?');
+    paare = [['achse', artKurz('achse')], ['punkt', artKurz('punkt')], ['keine', artKurz('keine')]];
+    richtigWert = A.art;
+  }
+  paare.forEach(function(pp){
+    var b = document.createElement('button');
+    b.type = 'button'; b.className = 'pg-wahl-knopf';
+    b.innerHTML = pp[1];
+    b.addEventListener('click', function(){
+      if (b.disabled) return;
+      if (pp[0] === richtigWert){
+        b.classList.add('ok');
+        fb.className = 'pg-fb ok'; fb.textContent = T('✓ Richtig!', '✓ Correct!');
+        zaehle(true);
+        [].forEach.call(knoepfe.children, function(x){ x.disabled = true; });
+      } else {
+        b.classList.add('err');
+        fb.className = 'pg-fb err';
+        fb.innerHTML = T('Das stimmt nicht – sieh dir die Lösung an.', 'That is not right – have a look at the solution.');
+        zaehle(false);
+      }
+      mj(fb);
+    });
+    knoepfe.appendChild(b);
+  });
+  host.className = 'pg-antwort';
+  host.appendChild(frage); host.appendChild(knoepfe); host.appendChild(fb);
+  mj(host);
+}
+
+/* ── 5. Quiz ────────────────────────────────────────────────────────────── */
+function quizBauen(){
+  var host = document.getElementById('quizArea');
+  if (!host || !window.pgQuiz || !A) return;
+  var schritte = [];
+  if (A.stil === 'verst'){
+    schritte.push({ titel: T('Überlegen', 'Think it through'), art: 'wahl',
+      frage: A.frage, optionen: A.opt, richtig: A.r,
+      kurz: false,
+      hilfe: [A.hinw || T('Geh von der Definition aus.', 'Start from the definition.')] });
+    pgQuiz(host, schritte, {});
+    return;
+  }
+  if (A.stil === 'graph'){
+    schritte.push({ titel: T('Spiegeln', 'Reflecting'), art: 'wahl',
+      frage: T('Spiegle den Graphen an der \\(y\\)-Achse. Was passiert?',
+               'Reflect the graph in the \\(y\\)-axis. What happens?'),
+      optionen: [T('Er liegt genau auf sich selbst.', 'It lands exactly on itself.'),
+                 T('Er liegt auf dem an der \\(x\\)-Achse gespiegelten Graphen.', 'It lands on the graph reflected in the \\(x\\)-axis.'),
+                 T('Weder noch.', 'Neither.')],
+      richtig: (A.art === 'achse') ? 0 : (A.art === 'punkt' ? 1 : 2),
+      kurz: artKurz(A.art),
+      falschText: T('Sieh genau hin: Was liegt links von der \\(y\\)-Achse, und was rechts?',
+                    'Look closely: what is to the left of the \\(y\\)-axis, and what to the right?'),
+      hilfe: [T('Achsensymmetrisch heißt: die linke Hälfte ist das Spiegelbild der rechten.',
+                'Axis-symmetric means: the left half is the mirror image of the right.'),
+              T('Punktsymmetrisch heißt: dreht man das Blatt um 180° um den Ursprung, sieht alles gleich aus.',
+                'Point-symmetric means: turning the sheet by 180° about the origin changes nothing.')] });
+    schritte.push({ titel: T('Benennen', 'Name it'), art: 'wahl',
+      frage: T('Welche Symmetrie ist das?', 'Which symmetry is that?'),
+      optionen: [artKurz('achse'), artKurz('punkt'), artKurz('keine')],
+      richtig: (A.art === 'achse') ? 0 : (A.art === 'punkt' ? 1 : 2),
+      kurz: false,
+      hilfe: [T('Spiegeln an der \\(y\\)-Achse → Achsensymmetrie. Drehen um den Ursprung → Punktsymmetrie.',
+                'Mirror in the \\(y\\)-axis → axis symmetry. Rotation about the origin → point symmetry.')] });
+    pgQuiz(host, schritte, {});
+    return;
+  }
+  /* Symmetrie an der Gleichung - je nach eingestelltem Weg */
+  if (A.fakt){
+    schritte.push({ titel: T('Ausmultiplizieren', 'Expanding'), art: 'info',
+      frage: T('Die Klammern stehen im Weg. Multipliziert ergibt sich \\(f(x) = ', 'The brackets are in the way. Expanded, \\(f(x) = ')
+        + polyTeX(A.P) + '\\).',
+      kurz: 'f(x) = ' + polyTeX(A.P) });
+  }
+  if (wegArt() === 'exp'){
+    var exps = [];
+    for (var e = A.P.length - 1; e >= 0; e--) if (Math.abs(A.P[e] || 0) > 1e-12) exps.push(e);
+    var nurG = exps.every(function(x){ return x % 2 === 0; });
+    var nurU = exps.every(function(x){ return x % 2 === 1; });
+    schritte.push({ titel: T('Exponenten', 'Exponents'), art: 'wahl',
+      frage: T('Welche Hochzahlen kommen vor?', 'Which exponents occur?'),
+      optionen: [T('nur gerade', 'only even'), T('nur ungerade', 'only odd'), T('gerade und ungerade', 'even and odd')],
+      richtig: nurG ? 0 : (nurU ? 1 : 2),
+      kurz: exps.slice().reverse().join(', '),
+      falschText: T('Denk an die Zahl ganz hinten: sie gehört zu \\(x^{0}\\) und ist damit gerade.',
+                    'Remember the constant: it belongs to \\(x^{0}\\) and is therefore even.'),
+      hilfe: [T('Schreibe die Hochzahlen aller Summanden auf – auch die \\(0\\) einer einzelnen Zahl.',
+                'Write down the exponent of every term – including the \\(0\\) of a constant.')] });
+  } else {
+    var S = spiegelP(A.P);
+    schritte.push({ titel: T('Einsetzen', 'Substituting'), art: 'wahl',
+      frage: T('Was ergibt \\(f(-x)\\)?', 'What is \\(f(-x)\\)?'),
+      optionen: [ '\\(' + polyTeX(S) + '\\)', '\\(' + polyTeX(A.P) + '\\)', '\\(' + polyTeX(pSkal(A.P, -1)) + '\\)' ]
+        .map(function(t){ return t; }),
+      richtig: 0,
+      kurz: 'f(-x) = ' + polyTeX(S),
+      falschText: T('Bei geraden Hochzahlen hebt sich das Minus weg, bei ungeraden bleibt es stehen.',
+                    'For even exponents the minus cancels, for odd ones it remains.'),
+      hilfe: [T('Setze in jedem Summanden \\(-x\\) statt \\(x\\) ein.', 'Replace \\(x\\) by \\(-x\\) in every term.'),
+              T('\\(\\left(-x\\right)^{2} = x^{2}\\), aber \\(\\left(-x\\right)^{3} = -x^{3}\\).',
+                '\\(\\left(-x\\right)^{2} = x^{2}\\), but \\(\\left(-x\\right)^{3} = -x^{3}\\).')] });
+  }
+  schritte.push({ titel: T('Entscheiden', 'Deciding'), art: 'wahl',
+    frage: T('Welche Symmetrie liegt also vor?', 'So which symmetry is there?'),
+    optionen: [artKurz('achse'), artKurz('punkt'), artKurz('keine')],
+    richtig: (A.art === 'achse') ? 0 : (A.art === 'punkt' ? 1 : 2),
+    kurz: false,
+    hilfe: [T('Nur gerade Hochzahlen bzw. \\(f(-x) = f(x)\\) → achsensymmetrisch.',
+              'Only even exponents, i.e. \\(f(-x) = f(x)\\) → axis-symmetric.'),
+            T('Nur ungerade Hochzahlen bzw. \\(f(-x) = -f(x)\\) → punktsymmetrisch.',
+              'Only odd exponents, i.e. \\(f(-x) = -f(x)\\) → point-symmetric.')] });
+  pgQuiz(host, schritte, { gleichung: A.fakt ? faktorTeX(A.fakt) : polyTeX(A.P) });
+}
+
+/* ── 6. Verständnisfragen ───────────────────────────────────────────────── */
+var VFRAGEN = [
+  { f: 'Was bedeutet „achsensymmetrisch zur \\(y\\)-Achse“ für den Graphen?', s: 1,
+    o: ['Die linke Hälfte ist das Spiegelbild der rechten.',
+        'Der Graph liegt ganz oberhalb der \\(x\\)-Achse.',
+        'Der Graph geht durch den Ursprung.',
+        'Der Graph ist eine Gerade.'], r: 0,
+    e: 'Spiegelt man den Graphen an der \\(y\\)-Achse, liegt er genau auf sich selbst.' },
+  { f: 'Was bedeutet „punktsymmetrisch zum Ursprung“ für den Graphen?', s: 1,
+    o: ['Dreht man ihn um 180° um den Ursprung, sieht alles gleich aus.',
+        'Er ist überall gleich steil.',
+        'Er schneidet die \\(y\\)-Achse zweimal.',
+        'Er liegt im ersten Quadranten.'], r: 0,
+    e: 'Punktsymmetrie zum Ursprung ist eine Drehung um 180°: zu jedem Punkt \\((x|y)\\) gehört auch \\((-x|-y)\\).' },
+  { f: 'Welche dieser Funktionen ist achsensymmetrisch zur \\(y\\)-Achse?', s: 1,
+    o: ['\\(f(x) = x^{4} - 3x^{2}\\)', '\\(f(x) = x^{3} - 2x\\)',
+        '\\(f(x) = x^{2} + x\\)', '\\(f(x) = x^{3} + 1\\)'], r: 0,
+    e: 'Nur gerade Hochzahlen – das ist genau die Bedingung für Achsensymmetrie zur \\(y\\)-Achse.' },
+  { f: 'Wie weist man Achsensymmetrie zur \\(y\\)-Achse rechnerisch nach?', s: 2,
+    o: ['Man zeigt \\(f(-x) = f(x)\\).', 'Man zeigt \\(f(-x) = -f(x)\\).',
+        'Man zeigt \\(f(0) = 0\\).', 'Man zeigt \\(f\'(x) = 0\\).'], r: 0,
+    e: 'Achsensymmetrie heißt: an der Stelle \\(-x\\) steht derselbe Funktionswert wie an der Stelle \\(x\\).' },
+  { f: 'Wie weist man Punktsymmetrie zum Ursprung rechnerisch nach?', s: 2,
+    o: ['Man zeigt \\(f(-x) = -f(x)\\).', 'Man zeigt \\(f(-x) = f(x)\\).',
+        'Man zeigt \\(f(1) = -f(1)\\).', 'Man zeigt, dass der Grad ungerade ist.'], r: 0,
+    e: 'Punktsymmetrie heißt: an der Stelle \\(-x\\) steht der entgegengesetzte Funktionswert. Ein ungerader Grad allein reicht nicht – \\(x^{3}+1\\) ist nicht punktsymmetrisch.' },
+  { f: 'Woran erkennt man die Symmetrie eines Polynoms an den Exponenten?', s: 2,
+    o: ['nur gerade → achsensymmetrisch, nur ungerade → punktsymmetrisch',
+        'nur gerade → punktsymmetrisch, nur ungerade → achsensymmetrisch',
+        'am höchsten Exponenten allein',
+        'am Vorzeichen des höchsten Vorfaktors'], r: 0,
+    e: 'Jeder Summand mit gerader Hochzahl ist für sich achsensymmetrisch, jeder mit ungerader punktsymmetrisch. Gemischt passt keines von beiden.' },
+  { f: 'Ist \\(f(x) = x^{3} + 1\\) punktsymmetrisch zum Ursprung?', s: 2,
+    o: ['Nein – die \\(1\\) gehört zu \\(x^{0}\\) und ist damit ein gerader Summand.',
+        'Ja – der Grad ist ungerade.',
+        'Ja – jedes \\(x^{3}\\) ist punktsymmetrisch.',
+        'Nur für \\(x > 0\\).'], r: 0,
+    e: 'Die Zahl \\(1\\) ist der Summand \\(1\\cdot x^{0}\\). Damit kommen gerade und ungerade Hochzahlen vor – keine Symmetrie.' },
+  { f: '\\(f\\) ist punktsymmetrisch zum Ursprung. Was folgt für \\(f(0)\\)?', s: 2,
+    o: ['\\(f(0) = 0\\)', '\\(f(0) = 1\\)', '\\(f(0)\\) kann alles sein.', '\\(f(0)\\) ist nicht definiert.'], r: 0,
+    e: 'Aus \\(f(-0) = -f(0)\\) folgt \\(f(0) = -f(0)\\), also \\(f(0) = 0\\): der Graph geht durch den Ursprung.' },
+  { f: '\\(f\\) ist punktsymmetrisch zum Ursprung und \\(f(2) = 5\\). Wie groß ist \\(f(-2)\\)?', s: 3,
+    o: ['\\(-5\\)', '\\(5\\)', '\\(\\frac{1}{5}\\)', 'Das lässt sich nicht sagen.'], r: 0,
+    e: 'Punktsymmetrie heißt \\(f(-x) = -f(x)\\), also \\(f(-2) = -f(2) = -5\\).' },
+  { f: '\\(f\\) ist achsensymmetrisch zur \\(y\\)-Achse und \\(f(3) = -4\\). Wie groß ist \\(f(-3)\\)?', s: 3,
+    o: ['\\(-4\\)', '\\(4\\)', '\\(0\\)', 'Das lässt sich nicht sagen.'], r: 0,
+    e: 'Achsensymmetrie heißt \\(f(-x) = f(x)\\), also \\(f(-3) = f(3) = -4\\).' },
+  { f: '\\(f\\) ist achsensymmetrisch zur \\(y\\)-Achse und hat bei \\(x = 3\\) einen Hochpunkt. Was gilt bei \\(x = -3\\)?', s: 3,
+    o: ['Dort liegt ebenfalls ein Hochpunkt, und zwar gleich hoch.',
+        'Dort liegt ein Tiefpunkt.',
+        'Dort liegt ein Sattelpunkt.',
+        'Darüber lässt sich nichts sagen.'], r: 0,
+    e: 'Die Spiegelung an der \\(y\\)-Achse bildet den Hochpunkt auf einen Hochpunkt mit demselben Funktionswert ab.' },
+  { f: '\\(f\\) ist punktsymmetrisch zum Ursprung und hat bei \\(x = 2\\) einen Hochpunkt. Was gilt bei \\(x = -2\\)?', s: 3,
+    o: ['Dort liegt ein Tiefpunkt.',
+        'Dort liegt ebenfalls ein Hochpunkt.',
+        'Dort liegt eine Nullstelle.',
+        'Darüber lässt sich nichts sagen.'], r: 0,
+    e: 'Die Drehung um 180° macht aus einem Hochpunkt einen Tiefpunkt – mit dem entgegengesetzten Funktionswert.' },
+  { f: '\\(f\\) ist achsensymmetrisch zur \\(y\\)-Achse und hat bei \\(x = 1\\) eine Nullstelle. Wo liegt eine weitere?', s: 3,
+    o: ['bei \\(x = -1\\)', 'bei \\(x = 0\\)', 'bei \\(x = 2\\)', 'Das lässt sich nicht sagen.'], r: 0,
+    e: 'Mit \\(f(1) = 0\\) ist auch \\(f(-1) = f(1) = 0\\): Nullstellen treten paarweise auf.' },
+  { f: '\\(f\\) ist ein Polynom und punktsymmetrisch zum Ursprung. Was gilt für das absolute Glied?', s: 3,
+    o: ['Es ist \\(0\\).', 'Es ist positiv.', 'Es ist gleich dem höchsten Vorfaktor.', 'Es ist beliebig.'], r: 0,
+    e: 'Das absolute Glied gehört zu \\(x^{0}\\) – einer geraden Hochzahl. Bei Punktsymmetrie darf es nicht vorkommen.' },
+  { f: '\\(u\\) und \\(v\\) sind punktsymmetrisch zum Ursprung. Was gilt für \\(u\\cdot v\\)?', s: 4,
+    o: ['\\(u\\cdot v\\) ist achsensymmetrisch zur \\(y\\)-Achse.',
+        '\\(u\\cdot v\\) ist punktsymmetrisch zum Ursprung.',
+        '\\(u\\cdot v\\) hat keine Symmetrie.',
+        'Das hängt vom Grad ab.'], r: 0,
+    e: '\\(u(-x)\\cdot v(-x) = \\left(-u(x)\\right)\\cdot\\left(-v(x)\\right) = u(x)\\cdot v(x)\\) – die beiden Minus heben sich auf.' },
+  { f: '\\(u\\) ist achsensymmetrisch, \\(v\\) punktsymmetrisch. Was gilt für \\(u\\cdot v\\)?', s: 4,
+    o: ['\\(u\\cdot v\\) ist punktsymmetrisch zum Ursprung.',
+        '\\(u\\cdot v\\) ist achsensymmetrisch zur \\(y\\)-Achse.',
+        '\\(u\\cdot v\\) ist beides.',
+        '\\(u\\cdot v\\) hat keine Symmetrie.'], r: 0,
+    e: '\\(u(-x)\\cdot v(-x) = u(x)\\cdot\\left(-v(x)\\right) = -\\left(u(x)\\cdot v(x)\\right)\\) – genau die Bedingung für Punktsymmetrie.' },
+  { f: '\\(u\\) und \\(v\\) sind beide achsensymmetrisch zur \\(y\\)-Achse. Was gilt für \\(u + v\\)?', s: 4,
+    o: ['\\(u + v\\) ist achsensymmetrisch zur \\(y\\)-Achse.',
+        '\\(u + v\\) ist punktsymmetrisch zum Ursprung.',
+        '\\(u + v\\) hat keine Symmetrie.',
+        'Das hängt von den Vorfaktoren ab.'], r: 0,
+    e: '\\(u(-x) + v(-x) = u(x) + v(x)\\): die Summe erbt die Symmetrie.' },
+  { f: '\\(f\\) ist achsensymmetrisch zur \\(y\\)-Achse. Was gilt für die Ableitung \\(f\'\\)?', s: 4,
+    o: ['\\(f\'\\) ist punktsymmetrisch zum Ursprung.',
+        '\\(f\'\\) ist ebenfalls achsensymmetrisch.',
+        '\\(f\'\\) hat keine Symmetrie.',
+        '\\(f\'\\) ist konstant.'], r: 0,
+    e: 'Aus jeder geraden Hochzahl wird beim Ableiten eine ungerade – aus \\(x^{4}\\) wird \\(4x^{3}\\). Deshalb kippt die Symmetrie.' },
+  { f: 'Kann eine Funktion gleichzeitig achsensymmetrisch zur \\(y\\)-Achse und punktsymmetrisch zum Ursprung sein?', s: 4,
+    o: ['Ja, aber nur die Funktion \\(f(x) = 0\\).',
+        'Nein, nie.',
+        'Ja, jede Funktion geraden Grades.',
+        'Ja, jede Funktion, die durch den Ursprung geht.'], r: 0,
+    e: 'Aus \\(f(x) = f(-x) = -f(x)\\) folgt \\(f(x) = 0\\) für alle \\(x\\) – nur die Nullfunktion erfüllt beides.' }
+];
+/** Fragen, die zur eingestellten Stufe passen: Stufe k heißt, dass die Frage
+    ab dieser Stufe vorkommt. */
+var STUFEN_NR = { einf: 1, leicht: 2, normal: 3, schwer: 4, indiv: 4 };
+function fragenZurStufe(){
+  var n = STUFEN_NR[radioWert('diff') || STD.diff] || 4;
+  var passend = VFRAGEN.filter(function(f){ return (f.s || 1) <= n; });
+  return passend.length ? passend : VFRAGEN;
+}
+function wuerfelFrage(nr){
+  var liste = fragenZurStufe();
+  var f = (nr != null && VFRAGEN[nr]) ? VFRAGEN[nr] : pick(liste);
+  var idx = VFRAGEN.indexOf(f);
+  /* Die Antworten werden gemischt - sonst steht die richtige immer vorn. */
+  var paare = f.o.map(function(t, i){ return { t: t, i: i }; });
+  for (var k = paare.length - 1; k > 0; k--){
+    var j = Math.floor(Math.random() * (k + 1));
+    var h = paare[k]; paare[k] = paare[j]; paare[j] = h;
+  }
+  return { stil: 'verst', nr: idx, frage: f.f, opt: paare.map(function(p){ return p.t; }),
+           r: paare.findIndex(function(p){ return p.i === f.r; }),
+           erkl: f.e, hinw: f.h, art: 'verst', P: [0] };
+}
+
+/* ── 7. Verdrahtung ─────────────────────────────────────────────────────── */
+var KACHELN = STILE.map(function(id){ return { haupt: id, nurDieser: true }; });
+function kachelnMalen(){
+  if (window.abKachelnMalen){
+    abKachelnMalen(document.getElementById('segStile'));
+    abKachelnMalen(document.getElementById('segFaelle'));
+  }
+  var n = STILE.filter(haken).length;
+  var z = document.getElementById('stilZahl');
+  if (z) z.textContent = ' (' + n + '/' + STILE.length + ')';
+  var alle = document.getElementById('stilAlle');
+  if (alle) alle.textContent = (n === STILE.length) ? T('keine', 'none') : T('alle', 'all');
+}
+
+/** Eine eingetippte Funktionsgleichung übernehmen. */
+function termLesen(txt){
+  var s = String(txt == null ? '' : txt).toLowerCase();
+  s = s.replace(/\s+/g, '')
+       .replace(/[·⋅×]/g, '*')
+       .replace(/[–—−]/g, '-')
+       .replace(/,/g, '.')
+       .replace(/⁰/g, '^0').replace(/¹/g, '^1').replace(/²/g, '^2').replace(/³/g, '^3')
+       .replace(/⁴/g, '^4').replace(/⁵/g, '^5').replace(/⁶/g, '^6').replace(/⁷/g, '^7')
+       .replace(/⁸/g, '^8').replace(/⁹/g, '^9');
+  s = s.replace(/^[a-z]\([a-z]\)=/, '').replace(/^[a-z]=/, '');
+  if (!s) return null;
+  var re = /^(-?)([0-9]*\.?[0-9]*)(?:\/([0-9]*\.?[0-9]+))?\*?(?:(x)(?:\^([0-9]+))?)?$/;
+  var teile = s.replace(/-/g, '+-').split('+').filter(function(x){ return x !== ''; });
+  if (!teile.length) return null;
+  var P = [];
+  for (var i = 0; i < teile.length; i++){
+    var m = teile[i].match(re);
+    if (!m) return null;
+    if (m[2] === '' && !m[4]) return null;
+    var vz = (m[1] === '-') ? -1 : 1;
+    var z = (m[2] === '' || m[2] === '.') ? 1 : parseFloat(m[2]);
+    if (m[3] != null) z = z / parseFloat(m[3]);
+    if (!isFinite(z)) return null;
+    var ex = m[4] ? (m[5] != null ? parseInt(m[5], 10) : 1) : 0;
+    if (ex > 12) return null;
+    P[ex] = rund((P[ex] || 0) + vz * z);
+  }
+  for (var k = 0; k < P.length; k++) if (P[k] == null) P[k] = 0;
+  while (P.length > 1 && Math.abs(P[P.length - 1]) < 1e-12) P.pop();
+  return P.length ? P : [0];
+}
+function eigeneUebernehmen(){
+  var feld = document.getElementById('eigeneEingabe');
+  var meld = document.getElementById('eigeneMeldung');
+  var P = termLesen(feld.value);
+  if (!P){
+    meld.className = 'meld err';
+    meld.textContent = T('Das konnte ich nicht lesen. Beispiel: x^4-3x^2+1',
+                         'I could not read that. Example: x^4-3x^2+1');
+    return;
+  }
+  meld.className = 'meld';
+  meld.textContent = '';
+  A = { stil: 'gleichung', P: P, fakt: null, art: symArt(P) };
+  zeichne();
+  document.getElementById('manualPanel').hidden = true;
+  var mk = document.getElementById('manualBtn'); if (mk) mk.classList.remove('on');
+}
+/** Eine Aufgabe aus der Adresszeile. */
+function aufgabeAusURL(){
+  var t = new URLSearchParams(location.search).get('t');
+  if (!t) return false;
+  var teil = t.split('_');
+  if (teil[0] === 'v'){ A = wuerfelFrage(parseInt(teil[1], 10)); zeichne(); return true; }
+  var P = (teil[1] || '').split(',').map(Number);
+  if (!P.length || P.some(function(z){ return !isFinite(z); })) return false;
+  A = { stil: (teil[0] === 'graph') ? 'graph' : 'gleichung', P: P, fakt: null, art: symArt(P) };
+  zeichne();
+  return true;
+}
+
+window.addEventListener('load', function(){
+  einstellungenSetzen(urlLesen());
+  if (window.abSeedAusURL) abSeedAusURL();
+  if (window.abKacheln) abKacheln(document.getElementById('segStile'), KACHELN, function(){
+    kachelnMalen(); neueAufgabe();
+  });
+  kachelnMalen();
+  if (window.abPillen) abPillen(document.getElementById('segFaelle'),
+    FAELLE.map(function(id){ return { haupt: id }; }), function(){
+      if (!FAELLE.filter(haken).length) setzeHaken('fallAchse', true);
+      obenAbgleichen(); aufIndividuell(); kachelnMalen(); neueAufgabe();
+    });
+  document.querySelectorAll('.slider-row input[type="range"]').forEach(function(e){
+    e.addEventListener('change', function(){ aufIndividuell(); neueAufgabe(); });
+  });
+  FAELLE.forEach(function(id){
+    var e = document.getElementById(id);
+    if (e) e.addEventListener('change', function(){
+      if (!FAELLE.filter(haken).length) setzeHaken('fallAchse', true);
+      obenAbgleichen(); aufIndividuell(); kachelnMalen(); neueAufgabe();
+    });
+  });
+  STILE.forEach(function(id){
+    var e = document.getElementById(id);
+    if (e) e.addEventListener('change', function(){ kachelnMalen(); neueAufgabe(); });
+  });
+  document.querySelectorAll('input[name="gradBis"], input[name="zahlArt"], #mitFaktor, #mitFaktorisiert')
+    .forEach(function(e){ e.addEventListener('change', function(){ aufIndividuell(); neueAufgabe(); }); });
+  document.querySelectorAll('input[name="wegArt"], #mitSkizze').forEach(function(e){
+    e.addEventListener('change', function(){ if (A){ loesungZeichnen(); quizBauen(); } });
+  });
+  document.querySelectorAll('input[name="diff"]').forEach(function(e){
+    e.addEventListener('change', function(){
+      if (e.value !== 'indiv') stufeAnwenden(e.value);
+      neueAufgabe();
+      if (e.value === 'indiv' && window.abEinstellungenOeffnen) abEinstellungenOeffnen('#dSettings');
+    });
+  });
+  var alle = document.getElementById('stilAlle');
+  if (alle) alle.addEventListener('click', function(){
+    var an = STILE.filter(haken).length < STILE.length;
+    STILE.forEach(function(id){ setzeHaken(id, an); });
+    if (!STILE.filter(haken).length) setzeHaken('stilGleichung', true);
+    kachelnMalen(); neueAufgabe();
+  });
+  document.getElementById('genBtn').addEventListener('click', function(){ neueAufgabe(); });
+  document.getElementById('btnShare').addEventListener('click', function(){ linkKopieren(urlSchreiben(false), this); });
+  document.getElementById('btnTeilen').addEventListener('click', function(){ linkKopieren(urlSchreiben(true), this); });
+  document.getElementById('btnReset').addEventListener('click', function(){
+    VON_HAND = {};
+    var s = {}; Object.keys(STD).forEach(function(k){ s[k] = STD[k]; });
+    einstellungenSetzen(s); neueAufgabe();
+  });
+  var mKnopf = document.getElementById('manualBtn');
+  var mFeld  = document.getElementById('manualPanel');
+  function manualAuf(zeigen){
+    if (!mFeld) return;
+    mFeld.hidden = !zeigen;
+    if (mKnopf) mKnopf.classList.toggle('on', !!zeigen);
+    if (zeigen){ var e = document.getElementById('eigeneEingabe'); if (e){ try { e.focus(); } catch (x) {} } }
+  }
+  if (mKnopf) mKnopf.addEventListener('click', function(){ manualAuf(mFeld.hidden); });
+  var mAb = document.getElementById('eigeneAbbruch');
+  if (mAb) mAb.addEventListener('click', function(){ manualAuf(false); });
+  document.getElementById('eigeneBtn').addEventListener('click', eigeneUebernehmen);
+  document.getElementById('eigeneEingabe').addEventListener('keydown', function(ev){
+    if (ev.key === 'Enter') eigeneUebernehmen();
+  });
+  document.getElementById('btnPunkteReset').addEventListener('click', function(){
+    richtig = 0; gesamt = 0;
+    document.getElementById('counter').textContent = T('Richtig: ', 'Correct: ') + '0 / 0';
+  });
+  document.getElementById('dWeg').addEventListener('toggle', function(){
+    if (this.open) mj(document.getElementById('weg'));
+  });
+  document.getElementById('dLoesung').addEventListener('toggle', function(){
+    if (this.open) mj(document.getElementById('dLoesung'));
+  });
+
+  if (!aufgabeAusURL()) neueAufgabe();
+});
+
+/* Sprach- und Themewechsel: dieselbe Aufgabe neu beschriften. */
+function neuZeichnen(){ if (A) zeichne(); kachelnMalen(); }
+window.addEventListener('tl-sprache', neuZeichnen);
+window.addEventListener('tl-theme',   function(){ if (A) loesungZeichnen(); });
+
+/* Beim Klick auf „Fehler melden": Aufgabenstil und aktuelle Funktion */
+window.fehlerKontext = function(){
+  var el = document.getElementById('task');
+  var aufgabe = el ? ((typeof tlFormelText === 'function') ? tlFormelText(el) : el.innerText) : '';
+  return [A ? A.stil : '', aufgabe].filter(Boolean).join(' \u00b7 ');
+};
+</script>
+</body>
+</html>

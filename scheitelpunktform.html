@@ -3,20 +3,27 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Normalform ⇄ Scheitelpunktform</title>
+<link rel="shortcut icon" type="image/x-icon" href="aleph_zero_logo.ico">
+<script>try{var t=localStorage.getItem('matheToolsTheme');if(t==='dark'||(!t&&window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.classList.add('dark');}catch(e){}</script>
+<title data-de="Normalform ⇄ Scheitelpunktform" data-en="Standard Form ⇄ Vertex Form">Normalform ⇄ Scheitelpunktform</title>
+<script src="theme-language.js" defer></script>
 <link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="aufgaben.css">
 <link rel="stylesheet" href="scale.css">
 <script src="scale.js" defer></script>
+<script src="aufgaben.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-5K8WYYXDL2"></script>
+    <!-- Besuchszaehlung (Google Analytics). Geladen wird sie erst, wenn der
+         Besucher zustimmt - siehe einwilligung.js. -->
 <script>
+/* Faellt ohne theme-language.js auf Deutsch zurueck. */
+function T(de, en) { return (typeof tlText === 'function') ? tlText(de, en) : de; }
+
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-
-    gtag('config', 'G-5K8WYYXDL2');
+    window.TK_GA_ID = 'G-5K8WYYXDL2';   /* Google Analytics laedt erst nach Einwilligung, siehe einwilligung.js */
 </script>
+<script src="einwilligung.js" defer></script>
 <style>
 h1 {
     font-size: 1.8em;
@@ -31,19 +38,8 @@ h1 {
     font-size: 1.1em; /* Erhöht von .9em auf 1.1em für bessere Lesbarkeit */
     line-height: 1.5;
 }
-#solutionPath {
-    margin: 1em;
-    border-width: thin;
-}
 #task {
     font-size: 1.6em
-}
-
-
-/* Farbe des aktiven Textes anpassen (optional) */
-label.switch input:not(:checked) ~ .labels span:first-child,
-label.switch input:checked ~ .labels span:last-child {
-    color: white;
 }
 
 /* ---- Lösungsweg Tabelle ---- */
@@ -133,6 +129,14 @@ body > .hint-bubble.bubble-above::before {
     left: 12px;
     border-top-color: #1e2a3a;
 }
+/* ══ Dark Mode (Hellmodus bleibt unverändert) ══ */
+html.dark .step-hint .hint-icon { border-color:#5a646d; color:#9aa5b1; }
+html.dark .step-hint:hover .hint-icon,
+html.dark .step-hint:focus .hint-icon,
+html.dark .step-hint.active .hint-icon { border-color:#82b1ff; color:#82b1ff; background:#1b3350; }
+html.dark .solution-path-table td { color:inherit; }
+html.dark input[type="radio"], html.dark input[type="checkbox"] { accent-color:#5b9bd5; }
+
 body > .hint-bubble.bubble-below::before {
     bottom: 100%;
     left: 12px;
@@ -179,18 +183,6 @@ function getDenominator(a) {
     return common === 0 ? 1 : denominator / common;
 }
 
-
-// ==== URL Helfer ====
-function updateURLParam(key, value) {
-    const url = new URL(window.location);
-    url.searchParams.set(key, value);
-    window.history.replaceState({}, '', url);
-}
-
-function getURLParam(key, defaultValue) {
-    const url = new URL(window.location);
-    return url.searchParams.has(key) ? url.searchParams.get(key) : defaultValue;
-}
 
 /**
  * Formatiert einen Koeffizienten oder Term für die MathJax-Ausgabe.
@@ -264,8 +256,10 @@ function formatTerm(value, varStr = '', isFirst = false, isInParenthesis = false
  * Entfernt unnötige Leerzeichen/Vorzeichen und konvertiert Kommas zu {;} für MathJax.
  */
 function finalCleanUp(formula) {
+    // Dezimaltrennzeichen: {,} im Deutschen, Punkt im Englischen
+    const trenn = (typeof tlSprache === 'function' && tlSprache() === 'en') ? '.' : '{,}';
     return formula
-        .replace(/,/g, '{,}') // Konvertiert Dezimalkomma zu TeX-Komma
+        .replace(/,/g, trenn)
         // Entfernt führende Leerzeichen nach f(x) =
         .replace(/f\(x\) = \s*/, 'f(x) = ')
         // Ersetzt +/- oder -/- durch saubere Operatoren
@@ -487,13 +481,15 @@ function generateSolutionPath(a, d, e, b, c, mode) {
         if (Math.abs(a) !== 1) {
             const term_x2_bx_c = `\\left( x^2 ${formatTerm(b_over_a, 'x', false)} ${formatTerm(c_over_a, '', false)} \\right)`;
             const line2_content = `${a_factor_paren} ${term_x2_bx_c}`;
-            const ausklammern_note = `\\text{Faktor } a=${a_str} \\text{ ausklammern}`;
+            const ausklammern_note = T(`\\text{Faktor } a=${a_str} \\text{ ausklammern}`,
+                                      `\\text{factor out } a=${a_str}`);
             output_lines_nf2sf.push(`${current_expr} &\\quad |~& ${ausklammern_note}`);
             current_expr = line2_content;
 
             // Step 2: QE (nach Ausklammern)
             const b_over_a_str = formatTerm(b_over_a).trim();
-            const qe_note = `\\text{Quadrat. Ergänzung: } \\left(\\frac{${b_over_a_str}}{2}\\right)^2 = ${Q_sq_str}`;
+            const qe_note = T(`\\text{Quadrat. Ergänzung: } \\left(\\frac{${b_over_a_str}}{2}\\right)^2 = ${Q_sq_str}`,
+                             `\\text{completing the square: } \\left(\\frac{${b_over_a_str}}{2}\\right)^2 = ${Q_sq_str}`);
             const qe_term = `+ ${Q_sq_str} - ${Q_sq_str}`;
             const term_x2_bx_qe_c = `\\left( x^2 ${formatTerm(b_over_a, 'x', false)} ${qe_term} ${formatTerm(c_over_a, '', false)} \\right)`;
             const line3_content = `${a_factor_paren} ${term_x2_bx_qe_c}`;
@@ -502,7 +498,8 @@ function generateSolutionPath(a, d, e, b, c, mode) {
             
         } else { // a = 1 oder a = -1: Nur QE auf Line 1
             const b_over_a_str = formatTerm(b_over_a).trim();
-            const qe_note = `\\text{QE: } \\left(\\frac{${b_over_a_str}}{2}\\right)^2 = ${Q_sq_str}`;
+            const qe_note = T(`\\text{QE: } \\left(\\frac{${b_over_a_str}}{2}\\right)^2 = ${Q_sq_str}`,
+                             `\\text{CTS: } \\left(\\frac{${b_over_a_str}}{2}\\right)^2 = ${Q_sq_str}`);
             const qe_term = `+ ${Q_sq_str} - ${Q_sq_str}`;
             
             // Wenn a=-1, muss der Faktor a noch vor der Klammer bleiben
@@ -515,7 +512,7 @@ function generateSolutionPath(a, d, e, b, c, mode) {
         }
         
         // Step 3: Binomial (gilt für beide Fälle)
-        const binom_note = `\\text{Binomische Formel anwenden}`;
+        const binom_note = T(`\\text{Binomische Formel anwenden}`, `\\text{apply the binomial formula}`);
         
         // Konstanten sind -Q^2 und c_over_a
         const const_parts = formatTerm(-Q_sq, '', false) + formatTerm(c_over_a, '', false);
@@ -532,14 +529,17 @@ function generateSolutionPath(a, d, e, b, c, mode) {
             const const_sum_str = formatTerm(sum_const_in_paren, '', false);
 
             const line_const_sum_inside = `${a_factor_paren} \\left[ ${binom_part} ${const_sum_str} \\right]`;
-            const const_sum_note = `\\text{Konstanten in der Klammer zusammenfassen}`;
+            const const_sum_note = T(`\\text{Konstanten in der Klammer zusammenfassen}`,
+                                    `\\text{combine the constants inside the bracket}`);
 
             output_lines_nf2sf.push(`${current_expr} &\\quad |~& ${const_sum_note}`);
             current_expr = line_const_sum_inside;
         }
 
         // Step 4: Sum Constants (gilt für beide Fälle)
-        const sum_note = (Math.abs(a) === 1 && Math.abs(a-1) < 1e-9) ? `\\text{Konstanten zusammenfassen}` : `\\text{Klammer ausmultizieren}`;
+        const sum_note = (Math.abs(a) === 1 && Math.abs(a-1) < 1e-9)
+          ? T(`\\text{Konstanten zusammenfassen}`, `\\text{combine the constants}`)
+          : T(`\\text{Klammer ausmultiplizieren}`, `\\text{expand the bracket}`);
         
         const line_summed_content = (Math.abs(a) === 1 && Math.abs(a-1) < 1e-9)
             ? `${binom_part} ${final_const_e_str}`
@@ -589,7 +589,8 @@ function generateSolutionPath(a, d, e, b, c, mode) {
 
         // Step 1: Binomische Formel auflösen
         const line2_content = `${sf_a_factor}${op_dot}${binom_content} ${e_term_for_steps}`;
-        const binom_note = `\\text{Binom: } \\left(x ${d_term_paren}\\right)^2 \\text{ auflösen}`; 
+        const binom_note = T(`\\text{Binom: } \\left(x ${d_term_paren}\\right)^2 \\text{ auflösen}`,
+                            `\\text{expand } \\left(x ${d_term_paren}\\right)^2`); 
         output_lines_sf2nf.push(`${current_expr} &\\quad |~& ${binom_note}`);
         current_expr = line2_content;
 
@@ -631,23 +632,34 @@ function generateTask() {
     document.querySelectorAll('.hint-bubble.bubble-visible').forEach(b => b.classList.remove('bubble-visible','bubble-above','bubble-below'));
     document.querySelectorAll('.step-hint.active').forEach(h => h.classList.remove('active')); 
     
-    // Holt den Modus und die Einstellungen
-    const mode = document.getElementById("modeSwitchInput").checked ? "sf2nf" : "nf2sf";
-    const aNegativ = document.getElementById("aNegativ").checked;
-    const sonderfaelle = document.getElementById("sonderfaelle").checked;
-    const aLevel = document.querySelector('input[name="aLevel"]:checked').value;
-    const valueLevel = document.querySelector('input[name="valueLevel"]:checked').value;
+    // Holt die Einstellungen (sie stehen alle im Bereich "Einstellungen")
+    const s = einstellungen();
+    const mode = s.mode;
+    const aNegativ = s.aNegativ;
+    const sonderfaelle = s.sonderfaelle;
+    const aLevel = s.aLevel;
+    const valueLevel = s.valueLevel;
 
-    updateURLParam("aLevel", aLevel);
-    updateURLParam("valueLevel", valueLevel);
-    updateURLParam("aNegativ", aNegativ);
-    updateURLParam("sonderfaelle", sonderfaelle);
-    updateURLParam("mode", mode);
+    // Die Adresszeile hält die Einstellungen fest, damit ein Lesezeichen oder
+    // ein weitergegebener Link dieselbe Auswahl wieder herstellt.
+    try { history.replaceState({}, '', urlSchreiben(false)); } catch (e) {}
 
     const a = generateA(aLevel, aNegativ, valueLevel);
 
     // Ruft die konsolidierte Funktion auf
     const { d, e, b, c } = generateParameters(mode, valueLevel, sonderfaelle, a, aLevel, aNegativ);
+
+    // Parameter merken, damit zeichneAufgabe() dieselbe Aufgabe
+    // in anderer Sprache oder Farbe erneut setzen kann.
+    letzteAufgabe = { a, d, e, b, c, mode };
+    zeichneAufgabe();
+}
+
+/* Zeichnet die zuletzt erzeugte Aufgabe - ohne neu zu würfeln. */
+let letzteAufgabe = null;
+function zeichneAufgabe() {
+    if (!letzteAufgabe) return;
+    const { a, d, e, b, c, mode } = letzteAufgabe;
 
     // --- 1. Scheitelpunktform (SF) formatieren ---
     // Q = b/(2a) ist der Koeffizient im Binom (x+Q)^2
@@ -780,36 +792,154 @@ function generateTask() {
 
 
 
-// ==== Lade Einstellungen aus URL ====
-function loadSettingsFromURL() {
-    const aLevel = getURLParam("aLevel", "leicht+gestaucht");
-    const valueLevel = getURLParam("valueLevel", "mittel");
-    const aNegativ = getURLParam("aNegativ", "true") === "true";
-    const sonderfaelle = getURLParam("sonderfaelle", "false") === "true";
-    const mode = getURLParam("mode", "nf2sf");
-    
-    const aLevelEl = document.querySelector(`input[name="aLevel"][value="${aLevel}"]`);
-    if(aLevelEl) aLevelEl.checked = true;
+/* ═══════════════════════════════════════════════════════════════════════════
+   EINSTELLUNGEN, SCHWIERIGKEIT UND ADRESSZEILE
+   ───────────────────────────────────────────────────────────────────────────
+   Jede Einstellung steht genau EINMAL - nämlich im Bereich "Einstellungen".
+   Die Schalter über der Aufgabe sind nur eine zweite Bedienstelle für
+   denselben Wert; beide werden miteinander abgeglichen.
+   ═══════════════════════════════════════════════════════════════════════════ */
+const STD = { mode: 'nf2sf', aLevel: 'leicht+gestaucht', aNegativ: true,
+              valueLevel: 'mittel', sonderfaelle: false, diff: 'normal' };
 
-    const valueLevelEl = document.querySelector(`input[name="valueLevel"][value="${valueLevel}"]`);
-    if(valueLevelEl) valueLevelEl.checked = true;
+/* Was eine Schwierigkeitsstufe setzt: nur die Zahlen im Scheitelpunkt.
+   Richtung und Streckfaktor bleiben die Wahl der Nutzerin - sie haben einen
+   eigenen Schalter über der Aufgabe. */
+const STUFEN = {
+  einf:   { valueLevel: 'sehr leicht', aNegativ: false, sonderfaelle: false },
+  leicht: { valueLevel: 'leicht',      aNegativ: false, sonderfaelle: false },
+  normal: { valueLevel: 'mittel',      aNegativ: true,  sonderfaelle: false },
+  schwer: { valueLevel: 'schwer',      aNegativ: true,  sonderfaelle: true  }
+};
+/* Kurznamen für die Adresszeile (lange Namen aus älteren Links werden beim
+   Lesen weiterhin verstanden). */
+const KURZ = { mode: 'm', aLevel: 'al', aNegativ: 'an', valueLevel: 'vl',
+               sonderfaelle: 'sf', diff: 'd' };
 
-    const aNegativEl = document.getElementById("aNegativ");
-    if(aNegativEl) aNegativEl.checked = aNegativ;
-    
-    const sonderfaelleEl = document.getElementById("sonderfaelle");
-    if(sonderfaelleEl) sonderfaelleEl.checked = sonderfaelle;
+function el1(s){ return document.querySelector(s); }
+function radioWert(name){
+  const e = document.querySelector('input[name="' + name + '"]:checked');
+  return e ? e.value : null;
+}
+function radioSetzen(name, wert){
+  const e = document.querySelector('input[name="' + name + '"][value="' + wert + '"]');
+  if (e) e.checked = true;
+  return !!e;
+}
+function haken(id){ const e = document.getElementById(id); return !!(e && e.checked); }
 
-    const modeSwitchEl = document.getElementById("modeSwitchInput");
-    if(modeSwitchEl) modeSwitchEl.checked = mode === "sf2nf";
+function einstellungen(){
+  return { mode:       radioWert('mode')       || STD.mode,
+           aLevel:     radioWert('aLevel')     || STD.aLevel,
+           aNegativ:   haken('aNegativ'),
+           valueLevel: radioWert('valueLevel') || STD.valueLevel,
+           sonderfaelle: haken('sonderfaelle'),
+           diff:       radioWert('diff')       || STD.diff };
+}
+function einstellungenSetzen(s){
+  radioSetzen('mode', s.mode);         radioSetzen('modeTop', s.mode);
+  radioSetzen('aLevel', s.aLevel);     radioSetzen('aLevelTop', s.aLevel);
+  radioSetzen('valueLevel', s.valueLevel);
+  radioSetzen('diff', s.diff);
+  const an = document.getElementById('aNegativ');     if (an) an.checked = !!s.aNegativ;
+  const sf = document.getElementById('sonderfaelle'); if (sf) sf.checked = !!s.sonderfaelle;
+  if (window.abGliderAlle) abGliderAlle();
+}
+/* Wird eine Einstellung von Hand geändert, steht die Schwierigkeit danach auf
+   "Individuell" - genau wie bei lgs.html und den Seiten zur Analytischen
+   Geometrie. */
+function aufIndividuell(){
+  if (radioWert('diff') !== 'indiv'){
+    radioSetzen('diff', 'indiv');
+    if (window.abGliderAlle) abGliderAlle();
+  }
+}
+function stufeAnwenden(stufe){
+  const p = STUFEN[stufe];
+  if (!p) return;
+  radioSetzen('valueLevel', p.valueLevel);
+  const an = document.getElementById('aNegativ');     if (an) an.checked = p.aNegativ;
+  const sf = document.getElementById('sonderfaelle'); if (sf) sf.checked = p.sonderfaelle;
+}
+
+/** Adresszeile aus den Einstellungen; mit Aufgabe auch die konkreten Zahlen. */
+function urlSchreiben(mitAufgabe){
+  const s = einstellungen(), p = new URLSearchParams();
+  Object.keys(KURZ).forEach(k => {
+    if (String(s[k]) === String(STD[k])) return;              /* Standard weglassen */
+    p.set(KURZ[k], (typeof s[k] === 'boolean') ? (s[k] ? '1' : '0') : s[k]);
+  });
+  if (mitAufgabe && letzteAufgabe){
+    const t = letzteAufgabe, r = z => Math.round(z * 1e6) / 1e6;
+    p.set('t', [r(t.a), r(t.d), r(t.e), t.mode].join('_'));
+  }
+  const qs = p.toString();
+  return location.origin + location.pathname + (qs ? '?' + qs : '');
+}
+/** Einstellungen aus der Adresszeile lesen (auch aus älteren Links). */
+function urlLesen(){
+  const p = new URLSearchParams(location.search), s = Object.assign({}, STD);
+  Object.keys(KURZ).forEach(k => {
+    let v = p.get(KURZ[k]);
+    if (v === null) v = p.get(k);                             /* alte lange Namen */
+    if (v === null) return;
+    s[k] = (typeof STD[k] === 'boolean') ? (v === '1' || v === 'true') : v;
+  });
+  return s;
+}
+/** Eine geteilte Aufgabe wiederherstellen (Parameter t). */
+function aufgabeAusURL(){
+  const v = new URLSearchParams(location.search).get('t');
+  if (!v) return false;
+  const q = v.split('_');
+  if (q.length < 4) return false;
+  const a = parseFloat(q[0]), d = parseFloat(q[1]), e = parseFloat(q[2]), mode = q[3];
+  if (!isFinite(a) || !isFinite(d) || !isFinite(e)) return false;
+  if (mode !== 'nf2sf' && mode !== 'sf2nf') return false;
+  letzteAufgabe = { a: a, d: d, e: e, b: 2 * a * d, c: a * d * d + e, mode: mode };
+  zeichneAufgabe();
+  return true;
+}
+/** Link kopieren - mit aufgaben.js mit Rückmeldung, sonst still. */
+function linkKopieren(text, knopf){
+  if (window.abKopiere){ abKopiere(text, knopf, T('✓ Link kopiert', '✓ Link copied')); return; }
+  try { if (navigator.clipboard) navigator.clipboard.writeText(text); } catch (e) {}
 }
 
 window.onload = () => {
-    loadSettingsFromURL();
-    
-    document.getElementById("modeSwitchInput")?.addEventListener("change", generateTask);
-    document.querySelectorAll('input[name="aLevel"], input[name="valueLevel"], #aNegativ, #sonderfaelle')
-        .forEach(el => el.addEventListener("change", generateTask));
+    einstellungenSetzen(urlLesen());
+
+    /* Schalter oben und Einstellungen halten denselben Wert */
+    [['mode', 'modeTop'], ['aLevel', 'aLevelTop']].forEach(paar => {
+      document.querySelectorAll('input[name="' + paar[0] + '"], input[name="' + paar[1] + '"]')
+        .forEach(e => e.addEventListener('change', () => {
+          radioSetzen(paar[0], e.value); radioSetzen(paar[1], e.value);
+          if (window.abGliderAlle) abGliderAlle();
+          generateTask();
+        }));
+    });
+    /* Die übrigen Einstellungen setzt sonst die Schwierigkeit - wer sie von
+       Hand ändert, landet auf "Individuell". */
+    document.querySelectorAll('input[name="valueLevel"], #aNegativ, #sonderfaelle')
+      .forEach(e => e.addEventListener('change', () => { aufIndividuell(); generateTask(); }));
+    /* Schwierigkeitsgrad: setzt die Einstellungen und würfelt sofort neu */
+    document.querySelectorAll('input[name="diff"]').forEach(e => e.addEventListener('change', () => {
+      if (e.value !== 'indiv') stufeAnwenden(e.value);
+      generateTask();
+      if (e.value === 'indiv' && window.abEinstellungenOeffnen) abEinstellungenOeffnen('#dSettings');
+    }));
+
+    document.getElementById('genBtn')?.addEventListener('click', () => generateTask());
+    document.getElementById('btnShare')?.addEventListener('click', function(){
+      linkKopieren(urlSchreiben(false), this);
+    });
+    document.getElementById('btnTeilen')?.addEventListener('click', function(){
+      linkKopieren(urlSchreiben(true), this);
+    });
+    document.getElementById('btnReset')?.addEventListener('click', () => {
+      einstellungenSetzen(STD); generateTask();
+    });
+
     document.getElementById("solutionPath")?.addEventListener("toggle", function() {
         if (this.open && window.MathJax) {
             MathJax.typesetPromise([document.getElementById("solutionPathContent")]).then(() => {
@@ -907,62 +1037,124 @@ window.onload = () => {
         if (hint && !hint.contains(e.relatedTarget)) closeActiveBubble();
     });
         
-MathJax.startup.promise.then(() => generateTask());
+/* Die erste Aufgabe, sobald MathJax bereit ist. Fehlt MathJax (z. B. weil die
+   Seite ohne Netz geöffnet wurde), wird trotzdem gerechnet und gezeichnet -
+   dann eben ohne gesetzte Formeln. */
+const ersteAufgabe = () => { if (!aufgabeAusURL()) generateTask(); };
+if (window.MathJax && MathJax.startup && MathJax.startup.promise)
+  MathJax.startup.promise.then(ersteAufgabe);
+else ersteAufgabe();
 };
 
 </script>
 </head>
-<body>
+<body class="tk-seite">
 
-<h1>Normalform ⇄ Scheitelpunktform</h1>
+<header class="tool-kopf">
+  <div class="tk-text">
+    <h1 data-de="Normalform ⇄ Scheitelpunktform" data-en="Standard Form ⇄ Vertex Form">Normalform ⇄ Scheitelpunktform</h1>
+    <p class="tk-unter" data-de="Umwandeln der Scheitelpunktform üben" data-en="Practise converting to and from vertex form">Umwandeln der Scheitelpunktform üben</p>
+  </div>
+</header>
 
-<details>
-<summary>Einstellungen</summary>
-<div class="form-block">
-<b>a-Werte:</b><br>
-<input type="radio" name="aLevel" value="a1"> a = 1<br>
-<input type="radio" name="aLevel" value="leicht"> leicht<br>
-<input type="radio" name="aLevel" value="leicht+gestaucht"> leicht + gestaucht<br>
-<input type="radio" name="aLevel" value="mittel" checked> mittel<br>
-<input type="checkbox" id="aNegativ" checked> auch negativ
+<!-- ═══ Einstellungen ═══════════════════════════════════════════════════════
+     Hier stehen ALLE Einstellungen der Seite - auch die, die oben über der
+     Aufgabe noch einmal als Schalter erscheinen, und auch die, die der
+     Schwierigkeitsgrad von selbst setzt. Es geht also nichts verloren, wenn
+     man nur hier nachsieht.                                                -->
+<details class="einst" id="dSettings">
+<summary data-de="Einstellungen" data-en="Settings">Einstellungen</summary>
+<div class="settings-grid">
+
+  <div class="form-block">
+    <b data-de="Richtung der Umwandlung" data-en="Direction of the conversion">Richtung der Umwandlung</b>
+    <span class="d" data-de="Welche Form ist gegeben, welche soll bestimmt werden?" data-en="Which form is given and which one has to be found?">Welche Form ist gegeben, welche soll bestimmt werden?</span>
+    <label class="opt"><input type="radio" name="mode" value="nf2sf" checked><span data-de="Normalform → Scheitelpunktform" data-en="Standard form → vertex form">Normalform → Scheitelpunktform</span></label>
+    <label class="opt"><input type="radio" name="mode" value="sf2nf"><span data-de="Scheitelpunktform → Normalform" data-en="Vertex form → standard form">Scheitelpunktform → Normalform</span></label>
+  </div>
+
+  <div class="form-block">
+    <b data-de="Streckfaktor a" data-en="Stretch factor a">Streckfaktor a</b>
+    <span class="d" data-de="Der Faktor vor der Klammer bestimmt, wie weit die Parabel gestreckt oder gestaucht ist." data-en="The factor in front of the bracket decides how much the parabola is stretched or compressed.">Der Faktor vor der Klammer bestimmt, wie weit die Parabel gestreckt oder gestaucht ist.</span>
+    <label class="opt"><input type="radio" name="aLevel" value="a1"><span><span data-de="a = 1" data-en="a = 1">a = 1</span><span class="d" data-de="keine Streckung – die Normalparabel" data-en="no stretching – the standard parabola">keine Streckung – die Normalparabel</span></span></label>
+    <label class="opt"><input type="radio" name="aLevel" value="leicht"><span><span data-de="ganze Zahlen" data-en="whole numbers">ganze Zahlen</span><span class="d" data-de="a aus 1 bis 5 – gestreckte Parabeln" data-en="a from 1 to 5 – stretched parabolas">a aus 1 bis 5 – gestreckte Parabeln</span></span></label>
+    <label class="opt"><input type="radio" name="aLevel" value="leicht+gestaucht" checked><span><span data-de="auch gestaucht" data-en="compressed too">auch gestaucht</span><span class="d" data-de="zusätzlich ½, ¼, ⅕, 0,1 – gestauchte Parabeln" data-en="additionally ½, ¼, ⅕, 0.1 – compressed parabolas">zusätzlich ½, ¼, ⅕, 0,1 – gestauchte Parabeln</span></span></label>
+    <label class="opt"><input type="radio" name="aLevel" value="mittel"><span><span data-de="auch krumm" data-en="awkward values too">auch krumm</span><span class="d" data-de="zusätzlich ¾, 1,5, ⅖, 0,6 …" data-en="additionally ¾, 1.5, ⅖, 0.6 …">zusätzlich ¾, 1,5, ⅖, 0,6 …</span></span></label>
+    <label class="opt"><input type="checkbox" id="aNegativ" checked><span><span data-de="auch negative Werte von a" data-en="negative values of a as well">auch negative Werte von a</span><span class="d" data-de="die Parabel ist dann nach unten geöffnet" data-en="the parabola then opens downwards">die Parabel ist dann nach unten geöffnet</span></span></label>
+  </div>
+
+  <div class="form-block">
+    <b data-de="Zahlen im Scheitelpunkt" data-en="Numbers in the vertex">Zahlen im Scheitelpunkt</b>
+    <span class="d" data-de="Wie groß und wie krumm dürfen die Koordinaten des Scheitelpunktes werden? Diese Stufe setzt der Schwierigkeitsgrad über der Aufgabe." data-en="How large and how awkward may the coordinates of the vertex become? This level is set by the difficulty above the task.">Wie groß und wie krumm dürfen die Koordinaten des Scheitelpunktes werden? Diese Stufe setzt der Schwierigkeitsgrad über der Aufgabe.</span>
+    <label class="opt"><input type="radio" name="valueLevel" value="sehr leicht"><span><span data-de="sehr klein" data-en="very small">sehr klein</span><span class="d" data-de="Scheitelstelle −5 … 5, Scheitelwert 1 … 10 (positiv), b und c ganzzahlig" data-en="vertex x from −5 to 5, vertex y from 1 to 10 (positive), b and c whole numbers">Scheitelstelle −5 … 5, Scheitelwert 1 … 10 (positiv), b und c ganzzahlig</span></span></label>
+    <label class="opt"><input type="radio" name="valueLevel" value="leicht"><span><span data-de="klein" data-en="small">klein</span><span class="d" data-de="Scheitelstelle −10 … 10, Scheitelwert −20 … 20, b und c ganzzahlig" data-en="vertex x from −10 to 10, vertex y from −20 to 20, b and c whole numbers">Scheitelstelle −10 … 10, Scheitelwert −20 … 20, b und c ganzzahlig</span></span></label>
+    <label class="opt"><input type="radio" name="valueLevel" value="mittel" checked><span><span data-de="mittel" data-en="medium">mittel</span><span class="d" data-de="Scheitelstelle bis ±20, auch ±0,5 / ±1,5 / ±2,5; Scheitelwert bis ±50, manchmal mit ,5; b und c dürfen krumm sein" data-en="vertex x up to ±20, also ±0.5 / ±1.5 / ±2.5; vertex y up to ±50, sometimes with .5; b and c may be awkward">Scheitelstelle bis ±20, auch ±0,5 / ±1,5 / ±2,5; Scheitelwert bis ±50, manchmal mit ,5; b und c dürfen krumm sein</span></span></label>
+    <label class="opt"><input type="radio" name="valueLevel" value="schwer"><span><span data-de="groß und krumm" data-en="large and awkward">groß und krumm</span><span class="d" data-de="Scheitelstelle in halben Schritten bis ±20, Scheitelwert bis ±100" data-en="vertex x in half steps up to ±20, vertex y up to ±100">Scheitelstelle in halben Schritten bis ±20, Scheitelwert bis ±100</span></span></label>
+    <label class="opt"><input type="checkbox" id="sonderfaelle"><span><span data-de="Sonderfälle zulassen" data-en="Allow special cases">Sonderfälle zulassen</span><span class="d" data-de="auch Scheitelstelle 0 (f(x) = a·x² + e) oder Scheitelwert 0 (f(x) = a·(x − d)²)" data-en="also vertex x = 0 (f(x) = a·x² + e) or vertex y = 0 (f(x) = a·(x − d)²)">auch Scheitelstelle 0 (f(x) = a·x² + e) oder Scheitelwert 0 (f(x) = a·(x − d)²)</span></span></label>
+  </div>
+
 </div>
-
-<div class="form-block">
-<b>Werte:</b><br>
-<input type="radio" name="valueLevel" value="sehr leicht"> sehr leicht<br>
-<input type="radio" name="valueLevel" value="leicht"> leicht<br>
-<input type="radio" name="valueLevel" value="mittel" checked> mittel<br>
-<input type="radio" name="valueLevel" value="schwer"> schwer<br>
-<input type="checkbox" id="sonderfaelle"> Sonderfälle
+<div class="settings-foot">
+  <button class="btn-secondary" id="btnShare" data-de="🔗 Link mit allen Einstellungen kopieren" data-en="🔗 Copy link with all settings">🔗 Link mit allen Einstellungen kopieren</button>
+  <button class="btn-secondary" id="btnReset" data-de="↺ Standard wiederherstellen" data-en="↺ Restore defaults">↺ Standard wiederherstellen</button>
 </div>
 </details>
 
-<h2>Aufgabe</h2>
-
-<!-- Umwandlungs-Slider -->
-<div>
-<label class="switch">
-    <input type="checkbox" id="modeSwitchInput">
-    <span class="slider"></span>
-    <span class="labels">
-        <span>Normalform → Scheitelpunktform</span>
-        <span>Scheitelpunktform → Normalform</span>
-    </span>
-</label>
+<!-- ═══ Schalter über der Aufgabe ═══════════════════════════════════════ -->
+<div id="topControls">
+  <div class="tc-row">
+    <div class="tc-item">
+      <span class="tc-label" data-de="Richtung" data-en="Direction">Richtung</span>
+      <div class="seg" id="segMode">
+        <label><input type="radio" name="modeTop" value="nf2sf" checked><span data-de="Normalform → Scheitelpunktform" data-en="Standard → vertex form">Normalform → Scheitelpunktform</span></label>
+        <label><input type="radio" name="modeTop" value="sf2nf"><span data-de="Scheitelpunktform → Normalform" data-en="Vertex → standard form">Scheitelpunktform → Normalform</span></label>
+      </div>
+    </div>
+    <div class="tc-item">
+      <span class="tc-label" data-de="Streckfaktor a" data-en="Stretch factor a">Streckfaktor a</span>
+      <div class="seg" id="segA">
+        <label><input type="radio" name="aLevelTop" value="a1"><span>a = 1</span></label>
+        <label><input type="radio" name="aLevelTop" value="leicht"><span data-de="ganze Zahlen" data-en="whole numbers">ganze Zahlen</span></label>
+        <label><input type="radio" name="aLevelTop" value="leicht+gestaucht" checked><span data-de="auch gestaucht" data-en="compressed too">auch gestaucht</span></label>
+        <label><input type="radio" name="aLevelTop" value="mittel"><span data-de="auch krumm" data-en="awkward too">auch krumm</span></label>
+      </div>
+    </div>
+  </div>
+  <div class="tc-item tc-diff">
+    <span class="tc-label" data-de="Schwierigkeit" data-en="Difficulty">Schwierigkeit</span>
+    <div class="seg-switch diff-switch" id="segDiff">
+      <input type="radio" name="diff" id="diffEinf" value="einf"><label for="diffEinf" data-de="Einführung" data-en="Introduction">Einführung</label>
+      <input type="radio" name="diff" id="diffLeicht" value="leicht"><label for="diffLeicht" data-de="Leicht" data-en="Easy">Leicht</label>
+      <input type="radio" name="diff" id="diffNormal" value="normal" checked><label for="diffNormal" data-de="Normal" data-en="Normal">Normal</label>
+      <input type="radio" name="diff" id="diffSchwer" value="schwer"><label for="diffSchwer" data-de="Herausfordernd" data-en="Challenging">Herausfordernd</label>
+      <input type="radio" name="diff" id="diffIndiv" value="indiv"><label for="diffIndiv" data-de="Individuell" data-en="Custom" data-de-title="öffnet die Einstellungen" data-en-title="opens the settings" title="öffnet die Einstellungen">Individuell</label>
+      <span class="seg-glider"></span>
+    </div>
+  </div>
 </div>
-<br>
-<button onclick="generateTask()" style="align-self: flex-start;">Neue Aufgabe</button>
 
-<div id="task" class="scale-el"></div>
+<div id="genRow"><button id="genBtn" data-de="⟳&nbsp;Neue Aufgabe generieren" data-en="⟳&nbsp;Generate a new task">⟳&nbsp;Neue Aufgabe generieren</button></div>
 
-<details id="solutionDetailsContainer">
-<summary>Lösung anzeigen</summary>
-<div class="scale-wrapper">
-  <div id="solution" class="scale-el"></div>
+<div class="task" id="taskBox">
+  <div class="task-head">
+    <h2 data-de="Aufgabe" data-en="Task">Aufgabe</h2>
+    <button class="share-btn" id="btnTeilen" title="Diese Aufgabe teilen (Link kopieren)" data-de-title="Diese Aufgabe teilen (Link kopieren)" data-en-title="Share this task (copy link)" data-de="🔗&nbsp;Teilen" data-en="🔗&nbsp;Share">🔗&nbsp;Teilen</button>
+  </div>
+  <div class="scale-wrapper">
+    <div id="task" class="scale-el"></div>
+  </div>
 </div>
 
-<details id="solutionPath">
-<summary>Lösungsweg</summary>
+<details class="loesung" id="solutionDetailsContainer">
+<summary><span class="wenn-zu" data-de="Lösung einblenden" data-en="Show solution">Lösung einblenden</span><span class="wenn-auf" data-de="Lösung ausblenden" data-en="Hide solution">Lösung ausblenden</span></summary>
+<div class="res">
+  <div class="scale-wrapper">
+    <div id="solution" class="scale-el"></div>
+  </div>
+</div>
+
+<details class="weg" id="solutionPath">
+<summary data-de="Lösungsweg" data-en="Solution path">Lösungsweg</summary>
 <div class="scale-wrapper">
   <div id="solutionPathContent" class="scale-el"></div>
 </div>
@@ -973,10 +1165,30 @@ MathJax.startup.promise.then(() => generateTask());
   <div class="footer-content">
       M.&nbsp;Koch
       <span class="footer-topic"><a href="./index.html">Mathe-Tools</a></span>
-      <span class="footer-update">Last updated:&nbsp;<span id="last-update">...</span></span>
+      <span class="footer-update"><span class="fu-wort" data-de="Zuletzt aktualisiert:" data-en="Last updated:">Zuletzt aktualisiert:</span><span id="last-update">...</span></span>
   </div>
 </footer>
 <script src="last-update.js" defer></script>
-<script src="last-update.js" defer></script>
+<script>
+/* Sprach- und Themewechsel: Aufgabe, Lösung und Lösungsweg mit denselben
+   Zahlen neu aufbauen - generateTask() würfelt neu, deshalb wird hier nur
+   neu gezeichnet. Dazu merkt sich die Seite die Parameter der Aufgabe. */
+function neuZeichnen() {
+  if (typeof zeichneAufgabe === 'function') zeichneAufgabe();
+}
+window.addEventListener('tl-sprache', neuZeichnen);
+window.addEventListener('tl-theme',   neuZeichnen);
+
+/* Beim Klick auf "Fehler melden": Richtung und aktuelle Aufgabe */
+window.fehlerKontext = function () {
+  const m = (typeof radioWert === 'function') ? radioWert('mode') : 'nf2sf';
+  const modus = (m === 'sf2nf')
+    ? T('Scheitelpunktform → Normalform', 'Vertex → Standard form')
+    : T('Normalform → Scheitelpunktform', 'Standard → Vertex form');
+  const el = document.getElementById('task');
+  const aufgabe = el ? ((typeof tlFormelText === 'function') ? tlFormelText(el) : el.innerText) : '';
+  return [modus, aufgabe].filter(Boolean).join(' \u00b7 ');
+};
+</script>
 </body>
 </html>

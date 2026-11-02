@@ -3,7 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Volumen berechnen &amp; visualisieren</title>
+<link rel="shortcut icon" type="image/x-icon" href="aleph_zero_logo.ico">
+<script>try{var t=localStorage.getItem('matheToolsTheme');if(t==='dark'||(!t&&window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.classList.add('dark');}catch(e){}</script>
+<title data-de="Volumen berechnen &amp; visualisieren" data-en="Calculating &amp; visualising volumes">Volumen berechnen &amp; visualisieren</title>
+<script src="theme-language.js" defer></script>
 
 <!-- MathJax -->
 <script>
@@ -20,20 +23,23 @@ window.MathJax = {
 
 <!-- Portal-Basisstil (im Repo vorhanden); Inline-Stile unten überschreiben/ergänzen -->
 <link rel="stylesheet" href="styles.css">
-<!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-5K8WYYXDL2"></script>
-    <script>
+<!-- gemeinsames Aussehen der Aufgabengeneratoren -->
+<link rel="stylesheet" href="aufgaben.css">
+    <!-- Besuchszaehlung (Google Analytics). Geladen wird sie erst, wenn der
+         Besucher zustimmt - siehe einwilligung.js. -->
+<script>
         window.dataLayer = window.dataLayer || [];
         function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-        gtag('config', 'G-5K8WYYXDL2');
+        window.TK_GA_ID = 'G-5K8WYYXDL2';   /* Google Analytics laedt erst nach Einwilligung, siehe einwilligung.js */
     </script>
+<script src="einwilligung.js" defer></script>
 
 <style>
 /* ---- Basis (Fallback, falls styles.css fehlt / für die Vorschau) ---- */
-html{scrollbar-gutter:stable;overflow-y:scroll;}
+html{scrollbar-gutter:stable;}
 body{font-family:Calibri,'Segoe UI',sans-serif;display:flex;flex-direction:column;padding:0 2%;margin:0;color:#1a1a1a;line-height:1.4;background:#fff;}
-h1{font-size:1.5em;margin:.5em 0 .3em;}
+h1{font-size:1.5em;margin:.5em 0 .3em;padding-right:150px;}
+@media(max-width:560px){h1{padding-right:0;margin-top:52px;}}
 button{background:#4CAF50;color:#fff;border:none;padding:10px 20px;font-size:12px;margin:4px 2px;border-radius:5px;cursor:pointer;}
 button:hover{filter:brightness(1.05);}
 details{border:2px solid #000;border-radius:6px;margin:10px 0;padding:6px 10px;}
@@ -50,15 +56,24 @@ details[open]>summary::before{transform:rotate(90deg);}
   --chip:#eef2ef; --chip-active:#4CAF50; --blue:#2f6fb0; --amber:#e08b00;
 }
 *{box-sizing:border-box;}
-.wrap{max-width:820px;width:100%;margin:0 auto;}
+.wrap{max-width:var(--tk-breite,960px);width:100%;margin:0 auto;}
 .muted{color:#666;font-size:.9em;}
 .small{font-size:.85em;}
 .hidden{display:none !important;}
 
 /* Segmented switches */
+/* Die Schalter über der Aufgabe stehen in derselben Leiste wie auf den
+   anderen Seiten (#topControls mit .tc-item/.tc-label aus aufgaben.css). */
+.btn-new{font-size:14px;font-weight:bold;padding:10px 24px;border-radius:9px;
+  border:2px solid var(--accent-d);box-shadow:0 2px 6px rgba(76,175,80,.28);}
+
+/* Rahmen der Modusleiste - dieselbe Form wie in aufgaben.css. */
+.seg-block{text-align:center;margin:11px 0;}
+.seg-block .seg-label{display:block;font-weight:bold;font-size:.84rem;color:#5a6b5c;margin-bottom:4px;}
 .seg{display:inline-flex;flex-wrap:wrap;gap:0;border:1.5px solid var(--accent);border-radius:8px;overflow:hidden;background:#fff;vertical-align:middle;}
 .seg button{background:#fff;color:#2a2a2a;border:none;border-right:1px solid var(--line);margin:0;padding:7px 12px;font-size:12px;border-radius:0;}
 .seg button:last-child{border-right:none;}
+@media(max-width:620px){ #mode-switch{display:flex;width:100%;} #mode-switch button{flex:1 1 0;min-width:0;} }
 .seg button.on{background:var(--accent);color:#fff;font-weight:bold;}
 .seg.small button{padding:5px 9px;font-size:11px;}
 .ctl-row{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;margin:8px 0;}
@@ -82,13 +97,17 @@ details[open]>summary::before{transform:rotate(90deg);}
 .chip .tag.link{background:#8552c9;}
 
 /* Aufgabenkarte */
-.task-card{border:2px solid #222;border-radius:12px;padding:14px 16px;margin:14px 0;background:#fff;}
+/* Der Aufgabenrahmen wie auf den anderen Seiten: grün und hell hinterlegt. */
+.task-card{position:relative;border:1.5px solid var(--ab-gr,#4a9a4a);border-radius:12px;
+  padding:14px 16px;margin:14px 0;background:var(--ab-flaeche,#f8fff8);}
 .task-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px;}
 .task-title{font-weight:bold;display:inline-flex;align-items:center;gap:6px;}
 .tt-hidden{font-weight:normal;color:#6b7a6b;font-style:italic;}
 .eye-btn{background:none;border:none;padding:2px;margin:0;color:#4a6a4a;opacity:.38;cursor:pointer;line-height:0;border-radius:4px;transition:opacity .15s,color .15s;}
 .eye-btn:hover,.eye-btn:focus{opacity:1;color:#256b2a;background:#eef7ee;}
-.badge{font-size:11px;padding:2px 8px;border-radius:10px;background:#eef2ef;color:#3c6b3c;border:1px solid #cfe0cf;}
+/* Das Schild sitzt oben rechts auf dem Rand des Aufgabenfelds. */
+.badge{position:absolute;top:-10px;right:14px;z-index:2;font-size:11px;padding:2px 9px;
+  border-radius:10px;background:#eef7ee;color:#3c6b3c;border:1px solid #cfe0cf;}
 .badge.inv{background:#fff3e0;color:#a35a00;border-color:#ffd699;}
 .task-body{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start;}
 .task-text{flex:1 1 240px;min-width:0;}
@@ -114,10 +133,20 @@ svg.sketch{display:block;width:100%;max-width:400px;height:auto;margin:0 auto;}
 
 .act-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
 .act-row.center{justify-content:center;}
-.btn-hint{background:#fff;color:var(--amber);border:1.5px solid var(--amber);font-weight:bold;}
+/* Hilfestellungen sind überall gelb und rund - wie der Hinweis-Knopf auf
+   den anderen Seiten. Die nächste Hilfestufe bleibt der leise Knopf darunter. */
+.btn-hint{background:var(--ab-ge-knopf,#E0A800);color:var(--ab-ge-schrift,#3a2c00);
+  border:none;border-radius:22px;padding:9px 18px;font-size:1em;font-weight:bold;}
+.btn-hint-next{background:#fff;color:var(--amber);border:1.5px solid var(--amber);
+  font-weight:bold;}
 .btn-sol{background:#fff;color:var(--blue);border:1.5px solid var(--blue);font-weight:bold;}
 .btn-new{background:var(--accent);color:#fff;}
 .btn-ghost{background:#fff;color:#444;border:1px solid var(--line);}
+/* Pruefen-Knopf und nicht gewaehlte Schalter – frueher per style-Attribut gesetzt */
+.btn-check{background:var(--accent);color:#fff;}
+.btn-check:hover{filter:brightness(1.05);}
+button.unit-off{background:#fff;color:#444;border:1px solid #ccc;}
+html.dark button.unit-off{background:#242b33;color:#b6c0c9;border-color:#4a545e;}
 
 /* Hilfe / Lösung Boxen */
 .help-box{border:1.5px solid var(--amber);border-radius:10px;background:#fffdf6;padding:10px 12px;margin-top:10px;}
@@ -165,7 +194,7 @@ svg.sketch{display:block;width:100%;max-width:400px;height:auto;margin:0 auto;}
     grid-template-columns: 1fr auto 1fr;
     align-items: center;
     margin: 0 auto;
-    max-width: 800px;
+    max-width: var(--tk-breite, 960px);
 }
 .footer-content > :first-child {
     justify-self: start;
@@ -198,15 +227,13 @@ svg.sketch{display:block;width:100%;max-width:400px;height:auto;margin:0 auto;}
 .v3d-reset{position:absolute;right:6px;top:6px;background:#fff;color:#444;border:1px solid var(--line);font-size:10px;padding:4px 8px;margin:0;}
 .v3d-load{padding:26px 10px;text-align:center;color:#777;font-size:.9em;}
 
-/* Steuerblöcke: Abstand VOR der Bezeichnung, Schalter direkt darunter */
-.ctl{margin-top:14px;}
-.ctl:first-child{margin-top:4px;}
-.ctl>.lbl{display:block;font-weight:bold;font-size:.9em;margin-bottom:4px;}
-.ctl .seg{margin:0;}
+/* Der Einstellungskasten sitzt so eng am Rand wie auf den anderen Seiten. */
+details.einst{padding:0;}
 
 /* Körper-Auswahl auffälliger */
-details#shapeTree{border:2px solid var(--accent);background:linear-gradient(#f2faf3,#eaf6ec);}
-details#shapeTree>summary{color:#256b2a;font-size:1.05em;padding:2px 0;}
+/* Das Kleid kommt aus aufgaben.css (details.auswahl); rechts steht hier
+   kein „alle"-Knopf, deshalb braucht die Überschrift dort keinen Platz. */
+details#shapeTree>summary{padding-right:0;}
 .tree-top{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin:8px 0 4px;}
 .tree-hint{color:#567;font-size:.82em;}
 
@@ -232,9 +259,7 @@ details.alt-rep>summary{cursor:pointer;font-size:.85em;color:#4a6a4a;}
 .ask-line{margin:8px 0 0;}
 .ctx{color:#555;font-size:.95em;margin:6px 0 0;}
 /* Lösung als aufklappbarer Bereich */
-details.sol-details{margin-top:10px;border:1.5px solid var(--blue);border-radius:10px;padding:8px 12px;background:#f0f7ff;}
-details.sol-details>summary{cursor:pointer;font-weight:bold;color:#245a8f;list-style:none;}
-details.sol-details>summary::-webkit-details-marker{display:none;}
+/* Die Lösung klappt mit dem blauen Balken auf - siehe aufgaben.css. */
 .sol-body{margin-top:8px;}
 details.steps-details{margin-top:8px;}
 details.steps-details>summary{cursor:pointer;color:#245a8f;font-size:.9em;}
@@ -319,22 +344,134 @@ details#shapeTree.attn>summary{animation:treeAttnText 1.6s ease 2;}
   #mode-erkundung .e-note{height:4.3em;}
   #mode-erkundung .stage-wrap{width:calc(100% - 64px);}
 #mode-erkundung .ctrl{font-size:.88rem;}}
+/* ══════════════════════════════════════════════════════════════
+   Dunkelmodus – nur Zusaetze; der Hellmodus oben bleibt unveraendert.
+   ══════════════════════════════════════════════════════════════ */
+html.dark{
+  --accent:#5cb860; --accent-d:#4a9a4e; --line:#3a434b; --soft:#1e2429;
+  --chip:#242b33; --chip-active:#4CAF50; --blue:#6fb0e8; --amber:#ffb74d;
+}
+html.dark body{background:#14181c;color:#e7eae8;}
+html.dark h1{color:#e7eae8;}
+html.dark .muted{color:#9aa5b1;}
+html.dark details{border-color:#4a545e;}
+html.dark .form-block{border-color:#4a545e;}
+html.dark .seg{background:#1b2026;}
+html.dark .seg button{background:#1b2026;color:#d7dee4;border-right-color:#3a434b;}
+html.dark .seg button.on{background:#3d7a48;color:#fff;}
+html.dark .cat{background:var(--soft);border-color:var(--line);}
+html.dark .cat-sub{color:#9db09d;}
+html.dark .shape,html.dark .body-item{background:#1b2026;border-color:var(--line);}
+html.dark .cat-actions button{background:#1b2026;color:#c3ccd4;border-color:var(--line);}
+html.dark .cat-actions .toggle-all{background:#1b2026;color:#8fce92;border-color:var(--accent);}
+html.dark .chip .box{border-color:#6b7780;}
+html.dark .chip .tag{background:#2c5f8f;color:#eaf1f7;}
+html.dark .chip .tag.link{background:#5e3a93;}
+html.dark .cat-set{background:#1a211b;border-color:var(--accent);}
+html.dark .cat-set .cs-lbl{color:#a5d6a7;}
+html.dark .cat-set .gp-val{color:#8fce92;}
+/* Grundflaechen-Raster im Koerper-Baum */
+html.dark .base-row{background:#1b2026;border-color:var(--line);}
+html.dark .base-row.head{background:none;color:#9db09d;}
+html.dark .base-row .base-name{color:#dfe4e8;}
+/* 3D-Ansicht: Hinweis und Knopf */
+html.dark .v3d-hint{color:#9aa5b1;background:rgba(20,24,28,.85);}
+html.dark .v3d-reset{background:#1b2026;color:#c3ccd4;border-color:var(--line);}
+/* Aufmerksamkeits-Animation des Koerper-Bereichs */
+html.dark details#shapeTree.attn>summary{animation:treeAttnTextDunkel 1.6s ease 2;}
+@keyframes treeAttnTextDunkel{0%,100%{color:#a5d6a7;} 40%{color:#ef9a9a;}}
+html.dark .task-card{background:#10220f;border-color:#4a9a4a;}
+html.dark .tt-hidden{color:#9db09d;}
+html.dark .eye-btn{color:#8fce92;}
+html.dark .eye-btn:hover,html.dark .eye-btn:focus{color:#a5dba8;background:#1f2e20;}
+html.dark .badge{background:#22302a;color:#9ed3a1;border-color:#3a5a3e;}
+html.dark .badge.inv{background:#33301c;color:#ffb74d;border-color:#6d5a24;}
+html.dark .sketch-wrap{background:#161b20;border-color:var(--line);}
+html.dark .answer-row input[type=text]{background:#242b33;color:#e7eae8;border-color:#4a545e;}
+html.dark .unit-btn{background:#1f2e20;color:#c9e6cb;border-color:var(--accent);}
+html.dark .unit-panel{background:#1b2026;color:#e7eae8;border-color:var(--accent);
+  box-shadow:0 6px 18px rgba(0,0,0,.5);}
+html.dark .unit-grid th{color:#9aa5b1;}
+html.dark .unit-cell{background:#242b33;color:#e7eae8;border-color:#3f5a41;}
+html.dark .unit-cell:hover{background:#2c3a2e;}
+html.dark .unit-cell.sel{background:var(--accent);color:#14181c;border-color:var(--accent);}
+html.dark .result-msg.ok{color:#81c784;}
+html.dark .result-msg.no{color:#ef9a9a;}
+html.dark .result-msg.muted{color:#9aa5b1;}
+html.dark .btn-hint{background:var(--ab-ge-knopf,#E0A800);color:var(--ab-ge-schrift,#3a2c00);border:none;}
+html.dark .btn-hint-next{background:#1b2026;color:var(--amber);border-color:var(--amber);}
+html.dark .btn-sol{background:#1b2026;color:var(--blue);border-color:var(--blue);}
+html.dark .btn-ghost{background:#1b2026;color:#c3ccd4;border-color:var(--line);}
+html.dark .help-box{background:#241f14;border-color:var(--amber);}
+html.dark .help-box h4{color:var(--amber);}
+html.dark .help-step{border-top-color:#5a4a26;}
+html.dark .sol-box{background:#16202b;border-color:var(--blue);}
+html.dark .sol-box h4{color:var(--blue);}
+html.dark details.steps-details>summary{color:var(--blue);}
+html.dark .choice{background:#1b2026;border-color:var(--line);color:#e7eae8;}
+html.dark .choice.ok{border-color:#4caf50;background:#1d3524;color:#a5d6a7;}
+html.dark .choice.no{border-color:#e57373;background:#3a2224;color:#ef9a9a;}
+html.dark .choice.warn{border-color:#c9a227;background:#332c12;color:#e8d9a0;}
+html.dark .choice-why{color:#c8bd8a;}
+html.dark details.alt-rep{background:#1a1f24;border-color:var(--line);}
+html.dark details.alt-rep>summary{color:#9db09d;}
+html.dark .tree-hint{color:#95a8b3;}
+html.dark .share-btn{background:#1b2026;color:#a5d6a7;border-color:var(--accent);}
+html.dark .toast{background:#3d7a48;color:#fff;}
+html.dark .leg{color:#9db09d;}
+html.dark .not-scale{color:#9aa5b1;}
+html.dark .grid-ctl{color:#a8b3bd;}
+html.dark .ctx{color:#b6c0c9;}
+html.dark .check-line>input{background:#242b33;border-color:var(--accent);}
+html.dark .check-line>input:checked{background:var(--accent);border-color:var(--accent);}
+html.dark .site-footer{border-top-color:#3a434b;color:#9aa5b1;}
+html.dark button:disabled{background:#3a434b;color:#8b949c;}
+/* Gruene Knoepfe bleiben beim kraeftigeren Gruen, damit Weiss genug Kontrast hat */
+html.dark .btn-new,html.dark .btn-check{background:#3d8b41;color:#fff;}
+html.dark .btn-new:hover,html.dark .btn-check:hover{background:#469a4b;}
+/* 3D-Ansicht */
+html.dark .v3d-wrap,html.dark .v3d-load{background:#161b20;color:#b6c0c9;border-color:var(--line);}
+html.dark .base-name{color:#dfe4e8;}
+html.dark #mode-erkundung .stage-val{color:#a5d6a7;background:rgba(20,24,28,.85);}
+html.dark #mode-erkundung .stage-sum{color:#7fb8ea;background:rgba(20,24,28,.85);}
+html.dark #mode-erkundung .stage-sum:empty,html.dark #mode-erkundung .stage-val:empty{display:none;}
+/* Erkundungsmodus */
+html.dark #mode-erkundung{ color:#e7eae8;
+  --accent:#5cb860; --accent-dark:#8fce92; --ink:#e7eae8; --muted:#9aa5b1;
+  --line:#3a434b; --paper:#1b2026; --bg:#14181c; --shape:#5cb860; --shape-fill:rgba(92,184,96,.20);
+  --helper:#e8934f; --helper-fill:rgba(232,147,79,.30); --shape-light:#74a877;
+  --shape-lightfill:rgba(92,184,96,.10); --grid:#3c4a3e; }
+html.dark #mode-erkundung .erk-intro{color:#9aa5b1;}
+html.dark #mode-erkundung .tile[aria-selected="true"]{background:#1f2e20;}
+html.dark #mode-erkundung .stage-hint{background:rgba(20,24,28,.85);}
+html.dark #mode-erkundung .e-note{color:#9aa5b1;}
+/* Grautoene, die direkt im style-Attribut stehen */
+html.dark [style*="color:#888"],
+html.dark [style*="color:#777"],
+html.dark [style*="color:#666"],
+html.dark [style*="color:#555"],
+html.dark [style*="color:#444"],
+html.dark [style*="color:#7b8a7b"]{color:#9aa5b1 !important}
 </style>
 </head>
-<body>
+<body class="tk-seite">
 <div class="wrap">
-  <h1>Volumen berechnen &amp; visualisieren</h1>
-  <p class="muted small" id="intro">Übe das Berechnen von Volumina — mit Text- oder Skizzenaufgaben (Schrägbild &amp; drehbare 3D-Ansicht), Umkehraufgaben und gestuften Hilfen.</p>
+  <header class="tool-kopf">
+    <div class="tk-text">
+      <h1 data-de="Volumen berechnen &amp; visualisieren" data-en="Calculating &amp; visualising volumes">Volumen berechnen &amp; visualisieren</h1>
+      <p class="tk-unter" data-de="Volumen berechnen – mit Text- und Skizzenaufgaben" data-en="Calculate volumes – with worded and sketch questions">Volumen berechnen – mit Text- und Skizzenaufgaben</p>
+    </div>
+  </header>
 
-  <div style="text-align:center;margin:6px 0 12px;"><div id="mode-switch" class="seg" role="tablist">
-    <button data-mode="erkundung">Erkundungsmodus</button>
-    <button data-mode="uebung" class="on">Übungsmodus</button>
+  <div class="seg-block"><div id="mode-switch" class="seg" role="tablist">
+    <button data-mode="erkundung" data-de="Erkundung" data-en="Exploration">Erkundung</button>
+    <button data-mode="uebung" class="on" data-de="Training" data-en="Practice">Training</button>
   </div></div>
 
   <div id="mode-uebung">
   <!-- ================= EINSTELLUNGEN ================= -->
-  <details id="teacherSettings">
-    <summary>Einstellungen</summary>
+  <details class="einst" id="teacherSettings">
+    <summary data-de="Einstellungen" data-en="Settings">Einstellungen</summary>
     <div id="teacherBody" style="margin-top:8px;"></div>
   </details>
 
@@ -346,30 +483,30 @@ details#shapeTree.attn>summary{animation:treeAttnText 1.6s ease 2;}
   </div><!-- /mode-uebung -->
 
   <div id="mode-erkundung" class="hidden">
-    <p class="erk-intro">Zieh an den Punkten und erkunde, woher die Volumenformeln kommen. Im leeren Bereich ziehen dreht den Körper, mit zwei Fingern (oder dem Mausrad) zoomst du.</p>
+    <p class="erk-intro" data-de="Zieh an den Punkten und erkunde, woher die Volumenformeln kommen. Im leeren Bereich ziehen dreht den Körper, mit zwei Fingern (oder dem Mausrad) zoomst du." data-en="Drag the points and explore where the volume formulae come from. Dragging in the empty area rotates the solid; two fingers (or the mouse wheel) zoom.">Zieh an den Punkten und erkunde, woher die Volumenformeln kommen. Im leeren Bereich ziehen dreht den Körper, mit zwei Fingern (oder dem Mausrad) zoomst du.</p>
     <div class="picker" id="e-picker" role="tablist"></div>
     <div class="toolbar">
-      <div class="ctrl"><span class="muted">Raster</span>
-        <div class="seg" id="e-seg-grid"><button data-g="off">aus</button><button data-g="planes" class="on">Ebenen</button><button data-g="space">überall</button></div></div>
-      <div class="ctrl" id="e-ctrl-hl"><span class="muted">Einheitswürfel</span>
-        <div class="seg" id="e-seg-hl"><button data-hl="none" class="on">ohne</button><button data-hl="upper">Obersumme</button><button data-hl="lower">Untersumme</button></div></div>
-      <div class="ctrl" id="e-ctrl-refine"><label for="e-refine">Feinheit</label><input type="range" id="e-refine" min="0" max="2" step="1" value="1"><span class="cell" id="e-lrefine">1 × 1 × 1</span></div>
-      <div class="ctrl"><label><input type="checkbox" id="e-int" checked> ganzzahlige Maße</label></div>
-      <div class="ctrl"><label><input type="checkbox" id="e-derive" checked> Herleitung</label></div>
-      <div class="ctrl" id="e-ctrl-skew"><label><input type="checkbox" id="e-skew"> schief zulassen</label></div>
-      <div class="ctrl" id="e-ctrl-tw"><label><input type="checkbox" id="e-tw"> Torsion zulassen</label></div>
-      <div class="ctrl" id="e-ctrl-mode"><span class="muted">Ansatz</span><div class="seg" id="e-seg-mode"></div></div>
-      <div class="ctrl" id="e-ctrl-par"><label for="e-par" id="e-parlab">Anzahl</label><input type="range" id="e-par" min="2" max="24" step="1" value="8"><span class="cell" id="e-lpar">8</span></div>
+      <div class="ctrl"><span class="muted" data-de="Raster" data-en="Grid">Raster</span>
+        <div class="seg" id="e-seg-grid"><button data-g="off" data-de="aus" data-en="off">aus</button><button data-g="planes" class="on" data-de="Ebenen" data-en="planes">Ebenen</button><button data-g="space" data-de="überall" data-en="everywhere">überall</button></div></div>
+      <div class="ctrl" id="e-ctrl-hl"><span class="muted" data-de="Einheitswürfel" data-en="Unit cubes">Einheitswürfel</span>
+        <div class="seg" id="e-seg-hl"><button data-hl="none" class="on" data-de="ohne" data-en="none">ohne</button><button data-hl="upper" data-de="Obersumme" data-en="upper sum">Obersumme</button><button data-hl="lower" data-de="Untersumme" data-en="lower sum">Untersumme</button></div></div>
+      <div class="ctrl" id="e-ctrl-refine"><label for="e-refine" data-de="Feinheit" data-en="Detail">Feinheit</label><input type="range" id="e-refine" min="0" max="2" step="1" value="1"><span class="cell" id="e-lrefine">1 × 1 × 1</span></div>
+      <div class="ctrl"><label><input type="checkbox" id="e-int" checked> <span data-de="ganzzahlige Maße" data-en="whole-number measurements">ganzzahlige Maße</span></label></div>
+      <div class="ctrl"><label><input type="checkbox" id="e-derive" checked> <span data-de="Herleitung" data-en="Derivation">Herleitung</span></label></div>
+      <div class="ctrl" id="e-ctrl-skew"><label><input type="checkbox" id="e-skew"> <span data-de="schief zulassen" data-en="allow oblique">schief zulassen</span></label></div>
+      <div class="ctrl" id="e-ctrl-tw"><label><input type="checkbox" id="e-tw"> <span data-de="Torsion zulassen" data-en="allow twisting">Torsion zulassen</span></label></div>
+      <div class="ctrl" id="e-ctrl-mode"><span class="muted" data-de="Ansatz" data-en="Approach">Ansatz</span><div class="seg" id="e-seg-mode"></div></div>
+      <div class="ctrl" id="e-ctrl-par"><label for="e-par" id="e-parlab" data-de="Anzahl" data-en="Number">Anzahl</label><input type="range" id="e-par" min="2" max="24" step="1" value="8"><span class="cell" id="e-lpar">8</span></div>
       <div class="spacer"></div>
-      <button class="btn" id="e-reset">Ansicht zurücksetzen</button>
+      <button class="btn" id="e-reset" data-de="Ansicht zurücksetzen" data-en="Reset view">Ansicht zurücksetzen</button>
     </div>
     <div class="stage-wrap">
       <svg id="e-stage" xmlns="http://www.w3.org/2000/svg"></svg>
       <div class="stage-val" id="e-val"></div>
       <div class="stage-sum" id="e-sum"></div>
-      <div class="stage-hint">Punkt ziehen = Maße ändern · Hintergrund ziehen = drehen · 2 Finger / Mausrad = zoomen</div>
+      <div class="stage-hint" data-de="Punkt ziehen = Maße ändern · Hintergrund ziehen = drehen · 2 Finger / Mausrad = zoomen" data-en="Drag a point = change the measurements · drag the background = rotate · 2 fingers / mouse wheel = zoom">Punkt ziehen = Maße ändern · Hintergrund ziehen = drehen · 2 Finger / Mausrad = zoomen</div>
     </div>
-    <div class="derive" id="e-derive"><h2>Herleitung</h2><p class="formula" id="e-formula"></p><p id="e-explain"></p><p id="e-note" class="e-note"></p></div>
+    <div class="derive" id="e-derive"><h2 data-de="Herleitung" data-en="Derivation">Herleitung</h2><p class="formula" id="e-formula"></p><p id="e-explain"></p><p id="e-note" class="e-note"></p></div>
   </div><!-- /mode-erkundung -->
 
   <div id="lobby-spacer"></div>
@@ -377,14 +514,13 @@ details#shapeTree.attn>summary{animation:treeAttnText 1.6s ease 2;}
 <div class="footer-content">
     M.&nbsp;Koch
     <span class="footer-topic"><a href="./index.html">Mathe-Tools</a></span>
-    <span class="footer-update">Last updated:&nbsp;<span id="last-update">...</span></span>
+    <span class="footer-update"><span class="fu-wort" data-de="Zuletzt aktualisiert:" data-en="Last updated:">Zuletzt aktualisiert:</span><span id="last-update">...</span></span>
 </div>
 </footer>
 <script src="last-update.js" defer></script>
 <script src="scale.js" defer></script>
 </div>
 
-<script src="last-update.js"></script>
 
 <!-- ================= APP-LOGIK ================= -->
 <script id="app">
@@ -399,6 +535,165 @@ details#shapeTree.attn>summary{animation:treeAttnText 1.6s ease 2;}
      5. Grundflächen & Körper     10. UI-Aufbau + 3D-Ansicht + Init
    ===================================================================== */
 
+/* ---------- 0. Sprache, Theme, Farben ---------- */
+// Kurzhelfer: uebersetzt, solange theme-language.js geladen ist – sonst Deutsch.
+function T(de, en){ return (typeof tlText === 'function') ? tlText(de, en) : de; }
+// Zweiter Name fuer T(): der Erkundungsmodus hat ein eigenes T() fuer TeX-Kommas.
+function TL(de, en){ return T(de, en); }
+function EN(){ return (typeof tlSprache === 'function') && tlSprache() === 'en'; }
+function DUNKEL(){ return (typeof tlDunkel === 'function') ? tlDunkel()
+  : document.documentElement.classList.contains('dark'); }
+// Dezimaltrennzeichen: im Englischen der Punkt, sonst das Komma
+function DEZ(){ return EN() ? '.' : ','; }
+
+/* Woerterbuch fuer die Bezeichnungen in den Daten (BASES, BODIES, …).
+   Die Daten bleiben deutsch; uebersetzt wird erst beim Anzeigen. */
+const WB = {
+  // Koerper und Grundflaechen
+  'Würfel':'Cube', 'Quader':'Cuboid', 'Prisma':'Prism', 'Zylinder':'Cylinder',
+  'Pyramide':'Pyramid', 'Kegel':'Cone', 'Kugel':'Sphere',
+  'Quadrat':'Square', 'Rechteck':'Rectangle', 'Parallelogramm':'Parallelogram',
+  'Trapez':'Trapezium', 'Drache (Deltoid)':'Kite (deltoid)',
+  'rechtwinkliges Dreieck':'Right-angled triangle', 'beliebiges Dreieck':'Any triangle',
+  'beliebiges n-Eck':'Any n-gon', 'Kreis':'Circle',
+  // Kategorien
+  'Grundflächen':'Base faces', 'Prismenartige Körper':'Prism-like solids',
+  'Spitze Körper':'Pointed solids',
+  // Groessen
+  'Flächeninhalt der Grundfläche':'area of the base', 'Höhe des Körpers':'height of the solid',
+  'Seitenlänge der Grundfläche':'side length of the base',
+  'Länge der Grundfläche':'length of the base', 'Breite der Grundfläche':'width of the base',
+  'Kathete der Grundfläche':'leg of the base', 'Grundseite der Grundfläche':'base side of the base',
+  'Höhe der Grundfläche':'height of the base',
+  'parallele Seite der Grundfläche':'parallel side of the base',
+  'Diagonale der Grundfläche':'diagonal of the base',
+  'Radius der Grundfläche':'radius of the base',
+  'Kantenlänge':'edge length', 'Länge':'length', 'Breite':'width', 'Höhe':'height',
+  'Radius':'radius',
+  // Artikel vor den Groessen ("Berechne die Höhe …")
+  'den':'the', 'die':'the', 'das':'the',
+  // Artikelformen der Grundflaechen
+  'ein Quadrat':'a square', 'ein Rechteck':'a rectangle',
+  'ein rechtwinkliges Dreieck':'a right-angled triangle', 'ein Dreieck':'a triangle',
+  'ein Parallelogramm':'a parallelogram', 'ein Trapez':'a trapezium',
+  'ein Drachenviereck':'a kite', 'ein beliebiges n-Eck':'any n-gon', 'ein Kreis':'a circle',
+  // Legenden unter den Formeln
+  'a: Kantenlänge':'a: edge length',
+  'a: Länge, b: Breite, c: Höhe':'a: length, b: width, c: height',
+  'G: Grundfläche, h: Höhe des Körpers':'G: base area, h: height of the solid',
+  'r: Radius der Grundfläche, h: Höhe des Körpers':'r: radius of the base, h: height of the solid',
+  'r: Radius der Kugel':'r: radius of the sphere',
+  // Hinweise zu den Grundflaechen
+  'Dabei sind \\(a\\) und \\(b\\) die Katheten der Grundfläche.':
+   'Here \\(a\\) and \\(b\\) are the legs of the base.',
+  'Dabei ist \\(g\\) eine Seite der Grundfläche und \\(h_g\\) die zugehörige Höhe.':
+   'Here \\(g\\) is a side of the base and \\(h_g\\) the matching height.',
+  'Dabei sind \\(a\\) und \\(c\\) die parallelen Seiten der Grundfläche und \\(h_g\\) ihr Abstand.':
+   'Here \\(a\\) and \\(c\\) are the parallel sides of the base and \\(h_g\\) the distance between them.',
+  'Dabei sind \\(e\\) und \\(f\\) die Diagonalen der Grundfläche.':
+   'Here \\(e\\) and \\(f\\) are the diagonals of the base.',
+  'Dabei ist \\(r\\) der Radius der Grundfläche.':
+   'Here \\(r\\) is the radius of the base.',
+};
+function W(de){ if(de==null) return de; return EN() ? (WB[de] || de) : de; }
+
+/* Skizzenfarben: der 2D-Renderer und die Schraegbilder haben ihre Farben fest
+   im Code. Statt 60 Aufrufstellen anzufassen, wird die fertige SVG-Zeichnung
+   im Dunkelmodus einmal durch diese Tabelle geschickt. */
+const SVG_DUNKEL={
+  '#28502a':'#8fce92', '#173':'#a8dcab', '#3f7a42':'#7fb082', '#357a38':'#7fb082',
+  '#1b5e20':'#a5d6a7', '#14461a':'#a5d6a7', '#9ac79a':'#7fb082',
+  '#cfe0cf':'#334035', '#c7d8c9':'#3c4a3e', '#cfe0d1':'#3a473c',
+  '#9dbf9e':'#638065', '#8aa78c':'#74926f', '#a9c4ab':'#5f7a61',
+  '#dfe8e0':'#2c352e', '#e8f4e8':'#1f2a20',
+  '#2f6fb0':'#6fb0e8', '#245a8f':'#7fb8ea', '#9dbdd8':'#5a7f9b',
+  '#c0532e':'#e8934f', '#c9762f':'#e8a05f', '#b25f16':'#e0a15a', '#e8c6a8':'#7a6047',
+  '#1a1a1a':'#e7eae8', '#bbb':'#6b7780', '#444':'#b6c0c9', '#555555':'#9aa5b1',
+  '#555':'#9aa5b1', '#777':'#9aa5b1', '#888':'#9aa5b1',
+  'rgba(76,175,80,.16)':'rgba(92,184,96,.22)',
+  'rgba(76,175,80,.07)':'rgba(92,184,96,.10)',
+  'rgba(47,111,176,.14)':'rgba(111,176,232,.20)',
+  'rgba(47,111,176,.22)':'rgba(111,176,232,.28)',
+  'rgba(47,111,176,.20)':'rgba(111,176,232,.26)',
+  'rgba(47,111,176,.18)':'rgba(111,176,232,.24)',
+  'rgba(47,111,176,.13)':'rgba(111,176,232,.19)',
+  'rgba(47,111,176,.45)':'rgba(111,176,232,.50)',
+  'rgba(224,123,57,.20)':'rgba(232,147,79,.28)',
+  'rgba(224,123,57,.26)':'rgba(232,147,79,.34)',
+  'rgba(255,255,255,.82)':'rgba(20,24,28,.85)',
+  // Farben der gegebenen Strecken
+  '#c0392b':'#ef8a80', '#1f6fb2':'#7fb8ea', '#8e44ad':'#c79bea',
+  '#b9770e':'#e5b567', '#117a65':'#5fc7ad', '#c2185b':'#f48fb1',
+};
+const SVG_RE=new RegExp(Object.keys(SVG_DUNKEL)
+  .sort((a,b)=>b.length-a.length)
+  .map(k=>k.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|'),'g');
+function svgFarben(out){
+  if(!DUNKEL()) return out;
+  return out.replace(SVG_RE, m=>SVG_DUNKEL[m]||m);
+}
+
+/* Laengere Texte (Herleitungen, Erlaeuterungen). Auch hier bleiben die Daten
+   deutsch; W() sucht beim Anzeigen die englische Fassung heraus. */
+Object.assign(WB, {
+'Dabei ist \\(G\\) der Flächeninhalt der Grundfläche und \\(h\\) die Höhe des Körpers.':
+ 'Here \\(G\\) is the area of the base and \\(h\\) the height of the solid.',
+'\\(h\\) ist die Höhe des Körpers.':
+ '\\(h\\) is the height of the solid.',
+'Der Körper ist <b>tordiert</b> (in sich verdreht) – jede waagerechte Schicht ist deckungsgleich zur Grundfläche.':
+ 'The solid is <b>twisted</b> – every horizontal layer is congruent to the base.',
+'Der Körper ist <b>schief</b> – \\(h\\) ist trotzdem der senkrechte Abstand zwischen Grund- und Deckfläche bzw. Spitze.':
+ 'The solid is <b>oblique</b> – \\(h\\) is still the perpendicular distance between the base and the top face or apex.',
+'Füllt man den Würfel mit Einheitswürfeln, so passen in eine Schicht \\(a \\cdot a\\) Würfel und es gibt \\(a\\) solcher Schichten übereinander.':
+ 'Fill the cube with unit cubes: \\(a \\cdot a\\) cubes fit into one layer, and there are \\(a\\) such layers stacked up.',
+'Füllt man den Quader mit Einheitswürfeln, so passen in die unterste Schicht \\(a \\cdot b\\) Würfel. Davon liegen \\(c\\) Schichten übereinander.':
+ 'Fill the cuboid with unit cubes: \\(a \\cdot b\\) cubes fit into the bottom layer, and \\(c\\) such layers are stacked up.',
+'Ein Würfel ist ein besonderer Quader (alle Kanten gleich lang) – die Formel stimmt, geht aber einfacher.':
+ 'A cube is a special cuboid (all edges equal) – the formula is right, but there is a simpler one.',
+'Ein Würfel ist auch ein Prisma mit quadratischer Grundfläche – die Formel stimmt, ist hier aber ein Umweg.':
+ 'A cube is also a prism with a square base – the formula is right, but it is the long way round here.',
+'Ein Quader ist ein Prisma mit rechteckiger Grundfläche – die Formel stimmt, ist hier aber ein Umweg.':
+ 'A cuboid is a prism with a rectangular base – the formula is right, but it is the long way round here.',
+'Ein Zylinder ist „prismenartig": mit \\(G = \\pi \\cdot r^2\\) führt auch \\(V = G \\cdot h\\) zum Ziel.':
+ 'A cylinder is “prism-like”: with \\(G = \\pi \\cdot r^2\\), \\(V = G \\cdot h\\) works as well.',
+'Ein Kegel verhält sich wie eine Pyramide: mit \\(G = \\pi \\cdot r^2\\) führt auch die Pyramidenformel zum Ziel.':
+ 'A cone behaves like a pyramid: with \\(G = \\pi \\cdot r^2\\), the pyramid formula works as well.',
+'Ein Quader ist zwar auch ein Prisma – gesucht ist aber die genaueste Bezeichnung.':
+ 'A cuboid is indeed also a prism – but the most precise name is what is wanted.',
+'Ein Würfel ist zwar auch ein Prisma – gesucht ist aber die genaueste Bezeichnung.':
+ 'A cube is indeed also a prism – but the most precise name is what is wanted.',
+'Ein Würfel ist zwar auch ein Quader – gesucht ist aber die genaueste Bezeichnung.':
+ 'A cube is indeed also a cuboid – but the most precise name is what is wanted.',
+'Fast: Der Körper ist prismenartig, aber seine Grundfläche ist ein <b>Kreis</b> – dann heißt er Zylinder.':
+ 'Close: the solid is prism-like, but its base is a <b>circle</b> – then it is called a cylinder.',
+'Fast: Der Körper läuft spitz zu, aber seine Grundfläche ist ein <b>Kreis</b> – dann heißt er Kegel.':
+ 'Close: the solid tapers to a point, but its base is a <b>circle</b> – then it is called a cone.',
+// Erkundungsmodus
+'Schichten':'Layers', 'Einheitswürfel':'Unit cubes', 'n-Eck-Prisma':'n-gon prism',
+'Prisma (⅓)':'Prism (⅓)', 'Stufenpyramide':'Stepped pyramid',
+'Zylinder (⅓)':'Cylinder (⅓)', 'Stufenkegel':'Stepped cone', 'Zylinder (⅔)':'Cylinder (⅔)',
+'Ecken':'Vertices', 'Stufen':'Steps',
+});
+
+Object.assign(WB, {
+'Füllt man den Würfel mit Einheitswürfeln, so passen in eine Schicht \\(a \\cdot a\\) Würfel und es gibt \\(a\\) solcher Schichten übereinander.':
+ 'Fill the cube with unit cubes: \\(a \\cdot a\\) cubes fit into one layer, and there are \\(a\\) such layers stacked up.',
+'Füllt man den Quader mit Einheitswürfeln, so passen in die unterste Schicht \\(a \\cdot b\\) Würfel. Davon liegen \\(c\\) Schichten übereinander.':
+ 'Fill the cuboid with unit cubes: \\(a \\cdot b\\) cubes fit into the bottom layer, and \\(c\\) such layers are stacked up.',
+'Jede waagerechte Schicht eines Prismas ist deckungsgleich zur Grundfläche. Man stapelt also gewissermaßen \\(h\\) Schichten mit dem Inhalt \\(G\\) übereinander. Verschiebt man die Schichten seitlich (schiefes Prisma), ändert sich das Volumen nicht (Prinzip von Cavalieri).':
+ 'Every horizontal layer of a prism is congruent to the base. So in effect you stack \\(h\\) layers of area \\(G\\). Sliding the layers sideways (an oblique prism) does not change the volume (Cavalieri’s principle).',
+'Ein Zylinder ist ein Prisma mit einem Kreis als Grundfläche: Jede waagerechte Schicht ist ein deckungsgleicher Kreis. Der Inhalt dieser Kreisfläche ist \\(G = \\pi \\cdot r^2\\).':
+ 'A cylinder is a prism with a circle as its base: every horizontal layer is a congruent circle. The area of this circle is \\(G = \\pi \\cdot r^2\\).',
+'Drei Pyramiden mit derselben Grundfläche und derselben Höhe füllen zusammen genau ein Prisma mit dieser Grundfläche und Höhe aus. Die Pyramide fasst also nur einen Teil dessen, was das umschließende Prisma fasst.':
+ 'Three pyramids with the same base and the same height together fill exactly one prism with that base and height. So the pyramid holds only part of what the surrounding prism holds.',
+'Ein Kegel verhält sich zum Zylinder wie eine Pyramide zum Prisma: Drei Kegel füllen genau den Zylinder mit gleicher Grundfläche und gleicher Höhe.':
+ 'A cone is to a cylinder what a pyramid is to a prism: three cones exactly fill the cylinder with the same base and the same height.',
+'Eine Kugel füllt genau zwei Drittel des Zylinders aus, in den sie exakt hineinpasst (Höhe \\(2r\\), Radius \\(r\\)). Aus \\(\\tfrac23 \\cdot \\pi \\cdot r^2 \\cdot 2r\\) ergibt sich der bekannte Term.':
+ 'A sphere fills exactly two thirds of the cylinder it fits into exactly (height \\(2r\\), radius \\(r\\)). From \\(\\tfrac23 \\cdot \\pi \\cdot r^2 \\cdot 2r\\) you get the familiar term.',
+'sonstiges Prisma':'Other prism',
+'unten':'bottom', 'vorne':'front', 'seitlich':'side',
+'Prisma':'Prism', 'Pyramide':'Pyramid',
+});
 /* ---------- 1. Hilfsfunktionen ---------- */
 const $  = (s,r=document)=>r.querySelector(s);
 const $$ = (s,r=document)=>[...r.querySelectorAll(s)];
@@ -409,7 +704,7 @@ const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(M
 const rad=d=>d*Math.PI/180;
 const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
 
-function fmtDE(x,md=4){ if(!isFinite(x))return '—'; const r=Math.round(x*10**md)/10**md; let s=r.toFixed(md); s=s.replace(/0+$/,'').replace(/\.$/,''); return s.replace('.',','); }
+function fmtDE(x,md=4){ if(!isFinite(x))return '—'; const r=Math.round(x*10**md)/10**md; let s=r.toFixed(md); s=s.replace(/0+$/,'').replace(/\.$/,''); return s.replace('.',DEZ()); }
 function texNum(x,md=4){ return fmtDE(x,md).replace(',', '{,}'); }
 function parseNum(s){
   if(typeof s!=='string')return NaN;
@@ -487,7 +782,7 @@ function conversionBlock(t){
     const du=(disp&&disp[n.sym])||unit; if(du===unit)return;
     lines.push(gS(n.tex)+' &= '+texNum(convVal(v[n.sym],unit,du,n.kind))+uTex(du,n.kind)+' = '+texNum(v[n.sym])+uTex(unit,n.kind)); });
   if(!lines.length) return '';
-  return gS('<p><b>Zuerst alles in \\('+unit+'\\) umrechnen:</b></p>'+A0.apply(null,lines));
+  return gS(T('<p><b>Zuerst alles in \\('+unit+'\\) umrechnen:</b></p>','<p><b>First convert everything to \\('+unit+'\\):</b></p>')+A0.apply(null,lines));
 }
 
 function genNum(S){
@@ -599,10 +894,11 @@ function render2D(spec,opt={}){
     const x=(p[0]+(l._dx!=null?l._dx:(l.dx||0))).toFixed(1), y=(p[1]+(l._dy!=null?l._dy:(l.dy||0))).toFixed(1);
     const common='x="'+x+'" y="'+y+'" font-size="14" font-family="Calibri, \'Segoe UI\', sans-serif" text-anchor="'+(l.anchor||'middle')+'" dominant-baseline="middle" '+(l.bold?'font-weight="bold"':'');
     // heller Rand, damit Beschriftungen auch über Linien lesbar bleiben
-    out+='<text '+common+' fill="#fff" stroke="#fff" stroke-width="3.4" stroke-linejoin="round">'+svgSub(l.text)+'</text>';
+    const halo=DUNKEL()?'#161b20':'#fff';
+    out+='<text '+common+' fill="'+halo+'" stroke="'+halo+'" stroke-width="3.4" stroke-linejoin="round">'+svgSub(l.text)+'</text>';
     out+='<text '+common+' fill="'+(l.color||'#173')+'">'+svgSub(l.text)+'</text>'; });
   out+='</svg>';
-  return out;
+  return svgFarben(out);
 }
 
 /* ---------- 4. 3D-Geometrie & Schrägbild-Projektion ---------- */
@@ -719,7 +1015,10 @@ function solidToSpec(solid,opt={}){
       const q0=proj(l.perp.a), q1=proj(l.perp.b);
       let dd=[q1[0]-q0[0],q1[1]-q0[1]]; const dq=Math.hypot(dd[0],dd[1])||1; dd=[dd[0]/dq,dd[1]/dq];
       let nv=[-dd[1],dd[0]];
-      if(nv[0]*(p[0]-solidCen2[0])+nv[1]*(p[1]-solidCen2[1])<0) nv=[-nv[0],-nv[1]];
+      /* von der Mitte der eigenen Flaeche weg (falls angegeben), sonst von der
+         Mitte des Koerpers */
+      const ref=l.von?proj(l.von):solidCen2;
+      if(nv[0]*(p[0]-ref[0])+nv[1]*(p[1]-ref[1])<0) nv=[-nv[0],-nv[1]];
       dir=nv;
     }
     else if(l.off){ const q=proj(V3.add(l.at,l.off)); dir=[q[0]-p[0],q[1]-p[1]]; }
@@ -928,7 +1227,7 @@ const BODIES=[
   deriv:'wuerfel' },
 
 { id:'quader', name:'Quader', cat:'Prismenartige Körper', kind:'prisma', usesBase:false, skewAdj:'schiefer',
-  own:[{sym:'a',name:'Länge',kind:'len',tex:'a'},{sym:'b',name:'Breite',kind:'len',tex:'b'},{sym:'c',name:'Höhe',kind:'len',tex:'c'}],
+  own:[{sym:'a',name:T('Länge','Length'),kind:'len',tex:'a'},{sym:'b',name:'Breite',kind:'len',tex:'b'},{sym:'c',name:'Höhe',kind:'len',tex:'c'}],
   label:()=>'V = a · b · c', legend:'a: Länge, b: Breite, c: Höhe',
   sym:()=>'V = a \\cdot b \\cdot c',
   vol:t=>t.v.a*t.v.b*t.v.c,
@@ -1223,7 +1522,11 @@ function buildSolid(t,mode,trueCircles){
         const P0=map3(pts2[i0],ax), P1=map3(pts2[i1],ax);
         // Versatz senkrecht zur PROJIZIERTEN Kante (die Ebenen-Normale steht im Schrägbild
         // nicht senkrecht auf der Kante -> Beschriftung wirkte sonst zur Seite verschoben)
-        solid.labels.push({text:txt,at:map3(mid,ax),perp:{a:P0,b:P1},color:col});
+        /* „von": der Punkt, von dem die Beschriftung wegrueckt. Fuer eine
+           Grundkante ist das die Mitte der Grundflaeche - nicht die Mitte des
+           ganzen Koerpers, die bei einer Pyramide weit darueber liegt. */
+        solid.labels.push({text:txt,at:map3(mid,ax),perp:{a:P0,b:P1},
+                           von:map3(polyCen(pts2),ax),color:col});
         // auch gleich lange Seiten (plain, z. B. alle a des Quadrats) farbig kennzeichnen
         mark(P0,P1,L.sym,{a:i0,b:i1}); }
       // innenliegende Maße (h_g, Diagonalen): Beschriftung direkt an der Linie
@@ -1295,15 +1598,15 @@ const PRESETS={
     gProb:0, orientPrisma:['unten'], orientPyramide:['unten'], skewPrisma:false, skewPyramide:false, twistPrisma:false, twistPyramide:false},
   leicht:{numberType:'int', min:2, max:12, units:['cm','m'], mixMode:'never',
     gProb:25, orientPrisma:['unten'], orientPyramide:['unten'], skewPrisma:false, skewPyramide:false, twistPrisma:false, twistPyramide:false},
-  mittel:{numberType:'dec1', min:2, max:15, units:['mm','cm','dm','m'], mixMode:'never',
+  normal:{numberType:'dec1', min:2, max:15, units:['mm','cm','dm','m'], mixMode:'never',
     gProb:75, orientPrisma:['unten','vorne'], orientPyramide:['unten'], skewPrisma:false, skewPyramide:false, twistPrisma:false, twistPyramide:false},
   herausfordernd:{numberType:'dec2', min:2, max:25, units:['mm','cm','dm','m','km'], mixMode:'sometimes',
     gProb:95, orientPrisma:['unten','vorne','seitlich'], orientPyramide:['unten','vorne','seitlich'], skewPrisma:true, skewPyramide:true, twistPrisma:false, twistPyramide:false}
 };
-const ORIENTS=[['unten','unten'],['vorne','vorne'],['seitlich','seitlich']];
+const ORIENTS=[['unten','unten'],['vorne','vorne'],['seitlich','seitlich']];   // Anzeige ueber W()
 
 const state={
-  diff:'mittel',
+  diff:'normal',
   mode:'volumen',          // volumen | zufall | umkehr
   present:'random',        // text | skizze | random
   sketchType:'exact',      // exact | general
@@ -1375,7 +1678,8 @@ function deserialize(){
   const p=new URLSearchParams(location.search); if(![...p.keys()].length)return false;
   const g=(k,d)=>p.has(k)?p.get(k):d;
   state.uiMode=g('em','uebung')==='erkundung'?'erkundung':'uebung';
-  state.diff=g('d','mittel'); state.mode=g('m','volumen'); state.present=g('pr','random');
+  /* Früher hieß die mittlere Stufe „mittel" - alte Links sollen weiter gehen. */
+  state.diff=g('d','normal'); if(state.diff==='mittel') state.diff='normal'; state.mode=g('m','volumen'); state.present=g('pr','random');
   state.sketchType=g('st','exact')==='general'?'general':'exact';
   state.view=g('vw','schraeg')==='d3'?'d3':'schraeg';
   state.showHidden=g('vk','1')==='1'; state.analog=g('an','1')==='1';
@@ -1563,29 +1867,37 @@ function preciseKind(t){
 function preciseName(t){
   const k=preciseKind(t);
   if(k===t.body.id) return null;
-  return (BODIES.find(b=>b.id===k)||{}).name || null;
+  return W((BODIES.find(b=>b.id===k)||{}).name) || null;
 }
 function bodyTitle(t){
-  const B=t.body; let s=B.name;
+  const B=t.body; let s=W(B.name);
   const pn=preciseName(t);
   if(pn) return pn;                 // z. B. „Quader" statt „Prisma · Grundfläche: Rechteck"
-  const adj=[]; if(t.skew)adj.push(B.skewAdj||'schiefes');
-  if(t.twist)adj.push((B.skewAdj||'schiefes').replace('schief','tordiert'));
-  if(adj.length) s=adj.join(', ')+' '+B.name;
+  // Im Englischen stehen die Eigenschaftswoerter unveraendert vor dem Namen,
+  // im Deutschen richten sie sich nach dem Geschlecht (skewAdj).
+  const adj=[];
+  if(EN()){ if(t.skew)adj.push('oblique'); if(t.twist)adj.push('twisted'); }
+  else{ if(t.skew)adj.push(B.skewAdj||'schiefes');
+        if(t.twist)adj.push((B.skewAdj||'schiefes').replace('schief','tordiert')); }
+  if(adj.length) s=adj.join(', ')+' '+s;
   // Ist der Flächeninhalt der Grundfläche gegeben, ist die konkrete Grundform unerheblich
-  if(B.usesBase==='poly'&&t.base) s+= t.gGiven? ' mit gegebener Grundfläche' : ' · Grundfläche: '+t.base.name;
+  if(B.usesBase==='poly'&&t.base) s+= t.gGiven
+      ? T(' mit gegebener Grundfläche',' with a given base area')
+      : T(' · Grundfläche: ',' · base: ')+W(t.base.name);
   return s;
 }
 function ctxOf(t){
   const p=[]; const B=t.body;
-  if(B.usesBase==='poly'&&t.base&&!t.gGiven) p.push('Die Grundfläche des Körpers ist '+t.base.art+'.');
-  if(t.gGiven) p.push('Dabei ist \\(G\\) der Flächeninhalt der Grundfläche und \\(h\\) die Höhe des Körpers.');
-  else if(B.usesBase){ if(t.base&&t.base.hint)p.push(t.base.hint);
-    p.push('\\(h\\) ist die Höhe des Körpers.'); }
-  if(t.twist) p.push('Der Körper ist <b>tordiert</b> (in sich verdreht) – jede waagerechte Schicht ist deckungsgleich zur Grundfläche.');
-  if(t.skew) p.push('Der Körper ist <b>schief</b> – \\(h\\) ist trotzdem der senkrechte Abstand zwischen Grund- und Deckfläche bzw. Spitze.');
+  if(B.usesBase==='poly'&&t.base&&!t.gGiven) p.push(T('Die Grundfläche des Körpers ist ','The base of the solid is ')+W(t.base.art)+'.');
+  if(t.gGiven) p.push(W('Dabei ist \\(G\\) der Flächeninhalt der Grundfläche und \\(h\\) die Höhe des Körpers.'));
+  else if(B.usesBase){ if(t.base&&t.base.hint)p.push(W(t.base.hint));
+    p.push(W('\\(h\\) ist die Höhe des Körpers.')); }
+  if(t.twist) p.push(W('Der Körper ist <b>tordiert</b> (in sich verdreht) – jede waagerechte Schicht ist deckungsgleich zur Grundfläche.'));
+  if(t.skew) p.push(W('Der Körper ist <b>schief</b> – \\(h\\) ist trotzdem der senkrechte Abstand zwischen Grund- und Deckfläche bzw. Spitze.'));
   return gS(p.join(' '));
 }
+// „geg.:" bzw. „given:" im Aufgabentext
+function GEG(){ return T('\\text{geg.: }','\\text{given: }'); }
 function taskTextTeX(t){
   const {v,unit,mode,disp}=t;
   const parts=t.needs.filter(n=>!(mode==='umkehr'&&n.sym===t.unknownSym))
@@ -1595,10 +1907,10 @@ function taskTextTeX(t){
   if(mode==='umkehr'){
     const target=needBySym(t,t.unknownSym);
     parts.push('V='+volTeXGiven(t));
-    return {geg:'\\(\\text{geg.: }'+parts.join(',\\ ')+'\\)', ctx,
-            ask:'Berechne '+(target.art||'die')+' '+target.name+' \\('+gS(target.tex)+'\\).'};
+    return {geg:'\\('+GEG()+parts.join(',\\ ')+'\\)', ctx,
+            ask:T('Berechne ','Work out ')+W(target.art||'die')+' '+W(target.name)+' \\('+gS(target.tex)+'\\).'};
   }
-  return {geg:'\\(\\text{geg.: }'+parts.join(',\\ ')+'\\)', ctx, ask:'Berechne das Volumen \\(V\\).'};
+  return {geg:'\\('+GEG()+parts.join(',\\ ')+'\\)', ctx, ask:T('Berechne das Volumen \\(V\\).','Work out the volume \\(V\\).')};
 }
 function buildSketch(t,mode,opt){
   const solid=buildSolid(t,mode);
@@ -1699,7 +2011,7 @@ function derivQuader(layers){
   gridLinesBox(a,b,c,1).forEach(l=>sp.lines.unshift(l));
   const lay=[[0,0,0],[a,0,0],[a,b,0],[0,b,0],[0,0,1],[a,0,1],[a,b,1],[0,b,1]].map(proj);
   sp.paths.push({pts:hull2D(lay),closed:true,fill:'rgba(47,111,176,.20)',color:'#2f6fb0',width:1.4,dashed:true});
-  sp.labels.push({text:'1 Schicht = a · b Einheitswürfel',at:proj([a/2,0,-0.75]),dx:0,dy:0,anchor:'middle',color:'#245a8f',bold:true});
+  sp.labels.push({text:T('1 Schicht = a · b Einheitswürfel','1 layer = a · b unit cubes'),at:proj([a/2,0,-0.75]),dx:0,dy:0,anchor:'middle',color:'#245a8f',bold:true});
   return render2D(sp,{w:340,h:230});
 }
 function derivPrisma(){
@@ -1715,7 +2027,7 @@ function derivPrisma(){
   for(let z=1;z<4;z++){ const ring=tri.map(p=>proj([p[0]+8+1.6*z/4,p[1]+0.9*z/4,z]));
     s3.paths.push({pts:ring,closed:true,fill:'rgba(47,111,176,.14)',color:'#2f6fb0',width:1.1,dashed:true}); }
   const lbl={labels:[{text:'gerade',at:proj([2.5,0,-1.1]),anchor:'middle',color:'#555'},
-                     {text:'schief – gleiches Volumen',at:proj([11,0,-1.1]),anchor:'middle',color:'#555'}]};
+                     {text:T('schief – gleiches Volumen','oblique – same volume'),at:proj([11,0,-1.1]),anchor:'middle',color:'#555'}]};
   return render2D(mergeSpecs(s1,s3,lbl),{w:380,h:230});
 }
 function derivPyramide(){
@@ -1771,7 +2083,7 @@ const GENERALIZES={
   zylinder:[{id:'prisma',why:'Ein Zylinder ist „prismenartig": mit \\(G = \\pi \\cdot r^2\\) führt auch \\(V = G \\cdot h\\) zum Ziel.'}],
   kegel:[{id:'pyramide',why:'Ein Kegel verhält sich wie eine Pyramide: mit \\(G = \\pi \\cdot r^2\\) führt auch die Pyramidenformel zum Ziel.'}]
 };
-function generalMap(t){ const m={}; (GENERALIZES[t.body.id]||[]).forEach(g=>{ const B=bodyById(g.id); if(B)m[symOfBody(B,null)]=gS(g.why); }); return m; }
+function generalMap(t){ const m={}; (GENERALIZES[t.body.id]||[]).forEach(g=>{ const B=bodyById(g.id); if(B)m[symOfBody(B,null)]=gS(W(g.why)); }); return m; }
 function symOfBody(B,t){ return gS(typeof B.sym==='function'?B.sym(t):B.sym); }
 function formulaChoices(t){
   const correct=symOfBody(t.body,t);
@@ -1792,7 +2104,8 @@ function baseWarnMap(base){
   const out={};
   (BASE_GENERAL[base.id]||[]).forEach(id=>{
     const b=baseById(id); if(!b)return;
-    out[b.name]='Stimmt – '+base.art+' ist auch '+b.art+'. Gesucht ist aber die genaueste Bezeichnung.';
+    out[W(b.name)]=T('Stimmt – ','Correct – ')+W(base.art)+T(' ist auch ',' is also ')+W(b.art)
+      +T('. Gesucht ist aber die genaueste Bezeichnung.','. The most precise name is what is wanted, though.');
   });
   return out;
 }
@@ -1831,25 +2144,72 @@ function stripResults(html){
     return '\\[\\begin{aligned}'+rows.slice(0,end).join('\\\\')+'\\end{aligned}\\]';
   });
 }
+/* Die letzte Hilfestufe: eine Formel, in der nur gegebene Groessen stehen.
+   Der Weg ueber die Grundflaeche bleibt sichtbar - ihre Zeile endet mit
+   „= ...", und im Volumenansatz steht ihr ganzer eingesetzter Term statt des
+   ausgerechneten Werts. */
+function eingesetzterTerm(roh){
+  const m=String(roh).match(/\\begin\{aligned\}([\s\S]*?)\\end\{aligned\}/);
+  if(!m) return '';
+  const zeilen=m[1].split('\\\\');
+  if(zeilen.length<2) return '';
+  return zeilen[1].replace(/^[^&]*&\s*=?/,'').trim();
+}
+/* Die Rechnung steht nur bis zu der Zeile, in der die gegebenen Werte
+   eingesetzt sind - alles danach waere schon ausgerechnet. Die eingesetzte
+   Zeile erkennt man an den Einheiten: rein symbolische Zeilen tragen keine.
+   Deshalb muss das vor styleUnits geschehen, das die Einheiten entfernen darf. */
+function nurEinsetzen(latex){
+  return String(latex).replace(/\\\[\\begin\{aligned\}([\s\S]*?)\\end\{aligned\}\\\]/g,(m,body)=>{
+    const rows=body.split('\\\\');
+    let k=rows.findIndex(r=>r.indexOf('\\text{')>=0);
+    if(k<0) k=rows.length-1;
+    return '\\[\\begin{aligned}'+rows.slice(0,k+1).join('\\\\')+'\\end{aligned}\\]';
+  });
+}
+function hilfeFormelTeX(t){
+  const u=t.unit;
+  let out=conversionBlock(t);
+  /* Ist eine Seite der Grundfläche gesucht, führt der Weg zwangsläufig über
+     die zuerst bestimmte Grundfläche - der bleibt, wie er ist. */
+  if(isBaseSideTarget(t)){
+    const ganz=solutionTeX(t);
+    return out + stripResults(ganz.indexOf(out)===0 ? ganz.slice(out.length) : ganz);
+  }
+  const kind = t.mode==='umkehr' ? (needBySym(t,t.unknownSym).kind==='area'?'area':'len') : 'vol';
+  let koerper = t.mode==='umkehr'? t.body.inv(t) : t.body.fwd(t);
+  if(needsBaseStep(t)){
+    const roh=t.base.calc(t.v,u);
+    let term=eingesetzterTerm(roh);
+    if(term && /\\cdot|\\dfrac|\\tfrac|\+/.test(term)) term='\\left('+term+'\\right)';
+    out+=T('<p><b>1) Grundfläche berechnen:</b></p>','<p><b>1) Work out the base area:</b></p>');
+    out+=styleUnits(nurEinsetzen(roh).replace('\\end{aligned}',' = \\ldots\\end{aligned}'),u,'area');
+    out+='<p><b>2) '+(t.mode==='umkehr'?T('Gesuchte Größe berechnen:','Work out the quantity asked for:'):T('Volumen berechnen:','Work out the volume:'))+'</b></p>';
+    const wert = texNum(t.G)+AU(u);
+    if(term && koerper.indexOf(wert)>=0) koerper = koerper.split(wert).join(term);
+  }
+  out+=styleUnits(nurEinsetzen(koerper),u,kind);
+  return gS(out);
+}
 function solutionTeX(t){
   let out=conversionBlock(t);
   if(isBaseSideTarget(t)){
     const u=t.unit, spitz=t.body.kind==='spitz';
-    out+='<p><b>1) Grundfläche aus dem Volumen bestimmen:</b></p>';
+    out+=T('<p><b>1) Grundfläche aus dem Volumen bestimmen:</b></p>','<p><b>1) Find the base area from the volume:</b></p>');
     out+=styleUnits(spitz
       ? A0('V &= '+h3('G \\cdot h'),'G &= \\dfrac{3 \\cdot V}{h}',
            'G &= \\dfrac{3 \\cdot '+texNum(t.volExact,2)+VU(u)+'}{'+texNum(t.v.h)+U(u)+'}','G &= '+texNum(t.G)+AU(u))
       : A0('V &= G \\cdot h','G &= \\dfrac{V}{h}',
            'G &= \\dfrac{'+texNum(t.volExact,2)+VU(u)+'}{'+texNum(t.v.h)+U(u)+'}','G &= '+texNum(t.G)+AU(u)),
       u,'area');
-    out+='<p><b>2) Gesuchte Seite aus der Grundfläche:</b></p>';
+    out+=T('<p><b>2) Gesuchte Seite aus der Grundfläche:</b></p>','<p><b>2) The side asked for, from the base area:</b></p>');
     out+=styleUnits(t.base.invG(t.unknownSym,t.v,t.G,u),u,'len');
     return gS(out);
   }
   const twoStep = needsBaseStep(t);
   if(twoStep){
-    out+='<p><b>1) Grundfläche berechnen:</b></p>'+styleUnits(t.base.calc(t.v,t.unit),t.unit,'area');
-    out+='<p><b>2) '+(t.mode==='umkehr'?'Gesuchte Größe':'Volumen')+' berechnen:</b></p>';
+    out+=T('<p><b>1) Grundfläche berechnen:</b></p>','<p><b>1) Work out the base area:</b></p>')+styleUnits(t.base.calc(t.v,t.unit),t.unit,'area');
+    out+='<p><b>2) '+(t.mode==='umkehr'?T('Gesuchte Größe berechnen:','Work out the quantity asked for:'):T('Volumen berechnen:','Work out the volume:'))+'</b></p>';
   }
   const kind = t.mode==='umkehr' ? (needBySym(t,t.unknownSym).kind==='area'?'area':'len') : 'vol';
   out+=styleUnits(t.mode==='umkehr'? t.body.inv(t) : t.body.fwd(t), t.unit, kind);
@@ -1858,12 +2218,12 @@ function solutionTeX(t){
 function ansatzTeX(t){
   const sym=symOfBody(t.body,t);
   const pre = needsBaseStep(t)
-    ? '<p>Berechne zuerst die Grundfläche:</p>\\['+t.base.symG()+'\\]' : '';
+    ? T('<p>Berechne zuerst die Grundfläche:</p>\\[','<p>Work out the base area first:</p>\\[')+t.base.symG()+'\\]' : '';
   if(t.mode==='umkehr'){
     const tg=needBySym(t,t.unknownSym);
-    return gS(pre+'\\['+sym+'\\]<p>Stelle die Formel nach \\('+tg.tex+'\\) um und setze die gegebenen Werte (inkl. \\(V\\)) ein.</p>');
+    return gS(pre+'\\['+sym+T('\\]<p>Stelle die Formel nach \\(','\\]<p>Rearrange the formula for \\(')+tg.tex+T('\\) um und setze die gegebenen Werte (inkl. \\(V\\)) ein.</p>','\\) and substitute the given values (including \\(V\\)).</p>'));
   }
-  return gS(pre+'\\['+sym+'\\]<p>Setze die gegebenen Werte ein und berechne das Volumen.</p>');
+  return gS(pre+'\\['+sym+T('\\]<p>Setze die gegebenen Werte ein und berechne das Volumen.</p>','\\]<p>Substitute the given values and work out the volume.</p>'));
 }
 
 /* ---------- 10. UI-Aufbau ---------- */
@@ -1879,8 +2239,8 @@ function segRow(pairs,cur,onPick,cls){
 }
 function multiRow(pairs,list,onToggle){
   const row=el('div','opt-line multi');
-  pairs.forEach(([v,lab])=>{ const on=list.includes(v); const b=el('button',on?'on':'',lab);
-    if(!on){b.style.background='#fff';b.style.color='#444';b.style.border='1px solid #ccc';}
+  pairs.forEach(([v,lab])=>{ const on=list.includes(v); const b=el('button',on?'on':'',W(lab));
+    if(!on)b.classList.add('unit-off');
     b.onclick=()=>onToggle(v); row.appendChild(b); });
   return row;
 }
@@ -1889,55 +2249,55 @@ function buildTeacherSettings(){
   const g=el('div','settings-grid');
 
   // Zahlen
-  const c1=el('div','form-block'); c1.innerHTML='<div class="opt-line"><b>Zahlen</b></div>';
-  c1.appendChild(segRow([['int','ganzzahlig'],['dec1','1 Nachkomma'],['dec2','2 Nachkommastellen']],state.numberType,
+  const c1=el('div','form-block'); c1.innerHTML=T('<div class="opt-line"><b>Zahlen</b></div>','<div class="opt-line"><b>Numbers</b></div>');
+  c1.appendChild(segRow([['int',T('ganzzahlig','whole numbers')],['dec1',T('1 Nachkomma','1 decimal place')],['dec2',T('2 Nachkommastellen','2 decimal places')]],state.numberType,
     v=>{state.numberType=v;afterTeacherChange();}));
   g.appendChild(c1);
 
   // Einheiten
   const c3=el('div','form-block unitset');
-  c3.innerHTML='<div class="opt-line"><b>Einheiten</b></div>';
-  c3.appendChild(checkLine(state.useUnits,'mit Einheiten rechnen',v=>{state.useUnits=v; afterDisplayChange();}));
+  c3.innerHTML=T('<div class="opt-line"><b>Einheiten</b></div>','<div class="opt-line"><b>Units</b></div>');
+  c3.appendChild(checkLine(state.useUnits,T('mit Einheiten rechnen','work with units'),v=>{state.useUnits=v; afterDisplayChange();}));
   const dep=el('div'); dep.style.opacity=state.useUnits?'1':'.4'; if(!state.useUnits)dep.style.pointerEvents='none';
-  dep.appendChild(el('div','opt-line','<span class="small">erlaubte Einheiten:</span>'));
+  dep.appendChild(el('div','opt-line',T('<span class="small">erlaubte Einheiten:</span>','<span class="small">units allowed:</span>')));
   const ul=el('div','opt-line');
   LENGTH_UNITS.forEach(u=>{ const btn=el('button', state.units.includes(u)?'on':'', u);
-    if(!state.units.includes(u)){btn.style.background='#fff';btn.style.color='#444';btn.style.border='1px solid #ccc';}
+    if(!state.units.includes(u))btn.classList.add('unit-off');
     btn.onclick=()=>{ if(state.units.includes(u))state.units=state.units.filter(x=>x!==u); else state.units.push(u);
       if(!state.units.length)state.units=[u]; afterTeacherChange(); };
     ul.appendChild(btn);});
   dep.appendChild(ul);
-  dep.appendChild(el('div','opt-line','<span class="small">in den Formeln:</span>'));
-  dep.appendChild(segRow([['through','durchgängig'],['end','erst am Ergebnis [ ]']],state.unitsMode,v=>{state.unitsMode=v;afterDisplayChange();}));
-  dep.appendChild(el('div','opt-line','<span class="small">gemischte Einheiten:</span>'));
-  dep.appendChild(segRow([['never','nie'],['sometimes','manchmal'],['always','immer']],state.mixMode,v=>{state.mixMode=v;afterTeacherChange();}));
+  dep.appendChild(el('div','opt-line',T('<span class="small">in den Formeln:</span>','<span class="small">in the formulae:</span>')));
+  dep.appendChild(segRow([['through',T('durchgängig','throughout')],['end',T('erst am Ergebnis [ ]','only at the result [ ]')]],state.unitsMode,v=>{state.unitsMode=v;afterDisplayChange();}));
+  dep.appendChild(el('div','opt-line',T('<span class="small">gemischte Einheiten:</span>','<span class="small">mixed units:</span>')));
+  dep.appendChild(segRow([['never',T('nie','never')],['sometimes',T('manchmal','sometimes')],['always',T('immer','always')]],state.mixMode,v=>{state.mixMode=v;afterTeacherChange();}));
   const mixHint=el('div','small'); mixHint.style.color='#888'; mixHint.style.marginTop='4px';
-  mixHint.textContent='(max. 1 Stufe Unterschied; die Größen werden im Lösungsweg zuerst in eine gemeinsame Einheit umgerechnet)';
+  mixHint.textContent=T('(max. 1 Stufe Unterschied; die Größen werden im Lösungsweg zuerst in eine gemeinsame Einheit umgerechnet)','(at most 1 step apart; in the worked solution the quantities are first converted to a common unit)');
   dep.appendChild(mixHint);
-  dep.appendChild(checkLine(state.autoUnit,'Antwort: Einheit automatisch vorgeben (sonst frei wählbar)',v=>{state.autoUnit=v; afterDisplayChange();}));
+  dep.appendChild(checkLine(state.autoUnit,T('Antwort: Einheit automatisch vorgeben (sonst frei wählbar)','answer: fill the unit in automatically (otherwise free to choose)'),v=>{state.autoUnit=v; afterDisplayChange();}));
   c3.appendChild(dep); g.appendChild(c3);
 
   // Hilfe
-  const c6=el('div','form-block'); c6.innerHTML='<div class="opt-line"><b>Hilfe (erste Stufe)</b></div>';
-  c6.appendChild(segRow([['herleitung','Herleitung (bildlich)'],['formelsammlung','Formelsammlung']],state.helpMode,v=>{state.helpMode=v;afterDisplayChange();}));
+  const c6=el('div','form-block'); c6.innerHTML=T('<div class="opt-line"><b>Hilfe (erste Stufe)</b></div>','<div class="opt-line"><b>Help (first step)</b></div>');
+  c6.appendChild(segRow([['herleitung',T('Herleitung (bildlich)','Derivation (visual)')],['formelsammlung',T('Formelsammlung','Formula sheet')]],state.helpMode,v=>{state.helpMode=v;afterDisplayChange();}));
   g.appendChild(c6);
 
   // Formel-Schreibweise
-  const c7=el('div','form-block'); c7.innerHTML='<div class="opt-line"><b>Formel-Schreibweise</b></div>';
-  c7.appendChild(el('div','opt-line','<span class="small">Faktoren ½ / ⅓ / ⁴⁄₃:</span>'));
-  c7.appendChild(segRow([['fraction','Term im Bruch'],['factor','als Faktor davor']],state.halfStyle,v=>{state.halfStyle=v;afterFormulaStyleChange();}));
-  c7.appendChild(el('div','opt-line','<span class="small">Bezeichnung des Grundflächeninhalts:</span>'));
+  const c7=el('div','form-block'); c7.innerHTML=T('<div class="opt-line"><b>Formel-Schreibweise</b></div>','<div class="opt-line"><b>Formula notation</b></div>');
+  c7.appendChild(el('div','opt-line',T('<span class="small">Faktoren ½ / ⅓ / ⁴⁄₃:</span>','<span class="small">factors ½ / ⅓ / ⁴⁄₃:</span>')));
+  c7.appendChild(segRow([['fraction',T('Term im Bruch','term inside the fraction')],['factor',T('als Faktor davor','as a factor in front')]],state.halfStyle,v=>{state.halfStyle=v;afterFormulaStyleChange();}));
+  c7.appendChild(el('div','opt-line',T('<span class="small">Bezeichnung des Grundflächeninhalts:</span>','<span class="small">symbol for the base area:</span>')));
   c7.appendChild(segRow([['ag','A<sub>g</sub>'],['g','G']],state.gName,v=>{state.gName=v;afterFormulaStyleChange();}));
   g.appendChild(c7);
 
   // Darstellung
-  const c5=el('div','form-block'); c5.innerHTML='<div class="opt-line"><b>Darstellung</b></div>';
-  c5.appendChild(checkLine(state.analog,'andere Darstellung (Text/Skizze) zum Aufklappen anbieten',v=>{state.analog=v; afterDisplayChange();}));
-  c5.appendChild(checkLine(state.showName,'Namen des Körpers bei Skizze angeben',v=>{state.showName=v; afterDisplayChange();}));
-  c5.appendChild(checkLine(state.colorLen,'farbige Längenangaben (gegebene Strecken farbig markieren)',v=>{state.colorLen=v; afterDisplayChange();}));
-  c5.appendChild(checkLine(state.showHidden,'verdeckte Kanten im Schrägbild gestrichelt zeichnen (sonst ausgeblendet)',v=>{state.showHidden=v; afterDisplayChange();}));
-  c5.appendChild(el('div','opt-line','<span class="small">Kreise im Schrägbild:</span>'));
-  c5.appendChild(segRow([['simple','vereinfacht (waagerechte Ellipse)'],['exact','korrekt (verzerrt)']],state.ellipse,
+  const c5=el('div','form-block'); c5.innerHTML=T('<div class="opt-line"><b>Darstellung</b></div>','<div class="opt-line"><b>Presentation</b></div>');
+  c5.appendChild(checkLine(state.analog,T('andere Darstellung (Text/Skizze) zum Aufklappen anbieten','offer the other presentation (text/sketch) to expand'),v=>{state.analog=v; afterDisplayChange();}));
+  c5.appendChild(checkLine(state.showName,T('Namen des Körpers bei Skizze angeben','show the name of the solid with the sketch'),v=>{state.showName=v; afterDisplayChange();}));
+  c5.appendChild(checkLine(state.colorLen,T('farbige Längenangaben (gegebene Strecken farbig markieren)','coloured length labels (mark the given segments in colour)'),v=>{state.colorLen=v; afterDisplayChange();}));
+  c5.appendChild(checkLine(state.showHidden,T('verdeckte Kanten im Schrägbild gestrichelt zeichnen (sonst ausgeblendet)','draw hidden edges dashed in the oblique view (otherwise hide them)'),v=>{state.showHidden=v; afterDisplayChange();}));
+  c5.appendChild(el('div','opt-line',T('<span class="small">Kreise im Schrägbild:</span>','<span class="small">circles in the oblique view:</span>')));
+  c5.appendChild(segRow([['simple',T('vereinfacht (waagerechte Ellipse)','simplified (horizontal ellipse)')],['exact',T('korrekt (verzerrt)','correct (distorted)')]],state.ellipse,
     v=>{state.ellipse=v; afterDisplayChange();}));
   g.appendChild(c5);
 
@@ -1954,60 +2314,63 @@ function buildStudentPanel(){
   // klappt bei jeder Einstellungsänderung im Baum zu
   const prevTree=$('#shapeTree'); const treeOpen = prevTree? prevTree.open : false;
   p.innerHTML='';
-  const det=el('details'); det.id='shapeTree'; det.open=treeOpen;
-  det.appendChild(el('summary',null,'Welche Körper möchtest du üben?'));
+  const det=el('details','auswahl'); det.id='shapeTree'; det.open=treeOpen;
+  det.appendChild(el('summary',null,T('Welche Körper möchtest du üben?','Which solids would you like to practise?')));
   const body=el('div');
   const top=el('div','tree-top');
-  top.appendChild(el('span','tree-hint','Tippen = an/aus · lange gedrückt halten = nur dieser · pro Kategorie „alle/keine".'));
-  const share=el('button','share-btn'); share.innerHTML='<span class="ico">🔗</span>Einstellungen teilen';
-  share.title='Aktuelle Einstellungen als Link kopieren'; share.onclick=copyShareLink;
+  top.appendChild(el('span','tree-hint',T('Tippen = an/aus · lange gedrückt halten = nur dieser · pro Kategorie „alle/keine".','Tap = on/off · press and hold = only this one · per category “all/none”.')));
+  const share=el('button','share-btn'); share.innerHTML=T('<span class="ico">🔗</span>Einstellungen teilen','<span class="ico">🔗</span>Share settings');
+  share.title=T('Aktuelle Einstellungen als Link kopieren','Copy the current settings as a link'); share.onclick=copyShareLink;
   top.appendChild(share); body.appendChild(top);
   BODY_CATS.forEach(cat=>body.appendChild(buildCategory(cat)));
   body.appendChild(buildBaseCategory());
   det.appendChild(body); p.appendChild(det);
   refreshTree();
 
-  const b1=ctlBlock('Schwierigkeit');
-  diffSeg=el('div','seg');
-  [['einfuehrung','Einführung'],['leicht','Leicht'],['mittel','Mittel'],['herausfordernd','Herausfordernd'],['individuell','Individuell']].forEach(([v,lab])=>{
+  // Die drei Schalter stehen in derselben Leiste wie auf den anderen Seiten.
+  const tcRow=el('div'); tcRow.id='topControls'; p.appendChild(tcRow);
+
+  const b1=ctlBlock(T('Schwierigkeit','Difficulty')); b1.classList.add('tc-diff');
+  diffSeg=el('div','seg stufen');
+  [['einfuehrung',T('Einführung','Introduction')],['leicht',T('Leicht','Easy')],['normal',T('Normal','Normal')],['herausfordernd',T('Herausfordernd','Challenging')],['individuell',T('Individuell','Custom')]].forEach(([v,lab])=>{
     const btn=el('button',state.diff===v?'on':'',lab); btn.dataset.v=v;
     btn.onclick=()=>{ state.diff=v; if(v==='individuell'){openTeacher();} else { applyPreset(v);} rebuild();
       buildStudentPanel();   // Baum neu aufbauen, damit Slider/Schalter der Kategorien den Preset zeigen
       refreshDiffSeg(); newTask(); renderTask(); };
     diffSeg.appendChild(btn);});
-  b1.appendChild(diffSeg); p.appendChild(b1);
+  b1.appendChild(diffSeg); tcRow.appendChild(b1);
 
-  const b2=ctlBlock('Aufgabentyp');
+  const b2=ctlBlock(T('Aufgabentyp','Question type'));
   const segM=el('div','seg');
-  [['volumen','Volumenberechnung'],['zufall','Zufällig'],['umkehr','Umkehraufgabe']].forEach(([v,lab])=>{
+  [['volumen',T('Volumenberechnung','Volume calculation')],['zufall',T('Zufällig','Random')],['umkehr',T('Umkehraufgabe','Reverse question')]].forEach(([v,lab])=>{
     const btn=el('button',state.mode===v?'on':'',lab); btn.onclick=()=>{state.mode=v; setSeg(segM,btn); serialize(); newTask(); renderTask();}; segM.appendChild(btn);});
-  b2.appendChild(segM); p.appendChild(b2);
+  b2.appendChild(segM); tcRow.appendChild(b2);
 
-  const b3=ctlBlock('Darstellung');
+  const b3=ctlBlock(T('Darstellung','Presentation'));
   const segP=el('div','seg');
-  [['text','Text'],['random','Zufall'],['skizze','Skizze']].forEach(([v,lab])=>{
+  [['text',T('Text','Text')],['random',T('Zufall','Random')],['skizze',T('Skizze','Sketch')]].forEach(([v,lab])=>{
     const btn=el('button',state.present===v?'on':'',lab); btn.onclick=()=>{state.present=v; setSeg(segP,btn); serialize(); newTask(); renderTask();}; segP.appendChild(btn);});
-  b3.appendChild(segP); p.appendChild(b3);
+  b3.appendChild(segP); tcRow.appendChild(b3);
 }
-function ctlBlock(label){ const d=el('div','ctl'); d.appendChild(el('span','lbl',label)); return d; }
+function ctlBlock(label){ const d=el('div','tc-item tc-mitte'); d.appendChild(el('span','tc-label',label)); return d; }
 function setSeg(seg,onBtn){ $$('button',seg).forEach(b=>b.classList.toggle('on',b===onBtn)); }
 function openTeacher(){ const d=$('#teacherSettings'); d.open=true; d.classList.add('settings-flash'); setTimeout(()=>d.classList.remove('settings-flash'),1200); d.scrollIntoView({behavior:'smooth',block:'nearest'}); }
 function copyShareLink(){
   const qs=serialize(); const url=location.href.split('?')[0]+'?'+qs;
-  const done=()=>showToast('Link mit deinen Einstellungen kopiert');
+  const done=()=>showToast(T('Link mit deinen Einstellungen kopiert','Link with your settings copied'));
   if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(done,()=>fallbackCopy(url,done));
   else fallbackCopy(url,done);
 }
-function fallbackCopy(text,cb){ try{ const ta=el('textarea'); ta.value=text; ta.style.position='fixed'; ta.style.opacity='0'; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); cb&&cb(); }catch(e){ showToast('Kopieren nicht möglich'); } }
+function fallbackCopy(text,cb){ try{ const ta=el('textarea'); ta.value=text; ta.style.position='fixed'; ta.style.opacity='0'; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); cb&&cb(); }catch(e){ showToast(T('Kopieren nicht möglich','Could not copy')); } }
 let toastEl,toastT;
 function showToast(msg){ if(!toastEl){toastEl=el('div','toast');document.body.appendChild(toastEl);} toastEl.textContent=msg; toastEl.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>toastEl.classList.remove('show'),1800); }
 
 function buildCategory(cat){
   const wrap=el('div','cat');
   const head=el('div','cat-head');
-  head.appendChild(el('span','cat-title',cat));
+  head.appendChild(el('span','cat-title',W(cat)));
   const acts=el('div','cat-actions');
-  const toggle=el('button','toggle-all','alle'); toggle.dataset.cat=cat;
+  const toggle=el('button','toggle-all',T('alle','all')); toggle.dataset.cat=cat;
   toggle.onclick=()=>{ const bs=BODIES.filter(b=>b.cat===cat); const allOn=bs.every(b=>state.active.has(b.id));
     bs.forEach(b=> allOn?state.active.delete(b.id):state.active.add(b.id));
     syncCircle('body'); afterTreeChange(); };
@@ -2016,15 +2379,15 @@ function buildCategory(cat){
   if(cat==='Prismenartige Körper'||cat==='Spitze Körper'){
     const spitz=cat==='Spitze Körper';
     const set=el('div','cat-set');
-    set.appendChild(el('span','cs-lbl','Lage der Grundfläche:'));
+    set.appendChild(el('span','cs-lbl',T('Lage der Grundfläche:','Position of the base:')));
     set.appendChild(multiRow(ORIENTS, spitz?state.orientPyramide:state.orientPrisma, v=>{
       if(spitz)state.orientPyramide=toggleIn(state.orientPyramide,v); else state.orientPrisma=toggleIn(state.orientPrisma,v);
       afterTreeSettingChange(); }));
     set.appendChild(checkLine(spitz?state.skewPyramide:state.skewPrisma,
-      spitz?'auch schiefe Pyramiden/Kegel':'auch schiefe Prismen/Zylinder',
+      spitz?T('auch schiefe Pyramiden/Kegel','oblique pyramids/cones too'):T('auch schiefe Prismen/Zylinder','oblique prisms/cylinders too'),
       v=>{ if(spitz)state.skewPyramide=v; else state.skewPrisma=v; afterTreeSettingChange(); }));
     set.appendChild(checkLine(spitz?state.twistPyramide:state.twistPrisma,
-      (spitz?'auch tordierte (verdrehte) Pyramiden':'auch tordierte (verdrehte) Prismen')+' <span style="color:#7b8a7b">– nur bei eckiger Grundfläche</span>',
+      (spitz?T('auch tordierte (verdrehte) Pyramiden','twisted pyramids too'):T('auch tordierte (verdrehte) Prismen','twisted prisms too'))+T(' <span style="color:#7b8a7b">– nur bei eckiger Grundfläche</span>',' <span style="color:#7b8a7b">– only for polygonal bases</span>'),
       v=>{ if(spitz)state.twistPyramide=v; else state.twistPrisma=v; afterTreeSettingChange(); }));
     wrap.appendChild(set);
   }
@@ -2032,13 +2395,13 @@ function buildCategory(cat){
   BODIES.filter(b=>b.cat===cat).forEach(B=>{
     const box=el('div','shape'); box.dataset.body=B.id;
     const chip=el('div','chip'); chip.dataset.body=B.id;
-    const tag=(B.id==='zylinder'||B.id==='kegel')?' <span class="tag link">Kreis</span>':'';
-    chip.innerHTML='<span class="box"></span> '+B.name+tag;
+    const tag=(B.id==='zylinder'||B.id==='kegel')?' <span class="tag link">'+T('Kreis','circle')+'</span>':'';
+    chip.innerHTML='<span class="box"></span> '+W(B.name)+tag;
     attachToggle(chip,()=>{ if(state.active.has(B.id))state.active.delete(B.id); else state.active.add(B.id);
         syncCircle('body'); afterTreeChange(); },
       ()=>{ state.active.clear(); state.active.add(B.id); syncCircle('body'); afterTreeChange(); });
     box.appendChild(chip);
-    box.appendChild(el('div','leg','<b>'+htmlSub(gS(B.label()))+'</b> — '+htmlSub(gS(B.legend))));
+    box.appendChild(el('div','leg','<b>'+htmlSub(gS(B.label()))+'</b> — '+htmlSub(gS(W(B.legend)))));
     list.appendChild(box);
   });
   wrap.appendChild(list);
@@ -2048,9 +2411,9 @@ function buildCategory(cat){
 function buildBaseCategory(){
   const wrap=el('div','cat');
   const head=el('div','cat-head');
-  head.appendChild(el('span','cat-title','Erlaubte Grundflächen<span class="cat-sub">je Grundform getrennt für prismenartige und spitze Körper · „Kreis" schaltet Zylinder bzw. Kegel</span>'));
+  head.appendChild(el('span','cat-title',T('Erlaubte Grundflächen<span class="cat-sub">je Grundform getrennt für prismenartige und spitze Körper · „Kreis" schaltet Zylinder bzw. Kegel</span>','Bases allowed<span class="cat-sub">set separately for prism-like and pointed solids · “Circle” switches cylinder or cone</span>')));
   const acts=el('div','cat-actions');
-  const toggle=el('button','toggle-all','alle'); toggle.dataset.baseAll='1';
+  const toggle=el('button','toggle-all',T('alle','all')); toggle.dataset.baseAll='1';
   toggle.onclick=()=>{ const allOn=BASES.every(b=>state.basesP.has(b.id)&&state.basesY.has(b.id));
     BASES.forEach(b=>{ if(allOn){state.basesP.delete(b.id);state.basesY.delete(b.id);}
       else {state.basesP.add(b.id);state.basesY.add(b.id);} });
@@ -2058,7 +2421,7 @@ function buildBaseCategory(){
   acts.appendChild(toggle); head.appendChild(acts);
   wrap.appendChild(head);
   const set=el('div','cat-set');
-  set.appendChild(el('span','cs-lbl','Grundfläche '+htmlSub(gPlain())+' muss selbst berechnet werden:'));
+  set.appendChild(el('span','cs-lbl',T('Grundfläche ','Base area ')+htmlSub(gPlain())+T(' muss selbst berechnet werden:',' has to be worked out first:')));
   const gRow=el('div','opt-line');
   const gsl=el('input'); gsl.type='range'; gsl.min='0'; gsl.max='100'; gsl.step='5'; gsl.value=String(state.gProb);
   gsl.style.flex='1 1 130px'; gsl.style.accentColor='var(--accent)';
@@ -2066,13 +2429,13 @@ function buildBaseCategory(){
   gsl.oninput=()=>{ state.gProb=+gsl.value; setG(); serialize(); };
   gsl.onchange=()=>{ state.gProb=+gsl.value; setG(); afterTreeSettingChange(); };
   setG(); gRow.append(gsl,gLab); set.appendChild(gRow);
-  set.appendChild(el('div','small','<span style="color:#7b8a7b">0 % = '+htmlSub(gPlain())+' ist immer direkt gegeben, 100 % = die Grundfläche muss immer zuerst selbst berechnet werden (dann entfällt das n-Eck).</span>'));
+  set.appendChild(el('div','small','<span style="color:#7b8a7b">0 % = '+htmlSub(gPlain())+T(' ist immer direkt gegeben, 100 % = die Grundfläche muss immer zuerst selbst berechnet werden (dann entfällt das n-Eck).</span>',' is always given directly, 100 % = the base area always has to be worked out first (the n-gon then drops out).</span>')));
   wrap.appendChild(set);
   // Tabelle: je Grundform ein Häkchen für prismenartige und eines für spitze Körper
   const list=el('div','base-grid');
   const hdr=el('div','base-row head');
   hdr.appendChild(el('span','base-name',''));
-  [['prisma','Prisma'],['spitz','Pyramide']].forEach(([grp,lab])=>{
+  [['prisma','Prisma'],['spitz','Pyramide']].forEach(([grp,lab0])=>{ const lab=W(lab0);
     const col=el('span','base-col');
     col.appendChild(el('span',null,lab));
     // eigener „alle/keine"-Schalter je Körpergruppe
@@ -2086,12 +2449,12 @@ function buildBaseCategory(){
   list.appendChild(hdr);
   BASES.forEach(bs=>{
     const row=el('div','base-row');
-    const tag=bs.gOnly?' <span class="tag">'+gPlain().replace('_','')+' direkt</span>':'';
-    row.appendChild(el('span','base-name',bs.name+tag));
+    const tag=bs.gOnly?' <span class="tag">'+gPlain().replace('_','')+T(' direkt',' given')+'</span>':'';
+    row.appendChild(el('span','base-name',W(bs.name)+tag));
     [['prisma','Zylinder'],['spitz','Kegel']].forEach(([grp,partner])=>{
       const set2=baseSet(grp);
       const chip=el('span','chip mini'); chip.dataset.base=bs.id; chip.dataset.grp=grp;
-      chip.title=(bs.circle?'„Kreis" schaltet zugleich '+partner:bs.name);
+      chip.title=(bs.circle?T('„Kreis" schaltet zugleich ','“Circle” also switches ')+W(partner):W(bs.name));
       chip.innerHTML='<span class="box"></span>';
       attachToggle(chip,()=>{ if(set2.has(bs.id))set2.delete(bs.id); else set2.add(bs.id);
           syncCircle('base',grp); afterTreeChange(); },
@@ -2120,11 +2483,11 @@ function refreshTree(){
     BASES.forEach(bs=>{ const c=$('.chip[data-base="'+bs.id+'"][data-grp="'+grp+'"]');
       if(c)c.classList.toggle('on',set.has(bs.id)); }); });
   $$('.toggle-all').forEach(btn=>{
-    if(btn.dataset.baseAll){ btn.textContent=BASES.every(b=>state.basesP.has(b.id)&&state.basesY.has(b.id))?'keine':'alle'; return; }
+    if(btn.dataset.baseAll){ btn.textContent=BASES.every(b=>state.basesP.has(b.id)&&state.basesY.has(b.id))?T('keine','none'):T('alle','all'); return; }
     if(btn.dataset.baseGrp){ const set2=baseSet(btn.dataset.baseGrp);
-      btn.textContent=BASES.every(b=>set2.has(b.id))?'keine':'alle'; return; }
+      btn.textContent=BASES.every(b=>set2.has(b.id))?T('keine','none'):T('alle','all'); return; }
     const bs=BODIES.filter(b=>b.cat===btn.dataset.cat);
-    btn.textContent=(bs.length&&bs.every(b=>state.active.has(b.id)))?'keine':'alle'; });
+    btn.textContent=(bs.length&&bs.every(b=>state.active.has(b.id)))?T('keine','none'):T('alle','all'); });
 }
 
 /* ---------- Figur: Schrägbild / 3D ---------- */
@@ -2133,9 +2496,9 @@ function buildFig(t){
   const draw=()=>{
     dispose3D(); fig.innerHTML='';
     const top=el('div','fig-top');
-    top.appendChild(segRow([['exact','exakt (maßstäblich)'],['general','allgemein']],state.sketchType,
+    top.appendChild(segRow([['exact',T('exakt (maßstäblich)','exact (to scale)')],['general',T('allgemein','general')]],state.sketchType,
       v=>{state.sketchType=v; serialize(); draw();}));
-    top.appendChild(segRow([['schraeg','Schrägbild'],['d3','3D-Ansicht']],state.view,
+    top.appendChild(segRow([['schraeg',T('Schrägbild','Oblique view')],['d3',T('3D-Ansicht','3D view')]],state.view,
       v=>{state.view=v; serialize(); draw();}));
     fig.appendChild(top);
     if(state.view==='schraeg'){
@@ -2146,19 +2509,19 @@ function buildFig(t){
       const cbl=el('label');
       const cb=el('input'); cb.type='checkbox'; cb.checked=state.showHidden;
       cb.onchange=()=>{ state.showHidden=cb.checked; serialize(); wrap.innerHTML=buildSketch(t,state.sketchType); };
-      cbl.append(cb,document.createTextNode(' verdeckte Kanten gestrichelt'));
+      cbl.append(cb,document.createTextNode(T(' verdeckte Kanten gestrichelt',' hidden edges dashed')));
       gc.appendChild(cbl);
       const cbl2=el('label');
       const cb2=el('input'); cb2.type='checkbox'; cb2.checked=state.highlightBase;
       cb2.onchange=()=>{ state.highlightBase=cb2.checked; serialize(); wrap.innerHTML=buildSketch(t,state.sketchType); };
-      cbl2.append(cb2,document.createTextNode(' Grundfläche hervorheben'));
+      cbl2.append(cb2,document.createTextNode(T(' Grundfläche hervorheben',' highlight the base')));
       gc.appendChild(cbl2);
       fig.appendChild(gc);
-      if(state.sketchType==='general') fig.appendChild(el('div','not-scale','Skizze nicht maßstabsgetreu'));
+      if(state.sketchType==='general') fig.appendChild(el('div','not-scale',T('Skizze nicht maßstabsgetreu','Sketch not to scale')));
     } else {
       const host=el('div'); fig.appendChild(host);
       make3D(host,t);
-      if(state.sketchType==='general') fig.appendChild(el('div','not-scale','Darstellung nicht maßstabsgetreu – Raster deaktiviert'));
+      if(state.sketchType==='general') fig.appendChild(el('div','not-scale',T('Darstellung nicht maßstabsgetreu – Raster deaktiviert','View not to scale – grid disabled')));
       else fig.appendChild(gridControls(t));
     }
   };
@@ -2169,11 +2532,11 @@ function gridControls(t){
   const gc=el('div','grid-ctl');
   const cbl=el('label');
   const cb=el('input'); cb.type='checkbox'; cb.checked=state.gridOn;
-  cbl.append(cb,document.createTextNode(' Raster (Einheitswürfel)'));
+  cbl.append(cb,document.createTextNode(T(' Raster (Einheitswürfel)',' grid (unit cubes)')));
   const sl=el('input'); sl.type='range'; sl.min='0'; sl.max=String(GRID_STEPS.length-1); sl.step='1';
   let idx=GRID_STEPS.indexOf(state.gridStep); if(idx<0)idx=2; sl.value=String(idx);
   const lab=el('span','gc-lbl');
-  const setLab=()=>{ const q=fmtDE(state.gridStep)+' '+(state.useUnits?t.unit:''); lab.textContent='1 Kästchen = '+q+' × '+q+' (Würfel: '+q+' × '+q+' × '+q+')'; };
+  const setLab=()=>{ const q=fmtDE(state.gridStep)+' '+(state.useUnits?t.unit:''); lab.textContent=T('1 Kästchen = ','1 square = ')+q+' × '+q+T(' (Würfel: ',' (cube: ')+q+' × '+q+' × '+q+')'; };
   const sync=()=>{ sl.disabled=!state.gridOn; sl.style.opacity=state.gridOn?'1':'.35'; lab.style.opacity=state.gridOn?'1':'.35'; };
   cb.onchange=()=>{ state.gridOn=cb.checked; sync(); serialize(); if(cur3D)cur3D.setGrid(state.gridOn,state.gridStep); };
   sl.oninput=()=>{ state.gridStep=GRID_STEPS[+sl.value]; state.gridAuto=false; setLab(); serialize(); if(cur3D)cur3D.setGrid(state.gridOn,state.gridStep); };
@@ -2195,11 +2558,15 @@ function renderTask(){
   dispose3D();
   const area=$('#taskArea'); area.innerHTML='';
   const topRow=el('div','act-row');
-  const nb=el('button','btn-new','🔄 Neue Aufgabe'); nb.onclick=()=>{newTask();renderTask();};
+  const nb=el('button','btn-new');
+  /* derselbe Knopf wie auf den anderen Aufgabenseiten */
+  nb.appendChild(el('span','auto-kreis','\u27F3'));
+  nb.appendChild(document.createTextNode('\u00A0'+T('Neue Aufgabe generieren','Generate a new task')));
+  nb.onclick=()=>{newTask();renderTask();};
   topRow.appendChild(nb); area.appendChild(topRow);
 
   const t=state.task;
-  if(!t){ area.appendChild(el('p','muted','Bitte wähle oben mindestens einen Körper aus – bei Prisma und Pyramide zusätzlich mindestens eine Grundfläche.')); return; }
+  if(!t){ area.appendChild(el('p','muted',T('Bitte wähle oben mindestens einen Körper aus – bei Prisma und Pyramide zusätzlich mindestens eine Grundfläche.','Please select at least one solid above – for prisms and pyramids also at least one base.'))); return; }
 
   const card=el('div','task-card');
   const head=el('div','task-head');
@@ -2216,14 +2583,14 @@ function renderTask(){
       // Titelbereich neu aufbauen, ohne die ganze Aufgabe (und damit die 3D-Ansicht) neu zu erzeugen
       $$('.tt-name,.tt-hidden',titleWrap).forEach(x=>x.remove());
       if(on) titleWrap.insertBefore(el('span','tt-name',bodyTitle(t)),eye);
-      else titleWrap.insertBefore(el('span','tt-hidden','Welcher Körper ist das?'),eye);
+      else titleWrap.insertBefore(el('span','tt-hidden',T('Welcher Körper ist das?','Which solid is this?')),eye);
       // Symbolik (getauscht): sichtbarer Name -> normales Auge, verborgener Name -> durchgestrichenes
       const EYE='<path d="M1.5 12S5 5.5 12 5.5 22.5 12 22.5 12 19 18.5 12 18.5 1.5 12 1.5 12Z" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="3.2" fill="none" stroke="currentColor" stroke-width="1.8"/>';
       const SLASH='<path d="M4 20 20 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>';
       // Symbol zeigt die AKTION: Name sichtbar -> durchgestrichenes Auge (Klick blendet aus),
       // Name verborgen -> normales Auge (Klick blendet ein)
       eye.innerHTML = '<svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true">'+EYE+(on?SLASH:'')+'</svg>';
-      eye.title = on?'Namen des Körpers ausblenden':'Namen des Körpers einblenden';
+      eye.title = on?T('Namen des Körpers ausblenden','Hide the name of the solid'):T('Namen des Körpers einblenden','Show the name of the solid');
     };
     eye.onclick=()=>{ state.showName=!state.showName; serialize(); paint();
       buildTeacherSettings();          // Checkbox in den Einstellungen mitführen
@@ -2231,7 +2598,7 @@ function renderTask(){
     titleWrap.appendChild(eye); paint();
   }
   head.appendChild(titleWrap);
-  head.appendChild(el('span','badge'+(t.mode==='umkehr'?' inv':''), t.mode==='umkehr'?'Umkehraufgabe':'Volumen'));
+  head.appendChild(el('span','badge'+(t.mode==='umkehr'?' inv':''), t.mode==='umkehr'?T('Umkehraufgabe','Reverse question'):T('Volumen','Volume')));
   card.appendChild(head);
 
   const body=el('div','task-body');
@@ -2242,8 +2609,8 @@ function renderTask(){
   const makeFig=()=>buildFig(t);
 
   const ans=el('div','answer-row');
-  const inp=el('input'); inp.type='text'; inp.inputMode='decimal'; inp.placeholder='Antwort';
-  const chk=el('button','btn-ghost','Prüfen'); chk.style.background='var(--accent)'; chk.style.color='#fff';
+  const inp=el('input'); inp.type='text'; inp.inputMode='decimal'; inp.placeholder=T('Antwort','Answer');
+  const chk=el('button','btn-check',T('Prüfen','Check'));
   const msg=el('span','result-msg');
   let dim='vol', fixedLabel=state.useUnits?t.unit+'³':'';
   if(t.mode==='umkehr'){ const need=needBySym(t,t.unknownSym);
@@ -2266,7 +2633,7 @@ function renderTask(){
   }
   if(state.analog){
     const other=el('details','alt-rep');
-    other.appendChild(el('summary',null, t.pres==='skizze'?'als Text anzeigen':'als Skizze anzeigen'));
+    other.appendChild(el('summary',null, t.pres==='skizze'?T('als Text anzeigen','show as text'):T('als Skizze anzeigen','show as a sketch')));
     const oc=el('div','alt-rep-body'); other.appendChild(oc);
     let built=false;
     other.addEventListener('toggle',()=>{ if(other.open&&!built){ built=true;
@@ -2278,16 +2645,19 @@ function renderTask(){
   card.appendChild(ans);
 
   const acts=el('div','act-row center');
-  const hint=el('button','btn-hint','💡 Hilfe'); hint.onclick=()=>showHelp(t,card);
+  const hint=el('button','btn-hint',T('💡 Hilfe','💡 Help')); hint.onclick=()=>showHelp(t,card);
   acts.append(hint); card.appendChild(acts);
   card.appendChild(el('div','help-container'));
 
-  const solD=el('details','sol-details'); solD.appendChild(el('summary',null,'🔎 Lösung'));
+  const solD=el('details','loesung');
+  solD.appendChild(el('summary',null,
+    '<span class="wenn-zu">'+T('Lösung einblenden','Show answer')+'</span>'+
+    '<span class="wenn-auf">'+T('Lösung ausblenden','Hide answer')+'</span>'));
   const solBody=el('div','sol-body'); solD.appendChild(solBody);
   let solBuilt=false;
   solD.addEventListener('toggle',()=>{ if(solD.open){
       inp.disabled=true; chk.disabled=true; ans.classList.add('locked');
-      if(!msg.textContent){ msg.textContent='Lösung geöffnet – Eingabe gesperrt'; msg.className='result-msg muted'; }
+      if(!msg.textContent){ msg.textContent=T('Lösung geöffnet – Eingabe gesperrt','Solution open – input locked'); msg.className='result-msg muted'; }
       if(!solBuilt){ solBuilt=true; buildSolution(t,solBody); }
     } });
   card.appendChild(solD);
@@ -2299,11 +2669,11 @@ function buildUnitSelect(dim0,defU,preselect){
   const wrap=el('span','unit-select');
   const btn=el('button','unit-btn'); btn.type='button';
   const sel = preselect ? {u:defU,dim:dim0} : {u:null,dim:null};
-  const setBtn=()=>{ btn.textContent = sel.u ? unitTxt(sel.u,sel.dim) : 'Einheit'; };
+  const setBtn=()=>{ btn.textContent = sel.u ? unitTxt(sel.u,sel.dim) : T('Einheit','Unit'); };
   const panel=el('div','unit-panel'); panel.style.display='none';
-  panel.appendChild(checkLine(state.autoUnit,'Einheit automatisch vorgeben', v=>{ state.autoUnit=v; serialize(); renderTask(); }));
+  panel.appendChild(checkLine(state.autoUnit,T('Einheit automatisch vorgeben','Fill in the unit automatically'), v=>{ state.autoUnit=v; serialize(); renderTask(); }));
   const grid=el('table','unit-grid');
-  const head=el('tr'); ['Länge','Fläche','Volumen'].forEach(h=>{ const th=document.createElement('th'); th.textContent=h; head.appendChild(th); }); grid.appendChild(head);
+  const head=el('tr'); [T('Länge','Length'),T('Fläche','Area'),T('Volumen','Volume')].forEach(h=>{ const th=document.createElement('th'); th.textContent=h; head.appendChild(th); }); grid.appendChild(head);
   LENGTH_UNITS.forEach(u=>{ const tr=document.createElement('tr');
     [['len',u],['area',u+'²'],['vol',u+'³']].forEach(([dim,label])=>{
       const td=document.createElement('td'); const b=el('button','unit-cell',label); b.type='button';
@@ -2320,19 +2690,19 @@ function buildUnitSelect(dim0,defU,preselect){
 }
 function checkAnswer(t,inp,msg,au){
   const val=parseNum(inp.value);
-  if(!isFinite(val)){ msg.textContent='Bitte eine Zahl eingeben.'; msg.className='result-msg no'; return; }
-  if(au && au.u==null){ msg.textContent='Bitte zuerst eine Einheit wählen.'; msg.className='result-msg no'; return; }
+  if(!isFinite(val)){ msg.textContent=T('Bitte eine Zahl eingeben.','Please enter a number.'); msg.className='result-msg no'; return; }
+  if(au && au.u==null){ msg.textContent=T('Bitte zuerst eine Einheit wählen.','Please choose a unit first.'); msg.className='result-msg no'; return; }
   const near=(a,b)=>Math.abs(a-b)<=Math.max(0.05,Math.abs(b)*0.015);
   let target,stud,dimErr=null,want;
   if(t.mode==='umkehr'){ target=t.v[t.unknownSym]; want=needBySym(t,t.unknownSym).kind==='area'?'area':'len'; }
   else { target=t.volExact; want='vol'; }
   if(au){
-    if(au.dim!==want) dimErr = want==='vol'?'Das ist keine Volumeneinheit.':(want==='area'?'Das ist keine Flächeneinheit.':'Das ist keine Längeneinheit.');
+    if(au.dim!==want) dimErr = want==='vol'?T('Das ist keine Volumeneinheit.','That is not a unit of volume.'):(want==='area'?T('Das ist keine Flächeneinheit.','That is not a unit of area.'):T('Das ist keine Längeneinheit.','That is not a unit of length.'));
     else { const p=want==='vol'?3:want==='area'?2:1; stud=val*Math.pow(10,p*(uIndex(au.u)-uIndex(t.unit))); }
   } else stud=val;
   if(dimErr){ msg.textContent='✗ '+dimErr; msg.className='result-msg no'; return; }
-  if(near(stud,target)){ msg.textContent='✓ Richtig!'; msg.className='result-msg ok'; t.answered=true; }
-  else { msg.textContent='✗ Noch nicht. Tipp: 💡 Hilfe oder 🔎 Lösung.'; msg.className='result-msg no'; }
+  if(near(stud,target)){ msg.textContent=T('✓ Richtig!','✓ Correct!'); msg.className='result-msg ok'; t.answered=true; }
+  else { msg.textContent=T('✗ Noch nicht. Tipp: 💡 Hilfe oder 🔎 Lösung.','✗ Not yet. Try 💡 Help or 🔎 Solution.'); msg.className='result-msg no'; }
 }
 function helpSteps(t){
   const st=[];
@@ -2359,7 +2729,7 @@ function choiceRow(host,items,correct,opt){
       let cls,w='';
       if(txt===correct){ cls='choice ok'; if(opt.onCorrect)opt.onCorrect(); }
       else if(opt.warn && opt.warn[txt]){ cls='choice warn';
-        w='<b>'+(opt.warnLead||'Geht auch, ist aber nicht optimal:')+'</b> '+opt.warn[txt]; }
+        w='<b>'+(opt.warnLead||T('Geht auch, ist aber nicht optimal:','That works too, but is not the best choice:'))+'</b> '+opt.warn[txt]; }
       else if(opt.note && opt.note[txt]){ cls='choice no'; w=opt.note[txt]; }
       else cls='choice no';
       ch.className=cls;
@@ -2377,70 +2747,70 @@ function showHelp(t,card){
   const steps=helpSteps(t), N=steps.length;
   t.helpLevel=Math.min(t.helpLevel+1,N);
   cont.innerHTML='';
-  const box=el('div','help-box'); box.innerHTML='<h4>Hilfe – Stufe '+t.helpLevel+' von '+N+'</h4>';
+  const box=el('div','help-box'); box.innerHTML='<h4>'+T('Hilfe – Stufe '+t.helpLevel+' von '+N,'Help – step '+t.helpLevel+' of '+N)+'</h4>';
   const num=id=>steps.indexOf(id)+1;
   steps.slice(0,t.helpLevel).forEach(id=>{
     const s=el('div','help-step');
     if(id==='name'){
-      s.innerHTML='<b>'+num('name')+') Welcher Körper ist das?</b>';
+      s.innerHTML='<b>'+num('name')+T(') Welcher Körper ist das?</b>',') Which solid is this?</b>');
       const sub=el('div');
       // genauester Name ist die richtige Antwort (Prisma mit Rechteckgrundfläche = Quader)
-      const kind=preciseKind(t), nameOf=id=>(BODY_KINDS.find(x=>x[0]===id)||[])[1];
+      const kind=preciseKind(t), nameOf=id=>W((BODY_KINDS.find(x=>x[0]===id)||[])[1]);
       const warn={}, note={};
       // zu ungenaue, aber im Prinzip zutreffende Antworten -> gelb
-      if(kind==='quader'){ warn[nameOf('prisma')]='Ein Quader ist zwar auch ein Prisma – gesucht ist aber die genaueste Bezeichnung.'; }
-      if(kind==='wuerfel'){ warn[nameOf('prisma')]='Ein Würfel ist zwar auch ein Prisma – gesucht ist aber die genaueste Bezeichnung.';
-        warn[nameOf('quader')]='Ein Würfel ist zwar auch ein Quader – gesucht ist aber die genaueste Bezeichnung.'; }
+      if(kind==='quader'){ warn[nameOf('prisma')]=W('Ein Quader ist zwar auch ein Prisma – gesucht ist aber die genaueste Bezeichnung.'); }
+      if(kind==='wuerfel'){ warn[nameOf('prisma')]=W('Ein Würfel ist zwar auch ein Prisma – gesucht ist aber die genaueste Bezeichnung.');
+        warn[nameOf('quader')]=W('Ein Würfel ist zwar auch ein Quader – gesucht ist aber die genaueste Bezeichnung.'); }
       // prismenartig/spitz erkannt, aber runde Grundfläche übersehen -> rot mit Erklärung
-      if(kind==='zylinder') note[nameOf('prisma')]='Fast: Der Körper ist prismenartig, aber seine Grundfläche ist ein <b>Kreis</b> – dann heißt er Zylinder.';
-      if(kind==='kegel') note[nameOf('pyramide')]='Fast: Der Körper läuft spitz zu, aber seine Grundfläche ist ein <b>Kreis</b> – dann heißt er Kegel.';
+      if(kind==='zylinder') note[nameOf('prisma')]=W('Fast: Der Körper ist prismenartig, aber seine Grundfläche ist ein <b>Kreis</b> – dann heißt er Zylinder.');
+      if(kind==='kegel') note[nameOf('pyramide')]=W('Fast: Der Körper läuft spitz zu, aber seine Grundfläche ist ein <b>Kreis</b> – dann heißt er Kegel.');
       const stName=pickStore(t,'name');
       const buildSub=()=>{
         // bei gegebenem Grundflächeninhalt ist die konkrete Grundform nicht gefragt
         // kein Nachfragen, wenn der Name schon genau ist (Quader/Würfel) oder A_g gegeben ist
         if(sub.childNodes.length||t.gGiven||kind!==t.body.id||!(t.body.usesBase==='poly'&&t.base))return;
-        sub.appendChild(el('p',null,'<b>Und welche Grundfläche hat er?</b>'));
+        sub.appendChild(el('p',null,T('<b>Und welche Grundfläche hat er?</b>','<b>And what is its base?</b>')));
         // immer ALLE Grundformen anbieten; zutreffende, aber ungenauere gelb markieren
-        const opts=BASES.filter(b=>!b.gOnly).map(b=>b.name);
-        choiceRow(sub,opts,t.base.name,{warn:baseWarnMap(t.base),
-          warnLead:'Stimmt, aber nicht genau genug:',store:pickStore(t,'base')});
+        const opts=BASES.filter(b=>!b.gOnly).map(b=>W(b.name));
+        choiceRow(sub,opts,W(t.base.name),{warn:baseWarnMap(t.base),
+          warnLead:T('Stimmt, aber nicht genau genug:','Correct, but not precise enough:'),store:pickStore(t,'base')});
       };
-      choiceRow(s,BODY_KINDS.map(x=>x[1]),nameOf(kind),{
-        warn,note,warnLead:'Stimmt, aber nicht genau genug:',store:stName,
+      choiceRow(s,BODY_KINDS.map(x=>W(x[1])),nameOf(kind),{
+        warn,note,warnLead:T('Stimmt, aber nicht genau genug:','Correct, but not precise enough:'),store:stName,
         onCorrect:()=>{ stName.done=true; buildSub(); }});
       s.appendChild(sub);
       if(stName.done) buildSub();               // Folgefrage nach dem Neuaufbau wieder zeigen
     } else if(id==='herleitung'){
       if(state.helpMode==='formelsammlung'){
-        s.innerHTML='<b>'+num('herleitung')+') Passende Formel (Formelsammlung)</b><p>Für <b>'+t.body.name+'</b> gilt:</p>\\['+symOfBody(t.body,t)+'\\]'
-          + gS(needsBaseStep(t)?'<p>Die Grundfläche berechnest du mit:</p>\\['+t.base.symG()+'\\]':'');
+        s.innerHTML='<b>'+num('herleitung')+T(') Passende Formel (Formelsammlung)</b><p>Für <b>',') Matching formula (formula sheet)</b><p>For <b>')+W(t.body.name)+T('</b> gilt:</p>\\[','</b>:</p>\\[')+symOfBody(t.body,t)+'\\]'
+          + gS(needsBaseStep(t)?T('<p>Die Grundfläche berechnest du mit:</p>\\[','<p>You work out the base area with:</p>\\[')+t.base.symG()+'\\]':'');
       } else {
         const V=DERIV_IMG[t.body.deriv];
-        s.innerHTML='<b>'+num('herleitung')+') Herleitung der Formel</b>'
+        s.innerHTML='<b>'+num('herleitung')+T(') Herleitung der Formel</b>',') Derivation of the formula</b>')
           + (V?'<div style="text-align:center">'+V()+'</div>':'')
-          + '<p>'+gS(DERIV_TEXT(t.body.deriv))+'</p>'
-          + (needsBaseStep(t)?'<p>Denk daran: Die Grundfläche \\('+gPlain()+'\\) musst du hier zuerst selbst berechnen ('+t.base.art+').</p>':'');
+          + '<p>'+gS(W(DERIV_TEXT(t.body.deriv)))+'</p>'
+          + (needsBaseStep(t)?T('<p>Denk daran: Die Grundfläche \\('+gPlain()+'\\) musst du hier zuerst selbst berechnen ('+W(t.base.art)+').</p>','<p>Remember: you have to work out the base area \\('+gPlain()+'\\) yourself first ('+W(t.base.art)+').</p>'):'');
       }
     } else if(id==='formel'){
-      s.innerHTML='<b>'+num('formel')+') Welche Formel passt?</b>';
+      s.innerHTML='<b>'+num('formel')+T(') Welche Formel passt?</b>',') Which formula fits?</b>');
       if(!t.choices) t.choices=formulaChoices(t);
       choiceRow(s,t.choices,symOfBody(t.body,t),{tex:true,warn:generalMap(t),store:pickStore(t,'formel')});
     } else if(id==='basis'){
-      s.innerHTML='<b>'+num('basis')+') Zuerst nur die Grundfläche: '+t.base.art.replace(/^ein(e)? /,'')
+      s.innerHTML='<b>'+num('basis')+T(') Zuerst nur die Grundfläche: ',') The base first: ')+W(t.base.art).replace(/^(ein(e)?|an?) /,'')
         +'</b><div style="text-align:center">'+baseSketch(t)+'</div>'
-        +'<p>Welche Formel brauchst du für den Flächeninhalt \\('+gPlain()+'\\) der Grundfläche?</p>';
+        +T('<p>Welche Formel brauchst du für den Flächeninhalt \\(','<p>Which formula do you need for the area \\(')+gPlain()+T('\\) der Grundfläche?</p>','\\) of the base?</p>');
       if(!t.choicesBase) t.choicesBase=baseFormulaChoices(t);
       choiceRow(s,t.choicesBase,gS(t.base.symG()),{tex:true,store:pickStore(t,'basis')});
     } else if(id==='ansatz'){
-      s.innerHTML='<b>'+num('ansatz')+') Ansatz (Werte einsetzen)</b>'+ansatzTeX(t);
+      s.innerHTML='<b>'+num('ansatz')+T(') Ansatz (Werte einsetzen)</b>',') Set-up (substitute the values)</b>')+ansatzTeX(t);
     } else if(id==='loesung'){
-      s.innerHTML='<b>'+num('loesung')+') Vollständiger Lösungsweg</b>'+stripResults(solutionTeX(t))
-        +'<p class="small" style="color:#8a7328;margin-top:6px;">Rechne nun selbst zu Ende – die vollständige Lösung steht im Bereich „Lösung".</p>';
+      s.innerHTML='<b>'+num('loesung')+T(') Vollständiger Lösungsweg</b>',') Full worked solution</b>')+hilfeFormelTeX(t)
+        +T('<p class="small" style="color:#8a7328;margin-top:6px;">Rechne nun selbst zu Ende – die vollständige Lösung steht im Bereich „Lösung".</p>','<p class="small" style="color:#8a7328;margin-top:6px;">Now finish the calculation yourself – the full solution is in the “Solution” section.</p>');
     }
     box.appendChild(s);
   });
   const more=el('div','act-row');
-  if(t.helpLevel<N){ const b=el('button','btn-hint','Nächste Hilfestufe ▸'); b.onclick=()=>showHelp(t,card); more.appendChild(b); }
+  if(t.helpLevel<N){ const b=el('button','btn-hint-next',T('Nächste Hilfestufe ▸','Next level of help ▸')); b.onclick=()=>showHelp(t,card); more.appendChild(b); }
   box.appendChild(more);
   cont.appendChild(box); mj(box);
 }
@@ -2452,7 +2822,7 @@ function buildSolution(t,box){
       ? '\\(V = '+texNum(t.volK)+'\\pi'+uRes(t.unit,'vol')+' \\approx '+texNum(t.volExact,2)+uRes(t.unit,'vol')+'\\)'
       : '\\(V = '+texNum(t.volExact,2)+uRes(t.unit,'vol')+'\\)';
   box.appendChild(el('p','',resLine));
-  const wd=el('details','steps-details'); wd.appendChild(el('summary',null,'Lösungsweg anzeigen'));
+  const wd=el('details','steps-details'); wd.appendChild(el('summary',null,T('Lösungsweg anzeigen','Show the worked solution')));
   const steps=el('div','steps'); wd.appendChild(steps);
   let built=false;
   wd.addEventListener('toggle',()=>{ if(wd.open&&!built){ built=true; steps.innerHTML=solutionTeX(t); mj(steps); } });
@@ -2483,10 +2853,10 @@ function labelSprite(text,diag,color){
   const w3=ctx.measureText(rest).width;
   const W=Math.ceil(w1+w2+w3+22), H=52;
   cv.width=W; cv.height=H;
-  ctx.fillStyle='rgba(255,255,255,.82)'; ctx.beginPath();
+  ctx.fillStyle=DUNKEL()?'rgba(20,24,28,.85)':'rgba(255,255,255,.82)'; ctx.beginPath();
   if(ctx.roundRect)ctx.roundRect(0,0,W,H,10); else ctx.rect(0,0,W,H);
   ctx.fill();
-  ctx.fillStyle=color||'#14461a'; ctx.textBaseline='middle';   // Beschriftung in der Farbe der Strecke
+  ctx.fillStyle=svgFarben(color||'#14461a'); ctx.textBaseline='middle';   // Beschriftung in der Farbe der Strecke
   ctx.font='bold 34px Calibri, sans-serif'; ctx.fillText(main,10,H/2);
   if(sub){ ctx.font='bold 24px Calibri, sans-serif'; ctx.fillText(sub,10+w1,H/2+9); }
   if(rest){ ctx.font='bold 34px Calibri, sans-serif'; ctx.fillText(rest,10+w1+w2,H/2); }
@@ -2499,7 +2869,7 @@ function labelSprite(text,diag,color){
   return sp;
 }
 function make3D(host,t){
-  host.innerHTML='<div class="v3d-load">3D-Ansicht wird geladen …</div>';
+  host.innerHTML=T('<div class="v3d-load">3D-Ansicht wird geladen …</div>','<div class="v3d-load">Loading the 3D view …</div>');
   const tok=++v3dToken;
   ensureThree().then(()=>{
     if(tok!==v3dToken) return;          // inzwischen umgeschaltet
@@ -2508,14 +2878,14 @@ function make3D(host,t){
     const wrap=el('div','view3d-wrap');
     const canvas=document.createElement('canvas'); canvas.className='view3d';
     wrap.appendChild(canvas);
-    wrap.appendChild(el('div','v3d-hint','Ziehen = drehen · Rad/2 Finger = zoomen'));
-    const rb=el('button','v3d-reset','Ansicht zurücksetzen'); wrap.appendChild(rb);
+    wrap.appendChild(el('div','v3d-hint',T('Ziehen = drehen · rechte Maustaste oder 2 Finger = verschieben · Rad/2 Finger = zoomen','Drag = rotate · right mouse button or 2 fingers = pan · wheel/2 fingers = zoom')));
+    const rb=el('button','v3d-reset',T('Ansicht zurücksetzen','Reset view')); wrap.appendChild(rb);
     host.appendChild(wrap);
 
     const solid=buildSolid(t,state.sketchType,true);
     const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});
     renderer.setPixelRatio(Math.min(2,window.devicePixelRatio||1));
-    const scene=new THREE.Scene(); scene.background=new THREE.Color(0xf8fbf8);
+    const scene=new THREE.Scene(); scene.background=new THREE.Color(DUNKEL()?0x161b20:0xf8fbf8);
     const camera=new THREE.PerspectiveCamera(42,1,0.05,5000);
     scene.add(new THREE.AmbientLight(0xffffff,0.72));
     const dl=new THREE.DirectionalLight(0xffffff,0.55); dl.position.set(1,2,1.4); scene.add(dl);
@@ -2529,9 +2899,9 @@ function make3D(host,t){
       const r=state.sketchType==='general'?3.6:t.v.r;
       model.add(new THREE.Mesh(new THREE.SphereGeometry(r,48,32),mat));
       const eq=[]; for(let k=0;k<=72;k++){const a=k/72*2*Math.PI;eq.push(new THREE.Vector3(r*Math.cos(a),0,r*Math.sin(a)));}
-      model.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(eq),new THREE.LineBasicMaterial({color:0x2e6b32})));
+      model.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(eq),new THREE.LineBasicMaterial({color:DUNKEL()?0x8fce92:0x2e6b32})));
       const p2=[]; for(let k=0;k<=72;k++){const a=k/72*2*Math.PI;p2.push(new THREE.Vector3(r*Math.cos(a),r*Math.sin(a),0));}
-      model.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(p2),new THREE.LineBasicMaterial({color:0x9dbf9e})));
+      model.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(p2),new THREE.LineBasicMaterial({color:DUNKEL()?0x638065:0x9dbf9e})));
     } else {
       const pos=[];
       solid.F.forEach(f=>{ const idx=f.idx; for(let i=1;i<idx.length-1;i++){
@@ -2559,9 +2929,9 @@ function make3D(host,t){
         if(f1.grp!=null&&f1.grp===f2.grp)return;
         const a=solid.V[e.a],b=solid.V[e.b]; ep.push(a[0],a[2],a[1],b[0],b[2],b[1]); });
       const eg=new THREE.BufferGeometry(); eg.setAttribute('position',new THREE.Float32BufferAttribute(ep,3));
-      model.add(new THREE.LineSegments(eg,new THREE.LineBasicMaterial({color:0x22461f})));
+      model.add(new THREE.LineSegments(eg,new THREE.LineBasicMaterial({color:DUNKEL()?0x8fce92:0x22461f})));
     }
-    const hex=c=>parseInt(String(c||'#555555').replace('#',''),16);
+    const hex=c=>parseInt(svgFarben(String(c||'#555555')).replace('#',''),16);
     // Größe des Körpers für Strichstärken/Abstände (Beschriftungen kommen erst später dazu)
     const bb0=new THREE.Box3().setFromObject(model);
     const diag0=Math.max(0.001,bb0.getSize(new THREE.Vector3()).length());
@@ -2594,7 +2964,7 @@ function make3D(host,t){
     (solid.rightAngles||[]).forEach(ra=>{
       const A=V3.add(ra.at,ra.d1), B=V3.add(V3.add(ra.at,ra.d1),ra.d2), C=V3.add(ra.at,ra.d2);
       const g=new THREE.BufferGeometry().setFromPoints([T3(A),T3(B),T3(C)]);
-      const L=new THREE.Line(g,new THREE.LineBasicMaterial({color:0x333333}));
+      const L=new THREE.Line(g,new THREE.LineBasicMaterial({color:DUNKEL()?0xb6c0c9:0x333333}));
       L.renderOrder=5; model.add(L); });
     // Beschriftungen
     const bb=new THREE.Box3().setFromObject(model);
@@ -2608,7 +2978,8 @@ function make3D(host,t){
         // sonst säßen genau diese Beschriftungen mitten auf der Kante
         const A=T3(l.perp.a), B=T3(l.perp.b);
         const e=new THREE.Vector3().subVectors(B,A).normalize();
-        const v=new THREE.Vector3().subVectors(T3(l.at),ctr0);
+        /* wie im Schrägbild: von der Mitte der eigenen Fläche weg */
+        const v=new THREE.Vector3().subVectors(T3(l.at), l.von?T3(l.von):ctr0);
         v.addScaledVector(e,-v.dot(e));
         if(v.lengthSq()<1e-9) v.set(0,1,0);
         base.add(v.normalize().multiplyScalar(diag*0.10));
@@ -2653,6 +3024,8 @@ function make3D(host,t){
 
     let controls=null, simple=null;
     if(THREE.OrbitControls){ controls=new THREE.OrbitControls(camera,canvas); controls.enableDamping=true; controls.dampingFactor=0.12;
+      controls.enablePan=true; controls.screenSpacePanning=true;      // rechte Maustaste verschiebt
+      canvas.addEventListener('contextmenu',e=>e.preventDefault());
       controls.target.set(0,0,0); controls.update(); }
     else simple=simpleOrbit(camera,canvas);
 
@@ -2671,31 +3044,53 @@ function make3D(host,t){
         renderer.dispose(); } };
   }).catch(()=>{
     if(tok!==v3dToken) return;
-    host.innerHTML='<div class="v3d-load">Die 3D-Ansicht konnte nicht geladen werden (keine Internetverbindung?).<br>Das Schrägbild zeigt dieselben Maße.</div>';
+    host.innerHTML=T('<div class="v3d-load">Die 3D-Ansicht konnte nicht geladen werden (keine Internetverbindung?).<br>Das Schrägbild zeigt dieselben Maße.</div>','<div class="v3d-load">The 3D view could not be loaded (no internet connection?).<br>The oblique view shows the same measurements.</div>');
   });
 }
-/* schlanke Ersatz-Steuerung, falls OrbitControls fehlt */
+/* Schlanke Ersatz-Steuerung, falls OrbitControls fehlt (z. B. ohne Internet).
+   Drehen: ziehen. Verschieben: rechte Maustaste, Shift+ziehen oder zwei Finger.
+   Zoomen: Mausrad oder zwei Finger auf- und zuziehen. */
 function simpleOrbit(camera,dom){
   let th=Math.atan2(camera.position.x,camera.position.z), ph=Math.acos(camera.position.y/camera.position.length());
-  let r=camera.position.length(), drag=false, lx=0, ly=0, pinch=0;
-  const apply=()=>{ camera.position.set(r*Math.sin(ph)*Math.sin(th), r*Math.cos(ph), r*Math.sin(ph)*Math.cos(th)); camera.lookAt(0,0,0); };
-  const down=e=>{ if(e.touches&&e.touches.length===2){ pinch=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY); return; }
-    drag=true; const p=e.touches?e.touches[0]:e; lx=p.clientX; ly=p.clientY; };
+  let r=camera.position.length(), drag=false, schieben=false, lx=0, ly=0, pinch=0;
+  const ziel={x:0,y:0,z:0};
+  const apply=()=>{ camera.position.set(ziel.x+r*Math.sin(ph)*Math.sin(th), ziel.y+r*Math.cos(ph), ziel.z+r*Math.sin(ph)*Math.cos(th));
+    camera.lookAt(ziel.x,ziel.y,ziel.z); };
+  /* Bildschirmbewegung in Weltkoordinaten umrechnen: quer und hoch zur Blickrichtung */
+  const verschiebe=(dx,dy)=>{
+    const h=dom.clientHeight||340;
+    const k=2*r*Math.tan((camera.fov||45)*Math.PI/360)/h;
+    camera.updateMatrixWorld&&camera.updateMatrixWorld();
+    const m=camera.matrixWorld?camera.matrixWorld.elements:null;
+    const rx=m?m[0]:1, ry=m?m[1]:0, rz=m?m[2]:0;      // Rechts-Achse der Kamera
+    const ux=m?m[4]:0, uy=m?m[5]:1, uz=m?m[6]:0;      // Hoch-Achse der Kamera
+    ziel.x+=(-dx*rx+dy*ux)*k; ziel.y+=(-dx*ry+dy*uy)*k; ziel.z+=(-dx*rz+dy*uz)*k;
+  };
+  const mitte=e=>({x:(e.touches[0].clientX+e.touches[1].clientX)/2, y:(e.touches[0].clientY+e.touches[1].clientY)/2});
+  const down=e=>{ if(e.touches&&e.touches.length===2){ pinch=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
+      const m=mitte(e); lx=m.x; ly=m.y; schieben=true; return; }
+    drag=true; const p=e.touches?e.touches[0]:e;
+    schieben=(!e.touches)&&(e.button===2||e.button===1||e.shiftKey);
+    lx=p.clientX; ly=p.clientY; };
   const move=e=>{ if(e.touches&&e.touches.length===2){ const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
-      if(pinch)r=clamp(r*pinch/d,0.5,4000); pinch=d; apply(); e.preventDefault(); return; }
+      if(pinch)r=clamp(r*pinch/d,0.5,4000); pinch=d;
+      const m=mitte(e); verschiebe(m.x-lx,m.y-ly); lx=m.x; ly=m.y;
+      apply(); e.preventDefault(); return; }
     if(!drag)return; const p=e.touches?e.touches[0]:e;
-    th-=(p.clientX-lx)*0.008; ph=clamp(ph-(p.clientY-ly)*0.008,0.12,Math.PI-0.12);
+    if(schieben) verschiebe(p.clientX-lx,p.clientY-ly);
+    else { th-=(p.clientX-lx)*0.008; ph=clamp(ph-(p.clientY-ly)*0.008,0.12,Math.PI-0.12); }
     lx=p.clientX; ly=p.clientY; apply(); e.preventDefault(); };
-  const up=()=>{ drag=false; pinch=0; };
+  const up=()=>{ drag=false; schieben=false; pinch=0; };
   const wheel=e=>{ r=clamp(r*(1+Math.sign(e.deltaY)*0.12),0.5,4000); apply(); e.preventDefault(); };
+  const menue=e=>e.preventDefault();   // sonst oeffnet die rechte Maustaste das Kontextmenue
   dom.addEventListener('mousedown',down); window.addEventListener('mousemove',move); window.addEventListener('mouseup',up);
   dom.addEventListener('touchstart',down,{passive:false}); dom.addEventListener('touchmove',move,{passive:false}); dom.addEventListener('touchend',up);
-  dom.addEventListener('wheel',wheel,{passive:false});
+  dom.addEventListener('wheel',wheel,{passive:false}); dom.addEventListener('contextmenu',menue);
   const r0=r,t0=th,p0=ph;
-  return {update(){}, reset(){r=r0;th=t0;ph=p0;apply();},
+  return {update(){}, reset(){r=r0;th=t0;ph=p0;ziel.x=ziel.y=ziel.z=0;apply();},
     dispose(){ dom.removeEventListener('mousedown',down); window.removeEventListener('mousemove',move); window.removeEventListener('mouseup',up);
       dom.removeEventListener('touchstart',down); dom.removeEventListener('touchmove',move); dom.removeEventListener('touchend',up);
-      dom.removeEventListener('wheel',wheel); } };
+      dom.removeEventListener('wheel',wheel); dom.removeEventListener('contextmenu',menue); } };
 }
 
 /* ---------- Rebuild / Init ---------- */
@@ -2710,6 +3105,36 @@ function applyUiMode(){
   $$('#mode-switch button').forEach(b=>b.classList.toggle('on',b.dataset.mode===state.uiMode));
   if(erk && window.__erkActivate) window.__erkActivate();
 }
+/* ══════════════════════════════════════════════════════════════════════════
+   Sprach- und Themawechsel
+   Es wird nur neu gezeichnet: state.task bleibt unangetastet, es entsteht
+   also nie eine neue Aufgabe und keine Eingabe geht verloren.
+   ══════════════════════════════════════════════════════════════════════════ */
+function neuZeichnen(){
+  try{ buildTeacherSettings(); buildStudentPanel(); renderTask(); }catch(e){}
+  try{ if(window.__erkNeu) window.__erkNeu(); }catch(e){}
+}
+window.addEventListener('tl-sprache', neuZeichnen);
+window.addEventListener('tl-theme',   neuZeichnen);
+
+/* ── Kontext für den Fehler-melden-Knopf ─────────────────────────────────── */
+window.fehlerKontext=function(){
+  // Die Einstellungen stehen bereits in der URL; hier zaehlt die Aufgabe selbst.
+  const t=state.task;
+  if(!t) return T('keine Aufgabe','no task');
+  const z=['body='+t.body.id];
+  if(t.base) z.push('base='+t.base.id);
+  z.push('mode='+t.mode, 'present='+t.pres);
+  if(t.gGiven) z.push('G given');
+  if(t.skew) z.push('skew'); if(t.twist) z.push('twist');
+  if(t.unknownSym) z.push('wanted='+t.unknownSym);
+  const v=Object.keys(t.v||{}).map(k=>k+'='+t.v[k]).join(' ');
+  if(v) z.push('values: '+v);
+  if(t.unit) z.push('unit='+t.unit);
+  z.push('help='+(t.helpLevel||0));
+  return z.join('; ');
+};
+
 function boot(){
   const fromURL=deserialize();
   if(!fromURL){ state.active=defaultActive(); state.basesP=defaultBases(); state.basesY=defaultBases();
@@ -2982,7 +3407,8 @@ function drawSpec(sp,o){
 function txt(p2,t,col,dx,dy,anchor,size){
   const q=sc(p2), x=f1(q[0]+(dx||0)), y=f1(q[1]+(dy||0));
   const common='x="'+x+'" y="'+y+'" font-size="'+(size||14)+'" font-family="Calibri,\'Segoe UI\',sans-serif" font-weight="bold" text-anchor="'+(anchor||'middle')+'" dominant-baseline="middle"';
-  return '<text '+common+' fill="#fff" stroke="#fff" stroke-width="3.4" stroke-linejoin="round">'+svgSub(t)+'</text>'
+  const halo=DUNKEL()?'#161b20':'#fff';
+  return '<text '+common+' fill="'+halo+'" stroke="'+halo+'" stroke-width="3.4" stroke-linejoin="round">'+svgSub(t)+'</text>'
        + '<text '+common+' fill="'+(col||'#173')+'">'+svgSub(t)+'</text>';
 }
 function lbl(p3,t,col,dir,dist){
@@ -3137,7 +3563,13 @@ function deriveSvg(){
   const lgrp=roundBase(id)?1:null, hc=Math.min(c,h);
   if(n>=1){ const shc=[sh[0]*hc/h,sh[1]*hc/h];
     const lay= tw? lofted(pts,hc,shc,tw*hc/h,false,lgrp) : extrude(pts,hc,shc,0,lgrp);
-    behind+=drawSpec(specOf(lay),{fillCol:'rgba(224,123,57,.26)',hidCol:'#e8c6a8',visCol:'#c9762f',thin:true}); }
+    behind+=drawSpec(specOf(lay),{fillCol:'rgba(224,123,57,.15)',hidCol:'#eed5bd',visCol:'#dda169',thin:true}); }
+  /* Die Grundflaeche liegt auf dem Boden. Frueher war nur die unterste Schicht
+     eingefaerbt - deren kraeftig umrandete DECKflaeche sah dann aus wie die
+     Grundflaeche, und die schwebte einen Block ueber dem Boden (die Beschriftung
+     A_g stand aber unten). Jetzt wird die Grundflaeche selbst unten gezeichnet,
+     die Schicht darueber nur noch zart. */
+  front+=poly(pts.map(q=>pr([q[0],q[1],0])),'rgba(224,123,57,.30)','#c9762f',2);
   return {behind,front};
 }
 function raSvg(at,d1,d2,k){
@@ -3263,7 +3695,7 @@ function render(){
   const dv=deriveSvg();
   const H=handles(); HND=H.map(hh=>{const q=sc(pr(hh.p));return {h:hh,x:q[0],y:q[1]};});
   st.setAttribute('viewBox','0 0 '+sz.w+' '+sz.h);
-  st.innerHTML=grid+dv.behind+body+dv.front+labelsSvg()+handleSvg(H);
+  st.innerHTML=svgFarben(grid+dv.behind+body+dv.front+labelsSvg()+handleSvg(H));
   updateDerive();
 }
 
@@ -3276,55 +3708,56 @@ function updateDerive(){
   const SM=document.getElementById('e-sum');
   if(SM){ let t='';
     if(E.grid==='space'&&E.hl!=='none'){
-      if(CNT.capped) t='zu viele Kästchen zum Zählen';
-      else t=(E.hl==='upper'?'Obersumme: ':'Untersumme: ')+(E.hl==='upper'?CNT.upper:CNT.full)+' Kästchen';
+      if(CNT.capped) t=TL('zu viele Kästchen zum Zählen','too many squares to count');
+      else t=(E.hl==='upper'?'Obersumme: ':'Untersumme: ')+(E.hl==='upper'?CNT.upper:CNT.full)+TL(' Kästchen',' squares');
     }
     SM.textContent=t; }
   let tex=[],ex='';
   const notes=[];
-  if(E.skewOn&&canShear(id)) notes.push('Oberen Punkt zur Seite ziehen: schief – gleiches Volumen (Cavalieri).');
-  if(E.twOn&&canTwist(id)) notes.push('Oranger Punkt: verdrehen – jede Schicht bleibt deckungsgleich, gleiches Volumen.');
+  if(E.skewOn&&canShear(id)) notes.push(TL('Oberen Punkt zur Seite ziehen: schief – gleiches Volumen (Cavalieri).','Drag the top point sideways: oblique – same volume (Cavalieri).'));
+  if(E.twOn&&canTwist(id)) notes.push(TL('Oranger Punkt: verdrehen – jede Schicht bleibt deckungsgleich, gleiches Volumen.','Orange point: twist – every layer stays congruent, same volume.'));
   if(id==='wuerfel'){
     tex=[g+' = a \\cdot a = '+T(L(d.a))+' \\cdot '+T(L(d.a))+' = '+T(AR(G)),
          'V = '+g+' \\cdot a = '+T(AR(G))+' \\cdot '+T(L(d.a))+' = '+T(VO(V))];
-    ex='In eine Schicht passen '+L(d.a)+' · '+L(d.a)+' = '+AR(G)+' Einheitswürfel. Davon liegen '+L(d.a)+' Schichten übereinander.';
+    ex=TL('In eine Schicht passen ','One layer holds ')+L(d.a)+' · '+L(d.a)+' = '+AR(G)+TL(' Einheitswürfel. Davon liegen ',' unit cubes. There are ')+L(d.a)+TL(' Schichten übereinander.',' such layers stacked up.');
   } else if(id==='quader'){
     tex=[g+' = a \\cdot b = '+T(L(d.a))+' \\cdot '+T(L(d.b))+' = '+T(AR(G)),
          'V = '+g+' \\cdot c = '+T(AR(G))+' \\cdot '+T(L(h))+' = '+T(VO(V))];
-    ex='Die unterste Schicht besteht aus a · b = '+AR(G)+' Einheitswürfeln; davon liegen '+L(h)+' Schichten übereinander.';
+    ex=TL('Die unterste Schicht besteht aus a · b = ','The bottom layer consists of a · b = ')+AR(G)+TL(' Einheitswürfeln; davon liegen ',' unit cubes; there are ')+L(h)+TL(' Schichten übereinander.',' such layers stacked up.');
   } else if(id==='prisma'){
     tex=[g+' = '+T(AR(G)),'V = '+g+' \\cdot h = '+T(AR(G))+' \\cdot '+T(L(h))+' = '+T(VO(V))];
-    ex='Jede waagerechte Schicht ist deckungsgleich zur Grundfläche. Es werden also '+L(h)+' Schichten mit je '+AR(G)+' Kästchen gestapelt. Zieh die Ecken der Grundfläche – die Formel bleibt dieselbe.';
+    ex=TL('Jede waagerechte Schicht ist deckungsgleich zur Grundfläche. Es werden also ','Every horizontal layer is congruent to the base. So ')+L(h)+TL(' Schichten mit je ',' layers of ')+AR(G)+TL(' Kästchen gestapelt. Zieh die Ecken der Grundfläche – die Formel bleibt dieselbe.',' squares each are stacked. Drag the corners of the base – the formula stays the same.');
   } else if(id==='zylinder'){
     if(m==='neck'){
       const n=parOf();
       tex=[g+' \\text{ ('+n+'-Eck)} = '+T(AR(G)),'V \\approx '+g+' \\cdot h = '+T(AR(G))+' \\cdot '+T(L(h))+' = '+T(VO(V)),
-           '\\text{Kreis: } '+g+' = \\pi \\cdot r^2 = \\pi \\cdot '+T(L(d.r))+'^2 \\approx '+T(AR(Math.PI*d.r*d.r))];
-      ex='Je mehr Ecken das Prisma hat, desto besser passt es in den Zylinder – die Grundfläche nähert sich dem Kreisinhalt π · r² an.';
+           '\\text{'+TL('Kreis','Circle')+': } '+g+' = \\pi \\cdot r^2 = \\pi \\cdot '+T(L(d.r))+'^2 \\approx '+T(AR(Math.PI*d.r*d.r))];
+      ex=TL('Je mehr Ecken das Prisma hat, desto besser passt es in den Zylinder – die Grundfläche nähert sich dem Kreisinhalt π · r² an.','The more vertices the prism has, the better it fits the cylinder – the base area approaches the circle area π · r².');
     } else {
       tex=[g+' = \\pi \\cdot r^2 = \\pi \\cdot '+T(L(d.r))+'^2 \\approx '+T(AR(G)),
            'V = '+g+' \\cdot h \\approx '+T(AR(G))+' \\cdot '+T(L(h))+' = '+T(VO(V))];
-      ex='Ein Zylinder ist „prismenartig": Jede waagerechte Schicht ist ein deckungsgleicher Kreis mit dem Inhalt π · r².';
+      ex=TL('Ein Zylinder ist „prismenartig": Jede waagerechte Schicht ist ein deckungsgleicher Kreis mit dem Inhalt π · r².','A cylinder is “prism-like”: every horizontal layer is a congruent circle of area π · r².');
     }
   } else if(id==='pyramide'||id==='kegel'){
     const gh=G*h, isK=id==='kegel';
     const third=(state.halfStyle==='factor'?'\\tfrac{1}{3}\\cdot ':'')+g+' \\cdot h'+(state.halfStyle==='factor'?'':' / 3');
     if(m==='stufen'){
       const n=parOf(); let sum=0; for(let k=0;k<n;k++){const t=(n-k)/n; sum+=G*t*t*h/n;}
-      tex=[g+' = '+T(AR(G)),'V_{\\text{Stufen}} = '+T(VO(sum)),'V_{'+(isK?'\\text{Zylinder}':'\\text{Prisma}')+'} = '+g+' \\cdot h = '+T(VO(gh)),
+      tex=[g+' = '+T(AR(G)),'V_{\\text{'+TL('Stufen','steps')+'}} = '+T(VO(sum)),'V_{'+(isK?'\\text{'+TL('Zylinder','cylinder')+'}':'\\text{'+TL('Prisma','prism')+'}')+'} = '+g+' \\cdot h = '+T(VO(gh)),
            'V = '+third+' = '+T(VO(V))];
-      ex='Je feiner die Stufen, desto genauer nähert sich der Treppenkörper dem '+(isK?'Kegel':'der Pyramide')+' an – und sein Volumen nähert sich einem Drittel des umschließenden '+(isK?'Zylinders':'Prismas')+'.';
+      ex=TL('Je feiner die Stufen, desto genauer nähert sich der Treppenkörper dem ','The finer the steps, the more closely the stepped solid approaches the ')+(isK?TL('Kegel','cone'):TL('der Pyramide','pyramid'))+TL(' an – und sein Volumen nähert sich einem Drittel des umschließenden ',' – and its volume approaches a third of the surrounding ')+(isK?TL('Zylinders','cylinder'):TL('Prismas','prism'))+'.';
     } else {
       tex=[g+' = '+T(AR(G)),
-           'V_{'+(isK?'\\text{Zylinder}':'\\text{Prisma}')+'} = '+g+' \\cdot h = '+T(AR(G))+' \\cdot '+T(L(h))+' = '+T(VO(gh)),
+           'V_{'+(isK?'\\text{'+TL('Zylinder','cylinder')+'}':'\\text{'+TL('Prisma','prism')+'}')+'} = '+g+' \\cdot h = '+T(AR(G))+' \\cdot '+T(L(h))+' = '+T(VO(gh)),
            'V = '+third+' = '+T(VO(V))];
-      ex='Drei '+(isK?'Kegel':'Pyramiden')+' mit gleicher Grundfläche und gleicher Höhe füllen zusammen genau '+(isK?'den Zylinder':'das Prisma')+'.';
+      ex=TL('Drei ','Three ')+(isK?TL('Kegel','cones'):TL('Pyramiden','pyramids'))+TL(' mit gleicher Grundfläche und gleicher Höhe füllen zusammen genau ',' with the same base and the same height together fill exactly ')+(isK?TL('den Zylinder','the cylinder'):TL('das Prisma','the prism'))+'.';
     }
   } else if(id==='kugel'){
     const zy=Math.PI*d.r*d.r*2*d.r;
-    tex=['V_{\\text{Zylinder}} = \\pi \\cdot r^2 \\cdot 2r = '+T(VO(zy)),
-         'V = \\tfrac{2}{3} \\cdot V_{\\text{Zylinder}} = \\tfrac{4}{3} \\cdot \\pi \\cdot r^3 = '+T(VO(V))];
-    ex='Die Kugel füllt genau zwei Drittel des Zylinders aus, in den sie exakt hineinpasst (Radius r, Höhe 2r).';
+    const zyl=TL('Zylinder','cylinder');
+    tex=['V_{\\text{'+zyl+'}} = \\pi \\cdot r^2 \\cdot 2r = '+T(VO(zy)),
+         'V = \\tfrac{2}{3} \\cdot V_{\\text{'+zyl+'}} = \\tfrac{4}{3} \\cdot \\pi \\cdot r^3 = '+T(VO(V))];
+    ex=TL('Die Kugel füllt genau zwei Drittel des Zylinders aus, in den sie exakt hineinpasst (Radius r, Höhe 2r).','The sphere fills exactly two thirds of the cylinder it fits into exactly (radius r, height 2r).');
   }
   if(F){ F.innerHTML=tex.map(t=>'\\['+t+'\\]').join(''); mj(F); }
   if(X)X.textContent=ex;
@@ -3427,6 +3860,9 @@ function bindStage(){
     if(ptr.size===0){ const was=!!drag; drag=null; rot=null; st.classList.remove('grabbing');
       if(was&&DRAGGING){ DRAGGING=false; render(); } DRAGGING=false; } };
   st.addEventListener('pointerup',up); st.addEventListener('pointercancel',up); st.addEventListener('pointerleave',up);
+  // Die rechte Maustaste dreht den Körper - dann darf das Kontextmenü des
+  // Browsers nicht aufgehen.
+  st.addEventListener('contextmenu',e=>e.preventDefault());
   st.addEventListener('wheel',e=>{ const p=rel(e); const k=e.deltaY<0?1.12:1/1.12;
     E.view.ox=p[0]+(E.view.ox-p[0])*k; E.view.oy=p[1]+(E.view.oy-p[1])*k;
     E.view.scale=Math.max(4,Math.min(600,E.view.scale*k)); render(); e.preventDefault(); },{passive:false});
@@ -3440,7 +3876,7 @@ function buildPicker(){
   ORDER.forEach(id=>{
     const b=document.createElement('button'); b.className='tile'; b.setAttribute('role','tab');
     b.setAttribute('aria-selected',E.tab===id?'true':'false');
-    b.innerHTML=ICON[id]+'<span>'+NAME[id]+'</span>';
+    b.innerHTML=ICON[id]+'<span>'+W(NAME[id])+'</span>';
     b.onclick=()=>{ E.tab=id; buildPicker(); syncControls(); centerView(); render(); save(); };
     p.appendChild(b);
   });
@@ -3456,7 +3892,7 @@ function syncControls(){
   const seg=document.getElementById('e-seg-mode'), cm=document.getElementById('e-ctrl-mode');
   seg.innerHTML='';
   const list=MODES[id]||[];
-  list.forEach(([v,lab])=>{ const b=document.createElement('button'); b.textContent=lab;
+  list.forEach(([v,lab])=>{ const b=document.createElement('button'); b.textContent=W(lab);
     if(E.mode[id]===v)b.className='on';
     b.onclick=()=>{ E.mode[id]=v; syncControls(); centerView(); render(); save(); };
     seg.appendChild(b); });
@@ -3465,7 +3901,7 @@ function syncControls(){
   pc.classList.toggle('is-disabled', !(P && E.mode[id]===P.when && E.derive));
   const sl=document.getElementById('e-par');
   if(P){ sl.min=P.min; sl.max=P.max; sl.value=E.par[id];
-    document.getElementById('e-parlab').textContent=P.lab;
+    document.getElementById('e-parlab').textContent=W(P.lab);
     document.getElementById('e-lpar').textContent=E.par[id]; }
   segButtons('e-seg-grid','g',E.grid,v=>{E.grid=v;syncControls();centerView();render();save();});
   segButtons('e-seg-hl','hl',E.hl,v=>{E.hl=v;syncControls();render();save();});
@@ -3522,6 +3958,8 @@ window.__erkActivate=function(){
   if(!started){ started=true; load(); buildPicker(); bindControls(); bindStage(); syncControls(); centerView(); }
   render();
 };
+// Sprach-/Themawechsel: Leisten und Zeichnung neu aufbauen, der Koerper bleibt
+window.__erkNeu=function(){ if(!started) return; try{ buildPicker(); syncControls(); render(); }catch(e){} };
 })();
 </script>
 </body>

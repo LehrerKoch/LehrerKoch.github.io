@@ -3,27 +3,31 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="shortcut icon" type="image/x-icon" href="aleph_zero_logo.ico">
+  <script>try{var t=localStorage.getItem('matheToolsTheme');if(t==='dark'||(!t&&window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.classList.add('dark');}catch(e){}</script>
   <script>
     window.MathJax = { tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] } };
   </script>
   <script id="MathJax-script" async
     src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-  <!-- Google tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-5K8WYYXDL2"></script>
-  <script>
+    <!-- Besuchszaehlung (Google Analytics). Geladen wird sie erst, wenn der
+         Besucher zustimmt - siehe einwilligung.js. -->
+<script>
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-5K8WYYXDL2');
+      window.TK_GA_ID = 'G-5K8WYYXDL2';   /* Google Analytics laedt erst nach Einwilligung, siehe einwilligung.js */
   </script>
+<script src="einwilligung.js" defer></script>
   
-  <title>Potenzgesetze üben</title>
+  <title data-de="Potenzgesetze" data-en="Laws of Exponents">Potenzgesetze</title>
+  <script src="theme-language.js" defer></script>
   <link rel="stylesheet" type="text/css" href="styles.css" />
+  <link rel="stylesheet" href="aufgaben.css">
+  <script src="aufgaben.js" defer></script>
   <style>
     body {
-      font-family: sans-serif;
+      font-family: Calibri, sans-serif;
       -webkit-user-select: none; user-select: none;
-      overflow-x: hidden;
     }
     *:focus { outline: none; }
 
@@ -32,10 +36,13 @@
       border-top: 1px solid #ccc; margin-top: 20px; margin-bottom: 10px;
       font-family: sans-serif; font-size: 0.6em; color: #333333d8;
     }
-    .footer-content {
-      display: flex; justify-content: center; align-items: center;
-      gap: 1.5rem; max-width: 1200px; margin: 0 auto; flex-wrap: wrap; text-align: center;
-    }
+  .footer-content {
+    display: grid; grid-template-columns: 1fr auto 1fr; align-items: center;
+    margin: 0 auto; max-width: var(--tk-breite, 960px);
+  }
+  .footer-content > :first-child { justify-self: start; }
+  .footer-content > :nth-child(2) { justify-self: center; }
+  .footer-content > :last-child { justify-self: end; }
     @media (max-width: 600px) { .footer-content { flex-direction: column; gap: 6px; } }
 
     #toast {
@@ -46,12 +53,11 @@
     }
     #toast.show { opacity: 1; }
 
+    /* Rahmen und Fläche der Aufgabe kommen aus aufgaben.css (.task). */
     #taskWrap {
       position: relative; width: 100%; min-height: 130px; margin-top: 16px;
-      border: 1px solid #eee; border-radius: 10px;
       display: flex; align-items: center; justify-content: center;
-      background: white; box-sizing: border-box; padding: 18px 24px;
-      z-index: 1;
+      box-sizing: border-box; padding: 18px 24px; z-index: 1;
     }
     #taskCard {
       display: flex; flex-direction: column;
@@ -71,12 +77,8 @@
       font-size: 0.72em; color: #888; margin-top: 6px; text-align: center; flex-shrink: 0;
     }
 
-    #inputArea {
-      display: flex; flex-direction: column;
-      align-items: center; gap: 8px; margin: 12px 0 0 0; width: 100%;
-    }
     #answerInput {
-      width: min(380px, 90vw); padding: 8px 12px; font-size: 1.1em;
+      padding: 8px 12px; font-size: 1.1em;
       border: 2px solid #ccc; border-radius: 8px; text-align: center;
       outline: none; transition: border-color 0.2s, background 0.2s;
       -webkit-user-select: text; user-select: text;
@@ -86,13 +88,7 @@
     #answerInput.wrong   { border-color: #dc3545; background: #f8d7da; color: #721c24; }
     #answerInput.almost  { border-color: #e0a800; background: #fff8e1; color: #7a5c00; }
 
-    #checkBtn {
-      padding: 9px 24px; font-size: 1em; border-radius: 8px;
-      border: 2px solid #4CAF50; background: #e8f5e9; color: #1b5e20;
-      cursor: pointer; font-weight: bold;
-      transition: background 0.15s, border-color 0.15s; letter-spacing: 0.02em;
-    }
-    #checkBtn:hover { background: #c8e6c9; border-color: #388e3c; }
+    /* „Prüfen" und „Lösung anzeigen" kommen aus aufgaben.css. */
 
     #answerHint {
       font-size: 0.84em; color: #555; background: #fff3cd;
@@ -119,193 +115,214 @@
     .btn-row {
       display: flex; justify-content: center; gap: 8px; margin-top: 10px; flex-wrap: wrap;
     }
-    #revealBtn, #hintBtn {
-      padding: 9px 18px; font-size: 1em; border-radius: 8px;
-      border: 2px solid #ddd; background: #fafafa; color: #666;
-      cursor: pointer; transition: background 0.15s;
+    /* Hilfestellungen sind überall gelb. */
+    #hintBtn {
+      padding: 9px 18px; font-size: 1em; border-radius: 22px; border: none;
+      background: var(--ab-ge-knopf, #E0A800); color: var(--ab-ge-schrift, #3a2c00);
+      font-weight: bold; cursor: pointer;
     }
-    #revealBtn:hover, #hintBtn:hover { background: #f0eeee; border-color: #bbb; }
-    #nextBtn {
-      padding: 9px 24px; font-size: 1em; border-radius: 8px;
-      border: 2px solid #aaa; background: #f5f5f5; color: #333;
-      cursor: pointer; transition: background 0.15s;
-    }
-    #nextBtn:hover { background: #e0e0e0; }
-
-    #counter { text-align: center; font-weight: bold; margin-top: 12px; }
 
     .slider-row { display: flex; align-items: center; gap: 8px; font-size: 0.82em; margin: 4px 0 4px 0; }
     .slider-row input[type=range] { width: 110px; }
+
+    /* ══════════════════════════════════════════════════════════════
+       Dunkelmodus – nur Zusaetze, der Hellmodus oben bleibt unveraendert.
+       ══════════════════════════════════════════════════════════════ */
+    html.dark .card-sub { color: #9aa5b1; }
+
+    html.dark #answerInput {
+      background: #1e2429; color: #e7eae8; border-color: #4a545e;
+    }
+    html.dark #answerInput::placeholder { color: #7c8792; }
+    html.dark #answerInput:focus  { border-color: #4CAF50; }
+    html.dark #answerInput.correct { border-color: #4caf50; background: #1e3b26; color: #b8e6c4; }
+    html.dark #answerInput.wrong   { border-color: #a04a52; background: #3b1f22; color: #f3b5ba; }
+    html.dark #answerInput.almost  { border-color: #a8862a; background: #3a3320; color: #f0dca0; }
+
+
+    html.dark #answerHint { background: #3a3320; border-color: #a8862a; color: #f0dca0; }
+    html.dark #ansatzBox  { background: #1d2c3a; border-color: #3f6f9e; color: #b8d4ef; }
+    html.dark #toast      { background: #2e3840; color: #e7eae8; }
+
+    /* Die Seite setzt Grautoene teils direkt im style-Attribut; im Dunkelmodus
+       waeren sie kaum lesbar. Nur dort aufhellen, hell bleibt unveraendert. */
+    html.dark [style*="color:#888"],
+    html.dark [style*="color:#555"] { color: #9aa5b1 !important; }
   </style>
 </head>
-<body>
+<body class="tk-seite">
 <div id="toast"></div>
 
-<h1>Potenzgesetze üben</h1>
+<header class="tool-kopf">
+  <div class="tk-text">
+    <h1 data-de="Potenzgesetze" data-en="Laws of Exponents">Potenzgesetze</h1>
+    <p class="tk-unter" data-de="Übe die Potenzgesetze an verschiedenen Beispielen." data-en="Practise the laws of exponents with various examples.">Übe die Potenzgesetze an verschiedenen Beispielen.</p>
+  </div>
+</header>
 
-<details>
-  <summary>Einstellungen</summary>
-  <form id="settingsForm">
+<details class="einst" id="settingsBox">
+  <summary data-de="Einstellungen" data-en="Settings">Einstellungen</summary>
+  <form id="settingsForm" class="settings-grid">
 
     <div class="form-block">
-      <b>Potenzgesetze:</b>
-      <button type="button" class="section-toggle-btn" id="toggleAllLawsBtn">alle</button><br>
+      <b data-de="Potenzgesetze:" data-en="Laws of exponents:">Potenzgesetze:</b>
+      <button type="button" class="section-toggle-btn" id="toggleAllLawsBtn" data-de="alle" data-en="all">alle</button><br>
       <label style="font-size:0.82em;cursor:pointer;display:inline-block;margin:2px 0">
         <input type="checkbox" class="law-cb" value="product" checked>
-        Produktregel &nbsp;<span style="font-family:monospace">aⁿ·aᵐ = aⁿ⁺ᵐ</span>
+        <span data-de="Produktregel" data-en="Product rule">Produktregel</span> &nbsp;<span style="font-family:monospace">aⁿ·aᵐ = aⁿ⁺ᵐ</span>
       </label><br>
       <label style="font-size:0.82em;cursor:pointer;display:inline-block;margin:2px 0">
         <input type="checkbox" class="law-cb" value="quotient" checked>
-        Quotientenregel &nbsp;<span style="font-family:monospace">aⁿ:aᵐ = aⁿ⁻ᵐ</span>
+        <span data-de="Quotientenregel" data-en="Quotient rule">Quotientenregel</span> &nbsp;<span style="font-family:monospace">aⁿ:aᵐ = aⁿ⁻ᵐ</span>
       </label><br>
       <label style="font-size:0.82em;cursor:pointer;display:inline-block;margin:2px 0">
         <input type="checkbox" class="law-cb" value="power" checked>
-        Potenzregel &nbsp;<span style="font-family:monospace">(aⁿ)ᵐ = aⁿ·ᵐ</span>
+        <span data-de="Potenzregel" data-en="Power rule">Potenzregel</span> &nbsp;<span style="font-family:monospace">(aⁿ)ᵐ = aⁿ·ᵐ</span>
       </label><br>
       <label style="font-size:0.82em;cursor:pointer;display:inline-block;margin:2px 0">
         <input type="checkbox" class="law-cb" value="productPower" checked>
-        Produkt-Potenzregel &nbsp;<span style="font-family:monospace">(a·b)ⁿ = aⁿ·bⁿ</span>
+        <span data-de="Produkt-Potenzregel" data-en="Product power rule">Produkt-Potenzregel</span> &nbsp;<span style="font-family:monospace">(a·b)ⁿ = aⁿ·bⁿ</span>
       </label><br>
       <label style="font-size:0.82em;cursor:pointer;display:inline-block;margin:2px 0">
         <input type="checkbox" class="law-cb" value="quotientPower" checked>
-        Quotienten-Potenzregel &nbsp;<span style="font-family:monospace">(a/b)ⁿ = aⁿ/bⁿ</span>
+        <span data-de="Quotienten-Potenzregel" data-en="Quotient power rule">Quotienten-Potenzregel</span> &nbsp;<span style="font-family:monospace">(a/b)ⁿ = aⁿ/bⁿ</span>
       </label><br>
       <label style="font-size:0.82em;cursor:pointer;display:inline-block;margin:2px 0">
         <input type="checkbox" class="law-cb" value="negPow">
-        Negative Exponenten &nbsp;<span style="font-family:monospace">a⁻ⁿ = 1/aⁿ</span>
+        <span data-de="Negative Exponenten" data-en="Negative exponents">Negative Exponenten</span> &nbsp;<span style="font-family:monospace">a⁻ⁿ = 1/aⁿ</span>
       </label><br>
       <label style="font-size:0.82em;cursor:pointer;display:inline-block;margin:2px 0">
         <input type="checkbox" class="law-cb" value="sqrt">
-        Wurzeln &nbsp;<span style="font-family:monospace">√(aⁿ), (√a)ⁿ</span>
+        <span data-de="Wurzeln" data-en="Roots">Wurzeln</span> &nbsp;<span style="font-family:monospace">√(aⁿ), (√a)ⁿ</span>
       </label><br>
       <label style="font-size:0.82em;cursor:pointer;display:inline-block;margin:2px 0">
         <input type="checkbox" class="law-cb" value="binom1">
-        1. Bin. Formel &nbsp;<span style="font-family:monospace">(a+b)² = a²+2ab+b²</span>
+        <span data-de="1. Bin. Formel" data-en="1st binomial formula">1. Bin. Formel</span> &nbsp;<span style="font-family:monospace">(a+b)² = a²+2ab+b²</span>
       </label><br>
       <label style="font-size:0.82em;cursor:pointer;display:inline-block;margin:2px 0">
         <input type="checkbox" class="law-cb" value="binom2">
-        2. Bin. Formel &nbsp;<span style="font-family:monospace">(a−b)² = a²−2ab+b²</span>
+        <span data-de="2. Bin. Formel" data-en="2nd binomial formula">2. Bin. Formel</span> &nbsp;<span style="font-family:monospace">(a−b)² = a²−2ab+b²</span>
       </label><br>
       <label style="font-size:0.82em;cursor:pointer;display:inline-block;margin:2px 0">
         <input type="checkbox" class="law-cb" value="binom3">
-        3. Bin. Formel &nbsp;<span style="font-family:monospace">(a+b)(a−b) = a²−b²</span>
+        <span data-de="3. Bin. Formel" data-en="3rd binomial formula">3. Bin. Formel</span> &nbsp;<span style="font-family:monospace">(a+b)(a−b) = a²−b²</span>
       </label>
     </div>
 
     <div class="form-block">
-      <b>Optionen:</b><br>
+      <b data-de="Optionen:" data-en="Options:">Optionen:</b><br>
       <label style="font-size:0.82em;cursor:pointer;display:inline-block;margin:2px 0">
         <input type="checkbox" id="withNumbers">
-        Zahlen als Koeffizienten
-        &nbsp;<span style="font-family:monospace">z.B. (2x³y)⁵, (x+12)²</span>
+        <span data-de="Zahlen als Koeffizienten" data-en="Numbers as coefficients">Zahlen als Koeffizienten</span>
+        &nbsp;<span style="font-family:monospace" data-de="z.B. (2x³y)⁵, (x+12)²" data-en="e.g. (2x³y)⁵, (x+12)²">z.B. (2x³y)⁵, (x+12)²</span>
       </label><br>
       <label style="font-size:0.82em;cursor:pointer;display:inline-block;margin:2px 0">
         <input type="checkbox" id="withRoots">
-        Wurzeln (2.–5. Ordnung)
-        &nbsp;<span style="font-family:monospace">z.B. ∛(a⁶·b³)</span>
+        <span data-de="Wurzeln (2.–5. Ordnung)" data-en="Roots (2nd–5th order)">Wurzeln (2.–5. Ordnung)</span>
+        &nbsp;<span style="font-family:monospace" data-de="z.B. ∛(a⁶·b³)" data-en="e.g. ∛(a⁶·b³)">z.B. ∛(a⁶·b³)</span>
       </label>
     </div>
 
     <div class="form-block">
-      <b>Division einzelner Faktoren:</b><br>
+      <b data-de="Division einzelner Faktoren:" data-en="Division of single factors:">Division einzelner Faktoren:</b><br>
       <div class="radio-group">
         <label style="font-size:0.82em">
           <input type="radio" name="divStyle" value="colon">
-          Geteilt-Zeichen &nbsp;<span style="font-family:monospace;color:#888">a⁵ : a³</span>
+          <span data-de="Geteilt-Zeichen" data-en="Division sign">Geteilt-Zeichen</span> &nbsp;<span style="font-family:monospace;color:#888">a⁵ : a³</span>
         </label>
         <label style="font-size:0.82em">
           <input type="radio" name="divStyle" value="frac">
-          Bruchstrich
+          <span data-de="Bruchstrich" data-en="Fraction bar">Bruchstrich</span>
         </label>
         <label style="font-size:0.82em">
           <input type="radio" name="divStyle" value="mixed" checked>
-          gemischt
+          <span data-de="gemischt" data-en="mixed">gemischt</span>
         </label>
       </div>
     </div>
 
     <div class="form-block">
-      <b>Schwierigkeitsgrad der Exponenten:</b><br>
+      <b data-de="Schwierigkeitsgrad der Exponenten:" data-en="Difficulty of the exponents:">Schwierigkeitsgrad der Exponenten:</b><br>
       <div class="radio-group">
         <label style="font-size:0.82em">
           <input type="radio" name="expMode" value="simple" checked>
-          Einfach &nbsp;<span style="font-family:monospace;color:#888">exp. 2–5, ausrechenbar</span>
+          <span data-de="Einfach" data-en="Easy">Einfach</span> &nbsp;<span style="font-family:monospace;color:#888" data-de="exp. 2–5, ausrechenbar" data-en="exp. 2–5, can be evaluated">exp. 2–5, ausrechenbar</span>
         </label>
         <label style="font-size:0.82em">
           <input type="radio" name="expMode" value="hard">
-          Schwer &nbsp;<span style="font-family:monospace;color:#888">exp. 8–100, Gesetze nötig</span>
+          <span data-de="Schwer" data-en="Hard">Schwer</span> &nbsp;<span style="font-family:monospace;color:#888" data-de="exp. 8–100, Gesetze nötig" data-en="exp. 8–100, laws needed">exp. 8–100, Gesetze nötig</span>
         </label>
       </div>
     </div>
 
     <div class="form-block">
-      <b>Vorzeichen &amp; besondere Exponenten:</b>
-      <button type="button" class="section-toggle-btn" onclick="toggleSection(['negExp','negExpDenom','negBase','negSign'])">alle</button><br>
+      <b data-de="Vorzeichen &amp; besondere Exponenten:" data-en="Signs &amp; special exponents:">Vorzeichen &amp; besondere Exponenten:</b>
+      <button type="button" class="section-toggle-btn" onclick="toggleSection(['negExp','negExpDenom','negBase','negSign'])" data-de="alle" data-en="all">alle</button><br>
       <label style="font-size:0.82em;cursor:pointer;display:inline-block;margin:2px 0">
         <input type="checkbox" id="negExp">
-        Negative Exponenten in Aufgaben
-        &nbsp;<span style="font-family:monospace">z.B. a³·a⁻⁵</span>
+        <span data-de="Negative Exponenten in Aufgaben" data-en="Negative exponents in tasks">Negative Exponenten in Aufgaben</span>
+        &nbsp;<span style="font-family:monospace" data-de="z.B. a³·a⁻⁵" data-en="e.g. a³·a⁻⁵">z.B. a³·a⁻⁵</span>
       </label><br>
       <label style="font-size:0.82em;cursor:pointer;display:inline-block;margin:2px 0 2px 22px">
         <input type="checkbox" id="negExpDenom">
-        … auch im Nenner
-        &nbsp;<span style="font-family:monospace">z.B. a³ : a⁻⁵</span>
+        <span data-de="… auch im Nenner" data-en="… also in the denominator">… auch im Nenner</span>
+        &nbsp;<span style="font-family:monospace" data-de="z.B. a³ : a⁻⁵" data-en="e.g. a³ : a⁻⁵">z.B. a³ : a⁻⁵</span>
       </label><br>
       <label style="font-size:0.82em;cursor:pointer;display:inline-block;margin:2px 0">
         <input type="checkbox" id="negBase">
-        Negative Basen
-        &nbsp;<span style="font-family:monospace">z.B. (−a)⁴ = a⁴</span>
+        <span data-de="Negative Basen" data-en="Negative bases">Negative Basen</span>
+        &nbsp;<span style="font-family:monospace" data-de="z.B. (−a)⁴ = a⁴" data-en="e.g. (−a)⁴ = a⁴">z.B. (−a)⁴ = a⁴</span>
       </label>
       <br><label style="font-size:0.82em;cursor:pointer;display:inline-block;margin:2px 0">
         <input type="checkbox" id="negSign">
-        Negative Vorzeichen
-        &nbsp;<span style="font-family:monospace">z.B. −a⁴·a² = −a⁶, (−a³)²</span>
+        <span data-de="Negative Vorzeichen" data-en="Negative signs">Negative Vorzeichen</span>
+        &nbsp;<span style="font-family:monospace" data-de="z.B. −a⁴·a² = −a⁶, (−a³)²" data-en="e.g. −a⁴·a² = −a⁶, (−a³)²">z.B. −a⁴·a² = −a⁶, (−a³)²</span>
       </label>
     </div>
 
     <div class="form-block">
-      <b>Lösungsform:</b><br>
+      <b data-de="Lösungsform:" data-en="Answer format:">Lösungsform:</b><br>
       <span style="font-size:0.75em;color:#888;display:block;margin-bottom:4px">
-        Wie muss das Ergebnis eingegeben werden, wenn Nenner bzw. negative Exponenten auftreten?
+        <span data-de="Wie muss das Ergebnis eingegeben werden, wenn Nenner bzw. negative Exponenten auftreten?" data-en="How must the result be entered when denominators or negative exponents occur?">Wie muss das Ergebnis eingegeben werden, wenn Nenner bzw. negative Exponenten auftreten?</span>
       </span>
       <div class="radio-group">
         <label style="font-size:0.82em">
           <input type="radio" name="solForm" value="positive">
-          nur positive Exponenten &nbsp;<span style="font-family:monospace;color:#888">als Bruch</span>
+          <span data-de="nur positive Exponenten" data-en="only positive exponents">nur positive Exponenten</span> &nbsp;<span style="font-family:monospace;color:#888" data-de="als Bruch" data-en="as a fraction">als Bruch</span>
         </label>
         <label style="font-size:0.82em">
           <input type="radio" name="solForm" value="negexp">
-          ohne Bruch &nbsp;<span style="font-family:monospace;color:#888">negative Exponenten</span>
+          <span data-de="ohne Bruch" data-en="without a fraction">ohne Bruch</span> &nbsp;<span style="font-family:monospace;color:#888" data-de="negative Exponenten" data-en="negative exponents">negative Exponenten</span>
         </label>
         <label style="font-size:0.82em">
           <input type="radio" name="solForm" value="any" checked>
-          beliebig &nbsp;<span style="font-family:monospace;color:#888">beide Varianten erlaubt</span>
+          <span data-de="beliebig" data-en="any">beliebig</span> &nbsp;<span style="font-family:monospace;color:#888" data-de="beide Varianten erlaubt" data-en="both forms allowed">beide Varianten erlaubt</span>
         </label>
       </div>
     </div>
 
     <div class="form-block">
-      <b>Kombinierte Aufgaben: <span id="comboLabel">50 %</span></b><br>
+      <b><span data-de="Kombinierte Aufgaben:" data-en="Combined tasks:">Kombinierte Aufgaben:</span> <span id="comboLabel">50 %</span></b><br>
       <span style="font-size:0.75em;color:#888;display:block;margin-bottom:4px">
-        Anteil kombinierter Aufgaben – höhere Werte bedeuten auch längere und mehr-variable Aufgaben
+        <span data-de="Anteil kombinierter Aufgaben – höhere Werte bedeuten auch längere und mehr-variable Aufgaben" data-en="Share of combined tasks – higher values also mean longer tasks with more variables">Anteil kombinierter Aufgaben – höhere Werte bedeuten auch längere und mehr-variable Aufgaben</span>
       </span>
       <div class="slider-row">
-        <span style="font-size:0.8em">nie</span>
+        <span style="font-size:0.8em" data-de="nie" data-en="never">nie</span>
         <input id="comboSlider" type="range" min="0" max="100" step="5" value="50">
-        <span style="font-size:0.8em">immer</span>
+        <span style="font-size:0.8em" data-de="immer" data-en="always">immer</span>
       </div>
       <label style="font-size:0.82em;cursor:pointer;display:inline-block;margin:4px 0 2px 0">
         <input type="checkbox" id="comboChain" checked>
-        aneinandergereiht &nbsp;<span style="font-family:monospace">A · B : C</span>
+        <span data-de="aneinandergereiht" data-en="chained">aneinandergereiht</span> &nbsp;<span style="font-family:monospace">A · B : C</span>
       </label><br>
       <label style="font-size:0.82em;cursor:pointer;display:inline-block;margin:2px 0">
         <input type="checkbox" id="comboNested" checked>
-        verschachtelt &nbsp;<span style="font-family:monospace">(A · (B)²)³</span>
+        <span data-de="verschachtelt" data-en="nested">verschachtelt</span> &nbsp;<span style="font-family:monospace">(A · (B)²)³</span>
       </label>
     </div>
 
     <div class="form-block">
-      <b>Maximale Variablenanzahl: <span id="varCountLabel">2</span></b><br>
+      <b><span data-de="Maximale Variablenanzahl:" data-en="Maximum number of variables:">Maximale Variablenanzahl:</span> <span id="varCountLabel">2</span></b><br>
       <div class="slider-row">
         <span>1</span>
         <input id="varCount" type="range" min="1" max="3" value="2">
@@ -314,11 +331,11 @@
     </div>
 
     <div class="form-block">
-      <b>Variablenstil:</b><br>
+      <b data-de="Variablenstil:" data-en="Variable style:">Variablenstil:</b><br>
       <div class="radio-group">
         <label><input type="radio" name="varStyle" value="abc" checked> a, b, c</label>
         <label><input type="radio" name="varStyle" value="xyz"> x, y, z</label>
-        <label><input type="radio" name="varStyle" value="random"> zufällig</label>
+        <label><input type="radio" name="varStyle" value="random"> <span data-de="zufällig" data-en="random">zufällig</span></label>
       </div>
     </div>
 
@@ -326,74 +343,90 @@
 </details>
 
 <p style="font-size:0.82em;color:#555;margin:8px 0 4px 2px;">
-  <em>Hinweis: Alle Variablen sind positiv.</em>
+  <em data-de="Hinweis: Alle Variablen sind positiv." data-en="Note: all variables are positive.">Hinweis: Alle Variablen sind positiv.</em>
 </p>
 
-<details id="lawReminder">
-  <summary>Zur Erinnerung: Potenzgesetze</summary>
+<details class="hilfe" id="lawReminder">
+  <summary data-de="Zur Erinnerung: Potenzgesetze" data-en="Reminder: the laws of exponents">Zur Erinnerung: Potenzgesetze</summary>
   <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:6px 18px;padding:10px 4px;font-size:0.87em;">
     <div>
-      <strong>Produktregel</strong><br>
+      <strong data-de="Produktregel" data-en="Product rule">Produktregel</strong><br>
       $a^n \cdot a^m = a^{n+m}$
     </div>
     <div>
-      <strong>Quotientenregel</strong><br>
+      <strong data-de="Quotientenregel" data-en="Quotient rule">Quotientenregel</strong><br>
       $a^n : a^m = a^{n-m}$
     </div>
     <div>
-      <strong>Potenzregel</strong><br>
+      <strong data-de="Potenzregel" data-en="Power rule">Potenzregel</strong><br>
       $(a^n)^m = a^{n \cdot m}$
     </div>
     <div>
-      <strong>Produkt-Potenzregel</strong><br>
+      <strong data-de="Produkt-Potenzregel" data-en="Product power rule">Produkt-Potenzregel</strong><br>
       $(a \cdot b)^n = a^n \cdot b^n$
     </div>
     <div>
-      <strong>Quotienten-Potenzregel</strong><br>
+      <strong data-de="Quotienten-Potenzregel" data-en="Quotient power rule">Quotienten-Potenzregel</strong><br>
       $\left(\dfrac{a}{b}\right)^n = \dfrac{a^n}{b^n}$
     </div>
     <div>
-      <strong>Negativer Exponent</strong><br>
+      <strong data-de="Negativer Exponent" data-en="Negative exponent">Negativer Exponent</strong><br>
       $a^{-n} = \dfrac{1}{a^n}$
     </div>
     <div>
-      <strong>Nullter Exponent</strong><br>
+      <strong data-de="Nullter Exponent" data-en="Zero exponent">Nullter Exponent</strong><br>
       $a^0 = 1$
     </div>
     <div>
-      <strong>Wurzel als Potenz (Quadrat)</strong><br>
+      <strong data-de="Wurzel als Potenz (Quadrat)" data-en="Root as a power (square root)">Wurzel als Potenz (Quadrat)</strong><br>
       $\sqrt{a} = a^{1/2},\quad \sqrt{a^n} = a^{n/2}$
     </div>
     <div>
-      <strong>Wurzel als Potenz (allgemein)</strong><br>
+      <strong data-de="Wurzel als Potenz (allgemein)" data-en="Root as a power (general)">Wurzel als Potenz (allgemein)</strong><br>
       $\sqrt[k]{a} = a^{1/k},\quad \sqrt[k]{a^n} = a^{n/k}$
     </div>
     <div>
-      <strong>Negative Basis / Vorzeichen</strong><br>
-      $(-a)^{2} = a^{2},\quad (-a)^{3} = -a^{3},\quad -a^{2} \ne (-a)^{2}$
+      <strong data-de="Negative Basis / Vorzeichen" data-en="Negative base / sign">Negative Basis / Vorzeichen</strong><br>
+      <!-- zweizeilig, sonst ist die Formel breiter als die Karte -->
+      $(-a)^{2} = a^{2},\quad (-a)^{3} = -a^{3}$<br>
+      $-a^{2} \ne (-a)^{2}$
     </div>
     <div>
-      <strong>1. Binomische Formel</strong><br>
+      <strong data-de="1. Binomische Formel" data-en="1st binomial formula">1. Binomische Formel</strong><br>
       $(a+b)^2 = a^2 + 2ab + b^2$
     </div>
     <div>
-      <strong>2. Binomische Formel</strong><br>
+      <strong data-de="2. Binomische Formel" data-en="2nd binomial formula">2. Binomische Formel</strong><br>
       $(a-b)^2 = a^2 - 2ab + b^2$
     </div>
     <div>
-      <strong>3. Binomische Formel</strong><br>
+      <strong data-de="3. Binomische Formel" data-en="3rd binomial formula">3. Binomische Formel</strong><br>
       $(a+b)(a-b) = a^2 - b^2$
     </div>
   </div>
 </details>
 
-<p id="counter">Richtig: 0 / 0</p>
-
-<div class="btn-row" style="margin-top:10px;margin-bottom:6px;">
-  <button id="nextBtn">Neue Aufgabe</button>
+<!-- ═══ Schalter über der Aufgabe ═══════════════════════════ -->
+<div id="topControls">
+  <div class="tc-item tc-diff">
+    <span class="tc-label" data-de="Schwierigkeit" data-en="Difficulty">Schwierigkeit</span>
+    <div class="seg-switch diff-switch" id="segDiff">
+      <input type="radio" name="diff" id="diffEinf" value="einf"><label for="diffEinf" data-de="Einführung" data-en="Introduction">Einführung</label>
+      <input type="radio" name="diff" id="diffLeicht" value="leicht"><label for="diffLeicht" data-de="Leicht" data-en="Easy">Leicht</label>
+      <input type="radio" name="diff" id="diffNormal" value="normal" checked><label for="diffNormal" data-de="Normal" data-en="Normal">Normal</label>
+      <input type="radio" name="diff" id="diffSchwer" value="schwer"><label for="diffSchwer" data-de="Herausfordernd" data-en="Challenging">Herausfordernd</label>
+      <input type="radio" name="diff" id="diffIndiv" value="indiv"><label for="diffIndiv" data-de="Individuell" data-en="Custom" data-de-title="öffnet die Einstellungen" data-en-title="opens the settings" title="öffnet die Einstellungen">Individuell</label>
+      <span class="seg-glider"></span>
+    </div>
+  </div>
 </div>
 
-<div id="taskWrap">
+<div id="genRow">
+  <button id="nextBtn" type="button" data-de='<span class="auto-kreis">&#x27F3;</span>&nbsp;Neue Aufgabe generieren' data-en='<span class="auto-kreis">&#x27F3;</span>&nbsp;Generate a new task'><span class="auto-kreis">&#x27F3;</span>&nbsp;Neue Aufgabe generieren</button>
+  <span class="punkte rechts"><button id="btnPunkteReset" type="button" title="Punktzahl zurücksetzen" data-de-title="Punktzahl zurücksetzen" data-en-title="Reset the score">↺</button><span id="counter">Richtig: 0 / 0</span></span>
+</div>
+
+<div class="task" id="taskWrap">
   <div id="taskCard">
     <div class="scale-wrapper">
       <div id="taskText" class="scale-el"></div>
@@ -402,17 +435,19 @@
   </div>
 </div>
 
-<div id="inputArea">
+<div class="pruef-zeile">
   <input type="text" id="answerInput"
     autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
-    placeholder="Vereinfachten Term eingeben">
-  <button id="checkBtn">Lösung überprüfen</button>
+    placeholder="Vereinfachten Term eingeben"
+    data-de-placeholder="Vereinfachten Term eingeben" data-en-placeholder="Enter the simplified term">
+  <button id="checkBtn" class="pruef-knopf" data-de="✓&nbsp;Prüfen" data-en="✓&nbsp;Check">✓&nbsp;Prüfen</button>
 </div>
 
 <div class="btn-row">
-  <button id="hintBtn">💡 Ansatz</button>
-  <button id="revealBtn">Lösung anzeigen</button>
+  <button id="hintBtn" data-de="💡 Ansatz" data-en="💡 Approach">💡 Ansatz</button>
 </div>
+
+<button id="revealBtn" class="btn-loesung" data-de="Lösung anzeigen" data-en="Show answer">Lösung anzeigen</button>
 
 <div id="feedbackArea">
   <div id="answerHint"></div>
@@ -423,7 +458,7 @@
   <div class="footer-content">
     M.&nbsp;Koch
     <span class="footer-topic">Mathe-Tools</span>
-    <span class="footer-update">Zuletzt aktualisiert:&nbsp;<span id="last-update">...</span></span>
+    <span class="footer-update"><span class="fu-wort" data-de="Zuletzt aktualisiert:" data-en="Last updated:">Zuletzt aktualisiert:</span><span id="last-update">...</span></span>
   </div>
 </footer>
 <script src="last-update.js" defer></script>
@@ -456,27 +491,42 @@ function scheduleScale() {
 }
 function scaleToFit(el) {
   if (!el) return;
-  el.style.transform = 'none';
   const wrapper = el.parentElement;
   if (!wrapper) return;
-  requestAnimationFrame(() => {
-    const available = wrapper.clientWidth
-      - parseFloat(getComputedStyle(wrapper).paddingLeft || 0)
-      - parseFloat(getComputedStyle(wrapper).paddingRight || 0);
-    const natural = el.scrollWidth;
-    if (natural > available && available > 0) {
-      const scale = available / natural;
-      el.style.transform = `scale(${scale})`;
-      wrapper.style.height = (el.scrollHeight * scale) + 'px';
-    } else {
-      wrapper.style.height = '';
+  el.style.transformOrigin = 'top left';
+  el.style.transform = 'none';
+  wrapper.style.height = 'auto';
+  // Zweimal warten: MathJax setzt die Formel erst nach und nach zusammen,
+  // sonst wird zu frueh gemessen und die fertige Formel laeuft ueber den Rand.
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    const ws = getComputedStyle(wrapper);
+    const avail = wrapper.clientWidth - parseFloat(ws.paddingLeft || 0) - parseFloat(ws.paddingRight || 0);
+    const nat = el.scrollWidth;
+    el._skalaBreite = nat;
+    if (nat > avail && avail > 0) {
+      const sc = avail / nat;
+      el.style.transform = `scale(${sc})`;
+      wrapper.style.height = (el.scrollHeight * sc
+        + parseFloat(ws.paddingTop || 0) + parseFloat(ws.paddingBottom || 0)) + 'px';
     }
-  });
+    skalaBeobachte(el);
+  }));
+}
+// Nachmessen, wenn sich der Inhalt spaeter noch aendert (transform aendert die
+// Layoutgroesse nicht, deshalb kann keine Schleife entstehen).
+let _skalaBeobachter = null;
+function skalaBeobachte(el) {
+  if (typeof ResizeObserver !== 'function') return;
+  if (!_skalaBeobachter) _skalaBeobachter = new ResizeObserver(es => es.forEach(e => {
+    if (e.target.scrollWidth !== e.target._skalaBreite) scaleToFit(e.target);
+  }));
+  if (!el._skalaBeobachtet) { el._skalaBeobachtet = true; _skalaBeobachter.observe(el); }
 }
 function scaleAllElements() {
   document.querySelectorAll('.scale-el').forEach(scaleToFit);
 }
 window.addEventListener('resize', scaleAllElements);
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => scaleAllElements()).catch(() => {});
 
 /* ════════════════════════════════════════════════
    Helpers
@@ -687,10 +737,12 @@ function answerFormOk(valRaw, task) {
   if (!hasNegVar) return { ok: true };
   const u = preprocess(valRaw);
   if (form === 'positive' && /\^-/.test(u)) {
-    return { ok: false, msg: 'Der Wert stimmt – gib das Ergebnis aber ohne negative Exponenten (als Bruch) an.' };
+    return { ok: false, msg: () => T('Der Wert stimmt – gib das Ergebnis aber ohne negative Exponenten (als Bruch) an.',
+                                 'The value is right – but give the result without negative exponents (as a fraction).') };
   }
   if (form === 'negexp' && u.includes('/')) {
-    return { ok: false, msg: 'Der Wert stimmt – gib das Ergebnis aber ohne Bruch (mit negativen Exponenten) an.' };
+    return { ok: false, msg: () => T('Der Wert stimmt – gib das Ergebnis aber ohne Bruch (mit negativen Exponenten) an.',
+                                 'The value is right – but give the result without a fraction (using negative exponents).') };
   }
   return { ok: true };
 }
@@ -813,6 +865,44 @@ function maybeNegBase(v, outerExp) {
 /* ════════════════════════════════════════════════
    Task generation
    ════════════════════════════════════════════════ */
+/* ════════════════════════════════════════════════
+   Sprache (theme-language.js; ohne die Datei bleibt alles deutsch)
+   ════════════════════════════════════════════════ */
+function T(de, en) { return (typeof tlText === 'function') ? tlText(de, en) : de; }
+
+/* Textbausteine, die in erzeugte LaTeX-Formeln eingebacken werden.
+   In den Aufgaben stehen Platzhalter (@NEGEXP@ …); erst beim Anzeigen
+   wird die aktuelle Sprache eingesetzt, damit ein Sprachwechsel die
+   laufende Aufgabe nicht verwirft. */
+const TEXTBAUSTEINE = {
+  '@NEGEXP@': () => T('gilt auch für negative Exponenten', 'also holds for negative exponents'),
+  '@MIT@':    () => T('mit', 'with'),
+};
+function bausteine(txt) {
+  if (!txt) return txt;
+  return txt.replace(/@[A-Z]+@/g, k => (TEXTBAUSTEINE[k] ? TEXTBAUSTEINE[k]() : k));
+}
+
+const LAW_LABELS_EN = {
+  product:       'Product rule (aⁿ·aᵐ = aⁿ⁺ᵐ)',
+  quotient:      'Quotient rule (aⁿ:aᵐ = aⁿ⁻ᵐ)',
+  power:         'Power rule ((aⁿ)ᵐ = aⁿ·ᵐ)',
+  productPower:  'Product power rule ((ab)ⁿ = aⁿbⁿ)',
+  quotientPower: 'Quotient power rule ((a/b)ⁿ = aⁿ/bⁿ)',
+  negPow:        'Negative exponents (a⁻ⁿ = 1/aⁿ)',
+  sqrt:          'Roots',
+  binom1:        '1st binomial formula  (a+b)² = a²+2ab+b²',
+  binom2:        '2nd binomial formula  (a−b)² = a²−2ab+b²',
+  binom3:        '3rd binomial formula  (a+b)(a−b) = a²−b²',
+  multi:         'Several laws combined',
+};
+
+/* Zusatzaufgabe unter der Aufgabe (deutscher Text ist der Schluessel) */
+const SUBLABELS_EN = {
+  'Ohne negativen Exponenten schreiben': 'Write without a negative exponent',
+  'Ohne Bruch schreiben':                'Write without a fraction',
+};
+
 const LAW_LABELS = {
   product:       'Produktregel (aⁿ·aᵐ = aⁿ⁺ᵐ)',
   quotient:      'Quotientenregel (aⁿ:aᵐ = aⁿ⁻ᵐ)',
@@ -831,6 +921,11 @@ const PLACEHOLDERS = {
   mono: 'z.B. a^7 + 2^3/b^3 + sqrt(3)',
   frac: 'z.B. a^7 + 2^3/b^3 + sqrt(3)',
   poly: 'z.B. a^7 + 2^3/b^3 + sqrt(3)',
+};
+const PLACEHOLDERS_EN = {
+  mono: 'e.g. a^7 + 2^3/b^3 + sqrt(3)',
+  frac: 'e.g. a^7 + 2^3/b^3 + sqrt(3)',
+  poly: 'e.g. a^7 + 2^3/b^3 + sqrt(3)',
 };
 
 /* n Kopien von base ausgeschrieben (n ≤ 6), sonst mit …; Anzahl als Unterklammer */
@@ -865,7 +960,7 @@ function generateSingleTask(law, vars) {
         const resExp = n + negM;
         const sol = resExp === 0 ? '1' : term(v, resExp);
         return { latex: `${v}^{${n}} \\cdot ${v}^{${negM}}`, solution: sol, solType: 'mono', law,
-                 hint: `a^{n} \\cdot a^{m} = a^{n+m}\\ \\text{gilt auch für negative Exponenten}` };
+                 hint: `a^{n} \\cdot a^{m} = a^{n+m}\\ \\text{@NEGEXP@}` };
       }
       // Negatives Vorzeichen: -v^n · v^m  bzw.  (-v^n)·(-v^m)
       if (isNegSign() && Math.random() < 0.4) {
@@ -956,7 +1051,7 @@ function generateSingleTask(law, vars) {
           latex:    `\\left(${v}^{${nn}}\\right)^{${mneg}}`,
           solution: `${v}^${nn * mneg}`,
           solType: 'mono', law,
-          hint: `(a^{n})^{m} = a^{n \\cdot m}\\ \\text{gilt auch für negative Exponenten}`,
+          hint: `(a^{n})^{m} = a^{n \\cdot m}\\ \\text{@NEGEXP@}`,
         };
       }
       const { baseLatex, negSign } = maybeNegBase(v, nn * mm);
@@ -1054,7 +1149,7 @@ function generateSingleTask(law, vars) {
           const resExp = b2 - nn;
           return { latex: `${v}^{${-nn}} \\cdot ${v}^{${b2}}`,
                    solution: resExp === 0 ? '1' : term(v, resExp), solType: 'mono', law,
-                   hint: `a^{n} \\cdot a^{m} = a^{n+m}\\ \\text{gilt auch für negative Exponenten}` };
+                   hint: `a^{n} \\cdot a^{m} = a^{n+m}\\ \\text{@NEGEXP@}` };
         }
         case 'pow': {
           const mm = randomInt(2, 4);
@@ -1064,7 +1159,7 @@ function generateSingleTask(law, vars) {
                      ? `\\left(${v}^{${-nn2}}\\right)^{${mm}}`
                      : `\\left(${v}^{${nn2}}\\right)^{${-mm}}`,
                    solution: `${v}^${-nn2 * mm}`, solType: 'mono', law,
-                   hint: `(a^{n})^{m} = a^{n \\cdot m}\\ \\text{gilt auch für negative Exponenten}` };
+                   hint: `(a^{n})^{m} = a^{n \\cdot m}\\ \\text{@NEGEXP@}` };
         }
         case 'denom': {
           const a2 = isHardMode() ? randomInt(8, 40) : randomInt(2, 6);
@@ -1089,7 +1184,7 @@ function generateSingleTask(law, vars) {
       const formula = law === 'binom1' ? '(a+b)^{2} = a^{2}+2ab+b^{2}'
                     : law === 'binom2' ? '(a-b)^{2} = a^{2}-2ab+b^{2}'
                     : '(a+b)(a-b) = a^{2}-b^{2}';
-      const mkHint = (A, B) => `${formula} \\quad\\text{mit}\\ a = ${A},\\ b = ${B}`;
+      const mkHint = (A, B) => `${formula} \\quad\\text{@MIT@}\\ a = ${A},\\ b = ${B}`;
 
       // Zahl als zweiter Summand
       if (useNum) {
@@ -1637,12 +1732,14 @@ function generateComboTask(comboProb) {
 let current = null, scoreOk = 0, scoreTotal = 0, answered = false;
 
 function updateCounter() {
-  document.getElementById('counter').textContent = `Richtig: ${scoreOk} / ${scoreTotal}`;
+  document.getElementById('counter').textContent =
+    T('Richtig: ', 'Correct: ') + scoreOk + ' / ' + scoreTotal;
 }
 
 function generateTask() {
   const laws = getSelectedLaws();
-  if (!laws.length) { showToast('Bitte mindestens ein Potenzgesetz auswählen.'); return; }
+  if (!laws.length) { showToast(T('Bitte mindestens ein Potenzgesetz auswählen.',
+                                'Please select at least one law of exponents.')); return; }
 
   const comboProb = getComboProb();
   const comboLaws = laws.filter(l => ['product','quotient','power','productPower','quotientPower'].includes(l));
@@ -1667,13 +1764,11 @@ function generateTask() {
 
   const taskEl = document.getElementById('taskText');
   taskEl.innerHTML = `\\(${task.latex} = {}\\)`;
-  document.getElementById('taskSub').textContent = task.subLabel || LAW_LABELS[task.law] || '';
+  schreibeAufgabenLabels(task);
 
   const input = document.getElementById('answerInput');
   input.value = ''; input.className = '';
-  input.placeholder = PLACEHOLDERS[task.solType] || 'Term eingeben';
-  const hint = document.getElementById('answerHint');
-  hint.className = ''; hint.innerHTML = '';
+  leereHinweis();
   const ansatz = document.getElementById('ansatzBox');
   ansatz.className = ''; ansatz.innerHTML = '';
 
@@ -1682,6 +1777,18 @@ function generateTask() {
     MathJax.typesetPromise([taskEl]).then(() => scheduleScale());
   }
   input.focus();
+}
+
+/* Beschriftung unter der Aufgabe + Eingabe-Platzhalter in aktueller Sprache */
+function schreibeAufgabenLabels(task) {
+  if (!task) return;
+  const sub = task.subLabel
+    ? T(task.subLabel, SUBLABELS_EN[task.subLabel] || task.subLabel)
+    : T(LAW_LABELS[task.law] || '', LAW_LABELS_EN[task.law] || LAW_LABELS[task.law] || '');
+  document.getElementById('taskSub').textContent = sub;
+  const input = document.getElementById('answerInput');
+  input.placeholder = T(PLACEHOLDERS[task.solType] || 'Term eingeben',
+                        PLACEHOLDERS_EN[task.solType] || 'Enter the term');
 }
 
 function checkAnswer() {
@@ -1699,49 +1806,115 @@ function checkAnswer() {
       // Richtig umgeformt, aber falsche Darstellungsform:
       // Hinweis geben, Versuch noch nicht werten
       input.className = 'almost';
-      hint.innerHTML  = form.msg;
-      hint.className  = 'visible';
+      setzeHinweis(form.msg);
       return;
     }
   }
 
   const correct = valueOk;
   if (!answered) { scoreTotal++; if (correct) scoreOk++; updateCounter(); answered = true; }
+  antwortGemeldet(correct);
 
   if (correct) {
     input.className = 'correct'; hint.className = '';
   } else {
     input.className = 'wrong';
-    hint.innerHTML  = `Richtige Antwort: \\(${solutionDisplayLatex(current)}\\)`;
-    hint.className  = 'visible';
-    typesetMath(hint);
+    setzeHinweis(() => T('Richtige Antwort: ', 'Correct answer: ')
+                       + `\\(${solutionDisplayLatex(current)}\\)`);
   }
+}
+
+/* Hinweiszeile setzen und den Textbauer merken, damit ein Sprachwechsel
+   die angezeigte Meldung neu schreiben kann. */
+let hinweisBauer = null;
+function setzeHinweis(bauer) {
+  const hint = document.getElementById('answerHint');
+  hinweisBauer = bauer;
+  hint.innerHTML = bauer();
+  hint.className = 'visible';
+  typesetMath(hint);
+}
+function leereHinweis() {
+  hinweisBauer = null;
+  const hint = document.getElementById('answerHint');
+  hint.className = ''; hint.innerHTML = '';
 }
 
 function revealAnswer() {
   if (!current) return;
-  const hint = document.getElementById('answerHint');
-  hint.innerHTML = `Lösung: \\(${solutionDisplayLatex(current)}\\)`;
-  hint.className = 'visible';
   document.getElementById('answerInput').className = '';
-  typesetMath(hint);
+  setzeHinweis(() => T('Lösung: ', 'Answer: ') + `\\(${solutionDisplayLatex(current)}\\)`);
 }
 
 function toggleAnsatz() {
   if (!current) return;
   const box = document.getElementById('ansatzBox');
   if (box.className === 'visible') { box.className = ''; return; }
+  schreibeAnsatz();
+}
+
+/* Ansatzkasten in aktueller Sprache fuellen (nur, wenn er sichtbar ist) */
+function schreibeAnsatz() {
+  const box = document.getElementById('ansatzBox');
+  if (!current) return;
   box.innerHTML = current.hint
-    ? `Ansatz: \\(${current.hint}\\)`
-    : 'Für diese Aufgabe gibt es keinen Ansatz-Tipp.';
+    ? T('Ansatz: ', 'Approach: ') + `\\(${bausteine(current.hint)}\\)`
+    : T('Für diese Aufgabe gibt es keinen Ansatz-Tipp.', 'There is no hint for this task.');
   box.className = 'visible';
   typesetMath(box);
 }
 
 /* ════════════════════════════════════════════════
+   Sprache / Theme wechseln – ohne neue Aufgabe
+   ════════════════════════════════════════════════ */
+function neuZeichnen() {
+  updateCounter();
+  if (current) schreibeAufgabenLabels(current);
+  if (hinweisBauer) {
+    const hint = document.getElementById('answerHint');
+    hint.innerHTML = hinweisBauer();
+    typesetMath(hint);
+  }
+  const box = document.getElementById('ansatzBox');
+  if (box && box.className === 'visible') schreibeAnsatz();
+  scheduleScale();
+}
+window.addEventListener('tl-sprache', neuZeichnen);
+window.addEventListener('tl-theme',   neuZeichnen);
+
+/* Aktuelle Aufgabe fuer den Fehler-melden-Knopf */
+window.fehlerKontext = function () {
+  if (!current) return '';
+  const teile = [current.latex + ' = ' + current.solution];
+  const sub = document.getElementById('taskSub');
+  if (sub && sub.textContent) teile.push(sub.textContent);
+  const ein = document.getElementById('answerInput');
+  if (ein && ein.value.trim()) teile.push(T('Eingabe: ', 'input: ') + ein.value.trim());
+  return teile.join(' \u00b7 ');
+};
+
+/* ════════════════════════════════════════════════
    Event listeners
    ════════════════════════════════════════════════ */
 document.getElementById('checkBtn') .addEventListener('click', checkAnswer);
+
+/* ── Automatische Aufgabe ────────────────────────────────────────────────
+   Langes Drücken auf „Neue Aufgabe generieren" schaltet sie um. Ist sie an,
+   leuchtet das Bild nach jeder Antwort kurz grün bzw. rot auf, und nach einer
+   richtigen Antwort kommt die nächste Aufgabe von selbst. Zu Beginn ist sie
+   aus - wer sie mag, schaltet sie ein. */
+function antwortGemeldet(richtig){
+  if (!(window.abAutoAn && abAutoAn())) return;
+  if (window.abBlitz) abBlitz(richtig);
+  if (richtig && window.abAutoBald) abAutoBald();
+}
+function autoBauen(){
+  if (!window.abAutoStart) return;
+  abAutoStart({ an:false, naechste:function(){ generateTask(); } });
+}
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', autoBauen);
+else autoBauen();
+
 document.getElementById('nextBtn')  .addEventListener('click', generateTask);
 document.getElementById('revealBtn').addEventListener('click', revealAnswer);
 document.getElementById('hintBtn')  .addEventListener('click', toggleAnsatz);
@@ -1770,9 +1943,147 @@ document.addEventListener('keydown', e => {
    Init
    ════════════════════════════════════════════════ */
 document.addEventListener('DOMContentLoaded', () => {
+  urlLesen();
   updateCounter();
   generateTask();
 });
+
+/* ── Punktestand zurücksetzen ───────────────────────────────────────────── */
+function punkteZuruecksetzen(){
+  scoreOk = 0; scoreTotal = 0; updateCounter();
+}
+document.addEventListener('DOMContentLoaded', () => {
+  const k = document.getElementById('btnPunkteReset');
+  if (k) k.addEventListener('click', punkteZuruecksetzen);
+});
+
+
+/* ════════════════════════════════════════════════
+   Schwierigkeitsstufen und Adresszeile
+   ════════════════════════════════════════════════
+   Die Stufe setzt, welche Gesetze drankommen und wie wild die Terme werden.
+   Jede einzelne Einstellung steht weiterhin im Einstellungsbereich; wer dort
+   etwas von Hand ändert, landet auf „Individuell".                        */
+const GRUND = ['product','quotient','power','productPower','quotientPower'];
+const STUFEN = {
+  einf:   { laws:['product','quotient','power'], zahlen:false, wurzeln:false,
+            expMode:'simple', negExp:false, negBase:false, negSign:false, combo:0,  vars:1 },
+  leicht: { laws:GRUND, zahlen:false, wurzeln:false,
+            expMode:'simple', negExp:false, negBase:false, negSign:false, combo:20, vars:2 },
+  normal: { laws:GRUND, zahlen:true,  wurzeln:false,
+            expMode:'simple', negExp:false, negBase:false, negSign:false, combo:50, vars:2 },
+  schwer: { laws:GRUND.concat(['negPow','sqrt','binom1','binom2','binom3']),
+            zahlen:true, wurzeln:true,
+            expMode:'hard', negExp:true, negBase:true, negSign:true, combo:80, vars:3 }
+};
+
+function stufe(){
+  const e = document.querySelector('input[name="diff"]:checked');
+  return e ? e.value : 'normal';
+}
+function stufeSetzen(name){
+  const e = document.querySelector('input[name="diff"][value="' + name + '"]');
+  if (e && !e.checked){ e.checked = true; if (window.abGliderAlle) abGliderAlle(); }
+}
+function aufIndividuell(){ if (stufe() !== 'indiv') stufeSetzen('indiv'); }
+
+function hakenSetzen(id, an){ const e = document.getElementById(id); if (e) e.checked = !!an; }
+function punktSetzen(name, wert){
+  const e = document.querySelector('input[name="' + name + '"][value="' + wert + '"]');
+  if (e) e.checked = true;
+}
+function schieberSetzen(id, wert, labelId, zusatz){
+  const e = document.getElementById(id);
+  if (!e) return;
+  e.value = wert;
+  const l = labelId && document.getElementById(labelId);
+  if (l) l.textContent = wert + (zusatz || '');
+}
+function stufeAnwenden(name){
+  const v = STUFEN[name];
+  if (!v) return;
+  document.querySelectorAll('.law-cb').forEach(cb => { cb.checked = v.laws.indexOf(cb.value) >= 0; });
+  hakenSetzen('withNumbers', v.zahlen);
+  hakenSetzen('withRoots',   v.wurzeln);
+  punktSetzen('expMode',     v.expMode);
+  hakenSetzen('negExp',      v.negExp);
+  hakenSetzen('negBase',     v.negBase);
+  hakenSetzen('negSign',     v.negSign);
+  schieberSetzen('comboSlider', v.combo, 'comboLabel', ' %');
+  schieberSetzen('varCount',    v.vars,  'varCountLabel', '');
+}
+
+/* Ein Blick auf alle Einstellungen - so wie auf den anderen Aufgabenseiten. */
+function einstellungen(){
+  const haken = id => !!(document.getElementById(id) || {}).checked;
+  return {
+    laws:    getSelectedLaws().join(','),
+    zahlen:  isWithNumbers(),
+    wurzeln: isWithRoots(),
+    divStyle: getDivStyle(),
+    expMode: isHardMode() ? 'hard' : 'simple',
+    negExp:  isNegExp(),
+    negExpDenom: haken('negExpDenom'),
+    negBase: isNegBase(),
+    negSign: isNegSign(),
+    solForm: getSolForm(),
+    combo:   getComboProb(),
+    chain:   isComboChain(),
+    nested:  isComboNested(),
+    vars:    getVarCount(),
+    varStyle: (document.querySelector('input[name="varStyle"]:checked') || {}).value || 'abc',
+    diff:    stufe()
+  };
+}
+
+function urlSchreiben(){
+  const e = einstellungen(), p = new URLSearchParams();
+  Object.keys(e).forEach(k => p.set(k, typeof e[k] === 'boolean' ? (e[k] ? '1' : '0') : String(e[k])));
+  history.replaceState(null, '', location.pathname + '?' + p.toString());
+}
+function urlLesen(){
+  const p = new URLSearchParams(location.search);
+  if (![...p.keys()].length) return;
+  const ja = k => p.get(k) === '1';
+  if (p.has('laws')){
+    const l = p.get('laws').split(',').filter(Boolean);
+    document.querySelectorAll('.law-cb').forEach(cb => { cb.checked = l.indexOf(cb.value) >= 0; });
+  }
+  if (p.has('zahlen'))      hakenSetzen('withNumbers', ja('zahlen'));
+  if (p.has('wurzeln'))     hakenSetzen('withRoots',   ja('wurzeln'));
+  if (p.has('divStyle'))    punktSetzen('divStyle', p.get('divStyle'));
+  if (p.has('expMode'))     punktSetzen('expMode',  p.get('expMode'));
+  if (p.has('negExp'))      hakenSetzen('negExp',      ja('negExp'));
+  if (p.has('negExpDenom')) hakenSetzen('negExpDenom', ja('negExpDenom'));
+  if (p.has('negBase'))     hakenSetzen('negBase',     ja('negBase'));
+  if (p.has('negSign'))     hakenSetzen('negSign',     ja('negSign'));
+  if (p.has('solForm'))     punktSetzen('solForm', p.get('solForm'));
+  if (p.has('combo'))       schieberSetzen('comboSlider', p.get('combo'), 'comboLabel', ' %');
+  if (p.has('chain'))       hakenSetzen('comboChain',  ja('chain'));
+  if (p.has('nested'))      hakenSetzen('comboNested', ja('nested'));
+  if (p.has('vars'))        schieberSetzen('varCount', p.get('vars'), 'varCountLabel', '');
+  if (p.has('varStyle'))    punktSetzen('varStyle', p.get('varStyle'));
+  if (p.has('diff'))        stufeSetzen(p.get('diff'));
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  /* von Hand geändert heißt „Individuell" */
+  const form = document.getElementById('settingsForm');
+  if (form){
+    const merke = () => { aufIndividuell(); urlSchreiben(); };
+    form.addEventListener('change', merke);
+    form.addEventListener('input',  merke);
+  }
+  document.querySelectorAll('input[name="diff"]').forEach(e =>
+    e.addEventListener('change', () => {
+      if (!e.checked) return;
+      if (e.value !== 'indiv') stufeAnwenden(e.value);
+      else if (window.abEinstellungenOeffnen) abEinstellungenOeffnen('#settingsBox');
+      urlSchreiben();
+      generateTask();
+    }));
+});
+
 </script>
 </body>
 </html>

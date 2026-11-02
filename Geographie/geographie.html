@@ -3,17 +3,39 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Geographie-Trainer</title>
-<link rel="stylesheet" href="styles.css">
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-5K8WYYXDL2"></script>
+<link rel="shortcut icon" type="image/x-icon" href="../aleph_zero_logo.ico">
+<script>
+/* Fruehere Fassungen dieser Seite speicherten das Farbschema unter 'geoTheme'.
+   Dieser Wert wird hier einmalig auf den gemeinsamen Schluessel uebertragen -
+   und zwar VOR dem Laden von theme-language.js, damit der alte Wunsch gewinnt. */
+try{
+  var t=localStorage.getItem('matheToolsTheme');
+  if(!t){
+    var alt=localStorage.getItem('geoTheme');
+    if(alt==='d'||alt==='l'){ t=(alt==='d')?'dark':'light'; localStorage.setItem('matheToolsTheme',t); }
+  }
+  if(t==='dark'||(!t&&window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches))
+    document.documentElement.classList.add('dark');
+}catch(e){}
+</script>
+<title data-de="Geographie-Trainer" data-en="Geography Trainer">Geographie-Trainer</title>
+<!-- Diese Seite bringt ihre Hell/Dunkel-Knoepfe selbst mit; die gemeinsame
+     Datei uebernimmt nur die Logik und den Speicher. -->
+<script>var THEME_LANG_NO_BUTTONS = true;</script>
+<script src="../theme-language.js" defer></script>
+<!-- Die frueher hier eingebundene styles.css gibt es in diesem Ordner nicht (404);
+     die Seite bringt ihr Aussehen selbst mit. Gemeinsam genutzt wird nur die
+     kleine gross.css (Vergroesserung auf 4K-Schirmen, Platz fuer die Scrollleiste,
+     Fusszeile auf schmalen Schirmen). Fehlt sie, sieht alles aus wie zuvor. -->
+<link rel="stylesheet" href="../gross.css">
+    <!-- Besuchszaehlung (Google Analytics). Geladen wird sie erst, wenn der
+         Besucher zustimmt - siehe einwilligung.js. -->
 <script>
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-
-    gtag('config', 'G-5K8WYYXDL2');
+    window.TK_GA_ID = 'G-5K8WYYXDL2';   /* Google Analytics laedt erst nach Einwilligung, siehe einwilligung.js */
 </script>
+<script src="../einwilligung.js" defer></script>
 <style>
   /* ---------- Farbschema (Light / Dark) ---------- */
   :root {
@@ -181,6 +203,11 @@
   }
   .btn.gross { font-size: 1.15em; padding: 12px 28px; }
 
+  .kopf-knoepfe { display: flex; gap: 8px; flex: 0 0 auto; }
+  .theme-knopf.sprach-knopf { font-size: 0.8em; font-weight: 600; letter-spacing: 0.5px; }
+  /* Der Melde-Knopf tritt bewusst leiser auf als die beiden Schalter */
+  .theme-knopf.melde-knopf { font-size: 1.05em; opacity: 0.72; }
+  .theme-knopf.melde-knopf:hover { opacity: 1; }
   .theme-knopf {
     background: var(--karte-hg); color: var(--text); border: 1px solid var(--rand);
     border-radius: 50%; width: 42px; height: 42px; font-size: 1.25em; cursor: pointer;
@@ -297,6 +324,9 @@
     #hud { padding: 3px 0 2px 0; }
     #hudOrt { font-size: 1.05em; }
     #hud .theme-knopf { width: 32px; height: 32px; font-size: 1em; }
+    #hud .theme-knopf.sprach-knopf { font-size: 0.7em; }
+    #hud .theme-knopf.melde-knopf { font-size: 0.9em; }
+    .kopf-knoepfe { gap: 6px; }
     #feedback { font-size: 0.95em; height: 2.4em; padding: 1px 0; }
     #aktionsLeiste { padding-bottom: 3px; }
     #aktionsLeiste .btn { padding: 6px 14px; }
@@ -306,111 +336,128 @@
 </head>
 <body>
 <div class="kopf">
-  <h1>🌍 Geographie-Trainer</h1>
-  <button class="theme-knopf" id="btnTheme" title="Hell/Dunkel umschalten">🌙</button>
+  <h1 data-de="🌍 Geographie-Trainer" data-en="🌍 Geography Trainer">🌍 Geographie-Trainer</h1>
+  <div class="kopf-knoepfe">
+    <button class="theme-knopf" id="btnTheme" title="Hell/Dunkel umschalten"
+            data-de-title="Hell/Dunkel umschalten" data-en-title="Switch light/dark">🌙</button>
+    <button class="theme-knopf sprach-knopf" id="btnSprache" title="Sprache wechseln"
+            data-de-title="Sprache wechseln" data-en-title="Switch language">EN</button>
+    <button class="theme-knopf melde-knopf" id="btnMelden" title="Fehler melden"
+            data-de-title="Fehler melden" data-en-title="Report a problem">⚠</button>
+  </div>
 </div>
-<p class="untertitel">Wo liegt der gesuchte Ort? Klicke auf die Karte!</p>
+<p class="untertitel" data-de="Wo liegt der gesuchte Ort? Klicke auf die Karte!"
+   data-en="Where is the place we’re looking for? Click the map!">Wo liegt der gesuchte Ort? Klicke auf die Karte!</p>
 
 <main>
   <!-- ===================== Startbildschirm ===================== -->
   <section id="startScreen">
     <details id="regelnDetails" open>
-      <summary>Spielregeln</summary>
+      <summary data-de="Spielregeln" data-en="How to play">Spielregeln</summary>
       <div style="padding: 6px 0;">
-        <p>Errate, wo der gesuchte Ort liegt! Pro Spiel werden <b>10 zufällige Orte</b> aus deiner
+        <p data-de="Errate, wo der gesuchte Ort liegt! Pro Spiel werden &lt;b&gt;10 zufällige Orte&lt;/b&gt; aus deiner Auswahl gefragt – je genauer du triffst, desto mehr Punkte sammelst du."
+           data-en="Guess where the place is! Each game asks for &lt;b&gt;10 random places&lt;/b&gt; from your selection – the closer you get, the more points you score.">Errate, wo der gesuchte Ort liegt! Pro Spiel werden <b>10 zufällige Orte</b> aus deiner
         Auswahl gefragt – je genauer du triffst, desto mehr Punkte sammelst du.</p>
-        <p>Wähle unten die <b>Karte</b>, die <b>Orte-Kategorien</b> (ohne Auswahl wird mit allen Orten
+        <p data-de="Wähle unten die &lt;b&gt;Karte&lt;/b&gt;, die &lt;b&gt;Orte-Kategorien&lt;/b&gt; (ohne Auswahl wird mit allen Orten gespielt; langes Drücken auf eine Kategorie wählt nur diese aus) und den &lt;b&gt;Spielmodus&lt;/b&gt; – die genauen Regeln des gewählten Modus stehen direkt dort. Die Karte lässt sich mit Mausrad, Zoom-Tasten oder Zwei-Finger-Geste zoomen und verschieben."
+           data-en="Below, pick the &lt;b&gt;map&lt;/b&gt;, the &lt;b&gt;categories of places&lt;/b&gt; (with nothing selected you play with all of them; a long press on a category selects only that one) and the &lt;b&gt;game mode&lt;/b&gt; – the exact rules for each mode are shown right there. You can zoom and pan the map with the scroll wheel, the zoom buttons or a two-finger gesture.">Wähle unten die <b>Karte</b>, die <b>Orte-Kategorien</b> (ohne Auswahl wird mit allen Orten
         gespielt; langes Drücken auf eine Kategorie wählt nur diese aus) und den <b>Spielmodus</b> –
         die genauen Regeln des gewählten Modus stehen direkt dort.
         Die Karte lässt sich mit Mausrad, Zoom-Tasten oder Zwei-Finger-Geste zoomen und verschieben.</p>
         <details class="quellen-details">
-          <summary>📚 Weiterführendes &amp; Quellen</summary>
+          <summary data-de="📚 Weiterführendes &amp; Quellen" data-en="📚 Further reading &amp; sources">📚 Weiterführendes &amp; Quellen</summary>
           <div class="quellen-body">
-            <h4>Quellen</h4>
-            Die Kartengeometrien stammen aus freien Datenquellen:
+            <h4 data-de="Quellen" data-en="Sources">Quellen</h4>
+            <span data-de="Die Kartengeometrien stammen aus freien Datenquellen:" data-en="The map geometries come from open data sources:">Die Kartengeometrien stammen aus freien Datenquellen:</span>
             <ul>
-              <li><a href="https://github.com/isellsoap/deutschlandGeoJSON" target="_blank" rel="noopener">deutschlandGeoJSON</a> – Deutschland und Bundesländer (© GeoBasis-DE / BKG, dl-de/by-2-0)</li>
-              <li><a href="https://www.naturalearthdata.com/" target="_blank" rel="noopener">Natural Earth</a> – Europa- und Weltkarte sowie Hauptstädte (gemeinfrei)</li>
+              <li><a href="https://github.com/isellsoap/deutschlandGeoJSON" target="_blank" rel="noopener">deutschlandGeoJSON</a><span data-de=" – Deutschland und Bundesländer (© GeoBasis-DE / BKG, dl-de/by-2-0)" data-en=" – Germany and its federal states (© GeoBasis-DE / BKG, dl-de/by-2-0)"> – Deutschland und Bundesländer (© GeoBasis-DE / BKG, dl-de/by-2-0)</span></li>
+              <li><a href="https://www.naturalearthdata.com/" target="_blank" rel="noopener">Natural Earth</a><span data-de=" – Europa- und Weltkarte sowie Hauptstädte (gemeinfrei)" data-en=" – maps of Europe and the world plus capital cities (public domain)"> – Europa- und Weltkarte sowie Hauptstädte (gemeinfrei)</span></li>
             </ul>
-            Die Ortskoordinaten wurden sorgfältig zusammengestellt – trotzdem können Fehler oder
-            Ungenauigkeiten auftreten. Zögere nicht, mir solche Fälle zu melden!
-            <h4>Empfehlenswerte Seiten zum Üben</h4>
+            <span data-de="Die Ortskoordinaten wurden sorgfältig zusammengestellt – trotzdem können Fehler oder Ungenauigkeiten auftreten. Zögere nicht, mir solche Fälle zu melden!"
+                  data-en="The coordinates were put together with care – even so, errors and inaccuracies can slip in. Please don’t hesitate to report any you find!">Die Ortskoordinaten wurden sorgfältig zusammengestellt – trotzdem können Fehler oder
+            Ungenauigkeiten auftreten. Zögere nicht, mir solche Fälle zu melden!</span>
+            <h4 data-de="Empfehlenswerte Seiten zum Üben" data-en="Other sites worth practising on">Empfehlenswerte Seiten zum Üben</h4>
             <ul>
-              <li><a href="https://www.geoguessr.com/de/quiz/seterra" target="_blank" rel="noopener">Seterra</a> – Hier kann man Länder anklicken, Fahnen erraten und Hauptstädte benennen</li>
-              <li><a href="https://www.jetpunk.com/user-quizzes/176412/weltkarte-ohne-20-zufallige-lander" target="_blank" rel="noopener">Jetpunk</a> – Weltkarte ohne 20 zufällige Länder, die erraten werden sollen</li>
-              <li><a href="https://www.geoguessr.com/de" target="_blank" rel="noopener">GeoGuessr</a> – Orte anhand von Panoramen erraten</li>
+              <li><a href="https://www.geoguessr.com/de/quiz/seterra" target="_blank" rel="noopener">Seterra</a><span data-de=" – Länder anklicken, Fahnen erraten und Hauptstädte benennen" data-en=" – click countries, guess flags and name capital cities"> – Länder anklicken, Fahnen erraten und Hauptstädte benennen</span></li>
+              <li><a href="https://www.jetpunk.com/user-quizzes/176412/weltkarte-ohne-20-zufallige-lander" target="_blank" rel="noopener">Jetpunk</a><span data-de=" – Weltkarte ohne 20 zufällige Länder, die erraten werden sollen" data-en=" – a world map missing 20 random countries for you to name"> – Weltkarte ohne 20 zufällige Länder, die erraten werden sollen</span></li>
+              <li><a href="https://www.geoguessr.com/de" target="_blank" rel="noopener">GeoGuessr</a><span data-de=" – Orte anhand von Panoramen erraten" data-en=" – guess places from street-level panoramas"> – Orte anhand von Panoramen erraten</span></li>
             </ul>
-            <button class="quellen-close-btn" onclick="this.closest('details').open=false">▲ einklappen</button>
+            <button class="quellen-close-btn" onclick="this.closest('details').open=false" data-de="▲ einklappen" data-en="▲ collapse">▲ einklappen</button>
           </div>
         </details>
       </div>
     </details>
 
     <div class="form-block">
-      <h3>Karte</h3>
+      <h3 data-de="Karte" data-en="Map">Karte</h3>
       <div class="pill-group" id="karteWahl"></div>
       <div class="unterkategorie" id="overlayZeile">
-        <h4>Zusatz-Ebenen <span class="hinweis">– wie oft im Spiel nutzbar?</span></h4>
+        <h4><span data-de="Zusatz-Ebenen" data-en="Extra layers">Zusatz-Ebenen</span> <span class="hinweis" data-de="– wie oft im Spiel nutzbar?" data-en="– how often can you use them?">– wie oft im Spiel nutzbar?</span></h4>
         <div class="overlay-tabelle">
           <span class="overlay-name" id="overlayGrenzenName">Grenzen</span>
           <div class="pill-group kompakt" data-overlay="grenzen" id="overlayGrenzenPills"></div>
-          <span class="overlay-name">Mögliche Orte markieren</span>
+          <span class="overlay-name" data-de="Mögliche Orte markieren" data-en="Mark possible places">Mögliche Orte markieren</span>
           <div class="pill-group kompakt" data-overlay="orte"></div>
         </div>
-        <p class="hinweis">„Immer“ zeigt die Ebene dauerhaft, „Umschaltbar“ per Knopf beliebig oft,
+        <p class="hinweis" data-de="„Immer“ zeigt die Ebene dauerhaft, „Umschaltbar“ per Knopf beliebig oft, „Joker“ nur einmal pro Spiel, „Aus“ gar nicht."
+           data-en="“Always” keeps the layer on, “Toggle” lets you switch it as often as you like, “Joker” allows it once per game, “Off” not at all.">„Immer“ zeigt die Ebene dauerhaft, „Umschaltbar“ per Knopf beliebig oft,
           „Joker“ nur einmal pro Spiel, „Aus“ gar nicht.</p>
       </div>
     </div>
 
     <div class="form-block">
-      <h3>Orte <span class="hinweis">– womit möchtest du spielen?</span></h3>
+      <h3><span data-de="Orte" data-en="Places">Orte</span> <span class="hinweis" data-de="– womit möchtest du spielen?" data-en="– what would you like to play with?">– womit möchtest du spielen?</span></h3>
       <div class="pill-group kompakt" id="tagWahl"></div>
       <p class="hinweis" id="tagInfo"></p>
       <div class="anzahl-zeile">
-        <label for="anzahlSlider">Anzahl der Orte: <b id="anzahlWert">10</b></label>
+        <label for="anzahlSlider"><span data-de="Anzahl der Orte:" data-en="Number of places:">Anzahl der Orte:</span> <b id="anzahlWert">10</b></label>
         <input type="range" id="anzahlSlider" min="0" max="80" step="1" value="20">
         <div class="slider-skala" id="anzahlSkala"></div>
       </div>
     </div>
 
     <div class="form-block">
-      <h3>Spielmodus</h3>
+      <h3 data-de="Spielmodus" data-en="Game mode">Spielmodus</h3>
       <div class="pill-group">
         <input type="radio" name="modus" id="modusPin" value="pin" checked>
-        <label for="modusPin">📍 Pin (Distanz zählt)</label>
+        <label for="modusPin" data-de="📍 Pin (Distanz zählt)" data-en="📍 Pin (distance counts)">📍 Pin (Distanz zählt)</label>
         <input type="radio" name="modus" id="modusGrid" value="grid">
-        <label for="modusGrid">🔳 Raster (Feld treffen)</label>
+        <label for="modusGrid" data-de="🔳 Raster (Feld treffen)" data-en="🔳 Grid (hit the square)">🔳 Raster (Feld treffen)</label>
       </div>
       <p class="hinweis" id="modusHinweis"></p>
       <div id="gridOptionen" class="unterkategorie versteckt">
         <div class="pill-group kompakt">
           <input type="radio" name="gridArt" id="gridArtIndiv" value="individuell" checked>
-          <label for="gridArtIndiv">Individuelles Raster</label>
+          <label for="gridArtIndiv" data-de="Individuelles Raster" data-en="Choose grid each round">Individuelles Raster</label>
           <input type="radio" name="gridArt" id="gridArtFest" value="fest">
-          <label for="gridArtFest">Festes Raster</label>
+          <label for="gridArtFest" data-de="Festes Raster" data-en="Fixed grid">Festes Raster</label>
         </div>
         <div class="pill-group kompakt gridfein versteckt" id="gridFestWahl"></div>
         <div class="pill-group kompakt" style="margin-top:14px;">
           <input type="checkbox" id="optVerschiebung" checked>
-          <label for="optVerschiebung">Raster-Verschiebung erlauben</label>
+          <label for="optVerschiebung" data-de="Raster-Verschiebung erlauben" data-en="Allow shifting the grid">Raster-Verschiebung erlauben</label>
         </div>
       </div>
     </div>
 
     <div style="text-align:center; margin: 14px 0;">
-      <button class="btn gross" id="btnStart">▶ Spiel starten</button>
+      <button class="btn gross" id="btnStart" data-de="▶ Spiel starten" data-en="▶ Start game">▶ Spiel starten</button>
     </div>
   </section>
 
   <!-- ===================== Spielbildschirm ===================== -->
   <section id="spielScreen">
     <div id="hud">
-      <button id="btnAbbruch" title="Spiel beenden">✖</button>
+      <button id="btnAbbruch" title="Spiel beenden" data-de-title="Spiel beenden" data-en-title="End game">✖</button>
       <span id="hudRunde"></span>
       <span id="hudOrt"></span>
       <div id="hudRechts">
         <span id="hudPunkte"></span>
-        <button class="theme-knopf" id="btnThemeSpiel" title="Hell/Dunkel umschalten">🌙</button>
+        <button class="theme-knopf" id="btnThemeSpiel" title="Hell/Dunkel umschalten"
+                data-de-title="Hell/Dunkel umschalten" data-en-title="Switch light/dark">🌙</button>
+        <button class="theme-knopf sprach-knopf" id="btnSpracheSpiel" title="Sprache wechseln"
+                data-de-title="Sprache wechseln" data-en-title="Switch language">EN</button>
+        <button class="theme-knopf melde-knopf" id="btnMeldenSpiel" title="Fehler melden"
+                data-de-title="Fehler melden" data-en-title="Report a problem">⚠</button>
       </div>
     </div>
     <div id="gridLeiste" class="pill-group kompakt"></div>
@@ -425,34 +472,34 @@
         </g>
       </svg>
       <div id="zoomLeiste">
-        <button id="btnZoomPlus" title="Hineinzoomen">＋</button>
-        <button id="btnZoomMinus" title="Herauszoomen">－</button>
-        <button id="btnZoomReset" title="Ansicht zurücksetzen">⌂</button>
+        <button id="btnZoomPlus" title="Hineinzoomen" data-de-title="Hineinzoomen" data-en-title="Zoom in">＋</button>
+        <button id="btnZoomMinus" title="Herauszoomen" data-de-title="Herauszoomen" data-en-title="Zoom out">－</button>
+        <button id="btnZoomReset" title="Ansicht zurücksetzen" data-de-title="Ansicht zurücksetzen" data-en-title="Reset view">⌂</button>
       </div>
     </div>
     <div id="feedback"></div>
     <div id="aktionsLeiste">
-      <button class="btn sekundaer versteckt" id="btnVersetzen" data-text="½ Raster versetzen">½ Raster versetzen</button>
+      <button class="btn sekundaer versteckt" id="btnVersetzen" data-text="½ Raster versetzen" data-de="½ Raster versetzen" data-en="Shift grid by ½">½ Raster versetzen</button>
       <button class="btn sekundaer versteckt" id="btnOverlayGrenzen"></button>
       <button class="btn sekundaer versteckt" id="btnOverlayOrte"></button>
-      <button class="btn" id="btnBestaetigen" disabled>Bestätigen</button>
+      <button class="btn" id="btnBestaetigen" disabled data-de="Bestätigen" data-en="Confirm">Bestätigen</button>
       <button class="btn versteckt" id="btnWeiter">Weiter ▶</button>
     </div>
   </section>
 
   <!-- ===================== Ergebnisbildschirm ===================== -->
   <section id="ergebnisScreen" class="versteckt">
-    <h2 style="text-align:center;">Ergebnis</h2>
+    <h2 style="text-align:center;" data-de="Ergebnis" data-en="Result">Ergebnis</h2>
     <table id="ergebnisTabelle">
       <thead>
-        <tr><th>#</th><th>Ort</th><th id="thDetail">Distanz</th><th class="rechts">Punkte</th></tr>
+        <tr><th>#</th><th data-de="Ort" data-en="Place">Ort</th><th id="thDetail">Distanz</th><th class="rechts" data-de="Punkte" data-en="Points">Punkte</th></tr>
       </thead>
       <tbody></tbody>
-      <tfoot><tr id="gesamtZeile"><td colspan="3">Gesamt</td><td class="rechts" id="tdGesamt"></td></tr></tfoot>
+      <tfoot><tr id="gesamtZeile"><td colspan="3" data-de="Gesamt" data-en="Total">Gesamt</td><td class="rechts" id="tdGesamt"></td></tr></tfoot>
     </table>
     <div style="text-align:center;">
-      <button class="btn gross" id="btnNochmal">🔁 Nochmal spielen</button>
-      <button class="btn sekundaer gross" id="btnZurueck">⚙ Einstellungen</button>
+      <button class="btn gross" id="btnNochmal" data-de="🔁 Nochmal spielen" data-en="🔁 Play again">🔁 Nochmal spielen</button>
+      <button class="btn sekundaer gross" id="btnZurueck" data-de="⚙ Einstellungen" data-en="⚙ Settings">⚙ Einstellungen</button>
     </div>
   </section>
 </main>
@@ -469,10 +516,16 @@
   <div class="footer-content">
       M.&nbsp;Koch
       <span class="footer-topic"><a href="../index.html">Mathe-Tools</a></span>
-      <span class="footer-update">Last updated:&nbsp;<span id="last-update">...</span></span>
+      <span class="footer-update"><span class="fu-wort" data-de="Zuletzt aktualisiert:" data-en="Last updated:">Zuletzt aktualisiert:</span><span id="last-update">...</span></span>
   </div>
 </footer>
 
+
+<script>
+/* Footer-Datum: diese Seite und die Karten-/Ortsdaten im selben Ordner */
+var LAST_UPDATE_FILES = ['Geographie'];
+</script>
+<script src="../last-update.js" defer></script>
 
 <script src="geo_karte_de.js"></script>
 <script src="geo_orte_de.js"></script>
@@ -484,6 +537,8 @@
 <script src="geo_orte_berlin.js"></script>
 <script>
 "use strict";
+/* Faellt ohne ../theme-language.js auf Deutsch zurueck. */
+function T(de, en) { return (typeof tlText === 'function') ? tlText(de, en) : de; }
 /* =========================================================================
    Geographie-Trainer – M. Koch
    Erweiterbar: neue Karten/Ortslisten einfach in KARTEN registrieren.
@@ -642,38 +697,49 @@ function geoZuPfad(geom, proj) {
 // Karten-Registry: Geometrie, Orte, wählbare Tags, Punkteskala und Overlay je Karte
 const KARTEN = {
   de: {
-    titel: "Deutschland", karte: KARTE_DE, orte: ORTE_DE,
+    titel: "Deutschland", titel_en: "Germany", karte: KARTE_DE, orte: ORTE_DE,
     tags: { top10:"Top 10", top50:"Top 50", top100:"Top 100",
             hs:"Landeshauptstädte", insel:"Inseln", see:"Seen", berg:"Berge",
             antik:"Antike Orte", weitere:"Weitere Orte" },
+    tags_en: { top10:"Top 10", top50:"Top 50", top100:"Top 100",
+            hs:"State capitals", insel:"Islands", see:"Lakes", berg:"Mountains",
+            antik:"Ancient sites", weitere:"Other places" },
     pin: { voll: 5, max: 200 },
-    grenzenName: "Bundesländer",
+    grenzenName: "Bundesländer", grenzenName_en: "Federal states",
     zoomMax: 8
   },
   eu: {
-    titel: "Europa", karte: KARTE_EU, orte: ORTE_EU,
+    titel: "Europa", titel_en: "Europe", karte: KARTE_EU, orte: ORTE_EU,
     tags: { hs:"Hauptstädte", metro:"Metropolen", top3:"Top 3 je Land",
             insel:"Inseln", berg:"Berge", see:"Seen",
             antik:"Antike Orte", weitere:"Weitere Orte" },
+    tags_en: { hs:"Capitals", metro:"Major cities", top3:"Top 3 per country",
+            insel:"Islands", berg:"Mountains", see:"Lakes",
+            antik:"Ancient sites", weitere:"Other places" },
     pin: { voll: 25, max: 1000 },
-    grenzenName: "Staatsgrenzen",
+    grenzenName: "Staatsgrenzen", grenzenName_en: "Country borders",
     zoomMax: 12
   },
   welt: {
-    titel: "Welt", karte: KARTE_WELT, orte: ORTE_WELT,
+    titel: "Welt", titel_en: "World", karte: KARTE_WELT, orte: ORTE_WELT,
     tags: { hs:"Hauptstädte", top:"Top 100",
             insel:"Inseln", see:"Seen", berg:"Berge",
             antik:"Antike Orte", weitere:"Weitere Orte" },
+    tags_en: { hs:"Capitals", top:"Top 100",
+            insel:"Islands", see:"Lakes", berg:"Mountains",
+            antik:"Ancient sites", weitere:"Other places" },
     pin: { voll: 50, max: 3000 },
-    grenzenName: "Staatsgrenzen",
+    grenzenName: "Staatsgrenzen", grenzenName_en: "Country borders",
     zoomMax: 24
   },
   berlin: {
-    titel: "Berlin", karte: KARTE_BERLIN, orte: ORTE_BERLIN,
+    titel: "Berlin", titel_en: "Berlin", karte: KARTE_BERLIN, orte: ORTE_BERLIN,
     tags: { sehen:"Sehenswürdigkeiten", rathaus:"Rathäuser", sbahn:"S-Bahnhöfe",
             park:"Parks", see:"Seen", weitere:"Weitere Orte" },
+    tags_en: { sehen:"Landmarks", rathaus:"Town halls", sbahn:"S-Bahn stations",
+            park:"Parks", see:"Lakes", weitere:"Other places" },
     pin: { voll: 0.3, max: 10 },
-    grenzenName: "Bezirke",
+    grenzenName: "Bezirke", grenzenName_en: "Boroughs",
     zoomMax: 10
   }
 };
@@ -683,7 +749,9 @@ const SVG_NS = "http://www.w3.org/2000/svg";
 function setzeText(el, text) { el.textContent = text; el.dataset.text = text; }
 
 // Overlay-Verfügbarkeit: "aus" | "immer" | "toggle" | "joker"
-const OVERLAY_MODI = { aus:"Aus", immer:"Immer", toggle:"Umschaltbar", joker:"Joker" };
+const OVERLAY_MODI    = { aus:"Aus", immer:"Immer", toggle:"Umschaltbar", joker:"Joker" };
+const OVERLAY_MODI_EN = { aus:"Off", immer:"Always", toggle:"Toggle",     joker:"Joker" };
+function overlayModusTitel(m) { return T(OVERLAY_MODI[m], OVERLAY_MODI_EN[m]); }
 const OVERLAY_IDS = ["grenzen", "orte"];
 
 const einstellungen = { karte: "de", modus: "pin",
@@ -700,23 +768,43 @@ const overlayLauf = { grenzen: { an: false, ratenAn: false, jokerVerbraucht: fal
                       orte:    { an: false, ratenAn: false, jokerVerbraucht: false } };
 
 function aktuelleKarte() { return KARTEN[einstellungen.karte]; }
+// Sprachabhaengige Beschriftungen der Kartendefinition
+function karteTitel(k)  { return T(k.titel, k.titel_en || k.titel); }
+function karteGrenzen(k){ return T(k.grenzenName, k.grenzenName_en || k.grenzenName); }
+function tagTitel(k, tag) {
+  const de = (k.tags || {})[tag] || tag;
+  return T(de, ((k.tags_en || {})[tag]) || de);
+}
 
 /* ----- Hell/Dunkel ----- */
-function setzeTheme(dunkel) {
+// Die Farbeinstellung liegt seit der Vereinheitlichung unter dem gemeinsamen
+// Schluessel 'matheToolsTheme'; die Uebernahme eines alten 'geoTheme'-Werts
+// erledigt der Mini-Bootstrap im <head>, noch vor theme-language.js.
+function zeigeTheme(dunkel) {
   document.body.classList.toggle("dark", dunkel);
   const symbol = dunkel ? "☀️" : "🌙";
   $("btnTheme").textContent = symbol;
   $("btnThemeSpiel").textContent = symbol;
-  try { localStorage.setItem("geoTheme", dunkel ? "d" : "l"); } catch (e) {}
+}
+function setzeTheme(dunkel) {
+  zeigeTheme(dunkel);
+  if (typeof tlSetzeTheme === "function") tlSetzeTheme(dunkel ? "dark" : "light");
+  else { try { localStorage.setItem("matheToolsTheme", dunkel ? "dark" : "light"); } catch (e) {} }
 }
 function initTheme() {
-  let dunkel = false;
-  try {
-    const gespeichert = localStorage.getItem("geoTheme");
-    if (gespeichert) dunkel = gespeichert === "d";
-    else dunkel = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
-  } catch (e) {}
-  setzeTheme(dunkel);
+  // html.dark hat der Bootstrap im <head> bereits gesetzt
+  zeigeTheme(document.documentElement.classList.contains("dark"));
+}
+
+function zeigeSprache() {
+  const en = (typeof tlSprache === "function") && tlSprache() === "en";
+  const beschriftung = en ? "DE" : "EN";
+  $("btnSprache").textContent = beschriftung;
+  $("btnSpracheSpiel").textContent = beschriftung;
+}
+function spracheUmschalten() {
+  if (typeof tlSetzeSprache !== "function") return;
+  tlSetzeSprache(tlSprache() === "en" ? "de" : "en");
 }
 
 /* ----- Start-UI aufbauen ----- */
@@ -734,7 +822,7 @@ function baueStartUI() {
       aktualisiereStartUI();
     });
     const lbl = document.createElement("label");
-    lbl.htmlFor = inp.id; setzeText(lbl, k.titel);
+    lbl.htmlFor = inp.id; setzeText(lbl, karteTitel(k));
     kw.append(inp, lbl);
   });
 
@@ -777,7 +865,8 @@ function baueTagUI() {
   const tw = $("tagWahl");
   tw.innerHTML = "";
   const alleTags = Object.keys(K.tags);
-  Object.entries(K.tags).forEach(([tag, titel]) => {
+  Object.keys(K.tags).forEach(tag => {
+    const titel = tagTitel(K, tag);
     const anzahl = filtereOrte(K.orte, [tag], alleTags).length;
     if (anzahl === 0) return;                       // leere Kategorien nicht anbieten
     const inp = document.createElement("input");
@@ -821,14 +910,15 @@ function aktiveTagsAusUI() {
 // Baut für jede Zusatz-Ebene (Grenzen, Orte) eine Modus-Pillgruppe: Aus/Immer/Umschaltbar/Joker
 function baueOverlayUI() {
   const K = aktuelleKarte();
-  $("overlayGrenzenName").textContent = K.grenzenName + "-Grenzen";
+  $("overlayGrenzenName").textContent = T(karteGrenzen(K) + "-Grenzen", karteGrenzen(K));
   const hatGrenzen = (K.karte.laender || []).length > 0;
   $("overlayGrenzenName").classList.toggle("versteckt", !hatGrenzen);
   $("overlayGrenzenPills").classList.toggle("versteckt", !hatGrenzen);
   OVERLAY_IDS.forEach(ov => {
     const grp = document.querySelector(`.pill-group[data-overlay="${ov}"]`);
     grp.innerHTML = "";
-    Object.entries(OVERLAY_MODI).forEach(([modus, label]) => {
+    Object.keys(OVERLAY_MODI).forEach(modus => {
+      const label = overlayModusTitel(modus);
       const inp = document.createElement("input");
       inp.type = "radio"; inp.name = "ov_" + ov; inp.id = `ov_${ov}_${modus}`; inp.value = modus;
       if (einstellungen.overlays[ov] === modus) inp.checked = true;
@@ -847,19 +937,25 @@ function aktualisiereStartUI() {
   if (modus === "grid") {
     $("modusHinweis").innerHTML =
       (gridArt === "fest"
-        ? "Alle Orte werden mit dem gewählten festen Raster gespielt. "
-        : "Wähle bei <i>jedem Ort neu</i>, wie fein das Raster sein soll – mehr Risiko, mehr Punkte. ") +
-      "Tippe das Feld an, in dem der Ort liegt; nur ein Treffer gibt Punkte: " +
+        ? T("Alle Orte werden mit dem gewählten festen Raster gespielt. ",
+            "Every place is played on the fixed grid you picked. ")
+        : T("Wähle bei <i>jedem Ort neu</i>, wie fein das Raster sein soll – mehr Risiko, mehr Punkte. ",
+            "Choose <i>afresh for every place</i> how fine the grid should be – more risk, more points. ")) +
+      T("Tippe das Feld an, in dem der Ort liegt; nur ein Treffer gibt Punkte: ",
+        "Tap the square the place lies in; only a hit scores: ") +
       "2×2 → 100, 3×3 → 200, 4×4 → 300, 5×5 → 400, 6×6 → 500, 8×8 → 600, 16×16 → 800, 32×32 → 1000." +
       ($("optVerschiebung").checked
-        ? " Mit „½ Raster versetzen“ kannst du das Raster im Spiel um ein halbes Feld verschieben, " +
-          "falls ein Ort genau auf einer Feldkante liegt."
+        ? T(" Mit „½ Raster versetzen“ kannst du das Raster im Spiel um ein halbes Feld verschieben, falls ein Ort genau auf einer Feldkante liegt.",
+            " With “shift grid by ½” you can move the grid half a square during the game, in case a place sits right on a grid line.")
         : "");
   } else {
-    $("modusHinweis").innerHTML =
+    $("modusHinweis").innerHTML = T(
       `Setze einen Pin auf die vermutete Position (Antippen bzw. Klicken, Verschieben möglich) und bestätige. ` +
       `Volle 1000 Punkte gibt es bis ${K.pin.voll}&nbsp;km Entfernung, danach fallen die Punkte schnell ab – ` +
-      `ab ${K.pin.max}&nbsp;km gibt es keine Punkte mehr.`;
+      `ab ${K.pin.max}&nbsp;km gibt es keine Punkte mehr.`,
+      `Drop a pin where you think the place is (tap or click, you can still move it) and confirm. ` +
+      `The full 1000 points go up to ${K.pin.voll}&nbsp;km away; after that the score falls off quickly – ` +
+      `beyond ${K.pin.max}&nbsp;km there are no points left.`);
   }
   $("gridOptionen").classList.toggle("versteckt", modus !== "grid");
   $("gridFestWahl").classList.toggle("versteckt", gridArt !== "fest");
@@ -867,8 +963,9 @@ function aktualisiereStartUI() {
   const anzahl = filtereOrte(K.orte, tags, Object.keys(K.tags)).length;
   aktualisiereAnzahlSlider(anzahl);
   $("tagInfo").textContent = tags.length === 0
-    ? `Keine Kategorie gewählt – es wird mit allen ${anzahl} Orten gespielt.`
-    : `${anzahl} Orte ausgewählt.`;
+    ? T(`Keine Kategorie gewählt – es wird mit allen ${anzahl} Orten gespielt.`,
+        `No category selected – you’ll play with all ${anzahl} places.`)
+    : T(`${anzahl} Orte ausgewählt.`, `${anzahl} places selected.`);
   if (!startUIImAufbau) { leseEinstellungenAusUI(); schreibeHash(); }
 }
 let startUIImAufbau = false;
@@ -1028,7 +1125,7 @@ function aktualisiereOverlaySicht() {
   [["grenzen", "btnOverlayGrenzen"], ["orte", "btnOverlayOrte"]].forEach(([ov, btnId]) => {
     const btn = $(btnId);
     const modus = einstellungen.overlays[ov];
-    const name = ov === "grenzen" ? aktuelleKarte().grenzenName : "Orte";
+    const name = ov === "grenzen" ? karteGrenzen(aktuelleKarte()) : T("Orte", "Places");
     const symbol = ov === "grenzen" ? "🗺️" : "📍";
     // Button existiert (und reserviert Platz), wenn die Ebene per Knopf schaltbar sein kann:
     // Modus toggle oder joker, bei Grenzen zusätzlich abhängig davon, ob die Karte Grenzen hat.
@@ -1452,7 +1549,7 @@ function naechsteRunde() {
   });
   aktualisiereOverlaySicht();
   const ort = spiel.orte[spiel.runde];
-  $("hudRunde").textContent = `Runde ${spiel.runde + 1} / ${spiel.runden}`;
+  $("hudRunde").textContent = T(`Runde ${spiel.runde + 1} / ${spiel.runden}`, `Round ${spiel.runde + 1} / ${spiel.runden}`);
   $("hudOrt").textContent = ort.n;
   $("hudPunkte").textContent = `${spiel.punkte} P`;
 }
@@ -1461,7 +1558,7 @@ function bestaetige() {
   if (spiel.phase !== "raten") return;
   const ort = spiel.orte[spiel.runde];
   const [ox, oy] = P.proj(ort.lon, ort.lat);
-  let punkte = 0, detail = "", max = 0;
+  let punkte = 0, detail = "", max = 0, roh = null;
 
   if (spiel.modus === "pin") {
     if (!spiel.pin) return;
@@ -1470,8 +1567,8 @@ function bestaetige() {
     const d = distanzKm(lat, lon, ort.lat, ort.lon);
     punkte = pinPunkte(d, skala.voll, skala.max);
     max = 1000;
-    detail = d < 1 ? Math.round(d * 1000) + " m"
-           : d < 10 ? d.toFixed(1) + " km" : Math.round(d) + " km";
+    roh = { art: "pin", d };
+    detail = detailText(roh);
     const linie = document.createElementNS(SVG_NS, "line");
     linie.setAttribute("x1", spiel.pin[0]); linie.setAttribute("y1", spiel.pin[1]);
     linie.setAttribute("x2", ox); linie.setAttribute("y2", oy);
@@ -1480,8 +1577,9 @@ function bestaetige() {
     linie.setAttribute("vector-effect", "non-scaling-stroke");
     $("gMarker").appendChild(linie);
     $("gMarker").appendChild(punktSymbol(ox, oy, markerFarbe("richtig")));
-    $("feedback").innerHTML =
-      `Entfernung: <b>${detail}</b> → <span class="punkte ${punkte >= 500 ? "gut" : "schlecht"}">+${punkte} Punkte</span>`;
+    $("feedback").innerHTML = "<span>" + T(
+      `Entfernung: <b>${detail}</b> → <span class="punkte ${punkte >= 500 ? "gut" : "schlecht"}">+${punkte} Punkte</span>`,
+      `Distance: <b>${detail}</b> → <span class="punkte ${punkte >= 500 ? "gut" : "schlecht"}">+${punkte} points</span>`) + "</span>";
   } else {
     if (!spiel.zelle) return;
     const n = spiel.gridN, v = spiel.versetzt;
@@ -1489,7 +1587,8 @@ function bestaetige() {
     const richtig = spiel.zelle[0] === rc && spiel.zelle[1] === rr;
     punkte = richtig ? GRID_PUNKTE[n] : 0;
     max = GRID_PUNKTE[n];
-    detail = `${n}×${n}${v ? " (versetzt)" : ""} ${richtig ? "✔" : "✘"}`;
+    roh = { art: "grid", n, v, richtig };
+    detail = detailText(roh);
     const zRichtig = zelleElement(rc, rr);
     if (zRichtig) zRichtig.classList.add("richtig");
     if (!richtig) {
@@ -1497,16 +1596,20 @@ function bestaetige() {
       if (zFalsch) { zFalsch.classList.remove("gewaehlt"); zFalsch.classList.add("falsch"); }
     }
     $("gMarker").appendChild(punktSymbol(ox, oy, markerFarbe("richtig")));
-    $("feedback").innerHTML = richtig
-      ? `<span class="gut">✔ Richtiges Feld!</span> <span class="punkte gut">+${punkte} Punkte</span>`
-      : `<span class="schlecht">✘ Leider daneben – richtig wäre ` +
-        `<b>${spaltenLabel(rc, v)}${zeilenLabel(rr, v)}</b> gewesen.</span> ` +
-        `<span class="punkte schlecht">+0 Punkte</span>`;
+    $("feedback").innerHTML = "<span>" + (richtig
+      ? T(`<span class="gut">✔ Richtiges Feld!</span> <span class="punkte gut">+${punkte} Punkte</span>`,
+          `<span class="gut">✔ Right square!</span> <span class="punkte gut">+${punkte} points</span>`)
+      : T(`<span class="schlecht">✘ Leider daneben – richtig wäre ` +
+          `<b>${spaltenLabel(rc, v)}${zeilenLabel(rr, v)}</b> gewesen.</span> ` +
+          `<span class="punkte schlecht">+0 Punkte</span>`,
+          `<span class="schlecht">✘ Not quite – it was ` +
+          `<b>${spaltenLabel(rc, v)}${zeilenLabel(rr, v)}</b>.</span> ` +
+          `<span class="punkte schlecht">+0 points</span>`)) + "</span>";
   }
 
   spiel.punkte += punkte;
   spiel.maxPunkte += max;
-  spiel.protokoll.push({ ort: ort.n, detail, punkte });
+  spiel.protokoll.push({ ort: ort.n, detail, roh, punkte });
   spiel.phase = "ergebnis";
   // Versetzen-Knopf ausblenden, aber Platz reservieren (Karte darf nicht springen)
   $("btnVersetzen").classList.add("unsichtbar");
@@ -1515,7 +1618,7 @@ function bestaetige() {
   $("hudPunkte").textContent = `${spiel.punkte} P`;
   $("btnBestaetigen").classList.add("versteckt");
   $("btnWeiter").classList.remove("versteckt");
-  $("btnWeiter").textContent = spiel.runde + 1 < spiel.runden ? "Weiter ▶" : "🏁 Ergebnis anzeigen";
+  setzeText($("btnWeiter"), spiel.runde + 1 < spiel.runden ? T("Weiter ▶", "Next ▶") : T("🏁 Ergebnis anzeigen", "🏁 Show result"));
   $("btnWeiter").focus();
 }
 
@@ -1528,20 +1631,42 @@ function weiter() {
   }
 }
 
+// Ergebnis-Detail einer Runde in der aktuellen Sprache
+function detailText(roh) {
+  if (!roh) return "";
+  if (roh.art === "pin") {
+    const d = roh.d;
+    return d < 1 ? Math.round(d * 1000) + " m"
+         : d < 10 ? d.toFixed(1) + " km" : Math.round(d) + " km";
+  }
+  return `${roh.n}×${roh.n}${roh.v ? T(" (versetzt)", " (shifted)") : ""} ${roh.richtig ? "✔" : "✘"}`;
+}
+
 function zeigeErgebnis() {
   beendeSpielansicht();
   $("ergebnisScreen").classList.remove("versteckt");
-  $("thDetail").textContent = spiel.modus === "pin" ? "Distanz" : "Raster";
+  $("thDetail").textContent = spiel.modus === "pin" ? T("Distanz", "Distance") : T("Raster", "Grid");
   const tb = document.querySelector("#ergebnisTabelle tbody");
   tb.innerHTML = "";
   spiel.protokoll.forEach((z, i) => {
     const tr = document.createElement("tr");
-    tr.innerHTML = `<td>${i+1}</td><td>${z.ort}</td><td>${z.detail}</td>
+    tr.innerHTML = `<td>${i+1}</td><td>${z.ort}</td><td>${z.roh ? detailText(z.roh) : z.detail}</td>
                     <td class="rechts">${z.punkte}</td>`;
     tb.appendChild(tr);
   });
   $("tdGesamt").textContent = `${spiel.punkte} / ${spiel.maxPunkte}`;
 }
+
+/* Beim Klick auf "Fehler melden": gerade gefragter Ort samt Karte und Modus.
+   Die uebrigen Einstellungen stecken bereits im URL-Hash. */
+window.fehlerKontext = function () {
+  if (!spiel) return T("Startbildschirm", "Start screen");
+  const ort = spiel.orte[spiel.runde];
+  return [karteTitel(aktuelleKarte()),
+          spiel.modus === "pin" ? "Pin" : T("Raster", "Grid"),
+          ort ? (T("Ort", "Place") + ": " + ort.n) : ""
+         ].filter(Boolean).join(" \u00b7 ");
+};
 
 /* ----- Initialisierung ----- */
 document.addEventListener("DOMContentLoaded", () => {
@@ -1574,6 +1699,33 @@ document.addEventListener("DOMContentLoaded", () => {
   const themeWechsel = () => setzeTheme(!document.body.classList.contains("dark"));
   $("btnTheme").addEventListener("click", themeWechsel);
   $("btnThemeSpiel").addEventListener("click", themeWechsel);
+  $("btnSprache").addEventListener("click", spracheUmschalten);
+  $("btnSpracheSpiel").addEventListener("click", spracheUmschalten);
+  const melden = () => { if (typeof tlFehlerMelden === "function") tlFehlerMelden(); };
+  $("btnMelden").addEventListener("click", melden);
+  $("btnMeldenSpiel").addEventListener("click", melden);
+  zeigeSprache();
+
+  // Umschalten von anderer Stelle (z.B. anderes Tab) mitbekommen
+  window.addEventListener("tl-theme", e => zeigeTheme(e.detail.dunkel));
+  window.addEventListener("tl-sprache", () => {
+    zeigeSprache();
+    baueStartUI();                 // Karten-, Tag- und Overlay-Beschriftungen neu
+    if (spiel && !$("ergebnisScreen").classList.contains("versteckt")) {
+      zeigeErgebnis();             // Kopfzeile und Detailspalte in neuer Sprache
+      return;
+    }
+    if (spiel) {
+      $("hudRunde").textContent = T(`Runde ${spiel.runde + 1} / ${spiel.runden}`,
+                                    `Round ${spiel.runde + 1} / ${spiel.runden}`);
+      aktualisiereOverlaySicht();
+      if (spiel.phase === "raten")
+        setzeText($("btnBestaetigen"), T("Bestätigen", "Confirm"));
+      else
+        setzeText($("btnWeiter"), spiel.runde + 1 < spiel.runden
+          ? T("Weiter ▶", "Next ▶") : T("🏁 Ergebnis anzeigen", "🏁 Show result"));
+    }
+  });
 
   setzeViewportHoehe();
   window.addEventListener("resize", setzeViewportHoehe);

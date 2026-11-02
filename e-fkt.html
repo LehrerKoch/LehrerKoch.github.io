@@ -3,10 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>e-Funktion ableiten und zusammenfassen</title>
+<link rel="shortcut icon" type="image/x-icon" href="aleph_zero_logo.ico">
+<script>try{var t=localStorage.getItem('matheToolsTheme');if(t==='dark'||(!t&&window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.classList.add('dark');}catch(e){}</script>
+<title data-de="e-Funktion ableiten und zusammenfassen" data-en="Differentiating and Simplifying Exponential Functions">e-Funktion ableiten und zusammenfassen</title>
 <link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="aufgaben.css">
+<script src="aufgaben.js" defer></script>
 <link rel="stylesheet" href="scale.css">
 <script src="scale.js" defer></script>
+<script src="theme-language.js" defer></script>
 <script>
 MathJax = {
   tex: {
@@ -17,22 +22,25 @@ MathJax = {
   loader: {load: ['[tex]/color']}
 };
 </script>
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-5K8WYYXDL2"></script>
+    <!-- Besuchszaehlung (Google Analytics). Geladen wird sie erst, wenn der
+         Besucher zustimmt - siehe einwilligung.js. -->
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-5K8WYYXDL2');
+  window.TK_GA_ID = 'G-5K8WYYXDL2';   /* Google Analytics laedt erst nach Einwilligung, siehe einwilligung.js */
 </script>
+<script src="einwilligung.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 
 <style>
-  button { align-self: flex-start; margin-top: 15px; padding: 5px; cursor: pointer; border: 2px solid #1f6b24; border-radius: 8px; font-size: 1em; transition: border-color 0.15s, filter 0.15s; }
-button:hover { filter: brightness(0.93); border-color: #0e4511; }
+  /* Knopfform wie auf den übrigen Aufgabenseiten: kein eigener Rahmen. */
+button { align-self: flex-start; margin-top: 15px; padding: 10px 20px; cursor: pointer; border: none; border-radius: 8px; font-size: 1em; transition: filter 0.15s; }
+button:hover { filter: brightness(0.93); }
 #task { font-size: 1.8em; }
 #solution { color:red; font-size:1.3em; text-align:center; }
+:root{ --sol-rot:red; --grau-text:#999; }
+html.dark{ --sol-rot:#ef5350; --grau-text:#7d868e; }
+html.dark #solution { color:var(--sol-rot); }
 #solutionPath {
     margin: 1em;
     border-width: thin;
@@ -45,7 +53,7 @@ input[type="range"] {
 }
 
 .disabled-text {
-  color: #999 !important;
+  color: var(--grau-text) !important;
   transition: color 0.2s ease;
 }
 
@@ -54,36 +62,53 @@ input[type="range"]:disabled {
   cursor: not-allowed;
 }
 </style>
+<script>
+/* MathJax ist nicht immer da (offline oder blockiert) - dann bleibt die Seite
+   trotzdem bedienbar. */
+function mjSetzen(ziele){
+  if (window.MathJax && MathJax.typesetPromise) return MathJax.typesetPromise(ziele);
+  return Promise.resolve();
+}
+function mjStart(fn){
+  if (window.MathJax && MathJax.startup && MathJax.startup.promise) MathJax.startup.promise.then(fn);
+  else fn();
+}
+</script>
 </head>
 
-<body>
+<body class="tk-seite">
 
-<h1>$e$-Funktion ableiten und zusammenfassen</h1>
+<header class="tool-kopf">
+  <div class="tk-text">
+    <h1 data-de="$e$-Funktion ableiten und zusammenfassen" data-en="Differentiating and Simplifying the $e$-Function">$e$-Funktion ableiten und zusammenfassen</h1>
+    <p class="tk-unter" data-de="Ableiten der e-Funktion und Terme zusammenfassen" data-en="Differentiate exponential functions and simplify the resulting terms">Ableiten der e-Funktion und Terme zusammenfassen</p>
+  </div>
+</header>
 
-<details>
-<summary>Einstellungen</summary>
+<details class="einst" id="settingsDetails">
+<summary data-de="Einstellungen" data-en="Settings">Einstellungen</summary>
+<div class="settings-grid">
 
 <div class="form-block">
-  <b>Reihenfolge der Faktoren</b><br>
-  <label><input type="radio" name="order" value="eFirst" checked> $e^x \cdot P(x)$</label><br>
-  <label><input type="radio" name="order" value="both" > beide Formen</label><br>
-  <label><input type="radio" name="order" value="pFirst"> $P(x) \cdot e^x$</label>
+  <b data-de="Reihenfolge der Faktoren" data-en="Order of the factors">Reihenfolge der Faktoren</b><br>
+  <label class="opt"><input type="radio" name="order" value="eFirst" checked>$e^x \cdot P(x)$</label>
+  <label class="opt"><input type="radio" name="order" value="both" ><span data-de="beide Formen" data-en="both forms">beide Formen</span></label>
+  <label class="opt"><input type="radio" name="order" value="pFirst">$P(x) \cdot e^x$</label>
 </div>
 
 <div class="form-block">
-  <b>Maximaler Grad des Polynoms: <span id="degOut">2</span></b><br>
+  <b><span data-de="Maximaler Grad des Polynoms:" data-en="Maximum degree of the polynomial:">Maximaler Grad des Polynoms:</span> <span id="degOut">2</span></b><br>
   <input type="range" id="polyDeg" min="1" max="3" value="2" step="1" list="tickmarks" oninput="updateParams()">
 </div>
 
 <div class="form-block">
-  <label>
-    <input type="checkbox" id="allowInner" checked oninput="updateParams()">
-    Innere Funktion verwenden?
+  <label class="opt">
+    <input type="checkbox" id="allowInner" checked oninput="updateParams()"><span data-de="Innere Funktion verwenden?" data-en="Use an inner function?">Innere Funktion verwenden?</span>
   </label>
 </div>
 
 <div class="form-block">
-  <span id="innerDegLabel"><b>Grad der inneren Funktion: <span id="degIn">1</span></b></span><br>
+  <span id="innerDegLabel"><b><span data-de="Grad der inneren Funktion:" data-en="Degree of the inner function:">Grad der inneren Funktion:</span> <span id="degIn">1</span></b></span><br>
   <input type="range" id="innerDeg" min="1" max="3" value="1" step="1" list="tickmarks" oninput="updateParams()">
 </div>
 
@@ -93,31 +118,48 @@ input[type="range"]:disabled {
   <option value="3" label="3"></option>
 </datalist>
 
+</div>
 </details>
 
-<button onclick="newTask()">Neue Aufgabe</button>
+<div id="genRow"><button id="genBtn" onclick="newTask()" data-de="&#x27F3;&nbsp;Neue Aufgabe generieren" data-en="&#x27F3;&nbsp;Generate a new task">&#x27F3;&nbsp;Neue Aufgabe generieren</button></div>
 
-<h2>Aufgabe</h2>
+<div class="task">
+<div class="task-head"><h2 data-de="Aufgabe" data-en="Task">Aufgabe</h2></div>
 <div class="scale-wrapper">
   <div id="task" class="scale-el"></div>
 </div>
+</div>
 
-<details id="solutionDetailsContainer">
-<summary>Lösung</summary>
+<details class="loesung" id="solutionDetailsContainer">
+<summary><span class="wenn-zu" data-de="Lösung einblenden" data-en="Show solution">Lösung einblenden</span><span class="wenn-auf" data-de="Lösung ausblenden" data-en="Hide solution">Lösung ausblenden</span></summary>
 <div class="scale-wrapper">
   <div id="solution" class="scale-el"></div>
 </div>
-<details id="solutionPath">
-  <summary>Lösungsweg</summary>
+<details class="weg" id="solutionPath">
+  <summary data-de="Lösungsweg" data-en="Solution path">Lösungsweg</summary>
   <div class="scale-wrapper">
     <div id="solutionPathContent" class="scale-el"></div>
   </div>
 </details>
 <br>
-<button id="stepBtn" onclick="openSteps()">Auf ableitungsrechner.de öffnen</button>
+<button id="stepBtn" onclick="openSteps()" data-de="Auf ableitungsrechner.de öffnen" data-en="Open on derivative-calculator.net">Auf ableitungsrechner.de öffnen</button>
 </details>
 
 <script>
+// Übersetzungshilfe: nutzt theme-language.js, fällt ohne sie auf Deutsch zurück
+function T(de, en) { return (typeof tlText === 'function') ? tlText(de, en) : de; }
+function istDunkel() { return typeof tlDunkel === 'function' && tlDunkel(); }
+
+// Termfarben nach Potenz. Hell = bisherige Farben, Dunkel = aufgehellt.
+function termFarben() {
+  return istDunkel()
+    ? { konst:'rgb(130,177,255)', x:'rgb(179,179,255)', x2:'rgb(129,199,132)',
+        x3:'rgb(206,147,216)', x4:'rgb(255,183,77)', x5:'rgb(200,162,122)' }
+    : { konst:'blue', x:'rgb(150, 150, 255)', x2:'green', x3:'purple', x4:'orange', x5:'brown' };
+}
+// MathJax akzeptiert in \color{...} keine #-Hexwerte, daher rgb(...)
+function solFarbe() { return istDunkel() ? 'rgb(239,83,80)' : 'red'; }
+
 // ---------------- Hilfsfunktionen ----------------
 const rand = (a,b)=>Math.floor(Math.random()*(b-a+1))+a;
 
@@ -265,12 +307,13 @@ function colorPoly(expr) {
     let term = t.trim();
     if (term === '') return '';
     
-    let color = 'blue'; // Standard für Konstanten
-    if (term.includes('x^5')) color = 'brown';
-    else if (term.includes('x^4')) color = 'orange';
-    else if (term.includes('x^3')) color = 'purple';
-    else if (term.includes('x^2')) color = 'green';
-    else if (term.includes('x')) color = 'rgb(150, 150, 255)';
+    const F = termFarben();
+    let color = F.konst; // Standard für Konstanten
+    if (term.includes('x^5')) color = F.x5;
+    else if (term.includes('x^4')) color = F.x4;
+    else if (term.includes('x^3')) color = F.x3;
+    else if (term.includes('x^2')) color = F.x2;
+    else if (term.includes('x')) color = F.x;
 
     // Nutze geschweifte Klammern um den gesamten Farbblock zu isolieren
     return `{\\color{${color}}{${term}}}`;
@@ -308,14 +351,22 @@ let currentExpr = '';
 
 // externer Lösungsrechner wie bisher
 function openSteps(){
-  const url='https://www.ableitungsrechner.net/#expr='+
-            encodeURIComponent(currentExpr)+'&showsteps=1';
+  // Englische Zwillingsseite von ableitungsrechner.net (gleiche URL-Parameter)
+  const basis = (typeof tlSprache === 'function' && tlSprache() === 'en')
+    ? 'https://www.derivative-calculator.net/'
+    : 'https://www.ableitungsrechner.net/';
+  const url = basis + '#expr=' + encodeURIComponent(currentExpr) + '&showsteps=1';
   window.open(url,'_blank');
 }
 
 // ---------------- Task ----------------
+// Die zuletzt gewürfelte Aufgabe, damit sie bei Theme-/Sprachwechsel
+// unverändert neu gezeichnet werden kann.
+let aktuelleAufgabe = null;
+
 function newTask(){
-  document.querySelector('details[open]')?.removeAttribute('open');
+  /* Nur Lösung und Lösungsweg klappen zu - der Einstellungsbereich bleibt offen. */
+  document.querySelectorAll('details.loesung, details.weg').forEach(d => d.removeAttribute('open'));
 
   const maxDeg   = +document.getElementById('polyDeg').value;
   const allowIn  = document.getElementById('allowInner').checked;
@@ -336,6 +387,15 @@ function newTask(){
     let inner = makePoly(innerDeg);
     g = { f: inner.f, d: inner.d };
   }
+
+  aktuelleAufgabe = { p, g, swap, allowIn };
+  renderTask();
+}
+
+/** Zeichnet die zuletzt gewürfelte Aufgabe (Farben/Sprache aktuell). */
+function renderTask(){
+  if (!aktuelleAufgabe) return;
+  const { p, g, swap, allowIn } = aktuelleAufgabe;
 
   const gDerivSafe = (g.d.includes('x') || g.d.includes('+') || g.d.includes('-')) ? `(${g.d})` : g.d;
 
@@ -379,9 +439,9 @@ function newTask(){
   let stepFinal = `e^{${g.f}}\\cdot\\left( ${colorPoly(polyMapToString(sumPoly))} \\right)`;
 
   // --- Zusammenbau der Rechenkette ---
-  const op1 = `&&~~ |\\,\\scriptstyle\\text{($e$-Term ausklammern)}`;
-  const op2 = `&&~~ |\\,\\scriptstyle\\text{innere Klammer ausmult.}`;
-  const op3 = `&&~~ |\\,\\scriptstyle\\text{gleichart. Terme zsmf.}`;
+  const op1 = `&&~~ |\\,\\scriptstyle\\text{${T('($e$-Term ausklammern)', '(factor out the $e$ term)')}}`;
+  const op2 = `&&~~ |\\,\\scriptstyle\\text{${T('innere Klammer ausmult.', 'expand inner bracket')}}`;
+  const op3 = `&&~~ |\\,\\scriptstyle\\text{${T('gleichart. Terme zsmf.', 'collect like terms')}}`;
 
   let finalResult = `e^{${g.f}}\\cdot\\left( ${polyMapToString(sumPoly)} \\right)`;
 
@@ -408,14 +468,18 @@ function newTask(){
     $$`;
   }
 
-  document.getElementById('solution').innerHTML = `$$\\color{red}{f'(x) = ${finalResult}}$$`;
-  document.getElementById('solutionPathContent').innerHTML = `<div style="color:red">${solutionPathHTML}</div>`;
+  document.getElementById('solution').innerHTML = `$$\\color{${solFarbe()}}{f'(x) = ${finalResult}}$$`;
+  document.getElementById('solutionPathContent').innerHTML = `<div style="color:${solFarbe()}">${solutionPathHTML}</div>`;
   document.getElementById('task').innerHTML = `$$f(x) = ${f}$$`;
-  MathJax.typesetPromise().then(() => scaleAllElements());
+  mjSetzen().then(() => { if (typeof scaleAllElements === 'function') scaleAllElements(); });
   currentExpr = f;
 }
+// Theme-/Sprachwechsel: dieselbe Aufgabe mit neuen Farben bzw. Texten zeichnen
+window.addEventListener('tl-theme',   () => renderTask());
+window.addEventListener('tl-sprache', () => renderTask());
+
 document.getElementById('solutionPath')?.addEventListener('toggle', () => {
-  if (window.MathJax) MathJax.typesetPromise().then(() => scaleToFit(document.getElementById('solutionPathContent')));
+  if (window.MathJax) mjSetzen().then(() => scaleToFit(document.getElementById('solutionPathContent')));
 });
 
 function updateLabels() {
@@ -465,7 +529,7 @@ window.onload = () => {
   
   // WICHTIG: updateParams stellt den Initialzustand der UI (Disabled/Grau) her
   updateParams(); 
-  MathJax.startup.promise.then(() => newTask());
+  mjStart(() => newTask());
 };
 </script>
 <div id="lobby-spacer"></div>
@@ -473,9 +537,19 @@ window.onload = () => {
   <div class="footer-content">
       M.&nbsp;Koch
       <span class="footer-topic"><a href="./index.html">Mathe-Tools</a></span>
-      <span class="footer-update">Last updated:&nbsp;<span id="last-update">...</span></span>
+      <span class="footer-update"><span class="fu-wort" data-de="Zuletzt aktualisiert:" data-en="Last updated:">Zuletzt aktualisiert:</span><span id="last-update">...</span></span>
   </div>
 </footer>
-<script src="last-update.js" defer></script>
+<script src="last-update.js" defer>
+</script>
+<script>
+/* Beim Klick auf "Fehler melden" wird die gerade angezeigte Aufgabe
+   mitgeschickt - direkt aus dem DOM, also immer der aktuelle Stand. */
+window.fehlerKontext = function () {
+  const el = document.getElementById('task');
+  if (!el) return '';
+  return (typeof tlFormelText === 'function') ? tlFormelText(el) : el.innerText;
+};
+</script>
 </body>
 </html>

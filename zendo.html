@@ -3,9 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="shortcut icon" type="image/x-icon" href="aleph_zero_logo.ico">
+<script>try{var t=localStorage.getItem('matheToolsTheme');if(t==='dark'||(!t&&window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.classList.add('dark');}catch(e){}</script>
 <title>Zendo | Mathe-Tools</title>
 <link rel="stylesheet" href="styles.css">
 <link rel="stylesheet" href="scale.css">
+<script src="theme-language.js" defer></script>
 <script type="importmap">
 {"imports":{
   "three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
@@ -143,7 +146,50 @@ details{border:1px solid var(--linie);border-radius:10px;padding:6px 10px;margin
   .pillen button:hover{background:var(--grau);}
   .pillen button.aktiv:hover{background:#276a2a;}
 }
+
+/* ══════════════════════════════════════════════════════════════
+   Dunkelmodus – nur Zusätze; der Hellmodus oben bleibt unverändert.
+   Grün wird heller (auf dunklem Grund lesbar), gefüllte Knöpfe
+   bekommen dafür dunkle Schrift.
+   ══════════════════════════════════════════════════════════════ */
+html.dark{ --akzent:#66bb6a; --akzent-hell:#1e2f20; --linie:#3a434b; --grau:#232a30;
+  --text:#e7eae8; --leise:#9aa5b1; color-scheme:dark; }
+html.dark .karte, html.dark button.k, html.dark .pillen button, html.dark .segment,
+html.dark .segment button, html.dark .teamchip, html.dark .spalte, html.dark .koan,
+html.dark #aktion, html.dark details, html.dark #lupe .fenster,
+html.dark select, html.dark input[type=text]{ background:#1c2229; color:var(--text); }
+html.dark button.k.haupt, html.dark .pillen button.aktiv, html.dark .segment button.aktiv,
+html.dark button.k.rund.an{ background:var(--akzent); border-color:var(--akzent); color:#10220f; }
+@media (hover:hover){
+  html.dark button.k:hover{ border-color:#5a656e; background:#232a30; }
+  html.dark button.k.haupt:hover, html.dark .pillen button.aktiv:hover,
+  html.dark .segment button:hover{ background:#4caf50; color:#10220f; }
+  html.dark .segment button:not(.aktiv):hover{ background:#232a30; color:var(--text); }
+}
+html.dark button.k.still{ background:#232a30; }
+html.dark button.k.gefahr{ color:#ef5350; border-color:#5a3232; background:#1c2229; }
+html.dark .koan .bild, html.dark .lupbar, html.dark #buehneBox, html.dark #lupe .buehne{ background:#20262b; }
+html.dark .koan.gegen{ background:#39331f; }
+html.dark .spalte.ja, html.dark .gewonnen{ border-color:#3c5a3f; }
+html.dark .beispiel .tipp{ background:rgba(28,34,41,.96); color:#d7dee4; }
+html.dark .stein{ border-color:#aab4bb; }
+html.dark .eigenschaften, html.dark b.unter{ color:#aab4bb; }
+html.dark .klecks{ border-color:rgba(255,255,255,.35); }
+html.dark #buehneBox svg polygon.gewaehlt{ stroke:#e7eae8; }
+html.dark #lupe{ background:rgba(0,0,0,.6); }
+html.dark .site-footer a{ color:inherit; }   /* wie auf den anderen Seiten */
+/* ── Hinweis: die Seite gibt es bisher nur auf Deutsch ───────── */
+.zd-hinweis{position:fixed;inset:0;z-index:60;background:rgba(15,23,42,.28);
+  display:flex;align-items:center;justify-content:center;padding:16px;}
+.zd-hinweis .zdh-box{background:#fff;color:var(--text);border:1px solid var(--linie);border-radius:12px;
+  box-shadow:0 8px 30px rgba(0,0,0,.25);max-width:360px;width:100%;padding:15px 17px 13px;font-size:.92em;line-height:1.5;}
+.zd-hinweis .zdh-titel{display:block;color:var(--akzent);font-weight:700;font-size:1.02em;margin-bottom:6px;}
+.zd-hinweis p{margin:0 0 11px;}
+.zd-hinweis .zdh-fuss{display:flex;justify-content:flex-end;}
+html.dark .zd-hinweis{background:rgba(0,0,0,.5);}
+html.dark .zd-hinweis .zdh-box{background:#1c2229;box-shadow:0 8px 30px rgba(0,0,0,.6);}
 </style>
+<script src="einwilligung.js" defer></script>
 </head>
 <body>
 
@@ -287,6 +333,11 @@ details{border:1px solid var(--linie);border-radius:10px;padding:6px 10px;margin
    0. GRUNDLAGEN
    ========================================================== */
 const $ = id => document.getElementById(id);
+/* Dunkelmodus: Spielfläche und Raster werden dunkler – die Bausteine behalten ihre Farben */
+const DUNKEL = () => document.documentElement.classList.contains("dark");
+const BODEN = () => DUNKEL()
+  ? {flaeche:"#2b3138", rand:"#454e57", raster:"#414a53", d3:0x2b3138, d3mitte:0x5a6570, d3netz:0x444d57}
+  : {flaeche:"#eeeeea", rand:"#dddddd", raster:"#dcdcd6", d3:0xf0f0ea, d3mitte:0xd2d2c8, d3netz:0xe4e4dc};
 /* Zufall mit Seed: gleicher Seed = gleiche Regel und gleiche Beispiele */
 let SEED=1, _rz=1;
 function setzeSeed(x){ SEED=(x>>>0)||1; _rz=SEED; }
@@ -1024,11 +1075,12 @@ function svgKoan(koan, o){
     const R = o.kugel ? Math.max(1.8, o.kugel.r*1.35) : 5;
     const cx = o.kugel ? o.kugel.m[0] : 0, cy = o.kugel ? o.kugel.m[1] : 0;
     const rand=[[cx-R,cy-R,0],[cx+R,cy-R,0],[cx+R,cy+R,0],[cx-R,cy+R,0]];
-    bodenBild=`<polygon points="${rand.map(q=>S(q).join(",")).join(" ")}" fill="#eeeeea" fill-opacity="${unten?0.3:1}" stroke="#ddd"/>`;
+    const BF=BODEN();
+    bodenBild=`<polygon points="${rand.map(q=>S(q).join(",")).join(" ")}" fill="${BF.flaeche}" fill-opacity="${unten?0.3:1}" stroke="${BF.rand}"/>`;
     for(let i=1;i<4;i++){
       const v=-R+i*R/2;
-      bodenBild+=`<line x1="${S([cx+v,cy-R,0])[0]}" y1="${S([cx+v,cy-R,0])[1]}" x2="${S([cx+v,cy+R,0])[0]}" y2="${S([cx+v,cy+R,0])[1]}" stroke="#dcdcd6"/>`;
-      bodenBild+=`<line x1="${S([cx-R,cy+v,0])[0]}" y1="${S([cx-R,cy+v,0])[1]}" x2="${S([cx+R,cy+v,0])[0]}" y2="${S([cx+R,cy+v,0])[1]}" stroke="#dcdcd6"/>`;
+      bodenBild+=`<line x1="${S([cx+v,cy-R,0])[0]}" y1="${S([cx+v,cy-R,0])[1]}" x2="${S([cx+v,cy+R,0])[0]}" y2="${S([cx+v,cy+R,0])[1]}" stroke="${BF.raster}"/>`;
+      bodenBild+=`<line x1="${S([cx-R,cy+v,0])[0]}" y1="${S([cx-R,cy+v,0])[1]}" x2="${S([cx+R,cy+v,0])[0]}" y2="${S([cx+R,cy+v,0])[1]}" stroke="${BF.raster}"/>`;
     }
     if(!unten) out+=bodenBild;            // von oben: Boden hinter die Körper
   }
@@ -1275,7 +1327,7 @@ const PHYSIK = {
   },
   /* Vorschaubild eines fertigen Aufbaus – gleiche Darstellung wie im aktiven Beispiel */
   vorschauBild(koan, ansicht, B, H){
-    const kenn=[Math.round(ansicht.az), Math.round(ansicht.hoehe), (ansicht.zoom||1).toFixed(2), B].join(",");
+    const kenn=[Math.round(ansicht.az), Math.round(ansicht.hoehe), (ansicht.zoom||1).toFixed(2), B, DUNKEL()?"d":"h"].join(",");
     if(koan.__bild && koan.__bild.kenn===kenn) return koan.__bild.url;   // nur bei Änderung neu zeichnen
     const rr=this.vorschauRendern(koan, ansicht, B, H);
     if(!rr) return null;
@@ -1306,9 +1358,9 @@ const PHYSIK = {
       sz.add(so);
       r.shadowMap.enabled=true; r.shadowMap.type=T.PCFSoftShadowMap;
       const tisch=new T.Mesh(new T.PlaneGeometry(40,40),
-        new T.MeshStandardMaterial({color:0xf0f0ea, roughness:.95, metalness:0}));
+        new T.MeshStandardMaterial({color:BODEN().d3, roughness:.95, metalness:0}));
       tisch.receiveShadow=true; tisch.renderOrder=-2; tisch.position.z=-0.03; sz.add(tisch);
-      const netzBoden=new T.GridHelper(24,24,0xd2d2c8,0xe4e4dc);
+      const netzBoden=new T.GridHelper(24,24,BODEN().d3mitte,BODEN().d3netz);
       netzBoden.rotation.x=Math.PI/2; netzBoden.renderOrder=-1; netzBoden.position.z=-0.02; sz.add(netzBoden);
       this.vsBoden=[tisch,netzBoden];
       try{ const pm=new T.PMREMGenerator(r); sz.environment=pm.fromScene(new this.Raum(),0.04).texture; }catch(e){}
@@ -1540,7 +1592,7 @@ const PHYSIK = {
     this.stopp();                      // alte Szene samt Animationsschleife abräumen
     const box=document.createElement("div");
     box.innerHTML=`<div class="beispiel">
-        <div id="buehneBox" style="aspect-ratio:340/230"></div>
+        <div id="buehneBox" style="aspect-ratio:340/195"></div>
         <button class="k rund an ecke links" id="phHeben">anheben</button>
         <button class="k haupt ecke rechts" id="phOk" disabled>${knopftext}</button>
         <div class="tipp" id="phHilfeText" hidden>Bei „bewegen“ ein Teil anfassen und ziehen: Es wird angehoben,
@@ -1593,9 +1645,23 @@ const PHYSIK = {
       fertig(koan);
     };
   },
+  /* Die Buehne war senkrecht hoeher als noetig. Gezeichnet wird weiterhin
+     dasselbe Bild wie frueher (Verhaeltnis BUEHNE_VOLL) - alles bleibt gleich
+     gross -, nur der untere Streifen faellt weg: dort war ohnehin nur leerer
+     Tisch, waehrend oben ein Teil am hinteren Tischrand den Platz braucht.
+     BUEHNE_OBEN gaebe einen Teil des Schnitts nach oben ab (0 = alles unten). */
+  BUEHNE_VOLL: 230/340,
+  BUEHNE: 195/340,
+  BUEHNE_OBEN: 0,                         /* Anteil des Schnitts, der oben wegfaellt */
+  buehneKegel(kamera, breite, hoehe){
+    const voll=Math.max(hoehe, Math.round(breite*this.BUEHNE_VOLL));
+    kamera.aspect=breite/voll;                 /* Seitenverhaeltnis des VOLLEN Bildes */
+    kamera.setViewOffset(breite, voll, 0, Math.round((voll-hoehe)*this.BUEHNE_OBEN), breite, hoehe);
+    kamera.updateProjectionMatrix();
+  },
   starteSzene(el){
     const T=this.T;
-    const breite=el.clientWidth||340, hoehe=Math.round(breite*230/340);
+    const breite=el.clientWidth||340, hoehe=Math.round(breite*this.BUEHNE);
     const renderer=new T.WebGLRenderer({antialias:true, alpha:true});
     renderer.setPixelRatio(Math.min(2,window.devicePixelRatio||1));
     renderer.setSize(breite,hoehe);
@@ -1608,6 +1674,7 @@ const PHYSIK = {
     }catch(e){}
     const kamera=new T.PerspectiveCamera(45, breite/hoehe, .1, 200);
     kamera.up.set(0,0,1); kamera.position.set(9,-9,7);
+    this.buehneKegel(kamera, breite, hoehe);
     szene.add(new T.HemisphereLight(0xffffff,0xbdbdb4,1.6));
     const sonne=new T.DirectionalLight(0xffffff,1.15);
     sonne.position.set(6,-8,12); sonne.castShadow=true;
@@ -1618,7 +1685,7 @@ const PHYSIK = {
     szene.add(sonne);
     const tisch=new T.Mesh(new T.PlaneGeometry(14,14), new T.ShadowMaterial({opacity:.18}));
     tisch.receiveShadow=true; tisch.renderOrder=-2; tisch.position.z=-0.03; szene.add(tisch);
-    const raster=new T.GridHelper(14,14,0xc9c9c0,0xe4e4dc);
+    const raster=new T.GridHelper(14,14,BODEN().d3mitte,BODEN().d3netz);
     raster.rotation.x=Math.PI/2; raster.renderOrder=-1; raster.position.z=-0.02; szene.add(raster);
     const bahn=new this.Orbit(kamera, renderer.domElement);
     bahn.target.set(0,0,1); bahn.enableDamping=true;
@@ -1628,7 +1695,7 @@ const PHYSIK = {
     gizmo.setMode("translate"); gizmo.setRotationSnap(Math.PI/36);
     szene.add(gizmo.getHelper ? gizmo.getHelper() : gizmo);
     const welt=this.neueWelt();
-    const S2={renderer, szene, kamera, bahn, gizmo, welt, teile:[], netze:[], koerper:[],
+    const S2={renderer, szene, kamera, bahn, gizmo, welt, raster, teile:[], netze:[], koerper:[],
               gewaehlt:-1, el, lauf:0, modus:"bewegen", trage:null, verlauf:[], anheben:true};
     const ring=new T.Mesh(new T.RingGeometry(.55,.72,32),
       new T.MeshBasicMaterial({color:0x2f7d32, transparent:true, opacity:.6, side:T.DoubleSide}));
@@ -1673,7 +1740,9 @@ const PHYSIK = {
       // Welteinheiten je Bildpunkt; der Nenner wird begrenzt, damit es bei flachem
       // Blick auf den Tisch nicht davonspringt
       const abstand=kamera.position.distanceTo(n.position);
-      const skal=2*Math.tan(kamera.fov*Math.PI/360)*abstand/Math.max(1,r.height);
+      /* Der Blickwinkel gilt fuer das VOLLE Bild; nur ein Teil davon wird gezeigt
+         (siehe buehneKegel), deshalb hier die volle Hoehe und nicht r.height. */
+      const skal=2*Math.tan(kamera.fov*Math.PI/360)*abstand/Math.max(1,r.width*this.BUEHNE_VOLL);
       const flach=Math.max(0.35, Math.abs(vorne.z));
       const vx=boden.y*dx*skal + boden.x*(-dy*skal/flach);
       const vy=-boden.x*dx*skal + boden.y*(-dy*skal/flach);
@@ -1720,8 +1789,9 @@ const PHYSIK = {
     takt();
     S2.anpassen=()=>{
       if(!el.clientWidth) return;
-      const w=el.clientWidth, h=Math.round(w*230/340);
-      renderer.setSize(w,h); kamera.aspect=w/h; kamera.updateProjectionMatrix();
+      const w=el.clientWidth, h=Math.round(w*this.BUEHNE);
+      renderer.setSize(w,h);
+      this.buehneKegel(kamera, w, h);
     };
     window.addEventListener("resize", S2.anpassen);
   },
@@ -2738,6 +2808,65 @@ function vermutungPruefen(v){
   S.phase=S.ratenZurueck||"zugende"; zeichneAlles();
   setTimeout(()=>alert(`Widerlegt: Das neue Beispiel ${g.passt?"passt zur Regel":"passt nicht zur Regel"} – die Vermutung sagt das Gegenteil.`),50);
 }
+
+/* ==========================================================
+   SPRACHE UND FEHLER MELDEN (theme-language.js)
+   Zendo ist bisher nur auf Deutsch. Beim Umschalten auf Englisch
+   (oder beim Laden mit Englisch) erscheint ein kurzer Hinweis;
+   die Oberfläche bleibt deutsch. Ohne die gemeinsame Datei
+   passiert hier gar nichts.
+   ========================================================== */
+function _enHinweisTaste(e){
+  if(e.key==="Escape"||e.key==="Enter"){ e.preventDefault(); e.stopPropagation(); enHinweisSchliessen(); }
+}
+function enHinweisSchliessen(){
+  const d=$("enHinweis"); if(d) d.remove();
+  document.removeEventListener("keydown",_enHinweisTaste,true);
+}
+function enHinweisZeigen(){
+  if($("enHinweis")) return;
+  const d=document.createElement("div");
+  d.id="enHinweis"; d.className="zd-hinweis";
+  d.innerHTML='<div class="zdh-box" role="dialog" aria-modal="true" aria-labelledby="zdhTitel">'
+    +'<span class="zdh-titel" id="zdhTitel">German only so far</span>'
+    +'<p>This game has not been translated yet – rules, examples and all texts stay German. '
+    +'The other Mathe-Tools pages switch to English as usual.</p>'
+    +'<div class="zdh-fuss"><button class="k haupt" type="button">OK</button></div></div>';
+  d.addEventListener("mousedown",e=>{ if(e.target===d) enHinweisSchliessen(); });
+  d.addEventListener("touchstart",e=>{ if(e.target===d){ e.preventDefault(); enHinweisSchliessen(); } },{passive:false});
+  d.querySelector("button").addEventListener("click",enHinweisSchliessen);
+  document.body.appendChild(d);
+  document.addEventListener("keydown",_enHinweisTaste,true);
+}
+window.addEventListener("tl-sprache",e=>{
+  document.documentElement.lang="de";          // der Inhalt bleibt deutsch
+  if(e.detail && e.detail.sprache==="en") enHinweisZeigen(); else enHinweisSchliessen();
+});
+window.addEventListener("tl-theme",()=>{
+  /* Vorschau-Szene neu aufbauen (die Bodenfarbe steckt im Material), Raster im Baukasten
+     nur austauschen – der aktuelle Aufbau bleibt dabei stehen. */
+  try{ PHYSIK.vs=null; PHYSIK.vsBoden=null; }catch(e){}
+  try{
+    const sz=PHYSIK.szene, T=PHYSIK.T, b=BODEN();
+    if(sz && sz.raster && T){
+      sz.szene.remove(sz.raster);
+      const neu=new T.GridHelper(14,14,b.d3mitte,b.d3netz);
+      neu.rotation.x=Math.PI/2; neu.renderOrder=-1; neu.position.z=-0.02;
+      sz.szene.add(neu); sz.raster=neu;
+    }
+  }catch(e){}
+  try{ if(!$("spiel").hidden) zeichneTafel(); }catch(e){}
+});
+/* Fehler melden: Spielstand mitschicken – die geheime Regel erst, wenn sie heraus ist */
+window.fehlerKontext=function(){
+  const t=[];
+  const art=S.spielart==="woerter"?"Wörter":"3D-Bausteine";
+  t.push(art+" ("+S.variante+"), "+S.modus+", Spielleiter "+S.leiter+", Stufe "+S.stufe);
+  t.push("Phase "+S.phase+", "+S.koans.length+" Beispiele, Seed "+S.seed);
+  if(S.regel) t.push("Regel: "+((S.sieger||S.phase==="ende")?regelText(S.regel):"noch verdeckt"));
+  if(S.sieger) t.push("Sieger: "+S.sieger.name);
+  return t.join(" | ");
+};
 
 baueSetup();
 </script>

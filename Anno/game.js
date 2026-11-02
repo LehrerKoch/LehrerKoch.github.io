@@ -1,4 +1,63 @@
 // --------------------------------------------------------
+// SPRACHE (theme-language.js; ohne die Datei bleibt alles deutsch)
+// --------------------------------------------------------
+function T(de, en) { return (typeof tlText === 'function') ? tlText(de, en) : de; }
+
+/** Kartenfeld in aktueller Sprache: AT(card,'title') → title_en oder title. */
+function AT(card, feld) {
+    if (typeof tlSprache === 'function' && tlSprache() === 'en' && card[feld + '_en']) return card[feld + '_en'];
+    return card[feld];
+}
+
+/** furtherInformation in aktueller Sprache. */
+function cardInfos(card) {
+    if (typeof tlSprache === 'function' && tlSprache() === 'en'
+        && card.furtherInformation_en && card.furtherInformation_en.length) {
+        return card.furtherInformation_en;
+    }
+    return card.furtherInformation;
+}
+
+// Anzeigenamen der Themen-Tags. Die WERTE (in URL, Daten, Filtern)
+// bleiben immer die deutschen Namen – übersetzt wird nur die Beschriftung.
+const TAG_LABELS_EN = {
+    '!einfach': '!easy', '!wichtig': '!important', '!ungelöst': '!unsolved',
+    'Algebra': 'Algebra', 'Algorithmik': 'Algorithmics', 'Analysis': 'Calculus',
+    'Antike': 'Antiquity', 'Astronomie': 'Astronomy', 'Aufklärung': 'Enlightenment',
+    'Axiomatik': 'Axiomatics', 'Datenanalyse': 'Data analysis', 'Diskret': 'Discrete',
+    'Dreiecke': 'Triangles', 'Fraktale': 'Fractals', 'Frauen': 'Women',
+    'Gegenwart': 'Present day', 'Geometrie': 'Geometry', 'Geschichte': 'History',
+    'Graphentheorie': 'Graph theory', 'Gruppentheorie': 'Group theory',
+    'Industrialisierung': 'Industrial age', 'Informatik': 'Computer science',
+    'Integrale': 'Integrals', 'Kognitive Verzerrung': 'Cognitive bias',
+    'Kombinatorik': 'Combinatorics', 'Kryptographie': 'Cryptography', 'Kunst': 'Art',
+    'Körper': 'Solids', 'Logik': 'Logic', 'Mathematik': 'Mathematics',
+    'Mechanik': 'Mechanics', 'Mittelalter': 'Middle Ages', 'Moderne': 'Modern era',
+    'Paradoxon': 'Paradox', 'Personen': 'People', 'Philosophie': 'Philosophy',
+    'Physik': 'Physics', 'Pi': 'Pi', 'Politik': 'Politics', 'Primzahlen': 'Prime numbers',
+    'Rekursion': 'Recursion', 'Renaissance': 'Renaissance', 'Sicherheit': 'Security',
+    'Spieltheorie': 'Game theory', 'Statistik': 'Statistics', 'Stochastik': 'Stochastics',
+    'Symbole': 'Symbols', 'Technik': 'Technology', 'Topologie': 'Topology',
+    'Trigonometrie': 'Trigonometry', 'Unterhaltungsmathematik': 'Recreational maths',
+    'Wahrscheinlichkeit': 'Probability', 'Wirtschaft': 'Economics', 'Zahlen': 'Numbers',
+    'Zahlentheorie': 'Number theory', 'Zitate': 'Quotes',
+    'Algorithmen': 'Algorithms', 'Anekdote': 'Anecdotes', 'Gaming': 'Gaming',
+    'Gesellschaft': 'Society', 'Grafik': 'Graphics', 'Hardware': 'Hardware',
+    'Infrastruktur': 'Infrastructure', 'Internet': 'Internet', 'KI': 'AI',
+    'Medien': 'Media', 'Mobile': 'Mobile', 'Modern': 'Modern', 'Netzwerk': 'Networks',
+    'NeuronaleNetze': 'Neural networks', 'OpenSource': 'Open source', 'Person': 'People',
+    'Pionier': 'Pioneers', 'SocialMedia': 'Social media', 'Software': 'Software',
+    'Speicher': 'Storage', 'Sprachen': 'Languages', 'Standard': 'Standards',
+    'Theorie': 'Theory', 'UX': 'UX', 'Webseite': 'Websites'
+};
+function tagLabel(tag) {
+    if (typeof tlSprache === 'function' && tlSprache() === 'en' && TAG_LABELS_EN[tag]) {
+        return TAG_LABELS_EN[tag];
+    }
+    return tag;
+}
+
+// --------------------------------------------------------
 // STATE
 // --------------------------------------------------------
 let deck = [], hand = [], timeline = [], score = 0;
@@ -267,11 +326,14 @@ function fitCardContents(root = document) {
 // FURTHER INFO TOOLTIP
 // --------------------------------------------------------
 function formatRange(start, end) {
-    const fmt = v => v < 0 ? `${Math.abs(v)} v. Chr.` : `${v} n. Chr.`;
+    const fmt = v => v < 0
+        ? `${Math.abs(v)} ${T('v. Chr.', 'BC')}`
+        : `${v} ${T('n. Chr.', 'AD')}`;
     return `${fmt(start)} – ${fmt(end)}`;
 }
 
-function showFurtherInfoTooltip(iconBtn, items, title = 'Weiterführende Infos') {
+function showFurtherInfoTooltip(iconBtn, items, title) {
+    if (title === undefined) title = T('Weiterführende Infos', 'Further information');
     clearTimeout(furtherInfoHideTimer);
     let tip = document.getElementById('further-info-tooltip');
     if (!tip) {
@@ -334,7 +396,7 @@ function setLobbyMode(mode, skipURL = false) {
 
 function updateURL() {
     const mode = lobbySelectedMode;
-    const currentTags = [...document.querySelectorAll('.tag-btn.active')].map(b => b.innerText);
+    const currentTags = [...document.querySelectorAll('.tag-btn.active')].map(b => b.dataset.tag);
     const cards = document.getElementById('cards-slider')?.value || 10;
     const urlParams = new URLSearchParams(window.location.search);
     urlParams.set('mode', mode);
@@ -346,7 +408,7 @@ function updateURL() {
 }
 
 function updateLobbyCount() {
-    const activeTags = [...document.querySelectorAll('.tag-btn.active')].map(b => b.innerText);
+    const activeTags = [...document.querySelectorAll('.tag-btn.active')].map(b => b.dataset.tag);
     const pool = activeTags.length > 0
         ? cardPool.filter(c => c.tags.some(t => activeTags.includes(t)))
         : cardPool;
@@ -355,7 +417,7 @@ function updateLobbyCount() {
     if (!el) return;
 
     if (activeTags.length === 0) {
-        el.textContent = `${pool.length} Karten verfügbar`;
+        el.textContent = `${pool.length} ${T('Karten verfügbar', 'cards available')}`;
         return;
     }
 
@@ -364,27 +426,30 @@ function updateLobbyCount() {
     if (lobbySelectedMode === 'guess') {
         // Guess-Modus: alle Karten einzeln, keine Hand/Zeitstrahl-Aufteilung
         const N = Math.min(sliderVal, pool.length);
-        gespielt = `${N} werden gespielt`;
+        gespielt = `${N} ${T('werden gespielt', 'will be played')}`;
     } else {
         // Direct / Risiko: Handkarten (5) + 1 Startkarte + restlicher Stapel
         const handSize = Math.min(5, pool.length - 1);
         const maxN     = Math.max(1, pool.length - handSize);
         const N        = Math.min(sliderVal, maxN);
         const deckRest = N - 1; // 1 Karte geht sofort auf den Zeitstrahl
-        gespielt = `${handSize}+1` + (deckRest > 0 ? `+${deckRest}` : ``) + ` werden gespielt`;
+        gespielt = `${handSize}+1` + (deckRest > 0 ? `+${deckRest}` : ``) + ` ${T('werden gespielt', 'will be played')}`;
     }
 
-    el.textContent = `${pool.length} Karten verfügbar (${gespielt})`;
+    el.textContent = `${pool.length} ${T('Karten verfügbar', 'cards available')} (${gespielt})`;
 }
 
 function updateMode(skipURL = false) {
     const desc = document.getElementById('mode-description');
     if (lobbySelectedMode === 'risk') {
-        desc.innerHTML = "<b>Risiko-Variante:</b> Platziere die Karten blind im Zeitstrahl – die Jahreszahlen bleiben verborgen. Erst wenn du auf 'Reihe werten' klickst, werden alle Karten aufgedeckt. Ist die Reihe fehlerfrei, erhältst du Punkte. Ein einziger Fehler bringt dir null Punkte! Mehr Risiko, mehr Punkte, ideal für Fortgeschrittene!";
+        desc.innerHTML = T("<b>Risiko-Variante:</b> Platziere die Karten blind im Zeitstrahl – die Jahreszahlen bleiben verborgen. Erst wenn du auf 'Reihe werten' klickst, werden alle Karten aufgedeckt. Ist die Reihe fehlerfrei, erhältst du Punkte. Ein einziger Fehler bringt dir null Punkte! Mehr Risiko, mehr Punkte, ideal für Fortgeschrittene!",
+                           "<b>Risk Mode:</b> Place the cards on the timeline blind – the years stay hidden. All cards are only revealed once you click 'Score the row'. If the row is flawless, you earn points – a single mistake means zero points! More risk, more points, great for advanced players!");
     } else if (lobbySelectedMode === 'guess') {
-        desc.innerHTML = "<b>Jahr schätzen:</b> Eine Karte nach der anderen – tippe das Jahr des Ereignisses ein. Je genauer du liegst, desto mehr Punkte. Ältere Ereignisse verzeihen größere Abweichungen. Kein Drag & Drop, nur dein Zeitgefühl!";
+        desc.innerHTML = T("<b>Jahr schätzen:</b> Eine Karte nach der anderen – tippe das Jahr des Ereignisses ein. Je genauer du liegst, desto mehr Punkte. Ältere Ereignisse verzeihen größere Abweichungen. Kein Drag & Drop, nur dein Zeitgefühl!",
+                           "<b>Guess the Year:</b> One card at a time – type in the year of the event. The closer you are, the more points you get. Older events forgive bigger deviations. No drag & drop, just your sense of time!");
     } else {
-        desc.innerHTML = "<b>Direktes Aufdecken:</b> Sofortiges Feedback: Sobald du eine Karte an eine Position ziehst, wird sie umgedreht. Stimmt die Position nicht, wird die Karte entfernt. Ideal zum Lernen!";
+        desc.innerHTML = T("<b>Direktes Aufdecken:</b> Sofortiges Feedback: Sobald du eine Karte an eine Position ziehst, wird sie umgedreht. Stimmt die Position nicht, wird die Karte entfernt. Ideal zum Lernen!",
+                           "<b>Instant Reveal:</b> Immediate feedback: as soon as you drag a card into position, it is flipped over. If the position is wrong, the card is removed. Perfect for learning!");
     }
     if (!skipURL) updateURL();
 }
@@ -409,7 +474,8 @@ function init() {
     const container = document.getElementById('tag-filters');
     allTags.forEach(tag => {
         const btn = document.createElement('button');
-        btn.innerText = tag;
+        btn.dataset.tag = tag;                 // interner Wert (deutsch, stabil für URL/Filter)
+        btn.textContent = tagLabel(tag);       // Anzeige in aktueller Sprache
         btn.className = 'tag-btn';
         if (urlTags.includes(tag)) btn.classList.add('active');
 
@@ -461,7 +527,7 @@ function startNewGame() {
     const sliderVal = parseInt(document.getElementById('cards-slider')?.value || 10);
     startcardsToPlay = sliderVal;
     currentGameMode = lobbySelectedMode;
-    activeFilters   = [...document.querySelectorAll('.tag-btn.active')].map(b => b.innerText);
+    activeFilters   = [...document.querySelectorAll('.tag-btn.active')].map(b => b.dataset.tag);
     gameOverShown   = false;
     updateURL(); // URL vor Spielstart sichern (wird nach reload wiederhergestellt)
 
@@ -560,6 +626,19 @@ function renderHand() {
     hand.forEach((card, i) => container.appendChild(createCardUI(card, true, i)));
 }
 
+// Wartet, bis MathJax wirklich bereit ist. window.MathJax existiert schon
+// waehrend des Ladens (als Konfiguration), typesetPromise aber noch nicht.
+function mjTypeset(elemente) {
+    if (!window.MathJax) return Promise.resolve();
+    if (MathJax.typesetPromise) return MathJax.typesetPromise(elemente).catch(() => {});
+    if (MathJax.startup && MathJax.startup.promise) {
+        return MathJax.startup.promise
+            .then(() => MathJax.typesetPromise ? MathJax.typesetPromise(elemente) : null)
+            .catch(() => {});
+    }
+    return Promise.resolve();
+}
+
 function triggerMathJax() {
     // Kein Verstecken mehr nötig: adjustTimelineZoom/adjustHandZoom setzen
     // keinen scale(1)-Reset → kein Flacker-Frame. fitCardContents läuft
@@ -570,11 +649,7 @@ function triggerMathJax() {
         requestAnimationFrame(() => fitCardContents()); // RAF-C, nach RAF-A+B
     };
 
-    if (window.MathJax) {
-        MathJax.typesetPromise().then(() => requestAnimationFrame(reveal));
-    } else {
-        requestAnimationFrame(reveal);
-    }
+    mjTypeset().then(() => requestAnimationFrame(reveal));
 }
 
 // --------------------------------------------------------
@@ -626,29 +701,29 @@ function createCardUI(card, isHand, index, isZoom = false) {
 
     const hasLinks = card.furtherInformation && card.furtherInformation.length > 0;
     const infoIconHTML = hasLinks
-        ? `<button class="further-info-icon" title="Weiterführende Infos">🔗</button>`
+        ? `<button class="further-info-icon" title="${T('Weiterführende Infos', 'Further information')}">🔗</button>`
         : '';
 
     const hasRange = card.startvalue !== card.endvalue;
     const rangeStarHTML = hasRange
-        ? `<button class="range-star-icon" title="Akzeptierter Zeitraum">✱</button>`
+        ? `<button class="range-star-icon" title="${T('Akzeptierter Zeitraum', 'Accepted range')}">✱</button>`
         : '';
 
     cardEl.innerHTML = `
         <div class="card-front">
             <div class="card-title-wrapper">
-                <div class="card-title">${card.title}</div>
+                <div class="card-title">${AT(card, 'title')}</div>
             </div>
-            <div class="card-text">${card.fronttext}</div>
+            <div class="card-text">${AT(card, 'fronttext')}</div>
         </div>
         <div class="card-back">
             <div class="card-title-wrapper">
-                <div class="card-title">${card.title}</div>
+                <div class="card-title">${AT(card, 'title')}</div>
             </div>
             <div class="back-year-wrap">
-                <div class="back-year">${card.valuetext}</div>${rangeStarHTML}
+                <div class="back-year">${AT(card, 'valuetext')}</div>${rangeStarHTML}
             </div>
-            <div class="card-text back-text">${card.backtext}</div>
+            <div class="card-text back-text">${AT(card, 'backtext')}</div>
             ${infoIconHTML}
         </div>
     `;
@@ -656,11 +731,10 @@ function createCardUI(card, isHand, index, isZoom = false) {
     // Range-Stern Tooltip
     if (hasRange) {
         const starBtn = cardEl.querySelector('.range-star-icon');
-        const rangeLinks = [formatRange(card.startvalue, card.endvalue)];
         starBtn.addEventListener('pointerenter', (e) => {
             if (e.pointerType !== 'mouse') return;
             clearTimeout(furtherInfoHideTimer);
-            showFurtherInfoTooltip(starBtn, rangeLinks, 'Akzeptierter Zeitraum');
+            showFurtherInfoTooltip(starBtn, [formatRange(card.startvalue, card.endvalue)], T('Akzeptierter Zeitraum', 'Accepted range'));
         });
         starBtn.addEventListener('pointerleave', (e) => {
             if (e.pointerType !== 'mouse') return;
@@ -673,7 +747,7 @@ function createCardUI(card, isHand, index, isZoom = false) {
                 hideFurtherInfoTooltip();
             } else {
                 clearTimeout(furtherInfoHideTimer);
-                showFurtherInfoTooltip(starBtn, rangeLinks, 'Akzeptierter Zeitraum');
+                showFurtherInfoTooltip(starBtn, [formatRange(card.startvalue, card.endvalue)], T('Akzeptierter Zeitraum', 'Accepted range'));
             }
         });
     }
@@ -683,7 +757,7 @@ function createCardUI(card, isHand, index, isZoom = false) {
         iconBtn.addEventListener('pointerenter', (e) => {
             if (e.pointerType !== 'mouse') return;
             clearTimeout(furtherInfoHideTimer);
-            showFurtherInfoTooltip(iconBtn, card.furtherInformation, 'Weiterführende Infos');
+            showFurtherInfoTooltip(iconBtn, cardInfos(card), T('Weiterführende Infos', 'Further information'));
         });
         iconBtn.addEventListener('pointerleave', (e) => {
             if (e.pointerType !== 'mouse') return;
@@ -696,7 +770,7 @@ function createCardUI(card, isHand, index, isZoom = false) {
                 hideFurtherInfoTooltip();
             } else {
                 clearTimeout(furtherInfoHideTimer);
-                showFurtherInfoTooltip(iconBtn, card.furtherInformation, 'Weiterführende Infos');
+                showFurtherInfoTooltip(iconBtn, cardInfos(card), T('Weiterführende Infos', 'Further information'));
             }
         });
     }
@@ -955,7 +1029,7 @@ function checkAndFlip(card) {
         setTimeout(() => {
             flipPending = false;
             if (!isValidOrder()) {
-                showRoundResult('✗ Falsche Position! Du kannst die Karte noch anklicken, um die Rückseite zu lesen.', false, () => {
+                showRoundResult(T('✗ Falsche Position! Du kannst die Karte noch anklicken, um die Rückseite zu lesen.', '✗ Wrong position! You can still click the card to read its back.'), false, () => {
                     timeline = timeline.filter(c => c !== card);
                     renderTimeline();
                     triggerMathJax();
@@ -1014,8 +1088,10 @@ function revealRisk() {
         if (correct) score += points;
 
         const msg = correct
-            ? `✓ Richtig! Du erhältst <strong>+${points} Punkte</strong>.`
-            : `✗ Leider falsch – die Reihenfolge stimmt nicht.`;
+            ? T(`✓ Richtig! Du erhältst <strong>+${points} Punkte</strong>.`,
+                `✓ Correct! You earn <strong>+${points} points</strong>.`)
+            : T(`✗ Leider falsch – die Reihenfolge stimmt nicht.`,
+                `✗ Unfortunately wrong – the order isn't correct.`);
 
         showRoundResult(msg, correct, () => {
             timeline = [];
@@ -1114,11 +1190,7 @@ function showZoom(card, isCurrentlyFlipped) {
         container.style.opacity    = '1';
     };
 
-    if (window.MathJax) {
-        MathJax.typesetPromise([container]).then(() => requestAnimationFrame(reveal));
-    } else {
-        requestAnimationFrame(reveal);
-    }
+    mjTypeset([container]).then(() => requestAnimationFrame(reveal));
 }
 
 function closeZoom() {
@@ -1150,13 +1222,10 @@ function showNextGuessCard() {
     }
 
     guessCardShown = guessDeck.pop();
+    guessCardShown.isFlipped = false;
 
     // Karte rendern (Vorderseite, nicht aufgedeckt, kein Drag)
-    const container = document.getElementById('guess-card-container');
-    container.innerHTML = '';
-    const cardEl = createCardUI(guessCardShown, false, 0, false);
-    cardEl.classList.add('big');
-    container.appendChild(cardEl);
+    renderGuessCard();
 
     // Stats aktualisieren
     document.getElementById('remaining').innerText = guessDeck.length;
@@ -1170,6 +1239,20 @@ function showNextGuessCard() {
     document.getElementById('guess-submit-btn').disabled = false;
     document.getElementById('guess-input-area').style.display = '';
 
+    // Fokus auf Eingabefeld
+    setTimeout(() => input.focus(), 80);
+}
+
+/** Baut die aktuell angezeigte Schätz-Karte neu auf (auch nach Sprachwechsel). */
+function renderGuessCard() {
+    if (!guessCardShown) return;
+    const container = document.getElementById('guess-card-container');
+    container.innerHTML = '';
+    const cardEl = createCardUI(guessCardShown, false, 0, false);
+    cardEl.classList.add('big');
+    if (guessCardShown.isFlipped) cardEl.classList.add('flipped');
+    container.appendChild(cardEl);
+
     // MathJax + Textanpassung
     if (window.MathJax) {
         MathJax.typesetPromise([container]).then(() => {
@@ -1181,9 +1264,6 @@ function showNextGuessCard() {
     } else {
         fitCardContents(container);
     }
-
-    // Fokus auf Eingabefeld
-    setTimeout(() => input.focus(), 80);
 }
 
 // ── Toleranz-Formel für "Jahr schätzen" ──────────────────────────────────────
@@ -1265,13 +1345,13 @@ function submitGuess() {
 
     const raw = input.value.trim();
     if (raw === '') {
-        showToast('Bitte eine Jahreszahl eingeben!', 'wrong', 1500);
+        showToast(T('Bitte eine Jahreszahl eingeben!', 'Please enter a year!'), 'wrong', 1500);
         input.focus();
         return;
     }
     const guessYear = parseInt(raw, 10);
     if (isNaN(guessYear)) {
-        showToast('Ungültige Eingabe – bitte eine Zahl tippen.', 'wrong', 1500);
+        showToast(T('Ungültige Eingabe – bitte eine Zahl tippen.', 'Invalid input – please type a number.'), 'wrong', 1500);
         input.focus();
         return;
     }
@@ -1301,18 +1381,20 @@ function submitGuess() {
     }
 
     // Ergebnis-Nachricht aufbauen
-    const fmtYear = y => y < 0 ? `${Math.abs(y)} v. Chr.` : `${y}`;
+    const fmtYear = y => y < 0 ? `${Math.abs(y)} ${T('v. Chr.', 'BC')}` : `${y}`;
     const guessDisplay  = fmtYear(guessYear);
-    const answerDisplay = card.valuetext;
+    const answerDisplay = AT(card, 'valuetext');
     let diffNote = '';
     if (diff > 0) {
-        const diffDisplay = diff === 1 ? '1 Jahr' : `${diff} Jahre`;
-        diffNote = ` &nbsp;·&nbsp; Abweichung: ${diffDisplay}`;
+        const diffDisplay = diff === 1 ? `1 ${T('Jahr', 'year')}` : `${diff} ${T('Jahre', 'years')}`;
+        diffNote = ` &nbsp;·&nbsp; ${T('Abweichung', 'Difference')}: ${diffDisplay}`;
     }
 
     const msg = diff === 0
-        ? `🎯 Perfekt! <strong>${guessDisplay}</strong> – korrekt! &nbsp;<strong>+${pts} Punkte</strong>`
-        : `Schätzung: <strong>${guessDisplay}</strong> &nbsp;·&nbsp; Richtig: <strong>${answerDisplay}</strong>${diffNote} &nbsp;→&nbsp; <strong>+${pts} Punkte</strong>`;
+        ? T(`🎯 Perfekt! <strong>${guessDisplay}</strong> – korrekt! &nbsp;<strong>+${pts} Punkte</strong>`,
+            `🎯 Perfect! <strong>${guessDisplay}</strong> – correct! &nbsp;<strong>+${pts} points</strong>`)
+        : T(`Schätzung: <strong>${guessDisplay}</strong> &nbsp;·&nbsp; Richtig: <strong>${answerDisplay}</strong>${diffNote} &nbsp;→&nbsp; <strong>+${pts} Punkte</strong>`,
+            `Your guess: <strong>${guessDisplay}</strong> &nbsp;·&nbsp; Correct: <strong>${answerDisplay}</strong>${diffNote} &nbsp;→&nbsp; <strong>+${pts} points</strong>`);
 
     const isGood = pts >= 50;
 
@@ -1347,6 +1429,24 @@ document.addEventListener('keydown', (e) => {
                 inputEl.focus();
             }
         }
+    }
+});
+
+// --------------------------------------------------------
+// SPRACHWECHSEL: sichtbare dynamische Bereiche neu aufbauen
+// --------------------------------------------------------
+window.addEventListener('tl-sprache', function () {
+    // Lobby: Tag-Beschriftungen, Modusbeschreibung, Kartenzähler
+    document.querySelectorAll('.tag-btn').forEach(b => {
+        if (b.dataset.tag) b.textContent = tagLabel(b.dataset.tag);
+    });
+    if (document.getElementById('mode-description')) updateMode(true);
+    updateLobbyCount();
+    // Laufendes Spiel: Karten in neuer Sprache neu rendern
+    const lobby = document.getElementById('lobby');
+    if (lobby && lobby.classList.contains('hidden') && !gameOverShown) {
+        if (currentGameMode === 'guess') renderGuessCard();
+        else updateUI();
     }
 });
 

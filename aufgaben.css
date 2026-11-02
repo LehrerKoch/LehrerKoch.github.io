@@ -36,6 +36,7 @@
   --ab-gr-hell:   #eef4ee;   /* Grün als Fläche */
   --ab-gr-rand:   #b8d8b8;
   --ab-gr-an:     #c8f0c8;   /* eingeschalteter Chip */
+  --ab-gr-aktuell:#a5e3a5;   /* Kachel der laufenden Aufgabe */
   --ab-bl:        #3a7ac0;   /* Blau: Lösung, Schwierigkeit */
   --ab-bl-dunkel: #0d47a1;
   --ab-bl-knopf:  #1f6bb8;   /* gefüllter Knopf „Lösung anzeigen“ */
@@ -293,6 +294,9 @@ label.pill input{ position:absolute; opacity:0; width:0; height:0; pointer-event
 /* Von abPillen() gebaute Chips: nur der Name, dazu bei Gruppen die Zahl der
    aktiven Unterpunkte und ein Pfeil, der das Untermenue oeffnet. */
 .pills{ justify-content:center; align-items:center; }
+/* Eine Reihe Ovale, die links beginnt - z. B. die Formauswahl, die unter
+   einer linksbündigen Beschriftung steht. */
+.pills.links{ justify-content:flex-start; }
 button.pill{ display:inline-flex; align-items:center; gap:5px; position:relative; }
 /* Trägt ein Oval Schwierigkeitssterne, stehen sie über dem Namen und alles
    ist zentriert - nebeneinander stünde die Beschriftung je nach Sternzahl
@@ -307,8 +311,9 @@ button.pill{ display:inline-flex; align-items:center; gap:5px; position:relative
 /* Ein eingeschaltetes Oval mit Unterformen: grün wie die anderen, aber
    gestrichelt - dahinter steckt noch eine Auswahl. */
 .pill.on.hatunter{ border-style:dashed; }
-.pill.aktuell{ box-shadow:0 0 0 2px var(--ab-bl-rand) inset; }
-.pill.aktuell-gruppe{ box-shadow:0 0 0 2px var(--ab-bl-rand) inset; }
+/* Das Oval der laufenden Aufgabe: etwas dunkleres Grün, wie bei den Kacheln. */
+.pill.aktuell, .pill.aktuell-gruppe{ background:var(--ab-gr-aktuell) !important;
+  border-color:var(--ab-gr-dunkel) !important; }
 html.dark .pill .pzahl{ opacity:.7; }
 @media (max-width:520px){ button.pill{ gap:4px; } }
 
@@ -329,13 +334,12 @@ html.dark .pill .pzahl{ opacity:.7; }
 .tiles.vier{ display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); }
 .tiles.vier > .tile{ flex:none; width:auto; min-width:0; }
 .tiles.vier > .tile:last-child:nth-child(odd){ grid-column:auto; }
-@media(max-width:760px){ .tiles.vier{ grid-template-columns:repeat(2, minmax(0,1fr)); } }
 /* Eine Kachel ist ein großes Kontrollkästchen: Haken links, Name und
    Kurzfassung daneben. Dasselbe Bild wie bei den Aufgabentypen auf den
    Erkennen-Seiten. */
 .tile{ position:relative; display:flex; align-items:flex-start; gap:10px;
   flex:1 1 215px; min-width:0; text-align:left; background:var(--ab-neutral);
-  color:var(--ab-text) !important; border:1.5px solid var(--ab-neutral-r); border-radius:11px;
+  color:var(--ab-text) !important; border:1.8px solid var(--ab-rand); border-radius:11px;
   padding:9px 11px; margin:0; font-size:.88em; line-height:1.25; cursor:pointer;
   font-family:inherit;
   /* Kacheln einer Zeile sind gleich hoch. Das steht hier ausdrücklich, weil
@@ -350,17 +354,27 @@ html.dark .pill .pzahl{ opacity:.7; }
 .tile.on .tk{ background:var(--ab-gr); border-color:var(--ab-gr-dunkel); color:#fff; }
 .tile.empty .tk{ color:var(--ab-gr-dunkel); background:var(--ab-weiss); }
 .tile .ttext{ display:flex; flex-direction:column; gap:2px; min-width:0; flex:1 1 auto; }
-.tile .tname{ font-weight:bold; display:block; }
+/* Der Name und der Zähler in der Klammer stehen in einer Zeile; die
+   Kurzfassung darunter bringt ihr display:block selbst mit. */
+.tile .tname{ font-weight:bold; display:inline; }
 /* Eigener Richtig-Zähler der Kachel: er schwimmt oben rechts mit, der Name
    fließt darum herum. So drängt er nie Text aus der Kachel - und solange es
    zu dieser Art keine Aufgabe gab, ist er leer und nimmt keinen Platz ein. */
 .tile .ttext, .typ .tt{ display:block; }
-.tile .tzaehler, .typ .tzaehler{ float:right; margin:0 0 2px 8px; font-size:.8em;
-  font-weight:bold; color:var(--ab-leise); white-space:nowrap; font-variant-numeric:tabular-nums; }
-.tile.on .tzaehler, .typ.on .tzaehler{ color:var(--ab-gr-dunkel); }
-html.dark .tile .tzaehler, html.dark .typ .tzaehler{ color:#9aa5b1; }
-html.dark .tile.on .tzaehler, html.dark .typ.on .tzaehler{ color:#a5d6a7; }
-.tile .tsub{ display:block; font-size:.76em; color:#666; margin-top:1px; line-height:1.2; }
+/* Der Zähler sagt leise, wie viele Unterarten eingeschaltet sind. Er steht
+   in Klammern hinter dem Namen - eine eigene Zeile machte jede Kachel
+   unnötig hoch. */
+.tile .tzaehler, .typ .tzaehler{ font-size:.72em; font-weight:normal;
+  color:var(--ab-leise); white-space:nowrap; font-variant-numeric:tabular-nums;
+  opacity:.75; margin-left:.45ch; }
+.tile .tzaehler:empty, .typ .tzaehler:empty{ display:none; }
+.tile.on .tzaehler, .typ.on .tzaehler{ color:#5a7a5a; }
+html.dark .tile .tzaehler, html.dark .typ .tzaehler{ color:#8a94a0; }
+html.dark .tile.on .tzaehler, html.dark .typ.on .tzaehler{ color:#8fae90; }
+/* Die Kurzfassungen der aktiven Unterarten: höchstens zwei Zeilen, damit
+   die Kacheln einer Reihe gleich hoch bleiben. */
+.tile .tsub{ display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;
+  overflow:hidden; font-size:.76em; color:#666; margin-top:1px; line-height:1.2; }
 .tile.on{ background:var(--ab-gr-an) !important; border-color:var(--ab-gr) !important; }
 .tile.on .tname{ color:var(--ab-gr-dunkel); }
 .tile.on .tsub{ color:#3a6a3a; }
@@ -375,9 +389,7 @@ html.dark .tile.on .tzaehler, html.dark .typ.on .tzaehler{ color:#a5d6a7; }
 .tiles.eng .tsub{ font-size:.74em; line-height:1.15; margin-top:0; }
 .tiles.eng .tzaehler{ font-size:.74em; }
 .tiles.eng .arr{ right:5px; }
-/* .drei: drei Kacheln je Zeile, auf schmalen Schirmen zwei. */
-.tiles.drei{ display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); }
-.tiles.drei > .tile{ flex:none; width:auto; min-width:0; }
+/* .drei steht weiter unten bei den Spaltenregeln. */
 #topControls.eng{ gap:6px; margin:6px 0 8px; }
 #topControls.eng .tc-label{ font-size:.92em; }
 #topControls.eng .tc-sub{ font-size:.7em; }
@@ -392,14 +404,17 @@ html.dark .tile.on .tzaehler, html.dark .typ.on .tzaehler{ color:#a5d6a7; }
 #topControls.knapp .tc-row{ gap:8px; }
 .seg-switch.eng label{ padding:5px 11px; font-size:.82em; }
 
-/* Die Kachel, aus der die gerade gestellte Aufgabe stammt: ein kräftiger
-   Rahmen. Steckt die Aufgabe in einem Unterpunkt, ist dieser Rahmen ganz
-   gestrichelt - der Unterpunkt im Menü bekommt dann den durchgezogenen. */
-.tile.aktuell{ outline:3px solid var(--ab-gr); outline-offset:1px; }
-.tile.aktuell-gruppe{ outline:3px dashed var(--ab-gr); outline-offset:1px; }
-/* Bei den schmalen Kacheln ist auch die Lücke schmal - ein dicker Rahmen
-   würde sie ganz ausfüllen und die Kacheln zusammenkleben. */
-.tiles.eng > .tile.aktuell, .tiles.eng > .tile.aktuell-gruppe{ outline-width:2px; }
+/* Die Kachel, aus der die gerade gestellte Aufgabe stammt, ist etwas
+   dunkler grün hinterlegt - ruhiger als ein zusätzlicher Rahmen. */
+.tile.aktuell, .tile.aktuell-gruppe{ background:var(--ab-gr-aktuell) !important;
+  border-color:var(--ab-gr-dunkel) !important; }
+.tile.aktuell .tname, .tile.aktuell-gruppe .tname{ color:var(--ab-gr-dunkel); }
+/* Gestrichelt ist, was nur zum Teil eingeschaltet ist - entweder gar keine
+   Unterart (dann ist die Kachel aus) oder eben nicht alle. Der Strich ist
+   deutlich zu sehen, sonst fällt der Unterschied gar nicht auf. */
+.tile.teil{ border-style:dashed; border-width:1.8px; }
+.tile.teil:not(.on){ border-color:var(--ab-rand-stark); }
+.tile.on.teil{ border-color:var(--ab-gr-dunkel) !important; }
 .pop label.aktuell{ box-shadow:0 0 0 2px var(--ab-gr); border-radius:6px;
   background:var(--ab-gr-hell); }
 /* Schwierigkeit eines (Unter-)Aufgabentyps: kleine Sterne, die nie umbrechen */
@@ -674,8 +689,15 @@ details.weg > summary{ background:var(--ab-bl-rand); color:#0d3a68; box-shadow:n
   padding:10px 16px; font-size:.95em; }
 details[open].weg{ border-color:var(--ab-bl-rand); background:var(--ab-weiss); }
 
-.res{ background:var(--ab-weiss); border:1px solid var(--ab-bl-rand); border-radius:6px;
+/* Die Lösung selbst: derselbe Blauton wie die Leiste darüber, nur etwas
+   kräftiger - weiß stach aus dem blauen Bereich heraus. */
+.res{ background:var(--ab-bl-flaeche); border:1px solid var(--ab-bl-rand); border-radius:6px;
   padding:7px 11px; margin:5px 0; }
+/* Der Lösungsweg steht im selben Blau, damit beide Bereiche zusammengehören. */
+details[open].weg{ background:var(--ab-bl-hell) !important; }
+.wegbox .step{ background:var(--ab-bl-flaeche); border:1px solid var(--ab-bl-rand);
+  border-radius:6px; padding:6px 10px; margin:6px 0; }
+html.dark .wegbox .step{ background:#1a2430; border-color:#2f4f6f; }
 .note{ font-size:.82em; color:#555; margin:4px 0 2px; }
 .wegbox{ margin-top:4px; }
 .step{ margin:8px 0; }
@@ -824,6 +846,7 @@ html.dark{
   --ab-gr-rand:   #3d5a3d;
   --ab-gr-dunkel: #a5d6a7;
   --ab-gr-an:     #24462a;
+  --ab-gr-aktuell:#2f5c37;
   --ab-bl-hell:   #16202b;
   --ab-bl-dunkel: #90caf9;
   --ab-bl-rand:   #2f4f6f;
@@ -930,23 +953,47 @@ html.dark .np-ast{ background:#1b2026; border-color:#3d5a3d; }
 html.dark .np-loes{ color:#a5d6a7; }
 @media (max-width:520px){ .np-ast{ min-width:0; flex:1 1 44%; padding:5px 7px; font-size:.95em; } }
 
-/* ── Ablaufplan („Welche Art ist das?") ──────────────────────────────────── */
-.plan{ max-width:min(560px,96%); margin:10px auto; display:flex; flex-direction:column; gap:3px; }
-.plan-frage{ text-align:center; padding:6px 10px; border:1.5px solid var(--ab-neutral-r);
+/* \u2500\u2500 Entscheidungsbaum (\u201eWelche Art ist das?") \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+   Oben die Frage, darunter die \u00c4ste - mit Linien, damit man den Baum sieht
+   und nicht nur eine Liste. Der Zweig, der f\u00fcr diese Gleichung gilt, ist
+   durchgezogen und gr\u00fcn; die anderen bleiben gestrichelt und leise. */
+.plan{ max-width:min(620px,98%); margin:10px auto; display:flex; flex-direction:column; }
+.plan-stufe{ display:flex; flex-direction:column; align-items:stretch; }
+.plan-frage{ text-align:center; padding:6px 12px; border:1.5px solid var(--ab-rand);
   border-radius:9px; background:var(--ab-neutral); font-size:.92em; }
 .plan-frage.an{ border-color:var(--ab-gr); background:var(--ab-gr-an); font-weight:bold; }
-.plan-aeste{ display:flex; flex-wrap:wrap; gap:4px; justify-content:center; margin-bottom:4px; }
-.plan-ast{ display:flex; align-items:center; gap:6px; padding:3px 9px; border-radius:14px;
-  border:1px dashed var(--ab-neutral-r); font-size:.84em; color:var(--ab-leise); }
+/* Der Stiel von der Frage hinunter zur Astreihe. */
+.plan-gabel{ height:12px; display:flex; justify-content:center; }
+.plan-stiel{ width:0; border-left:2px dashed var(--ab-rand); }
+.plan-stufe.an .plan-stiel{ border-left-style:solid; border-left-color:var(--ab-gr); }
+.plan-aeste{ position:relative; display:flex; flex-wrap:wrap; gap:6px 10px;
+  justify-content:space-evenly; margin-bottom:10px; }
+/* Die Querlinie, an der die Äste hängen. */
+.plan-aeste::before{ content:''; position:absolute; top:0; left:16%; right:16%;
+  border-top:2px dashed var(--ab-rand); }
+.plan-stufe.an .plan-aeste::before{ border-top-style:solid; border-top-color:var(--ab-gr); }
+.plan-zweig{ display:flex; flex-direction:column; align-items:center; }
+/* Der kurze Arm \u00fcber jedem Ast - zusammen mit dem Stiel ergibt das die Gabel. */
+.plan-arm{ height:9px; width:0; border-left:2px dashed var(--ab-rand); }
+.plan-zweig.an .plan-arm{ border-left-style:solid; border-left-color:var(--ab-gr); }
+.plan-ast{ display:flex; flex-direction:column; align-items:center; gap:1px;
+  padding:4px 11px; border-radius:11px; text-align:center;
+  border:1.5px dashed var(--ab-rand); font-size:.84em; color:var(--ab-leise); }
 .plan-ast.an{ border-style:solid; border-color:var(--ab-gr); background:var(--ab-gr-hell);
-  color:var(--ab-gr-dunkel); font-weight:bold; }
+  color:var(--ab-gr-dunkel); }
 .plan-wenn{ font-weight:bold; }
-.plan-ast.an .plan-weg{ text-decoration:none; }
-.plan-weiter{ opacity:.7; }
+.plan-weg{ font-size:.92em; }
+.plan-ast.an .plan-weg{ font-weight:bold; }
+.plan-weiter{ font-size:.92em; opacity:.75; }
 html.dark .plan-frage{ background:#1b2026; border-color:#56606a; }
 html.dark .plan-frage.an{ background:#24462a; border-color:#5cb860; }
 html.dark .plan-ast.an{ background:#1f2a20; border-color:#5cb860; color:#a5d6a7; }
-@media (max-width:520px){ .plan-ast{ font-size:.78em; padding:2px 7px; } }
+@media (max-width:520px){
+  .plan-ast{ font-size:.78em; padding:3px 8px; }
+  .plan-aeste{ gap:5px 6px; }
+  /* Brechen die Äste um, führt eine Querlinie nur in die Irre. */
+  .plan-aeste::before{ display:none; }
+}
 .pg-markepunkt{ fill:var(--ab-bl); stroke:#fff; stroke-width:1.2; }
 html.dark .pg-marke{ stroke:#7fb2e8; }
 html.dark .pg-markepunkt{ fill:#7fb2e8; stroke:#161d18; }
@@ -1090,7 +1137,11 @@ html.dark .formel-frage{ background:#1f2a20; color:#a5d6a7; border-color:#3d5a3d
 
 /* Quiz als Hilfestellung */
 .pg-quiz{ font-size:.97em; }
-.pg-kette{ display:flex; flex-wrap:wrap; gap:5px; margin-bottom:8px; }
+/* Die Zusammenfassung des schon Gelösten steht über dem laufenden Schritt -
+   mit einer Linie dazwischen, sonst laufen beide ineinander. */
+.pg-kette{ display:flex; flex-wrap:wrap; gap:5px; margin-bottom:9px;
+  padding-bottom:8px; border-bottom:1.5px solid var(--ab-gr-rand); }
+.pg-kette:empty{ border-bottom:none; padding-bottom:0; margin-bottom:0; }
 .pg-kette-teil{ font-size:.8em; color:var(--ab-gr-dunkel); background:var(--ab-gr-an);
   border-radius:12px; padding:2px 9px; }
 .pg-schritt{ border:1.5px solid var(--ab-gr-rand); border-radius:10px; padding:9px 12px;
@@ -1111,13 +1162,18 @@ html.dark .pg-wahl-knopf.err{ background:#3a2224; }
 .pg-eingabe{ display:flex; gap:8px; justify-content:center; flex-wrap:wrap; align-items:center; }
 /* „x =" und das Feld gehören zusammen und brechen nie voneinander ab. */
 .pg-feldpaar{ display:inline-flex; align-items:center; gap:6px; flex-wrap:nowrap;
-  flex:1 1 180px; max-width:300px; }
+  flex:0 1 auto; max-width:300px; }
 .pg-vor{ white-space:nowrap; font-weight:bold; }
 /* Mehrere kleine Felder nebeneinander (p und q, x₁ und x₂ …) */
 .pg-eingabe.mehr{ gap:10px; }
 .pg-eingabe.mehr .pg-feldpaar{ flex:0 0 auto; max-width:none; }
-.pg-eingabe.mehr input{ flex:0 0 86px; width:86px; min-width:0; }
-.pg-eingabe input{ flex:1 1 90px; min-width:70px; max-width:170px; font-size:1em; padding:7px 9px;
+.pg-eingabe.mehr input{ flex:0 0 86px; width:86px; min-width:0; max-width:86px; }
+/* Ganze Terme statt einzelner Zahlen: dort darf das Feld breiter sein. */
+.pg-eingabe input.breit{ flex:0 1 260px; width:auto; max-width:min(300px,70vw); text-align:left; }
+/* Das Feld ist so breit, wie eine Antwort wirklich braucht - vorher zog es
+   sich auf die volle Breite und der Prüfen-Knopf stand weit vom Getippten. */
+.pg-eingabe input{ flex:0 0 108px; width:108px; min-width:0; max-width:108px;
+  text-align:center; font-size:1em; padding:7px 9px;
   border:1.5px solid var(--ab-neutral-r); border-radius:6px; background:var(--ab-weiss);
   color:var(--ab-text); font-family:inherit; }
 /* Der hervorgehobene Teil einer Formel im Quiz (\boxed) */
@@ -1152,3 +1208,81 @@ html.dark .pg-hilfe{ background:#221d12; }
   .pg-wahl-knopf{ padding:7px 10px; font-size:.88em; }
   .pg-felder input{ width:78px; }
 }
+
+/* ── Kacheln: drei je Zeile, auf schmalen Schirmen zwei und kompakt ────── */
+.tiles.drei{ display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); }
+.tiles.drei > .tile{ flex:none; width:auto; min-width:0; }
+@media(max-width:860px){
+  .tiles.drei, .tiles.vier{ grid-template-columns:repeat(2, minmax(0,1fr)); }
+  .tiles .arr{ right:4px; font-size:.65em; }
+}
+
+/* ── Farbflächen für Lösung und Quiz ──────────────────────────────────── */
+:root{ --ab-bl-flaeche:#e3effb; --ab-ge-flaeche:#fff4d4; }
+html.dark{ --ab-bl-flaeche:#1a2430; --ab-ge-flaeche:#2e2a18; }
+/* Das Quiz: der laufende Schritt trägt den Gelbton seiner Leiste, erledigte
+   Schritte das ruhige Grün. Dazwischen nur eine dünne Linie - vorher stand
+   jeder Schritt in einem eigenen Kasten, was unruhig wirkte. */
+/* Der Bereich für die eigene Lösung ist keine Hilfe, sondern nur zum
+   Prüfen - er bleibt hell. Gelb ist allein das Quiz als Hilfestellung
+   (.qh-box), das seinen eigenen Ton schon mitbringt. */
+/* Der laufende Schritt ist nicht weiß, sondern lässt die Karte durch. */
+#quizArea .qz-cur-step{ background:transparent; border-color:var(--ab-gr-rand); }
+#quizArea .qz-cur-step.qz-solved{ background:#f3faf3; border-color:#b8d8b8; }
+/* angezeigt statt gelöst: rot */
+#quizArea .qz-cur-step.qz-gezeigt{ background:#fff6f6; border-color:#e0b4b4; }
+/* Erledigte Schritte stehen als Liste über dem laufenden: oben gerundet,
+   dazwischen nur eine Trennlinie. */
+#quizArea .qz-cur-step.qz-solved + .qz-cur-step.qz-solved,
+#quizArea .qz-cur-step.qz-solved + .qz-cur-step:not(.qz-solved){ margin-top:-1px; }
+html.dark #quizArea .qz-cur-step{ background:transparent; border-color:#4a9a4a; }
+html.dark #quizArea .qz-cur-step.qz-gezeigt{ background:#2a1d1d; border-color:#6b3a3a; }
+html.dark #quizArea .qz-cur-step.qz-solved{ background:#1b241b; border-color:#3d5a3d; }
+
+/* Ein abgeschaltetes Zahlenfeld gehört zu einer Wahl, die gerade nicht
+   getroffen ist - Feld und Beschriftung treten dann zurück. */
+.einst .row input:disabled{ opacity:.5; }
+.einst .row:has(input:disabled){ opacity:.6; }
+
+/* ── Ränder der Kacheln und Ovale ─────────────────────────────────────────
+   Ein 1,5px-Rand in der Umgebungsfarbe war kaum zu sehen - besonders der
+   gestrichelte, der ja gerade etwas sagen soll. */
+:root{ --ab-rand:#9fb3a2; --ab-rand-stark:#6d8872; }
+html.dark{ --ab-rand:#55616d; --ab-rand-stark:#8694a6; }
+button.pill{ border-width:1.8px; }
+.pill:not(.on){ border-color:var(--ab-rand); }
+.pill.empty{ border-color:var(--ab-rand-stark); }
+.pill.on.hatunter{ border-color:var(--ab-gr-dunkel) !important; }
+
+/* ── Schmale Schirme: die Kacheln so flach wie möglich ───────────────────
+   Über den Aufgabentypen soll nicht der halbe Bildschirm aufgebraucht sein.
+   Die Zahl der Unterarten steht ohnehin schon in der Namenszeile. */
+@media(max-width:860px){
+  .tiles > .tile{ padding:4px 6px; font-size:.76em; gap:5px; border-radius:8px;
+    line-height:1.1; }
+  .tiles > .tile:has(.arr){ padding-right:14px; }
+  .tiles .tk{ width:14px; height:14px; font-size:9px; border-radius:4px; }
+  .tiles .tsub{ font-size:.76em; line-height:1.1; margin-top:0; }
+  .tiles{ gap:4px; }
+}
+@media(max-width:560px){
+  /* Die Kurzfassung bleibt einzeilig - zwei Zeilen Erklärung je Kachel
+     schieben die Aufgabe vom Schirm. */
+  .tiles .tsub{ display:-webkit-box; -webkit-line-clamp:1; -webkit-box-orient:vertical;
+    overflow:hidden; }
+}
+
+/* ── Schon erledigte Schritte im Eingabebereich ───────────────────────────
+   Was man geraten oder ausgerechnet hat, bleibt stehen - mit einer Linie
+   zum laufenden Schritt. */
+.pg-geschafft{ display:flex; flex-direction:column; gap:3px; margin:0 0 9px;
+  padding-bottom:8px; border-bottom:1.5px solid var(--ab-gr-rand); }
+.pg-geschafft:empty{ display:none; }
+.pg-fertig-zeile{ font-size:.92em; color:var(--ab-gr-dunkel); }
+.pg-fertig-zeile::before{ content:'\2713'; margin-right:.5ch; font-weight:bold; }
+html.dark .pg-fertig-zeile{ color:#a5d6a7; }
+
+/* Auf einem Antwortknopf steht oben die Antwort, darunter leise, wohin sie
+   führt - ohne eigene Zeile liefen beide zu einem Wort zusammen. */
+.pg-wahl-knopf .unter{ display:block; font-weight:normal; font-size:.78em;
+  opacity:.75; margin-top:3px; line-height:1.2; }

@@ -3,6 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="shortcut icon" type="image/x-icon" href="aleph_zero_logo.ico">
+  <script>try{var t=localStorage.getItem('matheToolsTheme');if(t==='dark'||(!t&&window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.classList.add('dark');}catch(e){}</script>
   <script>
     window.MathJax = { tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] } };
   </script>
@@ -10,23 +12,44 @@
   <script>
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-5K8WYYXDL2');
+      window.TK_GA_ID = 'G-5K8WYYXDL2';   /* Google Analytics laedt erst nach Einwilligung, siehe einwilligung.js */
   </script>
+<script src="einwilligung.js" defer></script>
   <script>
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-5K8WYYXDL2');
+    window.TK_GA_ID = 'G-5K8WYYXDL2';   /* Google Analytics laedt erst nach Einwilligung, siehe einwilligung.js */
   </script>
-  <title>Standardableitungen</title>
+  <title data-de="Standardableitungen" data-en="Standard Derivatives">Standardableitungen</title>
   <link rel="stylesheet" type="text/css" href="styles.css">
+  <link rel="stylesheet" href="aufgaben.css">
+  <script src="aufgaben.js" defer></script>
+  <script src="theme-language.js" defer></script>
   <!-- <link rel="stylesheet" type="text/css" href="scale.css"> -->
   <style>
-    body { font-family: sans-serif; -webkit-user-select: none; user-select: none; overflow-x: hidden; }
+    /* Farben, die auch per JS gesetzt werden (hell = bisheriges Aussehen) */
+    :root{
+      --karte-bg:#ffffff;
+      --karte-bg-rueck:#fcfcfc;
+      --karte-rand:#ddd;
+      --wrap-rand:#eee;
+      --sub-text:#888;
+      --tint-richtig:212,237,218;
+      --tint-falsch:248,215,218;
+    }
+    html.dark{
+      --karte-bg:#1e2429;
+      --karte-bg-rueck:#232a31;
+      --karte-rand:#3a434b;
+      --wrap-rand:#333c44;
+      --sub-text:#9aa5a0;
+      --tint-richtig:30,70,32;
+      --tint-falsch:74,32,32;
+    }
+    body { font-family: Calibri, sans-serif; -webkit-user-select: none; user-select: none; }
     *:focus { outline: none; }
-    #showSolutionBtn { width:100%; margin-top: 15px; padding: 10px; cursor: pointer; border: 2px solid #1f6b24; border-radius: 8px; font-size: 1em; transition: border-color 0.15s, filter 0.15s; }
-    #showSolutionBtn:hover { filter: brightness(0.93); border-color: #0e4511; }
+    /* „Lösung anzeigen" ist überall der blaue Knopf aus aufgaben.css. */
+    #showSolutionBtn { margin-top: 15px; }
 
     #flashOverlay {
       position: fixed; inset: 0; pointer-events: none; z-index: 0;
@@ -43,7 +66,7 @@
     /* Card area */
     #taskWrap {
       position: relative; width: 100%; height: 140px; margin-top: 20px;
-      border: 1px solid #eee; border-radius: 10px; perspective: 1000px; z-index: 1;
+      border: 1px solid var(--wrap-rand); border-radius: 10px; perspective: 1000px; z-index: 1;
     }
     #wrongBtn, #correctBtn {
       position: absolute; top: 0; bottom: 0; width: 100px;
@@ -51,6 +74,8 @@
     }
     #wrongBtn  { left: 0;  background-color: #f8d7da; color: #721c24; }
     #correctBtn{ right: 0; background-color: #d4edda; color: #155724; }
+    html.dark #wrongBtn  { background-color: #4a2020; color: #f0b0b0; }
+    html.dark #correctBtn{ background-color: #1e4620; color: #a5d6a7; }
 
     #taskCard {
       position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
@@ -59,6 +84,10 @@
       z-index: 2; box-sizing: border-box;
       transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
       transform-style: preserve-3d;
+      /* Wischen klappt so auch mit Stift (Promethean): waagerechtes Ziehen wird
+         nicht vom Browser zum Schieben/Scrollen abgefangen, senkrecht scrollt
+         die Seite weiter, Zwei-Finger-Zoom bleibt erhalten. */
+      touch-action: pan-y pinch-zoom;
     }
     #taskCard.flipped { transform: translate(-50%, -50%) rotateY(180deg); }
 
@@ -66,13 +95,13 @@
       position: absolute; width: 100%; height: 100%;
       backface-visibility: hidden; display: flex; flex-direction: column;
       align-items: center; justify-content: center;
-      border: 2px solid #ddd; border-radius: 15px; background: white;
+      border: 2px solid var(--karte-rand); border-radius: 15px; background: var(--karte-bg);
       transition: background-color 0.2s ease;
     }
-    .card-back { transform: rotateY(180deg); background-color: #fcfcfc; }
+    .card-back { transform: rotateY(180deg); background-color: var(--karte-bg-rueck); }
 
     .card-formula { font-size: 1.8em; }
-    .card-sub { font-size: 0.8em; color: #888; margin-top: 6px; }
+    .card-sub { font-size: 0.8em; color: var(--sub-text); margin-top: 6px; }
 
     #showSolutionBtn { width: 100%; margin-top: 15px; padding: 10px; cursor: pointer; }
 
@@ -89,37 +118,59 @@
       transform-origin: center center;
       white-space: nowrap;
     }
+    html.dark #toast { background:#e7eae8; color:#14181c; }
   </style>
 </head>
-<body>
+<body class="tk-seite">
   <div id="flashOverlay"></div>
   <div id="toast"></div>
   <div style="position:relative; z-index:1;">
 
-  <h1>Ableitungen der Standardfunktionen</h1>
-  <p>Gib die Ableitungsfunktion \(f'(x)\) zur gegebenen Funktion \(f\) an.</p>
-  <p id="counter" style="font-weight:bold; text-align:center;">Richtig: 0 / 0</p>
+  <header class="tool-kopf">
+    <div class="tk-text">
+      <h1 data-de="Ableitungen der Standardfunktionen" data-en="Derivatives of the Standard Functions">Ableitungen der Standardfunktionen</h1>
+      <p class="tk-unter" data-de="Ableitungen weiterer Standardfunktionen festigen" data-en="Practise the derivatives of more standard functions">Ableitungen weiterer Standardfunktionen festigen</p>
+    </div>
+  </header>
+  <p data-de="Gib die Ableitungsfunktion \(f'(x)\) zur gegebenen Funktion \(f\) an." data-en="State the derivative \(f'(x)\) of the given function \(f\).">Gib die Ableitungsfunktion \(f'(x)\) zur gegebenen Funktion \(f\) an.</p>
+  <p style="text-align:center;"><span class="punkte"><button id="btnPunkteReset" type="button" title="Punktzahl zurücksetzen" data-de-title="Punktzahl zurücksetzen" data-en-title="Reset the score">↺</button><span id="counter">Richtig: 0 / 0</span><button id="btnPunkteUndo" type="button" disabled title="Rückgängig" data-de-title="Rückgängig" data-en-title="Undo">↶</button></span></p>
 
   <div id="taskWrap">
-    <button id="wrongBtn">Noch unsicher</button>
+    <button id="wrongBtn" data-de="Noch unsicher" data-en="Not sure yet">Noch unsicher</button>
     <div id="taskCard">
       <div class="card-face" id="faceFront">
         <div class="scale-wrapper"><div id="taskText" class="card-formula scale-el"></div></div>
-        <div class="card-sub">Ableitung?</div>
+        <div class="card-sub" data-de="Ableitung?" data-en="Derivative?">Ableitung?</div>
       </div>
       <div class="card-face card-back" id="faceBack">
         <div class="scale-wrapper"><div id="taskTextBack" class="card-formula scale-el" style="opacity:0.25; font-size:1.2em;"></div></div>
         <div class="scale-wrapper"><div id="loesung" class="card-formula scale-el" style="margin-top:8px;"></div></div>
       </div>
     </div>
-    <button id="correctBtn">Kann ich sicher</button>
+    <button id="correctBtn" data-de="Kann ich sicher" data-en="I know this one">Kann ich sicher</button>
   </div>
 
-  <button id="showSolutionBtn" class="btn">Lösung anzeigen</button>
+  <button id="showSolutionBtn" class="btn-loesung" data-de="Lösung anzeigen" data-en="Show solution">Lösung anzeigen</button>
 
   </div>
 
 <script>
+// Übersetzungshilfe: nutzt theme-language.js, fällt ohne sie auf Deutsch zurück
+function T(de, en) { return (typeof tlText === 'function') ? tlText(de, en) : de; }
+
+// MathJax wird async geladen: vor dem Laden ist window.MathJax nur die
+// Konfiguration ohne typesetPromise. Diese Hilfsfunktion wartet dann ab -
+// den ersten Durchlauf erledigt MathJax beim Laden ohnehin selbst.
+function mjTypeset(el) {
+  if (window.MathJax && MathJax.typesetPromise) {
+    return MathJax.typesetPromise(el).catch(() => {});
+  }
+  if (window.MathJax && MathJax.startup && MathJax.startup.promise) {
+    return MathJax.startup.promise.then(() => MathJax.typesetPromise(el)).catch(() => {});
+  }
+  return Promise.resolve();
+}
+
 const funktionen = [
   {funktion: "\\(f(x)=1\\)",          ableitung: "\\(f'(x)=0\\)"},
   {funktion: "\\(f(x)=x\\)",          ableitung: "\\(f'(x)=1\\)"},
@@ -134,38 +185,47 @@ const funktionen = [
 ];
 
 function scaleToFit(el) {
-    if (!el) return;
-    el.style.transform = 'none';
-    const wrapper = el.parentElement;
-    if (!wrapper) return;
-
-    // Kurz warten, damit der Browser Layout berechnet
-    requestAnimationFrame(() => {
-        const available = wrapper.clientWidth
-            - parseFloat(getComputedStyle(wrapper).paddingLeft)
-            - parseFloat(getComputedStyle(wrapper).paddingRight);
-        const natural = el.scrollWidth;
-
-        if (natural > available && available > 0) {
-            const scale = available / natural;
-            el.style.transform = `scale(${scale})`;
-            // Wrapper-Höhe anpassen, damit nichts überlappt
-            wrapper.style.height = (el.scrollHeight * scale) + 'px';
-        } else {
-            wrapper.style.height = '';
-        }
-    });
+  if (!el) return;
+  const wrapper = el.parentElement;
+  if (!wrapper) return;
+  el.style.transformOrigin = 'top left';
+  el.style.transform = 'none';
+  wrapper.style.height = 'auto';
+  // Zweimal warten: MathJax setzt die Formel erst nach und nach zusammen,
+  // sonst wird zu frueh gemessen und die fertige Formel laeuft ueber den Rand.
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    const ws = getComputedStyle(wrapper);
+    const avail = wrapper.clientWidth - parseFloat(ws.paddingLeft || 0) - parseFloat(ws.paddingRight || 0);
+    const nat = el.scrollWidth;
+    el._skalaBreite = nat;
+    if (nat > avail && avail > 0) {
+      const sc = avail / nat;
+      el.style.transform = `scale(${sc})`;
+      wrapper.style.height = (el.scrollHeight * sc
+        + parseFloat(ws.paddingTop || 0) + parseFloat(ws.paddingBottom || 0)) + 'px';
+    }
+    skalaBeobachte(el);
+  }));
+}
+// Nachmessen, wenn sich der Inhalt spaeter noch aendert (transform aendert die
+// Layoutgroesse nicht, deshalb kann keine Schleife entstehen).
+let _skalaBeobachter = null;
+function skalaBeobachte(el) {
+  if (typeof ResizeObserver !== 'function') return;
+  if (!_skalaBeobachter) _skalaBeobachter = new ResizeObserver(es => es.forEach(e => {
+    if (e.target.scrollWidth !== e.target._skalaBreite) scaleToFit(e.target);
+  }));
+  if (!el._skalaBeobachtet) { el._skalaBeobachtet = true; _skalaBeobachter.observe(el); }
 }
 
 async function scaleAllElements() {
     // Warten bis MathJax fertig ist, dann skalieren
-    if (window.MathJax && MathJax.typesetPromise) {
-        await MathJax.typesetPromise();
-    }
+    await mjTypeset();
     document.querySelectorAll('.scale-el').forEach(scaleToFit);
 }
 
 window.addEventListener('resize', scaleAllElements);
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => scaleAllElements()).catch(() => {});
 
 let taskPool = [...funktionen];
 let currentTask = null, correctCount = 0, totalCount = 0, lastTask = null;
@@ -193,7 +253,7 @@ function flashResult(color) {
 function generateTask() {
   if (taskPool.length === 0) {
     taskPool = [...funktionen];
-    showToast('🎉 Alle Karten geschafft! Stapel wird neu gemischt…');
+    showToast(T('🎉 Alle Karten geschafft! Stapel wird neu gemischt…', '🎉 All cards done! Reshuffling the deck…'));
   }
   let idx;
   do { idx = Math.floor(Math.random() * taskPool.length); }
@@ -215,16 +275,16 @@ function generateTask() {
   // Karte zurücksetzen (drehen)
   card.classList.remove('flipped');
   card.removeAttribute('style');
-  faces.forEach(f => f.style.backgroundColor = 'white');
+  faces.forEach(f => f.style.backgroundColor = '');
   
-  if (window.MathJax) MathJax.typesetPromise().then(scaleAllElements);
+  mjTypeset().then(scaleAllElements);
 
 
   // Rückseite erst befüllen, wenn sie NICHT sichtbar ist (nach 600ms)
   setTimeout(() => {
     document.getElementById('taskTextBack').innerHTML = sel.funktion; // Der obere Part
     document.getElementById('loesung').innerHTML = ''; // Lösungstext leeren für neue Aufgabe
-    if (window.MathJax) MathJax.typesetPromise().then(scaleAllElements);
+    mjTypeset().then(scaleAllElements);
   }, 600);
 }
 
@@ -232,18 +292,20 @@ function showSolution() {
   if (!window.currentSolution) return;
   document.getElementById('loesung').innerHTML = window.currentSolution;
   card.classList.add('flipped');
-  if (window.MathJax) MathJax.typesetPromise().then(scaleAllElements);
+  mjTypeset().then(scaleAllElements);
 }
 
 function markAnswer(correct) {
   if (!currentTask) return;
-  flashResult(correct ? '#d4edda' : '#f8d7da');
+  flashResult(correct ? (typeof tlDunkel === 'function' && tlDunkel() ? '#1e4620' : '#d4edda')
+                      : (typeof tlDunkel === 'function' && tlDunkel() ? '#4a2020' : '#f8d7da'));
+  punkteMerken();
   totalCount++;
   if (correct) {
     correctCount++;
     taskPool.splice(currentTask.poolIdx, 1);
   }
-  counterEl.textContent = `Richtig: ${correctCount} / ${totalCount}`;
+  counterEl.textContent = `${T('Richtig', 'Correct')}: ${correctCount} / ${totalCount}`;
   showSolution();
   currentTask = null;
   setTimeout(generateTask, 1200);
@@ -287,14 +349,15 @@ const handleMove  = (e) => {
   const rot = card.classList.contains('flipped') ? 180 : 0;
   card.style.transform = `translate(calc(-50% + ${currentX}px), -50%) rotateY(${rot}deg)`;
   const intensity = Math.min(Math.abs(currentX) / (card.parentElement.offsetWidth * 0.25), 0.8);
-  faces.forEach(f => f.style.backgroundColor = currentX > 0 ? `rgba(212,237,218,${intensity})` : `rgba(248,215,218,${intensity})`);
+  const tint = getComputedStyle(document.documentElement).getPropertyValue(currentX > 0 ? '--tint-richtig' : '--tint-falsch').trim();
+  faces.forEach(f => f.style.backgroundColor = `rgba(${tint},${intensity})`);
 };
 const handleEnd = () => {
   if (startX === null) return;
   const threshold = card.parentElement.offsetWidth * 0.25;
   const triggered = currentX > threshold || currentX < -threshold;
   const wasCorrect = currentX > 0;
-  faces.forEach(f => f.style.backgroundColor = 'white');
+  faces.forEach(f => f.style.backgroundColor = '');
   // Transition setzen BEVOR markAnswer → showSolution → flipped
   card.style.transition = 'transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
   if (triggered) {
@@ -320,6 +383,11 @@ document.onkeydown = (e) => {
   if (e.code === 'ArrowRight') markAnswer(true);
 };
 
+// Sprachwechsel: Zählertext in neuer Sprache neu setzen
+window.addEventListener('tl-sprache', () => {
+  counterEl.textContent = `${T('Richtig', 'Correct')}: ${correctCount} / ${totalCount}`;
+});
+
 document.getElementById('showSolutionBtn').onclick = showSolution;
 document.getElementById('wrongBtn').onclick  = () => markAnswer(false);
 document.getElementById('correctBtn').onclick = () => markAnswer(true);
@@ -332,9 +400,67 @@ generateTask();
   <div class="footer-content">
       M.&nbsp;Koch
       <span class="footer-topic"><a href="./index.html">Mathe-Tools</a></span>
-      <span class="footer-update">Last updated:&nbsp;<span id="last-update">...</span></span>
+      <span class="footer-update"><span class="fu-wort" data-de="Zuletzt aktualisiert:" data-en="Last updated:">Zuletzt aktualisiert:</span><span id="last-update">...</span></span>
   </div>
 </footer>
-<script src="last-update.js" defer></script>
+<script src="last-update.js" defer>
+</script>
+<script>
+/* Beim Klick auf "Fehler melden" wird die gerade angezeigte Aufgabe
+   mitgeschickt - direkt aus dem DOM, also immer der aktuelle Stand. */
+window.fehlerKontext = function () {
+  const el = document.getElementById('taskText');
+  if (!el) return '';
+  return (typeof tlFormelText === 'function') ? tlFormelText(el) : el.innerText;
+};
+
+/* ── Punktestand: zurücksetzen und rückgängig ─────────────────────────────
+   Ein Vertipper kostet so keine Serie: „rückgängig" stellt Punktzahl, Stapel
+   und die zuletzt gezeigte Karte wieder her.                               */
+let _stand = null;
+function _undoKnopf(an){
+  const u = document.getElementById('btnPunkteUndo');
+  if (u) u.disabled = !an;
+}
+function punkteMerken(){
+  _stand = { r: correctCount, g: totalCount, pool: taskPool.slice(), karte: currentTask, letzte: lastTask };
+  _undoKnopf(true);
+}
+function zaehlerZeigen(){
+  if (counterEl) counterEl.textContent = `${T('Richtig', 'Correct')}: ${correctCount} / ${totalCount}`;
+}
+function punkteZuruecksetzen(){
+  correctCount = 0; totalCount = 0; _stand = null; _undoKnopf(false);
+  taskPool = [...funktionen];
+  zaehlerZeigen();
+  generateTask();
+}
+function punkteRueckgaengig(){
+  if (!_stand) return;
+  correctCount = _stand.r; totalCount = _stand.g;
+  taskPool = _stand.pool; currentTask = _stand.karte; lastTask = _stand.letzte;
+  _stand = null; _undoKnopf(false);
+  zaehlerZeigen();
+  /* dieselbe Karte noch einmal zeigen */
+  if (currentTask && currentTask.data){
+    window.currentSolution = currentTask.data.ableitung || currentTask.data.loesung || window.currentSolution;
+    const vorn = document.getElementById('taskText');
+    if (vorn) vorn.innerHTML = currentTask.data.funktion || vorn.innerHTML;
+    const hinten = document.getElementById('taskTextBack');
+    if (hinten) hinten.innerHTML = currentTask.data.funktion || hinten.innerHTML;
+    card.classList.remove('flipped');
+    card.removeAttribute('style');
+    faces.forEach(f => f.style.backgroundColor = '');
+    mjTypeset().then(() => { if (typeof scaleAllElements === 'function') scaleAllElements(); });
+  }
+}
+document.addEventListener('DOMContentLoaded', () => {
+  const r = document.getElementById('btnPunkteReset');
+  if (r) r.addEventListener('click', punkteZuruecksetzen);
+  const u = document.getElementById('btnPunkteUndo');
+  if (u) u.addEventListener('click', punkteRueckgaengig);
+});
+
+</script>
 </body>
 </html>

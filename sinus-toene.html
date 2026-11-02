@@ -3,20 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Harmonische Visualisierung</title>
+    <link rel="shortcut icon" type="image/x-icon" href="aleph_zero_logo.ico">
+    <script>try{var t=localStorage.getItem('matheToolsTheme');if(t==='dark'||(!t&&window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.classList.add('dark');}catch(e){}</script>
+    <title data-de="Harmonische Visualisierung" data-en="Harmonic Visualization">Harmonische Visualisierung</title>
+    <script src="theme-language.js" defer></script>
     <script>
     MathJax = { tex: { inlineMath: [['\\(','\\)']], displayMath: [['\\[','\\]']] }, startup: { typeset: false } };
     </script>
     <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async id="MathJax-script"></script>
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-5K8WYYXDL2"></script>
-    <script>
+    <!-- Besuchszaehlung (Google Analytics). Geladen wird sie erst, wenn der
+         Besucher zustimmt - siehe einwilligung.js. -->
+<script>
         window.dataLayer = window.dataLayer || [];
         function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-
-        gtag('config', 'G-5K8WYYXDL2');
+        window.TK_GA_ID = 'G-5K8WYYXDL2';   /* Google Analytics laedt erst nach Einwilligung, siehe einwilligung.js */
     </script>
+<script src="einwilligung.js" defer></script>
     <style>
         #lobby-spacer { 
             flex: 1 1 0; 
@@ -195,6 +197,9 @@
         /* Scroll-Wrapper — Scroll-Position per JS gesteuert, kein manuelles Scrollen */
         #keyboard-scroll {
             max-width: 100%; overflow: hidden;
+            /* Damit das seitliche Ziehen (Finger und Stift) nicht vom Browser als
+               Wischen abgefangen wird; senkrecht scrollt die Seite weiter. */
+            touch-action: pan-y pinch-zoom;
         }
 
         /* ORIGINAL: position:relative; width:fit-content */
@@ -274,11 +279,41 @@
             .controls { grid-template-columns: 1fr; }
             #canvas-container { height: 190px; }
         }
+
+/* ══ Dark Mode (Hellmodus bleibt unverändert) ══ */
+html.dark {
+    --primary:#e7eae8; --accent:#5b9bd5; --bg:#14181c; --card:#1e2429;
+    --border:#3a434b; --muted:#9aa5b1;
+}
+html.dark body { background-color: var(--bg); color: var(--primary); }
+html.dark #canvas-container { box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+html.dark #legend { background: rgba(30,36,41,0.95); box-shadow: 0 2px 8px rgba(0,0,0,0.4); }
+html.dark .control-card, html.dark details { box-shadow: 0 2px 8px rgba(0,0,0,0.45); }
+html.dark .cb-label input[type="checkbox"], html.dark .chord-cb { background:#2a323a; border-color:#5a646d; }
+html.dark .cb-label input[type="checkbox"]:checked, html.dark .chord-cb:checked { background: var(--accent); border-color: var(--accent); }
+html.dark select { background:#2a323a; color:var(--primary); }
+html.dark select:hover { border-color:#6b7883; }
+html.dark .ts-track { background:#4a545e; }
+html.dark .ts-thumb { background:#d7dee4; }
+html.dark th { background:#232a32; color:var(--muted); }
+html.dark td[data-note]:hover { background:#2a3a48; }
+html.dark .math-section { color:#c3ccd4; }
+html.dark .math-section h3 { color:var(--primary); border-bottom-color:#2e3740; }
+html.dark .math-section .mbox { background:#232a32; }
+html.dark .tag-dur  { color:#66bb6a; }
+html.dark .tag-moll { color:#b07cd6; }
+html.dark .key { border-color:#777; color:#1a1a1a; }   /* weiße Tasten bleiben weiß */
+html.dark .key.active { color:#fff; }
+html.dark .key.black { color:#fff; }
+html.dark .site-footer { border-top-color:#3a434b; color:#9aa5b1; }
     </style>
+<!-- Vergroesserung auf sehr grossen Bildschirmen (Promethean, 4K).
+     Kleine gemeinsame Datei; fehlt sie, bleibt einfach alles unvergroessert. -->
+<link rel="stylesheet" href="gross.css">
 </head>
 <body>
 
-<header><h1>Harmonische Visualisierung</h1></header>
+<header><h1 data-de="Harmonische Visualisierung" data-en="Harmonic Visualization">Harmonische Visualisierung</h1></header>
 
 <div id="canvas-container">
     <div id="legend"></div>
@@ -286,74 +321,74 @@
 </div>
 
 <details id="controls-details" open>
-<summary>Einstellungen</summary>
+<summary data-de="Einstellungen" data-en="Settings">Einstellungen</summary>
 <div class="controls">
 
     <!-- Karte 1: Wiedergabe & Anzeige -->
     <div class="control-card">
-        <h4>Wiedergabe &amp; Anzeige</h4>
-        <label class="cb-label"><input type="checkbox" id="toggle-sound" checked> Ton abspielen</label>
-        <label class="cb-label"><input type="checkbox" id="toggle-keyboard"> Tastatur-Steuerung</label>
+        <h4 data-de="Wiedergabe &amp; Anzeige" data-en="Playback &amp; display">Wiedergabe &amp; Anzeige</h4>
+        <label class="cb-label"><input type="checkbox" id="toggle-sound" checked> <span data-de="Ton abspielen" data-en="Play sound">Ton abspielen</span></label>
+        <label class="cb-label"><input type="checkbox" id="toggle-keyboard"> <span data-de="Tastatur-Steuerung" data-en="Computer keyboard">Tastatur-Steuerung</span></label>
         <hr class="card-divider">
         <div class="ts-section">
             <div class="ts-row">
-                <span class="ts-lbl left ts-on" id="lbl-einst">Einstimmig</span>
+                <span class="ts-lbl left ts-on" id="lbl-einst" data-de="Einstimmig" data-en="Single note">Einstimmig</span>
                 <label class="ts"><input type="checkbox" id="toggle-multi"><span class="ts-track"><span class="ts-thumb"></span></span></label>
-                <span class="ts-lbl right" id="lbl-multi">Mehrstimmig</span>
+                <span class="ts-lbl right" id="lbl-multi" data-de="Mehrstimmig" data-en="Several notes">Mehrstimmig</span>
             </div>
             <div class="ts-row" id="sum-toggle-wrap" style="visibility:hidden">
-                <span class="ts-lbl left ts-on" id="lbl-einzel">Einzelgraphen</span>
+                <span class="ts-lbl left ts-on" id="lbl-einzel" data-de="Einzelgraphen" data-en="Single graphs">Einzelgraphen</span>
                 <label class="ts"><input type="checkbox" id="toggle-sum"><span class="ts-track"><span class="ts-thumb"></span></span></label>
-                <span class="ts-lbl right" id="lbl-summe">Summengraph</span>
+                <span class="ts-lbl right" id="lbl-summe" data-de="Summengraph" data-en="Sum graph">Summengraph</span>
             </div>
         </div>
         <hr class="card-divider">
-        <label class="cb-label"><input type="checkbox" id="toggle-graph" checked> Graph anzeigen</label>
+        <label class="cb-label"><input type="checkbox" id="toggle-graph" checked> <span data-de="Graph anzeigen" data-en="Show graph">Graph anzeigen</span></label>
         <div>
-            <label class="cb-label"><input type="checkbox" id="toggle-move"> Graph bewegen</label>
+            <label class="cb-label"><input type="checkbox" id="toggle-move"> <span data-de="Graph bewegen" data-en="Animate graph">Graph bewegen</span></label>
             <div class="speed-row" id="speed-row">
-                <span>Geschwindigkeit</span>
+                <span data-de="Geschwindigkeit" data-en="Speed">Geschwindigkeit</span>
                 <input type="range" id="speed-slider" min="1" max="200" value="60">
                 <span class="speed-val" id="speed-val">60</span>
             </div>
         </div>
-        <label class="cb-label"><input type="checkbox" id="toggle-legend" checked> Funktionsgleichung</label>
+        <label class="cb-label"><input type="checkbox" id="toggle-legend" checked> <span data-de="Funktionsgleichung" data-en="Function equation">Funktionsgleichung</span></label>
     </div>
 
     <!-- Karte 2: Akkord & Intervall -->
     <div class="control-card">
-        <h4>Akkord &amp; Intervall</h4>
+        <h4 data-de="Akkord &amp; Intervall" data-en="Chord &amp; interval">Akkord &amp; Intervall</h4>
         <div class="chord-grid">
             <input type="checkbox" id="check-auto-chord" class="chord-cb">
-            <label for="check-auto-chord">Fokus-Akkord:</label>
+            <label for="check-auto-chord" data-de="Fokus-Akkord:" data-en="Focus chord:">Fokus-Akkord:</label>
             <select id="select-auto-chord"></select>
 
             <input type="checkbox" id="check-base-chord" class="chord-cb">
-            <label for="check-base-chord">Grundton-Modus:</label>
+            <label for="check-base-chord" data-de="Grundton-Modus:" data-en="Root-note mode:">Grundton-Modus:</label>
             <select id="select-base-chord">
-                <option value="0,4,7">Dur (Dreiklang)</option>
-                <option value="0,3,7">Moll (Dreiklang)</option>
-                <option value="0,4,7,10">Dominantseptakkord</option>
-                <option value="0,3,6">Verminderter Dreiklang</option>
-                <option value="0,4,8">Übermäßiger Dreiklang</option>
-                <option value="0,5,7">Sus4</option>
+                <option value="0,4,7" data-de="Dur (Dreiklang)" data-en="Major (triad)">Dur (Dreiklang)</option>
+                <option value="0,3,7" data-de="Moll (Dreiklang)" data-en="Minor (triad)">Moll (Dreiklang)</option>
+                <option value="0,4,7,10" data-de="Dominantseptakkord" data-en="Dominant seventh">Dominantseptakkord</option>
+                <option value="0,3,6" data-de="Verminderter Dreiklang" data-en="Diminished triad">Verminderter Dreiklang</option>
+                <option value="0,4,8" data-de="Übermäßiger Dreiklang" data-en="Augmented triad">Übermäßiger Dreiklang</option>
+                <option value="0,5,7" data-de="Sus4" data-en="Sus4">Sus4</option>
             </select>
 
             <input type="checkbox" id="check-interval" class="chord-cb">
-            <label for="check-interval">Intervall:</label>
+            <label for="check-interval" data-de="Intervall:" data-en="Interval:">Intervall:</label>
             <select id="select-interval">
-                <option value="1">Kleine Sekunde (+1)</option>
-                <option value="2">Große Sekunde (+2)</option>
-                <option value="3">Kleine Terz (+3)</option>
-                <option value="4">Große Terz (+4)</option>
-                <option value="5">Quarte (+5)</option>
-                <option value="6">Tritonus (+6)</option>
-                <option value="7" selected>Quinte (+7)</option>
-                <option value="8">Kleine Sexte (+8)</option>
-                <option value="9">Große Sexte (+9)</option>
-                <option value="10">Kleine Septime (+10)</option>
-                <option value="11">Große Septime (+11)</option>
-                <option value="12">Oktave (+12)</option>
+                <option value="1" data-de="Kleine Sekunde (+1)" data-en="Minor second (+1)">Kleine Sekunde (+1)</option>
+                <option value="2" data-de="Große Sekunde (+2)" data-en="Major second (+2)">Große Sekunde (+2)</option>
+                <option value="3" data-de="Kleine Terz (+3)" data-en="Minor third (+3)">Kleine Terz (+3)</option>
+                <option value="4" data-de="Große Terz (+4)" data-en="Major third (+4)">Große Terz (+4)</option>
+                <option value="5" data-de="Quarte (+5)" data-en="Perfect fourth (+5)">Quarte (+5)</option>
+                <option value="6" data-de="Tritonus (+6)" data-en="Tritone (+6)">Tritonus (+6)</option>
+                <option value="7" selected data-de="Quinte (+7)" data-en="Perfect fifth (+7)">Quinte (+7)</option>
+                <option value="8" data-de="Kleine Sexte (+8)" data-en="Minor sixth (+8)">Kleine Sexte (+8)</option>
+                <option value="9" data-de="Große Sexte (+9)" data-en="Major sixth (+9)">Große Sexte (+9)</option>
+                <option value="10" data-de="Kleine Septime (+10)" data-en="Minor seventh (+10)">Kleine Septime (+10)</option>
+                <option value="11" data-de="Große Septime (+11)" data-en="Major seventh (+11)">Große Septime (+11)</option>
+                <option value="12" data-de="Oktave (+12)" data-en="Octave (+12)">Oktave (+12)</option>
             </select>
         </div>
     </div>
@@ -369,20 +404,37 @@
             <div id="keyboard"></div>
         </div>
     </div>
-    <div class="hint" id="keyboard-hint">Mausrad hier: Rahmen verschieben &nbsp;|&nbsp; A S D F … : Tasten spielen</div>
+    <div class="hint" id="keyboard-hint" data-de="Mausrad hier: Rahmen verschieben &nbsp;|&nbsp; A S D F … : Tasten spielen" data-en="Mouse wheel here: move the frame &nbsp;|&nbsp; A S D F … : play the keys">Mausrad hier: Rahmen verschieben &nbsp;|&nbsp; A S D F … : Tasten spielen</div>
 </div>
 
 <details>
-    <summary>Frequenztabelle</summary>
+    <summary data-de="Frequenztabelle" data-en="Frequency table">Frequenztabelle</summary>
     <div class="details-inner"><table id="freq-table"></table></div>
 </details>
 
 <details id="math-details">
-    <summary>Mathematische Grundlagen</summary>
+    <summary data-de="Mathematische Grundlagen" data-en="The mathematics behind it">Mathematische Grundlagen</summary>
     <div class="details-inner"><div class="math-section" id="math-content"></div></div>
 </details>
 
 <script>
+    // Sprache: Text in der gerade eingestellten Sprache (ohne theme-language.js: Deutsch)
+    function T(de, en) { return (typeof tlText === 'function') ? tlText(de, en) : de; }
+    function DUNKEL()  { return (typeof tlDunkel === 'function') && tlDunkel(); }
+    // Dezimaltrennzeichen: im Deutschen Komma, im Englischen Punkt
+    function DZ(wert)  { return (typeof tlDezimal === 'function') ? tlDezimal(wert) : String(wert); }
+
+    function mjTypeset(elemente) {
+        if (!window.MathJax) return Promise.resolve();
+        if (MathJax.typesetPromise) return MathJax.typesetPromise(elemente).catch(() => {});
+        if (MathJax.startup && MathJax.startup.promise) {
+            return MathJax.startup.promise
+                .then(() => MathJax.typesetPromise ? MathJax.typesetPromise(elemente) : null)
+                .catch(() => {});
+        }
+        return Promise.resolve();
+    }
+
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     const masterGain = audioCtx.createGain();
     masterGain.connect(audioCtx.destination);
@@ -428,14 +480,28 @@
         {label:'C-Sus4',  root:'C',  i:[0,5,7]},   {label:'G-Sus4',  root:'G',  i:[0,5,7]},
     ];
     const selChord = document.getElementById('select-auto-chord');
-    CHORDS.forEach((c, idx) => {
-        const opt = document.createElement('option');
-        opt.value = idx; opt.textContent = c.label; selChord.appendChild(opt);
-    });
+    const AKKORD_EN = { 'Dur':'major', 'Moll':'minor', 'Dom7':'dom7', 'Dim':'dim', 'Aug':'aug', 'Sus4':'sus4' };
+    function akkordName(c) {
+        const teile = c.label.split('-');
+        return T(c.label, teile[0] + ' ' + (AKKORD_EN[teile[1]] || teile[1]));
+    }
+    // Baut die Liste auf bzw. beschriftet sie neu (Auswahl bleibt erhalten)
+    function fuelleAkkordListe() {
+        const gewaehlt = selChord.value;
+        if (!selChord.options.length) {
+            CHORDS.forEach((c, idx) => {
+                const opt = document.createElement('option');
+                opt.value = idx; selChord.appendChild(opt);
+            });
+        }
+        CHORDS.forEach((c, idx) => { selChord.options[idx].textContent = akkordName(c); });
+        if (gewaehlt !== '') selChord.value = gewaehlt;
+    }
+    fuelleAkkordListe();
 
     // ── Frequenztabelle ──
     const table = document.getElementById('freq-table');
-    let tableHTML = '<tr><th>Note</th>' + octaves.map(o => `<th>Okt. ${o}</th>`).join('') + '</tr>';
+    let tableHTML = '<tr><th class="th-note"></th>' + octaves.map(o => `<th class="th-okt" data-okt="${o}"></th>`).join('') + '</tr>';
     noteNames.forEach((name, nIdx) => {
         tableHTML += `<tr><td><strong>${name}</strong></td>`;
         octaves.forEach(oct => {
@@ -446,6 +512,19 @@
         tableHTML += '</tr>';
     });
     table.innerHTML = tableHTML;
+    // Kopfzeile beschriften - bei Sprachwechsel erneut aufgerufen
+    function beschrifteTabelle() {
+        const kn = table.querySelector('.th-note');
+        if (kn) kn.textContent = T('Note', 'Note');
+        table.querySelectorAll('.th-okt').forEach(th => {
+            th.textContent = T('Okt. ' + th.dataset.okt, 'Oct. ' + th.dataset.okt);
+        });
+        table.querySelectorAll('td[data-note]').forEach(td => {
+            td.textContent = DZ(parseFloat(td.dataset.freq).toFixed(1));
+        });
+    }
+    beschrifteTabelle();
+
     table.querySelectorAll('td[data-note]').forEach(cell => {
         cell.addEventListener('click', () => {
             const k = document.querySelector(`.key[data-note="${cell.dataset.note}"]`);
@@ -658,6 +737,37 @@
         _touchStartX = null; _touchStartIdx = null; _touchTargetKey = null; _dragDetected = false;
     }, {passive: true});
 
+    // Stift-Ziehen: Fokus verschieben (Promethean u. ä.)
+    // Ein Stift löst keine touch-Ereignisse aus, deshalb gibt es denselben Weg noch
+    // einmal über pointer-Ereignisse – ausdrücklich nur für pointerType "pen".
+    // Finger (touch oben) und Maus (Mausrad) behalten ihr bisheriges Verhalten.
+    let _stiftX = null, _stiftIdx = null, _stiftTaste = null, _stiftZiehen = false;
+    function stiftAus() { _stiftX = null; _stiftIdx = null; _stiftTaste = null; _stiftZiehen = false; }
+    kbScroll.addEventListener('pointerdown', e => {
+        if (e.pointerType !== 'pen') return;
+        e.preventDefault();                       // unterdrückt das Maus-Ersatzereignis
+        _stiftX = e.clientX; _stiftIdx = focusStartIdx;
+        _stiftTaste = e.target.closest('.key'); _stiftZiehen = false;
+        try { kbScroll.setPointerCapture(e.pointerId); } catch (ex) {}
+    });
+    kbScroll.addEventListener('pointermove', e => {
+        if (e.pointerType !== 'pen' || _stiftX === null) return;
+        const dx = _stiftX - e.clientX;
+        if (!_stiftZiehen && Math.abs(dx) >= 10) _stiftZiehen = true;
+        if (!_stiftZiehen) return;
+        const newIdx = Math.max(0, Math.min(allKeys.length - 12, _stiftIdx + Math.round(dx / 30)));
+        if (newIdx !== focusStartIdx) {
+            focusStartIdx = newIdx;
+            updateFocusFrame();
+        }
+    });
+    kbScroll.addEventListener('pointerup', e => {
+        if (e.pointerType !== 'pen' || _stiftX === null) return;
+        if (!_stiftZiehen && _stiftTaste) handleKeyInput(_stiftTaste, true);   // Tippen = Ton
+        stiftAus();
+    });
+    kbScroll.addEventListener('pointercancel', e => { if (e.pointerType === 'pen') stiftAus(); });
+
     // ── Tastatur-Steuerung ──
     window.addEventListener('keydown', (e) => {
         if (!document.getElementById('toggle-keyboard').checked) return;
@@ -765,12 +875,13 @@
         const showSum = document.getElementById('toggle-sum').checked;
         let html = '', i = 0;
         activeNotes.forEach((d, note) => {
-            const color = `hsl(${(i * 140) % 360}, 70%, 38%)`;
-            html += `<div style="color:${color}">${note} &ndash; sin(${d.freq.toFixed(1)}&thinsp;x)</div>`;
+            const color = `hsl(${(i * 140) % 360}, 70%, ${DUNKEL() ? 68 : 38}%)`;
+            html += `<div style="color:${color}">${note} &ndash; sin(${DZ(d.freq.toFixed(1))}&thinsp;x)</div>`;
             i++;
         });
         if (showSum && activeNotes.size > 1)
-            html += `<div style="color:#c0392b; margin-top:2px">&#x2211; Summengraph (normiert)</div>`;
+            html += `<div style="color:${DUNKEL() ? '#ff8a75' : '#c0392b'}; margin-top:2px">&#x2211; ` +
+                    T('Summengraph (normiert)', 'sum graph (normalised)') + `</div>`;
         leg.innerHTML = html;
     }
 
@@ -782,7 +893,7 @@
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         const midX = canvas.width / 2, midY = canvas.height / 2;
 
-        ctx.strokeStyle = '#e8edf0'; ctx.lineWidth = 1;
+        ctx.strokeStyle = DUNKEL() ? '#39434d' : '#e8edf0'; ctx.lineWidth = 1;
         ctx.beginPath(); ctx.moveTo(midX, 0); ctx.lineTo(midX, canvas.height); ctx.stroke();
         ctx.beginPath(); ctx.moveTo(0, midY); ctx.lineTo(canvas.width, midY); ctx.stroke();
 
@@ -823,11 +934,11 @@
     }
 
     // ── Mathematik ──
-    document.getElementById('math-content').innerHTML = `
+    const MATHE_DE = `
 <h3>1. Die Sinuswelle als Klangmodell</h3>
 <p>Jeder reine Ton lässt sich vollständig durch eine Sinusfunktion beschreiben:</p>
 <div class="mbox">\\[ y(t) = A \\cdot \\sin(2\\pi f t + \\varphi) \\]</div>
-<p>\\(A\\) = Amplitude &nbsp;|&nbsp; \\(f\\) = Frequenz in Hz &nbsp;|&nbsp; \\(t\\) = Zeit &nbsp;|&nbsp; \\(\\varphi\\) = Startphase. Die Kreisfrequenz \\(\\omega = 2\\pi f\\) gibt an, wie viele Schwingungen pro Sekunde stattfinden.</p>
+<p>\\(A\\) = Amplitude &nbsp;|&nbsp; \\(f\\) = Frequenz in Hz &nbsp;|&nbsp; \\(t\\) = Zeit &nbsp;|&nbsp; \\(\\varphi\\) = Startphase. Die Kreisfrequenz \\(\\omega = 2\\pi f\\) gibt an, welchen Winkel im Bogenmaß die Schwingung pro Sekunde durchläuft.</p>
 
 <h3>2. Frequenzen: Das Raster der Tonleiter</h3>
 <p>In der gleichschwebenden Stimmung teilt man eine Oktave in exakt 12 gleiche Halbtonschritte. Die Frequenz einer Note mit Abstand \\(n\\) Halbtönen von A4 (440 Hz) ist:</p>
@@ -864,8 +975,58 @@
 <div class="mbox">\\[ n \\text{ Halbtöne} \\;\\Longleftrightarrow\\; \\text{Faktor }2^{n/12} \\qquad \\text{z.B.:} \\quad 2^{12/12}=2, \\quad 2^{24/12}=4 \\]</div>
 <p>In der Frequenztabelle oben: jede Note verdoppelt sich von Oktave zu Oktave (z.B. A: 110 → 220 → 440 → 880 Hz).</p>`;
 
+    const MATHE_EN = `
+<h3>1. The sine wave as a model of sound</h3>
+<p>Every pure tone can be described completely by a sine function:</p>
+<div class="mbox">\\[ y(t) = A \\cdot \\sin(2\\pi f t + \\varphi) \\]</div>
+<p>\\(A\\) = amplitude &nbsp;|&nbsp; \\(f\\) = frequency in Hz &nbsp;|&nbsp; \\(t\\) = time &nbsp;|&nbsp; \\(\\varphi\\) = initial phase. The angular frequency \\(\\omega = 2\\pi f\\) states the angle in radians that the oscillation passes through per second.</p>
+
+<h3>2. Frequencies: the grid of the scale</h3>
+<p>In equal temperament an octave is divided into exactly 12 equal semitone steps. The frequency of a note that lies \\(n\\) semitones away from A4 (440 Hz) is:</p>
+<div class="mbox">\\[ f(n) = 440 \\cdot 2^{\\,n/12} \\text{ Hz} \\]</div>
+<p>Example C4 (\\(n=-9\\)): \\(f = 440 \\cdot 2^{-9/12} \\approx 261.6\\text{ Hz}\\). This is an <strong>exponential function</strong> with base 2, because \\(\\left(2^{1/12}\\right)^{12} = 2\\) &mdash; one octave.</p>
+
+<h3>3. Intervals as frequency ratios</h3>
+<table>
+  <tr><th>Interval</th><th>Semitones \\(n\\)</th><th>Factor \\(2^{n/12}\\)</th><th>Close to</th></tr>
+  <tr><td>Minor third</td><td>3</td><td>\\(\\approx 1.189\\)</td><td>\\(\\approx 6:5\\)</td></tr>
+  <tr><td>Major third</td><td>4</td><td>\\(\\approx 1.260\\)</td><td>\\(\\approx 5:4\\)</td></tr>
+  <tr><td>Perfect fourth</td><td>5</td><td>\\(\\approx 1.335\\)</td><td>\\(\\approx 4:3\\)</td></tr>
+  <tr><td>Perfect fifth</td><td>7</td><td>\\(\\approx 1.498\\)</td><td>\\(\\approx 3:2\\)</td></tr>
+  <tr><td>Octave</td><td>12</td><td>\\(= 2.000\\)</td><td>\\(= 2:1\\)</td></tr>
+</table>
+
+<h3>4. Major and minor &ndash; the commutative law of addition</h3>
+<p>A triad is built by stacking thirds. The fifth comes out as the sum of both thirds (always 7 semitones):</p>
+<div class="mbox">\\[ \\underbrace{+4}_{\\text{major 3rd}} + \\underbrace{+3}_{\\text{minor 3rd}} = 7 \\;\\Rightarrow\\; \\text{major} \\qquad \\underbrace{+3}_{\\text{minor 3rd}} + \\underbrace{+4}_{\\text{major 3rd}} = 7 \\;\\Rightarrow\\; \\text{minor} \\]</div>
+<p><strong>Commutative law:</strong> \\(4+3 = 3+4 = 7\\). The fifth is the same for major and minor &mdash; only the order of the thirds changes the sound.</p>
+<div class="mbox">\\[ f \\cdot 2^{4/12} \\cdot 2^{3/12} = f \\cdot 2^{7/12} = f \\cdot 2^{3/12} \\cdot 2^{4/12} \\]</div>
+<table>
+  <tr><th>Chord</th><th>Root C</th><th>Third</th><th>Fifth G</th></tr>
+  <tr><td><span class="tag-dur">C major</span></td><td>261.6 Hz</td><td>E4 &asymp; 329.6 Hz (major 3rd &times;\\(2^{4/12}\\))</td><td>G4 &asymp; 392.0 Hz</td></tr>
+  <tr><td><span class="tag-moll">C minor</span></td><td>261.6 Hz</td><td>E&flat;4 &asymp; 311.1 Hz (minor 3rd &times;\\(2^{3/12}\\))</td><td>G4 &asymp; 392.0 Hz</td></tr>
+</table>
+
+<h3>5. Superposition &ndash; waves add up</h3>
+<div class="mbox">\\[ y_{\\text{total}}(t) = A_1\\sin(2\\pi f_1 t) + A_2\\sin(2\\pi f_2 t) + \\cdots \\]</div>
+<p>Frequencies that lie close together produce a <strong>beat</strong> that pulsates at \\(|f_1-f_2|\\). Try A4 (440 Hz) + A#4 (466 Hz) &mdash; about 26 Hz of pulsation. The simpler the ratio \\(f_1:f_2\\), the more harmonious the superposition sounds.</p>
+
+<h3>6. Pitch is perceived logarithmically</h3>
+<p>The ear perceives pitch logarithmically: every doubling of the frequency sounds like a step of the same size (an octave):</p>
+<div class="mbox">\\[ n \\text{ semitones} \\;\\Longleftrightarrow\\; \\text{factor }2^{n/12} \\qquad \\text{e.g.:} \\quad 2^{12/12}=2, \\quad 2^{24/12}=4 \\]</div>
+<p>In the frequency table above: every note doubles from one octave to the next (e.g. A: 110 &rarr; 220 &rarr; 440 &rarr; 880 Hz).</p>`;
+
+    function setzeMathe() {
+        const el = document.getElementById('math-content');
+        el.innerHTML = T(MATHE_DE, MATHE_EN);
+        const det = document.getElementById('math-details');
+        if (det && det.open) mjTypeset([el]);
+    }
+    setzeMathe();
+
+
     document.getElementById('math-details').addEventListener('toggle', function() {
-        if (this.open && window.MathJax) MathJax.typesetPromise([this]);
+        if (this.open) mjTypeset([this]);
     });
 
     // ── Init ──
@@ -875,13 +1036,40 @@
     if (window.innerWidth < 601) {
         document.getElementById('controls-details').removeAttribute('open');
     }
+
+    // ══════ Sprache / Theme / Fehler melden ══════
+    window.addEventListener('tl-sprache', () => {
+        fuelleAkkordListe();
+        beschrifteTabelle();
+        setzeMathe();
+        updateLegend();
+    });
+
+    // Der Graph wird ohnehin laufend neu gezeichnet (draw() per rAF),
+    // die Legende hängt aber an den Farben des Modus.
+    window.addEventListener('tl-theme', () => { updateLegend(); });
+
+    window.fehlerKontext = function () {
+        const toene = [...activeNotes.keys()];
+        const modus = document.getElementById('check-auto-chord').checked
+            ? T('Fokus-Akkord ', 'Focus chord ') + akkordName(CHORDS[parseInt(selChord.value)])
+            : document.getElementById('check-base-chord').checked
+                ? T('Grundton-Modus', 'Root-note mode')
+                : document.getElementById('check-interval').checked
+                    ? T('Intervall-Modus', 'Interval mode')
+                    : T('Einzeltöne', 'Single notes');
+        const klang = toene.length
+            ? T('Gespielt: ', 'Playing: ') + toene.join(', ')
+            : T('kein Ton aktiv', 'no note playing');
+        return modus + ' · ' + klang;
+    };
 </script>
 <div id="lobby-spacer"></div>
   <footer class="site-footer">
   <div class="footer-content">
       M.&nbsp;Koch
       <span class="footer-topic"><a href="./index.html">Mathe-Tools</a></span>
-      <span class="footer-update">Last updated:&nbsp;<span id="last-update">...</span></span>
+      <span class="footer-update"><span class="fu-wort" data-de="Zuletzt aktualisiert:" data-en="Last updated:">Zuletzt aktualisiert:</span><span id="last-update">...</span></span>
   </div>
   </footer>
 <script src="last-update.js" defer></script>

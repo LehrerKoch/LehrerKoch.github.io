@@ -2,62 +2,80 @@ const typesData = [
   {
     "id": "learn",
     "label": "Aufgabengenerator",
+    "label_en": "Task Generator",
     "icon": "📝",
     "iconType": "emoji",
     "color": "#dc2020",
     "colorBg": "rgba(220,32,32,0.08)",
     "tooltip": "Zufällig generierte Aufgaben mit Schritt-für-Schritt-Hilfe",
-    "linkLabel": "Zur Übung"
+    "tooltip_en": "Randomly generated tasks with step-by-step help",
+    "linkLabel": "Zur Übung",
+    "linkLabel_en": "Practise now"
   },
   {
     "id": "quiz",
     "label": "Quiz",
+    "label_en": "Quiz",
     "icon": "❓",
     "iconType": "emoji",
     "color": "#7c3aed",
     "colorBg": "rgba(124,58,237,0.08)",
     "tooltip": "Multiple-Choice-Fragen zum Überprüfen des Verständnisses",
-    "linkLabel": "Zum Quiz"
+    "tooltip_en": "Multiple-choice questions to check your understanding",
+    "linkLabel": "Zum Quiz",
+    "linkLabel_en": "Take the quiz"
   },
   {
     "id": "uebung",
     "label": "Übungstool",
+    "label_en": "Practice Tool",
     "icon": "🧠",
     "iconType": "emoji",
     "color": "#d97706",
     "colorBg": "rgba(217,119,6,0.22)",
     "tooltip": "Interaktive Übungstools zum schrittweisen Durcharbeiten von Themen",
-    "linkLabel": "Zum Tool"
+    "tooltip_en": "Interactive tools for working through topics step by step",
+    "linkLabel": "Zum Tool",
+    "linkLabel_en": "Open the tool"
   },
   {
     "id": "flash",
     "label": "Flashcards",
+    "label_en": "Flashcards",
     "icon": "📚",
     "iconType": "emoji",
     "color": "#16a34a",
     "colorBg": "rgba(22,163,74,0.08)",
     "tooltip": "Karteikarten zum Einprägen von Formeln, Regeln und Definitionen",
-    "linkLabel": "Zu den Karten"
+    "tooltip_en": "Flashcards for memorising formulas, rules and definitions",
+    "linkLabel": "Zu den Karten",
+    "linkLabel_en": "View the cards"
   },
   {
     "id": "geo",
     "label": "GeoGebra",
+    "label_en": "GeoGebra",
     "icon": "svg:geo",
     "iconType": "svg",
     "color": "#0369a1",
     "colorBg": "rgba(3,105,161,0.08)",
     "tooltip": "Interaktive GeoGebra-Applets zur dynamischen Visualisierung",
-    "linkLabel": "Zum Applet"
+    "tooltip_en": "Interactive GeoGebra applets for dynamic visualisation",
+    "linkLabel": "Zum Applet",
+    "linkLabel_en": "Open the applet"
   },
   {
     "id": "game",
     "label": "Spiel",
+    "label_en": "Game",
     "icon": "🎮",
     "iconType": "emoji",
     "color": "#f7bd00",
     "colorBg": "rgba(255, 238, 0, 0.16)",
     "tooltip": "Spielerisches Lernen mit mathematischen Spielen",
-    "linkLabel": "Zum Spiel"
+    "tooltip_en": "Playful learning with mathematical games",
+    "linkLabel": "Zum Spiel",
+    "linkLabel_en": "Play now"
   },
   // {
   //   "id": "video",
@@ -72,11 +90,14 @@ const typesData = [
   {
     "id": "info",
     "label": "Info",
+    "label_en": "Info",
     "icon": "ℹ",
     "iconType": "emoji",
     "color": "#6b7280",
     "colorBg": "rgba(107,114,128,0.08)",
     "tooltip": "Zusätzliche Informationen, Erklärungen und Tipps zum Thema",
-    "linkLabel": "Zur Info"
+    "tooltip_en": "Additional information, explanations and tips on the topic",
+    "linkLabel": "Zur Info",
+    "linkLabel_en": "Read more"
   }
 ];

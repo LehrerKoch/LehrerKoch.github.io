@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="shortcut icon" type="image/x-icon" href="aleph_zero_logo.ico">
   <link rel="stylesheet" type="text/css" href="styles.css">
   <link rel="stylesheet" href="scale.css">
   <script src="scale.js" defer></script>
@@ -12,13 +13,17 @@
   window.MathJax = { options: { enableMenu: false } };
 </script>
 <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-  <title>Lage zweier Geraden</title>
+  <script>try{var t=localStorage.getItem('matheToolsTheme');if(t==='dark'||(!t&&window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.classList.add('dark');}catch(e){}</script>
+  <title data-de="Lage zweier Geraden" data-en="Relative position of two lines">Lage zweier Geraden</title>
+  <script src="theme-language.js" defer></script>
 <style>
 /* ===== gemeinsames Aussehen der Reihe – abgestimmt auf lgs.html ===== */
-html{ overflow-y:scroll; scrollbar-gutter:stable; }
+html{ scrollbar-gutter:stable; }
 body{ font-family:Calibri,sans-serif; padding:0 2%; max-width:940px; margin:0 auto;
       display:flex; flex-direction:column; min-height:100vh; }
-h1{ margin-bottom:4px; }
+h1{ margin-bottom:4px; padding-right:150px; }
+/* Platz für die runden Knöpfe oben rechts (Hell/Dunkel, Sprache, Fehler melden) */
+@media(max-width:560px){ h1{ padding-right:0; margin-top:52px; } }
 h2{ margin:6px 0 2px; }
 .lead{ margin:0 0 10px; color:#555; font-size:.95em; }
 
@@ -53,6 +58,16 @@ label.opt input[type=checkbox]:checked::after{ content:''; position:absolute; le
 .slider-row.aus{ opacity:.45; }
 .slider-row.aus .sl{ cursor:default; }
 .settings-foot{ text-align:center; margin:4px 0 6px; }
+/* ===== fester Zufalls-Seed (vor allem für Lehrkräfte) ===== */
+.seed-zeile{ display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin:10px 10px 0;
+  padding-top:8px; border-top:1px solid #ccc; font-size:.8em; color:#777; }
+.seed-zeile label.opt{ margin:0; font-size:1em; gap:5px; align-items:center; }
+.seed-zeile input[type=text]{ width:92px; font-size:.95em; padding:3px 6px; border:1.5px solid #cbdccb;
+  border-radius:5px; background:#fff; color:#1a3a1a; font-family:inherit; }
+.seed-zeile button{ font-size:.95em; padding:3px 8px; margin:0; }
+.seed-zeile .d{ flex:1 1 100%; font-size:.95em; margin:2px 0 0; line-height:1.3; }
+html.dark .seed-zeile{ border-top-color:#4a545e; color:#9aa5b1; }
+html.dark .seed-zeile input[type=text]{ background:#1b2026; color:#e7eae8; border-color:#3d5a3d; }
 .btn-secondary{ background:#eef4ee; color:#2a5a2a; border:1.5px solid #b8d8b8; }
 
 /* ── obere Steuerung ── */
@@ -111,13 +126,25 @@ label.opt input[type=checkbox]:checked::after{ content:''; position:absolute; le
 /* Kacheln der Aufgabentypen */
 .tiles{ display:flex; flex-wrap:wrap; gap:7px; margin:2px 0 0; width:100%; }
 .tile{ position:relative; flex:1 1 265px; min-width:0; text-align:left; background:#f7f7f7; color:#222 !important;
-  border:1.5px solid #aaa; border-radius:9px; padding:5px 22px 5px 10px; margin:0; font-size:.88em; line-height:1.25; }
-.tile .tname{ font-weight:bold; display:block; }
+  border:2px solid #9aa89c; border-radius:9px; padding:5px 22px 5px 10px; margin:0; font-size:.88em; line-height:1.25; }
+.tile .tname{ font-weight:bold; display:inline; }
+/* Wie viele Unterarten sind an? In Klammern hinter dem Namen - eine eigene
+   Zeile machte die Kachel unnoetig hoch. */
+.tile .tzaehler{ font-size:.72em; font-weight:normal; color:#777; opacity:.75;
+  margin-left:.45ch; white-space:nowrap; font-variant-numeric:tabular-nums; }
+.tile .tzaehler:empty{ display:none; }
+html.dark .tile .tzaehler{ color:#8a94a0; }
 .tile .tsub{ display:block; font-size:.76em; color:#666; margin-top:1px; line-height:1.2; }
 .tile.on{ background:#c8f0c8 !important; border-color:#4a9a4a !important; }
 .tile.on .tname{ color:#1a4a1a; }
 .tile.on .tsub{ color:#3a6a3a; }
 .tile.empty{ border-style:dashed; }
+/* Gestrichelt ist, was nur zum Teil eingeschaltet ist. Der Strich soll
+   auffallen - sonst sagt er nichts. */
+.tile.teil{ border-style:dashed; border-width:2px; }
+.tile.teil:not(.on){ border-color:#7f9683; }
+.tile.on.teil{ border-color:#2f6a2f !important; }
+html.dark .tile.teil:not(.on){ border-color:#78879a; }
 .tile .arr{ position:absolute; right:8px; top:50%; transform:translateY(-50%); color:#888; font-size:.7em; }
 .tilehint{ font-size:.75em; color:#777; margin:2px 0 0; line-height:1.25; }
 
@@ -134,11 +161,19 @@ label.opt input[type=checkbox]:checked::after{ content:''; position:absolute; le
 
 /* Aufgabe */
 .task-head{ display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; }
+/* Der Stift steht vor dem Kapitelnamen, nicht zwischen Kopf und Teilen-Knopf. */
+.task-head .zettel-icon{ order:-1; font-size:1.05em; line-height:1; cursor:help; }
+.task-head b{ margin-right:auto; }
 .share-btn{ background:none !important; color:inherit; border:none; font-size:1.05em; padding:3px 6px; line-height:1;
   opacity:.3; transition:opacity .15s; }
 .share-btn.copied{ opacity:1; }
 #genRow{ margin:6px 0 8px; }
-#genBtn{ display:inline-block; width:auto; font-size:1em; padding:9px 20px; }
+/* Der zweite Knopf steht unter der Aufgabe - rechtsbündig, damit er nicht mit
+   dem oberen in einer Flucht steht und als Dublette wirkt. */
+#genRow2{ margin:8px 0 10px; display:flex; justify-content:flex-end; }
+/* „Neue Aufgabe generieren" sieht überall gleich aus. */
+#genBtn, #genBtn2{ font-size:1em; padding:10px 20px; }
+#genBtn{ display:inline-block; width:auto; }
 .task{ border:1.5px solid #4a9a4a; border-radius:7px; padding:10px 14px; background:#f8fff8; }
 .task .qbody{ line-height:1.7; }
 .ask{ margin-top:8px; font-weight:bold; }
@@ -153,6 +188,10 @@ label.opt input[type=checkbox]:checked::after{ content:''; position:absolute; le
 .scale-el mjx-container[jax="CHTML"][display="true"]{ min-width:0 !important; }
 /* Sicherheitsnetz nur für sehr breite Inhalte, die selbst verkleinert nicht passen */
 .scale-wrapper{ overflow:visible; }
+/* Die Formel ist per transform verkleinert, ihre ursprüngliche Breite zählte aber
+   weiter für die Seitenbreite – auf dem Handy ließ sich die Seite dann seitlich
+   verschieben. clip schneidet nur diesen unsichtbaren Rest ab. */
+.scale-wrapper{ overflow-x:clip; }
 mjx-container{ margin:2px 0 !important; }
 
 /* Quiz */
@@ -169,6 +208,11 @@ mjx-container{ margin:2px 0 !important; }
 .qc{ background:#c8f0c8 !important; border-color:#4a9a4a !important; color:#1a4a1a !important; font-weight:bold; pointer-events:none; }
 .qw{ background:#f8d8d8 !important; border-color:#c04040 !important; color:#6a0000 !important; }
 .qz-inp-row{ display:flex; align-items:center; gap:4px; flex-wrap:wrap; margin:5px 0; }
+/* Die eigene Eingabe steht mittig unter der Aufgabe - wie auf den anderen Seiten. */
+#quizArea .qz-cur-step{ text-align:center; }
+#quizArea .qz-inp-row, #quizArea .qz-btns{ justify-content:center; }
+#quizArea .qz-stage, #quizArea .qz-sub, #quizArea .qz-fb{ text-align:center; }
+#manFields .qz-inp-row{ justify-content:flex-start; }
 .qz-lbl{ font-size:.86em; color:#333; white-space:nowrap; }
 .qz-inp{ font-family:monospace; font-size:.9em; padding:5px 2px; border:1.5px solid #aaa; border-radius:4px;
   width:46px; box-sizing:border-box; text-align:center; }
@@ -180,13 +224,78 @@ mjx-container{ margin:2px 0 !important; }
 .qz-fb.ok{ color:#1a6a1a; }
 .qz-fb.err{ color:#9a1010; }
 .qz-fb.warn{ color:#8a6a00; }
+/* ===== Eingabebereich: feste Marke, feste Rückmeldezeile ===== */
+.qz-mark{ display:inline-block; width:1.15em; color:#2a8a2a; font-weight:bold; }
+.qz-cur-step:not(.qz-solved) .qz-mark{ visibility:hidden; }
+/* Angezeigt statt selbst gelöst: rot, damit man es später erkennt. */
+.qz-gezeigt{ background:#fff6f6 !important; border-color:#e0b4b4 !important; }
+.qz-gezeigt .qz-stage{ color:#9c2a2a; }
+.qz-gezeigt .qz-mark{ color:#c62828; }
+.qz-kette-teil.gezeigt{ background:#f8d7d7; color:#8a1f1f; }
+.qz-all-done.mit-hilfe{ border-color:#c62828; background:#fff6f6; color:#8a1f1f; }
+.qz-fb{ min-height:1.15em; }
+.qz-skip{ background:none; border:1.5px solid #cbdccb; color:#667;
+  font-size:.84em; padding:4px 10px; }
+.qz-skip:hover{ background:#f1f6f1; border-color:#9c9; color:#2a6a2a; }
 .qz-solved{ background:#f6fdf6 !important; border-color:#b8d8b8 !important; }
 .qz-solved .qz-stage{ color:#2a6a2a; }
 .qz-locked{ opacity:.45; filter:grayscale(.6); pointer-events:none; }
 .qz-locked .qz-btn.qc{ background:#dfe9df !important; border-color:#aaa !important; color:#333 !important; }
 .qz-btn:disabled, .qz-inp:disabled{ cursor:default; }
 .qz-btn:disabled:not(.qc):not(.qw){ opacity:.55; }
-.qz-cur-step{ border:1.5px solid #4a9a4a; border-radius:5px; padding:7px 12px; margin:5px 0; background:#fff; }
+.qz-cur-step{ border:1.5px solid #4a9a4a; border-radius:5px; padding:7px 12px; margin:5px 0;
+  background:transparent; }  /* nicht weiß: die Karte soll durchscheinen */
+/* Schon Gelöstes steht als kurze Kette über dem laufenden Schritt - genau wie
+   auf den Gleichungsseiten. */
+.qz-kette{ display:flex; flex-wrap:wrap; gap:5px; justify-content:center;
+  margin:0 0 9px; padding-bottom:8px; border-bottom:1.5px solid #b8d8b8; }
+.qz-kette-teil{ font-size:.8em; color:#1a4a1a; background:#c8f0c8;
+  border-radius:12px; padding:2px 9px; }
+.qz-kette-teil.gezeigt{ background:#f3e4b5; color:#5a4a00; }
+.qh-box .qz-kette{ border-bottom-color:#e8d48a; }
+.qh-box .qz-kette-teil{ background:#f7e6b0; color:#4a3a00; }/* ===== Quiz als Hilfe ===== */
+/* Auftritt wie auf den Gleichungsseiten: gelber Reiter über gelbem Kasten */
+.qh-wrap{ margin:10px 0 2px; }
+.hilfe-btn{ display:block; margin:0 auto; background:#f6c445; color:#4a3a00 !important;
+  border:none; font-weight:bold; font-size:.95em; line-height:1.3;
+  padding:9px 18px; border-radius:20px; white-space:nowrap; }
+.hilfe-btn:hover{ filter:brightness(1.05); }
+.qh-wrap.auf .hilfe-btn{ border-radius:20px 20px 0 0; }
+.qh-kopfzeile{ display:flex; align-items:flex-end; justify-content:center; }
+.qh-linie{ display:none; flex:1 1 auto; height:0; border-top:1.5px solid #e8d48a; }
+.qh-wrap.auf .qh-kopfzeile{ justify-content:flex-start; }
+.qh-wrap.auf .qh-linie{ display:block; }
+.hilfe-btn::after{ content:' ▾'; font-size:.85em; }
+.qh-wrap.auf .hilfe-btn::after{ content:' ▴'; }
+html.dark .qh-linie{ border-top-color:#5a5024; }
+.qh-box{ border:1.5px solid #e8d48a; border-top:none; border-radius:0 0 8px 8px;
+  padding:8px 10px; background:#fffbe8; }
+.qh-kopf{ font-size:.82em; color:#8a7330; margin:0 0 6px; text-align:center; }
+.qh-step{ border-top:1px solid #e2eee2; padding:6px 2px 4px; }
+.qh-step:first-of-type{ border-top:none; }
+.qh-frage{ font-size:.92em; margin-bottom:3px; }
+.qh-nr{ display:inline-block; font-size:.78em; color:#fff; background:#7aa87a; border-radius:9px;
+  padding:1px 7px; margin-right:5px; vertical-align:middle; }
+.qh-sub{ font-size:.82em; color:#667; margin:1px 0 4px; }
+.qh-erk{ font-size:.84em; color:#2a6a2a; margin:2px 0 0; }
+.qh-solved .qh-frage{ color:#2a6a2a; }
+.qh-pruef{ font-size:.86em; padding:5px 12px; }
+.qh-fertig{ font-size:.88em; color:#2a6a2a; text-align:center; margin:6px 0 2px; font-weight:bold; }
+.qh-step{ border-top:1px solid #efe2b8; }
+.qh-nr{ background:#d9ab32; }
+.qh-sub{ color:#8a7330; }
+html.dark .hilfe-btn{ background:#6d5a24; color:#ffe9a8 !important; }
+html.dark .qh-box{ background:#2a2718; border-color:#5a5024; }
+html.dark .qh-kopf, html.dark .qh-sub{ color:#d6c98a; }
+html.dark .qh-step{ border-top-color:#4a431f; }
+html.dark .qh-nr{ background:#8a7330; }
+
+html.dark .qh-box{ background:#1b2126; border-color:#3d5a3d; }
+html.dark .qh-kopf, html.dark .qh-sub{ color:#9aa5b1; }
+html.dark .qh-step{ border-top-color:#2d3a2f; }
+html.dark .qh-erk, html.dark .qh-solved .qh-frage, html.dark .qh-fertig{ color:#81c784; }
+html.dark .qh-nr{ background:#4a7a4a; }
+
 .qz-all-done{ border:1.5px solid #4a9a4a; border-radius:5px; padding:7px 12px; margin:5px 0; background:#eefaee;
   color:#1a4a1a; font-weight:bold; font-size:.93em; }
 .vecin{ display:inline-flex; align-items:stretch; gap:2px; vertical-align:middle; }
@@ -199,18 +308,65 @@ mjx-container{ margin:2px 0 !important; }
 .sqbr.l{ border-right:none; }
 .sqbr.r{ border-left:none; }
 .qz-inp-row{ align-items:stretch; }
-.qz-inp-row > .qz-lbl{ display:flex; align-items:center; }
+.task-err{ margin:6px 0; color:#b00020; }
+.qz-inp-row > .qz-lbl{ display:flex; align-items:center; gap:.3em; }
+/* Das Freitextfeld für eine Funktionsgleichung ist breit, nicht so schmal
+   wie ein Zahlenfeld. */
+#manFields input.qz-inp.fterm, input.qz-inp.fterm{ width:15em; max-width:100%;
+  text-align:left; }
+#manFields .qz-inp-row:has(.fterm) > .qz-lbl:first-child{ flex:0 0 auto; max-width:none; }
+@media(max-width:560px){ #manFields input.qz-inp.fterm, input.qz-inp.fterm{ width:100%; } }/* gap: sonst fiele das Leerzeichen vor der Formel weg */
 .ptin{ display:inline-flex; align-items:center; gap:3px; vertical-align:middle; }
 .ptin .pb{ font-size:1.6em; line-height:1; color:#444; }
 .ptin .psep{ color:#777; font-size:1.1em; }
 
 /* Lösung */
-details.loesung{ margin-top:10px; background:#f0f7ff; border:2px solid #3a7ac0; border-radius:7px; padding:2px 8px; }
-details.loesung>summary{ color:#0d47a1; }
-.res{ background:#fff; border:1px solid #b6d4f0; border-radius:6px; padding:6px 10px; margin:4px 0; }
+/* Lösung und Lösungsweg wie auf den anderen Aufgabenseiten: zugeklappt ein
+   voller Knopf, aufgeklappt dessen Kopfzeile. */
+details.loesung, details.weg{
+  margin:10px 0 6px; padding:0; background:none;
+  border:2px solid transparent; border-radius:24px; }
+details.loesung>summary, details.weg>summary{
+  display:block; list-style:none; cursor:pointer; text-align:center; font-weight:bold;
+  font-size:1.02em; line-height:1.35; padding:12px 18px; margin:-2px;
+  border-radius:22px; color:#fff; background:#1565c0;
+  box-shadow:0 2px 5px rgba(0,0,0,.12);
+  transition:background .15s, border-radius .15s, box-shadow .15s; }
+details.loesung>summary::before, details.weg>summary::before{ content:none; }
+details.loesung>summary::-webkit-details-marker,
+details.weg>summary::-webkit-details-marker{ display:none; }
+details.loesung>summary::after, details.weg>summary::after{ content:' ▾'; font-size:.85em; }
+details[open].loesung>summary::after, details[open].weg>summary::after{ content:' ▴'; }
+details[open].loesung, details[open].weg{
+  border-color:#3a7ac0; background:#f0f7ff;
+  border-radius:24px 24px 10px 10px; padding-bottom:9px; }
+details[open].loesung>summary, details[open].weg>summary{
+  border-radius:20px 20px 0 0; box-shadow:none; margin:-2px -2px 8px; }
+details.loesung> :not(summary), details.weg> :not(summary){ margin-left:10px; margin-right:10px; }
+html.dark details.loesung>summary, html.dark details.weg>summary{ color:#fff; }
+html.dark details[open].loesung, html.dark details[open].weg{ background:#16202b; border-color:#3a7ac0; }
+.res{ background:var(--ab-bl-flaeche,#e3effb); border:1px solid #b6d4f0; border-radius:6px; padding:6px 10px; margin:4px 0; }
 .note{ font-size:.82em; color:#555; margin:4px 0 2px; }
-details.weg{ margin:8px 0 6px; background:#fff; border:1.5px solid #b6d4f0; border-radius:6px; padding:2px 8px; }
-details.weg>summary{ color:#1565c0; font-weight:bold; }
+/* Lösung, Lösungsweg und Quiz in den Farben ihrer Leisten */
+:root{ --ab-bl-flaeche:#e3effb; --ab-ge-flaeche:#fff4d4; }
+html.dark{ --ab-bl-flaeche:#1a2430; --ab-ge-flaeche:#2e2a18; }
+.res{ background:var(--ab-bl-flaeche) !important; }
+details[open].weg{ background:#f0f7ff !important; }
+.wegbox .step{ background:var(--ab-bl-flaeche); border:1px solid #b6d4f0;
+  border-radius:6px; padding:6px 10px; margin:6px 0; }
+html.dark .wegbox .step{ background:#1a2430; border-color:#2f4f6f; }
+#quizArea .qz-cur-step{ background:var(--ab-ge-flaeche); border-color:#e0bc55; }
+#quizArea .qz-cur-step.qz-solved{ background:#f3faf3; border-color:#b8d8b8; }
+#quizArea .qz-cur-step.qz-gezeigt{ background:#fbf6e4; border-color:#ddc98a; }
+html.dark #quizArea .qz-cur-step{ background:#2e2a18; border-color:#6a5a28; }
+html.dark #quizArea .qz-cur-step.qz-solved{ background:#1b241b; border-color:#3d5a3d; }
+
+details.weg{ margin:8px 0 4px; }
+details.weg>summary{ background:#b6d4f0; color:#0d3a68; box-shadow:none;
+  padding:10px 16px; font-size:.95em; }
+details[open].weg{ border-color:#b6d4f0; background:#fff; }
+html.dark details.weg>summary{ background:#2f4f6f; color:#eaf2fb; }
+html.dark details[open].weg{ background:#1b2026; border-color:#2f4f6f; }
 .wegbox{ margin-top:4px; }
 .step{ margin:8px 0; }
 .step .sh{ font-weight:bold; font-size:.88em; color:#1a3a5a; }
@@ -232,8 +388,20 @@ details.weg>summary{ color:#1565c0; font-weight:bold; }
 .extlink a.alt{ background:#E07B00; }
 .extlink .d{ flex-basis:100%; font-size:.75em; color:#666; }
 
+@media(max-width:860px){
+  /* Ueber den Aufgabentypen soll nicht der halbe Schirm aufgebraucht sein. */
+  .tile{ padding:4px 14px 4px 7px; font-size:.76em; line-height:1.1; border-radius:8px; }
+  .tile .tsub{ font-size:.76em; line-height:1.1; margin-top:0; }
+  .tile .arr{ right:4px; font-size:.65em; }
+  .tiles{ gap:4px; }
+}
+@media(max-width:560px){
+  /* Die Kurzfassung bleibt einzeilig. */
+  .tile .tsub{ display:-webkit-box; -webkit-line-clamp:1; -webkit-box-orient:vertical;
+    overflow:hidden; }
+}
 @media(max-width:520px){
-  .tile{ flex:1 1 100%; }
+  .tile{ flex:1 1 calc(50% - 4px); }
   .qz-inp{ width:60px; }
 }
 
@@ -273,18 +441,114 @@ button:focus:not(:focus-visible), a:focus:not(:focus-visible), label:focus:not(:
 
 mjx-container:focus, mjx-container [tabindex]{ outline:none; }
 
-</style>
-</head>
-<body>
-<h1>Lage zweier Geraden</h1>
-<p class="lead">Untersuchen, ob zwei Geraden sich schneiden, parallel, identisch oder windschief sind.</p>
+/* ══════════════════════════════════════════════════════════════
+   Dunkelmodus – nur Zusätze; der Hellmodus oben bleibt unverändert.
+   ══════════════════════════════════════════════════════════════ */
+html.dark .lead{ color:#a9b4ae; }
+html.dark details{ border-color:#4a545e; }
+html.dark .form-block{ border-color:#4a545e; }
+html.dark .form-block .d, html.dark .row .sp, html.dark .slider-row .sl-end{ color:#9aa5b1; }
+html.dark input[type=number].sm{ background:#1b2026; color:#e7eae8; border-color:#3d5a3d; }
+html.dark select.sm{ background:#1b2026; color:#d7e8d7; border-color:#3d5a3d; }
+html.dark label.opt input[type=checkbox]{ background:#1b2026; border-color:#5a8a5a; }
+html.dark label.opt input[type=checkbox]:checked{ background:#4a9a4a; border-color:#4a9a4a; }
+html.dark .btn-secondary{ background:#1f2a20; color:#a5d6a7; border-color:#3d5a3d; }
+html.dark #manualBox{ background:#172019; border-color:#3d5a3d; }
+html.dark #manualBox > .row:first-child{ border-bottom-color:#2f4a31; }
+html.dark #manualBox > .row:first-child > span{ color:#a5d6a7; }
+html.dark #manType{ background:#1f2e20; color:#cdeccd; border-color:#4a9a4a; }
+html.dark #manType:hover{ background:#243626; }
+html.dark #manFields .qz-inp-row > .qz-lbl:first-child{ color:#a5d6a7; }
+html.dark .tc-label{ color:#a5d6a7; }
+html.dark .tc-sub, html.dark .tilehint{ color:#9aa5b1; }
+html.dark .seg-switch{ background:#1b2026; border-color:#3d5a3d; }
+html.dark .seg-switch label{ color:#b5c9b5; }
+html.dark .seg-switch input:checked+label{ color:#fff; }
+html.dark .pill, html.dark .tile, html.dark .qz-btn{ background:#1b2026; border-color:#56606a; color:#dde3df !important; }
+html.dark .pill.on, html.dark .tile.on, html.dark .qc{ background:#24462a !important; border-color:#5cb860 !important; color:#d4f5d4 !important; }
+html.dark .tile .tsub, html.dark .tile .arr{ color:#9aa5b1; }
+html.dark .tile.on .tname{ color:#d4f5d4; }
+html.dark .tile.on .tsub{ color:#a5d6a7; }
+html.dark .pop{ background:#1b2026; border-color:#4a9a4a; box-shadow:0 6px 22px rgba(0,0,0,.55); }
+html.dark .pop h4{ color:#a5d6a7; }
+html.dark .pop label span.d, html.dark .pophint{ color:#9aa5b1; }
+html.dark .pophint{ border-top-color:#2f4a31; }
+html.dark .task{ background:#161d18; border-color:#4a9a4a; }
+html.dark .task-err{ color:#ff8a80; }
+html.dark .qz-stage{ color:#a5d6a7; }
+html.dark .qz-sub{ color:#e6dcb0; background:#2a2718; border-color:#5a5024; }
+html.dark .hint-btn{ background:#2e2a17; color:#ffd666 !important; border-color:#6d5a24; }
+html.dark .qw{ background:#4a2020 !important; border-color:#e57373 !important; color:#ffcdd2 !important; }
+html.dark .qz-lbl{ color:#cfd6d2; }
+html.dark .qz-inp{ background:#1b2026; color:#e7eae8; border-color:#56606a; }
+html.dark .qz-inp:focus{ border-color:#5cb860; }
+html.dark .qz-inp.ok{ border-color:#5cb860; background:#1a2a1c; }
+html.dark .qz-inp.err{ border-color:#e57373; background:#2e1a1a; }
+html.dark .qz-fb.ok{ color:#81c784; }
+html.dark .qz-mark{ color:#81c784; }
+html.dark .qz-gezeigt{ background:#2a1d1d !important; border-color:#6b3a3a !important; }
+html.dark .qz-gezeigt .qz-stage{ color:#ef9a9a; }
+html.dark .qz-gezeigt .qz-mark{ color:#ef9a9a; }
+html.dark .qz-kette-teil.gezeigt{ background:#3a1f1f; color:#ef9a9a; }
+html.dark .qz-all-done.mit-hilfe{ background:#2a1d1d; color:#ef9a9a; border-color:#8a3a3a; }
+html.dark .qz-skip{ border-color:#3d5a3d; color:#9aa5b1; }
+html.dark .qz-skip:hover{ background:#1c3320; color:#81c784; }
+html.dark .qz-fb.err{ color:#ef9a9a; }
+html.dark .qz-fb.warn{ color:#ffd54f; }
+html.dark .qz-cur-step{ background:transparent; border-color:#4a9a4a; }
+html.dark .qz-kette{ border-bottom-color:#3d5a3d; }
+html.dark .qz-kette-teil{ background:#1c3320; color:#c8f0c8; }
+html.dark .qz-kette-teil.gezeigt{ background:#33301c; color:#e8d9a0; }
+html.dark .qh-box .qz-kette-teil{ background:#33301c; color:#f0e2b0; }
+html.dark .qz-solved{ background:#172019 !important; border-color:#3d5a3d !important; }
+html.dark .qz-solved .qz-stage{ color:#81c784; }
+html.dark .qz-locked .qz-btn.qc{ background:#2a332b !important; border-color:#56606a !important; color:#cfd6d2 !important; }
+html.dark .qz-all-done{ background:#1c3320; color:#c8f0c8; border-color:#4a9a4a; }
+html.dark .vecin .br, html.dark .sqbr{ border-color:#aab4ae; }
+html.dark .ptin .pb{ color:#aab4ae; }
+html.dark .ptin .psep{ color:#9aa5b1; }
+html.dark .res{ background:#1b2026; border-color:#2f4f6f; }
+html.dark .res, html.dark details.weg{ background:#1b2026; border-color:#2f4f6f; }
+html.dark .note, html.dark .wegsel{ color:#a9b4ae; }
+html.dark .step .sh{ color:#9fc5e8; }
+html.dark .step .sx{ color:#b0bac2; }
+html.dark .step .note-line{ color:#d0d6da; }
+html.dark .varsw button{ background:#1b2026; color:#90caf9 !important; border-color:#2f4f6f; }
+html.dark .varsw button.on{ background:#3a7ac0; color:#fff !important; border-color:#3a7ac0; }
+html.dark .extlink .d{ color:#9aa5b1; }
+html.dark .step-link, html.dark .extlink a.alt{ background:#b35f00; }
+@keyframes blinkHintDunkel{ 0%,100%{ background:transparent; } 25%,75%{ background:#3a3418; } }
+html.dark .form-block.hint{ animation-name:blinkHintDunkel; }
+@media (hover: hover) and (pointer: fine){
+  html.dark .btn-secondary:hover{ background:#26352a; }
+  html.dark .pill:hover, html.dark .tile:hover, html.dark .qz-btn:hover:not(.qc):not(.qw){ background:#242d27; border-color:#7a8a80; }
+  html.dark .varsw button:hover:not(.on){ background:#1c2a38; border-color:#5a8fc8; }
+  html.dark .extlink a.alt:hover{ background:#8f4c00; }
+}
 
-<details id="dSettings">
-  <summary>Einstellungen</summary>
+</style>
+<script src="einwilligung.js" defer></script>
+</head>
+<body class="tk-seite">
+<header class="tool-kopf">
+  <div class="tk-text">
+    <h1 data-de="Lage zweier Geraden" data-en="Relative position of two lines">Lage zweier Geraden</h1>
+    <p class="tk-unter" data-de="Untersuchen, ob zwei Geraden sich schneiden, parallel, identisch oder windschief sind." data-en="Determine whether two lines intersect, are parallel, identical or skew.">Untersuchen, ob zwei Geraden sich schneiden, parallel, identisch oder windschief sind.</p>
+  </div>
+</header>
+
+<details class="einst" id="dSettings">
+  <summary data-de="Einstellungen" data-en="Settings">Einstellungen</summary>
   <div class="settings-grid" id="settingsGrid"></div>
+  <div class="seed-zeile">
+    <label class="opt"><input type="checkbox" id="seedAn"><span data-de="fester Zufalls-Seed" data-en="fixed random seed">fester Zufalls-Seed</span></label>
+    <input type="text" id="seedWert" autocomplete="off" inputmode="numeric" aria-label="Seed" data-de-aria-label="Seed" data-en-aria-label="Seed">
+    <button type="button" class="btn-secondary" id="seedNeu" title="neuen Seed würfeln" data-de-title="neuen Seed würfeln" data-en-title="roll a new seed">⟳</button>
+    <span class="d" data-de="Mit demselben Seed bekommen alle dieselbe Folge von Aufgaben – der Seed steht dann im geteilten Link." data-en="With the same seed everyone gets the same sequence of tasks – the seed is then part of the shared link.">Mit demselben Seed bekommen alle dieselbe Folge von Aufgaben – der Seed steht dann im geteilten Link.</span>
+  </div>
   <div class="settings-foot">
-    <button class="btn-secondary" id="btnShare">🔗 Link mit allen Einstellungen kopieren</button>
-    <button class="btn-secondary" id="btnReset">↺ Standard wiederherstellen</button>
+    <button class="btn-secondary" id="btnShare" data-de="🔗 Link mit allen Einstellungen kopieren" data-en="🔗 Copy link with all settings">🔗 Link mit allen Einstellungen kopieren</button>
+    <button class="btn-secondary" id="btnReset" data-de="↺ Standard wiederherstellen" data-en="↺ Restore defaults">↺ Standard wiederherstellen</button>
   </div>
 </details>
 
@@ -293,28 +557,30 @@ mjx-container:focus, mjx-container [tabindex]{ outline:none; }
 
 <div id="topControls">
   <div class="tc-item">
-    <span class="tc-label">Mögliche Fälle</span>
-    <span class="tc-sub">Nur die eingeschalteten Fälle kommen in den Aufgaben vor.</span>
+    <span class="tc-label" data-de="Mögliche Fälle" data-en="Possible cases">Mögliche Fälle</span>
+    <span class="tc-sub" data-de="Nur die eingeschalteten Fälle kommen in den Aufgaben vor." data-en="Only the cases switched on occur in the tasks.">Nur die eingeschalteten Fälle kommen in den Aufgaben vor.</span>
     <div class="pills" id="segCases"></div>
   </div>
 
   <div class="tc-item tc-diff">
-    <span class="tc-label">Schwierigkeit</span>
+    <span class="tc-label" data-de="Schwierigkeit" data-en="Difficulty">Schwierigkeit</span>
     <div class="seg-switch diff-switch" id="segDiff"></div>
   </div>
 </div>
 
-<div id="genRow"><button id="genBtn">Neue Aufgabe generieren</button></div>
+<div id="genRow"><button id="genBtn" data-de="&#x27F3;&nbsp;Neue Aufgabe generieren" data-en="&#x27F3;&nbsp;Generate a new task">&#x27F3;&nbsp;Neue Aufgabe generieren</button></div>
 
 <div class="task" id="task"></div>
+<!-- Lösung und Lösungsweg stehen unter der Aufgabe - wie auf den anderen Seiten. -->
+<div id="taskNach"></div>
 
-<div id="genRow2"><button id="genBtn2">Neue Aufgabe generieren</button></div>
+<div id="genRow2"><button id="genBtn2" data-de="&#x27F3;&nbsp;Neue Aufgabe generieren" data-en="&#x27F3;&nbsp;Generate a new task">&#x27F3;&nbsp;Neue Aufgabe generieren</button></div>
 
 <footer class="site-footer">
   <div class="footer-content">
     <span>M. Koch</span>
-    <span><a href="index.html">Mathe-Tools</a></span>
-    <span id="lastUpdate"></span>
+    <span class="footer-topic"><a href="index.html">Mathe-Tools</a></span>
+    <span class="footer-update"><span class="fu-wort" data-de="Zuletzt aktualisiert:" data-en="Last updated:">Zuletzt aktualisiert:</span><span id="last-update">...</span></span>
   </div>
 </footer>
 <script src="last-update.js" defer></script>
@@ -324,6 +590,28 @@ mjx-container:focus, mjx-container [tabindex]{ outline:none; }
    identisch in geraden_grundlagen.html, lage_gerade_gerade.html,
    ebenen_grundlagen.html, lage_gerade_ebene.html, lage_ebene_ebene.html
    ========================================================================= */
+
+/* ---------- Sprache und Farbschema ----------
+   theme-language.js (runde Knöpfe oben rechts) ist optional: fehlt die Datei,
+   bleibt die Seite deutsch und hell. Beim Umschalten wird dieselbe Aufgabe
+   (gleicher Seed, gleiche Einstellungen) in der neuen Sprache neu aufgebaut –
+   Eingaben, Quiz-Fortschritt und aufgeklappte Lösung bleiben erhalten. */
+function T(de, en){ return (typeof tlText === 'function') ? tlText(de, en) : de; }
+function EN(){ return (typeof tlSprache === 'function') && tlSprache() === 'en'; }
+function DUNKEL(){ return document.documentElement.classList.contains('dark'); }
+/** Dezimaltrennzeichen der Anzeige: Komma (de) bzw. Punkt (en) */
+function DEZ(){ return EN() ? '.' : ','; }
+/** englische Ordnungszahl für Zeilen und Koordinaten: 1 → "first" */
+function ORD(n){ return ['first', 'second', 'third'][n - 1] || (n + 'th'); }
+/** Wörterbuch für Beschriftungen, die schon beim Laden als Daten entstehen
+    (Aufgabentypen, Fälle, Formen …): die Daten bleiben deutsch, W() liefert
+    beim Anzeigen die englische Fassung. Einträge ergänzt jede Seite. */
+const WB = {
+  'Zufällige Aufgabe': 'Random task', 'Eigene Aufgabe': 'Your own task',
+  'Einführung': 'Introduction', 'Leicht': 'Easy', 'Mittel': 'Medium',
+  'Herausfordernd': 'Challenging', 'Individuell': 'Custom', 'öffnet die Einstellungen': 'opens the settings'
+};
+function W(de){ if (de == null || !EN()) return de; const e = WB[de]; return (e == null) ? de : e; }
 
 /* ---------- DOM ---------- */
 const $  = (s, r) => (r || document).querySelector(s);
@@ -419,7 +707,7 @@ function fmt(x, maxDec){
   let s = rd(x, m).toFixed(m);
   if (s.indexOf('.') >= 0) s = s.replace(/0+$/, '').replace(/\.$/, '');
   if (s === '-0') s = '0';
-  return s.replace('.', ',');
+  return s.replace('.', DEZ());
 }
 const tfmt = (x, m) => fmt(x, m).replace(',', '{,}');
 function fracTeX(x){
@@ -686,11 +974,13 @@ const SP = () => (S.dotSym === 'cdot' ? '\\cdot ' : '\\circ ');
 /** Name der Koordinatenebene, in der die k-te Koordinate 0 ist */
 function koPlaneName(k){
   const o = [0, 1, 2].filter(i => i !== k);
-  return '\\(' + axName(o[0]) + axName(o[1]) + '\\)-Ebene';
+  return '\\(' + axName(o[0]) + axName(o[1]) + T('\\)-Ebene', '\\)-plane');
 }
 /** Name der k-ten Koordinatenachse */
-function achsName(k){ return '\\(' + axName(k) + '\\)-Achse'; }
+function achsName(k){ return '\\(' + axName(k) + T('\\)-Achse', '\\)-axis'); }
 function axName(i){ return (S.ax === 'x123') ? 'x_{' + (i + 1) + '}' : ['x', 'y', 'z'][i]; }
+/** Achsenname ohne TeX – für Auswahllisten, in denen keine Formeln gesetzt werden */
+function axPlain(i){ return (S.ax === 'x123') ? 'x' + '₁₂₃'[i] : ['x', 'y', 'z'][i]; }
 const TX = {
   vec(v){ return '\\begin{pmatrix}' + v.map(x => numTeX(x)).join('\\\\') + '\\end{pmatrix}'; },
   arrow(s){ return '\\overrightarrow{' + s + '}'; },
@@ -742,7 +1032,8 @@ function expandNorTeX(n, p){
 }
 /** Gleichheitszeichen grün, Ungleichheitszeichen rot */
 function relTeX(ok){
-  return ok ? '\\;{\\color{#1a6a1a}{=}}\\;' : '\\;{\\color{#9a1010}{\\neq}}\\;';
+  return ok ? '\\;{\\color{' + (DUNKEL() ? '#81c784' : '#1a6a1a') + '}{=}}\\;'
+            : '\\;{\\color{' + (DUNKEL() ? '#ef9a9a' : '#9a1010') + '}{\\neq}}\\;';
 }
 /** eine Probezeile: linker Term = Wert  (=/≠)  Wert = rechter Term */
 function probeZeileTeX(lc, lu, lt, rc, ru, rt){
@@ -783,7 +1074,7 @@ const ROM = ['I', 'II', 'III'];
 function liveStep(h, x, bau){ return { h: h, x: x || '', tex: '', htm: '', live: bau }; }
 function step(h, x, tex, htm){ return { h: h, x: x || '', tex: tex || '', htm: htm || '' }; }
 /** Anmerkung hinter einer Probe */
-const OKNOTE = ok => ok ? '✓ Die Gleichung ist erfüllt.' : '✗ Widerspruch – die Gleichung ist nicht erfüllt.';
+const OKNOTE = ok => ok ? T('✓ Die Gleichung ist erfüllt.', '✓ The equation holds.') : T('✗ Widerspruch – die Gleichung ist nicht erfüllt.', '✗ Contradiction – the equation does not hold.');
 function _lbl(l){ return (/[\\_{^]/.test(l) ? l : '\\text{' + l + '}'); }
 /** eine Gleichungsseite in Zellen: Konstante | (Vorzeichen | Term)* */
 function _sideCells(c0, coefs, syms){
@@ -870,25 +1161,26 @@ function solve2(A1, B1, C1, A2, B2, C2){
   if (eq0(A1) || eq0(A2)){
     const f = eq0(A1) ? [A1, B1, C1, 'I'] : [A2, B2, C2, 'II'];
     const o = eq0(A1) ? [A2, B2, C2, 'II'] : [A1, B1, C1, 'I'];
-    st.push(step('Zeile ' + f[3] + '\' enthält kein \\(' + par() + '\\)', 'Sie liefert \\(' + par2() + '\\) direkt:',
+    st.push(step(T('Zeile ', 'Row ') + f[3] + T('\' enthält kein \\(', '\' does not contain \\(') + par() + '\\)', T('Sie liefert \\(', 'It gives \\(') + par2() + T('\\) direkt:', '\\) directly:'),
       eqChain(lin2(f[0], f[1], f[2]), quotTeX(par2(), f[2], f[1], s))));
-    st.push(step('Einsetzen in Zeile ' + o[3] + '\'', 'Damit ergibt sich der zweite Parameter:',
+    st.push(step(T('Einsetzen in Zeile ', 'Substitute into row ') + o[3] + '\'', T('Damit ergibt sich der zweite Parameter:', 'This gives the second parameter:'),
       term(o[0], par(), true) + coef(o[1], paren(s)) + ' = ' + numTeX(o[2]) + '\\;\\Leftrightarrow\\;' + back(o[0], o[1], o[2], s, true)));
   } else if (eq0(B1) || eq0(B2)){
     const f = eq0(B1) ? [A1, B1, C1, 'I'] : [A2, B2, C2, 'II'];
     const o = eq0(B1) ? [A2, B2, C2, 'II'] : [A1, B1, C1, 'I'];
-    st.push(step('Zeile ' + f[3] + '\' enthält kein \\(' + par2() + '\\)', 'Sie liefert \\(' + par() + '\\) direkt:',
+    st.push(step(T('Zeile ', 'Row ') + f[3] + T('\' enthält kein \\(', '\' does not contain \\(') + par2() + '\\)', T('Sie liefert \\(', 'It gives \\(') + par() + T('\\) direkt:', '\\) directly:'),
       eqChain(lin2(f[0], f[1], f[2]), quotTeX(par(), f[2], f[0], t))));
-    st.push(step('Einsetzen in Zeile ' + o[3] + '\'', 'Damit ergibt sich der zweite Parameter:',
+    st.push(step(T('Einsetzen in Zeile ', 'Substitute into row ') + o[3] + '\'', T('Damit ergibt sich der zweite Parameter:', 'This gives the second parameter:'),
       term(o[0], paren(t), true) + coef(o[1], par2()) + ' = ' + numTeX(o[2]) + '\\;\\Leftrightarrow\\;' + back(o[0], o[1], o[2], t, false)));
   } else {
     const g = (Number.isInteger(A1) && Number.isInteger(A2)) ? gcd(A1, A2) : 1;
     const m1 = snap(A2 / g), m2 = snap(A1 / g);
     const nB = snap(B1 * m1 - B2 * m2), nC = snap(C1 * m1 - C2 * m2);
-    st.push(step('\\(' + par() + '\\) eliminieren',
-      'Zeile I\' wird mit \\(' + numTeX(m1) + '\\) und Zeile II\' mit \\(' + numTeX(m2) + '\\) multipliziert; beim Subtrahieren fällt \\(' + par() + '\\) weg:',
+    st.push(step(T('\\(' + par() + '\\) eliminieren', 'Eliminate \\(' + par() + '\\)'),
+      T('Zeile I\' wird mit \\(' + numTeX(m1) + '\\) und Zeile II\' mit \\(' + numTeX(m2) + '\\) multipliziert; beim Subtrahieren fällt \\(' + par() + '\\) weg:',
+        'Multiply row I\' by \\(' + numTeX(m1) + '\\) and row II\' by \\(' + numTeX(m2) + '\\); subtracting eliminates \\(' + par() + '\\):'),
       eqChain(varTerm(nB, par2(), true) + ' = ' + numTeX(nC), quotTeX(par2(), nC, nB, s))));
-    st.push(step('\\(' + par() + '\\) berechnen', 'Den Wert in Zeile I\' einsetzen:',
+    st.push(step(T('\\(' + par() + '\\) berechnen', 'Calculate \\(' + par() + '\\)'), T('Den Wert in Zeile I\' einsetzen:', 'Substitute the value into row I\':'),
       term(A1, par(), true) + coef(B1, paren(s)) + ' = ' + numTeX(C1) + '\\;\\Leftrightarrow\\;' + back(A1, B1, C1, s, true)));
   }
   return { t: t, s: s, steps: st };
@@ -1010,11 +1302,17 @@ function rescaleSoon(){
   setTimeout(rescale, 80);
   setTimeout(rescale, 400);
 }
-/** wartet einmalig, bis MathJax geladen ist – sonst wird zu früh gemessen */
+/** wartet einmalig, bis MathJax geladen ist – sonst wird zu früh gemessen.
+    Das Ergebnis wird gemerkt: MathJax hängt jeden weiteren Satzauftrag an
+    startup.promise an, und ein einziger hängengebliebener Auftrag würde
+    sonst alle späteren Formeln ausbremsen. */
 let _mjWait = null;
 function mjReady(){
-  if (window.MathJax && MathJax.startup && MathJax.startup.promise) return MathJax.startup.promise.catch(() => {});
   if (_mjWait) return _mjWait;
+  if (window.MathJax && MathJax.startup && MathJax.startup.promise){
+    _mjWait = MathJax.startup.promise.catch(() => {});
+    return _mjWait;
+  }
   _mjWait = new Promise(res => {
     let n = 0;
     const iv = setInterval(() => {
@@ -1033,7 +1331,13 @@ function mj(node){
     .then(() => withTimeout(mjReady(), 6000))
     .then(() => (window.MathJax && MathJax.typesetPromise)
       ? withTimeout(MathJax.typesetPromise(node ? [node] : undefined), 8000) : null)
-    .then(() => new Promise(r => (window.requestAnimationFrame || setTimeout)(r, 0)))
+    .then(() => new Promise(r => {
+      /* Im Hintergrund-Tab kommt kein Bildaufbau - dann greift der Zeitgeber. */
+      let fertig = false;
+      const ende = () => { if (!fertig){ fertig = true; r(); } };
+      if (window.requestAnimationFrame) requestAnimationFrame(ende);
+      setTimeout(ende, 60);
+    }))
     .then(() => { stripTab(); rescaleSoon(); })
     .catch(() => {});
   return _mjq;
@@ -1083,7 +1387,7 @@ function copyText(txt, btn, okText){
   const done = ok => {
     if (!btn) return;
     const t = btn.textContent;
-    btn.textContent = ok ? (okText || '✓ kopiert') : 'Kopieren nicht möglich';
+    btn.textContent = ok ? (okText || T('✓ kopiert', '✓ copied')) : T('Kopieren nicht möglich', 'Copying is not possible');
     btn.classList.add('copied');
     setTimeout(() => { btn.textContent = t; btn.classList.remove('copied'); }, 1600);
   };
@@ -1274,12 +1578,14 @@ function visPlaneKoo(eName, n, d, c2){
 
 function extLinks(visLines, extra, parWert){
   const d = el('div', { class: 'extlink' });
-  let h = '<a href="' + esc(VIS.url(visLines, parWert)) + '" target="_blank" rel="noopener">Visualisieren im 3D-Koordinatensystem</a>';
+  let h = '<a href="' + esc(VIS.url(visLines, parWert)) + '" target="_blank" rel="noopener">'
+    + T('Visualisieren im 3D-Koordinatensystem', 'Visualise in the 3D coordinate system') + '</a>';
   const liste = !extra ? [] : (Array.isArray(extra) ? extra : [extra]);
   liste.forEach(x => {
     if (x && x.href) h += '<a class="alt" href="' + esc(x.href) + '" target="_blank" rel="noopener">' + esc(x.text) + '</a>';
   });
-  h += '<span class="d">öffnet die Objekte dieser Aufgabe auf der Visualisierungs-Seite</span>';
+  h += '<span class="d">' + T('öffnet die Objekte dieser Aufgabe auf der Visualisierungs-Seite',
+    'opens the objects of this task on the visualisation page') + '</span>';
   d.innerHTML = h;
   return d;
 }
@@ -1289,11 +1595,18 @@ function extLinks(visLines, extra, parWert){
    ========================================================================= */
 let TASK = null, TASKSEED = null, LOCKED = false;
 
+/** Kennung eines Schalterfeldes: aus „diff" und „einf" wird „diffEinf" -
+    dieselbe Schreibweise wie auf den anderen Aufgabenseiten. */
+function segId(name, wert){
+  const w = String(wert);
+  return name + w.charAt(0).toUpperCase() + w.slice(1);
+}
 function buildSegSwitch(host, name, opts, get, set){
+  host._opts = opts;                        /* für das Umbeschriften beim Sprachwechsel */
   host.innerHTML = opts.map((o, i) =>
-    '<input type="radio" name="' + name + '" id="' + name + '_' + i + '" value="' + esc(o.v) + '"'
+    '<input type="radio" name="' + name + '" id="' + segId(name, o.v) + '" value="' + esc(o.v) + '"'
     + (String(get()) === String(o.v) ? ' checked' : '') + '>'
-    + '<label for="' + name + '_' + i + '"' + (o.title ? ' title="' + esc(o.title) + '"' : '') + '>' + esc(o.t) + '</label>').join('')
+    + '<label for="' + segId(name, o.v) + '"' + (o.title ? ' title="' + esc(W(o.title)) + '"' : '') + '>' + esc(W(o.t)) + '</label>').join('')
     + '<span class="seg-glider"></span>';
   host.addEventListener('change', ev => {
     const r = ev.target.closest('input');
@@ -1337,15 +1650,32 @@ function moveGlider(host){
      gewählte Stufe ersatzweise der Knopf selbst – sonst sieht man gar nichts. */
   host.classList.toggle('no-glider', !wpx);
 }
+/** Beschriftung eines Schalters in der aktuellen Sprache – die Auswahl bleibt */
+function segSwitchNeu(host){
+  if (!host || !host._opts) return;
+  $$('label', host).forEach((l, i) => {
+    const o = host._opts[i];
+    if (!o) return;
+    l.textContent = W(o.t);
+    if (o.title) l.title = W(o.title);
+  });
+  moveGlider(host);
+}
 function paintSegSwitch(host, get){
   $$('input', host).forEach(i => { i.checked = (String(i.value) === String(get())); });
   moveGlider(host);
 }
+/* Stufen als Zahl – damit die Sterne an den Unterformen und die
+   Schwierigkeitsstufe dieselbe Sprache sprechen. */
+const STUFEN_NR = { einf: 1, leicht: 2, normal: 3, schwer: 4 };
+/* Hat die Nutzerin die Arten selbst gewählt, lässt die Stufe sie in Ruhe. */
+let typenVonHand = (new URLSearchParams(location.search).get('th') === '1');
 function buildPills(host, opts, obj, onChange){
   host.innerHTML = '';
+  host._opts = opts;
   opts.forEach(o => {
-    const b = el('button', { type: 'button', class: 'pill', data: { v: o.v } }, esc(o.t));
-    if (o.title) b.title = o.title;
+    const b = el('button', { type: 'button', class: 'pill', data: { v: o.v } }, esc(W(o.t)));
+    if (o.title) b.title = W(o.title);
     b.addEventListener('click', () => {
       if (obj[o.v] && !opts.filter(x => x.v !== o.v).some(x => obj[x.v])) return;
       obj[o.v] = !obj[o.v];
@@ -1355,6 +1685,15 @@ function buildPills(host, opts, obj, onChange){
     host.appendChild(b);
   });
   paintPills(host, obj);
+}
+function pillsNeu(host){
+  if (!host || !host._opts) return;
+  $$('button', host).forEach((b, i) => {
+    const o = host._opts[i];
+    if (!o) return;
+    b.textContent = W(o.t);
+    if (o.title) b.title = W(o.title);
+  });
 }
 function paintPills(host, obj){ $$('button', host).forEach(b => b.classList.toggle('on', !!obj[b.dataset.v])); }
 
@@ -1417,9 +1756,11 @@ document.addEventListener('keydown', ev => { if (ev.key === 'Escape') closePop()
 
 function buildTiles(host, defs, state, onChange){
   host.innerHTML = '';
+  host._defs = defs; host._state = state;
   defs.forEach(def => {
     const b = el('button', { class: 'tile', data: { t: def.id }, type: 'button' });
-    b.innerHTML = '<span class="tname">' + esc(def.name) + '</span><span class="tsub"></span><span class="arr">▼</span>';
+    b.innerHTML = '<span class="tname">' + esc(W(def.name)) + '</span><span class="tzaehler"></span>'
+      + '<span class="tsub"></span><span class="arr">▼</span>';
     host.appendChild(b);
     let timer = null, longFired = false;
     const openMenu = () => { longFired = true; tileMenu(b, def, state, onChange); };
@@ -1451,21 +1792,36 @@ function paintTiles(host, defs, state){
     const on = !!state.on[def.id] && act.length > 0;
     b.classList.toggle('on', on);
     b.classList.toggle('empty', !!state.on[def.id] && act.length === 0);
-    $('.tsub', b).textContent = act.length === 0 ? 'keine Art gewählt'
-      : (act.length === def.subs.length ? def.hint : act.map(s => s.label).join(' · '));
+    /* Gestrichelt ist nur, was zum Teil eingeschaltet ist. */
+    b.classList.toggle('teil', on && act.length < def.subs.length);
+    /* Die Kurzfassungen der eingeschalteten Unterarten. */
+    $('.tsub', b).textContent = act.length === 0 ? T('keine Art gewählt', 'no type selected')
+      : act.map(s => W(s.label)).join(' · ');
+    const z = $('.tzaehler', b);
+    if (z) z.textContent = '(' + (on ? act.length : 0) + '/' + def.subs.length + ')';
   });
+}
+/** Kachelnamen in der aktuellen Sprache */
+function tilesNeu(host){
+  if (!host || !host._defs) return;
+  host._defs.forEach(def => {
+    const n = $('.tile[data-t="' + def.id + '"] .tname', host);
+    if (n) n.textContent = W(def.name);
+  });
+  paintTiles(host, host._defs, host._state);
 }
 function tileMenu(anchor, def, state, onChange){
   closePop();
   POPOWNER = anchor;
   const pop = el('div', { class: 'pop' });
   const allOn = def.subs.every(s => state.sub[def.id][s.id]);
-  pop.innerHTML = '<h4><span>' + esc(def.name) + '</span>'
-    + '<button class="allbtn btn-secondary" type="button" data-all="1">' + (allOn ? 'keine' : 'alle') + '</button></h4>'
+  pop.innerHTML = '<h4><span>' + esc(W(def.name)) + '</span>'
+    + '<button class="allbtn btn-secondary" type="button" data-all="1">' + (allOn ? T('keine', 'none') : T('alle', 'all')) + '</button></h4>'
     + def.subs.map(s => '<label><input type="checkbox" data-s="' + s.id + '"' + (state.sub[def.id][s.id] ? ' checked' : '') + '>'
-      + '<span>' + esc(s.label) + (s.desc ? '<span class="d">' + esc(s.desc) + '</span>' : '') + '</span></label>').join('')
-    + '<p class="pophint">Langes Drücken wählt nur diese eine Art aus.</p>';
+      + '<span>' + esc(W(s.label)) + (s.desc ? '<span class="d">' + esc(W(s.desc)) + '</span>' : '') + '</span></label>').join('')
+    + '<p class="pophint">' + T('Langes Drücken wählt nur diese eine Art aus.', 'A long press selects only this one type.') + '</p>';
   document.body.appendChild(pop);
+  mj(pop);                       /* Formeln in den Beschreibungen setzen */
   const r = anchor.getBoundingClientRect();
   pop.style.top = (window.scrollY + r.bottom + 5) + 'px';
   pop.style.left = Math.max(6, Math.min(window.scrollX + r.left,
@@ -1477,7 +1833,7 @@ function tileMenu(anchor, def, state, onChange){
     def.subs.forEach(s => { state.sub[def.id][s.id] = v; });
     state.on[def.id] = v;
     $$('input[data-s]', pop).forEach(i => { i.checked = v; });
-    all.textContent = v ? 'keine' : 'alle';
+    all.textContent = v ? T('keine', 'none') : T('alle', 'all');
     onChange();
   });
   pop.addEventListener('change', ev => {
@@ -1544,23 +1900,23 @@ function numRow(label, key, min, max, stp){
 function rangeRow(label, kMin, kMax, min, max){
   const r = el('div', { class: 'row' });
   r.appendChild(el('span', null, esc(label)));
-  r.appendChild(el('span', { class: 'sp' }, 'von'));
+  r.appendChild(el('span', { class: 'sp' }, T('von', 'from')));
   r.appendChild(numInput(kMin, min, max));
-  r.appendChild(el('span', { class: 'sp' }, 'bis'));
+  r.appendChild(el('span', { class: 'sp' }, T('bis', 'to')));
   r.appendChild(numInput(kMax, min, max));
   return r;
 }
 /** Schieberegler mit fünf Stufen, links "seltener", rechts "häufiger" */
 function sliderRow(label, key, aus){
   const r = el('div', { class: 'row slider-row' + (aus ? ' aus' : '') });
-  r.appendChild(el('span', { class: 'sl-name' }, label));
-  r.appendChild(el('span', { class: 'sl-end' }, 'seltener'));
+  r.appendChild(el('span', { class: 'sl-name' }, W(label)));
+  r.appendChild(el('span', { class: 'sl-end' }, T('seltener', 'less often')));
   const i = el('input', { type: 'range', min: 1, max: 5, step: 1, class: 'sl' });
   i.value = S[key];
   i.disabled = !!aus;
   i.addEventListener('input', () => { S[key] = parseInt(i.value, 10); touched(); });
   r.appendChild(i);
-  r.appendChild(el('span', { class: 'sl-end' }, 'häufiger'));
+  r.appendChild(el('span', { class: 'sl-end' }, T('häufiger', 'more often')));
   return r;
 }
 function selRow(label, key, opts){
@@ -1581,72 +1937,72 @@ function selRow(label, key, opts){
 
 function numberBlocks(opts){
   const o = opts || {}, out = [];
-  const b1 = blk('Koordinaten der Punkte', 'Welche Zahlen dürfen als Punktkoordinaten auftreten?');
-  b1.appendChild(rangeRow('Bereich', 'pmin', 'pmax', -99, 99));
-  b1.appendChild(cb('auch 0', 'pzero'));
-  b1.appendChild(cb('auch Kommazahlen', 'pdec'));
-  b1.appendChild(cb('auch einfache Brüche', 'pfrac'));
+  const b1 = blk(T('Koordinaten der Punkte', 'Coordinates of the points'), T('Welche Zahlen dürfen als Punktkoordinaten auftreten?', 'Which numbers may occur as coordinates of points?'));
+  b1.appendChild(rangeRow(T('Bereich', 'Range'), 'pmin', 'pmax', -99, 99));
+  b1.appendChild(cb(T('auch 0', 'also 0'), 'pzero'));
+  b1.appendChild(cb(T('auch Kommazahlen', 'also decimals'), 'pdec'));
+  b1.appendChild(cb(T('auch einfache Brüche', 'also simple fractions'), 'pfrac'));
   out.push(b1);
 
-  const b2 = blk(o.vecName || 'Komponenten der Richtungsvektoren');
-  b2.appendChild(rangeRow('Bereich', 'vmin', 'vmax', -99, 99));
-  b2.appendChild(cb('auch 0', 'vzero', 'Zeilen ohne Parameter werden dann zu reinen Bedingungen.'));
-  b2.appendChild(cb('auch Kommazahlen', 'vdec'));
-  b2.appendChild(cb('auch einfache Brüche', 'vfrac'));
+  const b2 = blk(o.vecName || T('Komponenten der Richtungsvektoren', 'Components of the direction vectors'));
+  b2.appendChild(rangeRow(T('Bereich', 'Range'), 'vmin', 'vmax', -99, 99));
+  b2.appendChild(cb(T('auch 0', 'also 0'), 'vzero', T('Zeilen ohne Parameter werden dann zu reinen Bedingungen.', 'Rows without a parameter then become pure conditions.')));
+  b2.appendChild(cb(T('auch Kommazahlen', 'also decimals'), 'vdec'));
+  b2.appendChild(cb(T('auch einfache Brüche', 'also simple fractions'), 'vfrac'));
   out.push(b2);
 
   if (o.normal){
-    const b3 = blk('Komponenten der Normalenvektoren');
-    b3.appendChild(rangeRow('Bereich', 'nmin', 'nmax', -99, 99));
-    b3.appendChild(cb('auch 0', 'nzero', 'Eine Komponente \\(0\\) ist ein Sonderfall: die Ebene liegt dann parallel zu einer Achse.'));
-    b3.appendChild(cb('auch Kommazahlen', 'ndec'));
-    b3.appendChild(cb('auch einfache Brüche', 'nfrac'));
+    const b3 = blk(T('Komponenten der Normalenvektoren', 'Components of the normal vectors'));
+    b3.appendChild(rangeRow(T('Bereich', 'Range'), 'nmin', 'nmax', -99, 99));
+    b3.appendChild(cb(T('auch 0', 'also 0'), 'nzero', T('Eine Komponente \\(0\\) ist ein Sonderfall: die Ebene liegt dann parallel zu einer Achse.', 'A component \\(0\\) is a special case: the plane is then parallel to an axis.')));
+    b3.appendChild(cb(T('auch Kommazahlen', 'also decimals'), 'ndec'));
+    b3.appendChild(cb(T('auch einfache Brüche', 'also simple fractions'), 'nfrac'));
     out.push(b3);
   }
 
-  const b4 = blk('Parameterwerte', 'Werte, die beim Erzeugen der Aufgaben eingesetzt werden.');
-  b4.appendChild(rangeRow('Bereich', 'tmin', 'tmax', -99, 99));
-  b4.appendChild(cb('auch 0', 'tzero'));
-  b4.appendChild(cb('auch gebrochene Werte', 'tfrac'));
+  const b4 = blk(T('Parameterwerte', 'Parameter values'), T('Werte, die beim Erzeugen der Aufgaben eingesetzt werden.', 'Values substituted when the tasks are generated.'));
+  b4.appendChild(rangeRow(T('Bereich', 'Range'), 'tmin', 'tmax', -99, 99));
+  b4.appendChild(cb(T('auch 0', 'also 0'), 'tzero'));
+  b4.appendChild(cb(T('auch gebrochene Werte', 'also fractional values'), 'tfrac'));
   out.push(b4);
 
-  const b5 = blk('Zahlen allgemein');
-  b5.appendChild(numRow('Nachkommastellen', 'decN', 1, 3));
-  b5.appendChild(numRow('größter Nenner bei Brüchen', 'fracD', 2, 12));
-  b5.appendChild(selRow('berechnete Zahlen anzeigen als', 'numStyle',
-    [{ v: 'auto', t: 'automatisch (kurz)' }, { v: 'dez', t: 'immer Dezimalzahl' }, { v: 'bruch', t: 'immer Bruch' }]));
-  b5.appendChild(cb('Vektoren im Ergebnis ganzzahlig skalieren', 'intVec', 'Aus \\((0{,}5|1|1{,}5)\\) wird \\((1|2|3)\\).'));
-  b5.appendChild(cb('Vektoren im Ergebnis kürzen', 'simp', 'Gemeinsame Faktoren werden herausgezogen.'));
-  b5.appendChild(cb('Ergebnisse sollen ganzzahlig sein', 'intRes',
-    'Es werden nur Aufgaben gestellt, deren Lösung ohne Brüche auskommt.'));
+  const b5 = blk(T('Zahlen allgemein', 'Numbers in general'));
+  b5.appendChild(numRow(T('Nachkommastellen', 'Decimal places'), 'decN', 1, 3));
+  b5.appendChild(numRow(T('größter Nenner bei Brüchen', 'largest denominator of fractions'), 'fracD', 2, 12));
+  b5.appendChild(selRow(T('berechnete Zahlen anzeigen als', 'show calculated numbers as'), 'numStyle',
+    [{ v: 'auto', t: T('automatisch (kurz)', 'automatic (short)') }, { v: 'dez', t: T('immer Dezimalzahl', 'always decimal') }, { v: 'bruch', t: T('immer Bruch', 'always fraction') }]));
+  b5.appendChild(cb(T('Vektoren im Ergebnis ganzzahlig skalieren', 'scale result vectors to whole numbers'), 'intVec', T('Aus \\((0{,}5|1|1{,}5)\\) wird \\((1|2|3)\\).', '\\((0.5|1|1.5)\\) becomes \\((1|2|3)\\).')));
+  b5.appendChild(cb(T('Vektoren im Ergebnis kürzen', 'simplify result vectors'), 'simp', T('Gemeinsame Faktoren werden herausgezogen.', 'Common factors are taken out.')));
+  b5.appendChild(cb(T('Ergebnisse sollen ganzzahlig sein', 'results should be whole numbers'), 'intRes',
+    T('Es werden nur Aufgaben gestellt, deren Lösung ohne Brüche auskommt.', 'Only tasks whose solution needs no fractions are set.')));
   out.push(b5);
   return out;
 }
 function notationBlock(opts){
   const o = opts || {};
-  const b = blk('Schreibweise');
-  b.appendChild(selRow('Achsen und Koordinaten', 'ax', [{ v: 'xyz', t: 'x, y, z' }, { v: 'x123', t: 'x₁, x₂, x₃' }]));
-  b.appendChild(selRow('Parameterbuchstaben', 'parStyle', [{ v: 'lat', t: 'lateinisch (r, s, t)' }, { v: 'gr', t: 'griechisch (λ, μ, τ)' }]));
+  const b = blk(T('Schreibweise', 'Notation'));
+  b.appendChild(selRow(T('Achsen und Koordinaten', 'Axes and coordinates'), 'ax', [{ v: 'xyz', t: 'x, y, z' }, { v: 'x123', t: 'x₁, x₂, x₃' }]));
+  b.appendChild(selRow(T('Parameterbuchstaben', 'Parameter letters'), 'parStyle', [{ v: 'lat', t: T('lateinisch (r, s, t)', 'Latin (r, s, t)') }, { v: 'gr', t: T('griechisch (λ, μ, τ)', 'Greek (λ, μ, τ)') }]));
   const PO = [{ v: 'r', t: 'r' }, { v: 's', t: 's' }, { v: 't', t: 't' }, { v: 'u', t: 'u' },
               { v: 'lam', t: 'λ' }, { v: 'mu', t: 'μ' }, { v: 'tau', t: 'τ' }, { v: 'sig', t: 'σ' }];
-  b.appendChild(selRow('erster Parameter', 'par', PO));
-  if (o.par2) b.appendChild(selRow('zweiter Parameter', 'par2', PO));
-  if (o.par3) b.appendChild(selRow('dritter Parameter', 'par3', PO));
-  if (o.koo) b.appendChild(selRow('Koordinatengleichung', 'kooForm',
+  b.appendChild(selRow(T('erster Parameter', 'first parameter'), 'par', PO));
+  if (o.par2) b.appendChild(selRow(T('zweiter Parameter', 'second parameter'), 'par2', PO));
+  if (o.par3) b.appendChild(selRow(T('dritter Parameter', 'third parameter'), 'par3', PO));
+  if (o.koo) b.appendChild(selRow(T('Koordinatengleichung', 'Cartesian equation'), 'kooForm',
     [{ v: 'd', t: 'a·x + b·y + c·z = d' }, { v: 'null', t: 'a·x + b·y + c·z − d = 0' }]));
-  if (o.nor) b.appendChild(selRow('Normalenform', 'norSide',
+  if (o.nor) b.appendChild(selRow(T('Normalenform', 'Normal form'), 'norSide',
     [{ v: 'x', t: '[x − p] ∘ n = 0' }, { v: 'n', t: 'n ∘ [x − p] = 0' }]));
-  b.appendChild(selRow('linke Seite der Vektorgleichung', 'vecX', [{ v: 'vec', t: 'x mit Vektorpfeil' }, { v: 'X', t: 'X' }]));
-  b.appendChild(selRow('Trennzeichen in Punkten', 'sep', [{ v: '|', t: 'P(1|2|3)' }, { v: ';', t: 'P(1;2;3)' }]));
-  b.appendChild(selRow('Zeichen für das Skalarprodukt', 'dotSym',
+  b.appendChild(selRow(T('linke Seite der Vektorgleichung', 'left-hand side of the vector equation'), 'vecX', [{ v: 'vec', t: T('x mit Vektorpfeil', 'x with a vector arrow') }, { v: 'X', t: 'X' }]));
+  b.appendChild(selRow(T('Trennzeichen in Punkten', 'Separator in points'), 'sep', [{ v: '|', t: 'P(1|2|3)' }, { v: ';', t: 'P(1;2;3)' }]));
+  b.appendChild(selRow(T('Zeichen für das Skalarprodukt', 'Symbol for the dot product'), 'dotSym',
     [{ v: 'circ', t: 'a ∘ b' }, { v: 'cdot', t: 'a · b' }]));
   return b;
 }
 function outputBlock(){
-  const b = blk('Aufgaben und Lösung');
-  b.appendChild(cb('Quiz anzeigen (eigene Lösung eingeben)', 'answer'));
-  b.appendChild(cb('Quiz beenden, sobald die Lösung geöffnet wird', 'lockOnSolve'));
-  b.appendChild(cb('Lösungsweg gleich mit aufklappen', 'autoWeg'));
+  const b = blk(T('Aufgaben und Lösung', 'Tasks and solution'));
+  b.appendChild(cb(T('Quiz anzeigen (eigene Lösung eingeben)', 'show quiz (enter your own solution)'), 'answer'));
+  b.appendChild(cb(T('Quiz beenden, sobald die Lösung geöffnet wird', 'end the quiz as soon as the solution is opened'), 'lockOnSolve'));
+  b.appendChild(cb(T('Lösungsweg gleich mit aufklappen', 'open the worked solution straight away'), 'autoWeg'));
   return b;
 }
 function buildSettings(){
@@ -1702,18 +2058,108 @@ function ptInput(name, id){
 }
 function lblEl(tex){ return el('span', { class: 'qz-lbl' }, tex); }
 
+/** Zahl so schreiben, wie man sie eintippen würde: 3, -1/2, 0,75 */
+function zahlInText(x){
+  if (typeof x === 'string') return x;
+  const q = Q.of(x);
+  if (q.d === 1) return String(q.n);
+  if (1000 % q.d === 0) return String(q.n / q.d).replace('.', DEZ());
+  return q.n + '/' + q.d;
+}
+/** füllt die Felder eines Schritts mit einer richtigen Lösung */
+function stageFuellen(st, box){
+  if (typeof st.zeige === 'function') return st.zeige(box) !== false;
+  const f = $$('input', box);
+  if (Array.isArray(st.loesung) && f.length && st.loesung.length === f.length){
+    f.forEach((inp, j) => { inp.value = zahlInText(st.loesung[j]); });
+    return true;
+  }
+  return false;
+}
+/** Kennt der Schritt seine Lösung? Nur dann gibt es „Lösung anzeigen“. */
+function stageKennLoesung(st, box){
+  if (!st) return false;
+  if (st.kind === 'choice') return st.right !== undefined;
+  if (typeof st.zeige === 'function') return true;
+  return Array.isArray(st.loesung) && !!box
+    && st.loesung.length === $$('input', box).length && st.loesung.length > 0;
+}
+/** Sagt die Antwort mehr als der angeklickte Knopf? */
+function antwortLohnt(st, s){
+  if (!s.antwort) return false;
+  if (st.kind !== 'choice') return true;
+  const o = (st.opts || []).find(x => x.v === s.chosen);
+  /* Wörtlich verglichen scheiterte das an Escapes und Leerzeichen - dann
+     stand die angeklickte Antwort darunter noch einmal. */
+  const glatt = x => String(x == null ? '' : x)
+    .replace(/<[^>]*>/g, ' ').replace(/&[a-zA-Z]+;/g, ' ')
+    .replace(/[^0-9a-zA-ZäöüÄÖÜß]+/g, ' ').trim().toLowerCase();
+  return glatt(s.antwort) !== glatt(W(o ? o.t : ''));
+}
+/** „Lösung anzeigen“: Felder füllen, Schritt abhaken, unten weitermachen */
+function quizZeigen(st, i, box, host){
+  const s = QUIZ.st[i];
+  let antwort = '';
+  if (st.kind === 'choice'){
+    s.chosen = st.right;
+    const res = safe(() => st.verify(st.right));
+    antwort = (res && res.ok) ? res.answer : '';
+  } else {
+    stageFuellen(st, box);
+    s.vals = $$('input', box).map(inp => inp.value);
+    const res = safe(() => st.verify(box));
+    antwort = (res && res.ok) ? res.answer : '';
+  }
+  s.done = true; s.gezeigt = true; s.antwort = antwort;
+  QUIZ.idx = Math.max(QUIZ.idx, i + 1);
+  quizRender(host);
+  const naechste = $('.qz-cur-step:not(.qz-solved)', host);
+  const ziel = naechste || $('.qz-all-done', host);
+  if (ziel && ziel.scrollIntoView){
+    setTimeout(() => ziel.scrollIntoView({ behavior: 'smooth', block: 'center' }), 60);
+  } else {
+    const d = $('details.loesung');
+    if (d){
+      d.open = true;
+      setTimeout(() => d.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60);
+    }
+  }
+}
 function quizStart(stages){
   QUIZ = { stages: stages || [], idx: 0, st: (stages || []).map(() => ({ done: false, chosen: null, vals: null, wrong: {} })) };
 }
 function quizRender(host){
   host.innerHTML = '';
   if (!QUIZ || !QUIZ.stages.length) return;
+  /* Wie auf den Gleichungsseiten: was schon gelöst ist, steht oben als kurze
+     Kette, damit der laufende Schritt nicht immer weiter nach unten rutscht. */
+  if (QUIZ.stages.length > 1){
+    const kette = el('div', { class: 'qz-kette' });
+    QUIZ.stages.forEach((st, i) => {
+      const s = QUIZ.st[i];
+      if (!s.done) return;
+      kette.appendChild(el('span', { class: 'qz-kette-teil' + (s.gezeigt ? ' gezeigt' : '') },
+        (s.gezeigt ? '👁 ' : '✓ ') + (s.antwort || W(st.title))));
+    });
+    if (kette.firstChild) host.appendChild(kette);
+  }
   QUIZ.stages.forEach((st, i) => {
     if (i > QUIZ.idx) return;
+    if (QUIZ.stages.length > 1 && QUIZ.st[i].done) return;   /* steht in der Kette */
     host.appendChild(quizStageBox(st, i, host));
+    /* Das Quiz als Hilfe steht als eigener Kasten unter dem aktuellen Schritt -
+       so geraten seine Eingabefelder der eigenen Antwort nicht dazwischen. */
+    if (i === QUIZ.idx && !QUIZ.st[i].done && st.hilfe && st.hilfe.length)
+      host.appendChild(hilfeWrap(st, QUIZ.st[i], host));
   });
-  if (QUIZ.idx >= QUIZ.stages.length)
-    host.appendChild(el('div', { class: 'qz-all-done' }, 'Alles richtig gelöst.'));
+  if (QUIZ.idx >= QUIZ.stages.length){
+    /* „Alles richtig gelöst“ gilt nur, wenn man nichts angezeigt bekommen hat. */
+    const hilfe = QUIZ.st.some(s => s.gezeigt);
+    host.appendChild(el('div', { class: 'qz-all-done' + (hilfe ? ' mit-hilfe' : '') },
+      hilfe ? T('Durchgearbeitet – eine Lösung hast du dir anzeigen lassen.',
+                'Worked through – one answer was shown to you.')
+            : T('Alles richtig gelöst.', 'All solved correctly.')));
+  }
   mj(host);
   if (LOCKED) lockQuiz();
 }
@@ -1721,33 +2167,44 @@ function quizRender(host){
 function tippFuer(){
   if (!TASK) return '';
   if (TASK.tipp) return TASK.tipp;
-  if (typeof TIPPS !== 'undefined' && TIPPS[TASK.id]) return TIPPS[TASK.id];
+  if (typeof TIPPS !== 'undefined' && TIPPS[TASK.id]) return W(TIPPS[TASK.id]);
   return '';
 }
 function quizStageBox(st, i, host){
   const s = QUIZ.st[i], fertig = s.done;
-  const box = el('div', { class: fertig ? 'qz-cur-step qz-solved' : 'qz-cur-step' });
-  /* Bei nur einem Schritt steht die Frage schon in der Aufgabe darüber */
-  if (QUIZ.stages.length > 1 || fertig)
-    box.appendChild(el('div', { class: 'qz-stage' }, (fertig ? '✓ ' : '') + st.title));
+  const box = el('div', { class: 'qz-cur-step' + (fertig ? ' qz-solved' : '')
+                                               + (s.gezeigt ? ' qz-gezeigt' : '') });
+  /* Die Frage bleibt beim Lösen Wort für Wort stehen; nur die Marke links
+     füllt sich. So verschiebt sich nichts, was darüber oder daneben steht. */
+  if (QUIZ.stages.length > 1)
+    box.appendChild(el('div', { class: 'qz-stage' },
+      '<span class="qz-mark">' + (fertig ? (s.gezeigt ? '👁' : '✓') : '✓') + '</span>'
+      + st.title));
   const tipp = (i === 0 && tippFuer()) ? tippFuer() : (st.sub || tippFuer());
-  if (tipp && !fertig){
-    const hb = el('button', { type: 'button', class: 'hint-btn' }, '💡 Tipp');
-    const ht = el('div', { class: 'qz-sub', style: 'display:none' }, tipp);
+  /* Der Tipp bleibt auch nach der richtigen Antwort stehen - sonst rutscht
+     alles darunter nach oben, sobald man richtig geklickt hat. */
+  if (tipp){
+    /* Ist der Tipp einmal da, braucht es den Knopf nicht mehr - er würde nur
+       Platz wegnehmen und sagt nichts, was der Tipp nicht schon sagt. */
+    const hb = el('button', { type: 'button', class: 'hint-btn',
+                              style: s.tippAuf ? 'display:none' : '' },
+                  T('💡 Tipp', '💡 Hint'));
+    const ht = el('div', { class: 'qz-sub', style: s.tippAuf ? '' : 'display:none' }, tipp);
     hb.addEventListener('click', () => {
-      const auf = ht.style.display === 'none';
-      ht.style.display = auf ? '' : 'none';
-      hb.textContent = auf ? '💡 Tipp ausblenden' : '💡 Tipp';
-      if (auf) mj(ht);
+      ht.style.display = '';
+      hb.style.display = 'none';
+      s.tippAuf = true;                             /* bleibt beim Sprachwechsel offen */
+      mj(ht);
     });
     box.appendChild(hb);
     box.appendChild(ht);
   }
 
+  let nachher = null;                 /* wird nach der Rückmeldezeile angehängt */
   if (st.kind === 'choice'){
     const row = el('div', { class: 'qz-btns' });
     st.opts.forEach(o => {
-      const b = el('button', { type: 'button', class: 'qz-btn', data: { v: o.v } }, esc(o.t));
+      const b = el('button', { type: 'button', class: 'qz-btn', data: { v: o.v } }, esc(W(o.t)));
       if (s.wrong[o.v]) b.classList.add('qw');
       if (fertig && o.v === s.chosen) b.classList.add('qc');
       if (fertig) b.disabled = true;
@@ -1755,11 +2212,12 @@ function quizStageBox(st, i, host){
         if (LOCKED) return;
         const res = st.verify(o.v);
         if (res.ok){
-          s.done = true; s.chosen = o.v; s.raw = res.raw;
+          s.done = true; s.chosen = o.v; s.raw = res.raw; s.antwort = res.answer;
           QUIZ.idx = Math.max(QUIZ.idx, i + 1);
           quizRender(host);
         } else {
           s.wrong[o.v] = true;
+          s.fb = { v: o.v };                        /* Rückmeldung für den Sprachwechsel */
           b.classList.add('qw');
           quizSay(box, 'err', res.msg);
         }
@@ -1772,30 +2230,262 @@ function quizStageBox(st, i, host){
     st.build(row);
     box.appendChild(row);
     if (s.vals) $$('input', box).forEach((inp, k) => { inp.value = s.vals[k] == null ? '' : s.vals[k]; });
+    if (!fertig && QUIZ.eingaben){                  /* nach einem Sprachwechsel: eingetippte Werte */
+      $$('input', box).forEach((inp, k) => { if (QUIZ.eingaben[k] != null) inp.value = QUIZ.eingaben[k]; });
+      QUIZ.eingaben = null;
+    }
     if (fertig){
       $$('input', box).forEach(inp => { inp.disabled = true; inp.classList.add('ok'); });
       $$('[id]', box).forEach(n => n.removeAttribute('id'));   /* Kennungen nur beim aktiven Schritt */
-    }
-    else {
-      const act = el('div', { class: 'qz-inp-row' });
-      const b = el('button', { type: 'button' }, 'Prüfen');
+    } else {
+      const act = el('div', { class: 'qz-inp-row qz-akt' });
+      const b = el('button', { type: 'button' }, T('Prüfen', 'Check'));
       b.addEventListener('click', () => {
         if (LOCKED) return;
         s.vals = $$('input', box).map(inp => inp.value);
         const res = st.verify(box);
         if (res.ok){
-          s.done = true; s.raw = res.raw;
+          s.done = true; s.raw = res.raw; s.antwort = res.answer;
           QUIZ.idx = Math.max(QUIZ.idx, i + 1);
           quizRender(host);
-        } else quizSay(box, res.cls || 'err', res.msg);
+        } else {
+          s.fb = { vals: s.vals.slice() };          /* Rückmeldung für den Sprachwechsel */
+          quizSay(box, res.cls || 'err', res.msg);
+        }
       });
       act.appendChild(b);
-      box.appendChild(act);
+      nachher = act;
       box.addEventListener('keydown', ev => { if (ev.key === 'Enter'){ ev.preventDefault(); b.click(); } });
     }
   }
+
+  /* Rückmeldezeile: immer vorhanden – hier steht der Hinweis bei einer
+     falschen Antwort und nach dem Lösen die Antwort selbst. */
+  const fb = el('div', { class: 'qz-fb' });
+  box.appendChild(fb);
+  if (nachher) box.appendChild(nachher);
+
+  if (!fertig){
+    /* „Lösung anzeigen“ – überall, wo der Schritt seine Lösung kennt. */
+    if (stageKennLoesung(st, box)){
+      const zeile = nachher || el('div', { class: 'qz-inp-row qz-akt' });
+      const zb = el('button', { type: 'button', class: 'qz-skip' },
+        T('Lösung anzeigen', 'Show the answer'));
+      zb.addEventListener('click', () => { if (!LOCKED) quizZeigen(st, i, box, host); });
+      zeile.appendChild(zb);
+      if (!nachher) box.appendChild(zeile);
+    }
+    /* nach einem Sprachwechsel: letzte Rückmeldung in der neuen Sprache */
+    if (st.kind === 'choice' && s.fb && s.fb.v != null){
+      const r = safe(() => st.verify(s.fb.v));
+      if (r && !r.ok) quizSay(box, 'err', r.msg);
+    }
+    if (st.kind !== 'choice' && s.fb && s.fb.vals){
+      const jetzt = $$('input', box).map(inp => inp.value);
+      $$('input', box).forEach((inp, k) => { inp.value = s.fb.vals[k] == null ? '' : s.fb.vals[k]; });
+      const r = safe(() => st.verify(box));
+      $$('input', box).forEach((inp, k) => { inp.value = jetzt[k]; });
+      if (r && !r.ok) quizSay(box, r.cls || 'err', r.msg);
+    }
+  } else if (antwortLohnt(st, s)){
+    fb.className = 'qz-fb ' + (s.gezeigt ? 'err' : 'ok');
+    fb.innerHTML = (s.gezeigt ? T('Lösung: ', 'Solution: ') : '') + s.antwort;
+  }
   return box;
 }
+
+/* =========================================================================
+   Quiz als Hilfe
+   Führt kleinschrittig durch genau die Aufgabe, die gerade dasteht.
+   Jeder Zwischenschritt ist eine eigene kleine Frage mit eigener Rückmeldung.
+   Eine Aufgabenart bekommt die Schritte, indem ihre Quizstufe ein Feld
+   `hilfe: [ ... ]` mitbringt - jedes Element ist eine gewöhnliche Stufe
+   (stageChoice, stageNums, …), ergänzt um `erklaerung`.
+   ========================================================================= */
+/** Umschaltknopf und Kasten des Hilfe-Quiz */
+function hilfeWrap(stage, s, host){
+  const wrap = el('div', { class: 'qh-wrap' });
+  /* Beschriftung wie auf den Gleichungsseiten. */
+  const text = auf => auf ? T('Quiz ausblenden', 'Hide the step-by-step help')
+                          : T('Quiz als Hilfestellung', 'Quiz as a hint');
+  const kb = el('button', { type: 'button', class: 'hint-btn hilfe-btn' }, text(!!s.hilfeAuf));
+  const kbox = el('div', { style: s.hilfeAuf ? '' : 'display:none' });
+  if (s.hilfeAuf) kbox.appendChild(hilfeBox(stage, s, host));
+  wrap.classList.toggle('auf', !!s.hilfeAuf);
+  kb.addEventListener('click', () => {
+    const auf = kbox.style.display === 'none';
+    kbox.style.display = auf ? '' : 'none';
+    s.hilfeAuf = auf;
+    wrap.classList.toggle('auf', auf);
+    kb.textContent = text(auf);
+    if (auf && !kbox.firstChild) kbox.appendChild(hilfeBox(stage, s, host));
+    if (auf) mj(kbox);
+  });
+  const kopf = el('div', { class: 'qh-kopfzeile' });
+  kopf.appendChild(el('span', { class: 'qh-linie' }));
+  kopf.appendChild(kb);
+  kopf.appendChild(el('span', { class: 'qh-linie' }));
+  wrap.appendChild(kopf);
+  wrap.appendChild(kbox);
+  return wrap;
+}
+/** Zustand der Hilfe zu einer Quizstufe anlegen oder weiterverwenden */
+function hilfeStand(s, schritte){
+  if (!s.hilfeSt || s.hilfeSt.n !== schritte.length)
+    s.hilfeSt = { n: schritte.length, idx: 0,
+      st: schritte.map(() => ({ done: false, chosen: null, vals: null, wrong: {}, fb: null, stufe: 0 })) };
+  return s.hilfeSt;
+}
+/** der ganze Hilfebereich zu einer Quizstufe */
+function hilfeBox(stage, s, host){
+  const schritte = stage.hilfe;
+  const z = hilfeStand(s, schritte);
+  const box = el('div', { class: 'qh-box' });
+  box.appendChild(el('p', { class: 'qh-kopf' },
+    T('Beantworte die Zwischenfragen \u2013 danach steht die L\u00f6sung fast von selbst da.',
+      'Answer the intermediate questions \u2013 then the solution almost writes itself.')));
+  const neu = () => {
+    const ersatz = hilfeBox(stage, s, host);
+    box.replaceWith(ersatz);
+    mj(ersatz);
+  };
+  /* Erledigtes steht als kurze Kette, ausführlich nur der laufende Schritt. */
+  const kette = el('div', { class: 'qz-kette' });
+  schritte.forEach((h, i) => {
+    const zu = z.st[i];
+    if (!zu.done) return;
+    kette.appendChild(el('span', { class: 'qz-kette-teil' + (zu.gezeigt ? ' gezeigt' : '') },
+      (zu.gezeigt ? '👁 ' : '✓ ') + (zu.antwort || W(h.title))));
+  });
+  if (kette.firstChild) box.appendChild(kette);
+  /* Die Erklärung des zuletzt gelösten Schrittes bleibt stehen - sie leitet
+     zum nächsten über. */
+  const letzteErk = schritte.map((h, i) => (z.st[i].done && h.erklaerung) ? h.erklaerung : null)
+                            .filter(Boolean).pop();
+  if (letzteErk) box.appendChild(el('div', { class: 'qh-erk' }, W(letzteErk)));
+  /* Sichtbar ist der erste noch offene Schritt. */
+  schritte.forEach((h, i) => {
+    if (z.st[i].done) return;
+    if (i > 0 && !z.st[i - 1].done) return;
+    box.appendChild(hilfeSchrittBox(h, z.st[i], i, schritte.length, neu));
+  });
+  if (z.st.every(x => x.done)){
+    box.appendChild(el('p', { class: 'qh-fertig' },
+      T('\u2713 Damit hast du alles zusammen \u2013 trage die Antwort oben ein.',
+        '\u2713 That is everything \u2013 now enter the answer above.')));
+  }
+  return box;
+}
+/** Die Hilfestufen einer Zwischenfrage. Doppelt Gleiches fällt weg, damit
+    niemand zweimal auf „Hilfe“ drücken muss, um dasselbe zu sehen. */
+function hStufen(liste){
+  const out = [];
+  (liste || []).forEach(x => {
+    const t = x || '';
+    if (!out.length || out[out.length - 1] !== t) out.push(t);
+  });
+  return out.length ? out : [''];
+}
+/** Die Beschriftung des Eingabefeldes auf der gewünschten Stufe. */
+function hLabel(h, stufe){
+  const l = (h && h.stufen) || [''];
+  return l[Math.min(stufe || 0, l.length - 1)];
+}
+/** Nächste Hilfestufe - erst der Hinweis, dann der Rechenweg, dann die Zahlen */
+function hilfeStufKnopf(h, zu, box, neu){
+  const l = (h && h.stufen) || [''];
+  const stufe = zu.stufe || 0;
+  const mehrText = !!(h.sub && stufe < 1);
+  if (stufe >= l.length - 1 && !mehrText) return null;
+  const b = el('button', { type: 'button', class: 'qz-skip' }, T('💡 Hilfe', '💡 Hint'));
+  b.addEventListener('click', () => {
+    if (LOCKED) return;
+    zu.vals = $$('input', box).map(x => x.value);     /* Getipptes behalten */
+    zu.stufe = stufe + 1;
+    neu();
+  });
+  return b;
+}
+/** „Lösung anzeigen“ für einen Zwischenschritt der Hilfe */
+function hilfeZeigKnopf(h, zu, box, neu){
+  const b = el('button', { type: 'button', class: 'qz-skip' },
+               T('Lösung anzeigen', 'Show the answer'));
+  b.addEventListener('click', () => {
+    if (LOCKED) return;
+    let res = null;
+    if (h.kind === 'choice'){
+      zu.chosen = h.right;
+      res = safe(() => h.verify(h.right));
+    } else {
+      stageFuellen(h, box);
+      zu.vals = $$('input', box).map(x => x.value);
+      res = safe(() => h.verify(box));
+    }
+    zu.done = true; zu.gezeigt = true;
+    zu.antwort = (res && res.ok) ? res.answer : W(h.title);
+    neu();
+  });
+  return b;
+}
+/** ein einzelner Zwischenschritt */
+function hilfeSchrittBox(h, zu, nr, von, neu){
+  const fertig = zu.done;
+  const box = el('div', { class: fertig ? 'qh-step qh-solved' : 'qh-step' });
+  const kopf = el('div', { class: 'qh-frage' },
+    '<span class="qh-nr">' + (nr + 1) + '/' + von + '</span> '
+    + (fertig ? ('\u2713 ' + (zu.antwort || W(h.title))) : W(h.title)));
+  box.appendChild(kopf);
+  /* Der Hinweis gehört zur zweiten Stufe - zuerst steht nur die Frage da. */
+  if (!fertig && h.sub && (zu.stufe || 0) >= 1)
+    box.appendChild(el('div', { class: 'qh-sub' }, W(h.sub)));
+  if (fertig){
+    if (h.erklaerung) box.appendChild(el('div', { class: 'qh-erk' }, W(h.erklaerung)));
+    return box;
+  }
+  if (h.kind === 'choice'){
+    const row = el('div', { class: 'qz-btns' });
+    h.opts.forEach(o => {
+      const b = el('button', { type: 'button', class: 'qz-btn', data: { v: o.v } }, esc(W(o.t)));
+      if (zu.wrong[o.v]) b.classList.add('qw');
+      b.addEventListener('click', () => {
+        if (LOCKED) return;
+        const res = h.verify(o.v);
+        if (res.ok){ zu.done = true; zu.chosen = o.v; zu.antwort = res.answer; neu(); }
+        else { zu.wrong[o.v] = true; b.classList.add('qw'); quizSay(box, 'err', res.msg); }
+      });
+      row.appendChild(b);
+    });
+    box.appendChild(row);
+    const fuss = el('div', { class: 'qz-inp-row' });
+    const sk = hilfeStufKnopf(h, zu, box, neu);
+    if (sk) fuss.appendChild(sk);
+    if (stageKennLoesung(h, box)) fuss.appendChild(hilfeZeigKnopf(h, zu, box, neu));
+    if (fuss.firstChild) box.appendChild(fuss);
+  } else {
+    const row = el('div', { class: 'qz-inp-row' });
+    h.build(row, zu.stufe || 0);
+    box.appendChild(row);
+    if (zu.vals) $$('input', box).forEach((inp, k) => { inp.value = zu.vals[k] == null ? '' : zu.vals[k]; });
+    const act = el('div', { class: 'qz-inp-row' });
+    const b = el('button', { type: 'button', class: 'qh-pruef' }, T('Prüfen', 'Check'));
+    b.addEventListener('click', () => {
+      if (LOCKED) return;
+      zu.vals = $$('input', box).map(inp => inp.value);
+      const res = h.verify(box);
+      if (res.ok){ zu.done = true; zu.antwort = res.answer; neu(); }
+      else quizSay(box, res.cls || 'err', res.msg);
+    });
+    act.appendChild(b);
+    const sk2 = hilfeStufKnopf(h, zu, box, neu);
+    if (sk2) act.appendChild(sk2);
+    if (stageKennLoesung(h, box)) act.appendChild(hilfeZeigKnopf(h, zu, box, neu));
+    box.appendChild(act);
+    box.addEventListener('keydown', ev => { if (ev.key === 'Enter'){ ev.preventDefault(); b.click(); } });
+  }
+  return box;
+}
+/** kleine Hilfe: Stufe mit Erklärung versehen */
+function mitErk(stufe, erklaerung){ stufe.erklaerung = erklaerung; return stufe; }
 function quizSay(box, cls, msg){
   let f = $('.qz-fb', box);
   if (!f){ f = el('div', { class: 'qz-fb' }); box.appendChild(f); }
@@ -1814,19 +2504,28 @@ function lockQuiz(){
 /* =========================================================================
    Aufgabe anzeigen
    ========================================================================= */
-function render(){
-  const host = $('#task');
+/** z: beim Neuaufbau nach einem Sprachwechsel der bisherige Anzeigezustand */
+function render(z){
+  const host = $('#task'), nach = $('#taskNach');
   host.innerHTML = '';
+  if (nach) nach.innerHTML = '';
   if (!TASK){
-    host.innerHTML = '<p style="margin:6px 0;color:#b00020">Es ist kein Aufgabentyp ausgewählt. '
-      + 'Wähle oben mindestens eine Möglichkeit aus.</p>';
+    host.innerHTML = '<p class="task-err">' + T('Es ist kein Aufgabentyp ausgewählt. '
+      + 'Wähle oben mindestens eine Möglichkeit aus.', 'No task type is selected. Select at least one option above.') + '</p>';
     return;
   }
   LOCKED = false;
   const head = el('div', { class: 'task-head' });
-  head.appendChild(el('b', null, esc(TASK.kap)));
-  const sh = el('button', { class: 'share-btn', type: 'button', 'aria-label': 'Aufgabe teilen',
-    title: 'Link zu genau dieser Aufgabe kopieren' }, '🔗');
+  /* Aufgaben mit längerer Rechnung bekommen einen Stift - dann weiß man
+     vorher, dass es ohne Zettel mühsam wird. */
+  if (brauchtZettel(TASK))
+    head.appendChild(el('span', { class: 'zettel-icon', role: 'img',
+      title: T('Längere Rechnung – am besten mit Zettel und Stift.',
+               'Longer calculation – paper and pencil recommended.'),
+      'aria-label': T('Zettel und Stift', 'Paper and pencil') }, '✏️'));
+  head.appendChild(el('b', null, esc(W(TASK.kap))));
+  const sh = el('button', { class: 'share-btn', type: 'button', 'aria-label': T('Aufgabe teilen', 'Share task'),
+    title: T('Link zu genau dieser Aufgabe kopieren', 'Copy a link to exactly this task') }, '🔗');
   sh.addEventListener('click', () => copyText(shareURL(true), sh, '✓'));
   head.appendChild(sh);
   host.appendChild(head);
@@ -1837,41 +2536,56 @@ function render(){
 
   if (S.answer && TASK.stages && TASK.stages.length){
     quizStart(TASK.stages);
+    if (z && z.quiz && z.quiz.n === QUIZ.st.length){
+      QUIZ.idx = z.quiz.idx; QUIZ.st = z.quiz.st; QUIZ.eingaben = z.quiz.eingaben || null;
+    }
     const qa = el('div', { id: 'quizArea' });
     host.appendChild(qa);
     quizRender(qa);
   }
-  host.appendChild(solutionArea());
+  (nach || host).appendChild(solutionArea(z));
+  if (z && z.locked){ LOCKED = true; lockQuiz(); }
   mj(host);
+  if (nach) mj(nach);
 }
-function solutionArea(){
+/** gewählter Lösungsweg, Umschalter darin und eigene Werte – gilt für die aktuelle Aufgabe */
+let WEGWAHL = { v: 0, klick: false, sub: {}, live: {} };
+function wegwahlNeu(){ WEGWAHL = { v: 0, klick: false, sub: {}, live: {} }; }
+function solutionArea(z){
   const d = el('details', { class: 'loesung' });
-  d.appendChild(el('summary', null, 'Lösung'));
+  /* Der Knopf sagt, was ein Druck bewirkt - wie auf den Gleichungsseiten. */
+  const sumL = el('summary');
+  sumL.innerHTML = '<span class="wenn-zu">' + esc(T('Lösung einblenden', 'Show answer')) + '</span>'
+    + '<span class="wenn-auf">' + esc(T('Lösung ausblenden', 'Hide answer')) + '</span>';
+  d.appendChild(sumL);
   const res = el('div', { class: 'res' });
   d.appendChild(res);
   const noteBox = el('div');
   d.appendChild(noteBox);
 
   const w = el('details', { class: 'weg' });
-  w.open = !!S.autoWeg;
-  w.appendChild(el('summary', null, 'Lösungsweg'));
+  w.open = (z && z.wegOpen != null) ? z.wegOpen : !!S.autoWeg;
+  const sumW = el('summary');
+  sumW.innerHTML = '<span class="wenn-zu">' + esc(T('Vollständiger Lösungsweg', 'Complete worked solution')) + '</span>'
+    + '<span class="wenn-auf">' + esc(T('Lösungsweg ausblenden', 'Hide worked solution')) + '</span>';
+  w.appendChild(sumW);
   const box = el('div', { class: 'wegbox' });
-  let varIdx = 0, zeigeLinks = null;
+  let varIdx = (WEGWAHL.v < TASK.variants.length) ? WEGWAHL.v : 0, zeigeLinks = null;
   if (TASK.variants.length > 1){
-    w.appendChild(el('p', { class: 'wegsel' }, 'Es gibt mehrere Wege – hier kannst du umschalten:'));
+    w.appendChild(el('p', { class: 'wegsel' }, T('Es gibt mehrere Wege – hier kannst du umschalten:', 'There are several ways – switch between them here:')));
     const sw = el('div', { class: 'varsw' });
     TASK.variants.forEach((v, i) => {
       const b = el('button', { type: 'button', data: { i: i } }, v.label);
       b.addEventListener('click', () => {
         $$('button', sw).forEach(x => x.classList.remove('on'));
         b.classList.add('on');
-        varIdx = i;
+        varIdx = i; WEGWAHL.v = i; WEGWAHL.klick = true;
         paintWeg(box, TASK.variants[i]);
         if (zeigeLinks) zeigeLinks();
       });
       sw.appendChild(b);
     });
-    $('button', sw).classList.add('on');
+    $$('button', sw)[varIdx].classList.add('on');
     w.appendChild(sw);
     mj(sw);
   }
@@ -1879,13 +2593,19 @@ function solutionArea(){
   d.appendChild(w);
   /* Die Links hängen am gewählten Lösungsweg: hat eine Variante eigene Objekte,
      zeigt die Zeichenseite genau diesen Weg. */
-  let links = extLinks(TASK.vis, TASK.extra, TASK.parWert);
+  const v0 = WEGWAHL.klick ? TASK.variants[varIdx] : null;   /* Links wie zuletzt gewählt */
+  /* Seiten mit Funktionsgraphen zeichnen hier eine Skizze; die Seiten der
+     analytischen Geometrie kennen zeichnungBlock() nicht und verlinken wie
+     bisher ins 3D-Koordinatensystem. */
+  const mitSkizze = (typeof zeichnungBlock === 'function');
+  const bau = v => mitSkizze
+    ? zeichnungBlock((v && v.skizze) ? v : TASK)
+    : extLinks(v && v.vis ? v.vis : TASK.vis, (v && v.extra) ? v.extra : TASK.extra,
+               (v && v.parWert != null) ? v.parWert : TASK.parWert);
+  let links = bau(v0);
   d.appendChild(links);
   zeigeLinks = () => {
-    const v = TASK.variants[varIdx];
-    const neu = extLinks(v && v.vis ? v.vis : TASK.vis,
-                         (v && v.extra) ? v.extra : TASK.extra,
-                         (v && v.parWert != null) ? v.parWert : TASK.parWert);
+    const neu = bau(TASK.variants[varIdx]);
     links.replaceWith(neu);
     links = neu;
   };
@@ -1905,6 +2625,7 @@ function solutionArea(){
     if (S.lockOnSolve && S.answer){ LOCKED = true; lockQuiz(); }
   });
   w.addEventListener('toggle', () => { if (w.open && d.open) paintWeg(box, TASK.variants[varIdx]); });
+  if (z && z.open) d.open = true;            /* das toggle-Ereignis baut den Inhalt auf */
   return d;
 }
 function paintWeg(box, variant){
@@ -1928,7 +2649,18 @@ function stepBox(s, nr){
     const a2 = el('a', { class: 'step-link', href: s.link.href, target: '_blank', rel: 'noopener' }, esc(s.link.text));
     d.appendChild(a2);
   }
-  if (s.live) s.live(d);
+  if (s.live){
+    s.live(d);
+    /* eigener Wert bleibt beim Sprachwechsel stehen */
+    const key = WEGWAHL.v + ':' + nr, ins = $$('input', d), alt = WEGWAHL.live[key];
+    if (alt) ins.forEach((inp, k) => {
+      if (alt[k] != null && inp.value !== alt[k]){ inp.value = alt[k]; inp.dispatchEvent(new Event('input')); }
+    });
+    /* gemerkt werden nur selbst eingetragene Werte – berechnete Felder rechnet die Seite neu aus */
+    ins.forEach(inp => inp.addEventListener('input', () => {
+      WEGWAHL.live[key] = ins.map(x => (x.disabled || x.dataset.auto === '1') ? null : x.value);
+    }));
+  }
   return d;
 }
 /** Umschalter mitten im Lösungsweg (z. B. welche Zeile man umformt) */
@@ -1937,19 +2669,23 @@ function subSwitch(s, nr){
   wrap.appendChild(el('p', { class: 'wegsel' }, s.sub.label));
   const sw = el('div', { class: 'varsw' });
   const box = el('div');
+  const key = WEGWAHL.v + ':' + nr;
+  let start = WEGWAHL.sub[key];
+  if (!(start >= 0 && start < s.sub.opts.length)) start = 0;
   s.sub.opts.forEach((o, i) => {
     const b = el('button', { type: 'button' }, o.label);
     b.addEventListener('click', () => {
       $$('button', sw).forEach(x => x.classList.remove('on'));
       b.classList.add('on');
+      WEGWAHL.sub[key] = i;
       fillSteps(box, o.steps, nr + '.');
     });
     sw.appendChild(b);
   });
-  $('button', sw).classList.add('on');
+  $$('button', sw)[start].classList.add('on');
   wrap.appendChild(sw);
   wrap.appendChild(box);
-  fillSteps(box, s.sub.opts[0].steps, nr + '.');
+  fillSteps(box, s.sub.opts[start].steps, nr + '.');
   mj(wrap);
   return wrap;
 }
@@ -1971,6 +2707,45 @@ function stepSwitch(label, opts){ return { h: '', sub: { label: label, opts: opt
 let MANCUR = null;                                  /* {id, v} der aktuellen eigenen Aufgabe */
 const MV = (m, k, f) => (m && m[k] != null) ? m[k] : f();
 
+/** Die Variable, in der die Funktionsgleichungen stehen (meist x). */
+function termVar(){ return (typeof xv === 'function') ? xv() : 'x'; }
+function termFn(){ return (typeof fn === 'function') ? fn() : 'f'; }
+/** Eine eingetippte Funktionsgleichung in Koeffizienten umrechnen.
+    Erlaubt: x^3, x³, 2.5x, 1/2 x^2, Leerzeichen, f(x) = davor, * als Malpunkt.
+    Rückgabe: Koeffizienten von x^0 aufwärts, oder null, wenn es nicht geht. */
+function termLesen(txt, vsym){
+  const v = String(vsym || 'x').toLowerCase();
+  let s = String(txt == null ? '' : txt).toLowerCase();
+  s = s.replace(/\s+/g, '')
+       .replace(/[·⋅×]/g, '*')
+       .replace(/[–—−]/g, '-')
+       .replace(/,/g, '.')
+       .replace(/⁰/g, '^0').replace(/¹/g, '^1').replace(/²/g, '^2').replace(/³/g, '^3')
+       .replace(/⁴/g, '^4').replace(/⁵/g, '^5').replace(/⁶/g, '^6').replace(/⁷/g, '^7')
+       .replace(/⁸/g, '^8').replace(/⁹/g, '^9');
+  s = s.replace(/^[a-z]\([a-z]\)=/, '').replace(/^[a-z]=/, '');
+  if (!s) return null;
+  const vars = (v === 'x') ? 'x' : (v + '|x');
+  const re = new RegExp('^(-?)([0-9]*\\.?[0-9]*)(?:/([0-9]*\\.?[0-9]+))?\\*?(?:(' + vars + ')(?:\\^([0-9]+))?)?$');
+  const teile = s.replace(/-/g, '+-').split('+').filter(x => x !== '');
+  if (!teile.length) return null;
+  const P = [];
+  for (let i = 0; i < teile.length; i++){
+    const m = teile[i].match(re);
+    if (!m) return null;
+    if (m[2] === '' && !m[4]) return null;          /* leerer Summand */
+    const vz = (m[1] === '-') ? -1 : 1;
+    let z = (m[2] === '' || m[2] === '.') ? 1 : parseFloat(m[2]);
+    if (m[3] != null) z = z / parseFloat(m[3]);
+    if (!isFinite(z)) return null;
+    const exp = m[4] ? (m[5] != null ? parseInt(m[5], 10) : 1) : 0;
+    if (exp > 12) return null;
+    P[exp] = snap((P[exp] || 0) + vz * z);
+  }
+  for (let i = 0; i < P.length; i++) if (P[i] == null) P[i] = 0;
+  while (P.length > 1 && eq0(P[P.length - 1])) P.pop();
+  return P.length ? P : [0];
+}
 function manualEntry(id){ return (typeof MANUAL === 'undefined') ? null : MANUAL.find(x => x.id === id); }
 const MODES = [{ v: 'auto', t: 'Zufällige Aufgabe' }, { v: 'manuell', t: 'Eigene Aufgabe' }];
 function paintMode(){
@@ -1986,37 +2761,46 @@ function buildManualPanel(){
   if (!host || typeof MANUAL === 'undefined' || !MANUAL.length) return;
   host.innerHTML = '';
   const sel = el('select', { id: 'manType' });
-  MANUAL.forEach(m => sel.appendChild(el('option', { value: m.id }, esc(m.name))));
+  MANUAL.forEach(m => sel.appendChild(el('option', { value: m.id }, esc(W(m.name)))));
   if (MANCUR) sel.value = MANCUR.id;
   sel.addEventListener('change', () => { MANSEL = {}; manualFields(sel.value); });
   if (MANUAL.length > 1){
     const r = el('div', { class: 'row' });
-    r.appendChild(el('span', null, 'Aufgabentyp'));
+    r.appendChild(el('span', null, T('Aufgabentyp', 'Task type')));
     r.appendChild(sel);
     host.appendChild(r);
   } else host.appendChild(el('div', { style: 'display:none' })).appendChild(sel);
   host.appendChild(el('div', { id: 'manFields' }));
   const act = el('div', { class: 'settings-foot' });
-  const go = el('button', { type: 'button' }, 'Aufgabe erzeugen');
+  const go = el('button', { type: 'button' }, T('Aufgabe erzeugen', 'Create task'));
   go.addEventListener('click', () => manualGo(sel.value));
   act.appendChild(go);
   host.appendChild(act);
   host.appendChild(el('p', { class: 'note' },
-    'Aufgabentext, Quiz und vollständiger Lösungsweg bleiben dieselben wie bei einer erzeugten Aufgabe.'));
+    T('Aufgabentext, Quiz und vollständiger Lösungsweg bleiben dieselben wie bei einer erzeugten Aufgabe.',
+      'Task text, quiz and full worked solution are the same as for a generated task.')));
   manualFields(sel.value);
   paintMode();
 }
 let MANSEL = {};
 /** Felder eines Eintrags – dürfen von den Auswahlfeldern abhängen */
 function fieldsOf(e){ return (typeof e.fields === 'function') ? e.fields(MANSEL) : e.fields; }
+/** r, s, t, … – der nächste freie Parametername. */
+function parNr(i){
+  const liste = [par(), par2(), par3()];
+  return liste[i] || (par() + '_{' + (i - 2) + '}');
+}
 function manualFields(id){
   const box = $('#manFields'), e = manualEntry(id);
   if (!box || !e) return;
   box.innerHTML = '';
+  /* Jede Gerade und jede Parameterebene nimmt sich den nächsten Parameter -
+     sonst hieße er bei zwei Geraden beide Male gleich. */
+  const pz = { n: 0 };
   fieldsOf(e).forEach(f => {
     const row = el('div', { class: 'qz-inp-row' });
-    if (f.label) row.appendChild(el('span', { class: 'qz-lbl' }, f.label));
-    manualField(row, f, id);
+    if (f.label) row.appendChild(el('span', { class: 'qz-lbl' }, W(f.label)));
+    manualField(row, f, id, pz);
     box.appendChild(row);
   });
   mj(box);
@@ -2026,13 +2810,14 @@ function manVal(id, k, def){
   return (MANCUR && MANCUR.id === id && MANCUR.v[k] != null) ? MANCUR.v[k] : def;
 }
 function setVec(node, val){ if (val) $$('input', node).forEach((i, k) => { i.value = String(val[k]); }); }
-function manualField(row, f, id){
+function manualField(row, f, id, pz){
   const D = f.def || {};
+  pz = pz || { n: 0 };
   if (f.t === 'line'){
     /* wie in der Lösungseingabe: die ganze Geradengleichung */
     row.appendChild(lblEl('\\(' + (f.name || 'g') + ':\\;' + xsym() + ' = \\)'));
     const a = vecInput('man_' + f.kp); row.appendChild(a);
-    row.appendChild(lblEl('\\(+\\;' + par() + '\\cdot \\)'));
+    row.appendChild(lblEl('\\(+\\;' + parNr(pz.n++) + '\\cdot \\)'));
     const b = vecInput('man_' + f.ku); row.appendChild(b);
     setVec(a, manVal(id, f.kp, D.p));
     setVec(b, manVal(id, f.ku, D.u));
@@ -2043,9 +2828,9 @@ function manualField(row, f, id){
     if (f.form === 'par'){
       row.appendChild(lblEl('\\(' + nm + ':\\;' + xsym() + ' = \\)'));
       const a = vecInput('man_' + f.kp); row.appendChild(a);
-      row.appendChild(lblEl('\\(+\\;' + par() + '\\cdot \\)'));
+      row.appendChild(lblEl('\\(+\\;' + parNr(pz.n++) + '\\cdot \\)'));
       const b = vecInput('man_' + f.ku); row.appendChild(b);
-      row.appendChild(lblEl('\\(+\\;' + par2() + '\\cdot \\)'));
+      row.appendChild(lblEl('\\(+\\;' + parNr(pz.n++) + '\\cdot \\)'));
       const cc = vecInput('man_' + f.kv); row.appendChild(cc);
       setVec(a, manVal(id, f.kp, D.p)); setVec(b, manVal(id, f.ku, D.u)); setVec(cc, manVal(id, f.kv, D.v));
       return;
@@ -2074,6 +2859,18 @@ function manualField(row, f, id){
     row.appendChild(dd);
     return;
   }
+  if (f.t === 'fterm'){
+    /* Die Funktionsgleichung wird so eingetippt, wie man sie aufschreibt. */
+    if (f.name !== false)
+      row.appendChild(lblEl('\\(' + (f.name || termFn()) + '\\left(' + termVar() + '\\right) = \\)'));
+    const tf = el('input', { type: 'text', class: 'qz-inp fterm', autocomplete: 'off',
+                             spellcheck: 'false', autocapitalize: 'off',
+                             placeholder: f.platz || (termVar() + '^3 - 3' + termVar() + '^2 + 2') });
+    tf.id = 'man_' + f.k;
+    tf.value = String(manVal(id, f.k + 'Text', f.def || ''));
+    row.appendChild(tf);
+    return;
+  }
   if (f.t === 'ptvar'){
     /* Punkt, bei dem einzelne Koordinaten als Buchstabe eingetragen werden dürfen */
     const w = el('span', { class: 'ptin' });
@@ -2093,19 +2890,24 @@ function manualField(row, f, id){
     return;
   }
   const cur = manVal(id, f.k, f.def);
-  if (f.t === 'point' || f.t === 'vec'){
-    const w = f.t === 'point' ? ptInput(f.name || '', 'man_' + f.k) : vecInput('man_' + f.k);
+  if (f.t === 'point' || f.t === 'vec' || f.t === 'vec2'){
+    /* vec2: zwei Zeilen - nur auf den Seiten mit Zeichnungen in der Ebene */
+    const w = (f.t === 'point') ? ptInput(f.name || '', 'man_' + f.k)
+            : ((f.t === 'vec2' && typeof vecInput2 === 'function')
+               ? vecInput2('man_' + f.k) : vecInput('man_' + f.k));
     row.appendChild(w);
     setVec(w, cur);
   } else if (f.t === 'sel'){
     const s = el('select', { class: f.rebuild ? 'sm formsel' : 'sm', id: 'man_' + f.k });
-    (typeof f.opts === 'function' ? f.opts() : f.opts).forEach(o => s.appendChild(el('option', { value: o.v }, esc(o.t))));
+    (typeof f.opts === 'function' ? f.opts() : f.opts).forEach(o => s.appendChild(el('option', { value: o.v }, esc(W(o.t)))));
     const wert = (MANSEL[f.k] != null) ? MANSEL[f.k] : cur;
     if (wert != null) s.value = String(wert);
     MANSEL[f.k] = s.value;
     if (f.rebuild) s.addEventListener('change', () => { MANSEL[f.k] = s.value; manualFields(id); });
     row.appendChild(s);
   } else {
+    /* Zwischen den Namen und das Feld gehört ein Gleichheitszeichen. */
+    if (f.gleich !== false) row.appendChild(lblEl('\\(=\\)'));
     const n = numField(); n.id = 'man_' + f.k;
     if (cur != null) n.value = String(cur);
     row.appendChild(n);
@@ -2116,35 +2918,44 @@ function manualRead(id){
   const felder = fieldsOf(e);
   const holVec = (k, label) => {
     const q = readVec($('#man_' + k));
-    if (!q) throw new Error('Bitte alle Felder bei „' + label + '“ ausfüllen.');
+    if (!q) throw new Error(T('Bitte alle Felder bei „' + label + '“ ausfüllen.', 'Please fill in all fields for “' + label + '”.'));
     v[k] = q;
   };
   try {
     for (const f of felder){
-      const label = String(f.label || f.name || '').replace(/\\[()]/g, '');
-      if (f.t === 'line'){ holVec(f.kp, label + ' (Stützvektor)'); holVec(f.ku, label + ' (Richtungsvektor)'); continue; }
+      const label = String(W(f.label || f.name || '')).replace(/\\[()]/g, '');
+      if (f.t === 'line'){ holVec(f.kp, label + T(' (Stützvektor)', ' (position vector)')); holVec(f.ku, label + T(' (Richtungsvektor)', ' (direction vector)')); continue; }
       if (f.t === 'plane'){
         if (f.form === 'par'){ holVec(f.kp, label); holVec(f.ku, label); holVec(f.kv, label); continue; }
         if (f.form === 'nor'){ holVec(f.kp, label); holVec(f.kn, label); continue; }
         const n = [0, 1, 2].map(i => parseNum($('#man_' + f.kn + '_' + i).value));
         const d = parseNum($('#man_' + f.kd).value);
-        if (n.some(x => x === null) || d === null) throw new Error('Bitte alle Zahlen der Gleichung eintragen (auch die Nullen).');
+        if (n.some(x => x === null) || d === null) throw new Error(T('Bitte alle Zahlen der Gleichung eintragen (auch die Nullen).', 'Please enter all numbers of the equation (including the zeros).'));
         v[f.kn] = n; v[f.kd] = d;
+        continue;
+      }
+      if (f.t === 'fterm'){
+        const feld = $('#man_' + f.k);
+        const roh = feld ? feld.value : '';
+        const P = termLesen(roh, termVar());
+        if (!P) throw new Error(T('Die Funktionsgleichung ließ sich nicht lesen. Beispiel: x^3 - 3x^2 + 2',
+                                  'Could not read the function. Example: x^3 - 3x^2 + 2'));
+        v[f.k] = P; v[f.k + 'Text'] = roh;
         continue;
       }
       if (f.t === 'ptvar'){
         const roh = [0, 1, 2].map(i => String($('#man_' + f.k + '_' + i).value).trim());
-        if (roh.some(x => !x)) throw new Error('Bitte alle drei Koordinaten eintragen.');
+        if (roh.some(x => !x)) throw new Error(T('Bitte alle drei Koordinaten eintragen.', 'Please enter all three coordinates.'));
         v[f.k] = roh;
         continue;
       }
       const node = $('#man_' + f.k);
-      if (!node) throw new Error('Feld fehlt.');
-      if (f.t === 'point' || f.t === 'vec') holVec(f.k, label);
+      if (!node) throw new Error(T('Feld fehlt.', 'Field missing.'));
+      if (f.t === 'point' || f.t === 'vec' || f.t === 'vec2') holVec(f.k, label);
       else if (f.t === 'sel') v[f.k] = node.value;
       else {
         const x = parseNum(node.value);
-        if (x === null) throw new Error('Bitte einen Wert bei „' + label + '“ eintragen.');
+        if (x === null) throw new Error(T('Bitte einen Wert bei „' + label + '“ eintragen.', 'Please enter a value for “' + label + '”.'));
         v[f.k] = x;
       }
     }
@@ -2156,30 +2967,130 @@ function manualGo(id){
   const box = $('#manFields');
   $$('.qz-fb', box.parentElement).forEach(x => x.remove());
   if (!res || res.err){
-    box.parentElement.appendChild(el('div', { class: 'qz-fb err' }, res ? res.err : 'Eingabe unvollständig.'));
+    box.parentElement.appendChild(el('div', { class: 'qz-fb err' }, res ? res.err : T('Eingabe unvollständig.', 'Input incomplete.')));
+    mj(box.parentElement);
     return;
   }
   let t = null, msg = null;
+  const s0 = _seed;
   try { t = makeManual(id, res.v); } catch (ex){ msg = ex && ex.message; }
   if (!t){
     box.parentElement.appendChild(el('div', { class: 'qz-fb err' },
-      msg || 'Mit diesen Werten lässt sich keine sinnvolle Aufgabe bilden.'));
+      msg || T('Mit diesen Werten lässt sich keine sinnvolle Aufgabe bilden.', 'These values do not give a meaningful task.')));
+    mj(box.parentElement);
     return;
   }
   MANCUR = { id: id, v: res.v };
+  MANSEED = s0; TASKFEHLER = null;
   S.mode = 'manuell';
   TASK = t;
+  merkeEinstellungen(); wegwahlNeu();
   save();
   render();
   const tb = $('#task');
   if (tb && tb.scrollIntoView) tb.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
 }
 
+/** Eingabebereich der eigenen Aufgabe in der neuen Sprache – eingetippte Werte bleiben */
+function manualNeu(){
+  const host = $('#manualBox');
+  if (!host || typeof MANUAL === 'undefined' || !MANUAL.length) return;
+  const sel = $('#manType'), typ = sel ? sel.value : null;
+  const werte = $$('#manFields input, #manFields select').map(x => x.value);
+  const fehler = !!$('.qz-fb', host);
+  buildManualPanel();
+  if (typ && $('#manType')){ $('#manType').value = typ; manualFields(typ); }
+  const felder = $$('#manFields input, #manFields select');
+  if (felder.length === werte.length) felder.forEach((x, k) => { x.value = werte[k]; });
+  if (fehler && typ) manualPruefen(typ);
+}
+/** die Meldung zur eingegebenen eigenen Aufgabe noch einmal erzeugen (ohne sie zu übernehmen) */
+function manualPruefen(id){
+  const res = manualRead(id), box = $('#manFields');
+  if (!box) return;
+  let msg = null;
+  if (!res || res.err) msg = res ? res.err : T('Eingabe unvollständig.', 'Input incomplete.');
+  else {
+    const s0 = _seed;
+    let t = null;
+    try { t = makeManual(id, res.v); } catch (ex){ msg = ex && ex.message; }
+    _seed = s0;
+    if (!t && !msg) msg = T('Mit diesen Werten lässt sich keine sinnvolle Aufgabe bilden.', 'These values do not give a meaningful task.');
+  }
+  if (msg){ box.parentElement.appendChild(el('div', { class: 'qz-fb err' }, msg)); mj(box.parentElement); }
+}
+
+/* =========================================================================
+   Sprach- oder Farbwechsel: alles neu beschriften, dieselbe Aufgabe behalten
+   ========================================================================= */
+let GESTARTET = false;           /* erst nach initPage() darf neu aufgebaut werden */
+let TASKS = null;                /* Einstellungen, mit denen die Aufgabe entstand */
+let MANSEED = 1;                 /* Zufallszustand vor einer eigenen Aufgabe */
+let TASKFEHLER = null;           /* Fehlermeldung statt Aufgabe (als Text-Baustein) */
+/** Einstellungen beim Erzeugen merken – spätere Änderungen gelten erst für die nächste Aufgabe */
+function merkeEinstellungen(){ TASKS = JSON.parse(JSON.stringify(S)); }
+/** Zustand der Anzeige, der beim Neuaufbau erhalten bleiben soll */
+function uiZustand(){
+  const z = { quiz: null, locked: LOCKED, open: false, wegOpen: null };
+  if (QUIZ){
+    z.quiz = { idx: QUIZ.idx, n: QUIZ.st.length,
+      st: QUIZ.st.map(s => Object.assign({}, s, { wrong: Object.assign({}, s.wrong) })) };
+    const box = $('#quizArea .qz-cur-step:not(.qz-solved)');
+    if (box) z.quiz.eingaben = $$('input', box).map(i => i.value);
+  }
+  const d = $('details.loesung'), w = $('details.weg');
+  if (d) z.open = d.open;
+  if (w) z.wegOpen = w.open;
+  return z;
+}
+/** dieselbe Aufgabe in der aktuellen Sprache (und mit den aktuellen Farben) neu aufbauen */
+function aufgabeNeu(){
+  if (!GESTARTET || !$('#task')) return;
+  if (!TASK){
+    if (TASKFEHLER) zeigeTaskFehler(TASKFEHLER); else render();
+    return;
+  }
+  const z = uiZustand(), jetzt = S, s0 = _seed;
+  let neu = null;
+  if (TASKS) S = JSON.parse(JSON.stringify(TASKS));
+  try {
+    if (MANCUR){ _seed = MANSEED; neu = makeManual(MANCUR.id, MANCUR.v); }
+    else { setSeed(TASKSEED); neu = makeTaskChecked(); }
+  } catch (e){ neu = null; }
+  try {
+    if (neu) TASK = neu;
+    render(z);
+  } finally { S = jetzt; _seed = s0; }
+}
+/** Beschriftungen von Schaltern, Pillen und Kacheln, Einstellungen, eigene Aufgabe */
+function neuBeschriften(){
+  if (!GESTARTET) return;
+  safe(closePop);
+  $$('.seg-switch').forEach(h => safe(() => segSwitchNeu(h)));
+  $$('.pills').forEach(h => safe(() => pillsNeu(h)));
+  $$('.tiles').forEach(h => safe(() => tilesNeu(h)));
+  if (typeof seiteNeuBeschriften === 'function') safe(seiteNeuBeschriften);   /* Ergänzungen der Seite */
+  safe(buildSettings);
+  safe(manualNeu);
+  safe(aufgabeNeu);
+}
+window.addEventListener('tl-sprache', () => safe(neuBeschriften));
+/* Farbwechsel: nur die Aufgabe (Gleichheits-/Ungleichheitszeichen in den Proben sind eingefärbt) */
+window.addEventListener('tl-theme', () => safe(aufgabeNeu));
+
+/* Fehler melden: Aufgabentyp, Seed bzw. eigene Werte und die Aufgabe als TeX */
+window.fehlerKontext = function(){
+  if (!TASK) return '';
+  const q = $('#task .qbody');
+  const txt = !q ? '' : ((typeof tlFormelText === 'function') ? tlFormelText(q) : q.textContent);
+  return TASK.id + ' | ' + (MANCUR ? 'mt=' + JSON.stringify(MANCUR) : 'sd=' + TASKSEED) + ' | ' + txt;
+};
+
 /* =========================================================================
    Zustand, Schwierigkeit, Start
    ========================================================================= */
 const DIFFS = [
-  { v: 'einf', t: 'Einführung' }, { v: 'leicht', t: 'Leicht' }, { v: 'mittel', t: 'Mittel' },
+  { v: 'einf', t: 'Einführung' }, { v: 'leicht', t: 'Leicht' }, { v: 'normal', t: 'Normal' },
   { v: 'schwer', t: 'Herausfordernd' }, { v: 'indiv', t: 'Individuell', title: 'öffnet die Einstellungen' }
 ];
 const NUMPRESETS = {
@@ -2195,7 +3106,7 @@ const NUMPRESETS = {
             nmin: -4, nmax: 4, nzero: false, ndec: false, nfrac: false, tmin: -5, tmax: 5, tzero: false, tfrac: false,
             simp: false, intVec: false, intRes: false },
   /* Mittel: das übliche Niveau im Grundkurs. */
-  mittel: { pmin: -10, pmax: 10, pzero: true, pdec: false, pfrac: false,
+  normal: { pmin: -10, pmax: 10, pzero: true, pdec: false, pfrac: false,
             vmin: -5, vmax: 5, vzero: true, vdec: false, vfrac: false,
             nmin: -5, nmax: 5, nzero: true, ndec: false, nfrac: false, tmin: -8, tmax: 8, tzero: true, tfrac: true,
             simp: false, intVec: false, intRes: false },
@@ -2210,15 +3121,18 @@ function applyPreset(name){
   if (p) for (const k in p) S[k] = p[k];
   if (typeof pagePreset === 'function') pagePreset(name);
 }
-function touched(){
-  if (S.diff !== 'indiv'){ S.diff = 'indiv'; paintSegSwitch($('#segDiff'), () => S.diff); }
-  save();
-}
+/** Etwas wurde von Hand eingestellt. Die Stufe bleibt stehen - sie sagt
+    ja weiterhin, wie schwer die Zahlen sein sollen. */
+function touched(){ save(); }
 function save(){ shareURL(false); }
+/* Ein Blick auf alle Einstellungen - so wie auf den anderen Aufgabenseiten.
+   Sie stehen alle in S; der Link gibt genau diese weiter. */
+function einstellungen(){ return JSON.parse(JSON.stringify(S)); }
 function shareURL(withSeed){
   const extra = {};
   if (MANCUR) extra.mt = JSON.stringify(MANCUR);
   else if (withSeed) extra.sd = TASKSEED;
+  if (seedFestAn()) extra.seed = seedFestWert();   /* dieselbe Folge für alle */
   return URLSTATE.write(S, DEF, PMAP, extra);
 }
 /** enthält die Lösung der Aufgabe gebrochene Werte? */
@@ -2244,23 +3158,89 @@ function makeTaskChecked(){
   }
   return t;
 }
+/* ---------- Fester Zufalls-Seed ----------
+   Ohne ihn bekommt jede Aufgabe einen eigenen Zufallsstartwert. Mit ihm wird
+   der Startwert aus dem eingetippten Seed und der Nummer der Aufgabe
+   gerechnet - dieselbe Eingabe ergibt also überall dieselbe Folge. */
+let SEEDNR = 0;
+function seedFeld(){ return $('#seedWert'); }
+function seedFestAn(){
+  const c = $('#seedAn'), f = seedFeld();
+  return !!(c && c.checked && f && String(f.value).trim());
+}
+function seedFestWert(){ const f = seedFeld(); return f ? String(f.value).trim() : ''; }
+/** kleiner, überall gleicher Streuwert aus einem Text */
+function seedHash(text){
+  let h = 2166136261 >>> 0;
+  text = String(text);
+  for (let i = 0; i < text.length; i++){
+    h ^= text.charCodeAt(i);
+    h = (h + ((h << 1) + (h << 4) + (h << 7) + (h << 8) + (h << 24))) >>> 0;
+  }
+  return h >>> 0;
+}
+/** Zählung von vorne - z. B. wenn der Seed geändert wurde */
+function seedZurueck(){ SEEDNR = 0; }
+function seedFestNaechste(){ SEEDNR++; return seedHash(seedFestWert() + '#' + SEEDNR); }
+function seedWuerfeln(){ return String(Math.floor(Math.random() * 90000) + 10000); }
+/** Seed aus der Adresszeile übernehmen (beim Laden) */
+function seedAusURL(){
+  let v = null;
+  try { v = new URLSearchParams(location.search).get('seed'); } catch (e) {}
+  const c = $('#seedAn'), f = seedFeld();
+  if (!v || !c || !f) return false;
+  f.value = v; c.checked = true; seedZurueck();
+  return true;
+}
+function seedVerdrahten(){
+  const c = $('#seedAn'), f = seedFeld(), w = $('#seedNeu');
+  if (c) c.addEventListener('change', () => {
+    seedZurueck();
+    if (c.checked && f && !String(f.value).trim()) f.value = seedWuerfeln();
+    nextTask();
+  });
+  if (f) f.addEventListener('change', () => { seedZurueck(); if (seedFestAn()) nextTask(); });
+  if (w) w.addEventListener('click', () => {
+    if (f) f.value = seedWuerfeln();
+    if (c) c.checked = true;
+    seedZurueck();
+    nextTask();
+  });
+}
 function nextTask(seed){
   MANCUR = null;
   if (S.mode === 'manuell'){ S.mode = 'auto'; safe(paintMode); safe(() => paintSegSwitch($('#segMode'), () => S.mode)); }
-  TASKSEED = (seed == null) ? newSeed() : seed;
+  TASKSEED = (seed == null) ? (seedFestAn() ? seedFestNaechste() : newSeed()) : seed;
   setSeed(TASKSEED);
+  merkeEinstellungen(); wegwahlNeu(); TASKFEHLER = null;
   try {
     TASK = makeTaskChecked();
   } catch (e){
     if (window.console) console.error('Aufgabe konnte nicht erzeugt werden:', e);
     TASK = null;
-    const host = $('#task');
-    if (host) host.innerHTML = '<p style="margin:6px 0;color:#b00020">Mit diesen Einstellungen ließ sich keine '
-      + 'Aufgabe erzeugen (' + esc(e && e.message ? e.message : e) + '). Bitte die Einstellungen prüfen.</p>';
+    TASKFEHLER = () => esc(e && e.message ? e.message : e);
+    zeigeTaskFehler(TASKFEHLER);
     return;
   }
   render();                       /* zeichnen hat Vorrang vor dem Merken in der URL */
   safe(save);
+}
+/** Meldung, wenn sich mit den Einstellungen keine Aufgabe erzeugen ließ */
+function zeigeTaskFehler(grund){
+  const host = $('#task');
+  if (host) host.innerHTML = '<p class="task-err">' + T('Mit diesen Einstellungen ließ sich keine Aufgabe erzeugen (',
+    'No task could be generated with these settings (') + grund() + T('). Bitte die Einstellungen prüfen.', '). Please check the settings.') + '</p>';
+}
+/* Aufgabenarten mit längerer Rechnung - sie bekommen den Stift. */
+const ZETTEL = {
+  'lage': true
+};
+/** Braucht diese Aufgabe Zettel und Stift? Die Aufgabe selbst darf es über
+    `zettel` sagen, sonst entscheidet die Liste ZETTEL der Seite. */
+function brauchtZettel(t){
+  if (!t) return false;
+  if (t.zettel != null) return !!t.zettel;
+  return !!ZETTEL[t.id];
 }
 /** führt aus und schluckt Fehler, damit ein Teilschritt nie den Rest blockiert */
 function safe(fn){
@@ -2285,6 +3265,8 @@ function showSettings(){
 function initPage(hookExtra){
   buildSegSwitch($('#segDiff'), 'diff', DIFFS, () => S.diff, v => {
     S.diff = v;
+    /* Die Stufe stellt die Zahlen ein. Wer die Aufgabentypen schon selbst
+       gewählt hat, behält sie – dafür sorgt typenVonHand in typenNachStufe. */
     if (v !== 'indiv') safe(() => applyPreset(v));
     nextTask();                    /* zuerst die Aufgabe – sie ist das Wichtigste */
     safe(buildSettings);
@@ -2293,9 +3275,10 @@ function initPage(hookExtra){
   buildSettings();
   if (hookExtra) hookExtra();
   $$('#genBtn, #genBtn2').forEach(b => b.addEventListener('click', () => nextTask()));
-  $('#btnShare').addEventListener('click', () => copyText(shareURL(false), $('#btnShare'), '✓ Link kopiert'));
+  $('#btnShare').addEventListener('click', () => copyText(shareURL(false), $('#btnShare'), T('✓ Link kopiert', '✓ Link copied')));
   $('#btnReset').addEventListener('click', () => {
     S = JSON.parse(JSON.stringify(DEF));
+    typenVonHand = false;              /* ab jetzt bestimmt wieder die Stufe */
     resetControls(); buildSettings(); paintSegSwitch($('#segDiff'), () => S.diff); save(); nextTask();
   });
   buildSegSwitch($('#segMode'), 'mode', MODES, () => S.mode, v => {
@@ -2305,21 +3288,26 @@ function initPage(hookExtra){
     if (v === 'auto') nextTask();
   });
   buildManualPanel();
+  seedVerdrahten(); seedAusURL();  /* vor der ersten Aufgabe, damit sie schon dazugehört */
   const q = new URLSearchParams(location.search);
   const mt = q.get('mt');
   if (mt){
     try {
       const o = JSON.parse(mt);
+      const s0 = _seed;
       const t = makeManual(o.id, o.v);
       if (t){
-        MANCUR = o; TASK = t; S.mode = 'manuell';
+        MANCUR = o; TASK = t; S.mode = 'manuell'; MANSEED = s0;
+        merkeEinstellungen(); wegwahlNeu();
         buildManualPanel(); paintSegSwitch($('#segMode'), () => S.mode); render();
+        GESTARTET = true;
         return;
       }
     } catch (e) {}
   }
   const sd = q.get('sd');
   nextTask(sd != null ? (parseInt(sd, 10) >>> 0) : null);
+  GESTARTET = true;
 }
 function boot(hookExtra){
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => initPage(hookExtra));
@@ -2328,14 +3316,14 @@ function boot(hookExtra){
 
 /* gemeinsamer Teil von Zustand und URL-Abbildung */
 const NUMDEF = {
-  pmin: -6, pmax: 6, pzero: true, pdec: false, pfrac: false,
-  vmin: -4, vmax: 4, vzero: true, vdec: false, vfrac: false,
-  nmin: -4, nmax: 4, nzero: true, ndec: false, nfrac: false,
-  tmin: -5, tmax: 5, tzero: false, tfrac: false,
+  pmin: -10, pmax: 10, pzero: true, pdec: false, pfrac: false,
+  vmin: -5, vmax: 5, vzero: true, vdec: false, vfrac: false,
+  nmin: -5, nmax: 5, nzero: true, ndec: false, nfrac: false,
+  tmin: -8, tmax: 8, tzero: true, tfrac: true,
   decN: 1, fracD: 4, numStyle: 'auto', intVec: false, simp: false, intRes: false,
   ax: 'xyz', parStyle: 'lat', par: 'r', par2: 's', par3: 't',
   vecX: 'vec', sep: '|', kooForm: 'd', norSide: 'x', dotSym: 'circ',
-  diff: 'leicht', mode: 'auto', answer: true, lockOnSolve: true, autoWeg: false
+  diff: 'normal', mode: 'auto', answer: true, lockOnSolve: true, autoWeg: false
 };
 const NUMMAP = {
   pmin: { q: 'pi', t: 'n' }, pmax: { q: 'pa', t: 'n' }, pzero: { q: 'p0', t: 'b' },
@@ -2357,16 +3345,16 @@ const NUMMAP = {
 
 /* ---------- fertige Quiz-Schritte ---------- */
 function stageChoice(title, opts, right, hints, answerTxt, sub){
-  return { kind: 'choice', title: title, sub: sub, opts: opts,
+  return { kind: 'choice', title: title, sub: sub, opts: opts, right: right,
     verify(v){
       if (v === right) return { ok: true, answer: answerTxt || esc((opts.find(o => o.v === v) || {}).t || '') };
-      return { ok: false, msg: (hints && hints[v]) || 'Das stimmt noch nicht – rechne den Fall noch einmal nach.' };
+      return { ok: false, msg: (hints && hints[v]) || T('Das stimmt noch nicht – rechne den Fall noch einmal nach.', 'Not right yet – work through the case again.') };
     } };
 }
 /** Geradengleichung eingeben: Stützvektor und Richtungsvektor */
 function stageLine(title, p0, u0, name, sub){
-  return { kind: 'input', title: title,
-    sub: sub || 'Jeder Punkt der Geraden und jedes Vielfache des Richtungsvektors sind erlaubt.',
+  return { kind: 'input', title: title, loesung: p0.concat(u0),
+    sub: sub || T('Jeder Punkt der Geraden und jedes Vielfache des Richtungsvektors sind erlaubt.', 'Any point of the line and any multiple of the direction vector are allowed.'),
     build(row){
       row.appendChild(lblEl('\\(' + (name || 'g') + ':\\;' + xsym() + ' = \\)'));
       row.appendChild(vecInput('inP'));
@@ -2375,32 +3363,34 @@ function stageLine(title, p0, u0, name, sub){
     },
     verify(box){
       const p2 = readVec($('#inP', box)), u2 = readVec($('#inU', box));
-      if (!p2 || !u2) return { ok: false, cls: 'warn', msg: 'Bitte alle sechs Felder ausfüllen.' };
-      if (V.zero(u2)) return { ok: false, msg: 'Der Richtungsvektor darf nicht der Nullvektor sein – sonst beschreibt die Gleichung nur einen Punkt.' };
-      if (!V.parallel(u0, u2)) return { ok: false, msg: 'Der Richtungsvektor zeigt in eine andere Richtung. Er muss ein Vielfaches von \\(' + TX.vec(u0) + '\\) sein.' };
-      if (V.factor(u0, V.sub(p2, p0)) === null) return { ok: false, msg: 'Die Richtung stimmt, aber der Stützvektor gehört zu einem Punkt, der nicht auf der Geraden liegt.' };
+      if (!p2 || !u2) return { ok: false, cls: 'warn', msg: T('Bitte alle sechs Felder ausfüllen.', 'Please fill in all six fields.') };
+      if (V.zero(u2)) return { ok: false, msg: T('Der Richtungsvektor darf nicht der Nullvektor sein – sonst beschreibt die Gleichung nur einen Punkt.', 'The direction vector must not be the zero vector – otherwise the equation describes only a point.') };
+      if (!V.parallel(u0, u2)) return { ok: false, msg: T('Der Richtungsvektor zeigt in eine andere Richtung. Er muss ein Vielfaches von \\(' + TX.vec(u0) + '\\) sein.',
+      'The direction vector points in a different direction. It must be a multiple of \\(' + TX.vec(u0) + '\\).') };
+      if (V.factor(u0, V.sub(p2, p0)) === null) return { ok: false, msg: T('Die Richtung stimmt, aber der Stützvektor gehört zu einem Punkt, der nicht auf der Geraden liegt.', 'The direction is right, but the position vector belongs to a point that is not on the line.') };
       const k = V.factor(u0, u2);
       let extra = '';
-      if (!eqN(k, 1)) extra += ' (Richtungsvektor als \\(' + numTeX(k) + '\\)-faches – dieselbe Gerade)';
-      if (!V.same(p2, p0)) extra += ' (anderer Stützpunkt derselben Geraden)';
+      if (!eqN(k, 1)) extra += T(' (Richtungsvektor als \\(' + numTeX(k) + '\\)-faches – dieselbe Gerade)',
+                                  ' (direction vector multiplied by \\(' + numTeX(k) + '\\) – the same line)');
+      if (!V.same(p2, p0)) extra += T(' (anderer Stützpunkt derselben Geraden)', ' (a different base point on the same line)');
       return { ok: true, answer: '\\(' + lineTeX('', p2, u2) + '\\)' + extra };
     } };
 }
 function stagePoint(title, name, right, sub, hint){
-  return { kind: 'input', title: title, sub: sub,
+  return { kind: 'input', title: title, sub: sub, loesung: right,
     build(row){ row.appendChild(ptInput(name, 'inQ')); },
     verify(box){
       const q = readVec($('#inQ', box));
-      if (!q) return { ok: false, cls: 'warn', msg: 'Bitte alle drei Koordinaten eintragen.' };
+      if (!q) return { ok: false, cls: 'warn', msg: T('Bitte alle drei Koordinaten eintragen.', 'Please enter all three coordinates.') };
       if (V.same(q, right)) return { ok: true, answer: '\\(' + ptTeX(name, right) + '\\)' };
       const w = [0, 1, 2].filter(i => !eqN(q[i], right[i]));
       return { ok: false, msg: w.length === 1
-        ? 'Die ' + (w[0] + 1) + '. Koordinate stimmt noch nicht.'
-        : (hint || 'Noch nicht richtig – rechne die Koordinaten noch einmal nach.') };
+        ? T('Die ' + (w[0] + 1) + '. Koordinate stimmt noch nicht.', 'The ' + ORD(w[0] + 1) + ' coordinate is not right yet.')
+        : (hint || T('Noch nicht richtig – rechne die Koordinaten noch einmal nach.', 'Not right yet – recalculate the coordinates.')) };
     } };
 }
 function stageNums(title, labels, vals, sub, hint){
-  return { kind: 'input', title: title, sub: sub,
+  return { kind: 'input', title: title, sub: sub, loesung: vals,
     build(row){
       labels.forEach((L, i) => {
         row.appendChild(lblEl('\\(' + L + ' = \\)'));
@@ -2410,10 +3400,11 @@ function stageNums(title, labels, vals, sub, hint){
     },
     verify(box){
       const got = labels.map((L, i) => parseNum($('#inN' + i, box).value));
-      if (got.some(x => x === null)) return { ok: false, cls: 'warn', msg: 'Bitte alle Felder ausfüllen.' };
+      if (got.some(x => x === null)) return { ok: false, cls: 'warn', msg: T('Bitte alle Felder ausfüllen.', 'Please fill in all fields.') };
       const bad = got.map((x, i) => eqN(x, vals[i]) ? -1 : i).filter(i => i >= 0);
       if (!bad.length) return { ok: true, answer: '\\(' + labels.map((L, i) => L + ' = ' + numTeX(vals[i])).join(',\\quad ') + '\\)' };
-      return { ok: false, msg: 'Noch nicht richtig bei \\(' + bad.map(i => labels[i]).join('\\) und \\(') + '\\). ' + (hint || '') };
+      return { ok: false, msg: T('Noch nicht richtig bei \\(' + bad.map(i => labels[i]).join('\\) und \\(') + '\\). ',
+                                    'Not right yet for \\(' + bad.map(i => labels[i]).join('\\) and \\(') + '\\). ') + (hint || '') };
     } };
 }
 /* =========================================================================
@@ -2439,6 +3430,8 @@ const PMAP = Object.assign({}, NUMMAP, {
   wWindschief: { q: 'w3', t: 'n' }, wIdentisch: { q: 'w4', t: 'n' }
 });
 let S = URLSTATE.read(DEF, PMAP);
+/* Früher hieß die mittlere Stufe „Mittel" - alte Links sollen weiter gehen. */
+if (S.diff === 'mittel') S.diff = 'normal';
 S.cases = Object.assign({}, DEF.cases, S.cases);
 if (!Object.keys(S.cases).some(k => S.cases[k])) S.cases = Object.assign({}, DEF.cases);
 
@@ -2501,24 +3494,24 @@ const MK = { schneidend: mkSchneidend, parallel: mkParallel, windschief: mkWinds
 
 /* ---------- Lösungsweg: paralleler Zweig ---------- */
 function dirCompareStep(g, h, k){
-  return step('Richtungsvektoren vergleichen',
-    'Zuerst prüft man, ob die Richtungsvektoren Vielfache voneinander sind:',
+  return step(T('Richtungsvektoren vergleichen', 'Compare the direction vectors'),
+    T('Zuerst prüft man, ob die Richtungsvektoren Vielfache voneinander sind:', 'First check whether the direction vectors are multiples of each other:'),
     TX.vec(h.u) + ' = ' + paren(k) + '\\cdot ' + TX.vec(g.u)
-    , 'Die Richtungsvektoren sind also Vielfache voneinander.');
+    , T('Die Richtungsvektoren sind also Vielfache voneinander.', 'So the direction vectors are multiples of each other.'));
 }
 /** Text unter der k-Tabelle */
 function hinweises(liste, verschieden){
   const t = liste.slice();
-  if (verschieden) t.push('Die Zeilen liefern verschiedene Werte für \\(k\\).');
-  t.push('Die Richtungsvektoren sind also keine Vielfachen voneinander – die Geraden sind nicht parallel.');
+  if (verschieden) t.push(T('Die Zeilen liefern verschiedene Werte für \\(k\\).', 'The rows give different values of \\(k\\).'));
+  t.push(T('Die Richtungsvektoren sind also keine Vielfachen voneinander – die Geraden sind nicht parallel.', 'So the direction vectors are not multiples of each other – the lines are not parallel.'));
   return t.join(' ');
 }
 function dirDifferSteps(g, h){
   const st = [
-    step('Ansatz für die Parallelität', 'Zwei Geraden sind genau dann parallel, wenn ihre Richtungsvektoren '
-      + 'Vielfache voneinander sind. Es müsste also ein \\(k\\) geben mit',
+    step(T('Ansatz für die Parallelität', 'Testing for parallelism'), T('Zwei Geraden sind genau dann parallel, wenn ihre Richtungsvektoren ', 'Two lines are parallel exactly when their direction vectors ')
+      + T('Vielfache voneinander sind. Es müsste also ein \\(k\\) geben mit', 'are multiples of each other. So there would have to be a \\(k\\) with'),
       TX.vec(h.u) + ' = k\\cdot ' + TX.vec(g.u)),
-    step('Zeilenweise aufschreiben', 'Das sind drei Bedingungen, die alle dasselbe \\(k\\) liefern müssten:',
+    step(T('Zeilenweise aufschreiben', 'Write it row by row'), T('Das sind drei Bedingungen, die alle dasselbe \\(k\\) liefern müssten:', 'These are three conditions that would all have to give the same \\(k\\):'),
       eqPairTeX(ROM, [], ['k'], [0, 1, 2].map(i => ({ lc: h.u[i], rc: 0, r: [g.u[i]] }))))
   ];
   /* nur Zeilen mit einem echten Bruch kommen in die Tabelle; Zeilen mit einer
@@ -2527,16 +3520,16 @@ function dirDifferSteps(g, h){
   [0, 1, 2].forEach(i => {
     if (eq0(g.u[i])){
       hinweise.push(eq0(h.u[i])
-        ? 'In Zeile ' + ROM[i] + ' steht in beiden Vektoren eine \\(0\\) – diese Zeile ist für jedes \\(k\\) erfüllt.'
-        : 'In Zeile ' + ROM[i] + ' steht bei \\(\\vec{u}_g\\) eine \\(0\\), bei \\(\\vec{u}_h\\) aber \\('
-          + numTeX(h.u[i]) + '\\) – das kann kein \\(k\\) erfüllen.');
+        ? T('In Zeile ', 'In row ') + ROM[i] + T(' steht in beiden Vektoren eine \\(0\\) – diese Zeile ist für jedes \\(k\\) erfüllt.', ', both vectors have a \\(0\\) – this row holds for every \\(k\\).')
+        : T('In Zeile ', 'In row ') + ROM[i] + T(' steht bei \\(\\vec{u}_g\\) eine \\(0\\), bei \\(\\vec{u}_h\\) aber \\(', ', \\(\\vec{u}_g\\) has a \\(0\\), but \\(\\vec{u}_h\\) has \\(')
+          + numTeX(h.u[i]) + T('\\) – das kann kein \\(k\\) erfüllen.', '\\) – no \\(k\\) can satisfy this.'));
       return;
     }
     const k2 = snap(h.u[i] / g.u[i]);
     zeilen.push('k_{' + ROM[i] + '} &=& \\frac{' + numTeX(h.u[i]) + '}{' + numTeX(g.u[i]) + '} &=& ' + numTeX(k2));
   });
   const verschieden = zeilen.length > 1;
-  st.push(step('Jede Zeile einzeln nach \\(k\\) auflösen', '',
+  st.push(step(T('Jede Zeile einzeln nach \\(k\\) auflösen', 'Solve each row for \\(k\\) separately'), '',
     zeilen.length ? '\\begin{array}{r c l c l}' + zeilen.join(' \\\\ ') + '\\end{array}' : '',
     hinweises(hinweise, verschieden)));
   return st;
@@ -2545,38 +3538,39 @@ function dirDifferSteps(g, h){
 /** Punktprobe: liegt der Stützpunkt von B auf der Geraden A? */
 function probeSteps(A, B, nameA, nameB, drauf){
   const st = [];
-  st.push(step('Punktprobe', 'Parallele Geraden sind entweder identisch oder echt parallel. '
-    + 'Deshalb prüft man, ob der Stützpunkt von \\(' + nameB + '\\) auch auf \\(' + nameA + '\\) liegt:',
+  st.push(step(T('Punktprobe', 'Point test'), T('Parallele Geraden sind entweder identisch oder echt parallel. ', 'Parallel lines are either identical or parallel and distinct. ')
+    + T('Deshalb prüft man, ob der Stützpunkt von \\(', 'So check whether the base point of \\(') + nameB + T('\\) auch auf \\(', '\\) also lies on \\(') + nameA + T('\\) liegt:', '\\):'),
     TX.vec(B.p) + ' = ' + TX.vec(A.p) + ' + ' + par() + '\\cdot ' + TX.vec(A.u)));
-  st.push(step('Zeilenweise aufschreiben', '',
+  st.push(step(T('Zeilenweise aufschreiben', 'Write it row by row'), '',
     eqPairTeX(ROM, [], [par()], [0, 1, 2].map(k => ({ lc: B.p[k], rc: A.p[k], r: [A.u[k]] })))));
   const solvable = [0, 1, 2].filter(k => !eq0(A.u[k]));
   const fixedBad = [0, 1, 2].filter(k => eq0(A.u[k]) && !eqN(A.p[k], B.p[k]));
   if (fixedBad.length){
-    st.push(step('Widerspruch in Zeile ' + ROM[fixedBad[0]],
-      'Diese Zeile enthält kein \\(' + par() + '\\); die Koordinaten müssten übereinstimmen:',
+    st.push(step(T('Widerspruch in Zeile ', 'Contradiction in row ') + ROM[fixedBad[0]],
+      T('Diese Zeile enthält kein \\(', 'This row does not contain \\(') + par() + T('\\); die Koordinaten müssten übereinstimmen:', '\\); the coordinates would have to match:'),
       numTeX(B.p[fixedBad[0]]) + ' \\neq ' + numTeX(A.p[fixedBad[0]]), OKNOTE(false)));
   } else if (solvable.length){
     /* Welche Zeile aufgelöst wird, ist frei – die Probe läuft danach mit der
        ganzen Vektorgleichung, also über alle drei Zeilen gleichzeitig. */
-    st.push(stepSwitch('Welche Zeile möchtest du nach \\(' + par() + '\\) auflösen?',
+    st.push(stepSwitch(T('Welche Zeile möchtest du nach \\(', 'Which row would you like to solve for \\(') + par() + T('\\) auflösen?', '\\)?'),
       solvable.map(i => {
         const sol = solveT(A.p[i], A.u[i], B.p[i]);
         const probe = V.add(A.p, V.mul(A.u, sol.t));
         const passt = V.same(probe, B.p);
-        return { label: 'Zeile ' + ROM[i], steps: [
-          step('Zeile ' + ROM[i] + ' auflösen', 'Aus dieser Zeile ergibt sich ein Parameterwert:', sol.tex),
-          step('Probe mit der ganzen Gleichung', 'Der Wert wird in die Geradengleichung eingesetzt. '
-            + 'Nur wenn dabei genau der gesuchte Punkt herauskommt, stimmen auch die übrigen Zeilen:',
+        return { label: T('Zeile ', 'Row ') + ROM[i], steps: [
+          step(T('Zeile ', 'Row ') + ROM[i] + T(' auflösen', ': solve'), T('Aus dieser Zeile ergibt sich ein Parameterwert:', 'This row gives a parameter value:'), sol.tex),
+          step(T('Probe mit der ganzen Gleichung', 'Check with the whole equation'), T('Der Wert wird in die Geradengleichung eingesetzt. ', 'The value is substituted into the equation of the line. ')
+            + T('Nur wenn dabei genau der gesuchte Punkt herauskommt, stimmen auch die übrigen Zeilen:', 'Only if this gives exactly the required point do the other rows hold as well:'),
             TX.vec(A.p) + ' + ' + paren(sol.t) + '\\cdot ' + TX.vec(A.u) + ' = ' + TX.vec(probe)
             + (passt ? ' = ' : ' \\neq ') + TX.vec(B.p),
-            passt ? '✓ Es kommt genau der Stützpunkt von \\(' + nameB + '\\) heraus.'
-                  : '✗ Es kommt ein anderer Punkt heraus.')
+            passt ? T('✓ Es kommt genau der Stützpunkt von \\(', '✓ The result is exactly the base point of \\(') + nameB + T('\\) heraus.', '\\).')
+                  : T('✗ Es kommt ein anderer Punkt heraus.', '✗ The result is a different point.'))
         ] };
       })));
   }
-  st.push(step('Ergebnis der Punktprobe', 'Der Stützpunkt von \\(' + nameB + '\\) liegt '
-    + (drauf ? '' : 'nicht ') + 'auf \\(' + nameA + '\\).', ''));
+  st.push(step(T('Ergebnis der Punktprobe', 'Result of the point test'), T('Der Stützpunkt von \\(' + nameB + '\\) liegt '
+    + (drauf ? '' : 'nicht ') + 'auf \\(' + nameA + '\\).',
+      'The base point of \\(' + nameB + '\\) ' + (drauf ? 'lies' : 'does not lie') + ' on \\(' + nameA + '\\).'), ''));
   return st;
 }
 
@@ -2584,10 +3578,10 @@ function probeSteps(A, B, nameA, nameB, drauf){
 /* ---------- Bausteine ---------- */
 function gleichsetzenSteps(g, h){
   return [
-    step('Geradengleichungen gleichsetzen', 'Ein gemeinsamer Punkt müsste sich mit beiden Gleichungen '
-      + 'darstellen lassen. Also setzt man die rechten Seiten gleich:',
+    step(T('Geradengleichungen gleichsetzen', 'Equate the equations of the lines'), T('Ein gemeinsamer Punkt müsste sich mit beiden Gleichungen ', 'A common point would have to be expressible with both equations. ')
+      + T('darstellen lassen. Also setzt man die rechten Seiten gleich:', 'So set the right-hand sides equal:'),
       TX.vec(g.p) + ' + ' + par() + '\\cdot ' + TX.vec(g.u) + ' = ' + TX.vec(h.p) + ' + ' + par2() + '\\cdot ' + TX.vec(h.u)),
-    step('Zeilenweise aufschreiben', 'Das ergibt drei Gleichungen mit zwei Unbekannten:',
+    step(T('Zeilenweise aufschreiben', 'Write it row by row'), T('Das ergibt drei Gleichungen mit zwei Unbekannten:', 'This gives three equations with two unknowns:'),
       eqPairTeX(ROM, [par()], [par2()], [0, 1, 2].map(m =>
         ({ lc: g.p[m], l: [g.u[m]], rc: h.p[m], r: [h.u[m]] }))))
   ];
@@ -2595,19 +3589,19 @@ function gleichsetzenSteps(g, h){
 /** Schritte für ein Zeilenpaar: sortieren, lösen, dritte Zeile prüfen */
 function paarSteps(g, h, i, j, mitAntwort){
   const k = [0, 1, 2].filter(x => x !== i && x !== j)[0], d = V.sub(h.p, g.p);
-  const st = [ step('Zeilen ' + ROM[i] + ' und ' + ROM[j] + ' sortieren',
-    'Die Parameter kommen nach links, die Zahlen nach rechts:',
+  const st = [ step(T('Zeilen ', 'Rows ') + ROM[i] + T(' und ', ' and ') + ROM[j] + T(' sortieren', ': rearrange'),
+    T('Die Parameter kommen nach links, die Zahlen nach rechts:', 'The parameters go to the left, the numbers to the right:'),
     sysTeX([par(), par2()], [{ coef: [g.u[i], -h.u[i]], rhs: d[i] }, { coef: [g.u[j], -h.u[j]], rhs: d[j] }],
            [ROM[i] + "'", ROM[j] + "'"])) ];
   const sol = solve2(g.u[i], -h.u[i], d[i], g.u[j], -h.u[j], d[j]);
   sol.steps.forEach(x => st.push(x));
   const pz = probeZeileTeX(g.p[k], g.u[k], sol.t, h.p[k], h.u[k], sol.s);
   const passt = pz.ok;
-  st.push(step('Probe in Zeile ' + ROM[k], 'Die dritte Zeile wurde noch nicht benutzt – sie entscheidet:',
+  st.push(step(T('Probe in Zeile ', 'Check in row ') + ROM[k], T('Die dritte Zeile wurde noch nicht benutzt – sie entscheidet:', 'The third row has not been used yet – it decides:'),
     pz.tex, OKNOTE(passt)));
   if (mitAntwort && passt){
     const P = V.add(g.p, V.mul(g.u, sol.t));
-    st.push(step('Schnittpunkt berechnen', 'Der Parameterwert wird in die Gleichung von \\(g\\) eingesetzt:',
+    st.push(step(T('Schnittpunkt berechnen', 'Calculate the point of intersection'), T('Der Parameterwert wird in die Gleichung von \\(g\\) eingesetzt:', 'The parameter value is substituted into the equation of \\(g\\):'),
       TX.arrow('OS') + ' = ' + TX.vec(g.p) + ' + ' + paren(sol.t) + '\\cdot ' + TX.vec(g.u) + ' = ' + TX.vec(P)));
   }
   return { steps: st, passt: passt, sol: sol };
@@ -2615,31 +3609,34 @@ function paarSteps(g, h, i, j, mitAntwort){
 /** Umschalter über alle brauchbaren Zeilenpaare */
 function paarSwitch(g, h, rel, mitAntwort){
   const prs = rel.pairs || pairs().filter(pr => !eq0(det2(g, h, pr[0], pr[1])));
-  return stepSwitch('Zwei der drei Zeilen genügen – welche möchtest du benutzen?',
-    prs.map(pr => ({ label: 'Zeilen ' + ROM[pr[0]] + ' und ' + ROM[pr[1]],
+  return stepSwitch(T('Zwei der drei Zeilen genügen – welche möchtest du benutzen?', 'Two of the three rows are enough – which would you like to use?'),
+    prs.map(pr => ({ label: T('Zeilen ', 'Rows ') + ROM[pr[0]] + T(' und ', ' and ') + ROM[pr[1]],
                      steps: paarSteps(g, h, pr[0], pr[1], mitAntwort).steps })));
 }
 /** Umschalter über die beiden möglichen Punktproben */
 function probeSwitch(g, h, drauf){
-  return stepSwitch('Welchen Stützpunkt möchtest du einsetzen?', [
-    { label: 'Stützpunkt von h in g', steps: probeSteps(g, h, 'g', 'h', drauf) },
-    { label: 'Stützpunkt von g in h', steps: probeSteps(h, g, 'h', 'g', drauf) }
+  return stepSwitch(T('Welchen Stützpunkt möchtest du einsetzen?', 'Which base point would you like to substitute?'), [
+    { label: T('Stützpunkt von h in g', 'base point of h in g'), steps: probeSteps(g, h, 'g', 'h', drauf) },
+    { label: T('Stützpunkt von g in h', 'base point of g in h'), steps: probeSteps(h, g, 'h', 'g', drauf) }
   ]);
 }
 /** Beim Gleichsetzen paralleler Geraden fallen beide Parameter weg */
 function entartetStep(g, h){
   const i = [0, 1, 2].find(x => !eq0(g.u[x]));
-  if (i == null) return step('Hinweis', 'Der Richtungsvektor von \\(g\\) ist der Nullvektor.', '');
+  if (i == null) return step(T('Hinweis', 'Note'), T('Der Richtungsvektor von \\(g\\) ist der Nullvektor.', 'The direction vector of \\(g\\) is the zero vector.'), '');
   const j = [0, 1, 2].find(x => x !== i);
   const d = V.sub(h.p, g.p);
   const c = snap(d[i] * g.u[j] - d[j] * g.u[i]);
-  return step('Parameter eliminieren',
-    'Multipliziert man Zeile ' + ROM[i] + ' mit \\(' + numTeX(g.u[j]) + '\\) und Zeile ' + ROM[j]
+  return step(T('Parameter eliminieren', 'Eliminate the parameters'),
+    T('Multipliziert man Zeile ' + ROM[i] + ' mit \\(' + numTeX(g.u[j]) + '\\) und Zeile ' + ROM[j]
     + ' mit \\(' + numTeX(g.u[i]) + '\\) und subtrahiert, fällt \\(' + par() + '\\) weg – '
     + 'und weil die Richtungsvektoren Vielfache voneinander sind, verschwindet auch \\(' + par2() + '\\):',
+      'Multiplying row ' + ROM[i] + ' by \\(' + numTeX(g.u[j]) + '\\) and row ' + ROM[j]
+    + ' by \\(' + numTeX(g.u[i]) + '\\) and subtracting eliminates \\(' + par() + '\\) – '
+    + 'and because the direction vectors are multiples of each other, \\(' + par2() + '\\) disappears as well:'),
     '0 = ' + numTeX(c),
-    eq0(c) ? 'Eine wahre Aussage: das System hat unendlich viele Lösungen.'
-           : 'Eine falsche Aussage: das System hat keine Lösung.');
+    eq0(c) ? T('Eine wahre Aussage: das System hat unendlich viele Lösungen.', 'A true statement: the system has infinitely many solutions.')
+           : T('Eine falsche Aussage: das System hat keine Lösung.', 'A false statement: the system has no solution.'));
 }
 
 /* ---------- die beiden Lösungswege ---------- */
@@ -2647,51 +3644,239 @@ function lageVariants(g, h, rel, k){
   const parallelFall = (rel.kind === 'parallel' || rel.kind === 'identisch');
   const drauf = (rel.kind === 'identisch');
   const antwort = {
-    schneidend: 'Die Geraden schneiden sich' + (rel.P ? ' in \\(' + ptTeX('S', rel.P) + '\\)' : '') + '.',
-    parallel:   'Die Richtungsvektoren sind Vielfache voneinander, der Stützpunkt liegt aber nicht auf der '
-                + 'anderen Geraden: die Geraden sind echt parallel.',
-    windschief: 'Es gibt keinen gemeinsamen Punkt, und die Geraden sind auch nicht parallel: sie sind windschief.',
-    identisch:  'Die Richtungsvektoren sind Vielfache voneinander und ein Stützpunkt liegt auf der anderen '
-                + 'Geraden: die Geraden sind identisch.'
+    schneidend: T('Die Geraden schneiden sich', 'The lines intersect') + (rel.P ? T(' in \\(', ' at \\(') + ptTeX('S', rel.P) + '\\)' : '') + '.',
+    parallel:   T('Die Richtungsvektoren sind Vielfache voneinander, der Stützpunkt liegt aber nicht auf der ', 'The direction vectors are multiples of each other, but the base point does not lie on the ')
+                + T('anderen Geraden: die Geraden sind echt parallel.', 'other line: the lines are parallel and distinct.'),
+    windschief: T('Es gibt keinen gemeinsamen Punkt, und die Geraden sind auch nicht parallel: sie sind windschief.', 'There is no common point, and the lines are not parallel either: they are skew.'),
+    identisch:  T('Die Richtungsvektoren sind Vielfache voneinander und ein Stützpunkt liegt auf der anderen ', 'The direction vectors are multiples of each other and a base point lies on the other ')
+                + T('Geraden: die Geraden sind identisch.', 'line: the lines are identical.')
   }[rel.kind];
 
   /* Weg 1: erst die Richtungsvektoren ansehen */
   const weg1 = parallelFall
-    ? [ dirCompareStep(g, h, k), probeSwitch(g, h, drauf), step('Antwort', antwort, '') ]
-    : dirDifferSteps(g, h).concat(gleichsetzenSteps(g, h), [ paarSwitch(g, h, rel, true), step('Antwort', antwort, '') ]);
+    ? [ dirCompareStep(g, h, k), probeSwitch(g, h, drauf), step(T('Antwort', 'Answer'), antwort, '') ]
+    : dirDifferSteps(g, h).concat(gleichsetzenSteps(g, h), [ paarSwitch(g, h, rel, true), step(T('Antwort', 'Answer'), antwort, '') ]);
 
   /* Weg 2: erst gleichsetzen, danach das Ergebnis deuten */
   const weg2 = parallelFall
     ? gleichsetzenSteps(g, h).concat([
         entartetStep(g, h),
-        step('Ergebnis deuten', drauf
-          ? 'Unendlich viele Lösungen bedeuten: jeder Punkt der einen Geraden liegt auch auf der anderen. '
-            + 'Zur Sicherheit prüft man das noch an einem Punkt nach.'
-          : 'Keine Lösung heißt: es gibt keinen gemeinsamen Punkt. Jetzt entscheidet der Blick auf die '
-            + 'Richtungsvektoren, ob die Geraden parallel oder windschief sind.', ''),
-        dirCompareStep(g, h, k), probeSwitch(g, h, drauf), step('Antwort', antwort, '')
+        step(T('Ergebnis deuten', 'Interpret the result'), drauf
+          ? T('Unendlich viele Lösungen bedeuten: jeder Punkt der einen Geraden liegt auch auf der anderen. ', 'Infinitely many solutions mean: every point of one line also lies on the other. ')
+            + T('Zur Sicherheit prüft man das noch an einem Punkt nach.', 'To be safe, check this at one point.')
+          : T('Keine Lösung heißt: es gibt keinen gemeinsamen Punkt. Jetzt entscheidet der Blick auf die ', 'No solution means: there is no common point. Now a look at the ')
+            + T('Richtungsvektoren, ob die Geraden parallel oder windschief sind.', 'direction vectors decides whether the lines are parallel or skew.'), ''),
+        dirCompareStep(g, h, k), probeSwitch(g, h, drauf), step(T('Antwort', 'Answer'), antwort, '')
       ])
     : gleichsetzenSteps(g, h).concat(
         [ paarSwitch(g, h, rel, rel.kind === 'schneidend') ],
         rel.kind === 'schneidend'
-          ? [ step('Ergebnis deuten', 'Alle drei Zeilen sind erfüllt – es gibt genau einen gemeinsamen Punkt.', ''),
-              step('Antwort', antwort, '') ]
-          : [ step('Ergebnis deuten', 'Das Gleichungssystem hat keine Lösung. Damit gibt es keinen gemeinsamen '
-                + 'Punkt – die Geraden sind entweder parallel oder windschief. Das entscheiden die Richtungsvektoren:', '')
-            ].concat(dirDifferSteps(g, h), [ step('Antwort', antwort, '') ]));
+          ? [ step(T('Ergebnis deuten', 'Interpret the result'), T('Alle drei Zeilen sind erfüllt – es gibt genau einen gemeinsamen Punkt.', 'All three rows hold – there is exactly one common point.'), ''),
+              step(T('Antwort', 'Answer'), antwort, '') ]
+          : [ step(T('Ergebnis deuten', 'Interpret the result'), T('Das Gleichungssystem hat keine Lösung. Damit gibt es keinen gemeinsamen ', 'The system of equations has no solution. So there is no common ')
+                + T('Punkt – die Geraden sind entweder parallel oder windschief. Das entscheiden die Richtungsvektoren:', 'point – the lines are either parallel or skew. The direction vectors decide:'), '')
+            ].concat(dirDifferSteps(g, h), [ step(T('Antwort', 'Answer'), antwort, '') ]));
 
   return [
-    { label: 'erst die Richtungsvektoren vergleichen', steps: weg1 },
-    { label: 'erst gleichsetzen', steps: weg2 }
+    { label: T('erst die Richtungsvektoren vergleichen', 'compare the direction vectors first'), steps: weg1 },
+    { label: T('erst gleichsetzen', 'equate first'), steps: weg2 }
   ];
 }
 
 /* ---------- Aufgabe bauen ---------- */
+/* =========================================================================
+   Quiz als Hilfe
+   Jede Aufgabenart gibt in `hdat` die Zahlen mit, aus denen die
+   Zwischenfragen gebaut werden. hilfeBauen() hängt sie an die erste
+   Quizstufe - der Kern zeigt sie dann unter der Aufgabe an.
+   ========================================================================= */
+/** eine einzelne Zahl abfragen */
+function hZahl(frage, label, soll, opt){
+  opt = opt || {};
+  /* Steht hinter dem Feld nur ein Name (etwa \(|\vec{a}|\)) statt einer
+     Rechnung, bleibt er von Anfang an stehen - er verrät nichts. */
+  const nurName = !/\\cdot|\\sqrt|\\frac|\^|\+|\s-\s/.test(String(label || ''));
+  return { kind: 'input', title: frage, sub: opt.sub, erklaerung: opt.erk, loesung: [soll],
+    stufen: hStufen([opt.kurz || (nurName ? label : ''), opt.weg, label]),
+    build(row, stufe){
+      const lab = hLabel(this, stufe);
+      if (lab) row.appendChild(lblEl('\\(' + lab + ' = \\)'));
+      const f = numField(); f.id = 'inH'; row.appendChild(f);
+      if (opt.nach) row.appendChild(lblEl('\\(' + opt.nach + '\\)'));
+    },
+    verify(box){
+      const v = parseNum($('#inH', box).value);
+      if (v === null) return { ok: false, cls: 'warn', msg: T('Bitte eine Zahl eintragen.', 'Please enter a number.') };
+      if (eqN(v, soll) || (opt.tol && Math.abs(v - soll) <= opt.tol)){
+        /* Krumme Werte werden gerundet gezeigt - sonst stünde dort ein
+           Riesenbruch wie 1856371/318365. */
+        const txt = opt.antwort || (opt.tol ? tfmt(rd(soll, 2), 2) : numTeX(soll));
+        return { ok: true, answer: '\\(' + (label ? label + ' = ' : '') + txt + '\\)' };
+      }
+      if (eqN(v, -soll) && !eq0(soll))
+        return { ok: false, msg: T('Nur das Vorzeichen stimmt noch nicht.', 'Only the sign is not right yet.') };
+      return { ok: false, msg: opt.fehler || T('Noch nicht richtig – rechne es Schritt für Schritt nach.', 'Not right yet – work it out step by step.') };
+    } };
+}
+/** einen Vektor abfragen */
+function hVek(frage, label, soll, opt){
+  opt = opt || {};
+  return { kind: 'input', title: frage, sub: opt.sub, erklaerung: opt.erk, loesung: soll.slice(),
+    stufen: hStufen([label, opt.weg, opt.zahlen]),
+    build(row, stufe){
+      const lab = hLabel(this, stufe);
+      if (lab) row.appendChild(lblEl('\\(' + lab + ' = \\)'));
+      row.appendChild(vecInput('inHV'));
+    },
+    verify(box){
+      const v = readVec($('#inHV', box));
+      if (!v) return { ok: false, cls: 'warn', msg: T('Bitte alle drei Felder ausfüllen.', 'Please fill in all three fields.') };
+      if (V.same(v, soll)) return { ok: true, answer: '\\(' + (label ? label + ' = ' : '') + TX.vec(soll) + '\\)' };
+      if (V.same(v, V.mul(soll, -1)))
+        return { ok: false, msg: T('Alle Vorzeichen sind vertauscht – achte auf die Reihenfolge.', 'All the signs are swapped – mind the order.') };
+      const falsch = [0, 1, 2].filter(i => !eqN(v[i], soll[i]));
+      return { ok: false, msg: falsch.length === 1
+        ? T('Die ' + (falsch[0] + 1) + '. Komponente stimmt noch nicht.', 'The ' + ORD(falsch[0] + 1) + ' component is not right yet.')
+        : T('Es stimmen noch nicht alle Komponenten.', 'Not all components are right yet.') };
+    } };
+}
+/** eine Wahlfrage */
+function hWahl(frage, opts, richtig, hints, opt){
+  opt = opt || {};
+  const st = stageChoice(frage, opts, richtig, hints, opt.antwort, opt.sub);
+  st.erklaerung = opt.erk;
+  return st;
+}
+/** Skalarprodukt: drei Produkte, dann die Summe */
+/** einen Punkt abfragen */
+function hPunkt(frage, name, soll, opt){
+  opt = opt || {};
+  const st = stagePoint(frage, name, soll, opt.sub, opt.fehler);
+  st.erklaerung = opt.erk;
+  return st;
+}
+
+/** Zwischenschritte zur laufenden Aufgabe */
+function hilfeBauen(t){
+  if (!t || !t.stages || !t.stages.length || !t.hdat) return;
+  const d = t.hdat;
+  const k = V.factor(d.gu, d.hu);
+  const vielfach = (k !== null);
+  const schritte = [];
+
+  /* 1) Sind die Richtungsvektoren Vielfache voneinander? */
+  schritte.push(hWahl(T('Sind die Richtungsvektoren Vielfache voneinander?',
+                        'Are the direction vectors multiples of each other?'),
+    [{ v: 'ja', t: T('ja', 'yes') }, { v: 'nein', t: T('nein', 'no') }],
+    vielfach ? 'ja' : 'nein',
+    { ja: T('Rechne zeilenweise nach: ein gemeinsamer Faktor müsste in allen drei Zeilen derselbe sein.',
+            'Check row by row: a common factor would have to be the same in all three rows.'),
+      nein: T('Es gibt doch einen gemeinsamen Faktor – prüfe jede Zeile einzeln.',
+              'There is a common factor after all – check each row separately.') },
+    { sub: T('Teile die Zeilen von \\(\\vec{v}\\) durch die von \\(\\vec{u}\\) – kommt dreimal dasselbe heraus?',
+             'Divide the rows of \\(\\vec{v}\\) by those of \\(\\vec{u}\\) – do you get the same value three times?'),
+      erk: vielfach
+        ? T('Mit \\(\\vec{v} = ' + numTeX(k) + '\\cdot\\vec{u}\\) sind die Geraden parallel oder identisch – die Punktprobe entscheidet.',
+            'With \\(\\vec{v} = ' + numTeX(k) + '\\cdot\\vec{u}\\) the lines are parallel or identical – the point test decides.')
+        : T('Die Richtungen sind verschieden – die Geraden schneiden sich oder sind windschief.',
+            'The directions differ – the lines intersect or are skew.') }));
+
+  if (vielfach){
+    /* 2) Punktprobe: liegt der Stützpunkt von h auf g? */
+    const zeile = [0, 1, 2].find(i => !eq0(d.gu[i]));
+    const tz = (zeile == null) ? null : snap((d.hp[zeile] - d.gp[zeile]) / d.gu[zeile]);
+    if (tz !== null){
+      schritte.push(hZahl(T('Welcher Parameterwert folgt aus der ' + (zeile + 1) + '. Zeile der Punktprobe?',
+                            'Which parameter value follows from the ' + ORD(zeile + 1) + ' row of the point test?'),
+        par(), tz,
+        { sub: T('Setze den Stützpunkt von \\(h\\) in die Gleichung von \\(g\\) ein.',
+                 'Substitute the base point of \\(h\\) into the equation of \\(g\\).'),
+          erk: T('Jetzt müssen die beiden anderen Zeilen denselben Wert liefern.',
+                 'Now the other two rows have to give the same value.') }));
+      [0, 1, 2].filter(i => i !== zeile).forEach(i => {
+        schritte.push(hZahl(
+          T('Was ergibt die ' + (i + 1) + '. Zeile mit diesem Wert?',
+            'What does the ' + ORD(i + 1) + ' row give with this value?'),
+          numTeX(d.gp[i]) + ' + ' + paren(tz) + '\\cdot ' + paren(d.gu[i]),
+          snap(d.gp[i] + tz * d.gu[i]),
+          { sub: T('Vergleiche mit der ' + (i + 1) + '. Koordinate des Stützpunktes von \\(h\\): \\('
+                   + numTeX(d.hp[i]) + '\\).',
+                   'Compare with the ' + ORD(i + 1) + ' coordinate of the base point of \\(h\\): \\('
+                   + numTeX(d.hp[i]) + '\\).'),
+            erk: eqN(snap(d.gp[i] + tz * d.gu[i]), d.hp[i])
+              ? T('Diese Zeile passt.', 'This row fits.')
+              : T('Diese Zeile passt nicht – ein Widerspruch genügt.', 'This row does not fit – one contradiction is enough.') }));
+      });
+    }
+    schritte.push(hWahl(T('Liegt der Stützpunkt von \\(h\\) auf \\(g\\)?', 'Does the base point of \\(h\\) lie on \\(g\\)?'),
+      [{ v: 'ja', t: T('ja – die Geraden sind identisch', 'yes – the lines are identical') },
+       { v: 'nein', t: T('nein – die Geraden sind echt parallel', 'no – the lines are parallel and distinct') }],
+      d.kind === 'identisch' ? 'ja' : 'nein',
+      { ja: T('Mindestens eine Zeile widerspricht – dann liegt der Punkt nicht auf \\(g\\).',
+              'At least one row contradicts – then the point does not lie on \\(g\\).'),
+        nein: T('Alle drei Zeilen liefern denselben Parameterwert – der Punkt liegt auf \\(g\\).',
+                'All three rows give the same parameter value – the point lies on \\(g\\).') },
+      { sub: T('Bei gleicher Richtung entscheidet die Punktprobe zwischen parallel und identisch.',
+               'With the same direction, the point test decides between parallel and identical.') }));
+  } else {
+    /* 2) Gleichsetzen: zwei Zeilen lösen, dritte als Probe */
+    const prs = [[0, 1], [0, 2], [1, 2]].filter(pr =>
+      !eq0(d.gu[pr[0]] * (-d.hu[pr[1]]) - d.gu[pr[1]] * (-d.hu[pr[0]])));
+    if (prs.length){
+      const [i, j] = prs[0];
+      const nenner = snap(d.gu[i] * (-d.hu[j]) - d.gu[j] * (-d.hu[i]));
+      const b1 = snap(d.hp[i] - d.gp[i]), b2 = snap(d.hp[j] - d.gp[j]);
+      const rt = snap((b1 * (-d.hu[j]) - b2 * (-d.hu[i])) / nenner);
+      const st2 = snap((d.gu[i] * b2 - d.gu[j] * b1) / nenner);
+      const dritte = [0, 1, 2].find(x => x !== i && x !== j);
+      const links = snap(d.gp[dritte] + d.gu[dritte] * rt);
+      const rechts = snap(d.hp[dritte] + d.hu[dritte] * st2);
+      schritte.push(hZahl(T('Welchen Wert hat \\(' + par() + '\\) aus den Zeilen '
+                            + (i + 1) + ' und ' + (j + 1) + '?',
+                            'What is \\(' + par() + '\\) from rows ' + (i + 1) + ' and ' + (j + 1) + '?'),
+        par(), rt,
+        { sub: T('Setze \\(g\\) und \\(h\\) gleich und löse zwei Zeilen des Gleichungssystems.',
+                 'Equate \\(g\\) and \\(h\\) and solve two rows of the system.') }));
+      schritte.push(hZahl(T('Und welchen Wert hat \\(' + par2() + '\\)?', 'And what is \\(' + par2() + '\\)?'),
+        par2(), st2,
+        { sub: T('Den gefundenen Wert in eine der beiden Zeilen einsetzen.',
+                 'Substitute the value you found into one of the two rows.') }));
+      schritte.push(hZahl(T('Was ergibt die ' + (dritte + 1) + '. Zeile links?',
+                            'What does the ' + ORD(dritte + 1) + ' row give on the left?'),
+        numTeX(d.gp[dritte]) + ' + ' + paren(rt) + '\\cdot ' + paren(d.gu[dritte]), links,
+        { sub: T('Die dritte Zeile ist die Probe.', 'The third row is the check.') }));
+      schritte.push(hZahl(T('Und was ergibt sie rechts?', 'And what does it give on the right?'),
+        numTeX(d.hp[dritte]) + ' + ' + paren(st2) + '\\cdot ' + paren(d.hu[dritte]), rechts,
+        { sub: T('Stimmen beide Seiten überein?', 'Do the two sides agree?'),
+          erk: eqN(links, rechts)
+            ? T('Beide Seiten stimmen – es gibt einen Schnittpunkt.', 'Both sides agree – there is a point of intersection.')
+            : T('Die Seiten stimmen nicht – die Geraden haben keinen gemeinsamen Punkt.',
+                'The sides do not agree – the lines have no common point.') }));
+    }
+    schritte.push(hWahl(T('Erfüllt die dritte Zeile die Probe?', 'Does the third row pass the check?'),
+      [{ v: 'ja', t: T('ja – die Geraden schneiden sich', 'yes – the lines intersect') },
+       { v: 'nein', t: T('nein – die Geraden sind windschief', 'no – the lines are skew') }],
+      d.kind === 'schneidend' ? 'ja' : 'nein',
+      { ja: T('Die dritte Zeile führt zum Widerspruch – dann gibt es keinen Schnittpunkt.',
+              'The third row leads to a contradiction – then there is no point of intersection.'),
+        nein: T('Die dritte Zeile ist erfüllt – die Geraden schneiden sich.',
+                'The third row holds – the lines intersect.') },
+      { sub: T('Bei verschiedenen Richtungen entscheidet die dritte Zeile zwischen schneidend und windschief.',
+               'With different directions the third row decides between intersecting and skew.') }));
+    if (d.kind === 'schneidend' && d.P){
+      schritte.push(hPunkt(T('Wie lautet der Schnittpunkt?', 'What is the point of intersection?'), 'S', d.P,
+        { sub: T('Den Parameterwert in die Gleichung von \\(g\\) einsetzen.',
+                 'Substitute the parameter value into the equation of \\(g\\).') }));
+    }
+  }
+  if (schritte.length) t.stages[0].hilfe = schritte;
+}
+
 function genLage(kind, m){
   let g, h;
   if (m){
     g = { p: m.gp, u: m.gu }; h = { p: m.hp, u: m.hu };
-    if (V.zero(g.u) || V.zero(h.u)) throw new Error('Die Richtungsvektoren dürfen nicht der Nullvektor sein.');
+    if (V.zero(g.u) || V.zero(h.u)) throw new Error(T('Die Richtungsvektoren dürfen nicht der Nullvektor sein.', 'The direction vectors must not be the zero vector.'));
   } else {
     const pair = MK[kind]();
     g = pair.g; h = pair.h;
@@ -2700,10 +3885,10 @@ function genLage(kind, m){
   const k = V.factor(g.u, h.u);
   const variants = lageVariants(g, h, rel, k);
   const sol = {
-    schneidend: 'Die Geraden schneiden sich in \\(' + (rel.P ? ptTeX('S', rel.P) : 'S') + '\\).',
-    parallel:   'Die Geraden sind echt parallel.',
-    windschief: 'Die Geraden sind windschief.',
-    identisch:  'Die Geraden sind identisch.'
+    schneidend: T('Die Geraden schneiden sich in \\(', 'The lines intersect at \\(') + (rel.P ? ptTeX('S', rel.P) : 'S') + '\\).',
+    parallel:   T('Die Geraden sind echt parallel.', 'The lines are parallel and distinct.'),
+    windschief: T('Die Geraden sind windschief.', 'The lines are skew.'),
+    identisch:  T('Die Geraden sind identisch.', 'The lines are identical.')
   }[rel.kind];
 
   const vis = visLinePU('g', 'A', g.p, 'u', g.u, VC.obj)
@@ -2711,14 +3896,15 @@ function genLage(kind, m){
   if (rel.kind === 'schneidend') vis.push(VIS.schnitt('S', 'g', 'h', { farbe: VC.erg, stufe: 3 }));
 
   return {
-    id: 'lage.' + rel.kind, kap: 'Lage zweier Geraden', kind: rel.kind,
-    q: 'Gegeben sind die Geraden<br>\\[' + lineTeX('g', g.p, g.u) + '\\]'
+    id: 'lage.' + rel.kind, kap: T('Lage zweier Geraden', 'Relative position of two lines'), kind: rel.kind,
+    hdat: { gp: g.p, gu: g.u, hp: h.p, hu: h.u, kind: rel.kind, P: rel.P || null },
+    q: T('Gegeben sind die Geraden<br>\\[', 'Consider the lines<br>\\[') + lineTeX('g', g.p, g.u) + '\\]'
        + '\\[' + lineTeX2('h', h.p, h.u) + '\\]',
-    ask: 'Untersuche die gegenseitige Lage von \\(g\\) und \\(h\\).'
-       + (S.askS ? ' Gib bei einem Schnittpunkt auch dessen Koordinaten an.' : ''),
+    ask: T('Untersuche die gegenseitige Lage von \\(g\\) und \\(h\\).', 'Determine the relative position of \\(g\\) and \\(h\\).')
+       + (S.askS ? T(' Gib bei einem Schnittpunkt auch dessen Koordinaten an.', ' If they intersect, also state the coordinates of the point of intersection.') : ''),
     answer: { right: rel.kind, P: rel.P || null, gu: g.u, hu: h.u },
-    tipp: 'Vergleiche zuerst die Richtungsvektoren: Sind sie Vielfache voneinander? Wenn ja, entscheidet eine '
-      + 'Punktprobe zwischen parallel und identisch. Wenn nein, setze beide Geradengleichungen gleich.',
+    tipp: T('Vergleiche zuerst die Richtungsvektoren: Sind sie Vielfache voneinander? Wenn ja, entscheidet eine ', 'First compare the direction vectors: are they multiples of each other? If so, a point test decides ')
+      + T('Punktprobe zwischen parallel und identisch. Wenn nein, setze beide Geradengleichungen gleich.', 'between parallel and identical. If not, equate the two equations of the lines.'),
     stages: lageStages(rel, g, h),
     sol: sol,
     variants: variants,
@@ -2739,7 +3925,10 @@ function pickCase(){
 }
 function makeTask(){
   const k = pickCase();
-  return k ? genLage(k) : null;
+  if (!k) return null;
+  const t = genLage(k);
+  safe(() => hilfeBauen(t));
+  return t;
 }
 
 /* ---------- Quiz in Schritten ---------- */
@@ -2756,33 +3945,48 @@ function lageStages(rel, g, h){
     if (o.v === rel.kind) return;
     const parGot = (o.v === 'parallel' || o.v === 'identisch');
     const parReal = (rel.kind === 'parallel' || rel.kind === 'identisch');
-    hints[o.v] = HINT[o.v + '>' + rel.kind] || (parGot && !parReal
-      ? 'Prüfe die Richtungsvektoren noch einmal: \\(' + TX.vec(h.u) + '\\) ist kein Vielfaches von \\(' + TX.vec(g.u) + '\\).'
-      : 'Prüfe die Richtungsvektoren noch einmal: \\(' + TX.vec(h.u) + '\\) <b>ist</b> ein Vielfaches von \\(' + TX.vec(g.u) + '\\).');
+    hints[o.v] = W(HINT[o.v + '>' + rel.kind]) || (parGot && !parReal
+      ? T('Prüfe die Richtungsvektoren noch einmal: \\(', 'Check the direction vectors again: \\(') + TX.vec(h.u) + T('\\) ist kein Vielfaches von \\(', '\\) is not a multiple of \\(') + TX.vec(g.u) + '\\).'
+      : T('Prüfe die Richtungsvektoren noch einmal: \\(', 'Check the direction vectors again: \\(') + TX.vec(h.u) + T('\\) <b>ist</b> ein Vielfaches von \\(', '\\) <b>is</b> a multiple of \\(') + TX.vec(g.u) + '\\).');
   });
-  const s1 = stageChoice('Welche Lage haben \\(g\\) und \\(h\\)?', opts, rel.kind, hints, CASENAME[rel.kind]);
+  const s1 = stageChoice(T('Welche Lage haben \\(g\\) und \\(h\\)?', 'What is the relative position of \\(g\\) and \\(h\\)?'), opts, rel.kind, hints, CASENAME[rel.kind]);
   if (rel.kind !== 'schneidend' || !S.askS) return [s1];
-  return [s1, stagePoint('Berechne den Schnittpunkt \\(S\\).', 'S', rel.P,
-    'Setze den gefundenen Parameterwert in die Gleichung von \\(g\\) ein.',
-    'Noch nicht richtig – setze den Parameterwert in eine der beiden Geradengleichungen ein.')];
+  return [s1, stagePoint(T('Berechne den Schnittpunkt \\(S\\).', 'Calculate the point of intersection \\(S\\).'), 'S', rel.P,
+    T('Setze den gefundenen Parameterwert in die Gleichung von \\(g\\) ein.', 'Substitute the parameter value you found into the equation of \\(g\\).'),
+    T('Noch nicht richtig – setze den Parameterwert in eine der beiden Geradengleichungen ein.', 'Not right yet – substitute the parameter value into one of the two equations of the lines.'))];
 }
 
 /* ---------- Einstellungen ---------- */
 function settingsBlocks(){
-  const h = blk('Häufigkeit der Fälle',
-    'Die Zahlen geben an, wie oft ein Fall im Verhältnis zu den anderen vorkommt. '
-    + 'Abgeschaltete Fälle zählen nicht mit.');
+  const h = blk(T('Häufigkeit der Fälle', 'Frequency of the cases'),
+    T('Die Zahlen geben an, wie oft ein Fall im Verhältnis zu den anderen vorkommt. ', 'The values set how often a case occurs compared with the others. ')
+    + T('Abgeschaltete Fälle zählen nicht mit.', 'Cases that are switched off do not count.'));
   CASES.forEach(o => h.appendChild(sliderRow(o.t, WKEY[o.v], !S.cases[o.v])));
-  const b = blk('Aufgaben und Lösung');
-  b.appendChild(cb('Schnittpunkt zusätzlich abfragen', 'askS'));
-  b.appendChild(cb('nur die eingeschalteten Fälle zur Auswahl anbieten', 'onlyActive', 'Erleichtert die Aufgabe deutlich.'));
-  b.appendChild(cb('Quiz anzeigen (eigene Lösung eingeben)', 'answer'));
-  b.appendChild(cb('Quiz beenden, sobald die Lösung geöffnet wird', 'lockOnSolve'));
-  b.appendChild(cb('Lösungsweg gleich mit aufklappen', 'autoWeg'));
+  const b = blk(T('Aufgaben und Lösung', 'Tasks and solution'));
+  b.appendChild(cb(T('Schnittpunkt zusätzlich abfragen', 'also ask for the point of intersection'), 'askS'));
+  b.appendChild(cb(T('nur die eingeschalteten Fälle zur Auswahl anbieten', 'offer only the cases switched on as choices'), 'onlyActive', T('Erleichtert die Aufgabe deutlich.', 'Makes the task considerably easier.')));
+  b.appendChild(cb(T('Quiz anzeigen (eigene Lösung eingeben)', 'show quiz (enter your own solution)'), 'answer'));
+  b.appendChild(cb(T('Quiz beenden, sobald die Lösung geöffnet wird', 'end the quiz as soon as the solution is opened'), 'lockOnSolve'));
+  b.appendChild(cb(T('Lösungsweg gleich mit aufklappen', 'open the worked solution straight away'), 'autoWeg'));
   return numberBlocks({}).concat([h, notationBlock({ par2: true }), b]);
 }
 function resetControls(){ buildPills($('#segCases'), CASES, S.cases, () => { save(); buildSettings(); }); }
 boot(function(){ buildPills($('#segCases'), CASES, S.cases, () => { save(); buildSettings(); }); });
+
+/* ---------- englische Beschriftungen der Daten (W() im Kern) ---------- */
+Object.assign(WB, {
+  'schneidend': 'intersecting', 'echt parallel': 'parallel (distinct)',
+  'windschief': 'skew', 'identisch': 'identical',
+  'Lage zweier Geraden': 'Relative position of two lines', 'Gerade': 'Line',
+  'Die Richtungsvektoren sind wirklich Vielfache voneinander – so weit richtig. Mach zusätzlich die Punktprobe: der Stützpunkt von \\(h\\) liegt auf \\(g\\), die Geraden fallen also zusammen.':
+    'The direction vectors really are multiples of each other – so far so good. Also do the point test: the base point of \\(h\\) lies on \\(g\\), so the lines coincide.',
+  'Die Richtungsvektoren sind Vielfache, aber die Punktprobe führt zum Widerspruch: der Stützpunkt von \\(h\\) liegt nicht auf \\(g\\).':
+    'The direction vectors are multiples, but the point test leads to a contradiction: the base point of \\(h\\) does not lie on \\(g\\).',
+  'Aus zwei Zeilen bekommt man zwar Werte für die Parameter, sie erfüllen aber die dritte Zeile nicht. Die Probe in der dritten Zeile entscheidet.':
+    'Two rows do give values for the parameters, but they do not satisfy the third row. The check in the third row decides.',
+  'Die aus zwei Zeilen berechneten Parameterwerte erfüllen auch die dritte Zeile – es gibt also einen gemeinsamen Punkt.':
+    'The parameter values calculated from two rows also satisfy the third row – so there is a common point.'
+});
 
 /* =========================================================================
    Eigene Aufgabe
@@ -2792,7 +3996,11 @@ const MANUAL = [
       { t: 'line', name: 'g', label: 'Gerade', kp: 'gp', ku: 'gu', def: { p: [1, 2, 3], u: [2, 1, -1] } },
       { t: 'line', name: 'h', label: 'Gerade', kp: 'hp', ku: 'hu', def: { p: [3, 0, 4], u: [1, -1, 2] } } ] }
 ];
-function makeManual(id, v){ return genLage(null, v); }
+function makeManual(id, v){
+  const t = genLage(null, v);
+  safe(() => hilfeBauen(t));
+  return t;
+}
 
 </script>
 </body>

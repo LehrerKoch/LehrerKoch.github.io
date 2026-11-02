@@ -3,27 +3,26 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Zahlbereiche – Übung</title>
+<link rel="shortcut icon" type="image/x-icon" href="aleph_zero_logo.ico">
+<script>try{var t=localStorage.getItem('matheToolsTheme');if(t==='dark'||(!t&&window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.classList.add('dark');}catch(e){}</script>
+<title data-de="Zahlbereiche" data-en="Number Sets">Zahlbereiche</title>
 <link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="aufgaben.css">
+<script src="aufgaben.js" defer></script>
 <link rel="stylesheet" href="scale.css">
-<!-- Google tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-5K8WYYXDL2"></script>
-  <script>
+<script src="theme-language.js" defer></script>
+    <!-- Besuchszaehlung (Google Analytics). Geladen wird sie erst, wenn der
+         Besucher zustimmt - siehe einwilligung.js. -->
+<script>
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-5K8WYYXDL2');
+      window.TK_GA_ID = 'G-5K8WYYXDL2';   /* Google Analytics laedt erst nach Einwilligung, siehe einwilligung.js */
   </script>
+<script src="einwilligung.js" defer></script>
 <script>window.MathJax={tex:{inlineMath:[['$','$'],['\\(','\\)']],displayMath:[]},startup:{ready(){MathJax.startup.defaultReady();if(typeof newTask==='function')newTask();}}};</script>
 <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
 
 <style>
-/* ── Header (wird nicht von styles.css abgedeckt) ── */
-header { background:#2e7d32; color:#fff; padding:12px 16px 10px;
-  margin: 0 -2% 10px; }
-.site-title    { font-size:1.5em; font-weight:bold; }
-.site-subtitle { font-size:.9em; opacity:.88; margin-top:2px; }
-
 /* ── Button-Ergänzungen (Basis kommt von styles.css: grün, weiße Schrift) ── */
 button { border-radius:8px !important; transition:filter .15s; }
 button:hover { filter:brightness(.88); }
@@ -89,11 +88,16 @@ button:disabled { opacity:.45; cursor:default !important; filter:none !important
 .tmode-toggle label.active { background:#d6ecd7; font-weight:bold; color:#1a4a1a; }
 
 /* ── Feedback-Boxen ── */
+/* Dass von selbst weitergeht, zeigt der Knopf mit dem drehenden Kreis und
+   dem umlaufenden Rahmen aus aufgaben.css. */
+
 .feedback { margin:8px 0 4px; padding:8px 12px;
   border-radius:6px; display:none; }
 .feedback.ok   { background:#c5f0c5; border:1.5px solid #3a8a3a; color:#0c3c0c; }
 .feedback.err  { background:#f0c5c5; border:1.5px solid #a03030; color:#4a0c0c; }
 .feedback.info { background:#d0e8ff; border:1.5px solid #3070b0; color:#0c2a4a; }
+/* Die Begründung steht kleiner unter der Rückmeldung. */
+.feedback .erkl { margin-top:5px; font-size:.93em; line-height:1.45; opacity:.95; }
 
 /* ── VENN MODE ── */
 .venn-outer { display:flex; flex-direction:column; align-items:center; }
@@ -101,8 +105,10 @@ button:disabled { opacity:.45; cursor:default !important; filter:none !important
   margin:8px 0 6px; min-height:2.4em; color:#222; }
 .venn-svg-wrap { width:100%; max-width:520px; }
 .venn-svg-wrap svg { width:100%; height:auto; display:block; touch-action:manipulation; }
-.venn-ring { cursor:pointer; transition:filter .12s; }
-.venn-ring:hover { filter:brightness(.82); }
+/* Beim Überfahren wird der Bereich leicht hinterlegt - die Flächen selbst
+   sind durchsichtig, ein Aufhellen wäre also gar nicht zu sehen. */
+.venn-ring { cursor:pointer; transition:fill .12s; }
+.venn-ring:hover { fill:rgba(76,175,80,.16); }
 .venn-ring.answered { cursor:default; }
 
 /* ── IN/NOTIN MODE ── */
@@ -111,8 +117,40 @@ button:disabled { opacity:.45; cursor:default !important; filter:none !important
   display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:.35em; }
 .innotin-btns { display:flex; gap:18px; justify-content:center; margin:8px 0; }
 .innotin-btns button { font-size:1.5em !important; padding:10px 28px !important; min-width:88px; }
-.btn-show-ok { background:#4e9a52 !important; color:#fff !important; }
-.btn-show-err { background:#c0392b !important; color:#fff !important; }
+/* Die beiden Antwortknöpfe bleiben neutral - sonst sieht man nicht, welcher
+   nachher grün markiert wird. */
+.innotin-btns button { background:#fff !important; color:#2e7d32 !important;
+  border:2px solid #9ec79e !important; }
+.innotin-btns button:hover:not(:disabled) { background:#eaf2ea !important; }
+html.dark .innotin-btns button { background:#1b2026 !important; color:#cfe8cf !important;
+  border-color:#4a6b4a !important; }
+html.dark .innotin-btns button:hover:not(:disabled) { background:#24303a !important; }
+/* Die Ergebnisfarben müssen die neutrale Grundfarbe der beiden Knöpfe
+   überstimmen - deshalb hier dieselbe Genauigkeit im Selektor. Und ein
+   abgeschalteter Knopf bleibt kräftig, sonst verblasst die Farbe. */
+.btn-show-ok, .innotin-btns button.btn-show-ok { background:#4e9a52 !important; color:#fff !important; border-color:#2e7d32 !important; }
+.btn-show-err, .innotin-btns button.btn-show-err { background:#c0392b !important; color:#fff !important; border-color:#8e2b20 !important; }
+/* Im Dunkelmodus steht über den Knöpfen eine noch genauere Regel für die
+   neutrale Farbe - die Ergebnisfarben brauchen sie darum ebenfalls. */
+html.dark .btn-show-ok, html.dark .innotin-btns button.btn-show-ok {
+  background:#3f8043 !important; color:#fff !important; border-color:#2e7d32 !important; }
+html.dark .btn-show-err, html.dark .innotin-btns button.btn-show-err {
+  background:#a8392c !important; color:#fff !important; border-color:#8e2b20 !important; }
+button:disabled.btn-show-ok, button:disabled.btn-show-err, button:disabled.btn-show-fehlt { opacity:1; }
+/* Was gefehlt hat, wird gelb gezeigt - weder richtig noch falsch angekreuzt. */
+.task-table td.fehlt { background:#fff3cd; }
+html.dark .task-table td.fehlt { background:#5a4a16; }
+.btn-show-fehlt, .innotin-btns button.btn-show-fehlt { background:#fff3cd !important;
+  color:#6a5200 !important; border-color:#e0b400 !important; }
+html.dark .btn-show-fehlt, html.dark .innotin-btns button.btn-show-fehlt {
+  background:#5a4a16 !important; color:#ffe9a8 !important; border-color:#b08900 !important; }
+/* Was zusammengehört, bleibt zusammen - z. B. die Klammer „(∈ / ∉)". */
+.nowrap { white-space:nowrap; }
+/* Kurzes Aufblinken, wenn sich etwas von selbst geändert hat. */
+@keyframes zbBlink { 0%{background:#ffe9a8;} 60%{background:#ffe9a8;} 100%{background:none;} }
+.blinkt, .blinkt *{ animation:zbBlink 1.1s ease-out 2; }
+html.dark .blinkt, html.dark .blinkt *{ animation:zbBlinkD 1.1s ease-out 2; }
+@keyframes zbBlinkD { 0%{background:#6a5200;} 60%{background:#6a5200;} 100%{background:none;} }
 
 /* ── Lösung-Button: zweiter Stil (outline) ── */
 .btn-solution {
@@ -121,50 +159,86 @@ button:disabled { opacity:.45; cursor:default !important; filter:none !important
 .btn-solution:hover { background:#eaf2ea !important; }
 /* ── Tooltips auf Tabellenköpfen ── */
 .th-tip { position:relative; cursor:default; overflow:visible; }
-.th-tip .tip { visibility:hidden; opacity:0; position:absolute;
+/* display:none statt nur unsichtbar - sonst schiebt der Tooltip die Seite
+   auch im verborgenen Zustand waagerecht auf. */
+.th-tip .tip { display:none; visibility:hidden; opacity:0; position:absolute;
   bottom:calc(100% + 7px); left:50%; transform:translateX(-50%);
   background:#333; color:#fff; font-size:.78em; font-weight:normal;
   white-space:nowrap; padding:3px 8px; border-radius:4px;
   pointer-events:none; transition:opacity .15s; z-index:100; }
 .th-tip .tip::after { content:''; position:absolute; top:100%; left:50%;
   transform:translateX(-50%); border:5px solid transparent; border-top-color:#333; }
-.th-tip:hover .tip { visibility:visible; opacity:1; }
+
+/* ── Dark Mode (Hellmodus oben bleibt unverändert) ── */
+html.dark .radio-row label { border-color:#4a545c; color:#d6d9dc; background:#232a31; }
+html.dark .radio-row label.active { background:#1e4620; border-color:#4a9a4a; color:#a5d6a7; }
+html.dark .cb-label { color:#d6d9dc; }
+html.dark .slider-lbl { color:#9aa5a0; }
+html.dark .convention-note { color:#9aa5a0; }
+html.dark .task-table th, html.dark .task-table td { border-color:#4a545c; }
+html.dark .task-table th { background:#232a31; }
+html.dark .task-table td.ok  { background:#1e4620; }
+html.dark .task-table td.err { background:#4a2020; }
+html.dark .tmode-wrap { color:#9aa5a0; }
+html.dark .tmode-toggle { border-color:#5c666e; }
+html.dark .tmode-toggle label { background:#232a31; border-right-color:#4a545c; color:#d6d9dc; }
+html.dark .tmode-toggle label.active { background:#1e4620; color:#a5d6a7; }
+html.dark .venn-ring:hover { fill:rgba(124,212,131,.20); }
+html.dark .feedback.ok   { background:#1e4620; border-color:#4a9a4a; color:#a5d6a7; }
+html.dark .feedback.err  { background:#4a2020; border-color:#c04040; color:#f0b0b0; }
+html.dark .feedback.info { background:#17324a; border-color:#3f7fb8; color:#9ecbf0; }
+html.dark .venn-task-text, html.dark .innotin-task { color:#e7eae8; }
+html.dark .btn-solution { background:#1b2126 !important; color:#81c784 !important; border-color:#4a9a4a !important; }
+html.dark .btn-solution:hover { background:#24382a !important; }
+html.dark .tip { background:#e7eae8; color:#14181c; }
+html.dark .th-tip .tip::after { border-top-color:#e7eae8; }
+html.dark #cbShowINote { color:#8a949c; }
+.th-tip:hover .tip { display:block; visibility:visible; opacity:1; }
 
 .hide { display:none !important; }
 
 @media (max-width:480px) {
-  header { padding:9px 12px 8px; }
-  .site-title { font-size:1.2em; }
   .task-table th,.task-table td { padding:5px 6px; font-size:.85em; }
   .task-table tbody tr { height:54px; }
   .innotin-task { font-size:1.3em; }
   .innotin-btns button { font-size:1.15em !important; padding:8px 18px !important; }
   .tmode-toggle label { padding:3px 5px; font-size:.76em; }
 }
+/* Mit eigener Spalte für die irrationalen Zahlen hat die Tabelle sieben
+   Spalten - auf dem Handy muss sie dafür enger werden. */
+@media (max-width:420px) {
+  .task-table th,.task-table td { padding:4px 3px; font-size:.8em; }
+  .task-table input[type=checkbox] { width:18px !important; height:18px !important; }
+  .task-table .cell-task { max-width:110px; }
+}
 @media (max-width:360px) {
   .tmode-wrap { flex-direction:column; align-items:flex-end; gap:2px; }
 }
 </style>
 </head>
-<body>
+<body class="tk-seite">
 
-<header>
-  <div class="site-title">Zahlbereiche</div>
-  <div class="site-subtitle">Übung: Welchen Mengen gehört eine Zahl an?</div>
+<header class="tool-kopf">
+  <div class="tk-text">
+    <h1 data-de="Zahlbereiche" data-en="Number Sets">Zahlbereiche</h1>
+    <p class="tk-unter" data-de="Übung: Welchen Mengen gehört eine Zahl an?" data-en="Practice: which sets does a number belong to?">Übung: Welchen Mengen gehört eine Zahl an?</p>
+  </div>
 </header>
 
 <!-- ═══════════════════ EINSTELLUNGEN ═══════════════════ -->
-<details id="settingsBox">
-<summary>Einstellungen</summary>
+<details class="einst" id="settingsBox">
+<summary data-de="Einstellungen" data-en="Settings">Einstellungen</summary>
+<div class="settings-grid">
 
 <!-- <div class="form-block">
   
 </div> -->
 
 <div class="form-block">
-  <b>Maximaler Zahlbereich</b>
+  <b data-de="Maximaler Zahlbereich" data-en="Largest number set">Maximaler Zahlbereich</b>
   <div class="slider-wrap">
-    <input type="range" id="maxSetSlider" min="0" max="4" step="1" value="3">
+    <input type="range" class="sl" id="maxSetSlider" min="0" max="4" step="1" value="3"
+      aria-label="Maximaler Zahlbereich" data-de-aria-label="Maximaler Zahlbereich" data-en-aria-label="Largest number set">
     <div class="slider-lbl">
       <span>$\mathbb{N}$</span>
       <span>$\mathbb{Z}$</span>
@@ -175,40 +249,71 @@ button:disabled { opacity:.45; cursor:default !important; filter:none !important
   </div>
 </div>
 
-<div class="form-block" id="showIBlock">
-  <label class="cb-label" id="cbShowILabel">
-    <input type="checkbox" id="cbShowI">
-    Irrationale Zahlen ($\mathbb{R}{\setminus}\mathbb{Q}$) als eigene Spalte anzeigen
-  </label>
-  <span id="cbShowINote" style="font-size:.8em;color:#999;font-style:italic;margin-left:2px;display:none;">(nur im Tabellemodus ab $\mathbb{R}$)</span>
+<div class="form-block" id="modiBlock">
+  <b data-de="Spielmodi" data-en="Game modes">Spielmodi</b>
+  <span class="d" data-de="Aus den gewählten Modi wird für jede Aufgabe einer ausgelost." data-en="For every task one of the chosen modes is drawn at random.">Aus den gewählten Modi wird für jede Aufgabe einer ausgelost.</span>
+  <label class="opt"><input type="checkbox" id="mTabelle" data-stufe="2" checked><span data-de="Tabelle" data-en="Table">Tabelle</span></label>
+  <label class="opt"><input type="checkbox" id="mVenn" data-stufe="2"><span data-de="Venn-Diagramm" data-en="Venn diagram">Venn-Diagramm</span></label>
+  <label class="opt"><input type="checkbox" id="mInNotin" data-stufe="1"><span data-de="Element in Menge <span class=&quot;nowrap&quot;>($\in$ / $\notin$)</span>" data-en="Element of a set <span class=&quot;nowrap&quot;>($\in$ / $\notin$)</span>">Element in Menge <span class="nowrap">($\in$ / $\notin$)</span></span></label>
 </div>
 
+<div class="form-block" id="verstecktBlock">
+  <b><span data-de="Versteckte Zahlen" data-en="Disguised numbers">Versteckte Zahlen</span>: <span id="verstecktWert">50&nbsp;%</span></b>
+  <span class="d" data-de="Wie oft die Zahl erst ausgerechnet werden muss (z.&nbsp;B. $\sqrt{49}$, $3^2$, $\tfrac{6}{3}$, $7-10$)." data-en="How often the number has to be worked out first (e.g. $\sqrt{49}$, $3^2$, $\tfrac{6}{3}$, $7-10$).">Wie oft die Zahl erst ausgerechnet werden muss (z.&nbsp;B. $\sqrt{49}$, $3^2$, $\tfrac{6}{3}$, $7-10$).</span>
+  <div class="slider-wrap">
+    <input type="range" class="sl" id="verstecktRegler" min="0" max="100" step="5" value="50"
+      aria-label="Anteil versteckter Zahlen" data-de-aria-label="Anteil versteckter Zahlen" data-en-aria-label="Share of disguised numbers">
+  </div>
+</div>
+
+<div class="form-block" id="showIBlock">
+  <label class="opt cb-label" id="cbShowILabel">
+    <input type="checkbox" id="cbShowI">
+    <span data-de="Irrationale Zahlen ($\mathbb{R}{\setminus}\mathbb{Q}$) als eigene Spalte anzeigen" data-en="Show irrational numbers ($\mathbb{R}{\setminus}\mathbb{Q}$) as a separate column">Irrationale Zahlen ($\mathbb{R}{\setminus}\mathbb{Q}$) als eigene Spalte anzeigen</span>
+  </label>
+  <span id="cbShowINote" style="font-size:.8em;font-style:italic;margin-left:2px;display:none;" data-de="(nur im Tabellenmodus ab $\mathbb{R}$)" data-en="(table mode only, from $\mathbb{R}$ upwards)">(nur im Tabellenmodus ab $\mathbb{R}$)</span>
+</div>
+
+</div>
 </details>
-<p class="convention-note">Hinweis: Hier gilt $\mathbb{N} = \{0, 1, 2, 3, \ldots\}$ (mit der&nbsp;0).</p>
+<p class="convention-note" data-de="Hinweis: Hier gilt $\mathbb{N} = \{0, 1, 2, 3, \ldots\}$ (mit der&nbsp;0)." data-en="Note: here $\mathbb{N} = \{0, 1, 2, 3, \ldots\}$ (including&nbsp;0).">Hinweis: Hier gilt $\mathbb{N} = \{0, 1, 2, 3, \ldots\}$ (mit der&nbsp;0).</p>
 
 <!-- ═══════════════════ MODUS: TABELLE ═══════════════════ -->
-<b>Spielmodus</b>
-  <div class="radio-row" id="modeRow">
-    <label><input type="radio" name="spielmodus" value="tabelle"> Tabelle</label>
-    <label><input type="radio" name="spielmodus" value="venn"> Venn-Diagramm</label>
-    <label><input type="radio" name="spielmodus" value="innotin">$\in\,/\,\notin$</label>
+<div id="topControls">
+  <div class="tc-item tc-mitte">
+    <span class="tc-label" data-de="Spielmodus" data-en="Game mode">Spielmodus</span>
+    <span class="tc-sub" data-de="Mehrere möglich – jede Aufgabe wählt zufällig einen davon." data-en="Several possible – each task picks one of them at random.">Mehrere möglich – jede Aufgabe wählt zufällig einen davon.</span>
+    <div class="tiles reihe" id="segModi"></div>
   </div>
+  <div class="tc-item tc-diff tc-mitte">
+    <span class="tc-label" data-de="Schwierigkeit" data-en="Difficulty">Schwierigkeit</span>
+    <div class="seg-switch diff-switch" id="segDiff">
+      <input type="radio" name="diff" id="diffEinf" value="einf"><label for="diffEinf" data-de="Einführung" data-en="Introduction">Einführung</label>
+      <input type="radio" name="diff" id="diffLeicht" value="leicht"><label for="diffLeicht" data-de="Leicht" data-en="Easy">Leicht</label>
+      <input type="radio" name="diff" id="diffNormal" value="normal" checked><label for="diffNormal" data-de="Normal" data-en="Normal">Normal</label>
+      <input type="radio" name="diff" id="diffSchwer" value="schwer"><label for="diffSchwer" data-de="Herausfordernd" data-en="Challenging">Herausfordernd</label>
+      <input type="radio" name="diff" id="diffIndiv" value="indiv"><label for="diffIndiv" data-de="Individuell" data-en="Custom" data-de-title="öffnet die Einstellungen" data-en-title="opens the settings" title="öffnet die Einstellungen">Individuell</label>
+      <span class="seg-glider"></span>
+    </div>
+  </div>
+</div>
 
 <div id="modeTabelle">
-  <div class="btn-row">
-    <button onclick="newTask()">&#x27F3;&nbsp;Neue Aufgabe</button>
+  <div id="genRow">
+    <button onclick="newTask()" data-de='<span class="auto-kreis">&#x27F3;</span>&nbsp;Neue Aufgabe generieren' data-en='<span class="auto-kreis">&#x27F3;</span>&nbsp;Generate a new task'><span class="auto-kreis">&#x27F3;</span>&nbsp;Neue Aufgabe generieren</button>
+    <span class="punkte rechts"><button class="zb-reset" type="button" title="Punktzahl zurücksetzen" data-de-title="Punktzahl zurücksetzen" data-en-title="Reset the score">↺</button><span class="zb-zaehler">Richtig: 0 / 0</span></span>
   </div>
 
-  <div id="tableArea">
-    <b>Kreuze alle Zahlbereiche der Zahl aus der Aufgabe an.</b>
+  <div class="task" id="tableArea">
+    <b data-de="Kreuze alle Zahlbereiche der Zahl aus der Aufgabe an." data-en="Tick every number set the given number belongs to.">Kreuze alle Zahlbereiche der Zahl aus der Aufgabe an.</b>
     <div class="table-top">
       <!-- <span style="font-weight:bold;">Aufgabe</span> -->
       <div class="tmode-wrap">
-        <span>Antwort-Modus:</span>
-        <div class="tmode-toggle" id="tmodeToggle">
-          <label><input type="radio" name="tmode" value="single" checked> Einzeln</label>
-          <label><input type="radio" name="tmode" value="auto"> Automatisch</label>
-          <label><input type="radio" name="tmode" value="random"> Zufällig</label>
+        <span data-de="Antwort-Modus:" data-en="Answer mode:">Antwort-Modus:</span>
+        <div class="mini-seg tmode-toggle" id="tmodeToggle">
+          <label><input type="radio" name="tmode" value="single" checked> <span data-de="Einzeln" data-en="Single">Einzeln</span></label>
+          <label><input type="radio" name="tmode" value="auto"> <span data-de="Automatisch" data-en="Automatic">Automatisch</span></label>
+          <label><input type="radio" name="tmode" value="random"> <span data-de="Zufällig" data-en="Random">Zufällig</span></label>
         </div>
       </div>
     </div>
@@ -217,43 +322,49 @@ button:disabled { opacity:.45; cursor:default !important; filter:none !important
       <table class="task-table" id="taskTable"></table>
     </div>
 
-    <div class="btn-row" style="margin-top:10px;flex-direction:column;align-items:flex-start;gap:6px;">
-      <button onclick="checkTableAnswer()">✓&nbsp;Überprüfen</button>
-      <button class="btn-solution" onclick="revealTableAnswer()">Lösung anzeigen</button>
+    <div class="pruef-zeile">
+      <button class="pruef-knopf" onclick="checkTableAnswer()" data-de="✓&nbsp;Prüfen" data-en="✓&nbsp;Check">✓&nbsp;Prüfen</button>
     </div>
     <div id="fbTabelle" class="feedback"></div>
+    <button class="btn-loesung" onclick="revealTableAnswer()" data-de="Lösung anzeigen" data-en="Show solution">Lösung anzeigen</button>
   </div>
 </div>
 
 <!-- ═══════════════════ MODUS: VENN ═══════════════════ -->
 <div id="modeVenn" class="hide">
-  <div class="btn-row">
-    <button onclick="newTask()">&#x27F3;&nbsp;Neue Aufgabe</button>
+  <div id="genRow2">
+    <button onclick="newTask()" data-de='<span class="auto-kreis">&#x27F3;</span>&nbsp;Neue Aufgabe generieren' data-en='<span class="auto-kreis">&#x27F3;</span>&nbsp;Generate a new task'><span class="auto-kreis">&#x27F3;</span>&nbsp;Neue Aufgabe generieren</button>
+    <span class="punkte rechts"><button class="zb-reset" type="button" title="Punktzahl zurücksetzen" data-de-title="Punktzahl zurücksetzen" data-en-title="Reset the score">↺</button><span class="zb-zaehler">Richtig: 0 / 0</span></span>
   </div>
-  <div class="venn-outer">
+  <div class="task venn-outer">
     <div class="venn-task-text" id="vennTaskText">
-      <span style="color:#888;font-size:.75em;">Klicke auf „Neue Aufgabe", um zu beginnen.</span>
+      <span style="color:#888;font-size:.75em;" data-de="Klicke auf „Neue Aufgabe&quot;, um zu beginnen." data-en="Click “New task” to begin.">Klicke auf „Neue Aufgabe", um zu beginnen.</span>
     </div>
     <div class="venn-svg-wrap">
       <svg id="vennSvg" viewBox="0 0 500 330" xmlns="http://www.w3.org/2000/svg"></svg>
     </div>
     <div id="fbVenn" class="feedback"></div>
+    <button class="btn-loesung" onclick="revealVennAnswer()" data-de="Lösung anzeigen" data-en="Show solution">Lösung anzeigen</button>
   </div>
 </div>
 
 <!-- ═══════════════════ MODUS: IN/NOTIN ═══════════════════ -->
 <div id="modeInNotin" class="hide">
-  <div class="btn-row">
-    <button onclick="newTask()">&#x27F3;&nbsp;Neue Aufgabe</button>
+  <div id="genRow2">
+    <button onclick="newTask()" data-de='<span class="auto-kreis">&#x27F3;</span>&nbsp;Neue Aufgabe generieren' data-en='<span class="auto-kreis">&#x27F3;</span>&nbsp;Generate a new task'><span class="auto-kreis">&#x27F3;</span>&nbsp;Neue Aufgabe generieren</button>
+    <span class="punkte rechts"><button class="zb-reset" type="button" title="Punktzahl zurücksetzen" data-de-title="Punktzahl zurücksetzen" data-en-title="Reset the score">↺</button><span class="zb-zaehler">Richtig: 0 / 0</span></span>
   </div>
-  <div id="innotinTask" class="innotin-task">
-    <span style="color:#888;font-size:.55em;">Klicke auf „Neue Aufgabe", um zu beginnen.</span>
+  <div class="task">
+    <div id="innotinTask" class="innotin-task">
+      <span style="color:#888;font-size:.55em;" data-de="Klicke auf „Neue Aufgabe&quot;, um zu beginnen." data-en="Click “New task” to begin.">Klicke auf „Neue Aufgabe", um zu beginnen.</span>
+    </div>
+    <div class="innotin-btns">
+      <button id="btnIn"    onclick="answerInNotin(true)">$\in$</button>
+      <button id="btnNotIn" onclick="answerInNotin(false)">$\notin$</button>
+    </div>
+    <div id="fbInNotin" class="feedback"></div>
+    <button class="btn-loesung" onclick="revealInNotinAnswer()" data-de="Lösung anzeigen" data-en="Show solution">Lösung anzeigen</button>
   </div>
-  <div class="innotin-btns">
-    <button id="btnIn"    onclick="answerInNotin(true)">$\in$</button>
-    <button id="btnNotIn" onclick="answerInNotin(false)">$\notin$</button>
-  </div>
-  <div id="fbInNotin" class="feedback"></div>
 </div>
 
 <div id="lobby-spacer"></div>
@@ -261,7 +372,7 @@ button:disabled { opacity:.45; cursor:default !important; filter:none !important
   <div class="footer-content">
     M.&nbsp;Koch
     <span class="footer-topic"><a href="./index.html">Mathe-Tools</a></span>
-    <span class="footer-update">Last updated:&nbsp;<span id="last-update">…</span></span>
+    <span class="footer-update"><span class="fu-wort" data-de="Zuletzt aktualisiert:" data-en="Last updated:">Zuletzt aktualisiert:</span><span id="last-update">…</span></span>
   </div>
 </footer>
 <script src="scale.js"></script>
@@ -323,10 +434,18 @@ const SUBSETS = {
 };
 
 // Farben für Venn-Ringe
-const RING_COLOR = {
+/* Die Ringfarben gibt es zweimal: hell und dunkel. Im Dunkelmodus sind sie
+   gedämpft, damit das Diagramm nicht als helle Insel auf der Seite steht. */
+const RING_COLOR_HELL = {
   N:'#8ee8aa', Z:'#8ec8e8', Q:'#f0d070', I:'#d8a8f0', R:'#f8f080', C:'#f0a888',
   none:'#ddd'
 };
+const RING_COLOR_DUNKEL = {
+  N:'#2d6b40', Z:'#2b5a7a', Q:'#6b5a1e', I:'#55386b', R:'#6b6520', C:'#6b4030',
+  none:'#232a31'
+};
+const dunkelModus = () => document.documentElement.classList.contains('dark');
+const ringFarben = () => dunkelModus() ? RING_COLOR_DUNKEL : RING_COLOR_HELL;
 
 // Feste Ellipsen-Radien im Venn-Diagramm pro Zahlbereich
 const RING_SIZE = {
@@ -342,14 +461,142 @@ function simplifyFrac(n,d){if(d<0){n=-n;d=-d;}const g=gcd(Math.abs(n),d);return{
 const PERFECT_SQ=[0,1,4,9,16,25,36,49,64,81,100];
 const NONSQ=[2,3,5,6,7,8,10,11,12,13,14,15,17,18,19,20,21,23,24];
 
+/* ── Wie sieht die Zahl aus? ──────────────────────────────────────────────
+   Die Schwierigkeitsstufe bestimmt die Zahl selbst - wie viele Stellen sie
+   hat, wie ihre Brüche und Dezimalzahlen aussehen und ob sie versteckt
+   auftreten darf. Welche Zahlbereiche überhaupt drankommen, bleibt die
+   Einstellung „Maximaler Zahlbereich": die stellt die Lehrkraft für ihre
+   Klasse ein und gibt sie per Link weiter.                                */
+
+/* Nachkommastellen, auf die eine Zahl in der Einführung enden darf */
+const NK_EINF     = ['1','125','2','25','3','4','5','6','7','75','8','9'];
+/* Nenner, die in der Einführung vorkommen */
+const NENNER_EINF = [2,3,4,5,6,7,8,9,10,15,20,25,30,50,100,1000];
+const NENNER_MEHR = [11,12,13,14,16,18,21,24,32,36,40,60,64,75,80,125,200,250,500];
+/* Wurzeln, die in der Einführung vorkommen (alle irrational) */
+const WURZEL_EINF = [2,3,5,6,7,8];
+const WURZEL_MEHR = [10,11,12,13,14,15,17,18,19,20,21,23,24,27,32,45,50];
+
+/* Wie oft darf die Zahl versteckt auftreten (also erst ausgerechnet werden)?
+   Der Regler steht in den Einstellungen; die Stufe stellt ihn ein.        */
+function verstecktAnteil(){
+  const r = document.getElementById('verstecktRegler');
+  return r ? (parseInt(r.value, 10) || 0) / 100 : 0.5;
+}
+/* Für diese eine Aufgabe: Wird sie versteckt gestellt? */
+function verstecktAn(){ return Math.random() < verstecktAnteil(); }
+/* Stufe für die Gestalt der Zahlen; „Individuell" richtet sich nach dem Regler. */
+function zStufe(){
+  const s = (typeof stufe === 'function') ? stufe() : 'normal';
+  if(s === 'einf' || s === 'leicht' || s === 'normal' || s === 'schwer') return s;
+  return verstecktAnteil() > 0 ? 'normal' : 'leicht';
+}
+
+/* ── Bausteine ─────────────────────────────────────────────────────────── */
+
+/* Natürliche Zahl: die Hälfte einstellig, ein Viertel zweistellig,
+   je ein Achtel drei- und vierstellig. */
+function natZahl(st_){
+  const r = Math.random(), gross = (st_ === 'einf') ? 2026 : 9999;
+  if(r < 0.5)   return randInt(0, 9);
+  if(r < 0.75)  return randInt(10, 99);
+  if(r < 0.875) return randInt(100, 999);
+  return randInt(1000, gross);
+}
+
+/* Vollständig gekürzter, nicht ganzzahliger Bruch; halb echt, halb unecht. */
+function bruchZahl(st_){
+  const nenner = (st_ === 'einf') ? NENNER_EINF : NENNER_EINF.concat(NENNER_MEHR);
+  /* Echt oder unecht wird vorher entschieden, damit beides gleich oft kommt -
+     sonst verschiebt das Verwerfen kürzbarer Brüche das Verhältnis. */
+  const echt = Math.random() < 0.5;
+  for(let v = 0; v < 200; v++){
+    const d = pick(nenner);
+    const n = echt ? randInt(1, d - 1) : randInt(d + 1, d * (st_ === 'einf' ? 4 : 9));
+    if(n % d === 0) continue;          // ganzzahlig
+    if(gcd(n, d) !== 1) continue;      // nicht vollständig gekürzt
+    return { n: (Math.random() < 0.5 ? -n : n), d };
+  }
+  return { n: 1, d: 3 };
+}
+
+/* Nachkommastellen einer endlichen Dezimalzahl */
+function nkStellen(st_){
+  if(st_ === 'einf') return pick(NK_EINF);
+  const len = randInt(1, st_ === 'leicht' ? 3 : 4);
+  for(let v = 0; v < 60; v++){
+    let t = '';
+    for(let i = 0; i < len; i++) t += randInt(0, 9);
+    if(/^0*$/.test(t)) continue;       // ,000 wäre ganzzahlig
+    if(t.slice(-1) === '0') continue;  // ,50 schreibt man ,5
+    return t;
+  }
+  return '5';
+}
+
+/* Vorperiode und Periode einer periodischen Dezimalzahl */
+function periodeTeile(st_){
+  const pl = (st_ === 'einf') ? 1 : randInt(1, st_ === 'leicht' ? 2 : 3);
+  const vl = (st_ === 'einf') ? 0 : randInt(0, 2);
+  for(let v = 0; v < 80; v++){
+    let per = '';
+    for(let i = 0; i < pl; i++) per += randInt(0, 9);
+    if(/^0*$/.test(per)) continue;     // Periode 0 ist eine endliche Zahl
+    if(/^9*$/.test(per)) continue;     // Periode 9 ebenfalls (0,9… = 1)
+    let vor = '';
+    for(let i = 0; i < vl; i++) vor += randInt(0, 9);
+    return { vor, per };
+  }
+  return { vor: '', per: '3' };
+}
+
+/* Periodische Dezimalzahl als Bruch - das ist der Hinweis zur Aufgabe. */
+function periodeBruch(ganz, vor, per){
+  const k = vor.length, L = per.length;
+  const z = parseInt((vor + per) || '0', 10) - parseInt(vor || '0', 10);
+  const n = (Math.pow(10, L) - 1) * Math.pow(10, k);
+  const f = simplifyFrac(z, n);
+  return { n: ganz * f.d + f.n, d: f.d };
+}
+
+/* Dezimalzahl: je zur Hälfte positiv/negativ und kleiner/größer als 1,
+   zu 80 % endlich, sonst periodisch. */
+function dezimalZahl(st_){
+  const vz   = Math.random() < 0.5 ? '-' : '';
+  const ganz = Math.random() < 0.5 ? 0 : randInt(1, st_ === 'einf' ? 20 : 99);
+  /* Zwei Drittel enden, ein Drittel läuft periodisch weiter - sonst kämen
+     die periodischen Zahlen im Unterricht viel zu selten dran. */
+  if(Math.random() < 2/3)
+    return { tex: `${vz}${ganz}@,@${nkStellen(st_)}`, cat: 'Q' };
+  const t = periodeTeile(st_);
+  const f = periodeBruch(ganz, t.vor, t.per);
+  /* Der Bruch steht nur in der Lösung (hint), nie in der Aufgabe selbst. */
+  return { tex: `${vz}${ganz}@,@${t.vor}\\overline{${t.per}}`, cat: 'Q',
+           hint: `${vz}\\frac{${f.n}}{${f.d}}` };
+}
+
+/* ── Aufgaben ──────────────────────────────────────────────────────────── */
+
+/* Für eine Aufgabe wird einmal gewürfelt, ob sie versteckt gestellt wird -
+   sonst entschiede jeder Aufruf neu und die Aufgabe wäre in sich uneinig. */
+let _versteckt = false;
+function versteckt(){ return _versteckt; }
+
 function generateTask(){
-  const mo=maxOrder();
-  const pool=[];
+  _versteckt = verstecktAn();
+  const mo = maxOrder();
+  const pool = [];
   pool.push('N','N','N');
-  if(mo>=SET_ORDER['Z']) pool.push('Z','Z');
-  if(mo>=SET_ORDER['Q']) pool.push('Q','Q');
-  if(mo>=SET_ORDER['R']) pool.push('I','I','none');
-  if(mo>=SET_ORDER['C']) pool.push('C_only','C_only');
+  if(mo >= SET_ORDER['Z']) pool.push('Z','Z');
+  if(mo >= SET_ORDER['Q']) pool.push('Q','Q','Q');
+  /* Irrationale Zahlen kommen dran, sobald ein Bereich sie aufnimmt - das ist
+     entweder ℝ oder der eingeschaltete Ring ℝ\ℚ. */
+  if(mo >= SET_ORDER['R'] || getShownSets().includes('I')) pool.push('I','I');
+  if(mo >= SET_ORDER['C']) pool.push('C_only','C_only');
+  /* „keiner" gehört in jede Einstellung - sonst übt man diesen Fall nie.
+     Etwa jede fünfte bis sechste Aufgabe. */
+  const wieOft = Math.max(1, Math.round(pool.length / 5));
+  for(let i = 0; i < wieOft; i++) pool.push('keiner');
   return buildTask(pick(pool));
 }
 
@@ -360,106 +607,196 @@ function buildTask(cat){
     case 'Q':      return buildQ();
     case 'I':      return buildI();
     case 'C_only': return buildC();
-    case 'none':   return buildNone();
+    case 'keiner': return buildKeiner();
+    case 'none':   return buildKeiner();
     default:       return buildN();
   }
 }
 
 function buildN(){
-  const form=pick(['direct','direct','direct','sqrt_ps','frac_simp','power','neg_sq','zero']);
-  if(form==='zero')
-    return {tex:'0', cat:'N'};
-  if(form==='direct')
-    return {tex:`${randInt(1,20)}`, cat:'N'};
-  if(form==='sqrt_ps'){
-    const sq=pick([0,1,4,9,16,25,36,49]);
-    return {tex:`\\sqrt{${sq}}`, cat:'N', hint:`\\sqrt{${sq}}=${Math.round(Math.sqrt(sq))}`};
+  const st_ = zStufe();
+  if(!versteckt()) return { tex: String(natZahl(st_)), cat: 'N' };
+  const form = pick(['direct','direct','direct','sqrt_ps','frac_simp','power','neg_sq','zero']);
+  if(form === 'zero') return { tex: '0', cat: 'N' };
+  if(form === 'sqrt_ps'){
+    const sq = pick([0,1,4,9,16,25,36,49]);
+    return { tex: `\\sqrt{${sq}}`, cat: 'N', hint: `\\sqrt{${sq}}=${Math.round(Math.sqrt(sq))}` };
   }
-  if(form==='frac_simp'){
-    const d=randInt(2,6), v=randInt(1,9);
-    return {tex:`\\dfrac{${d*v}}{${d}}`, cat:'N', hint:`\\frac{${d*v}}{${d}}=${v}`};
+  if(form === 'frac_simp'){
+    const d = randInt(2,6), v = randInt(1,9);
+    return { tex: `\\dfrac{${d*v}}{${d}}`, cat: 'N', hint: `\\frac{${d*v}}{${d}}=${v}` };
   }
-  if(form==='power'){
-    const b=randInt(2,5), e=randInt(2,3);
-    return {tex:`${b}^{${e}}`, cat:'N', hint:`${b}^{${e}}=${Math.pow(b,e)}`};
+  if(form === 'power'){
+    const b = randInt(2,5), e = randInt(2,3);
+    return { tex: `${b}^{${e}}`, cat: 'N', hint: `${b}^{${e}}=${Math.pow(b,e)}` };
   }
-  if(form==='neg_sq'){
-    const b=randInt(2,7);
-    return {tex:`(-${b})^2`, cat:'N', hint:`(-${b})^2=${b*b}`};
+  if(form === 'neg_sq'){
+    const b = randInt(2,7);
+    return { tex: `(-${b})^2`, cat: 'N', hint: `(-${b})^2=${b*b}` };
   }
-  return {tex:`${randInt(0,15)}`, cat:'N'};
+  return { tex: String(natZahl(st_)), cat: 'N' };
 }
 
 function buildZ(){
-  const form=pick(['direct','direct','frac_neg','power_neg','diff']);
-  if(form==='direct')
-    return {tex:`${randInt(-15,-1)}`, cat:'Z'};
-  if(form==='frac_neg'){
-    const d=randInt(2,5), v=randInt(1,7);
-    return {tex:`-\\dfrac{${d*v}}{${d}}`, cat:'Z', hint:`-\\frac{${d*v}}{${d}}=${-v}`};
+  const st_ = zStufe();
+  const minus = () => { let z = natZahl(st_); if(z === 0) z = randInt(1,9); return -z; };
+  if(!versteckt()) return { tex: String(minus()), cat: 'Z' };
+  const form = pick(['direct','direct','frac_neg','power_neg','diff']);
+  if(form === 'frac_neg'){
+    const d = randInt(2,5), v = randInt(1,7);
+    return { tex: `-\\dfrac{${d*v}}{${d}}`, cat: 'Z', hint: `-\\frac{${d*v}}{${d}}=${-v}` };
   }
-  if(form==='power_neg'){
-    const b=randInt(2,5);
-    return {tex:`-${b}^2`, cat:'Z', hint:`-${b}^2=${-(b*b)}`};
+  if(form === 'power_neg'){
+    const b = randInt(2,5);
+    return { tex: `-${b}^2`, cat: 'Z', hint: `-${b}^2=${-(b*b)}` };
   }
-  if(form==='diff'){
-    const a=randInt(1,10), b=randInt(a+1,a+12);
-    return {tex:`${a}-${b}`, cat:'Z', hint:`${a}-${b}=${a-b}`};
+  if(form === 'diff'){
+    const a = randInt(1,10), b = randInt(a+1, a+12);
+    return { tex: `${a}-${b}`, cat: 'Z', hint: `${a}-${b}=${a-b}` };
   }
-  return {tex:`${randInt(-10,-1)}`, cat:'Z'};
+  return { tex: String(minus()), cat: 'Z' };
 }
 
 function buildQ(){
-  for(let t=0;t<30;t++){
-    const d=randInt(2,9), raw=randInt(1,d*3-1);
-    const f=simplifyFrac(raw,d);
-    if(f.d===1) continue; // ganzzahlig → verwerfen
-    const neg=Math.random()<0.4;
-    const tex=neg?`-\\dfrac{${f.n}}{${f.d}}`:`\\dfrac{${f.n}}{${f.d}}`;
-    return {tex, cat:'Q'};
+  const st_ = zStufe();
+  if(versteckt() && Math.random() < 0.25){
+    const f = bruchZahl(st_), k = randInt(2,5);
+    const z = Math.abs(f.n) * k, n = f.d * k;
+    return { tex: `${f.n < 0 ? '-' : ''}\\dfrac{${z}}{${n}}`, cat: 'Q',
+             hint: `\\frac{${z}}{${n}}=\\frac{${Math.abs(f.n)}}{${f.d}}` };
   }
-  return {tex:`\\dfrac{1}{3}`, cat:'Q'};
+  if(Math.random() < 0.5){
+    const f = bruchZahl(st_);
+    return { tex: f.n < 0 ? `-\\dfrac{${-f.n}}{${f.d}}` : `\\dfrac{${f.n}}{${f.d}}`, cat: 'Q' };
+  }
+  return dezimalZahl(st_);
 }
 
 function buildI(){
-  const form=pick(['sqrt','sqrt','pi','e','cbrt','pi_sq','sum_sqrt']);
-  if(form==='sqrt')   return {tex:`\\sqrt{${pick(NONSQ)}}`, cat:'I'};
-  if(form==='pi')     return {tex:'\\pi', cat:'I'};
-  if(form==='e')      return {tex:'e', cat:'I'};
-  if(form==='cbrt'){
-    const r=pick([2,3,4,5,6,7]);
-    return {tex:`\\sqrt[3]{${r}}`, cat:'I'};
+  const st_ = zStufe(), vz = Math.random() < 0.5 ? '-' : '';
+  if(st_ === 'einf'){
+    if(Math.random() < 0.15) return { tex: `${vz}\\pi`, cat: 'I' };
+    return { tex: `${vz}\\sqrt{${pick(WURZEL_EINF)}}`, cat: 'I' };
   }
-  if(form==='pi_sq')  return {tex:'\\pi^2', cat:'I'};
-  if(form==='sum_sqrt'){
-    const r=pick(NONSQ), a=randInt(1,5);
-    return {tex:`${a}+\\sqrt{${r}}`, cat:'I'};
+  const wurzeln = WURZEL_EINF.concat(WURZEL_MEHR);
+  const formen = ['sqrt','sqrt','sqrt','pi','e','cbrt','pi_sq'];
+  if(versteckt()) formen.push('sum_sqrt');
+  const form = pick(formen);
+  if(form === 'pi')    return { tex: `${vz}\\pi`, cat: 'I' };
+  if(form === 'e')     return { tex: `${vz}e`, cat: 'I' };
+  if(form === 'pi_sq') return { tex: `${vz}\\pi^2`, cat: 'I' };
+  if(form === 'cbrt')  return { tex: `${vz}\\sqrt[3]{${pick([2,3,4,5,6,7,9])}}`, cat: 'I' };
+  if(form === 'sum_sqrt'){
+    const a = randInt(1,5);
+    return { tex: `${a}+\\sqrt{${pick(wurzeln)}}`, cat: 'I' };
   }
-  return {tex:'\\sqrt{2}', cat:'I'};
+  return { tex: `${vz}\\sqrt{${pick(wurzeln)}}`, cat: 'I' };
 }
 
 function buildC(){
-  const form=pick(['sqrt_neg','sqrt_neg','complex_sum','pure_imag']);
-  if(form==='sqrt_neg'){
-    const r=randInt(1,9);
-    return {tex:`\\sqrt{-${r}}`, cat:'C_only'};
+  /* Ohne Verstecken keine Wurzel aus einer negativen Zahl - die muss man
+     erst umformen. */
+  const form = versteckt()
+    ? pick(['sqrt_neg','sqrt_neg','complex_sum','pure_imag'])
+    : pick(['complex_sum','complex_sum','pure_imag','pure_imag','i']);
+  if(form === 'sqrt_neg'){
+    const r = randInt(1,9);
+    return { tex: `\\sqrt{-${r}}`, cat: 'C_only', form: 'wneg' };
   }
-  if(form==='complex_sum'){
-    const a=randInt(1,6), b=randInt(1,5);
-    return {tex:`${a}+${b}\\,\\mathrm{i}`, cat:'C_only'};
+  if(form === 'complex_sum'){
+    /* Der Imaginärteil 1 wird nicht geschrieben: $2+\mathrm{i}$, nicht $2+1\mathrm{i}$. */
+    const a = randInt(1,6), b = randInt(1,5);
+    return { tex: `${a}+${b === 1 ? '' : b + '\\,'}\\mathrm{i}`, cat: 'C_only', form: 'imag' };
   }
-  if(form==='pure_imag'){
-    const b=randInt(2,7);
-    return {tex:`${b}\\,\\mathrm{i}`, cat:'C_only'};
+  if(form === 'pure_imag'){
+    const b = randInt(2,7);
+    return { tex: `${b}\\,\\mathrm{i}`, cat: 'C_only', form: 'imag' };
   }
-  return {tex:'\\mathrm{i}', cat:'C_only'};
+  return { tex: '\\mathrm{i}', cat: 'C_only', form: 'imag' };
 }
 
-function buildNone(){
-  const nums=[-3,-2,-1,0,1,2,3];
-  const n=pick(nums);
-  const nTex=n<0?`(${n})`:String(n);
-  return {tex:`\\dfrac{${nTex}}{0}`, cat:'none'};
+/* ── „keiner der angezeigten Bereiche" ───────────────────────────────────
+   Diese Aufgabe lebt davon, dass die Zahl genau eine Stufe über dem größten
+   angezeigten Bereich liegt: bei ℕ eine negative Zahl, bei ℕ und ℤ eine
+   Kommazahl, bei ℚ eine irrationale Zahl, bei ℝ die Wurzel aus einer
+   negativen Zahl. Die Division durch 0 ist überhaupt keine Zahl und passt
+   deshalb ab ℚ immer dazu.                                              */
+function keinerFormen(){
+  const g = getShownSets(), mo = maxOrder(), f = [];
+  if(!g.includes('Z')) f.push('neg','neg','neg');
+  if(!g.includes('Q')) f.push('komma','komma','komma');
+  if(g.includes('Q') && !g.includes('I') && !g.includes('R')) f.push('irr','irr','irr');
+  if((g.includes('R') || g.includes('I')) && !g.includes('C')) f.push('wneg','wneg','wneg');
+  if(mo >= SET_ORDER['Q']) f.push('div0','div0');
+  if(!f.length) f.push('div0');
+  return f;
+}
+
+function buildKeiner(){
+  const st_ = zStufe(), v = versteckt();
+  switch(pick(keinerFormen())){
+
+    /* ℕ: eine negative Zahl - versteckt als Subtraktion unter 0 */
+    case 'neg': {
+      if(v && Math.random() < 0.5){
+        const a = randInt(1,12), b = randInt(a+1, a+12);
+        return { tex: `${a}-${b}`, cat: 'Z', hint: `${a}-${b}=${a-b}` };
+      }
+      let z = natZahl(st_); if(z === 0) z = randInt(1,9);
+      return { tex: String(-z), cat: 'Z' };
+    }
+
+    /* ℕ und ℤ: eine Zahl mit einer Nachkommastelle - versteckt als Division */
+    case 'komma': {
+      if(v && Math.random() < 0.5){
+        const d = pick([2,4,5,8]);
+        let z = randInt(d+1, d*9);
+        for(let i = 0; i < 40 && z % d === 0; i++) z = randInt(d+1, d*9);
+        const w = String(z/d).split('.').join('@,@');
+        return { tex: `${z} : ${d}`, cat: 'Q', hint: `${z}:${d}=${w}` };
+      }
+      const g = randInt(0, st_ === 'einf' ? 20 : 99), n = randInt(1,9);
+      const vz = Math.random() < 0.4 ? '-' : '';
+      return { tex: `${vz}${g}@,@${n}`, cat: 'Q' };
+    }
+
+    /* ℚ: eine irrationale Zahl - π und e je nach Stufe, sonst eine Wurzel */
+    case 'irr': {
+      const wur = (st_ === 'einf') ? WURZEL_EINF : WURZEL_EINF.concat(WURZEL_MEHR);
+      const formen = (st_ === 'einf')   ? ['sqrt','sqrt','sqrt','pi']
+                   : (st_ === 'leicht') ? ['sqrt','sqrt','sqrt','pi','pi']
+                   : ['sqrt','sqrt','sqrt','pi','pi','e','cbrt'];
+      if(v) formen.push('summe','mal');
+      const f = pick(formen), vz = Math.random() < 0.3 ? '-' : '';
+      if(f === 'pi')    return { tex: `${vz}\\pi`, cat: 'I' };
+      if(f === 'e')     return { tex: `${vz}e`, cat: 'I' };
+      if(f === 'cbrt')  return { tex: `\\sqrt[3]{${pick([2,3,4,5,6,7,9])}}`, cat: 'I' };
+      if(f === 'summe') return { tex: `${randInt(1,9)}+\\sqrt{${pick(wur)}}`, cat: 'I' };
+      if(f === 'mal')   return { tex: `${randInt(2,5)}\\cdot\\sqrt{${pick(wur)}}`, cat: 'I' };
+      return { tex: `${vz}\\sqrt{${pick(wur)}}`, cat: 'I' };
+    }
+
+    /* ℝ: die Wurzel aus einer negativen Zahl - versteckt erst auszurechnen */
+    case 'wneg': {
+      if(v && Math.random() < 0.5){
+        const a = randInt(1,9), b = randInt(a+1, a+9);
+        return { tex: `\\sqrt{${a}-${b}}`, cat: 'C_only', form: 'wneg',
+                 hint: `\\sqrt{${a}-${b}}=\\sqrt{${a-b}}` };
+      }
+      return { tex: `\\sqrt{-${randInt(1,9)}}`, cat: 'C_only', form: 'wneg' };
+    }
+
+    /* Ab ℚ: die Division durch 0 */
+    default: {
+      const n = pick([1,2,3,5,7,-2,-3,-5]);
+      const nTex = n < 0 ? `(${n})` : String(n);
+      if(v && Math.random() < 0.5){
+        const a = randInt(2,9);
+        return { tex: `\\dfrac{${nTex}}{${a}-${a}}`, cat: 'none', hint: `${a}-${a}=0` };
+      }
+      return { tex: `\\dfrac{${nTex}}{0}`, cat: 'none' };
+    }
+  }
 }
 
 /* ════════════════════════════════════════════════════════
@@ -481,6 +818,13 @@ let innotinIsIn   = null;
    HILFSFUNKTIONEN
    ════════════════════════════════════════════════════════ */
 const randInt = (a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+/* Das Dezimaltrennzeichen steht in den Aufgaben als @,@ und wird erst beim
+   Anzeigen gesetzt: im Deutschen ein Komma, im Englischen ein Punkt. */
+function zahlTex(t){
+  if(!t) return '';
+  const quelle = (typeof t === 'string') ? t : (t.tex || '');
+  return quelle.split('@,@').join(T('{,}', '.'));
+}
 const pick    = arr=>arr[Math.floor(Math.random()*arr.length)];
 function shuffle(arr){
   const a=[...arr];
@@ -493,7 +837,7 @@ const maxOrder = ()=>SET_ORDER[maxKey()];
 function getShownSets(){
   const mo=maxOrder();
   return ['N','Z','Q','I','R','C'].filter(k=>{
-    if(k==='I') return st.showI && mo>=SET_ORDER['R'];
+    if(k==='I') return st.showI && mo>=SET_ORDER['Q'];
     return SET_ORDER[k]<=mo;
   });
 }
@@ -522,49 +866,98 @@ function hideFeedback(id){
 }
 
 function newTask(){
-  // Settings schließen
-  const sbox=document.getElementById('settingsBox');
-  if(sbox) sbox.removeAttribute('open');
+  /* Der Einstellungsbereich bleibt offen - sonst klappt er bei „Individuell"
+     sofort wieder zu. */
 
   taskAnswered=false;
+  _gezaehlt=false;
+  /* Ein laufender Sprung zur nächsten Aufgabe wird hiermit erledigt - sonst
+     käme nach dem Knopfdruck gleich noch eine Aufgabe hinterher. */
+  if(_weiterZeit){ clearTimeout(_weiterZeit); _weiterZeit=null; }
+  switchMode(modusLosen());
   let task=generateTask();
   // Kurze Schleife um Wiederholung zu vermeiden
   for(let i=0;i<8&&currentTask&&task.tex===currentTask.tex;i++) task=generateTask();
   currentTask=task;
   tableColOrder=(st.tmode==='random')?shuffle([...getShownSets()]):[...getShownSets()];
+  zeichneAufgabe();
+}
+
+/** Zeichnet die aktuelle Aufgabe im gewählten Modus (ohne neu zu würfeln). */
+function zeichneAufgabe(){
+  if(!currentTask) return;
   if(st.mode==='tabelle')       renderTableTask();
   else if(st.mode==='venn')     renderVennTask();
   else                          renderInNotinTask();
 }
 
-const SET_NAME = {
+// Sprachwechsel: laufende Aufgabe in neuer Sprache neu beschriften.
+// Bereits beantwortete Aufgaben werden neu gezeichnet, d.h. die Markierungen
+// verschwinden - deshalb nur neu zeichnen, solange noch nicht geantwortet wurde.
+window.addEventListener('tl-sprache', () => { if(!taskAnswered) zeichneAufgabe(); });
+/* Beim Themawechsel bekommt das Venn-Diagramm die passenden Farben. */
+window.addEventListener('tl-theme', () => {
+  if(st.mode==='venn' && !taskAnswered) zeichneAufgabe();
+});
+
+// Übersetzungshilfe: nutzt theme-language.js, fällt ohne sie auf Deutsch zurück
+function T(de, en) { return (typeof tlText === 'function') ? tlText(de, en) : de; }
+
+const SET_NAME_DE = {
   N:'Natürliche Zahlen', Z:'Ganze Zahlen', Q:'Rationale Zahlen',
   I:'Irrationale Zahlen', R:'Reelle Zahlen', C:'Komplexe Zahlen'
 };
+const SET_NAME_EN = {
+  N:'Natural numbers', Z:'Integers', Q:'Rational numbers',
+  I:'Irrational numbers', R:'Real numbers', C:'Complex numbers'
+};
+/** Mengenname in aktueller Sprache. */
+function setName(k){
+  return (typeof tlSprache === 'function' && tlSprache() === 'en')
+    ? (SET_NAME_EN[k] || k) : (SET_NAME_DE[k] || k);
+}
 
 /* ════════════════════════════════════════════════════════
    MODUS: TABELLE
    ════════════════════════════════════════════════════════ */
+let _letzteSpalten='';
 function renderTableTask(){
   hideFeedback('fbTabelle');
   document.getElementById('tableArea').classList.remove('hide');
   const cols=tableColOrder;
+  /* Im Zufallsmodus wechselt die Reihenfolge - das soll auffallen. */
+  const neueFolge=(st.tmode==='random' && _letzteSpalten && _letzteSpalten!==cols.join(','));
+  _letzteSpalten=cols.join(',');
 
-  let h='<thead><tr><th>Aufgabe</th>';
+  let h=`<thead><tr><th>${T('Aufgabe', 'Task')}</th>`;
   for(const c of cols)
-    h+=`<th class="th-tip">$${SET_TEX[c]}$<span class="tip">${SET_NAME[c]}</span></th>`;
-  h+='<th class="th-tip">keiner<span class="tip">Keiner der angezeigten Bereiche</span></th>';
+    h+=`<th class="th-tip">$${SET_TEX[c]}$<span class="tip">${setName(c)}</span></th>`;
+  h+=`<th class="th-tip">${T('keiner', 'none')}<span class="tip">${T('Keiner der angezeigten Bereiche', 'None of the sets shown')}</span></th>`;
   h+='</tr></thead><tbody><tr>';
-  h+=`<td class="cell-task" id="tcell-task">$${currentTask.tex}$</td>`;
+  h+=`<td class="cell-task" id="tcell-task">$${zahlTex(currentTask)}$</td>`;
   for(const c of cols)
-    h+=`<td id="tcell-${c}"><input type="checkbox" id="cb-${c}" onchange="onCbChange('${c}')"></td>`;
-  h+=`<td id="tcell-none"><input type="checkbox" id="cb-none" onchange="onCbChange('none')"></td>`;
+    h+=`<td id="tcell-${c}" onclick="zelleKlick(event,'${c}')"><input type="checkbox" id="cb-${c}" onchange="onCbChange('${c}')"></td>`;
+  h+=`<td id="tcell-none" onclick="zelleKlick(event,'none')"><input type="checkbox" id="cb-none" onchange="onCbChange('none')"></td>`;
   h+='</tr></tbody>';
   document.getElementById('taskTable').innerHTML=h;
   texify(document.getElementById('taskTable'));
+  if(neueFolge){
+    /* Nur die Spalten der Zahlbereiche blinken - „Aufgabe" und „keiner" nicht. */
+    const kopf=document.querySelectorAll('#taskTable thead th');
+    for(let i=1;i<kopf.length-1;i++) blinken(kopf[i]);
+  }
 }
 
 const getCb = k=>document.getElementById('cb-'+k);
+/* Ein Druck irgendwo in die Zelle setzt das Kästchen - man muss es nicht
+   genau treffen. */
+function zelleKlick(ev,key){
+  const cb=getCb(key);
+  if(!cb||cb.disabled) return;
+  if(ev.target===cb) return;            /* das Kästchen selbst war schon dran */
+  cb.checked=!cb.checked;
+  onCbChange(key);
+}
 
 function onCbChange(key){
   if(taskAnswered) return;
@@ -600,7 +993,169 @@ function expectedChecks(task, cols){
 }
 
 function hintSuffix(task){
-  return task.hint ? ` <em style="color:#555;font-weight:normal;">(vereinfacht: $${task.hint}$)</em>` : '';
+  return task.hint
+    ? ` <em style="font-weight:normal;opacity:.8;">(${T('vereinfacht', 'simplified')}: $${zahlTex(task.hint)}$)</em>`
+    : '';
+}
+
+/* ── Begründungen ─────────────────────────────────────────────────────────
+   Nach jeder Antwort steht da, warum die Zahl dort liegt, warum sie auch in
+   allen Obermengen liegt - und warum sie eine Stufe tiefer nicht mehr
+   hineinpasst. Falsche Kreuze werden zusätzlich einzeln begründet.      */
+
+/* Der „eigene" Bereich der Zahl: der kleinste, in den sie gehört. */
+const PRIM = { N:'N', Z:'Z', Q:'Q', I:'I', C_only:'C', none:null };
+
+/* Was ist das Besondere an dieser Zahl? „ziel" ist der Bereich, der gerade
+   begründet wird. Bei einer irrationalen Zahl kommt es darauf an: in
+   $\mathbb{R}\setminus\mathbb{Q}$ liegt sie, weil sie kein Bruch ist - in
+   $\mathbb{R}$ dagegen, weil sie eine unendliche, nicht periodische
+   Dezimalzahl ist. „Kein Bruch" wäre dort gerade der Grund, warum sie NICHT
+   in $\mathbb{Q}$ liegt - und stünde damit im Widerspruch zum zweiten Satz. */
+function eigJa(task, ziel){
+  switch(task.cat){
+    case 'N': return T('ganz und nicht negativ', 'whole and not negative');
+    case 'Z': return T('eine ganze Zahl', 'a whole number');
+    case 'Q': return T('als Bruch zweier ganzer Zahlen schreibbar',
+                       'writable as a fraction of two integers');
+    case 'I': return (ziel === 'R' || ziel === 'C')
+      ? T('eine unendliche, nicht periodische Dezimalzahl (irrational)',
+          'an infinite, non-repeating decimal (irrational)')
+      : T('nicht als Bruch schreibbar (irrational)',
+          'not writable as a fraction (irrational)');
+    case 'C_only': return task.form === 'imag'
+      ? T('eine Zahl mit Imaginärteil', 'a number with an imaginary part')
+      : T('die Wurzel aus einer negativen Zahl', 'the square root of a negative number');
+    default: return T('gar keine Zahl', 'not a number at all');
+  }
+}
+/* Und warum passt sie eine Stufe tiefer nicht hinein? */
+function eigNein(task){
+  switch(task.cat){
+    case 'Z': return T('negativ', 'negative');
+    case 'Q': return T('keine ganze Zahl', 'not a whole number');
+    case 'I': return T('nicht als Bruch schreibbar', 'not writable as a fraction');
+    case 'C_only': return T('nicht reell', 'not real');
+    default: return T('gar keine Zahl', 'not a number at all');
+  }
+}
+
+/* Mengen aufzählen: „$\mathbb{Q}$ und $\mathbb{R}$" */
+const mengenName = k => k === 'none' ? T('„keiner"', '\u201cnone\u201d') : `$${SET_TEX[k]}$`;
+function mengenListe(keys){
+  const a = keys.map(mengenName);
+  if(a.length <= 1) return a.join('');
+  return a.slice(0, -1).join(', ') + T(' und ', ' and ') + a[a.length - 1];
+}
+
+/* Der kleinste Bereich, der gerade angezeigt wird und die Zahl enthält. Ist
+   die Spalte der irrationalen Zahlen aus, ist das bei ihnen $\mathbb{R}$ -
+   eine Begründung darf nur Bereiche nennen, die auch dastehen. */
+function primSichtbar(task){
+  const p = PRIM[task.cat], g = getShownSets();
+  if(p && g.includes(p)) return p;
+  const bt = belongsTo(task);
+  return g.filter(k => bt.includes(k))[0] || p;
+}
+
+/* Ein Satz zu genau einer Menge - gebraucht für jedes falsche Kreuz. */
+function mengeGrund(task, k, drin){
+  const x = `$${zahlTex(task)}$`, K = `$${SET_TEX[k]}$`;
+  if(task.cat === 'none')
+    return T(`Durch $0$ darf man nicht teilen – ${x} ist gar keine Zahl.`,
+             `Division by $0$ is not allowed – ${x} is not a number at all.`);
+  if(drin){
+    const prim = primSichtbar(task);
+    if(k === prim)
+      return T(`${x} ist ${eigJa(task, k)}, also $${zahlTex(task)} \\in ${SET_TEX[k]}$.`,
+               `${x} is ${eigJa(task, k)}, so $${zahlTex(task)} \\in ${SET_TEX[k]}$.`);
+    return T(`Jede Zahl aus $${SET_TEX[prim]}$ liegt auch in ${K}.`,
+             `Every number in $${SET_TEX[prim]}$ also lies in ${K}.`);
+  }
+  if(k === 'I')
+    return T(`${x} ist rational und liegt deshalb nicht in ${K}.`,
+             `${x} is rational, so it does not lie in ${K}.`);
+  return T(`${x} ist ${eigNein(task)} und liegt deshalb nicht in ${K}.`,
+           `${x} is ${eigNein(task)}, so it does not lie in ${K}.`);
+}
+
+/* Die ganze Begründung. „fokus" ist die Menge, nach der gefragt war. */
+function erklaerung(task, fokus){
+  if(!task) return '';
+  const g = getShownSets(), bt = belongsTo(task);
+  const drin = g.filter(k => bt.includes(k));
+  const x = `$${zahlTex(task)}$`;
+  const teile = [];
+
+  if(task.cat === 'none'){
+    teile.push(T(`Durch $0$ darf man nicht teilen – ${x} ist gar keine Zahl und gehört in keinen Zahlbereich.`,
+                 `Division by $0$ is not allowed – ${x} is not a number at all and belongs to no set.`));
+  } else if(drin.length){
+    const basis = drin[0], oben = drin.slice(1);
+    const kette = oben.length
+      ? T(` – und deshalb auch in ${mengenListe(oben)}`, ` – and therefore also in ${mengenListe(oben)}`)
+      : '';
+    teile.push(T(`${x} ist ${eigJa(task, basis)}, liegt also in $${SET_TEX[basis]}$${kette}.`,
+                 `${x} is ${eigJa(task, basis)}, so it lies in $${SET_TEX[basis]}$${kette}.`));
+  } else {
+    teile.push(T(`${x} ist ${eigJa(task)} – dafür ist hier kein Bereich angezeigt, deshalb „keiner".`,
+                 `${x} is ${eigJa(task)} – no set shown here contains it, hence \u201cnone\u201d.`));
+  }
+
+  /* Warum nicht eine Stufe tiefer? Gefragt wurde vielleicht nach einer
+     anderen Menge - dann steht die hier. */
+  if(task.cat !== 'none'){
+    const fehlend = ['C','R','I','Q','Z','N'].filter(k => g.includes(k) && !bt.includes(k));
+    const nein = (fokus && fehlend.includes(fokus)) ? fokus : fehlend[0];
+    if(nein) teile.push(mengeGrund(task, nein, false));
+  }
+  return teile.join(' ');
+}
+
+function erklBox(task, fokus){
+  const t = erklaerung(task, fokus);
+  return t ? `<div class="erkl">${t}</div>` : '';
+}
+
+/* Begründung ohne Mengennamen - die Mengen stehen in der Zeile schon davor. */
+function kurzGrund(task, k, drin){
+  const x = `$${zahlTex(task)}$`;
+  if(k === 'none') return drin
+    ? T('keiner der angezeigten Bereiche passt.', 'none of the sets shown fits.')
+    : T('die Zahl liegt ja in einem der Bereiche.', 'the number does lie in one of the sets.');
+  if(task.cat === 'none')
+    return T(`${x} ist gar keine Zahl - durch $0$ darf man nicht teilen.`,
+             `${x} is not a number at all - division by $0$ is not allowed.`);
+  if(drin){
+    const prim = primSichtbar(task);
+    return (k === prim)
+      ? T(`${x} ist ${eigJa(task, k)}.`, `${x} is ${eigJa(task, k)}.`)
+      : T(`jede Zahl aus $${SET_TEX[prim]}$ liegt auch dort.`,
+          `every number in $${SET_TEX[prim]}$ lies there too.`);
+  }
+  if(k === 'I') return T(`${x} ist rational.`, `${x} is rational.`);
+  return T(`${x} ist ${eigNein(task)}.`, `${x} is ${eigNein(task)}.`);
+}
+
+/* Jedes falsche Kreuz wird begründet. Kreuze mit derselben Begründung stehen
+   in einer Zeile - sonst steht dreimal dasselbe da. */
+function fehlerBox(task, zuviel, fehlt){
+  const zeilen = [];
+  const gruppen = (keys, drin) => {
+    const m = new Map();
+    for(const k of keys){
+      const g = kurzGrund(task, k, drin);
+      if(!m.has(g)) m.set(g, []);
+      m.get(g).push(k);
+    }
+    return [...m.entries()];
+  };
+  for(const [grund, keys] of gruppen(zuviel, false))
+    zeilen.push('<b>' + T('Zu viel:', 'Checked wrongly:') + '</b> ' + mengenListe(keys) + ' – ' + grund);
+  for(const [grund, keys] of gruppen(fehlt, true))
+    zeilen.push('<b>' + T('Gefehlt:', 'Missing:') + '</b> ' + mengenListe(keys) + ' – ' + grund);
+  if(!zeilen.length) return '';
+  return '<div class="erkl">' + zeilen.slice(0,3).join('<br>') + '</div>';
 }
 
 function checkTableAnswer(){
@@ -609,27 +1164,36 @@ function checkTableAnswer(){
   const cols=tableColOrder;
   const exp=expectedChecks(currentTask,cols);
   let allOk=true;
+  const zuviel=[], fehlt=[];
   for(const k of [...cols,'none']){
     const cb=getCb(k); const td=document.getElementById('tcell-'+k);
     if(!cb||!td) continue;
+    const war=cb.checked;
     cb.disabled=true;
-    if(cb.checked===exp[k]) td.classList.add('ok');
-    else { td.classList.add('err'); allOk=false; }
+    if(war===exp[k]) td.classList.add('ok');
+    else if(exp[k]){ td.classList.add('fehlt'); allOk=false; fehlt.push(k); }   /* vergessen */
+    else { td.classList.add('err'); allOk=false; zuviel.push(k); }
   }
-  if(allOk) showFeedback('fbTabelle','ok','✓ Richtig!'+hintSuffix(currentTask));
-  else showFeedback('fbTabelle','err','✗ Nicht ganz – die Markierungen zeigen die Lösung.'+hintSuffix(currentTask));
+  punkteZaehlen(allOk);
+  if(allOk){ showFeedback('fbTabelle','ok','✓ '+T('Richtig!', 'Correct!')+hintSuffix(currentTask)
+    +erklWenn(currentTask,null,true)); baldWeiter(); }
+  else showFeedback('fbTabelle','err','✗ '+T('Nicht ganz – die Markierungen zeigen die Lösung.', 'Not quite – the marks show the correct answer.')+hintSuffix(currentTask)
+    +fehlerBox(currentTask,zuviel,fehlt)+erklBox(currentTask));
 }
 
 function revealTableAnswer(){
   if(!currentTask) return;
   taskAnswered=true;
+  punkteZaehlen(false);
   const cols=tableColOrder;
   const exp=expectedChecks(currentTask,cols);
   for(const k of [...cols,'none']){
     const cb=getCb(k); const td=document.getElementById('tcell-'+k);
     if(!cb||!td) continue;
+    const vorher=cb.checked;
     cb.checked=exp[k]; cb.disabled=true;
-    if(exp[k]) td.classList.add('ok');
+    if(exp[k]) td.classList.add(vorher ? 'ok' : 'fehlt');       /* was fehlte, gelb */
+    else if(vorher) td.classList.add('err');
   }
   const bt=belongsTo(currentTask);
   const rightCols=cols.filter(c=>bt.includes(c));
@@ -637,7 +1201,9 @@ function revealTableAnswer(){
     ? 'keiner der angezeigten Zahlbereiche'
     : rightCols.map(c=>`$${SET_TEX[c]}$`).join(', ');
   showFeedback('fbTabelle','info',
-    `Lösung:&nbsp;$${currentTask.tex}$ liegt in ${sol}.${hintSuffix(currentTask)}`);
+    T(`Lösung:&nbsp;$${zahlTex(currentTask)}$ liegt in ${sol}.${hintSuffix(currentTask)}`,
+      `Solution:&nbsp;$${zahlTex(currentTask)}$ lies in ${sol}.${hintSuffix(currentTask)}`)
+    + erklBox(currentTask));
 }
 
 /* ════════════════════════════════════════════════════════
@@ -645,13 +1211,28 @@ function revealTableAnswer(){
    ════════════════════════════════════════════════════════ */
 function buildVennSvg(shownSets){
   const svg=document.getElementById('vennSvg');
-  const cx=250, cy=162, W=500, H=330;
+  const d=dunkelModus();
+  const cx=250, cy=168, W=500, H=336;
+  /* Die Zeichenfläche richtet sich nach der Zeichnung - sonst fehlt unten ein
+     Streifen und der Rahmen von „keiner" ist angeschnitten. */
+  svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+  const LINIE = d ? '#c6ced6' : '#45506a';
+  const TEXT  = d ? '#e7eae8' : '#2b3345';
 
-  // Ringe von außen nach innen: C, R, I, Q, Z, N — nur die angezeigten
-  const ringOrder=['C','R','I','Q','Z','N'].filter(k=>shownSets.includes(k));
-  const drawn=ringOrder.map(k=>({key:k,rx:RING_SIZE[k][0],ry:RING_SIZE[k][1]}));
+  /* Ringe von außen nach innen. Ist „ℝ\ℚ" eingeschaltet, tritt dieser Ring an
+     die Stelle von ℝ: der Kranz zwischen ℚ und außen ist genau ℝ ohne ℚ. */
+  const mitI = shownSets.includes('I');
+  const ringOrder = ['C','R','I','Q','Z','N']
+    .filter(k => shownSets.includes(k))
+    .filter(k => !(mitI && k === 'R'));
+  const GROESSE = Object.assign({}, RING_SIZE);
+  if (mitI) GROESSE.I = RING_SIZE.R;            /* der Ring von ℝ wird zu ℝ\ℚ */
+  const drawn = ringOrder.map(k => ({ key:k, rx:GROESSE[k][0], ry:GROESSE[k][1] }));
 
-  let defs='<defs>';
+  let defs='<defs>'
+    + '<pattern id="vn-schraff" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">'
+    + '<line x1="0" y1="0" x2="0" y2="9" stroke="' + LINIE + '" stroke-width="1.1" opacity=".45"/>'
+    + '</pattern>';
   for(let i=0;i<drawn.length;i++){
     const {key,rx,ry}=drawn[i];
     const inn=drawn[i+1];
@@ -663,44 +1244,56 @@ function buildVennSvg(shownSets){
   if(drawn.length>0){
     const out=drawn[0];
     defs+=`<mask id="mk-none">
-      <rect x="0" y="0" width="${W}" height="${H}" fill="white"/>
+      <rect x="3" y="3" width="${W-6}" height="${H-6}" rx="14" fill="white"/>
       <ellipse cx="${cx}" cy="${cy}" rx="${out.rx}" ry="${out.ry}" fill="black"/>
     </mask>`;
   }
   defs+='</defs>';
 
+  /* Die Flächen sind durchsichtig - nur die Rahmen tragen die Zeichnung.
+     Zum Anklicken bekommen sie eine unsichtbare Füllung. */
   let shapes='';
-  // keiner-Hintergrund
   const hasOut=drawn.length>0;
+  shapes+=`<rect x="3" y="3" width="${W-6}" height="${H-6}" rx="14"
+    fill="none" stroke="${LINIE}" stroke-width="1.6" opacity=".75" pointer-events="none"/>`;
   shapes+=`<rect class="venn-ring" id="vr-none" data-ring="none"
-    x="0" y="0" width="${W}" height="${H}"
-    fill="${RING_COLOR.none}" ${hasOut?`mask="url(#mk-none)"`:''}
-    pointer-events="visibleFill" onclick="vennClick('none')"/>`;
+    x="3" y="3" width="${W-6}" height="${H-6}" rx="14"
+    fill="transparent" ${hasOut?`mask="url(#mk-none)"`:''}
+    pointer-events="all" onclick="vennClick('none')"/>`;
 
   for(const {key,rx,ry} of drawn){
+    const schraff = (key==='I');
+    /* Die anklickbare Fläche bleibt durchsichtig - so kann das Überfahren sie
+       einfärben. Die Schraffur liegt als eigene Lage darüber. */
     shapes+=`<ellipse class="venn-ring" id="vr-${key}" data-ring="${key}"
       cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}"
-      fill="${RING_COLOR[key]}" stroke="#777" stroke-width="1.5"
+      fill="transparent"
+      stroke="${LINIE}" stroke-width="1.8"
       mask="url(#mk-${key})"
-      pointer-events="visibleFill"
+      pointer-events="all"
       onclick="vennClick('${key}')"/>`;
+    if(schraff)
+      shapes+=`<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}"
+        fill="url(#vn-schraff)" stroke="none" mask="url(#mk-${key})"
+        pointer-events="none"/>`;
+    /* Der Rand des Rings gehört zur Zeichnung und soll nicht maskiert sein. */
+    shapes+=`<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}"
+      fill="none" stroke="${LINIE}" stroke-width="1.8" pointer-events="none"/>`;
   }
 
-  // Labels
   let labels='';
-  // keiner-Label: oben links, innerhalb des Hintergrundbereichs
-  const offX = hasOut ? cx - drawn[0].rx + 12 : 10;
-  labels+=`<text x="${offX}" y="18" font-size="13" font-weight="bold"
-    fill="#777" pointer-events="none" font-family="sans-serif">keiner</text>`;
+  const offX = hasOut ? cx - drawn[0].rx + 14 : 14;
+  labels+=`<text x="${offX}" y="24" font-size="13" font-weight="bold"
+    fill="${TEXT}" opacity=".8" pointer-events="none" font-family="sans-serif">${T('keiner','none')}</text>`;
 
   for(let i=0;i<drawn.length;i++){
     const {key,ry}=drawn[i];
     const inn=drawn[i+1];
     const midRy = inn ? (ry+inn.ry)/2 : ry*0.55;
-    const labelY = Math.max(14, cy-midRy+1);
+    const labelY = Math.max(18, cy-midRy+2);
     labels+=`<text x="${cx}" y="${labelY}"
-      font-size="${inn?'13':'14'}" font-weight="bold"
-      fill="#333" text-anchor="middle" pointer-events="none"
+      font-size="${inn?'13.5':'15'}" font-weight="bold"
+      fill="${TEXT}" text-anchor="middle" pointer-events="none"
       font-family="sans-serif">${SET_LABEL[key]}</text>`;
   }
 
@@ -711,7 +1304,7 @@ function renderVennTask(){
   const shownSets=getShownSets();
   buildVennSvg(shownSets);
   const d=document.getElementById('vennTaskText');
-  d.innerHTML=`<strong>In welchen Bereich gehört:</strong>&ensp;$${currentTask.tex}$`;
+  d.innerHTML=`<strong>${T('In welchen Bereich gehört:', 'Which set does this belong to:')}</strong>&ensp;$${zahlTex(currentTask)}$`;
   hideFeedback('fbVenn');
   texify(d);
 }
@@ -732,16 +1325,45 @@ function vennClick(ringKey){
   const clickedEl=document.getElementById('vr-'+ringKey);
   const correctEl=document.getElementById('vr-'+cr);
   const task=currentTask;
-  const cLabel = cr==='none' ? 'keiner der angezeigten Bereiche' : `$${SET_TEX[cr]}$`;
+  const cLabel = cr==='none' ? T('keiner der angezeigten Bereiche', 'none of the sets shown') : `$${SET_TEX[cr]}$`;
 
+  punkteZaehlen(ringKey===cr);
   if(ringKey===cr){
-    if(clickedEl){clickedEl.style.stroke='#1f6b24';clickedEl.style.strokeWidth='3';}
-    showFeedback('fbVenn','ok',`✓ Richtig! $${task.tex}$ liegt in ${cLabel}.${hintSuffix(task)}`);
+    if(clickedEl){ clickedEl.style.fill=dunkelModus()?'rgba(76,175,80,.30)':'rgba(76,175,80,.22)';
+      clickedEl.style.stroke=dunkelModus()?'#7bd47f':'#1f6b24'; clickedEl.style.strokeWidth='3'; }
+    showFeedback('fbVenn','ok', T(`✓ Richtig! $${zahlTex(task)}$ liegt in ${cLabel}.${hintSuffix(task)}`,
+                                   `✓ Correct! $${zahlTex(task)}$ lies in ${cLabel}.${hintSuffix(task)}`)
+                                 + erklWenn(task,null,true));
+    baldWeiter();
   } else {
-    if(clickedEl){clickedEl.style.fill='#f0a0a0';clickedEl.style.stroke='#cc0000';clickedEl.style.strokeWidth='2.5';}
-    if(correctEl){correctEl.style.fill='#a0f0a0';correctEl.style.stroke='#007700';correctEl.style.strokeWidth='2.5';}
-    showFeedback('fbVenn','err',`✗ $${task.tex}$ gehört in ${cLabel}.${hintSuffix(task)}`);
+    const d=dunkelModus();
+    if(clickedEl){ clickedEl.style.fill=d?'rgba(200,80,80,.35)':'rgba(220,70,70,.22)';
+      clickedEl.style.stroke=d?'#e08080':'#cc0000'; clickedEl.style.strokeWidth='2.5'; }
+    if(correctEl){ correctEl.style.fill=d?'rgba(76,175,80,.32)':'rgba(76,175,80,.24)';
+      correctEl.style.stroke=d?'#7bd47f':'#007700'; correctEl.style.strokeWidth='2.5'; }
+    showFeedback('fbVenn','err', T(`✗ $${zahlTex(task)}$ gehört in ${cLabel}.${hintSuffix(task)}`,
+                                    `✗ $${zahlTex(task)}$ belongs to ${cLabel}.${hintSuffix(task)}`)
+                                  + erklBox(task));
   }
+}
+
+/** Lösung im Venn-Diagramm zeigen, ohne zu raten. */
+function revealVennAnswer(){
+  if(!currentTask||taskAnswered) return;
+  taskAnswered=true;
+  punkteZaehlen(false);
+  document.querySelectorAll('.venn-ring').forEach(el=>{
+    el.classList.add('answered'); el.classList.remove('venn-ring');
+  });
+  const cr=correctRing(currentTask,getShownSets());
+  const correctEl=document.getElementById('vr-'+cr);
+  if(correctEl){ correctEl.style.fill=dunkelModus()?'rgba(255,213,79,.35)':'rgba(255,213,79,.45)';
+    correctEl.style.stroke=dunkelModus()?'#ffd54f':'#b08900'; correctEl.style.strokeWidth='2.5'; }
+  const cLabel = cr==='none' ? T('keiner der angezeigten Bereiche', 'none of the sets shown') : `$${SET_TEX[cr]}$`;
+  showFeedback('fbVenn','info',
+    T(`Lösung:&nbsp;$${zahlTex(currentTask)}$ liegt in ${cLabel}.${hintSuffix(currentTask)}`,
+      `Solution:&nbsp;$${zahlTex(currentTask)}$ lies in ${cLabel}.${hintSuffix(currentTask)}`)
+    + erklBox(currentTask));
 }
 
 /* ════════════════════════════════════════════════════════
@@ -753,7 +1375,7 @@ function renderInNotinTask(){
   innotinIsIn=belongsTo(currentTask).includes(innotinSet);
 
   const d=document.getElementById('innotinTask');
-  d.innerHTML=`$${currentTask.tex}$<span style="color:#bbb;margin:0 .1em;">?</span>$${SET_TEX[innotinSet]}$`;
+  d.innerHTML=`$${zahlTex(currentTask)}$<span style="color:#bbb;margin:0 .1em;">?</span>$${SET_TEX[innotinSet]}$`;
 
   const bi=document.getElementById('btnIn');
   const bn=document.getElementById('btnNotIn');
@@ -774,21 +1396,149 @@ function answerInNotin(isIn){
   const task=currentTask;
   const sym=innotinIsIn?'\\in':'\\notin';
 
+  punkteZaehlen(isIn===innotinIsIn);
   if(isIn===innotinIsIn){
     (isIn?bi:bn).className='btn-show-ok';
+    (isIn?bn:bi).className='';
     showFeedback('fbInNotin','ok',
-      `✓ Richtig! Es gilt $${task.tex}${innotinIsIn?' \\in ':' \\notin '}${SET_TEX[innotinSet]}$.${hintSuffix(task)}`);
+      T(`✓ Richtig! Es gilt $${zahlTex(task)}${innotinIsIn?' \\in ':' \\notin '}${SET_TEX[innotinSet]}$.${hintSuffix(task)}`,
+        `✓ Correct! We have $${zahlTex(task)}${innotinIsIn?' \\in ':' \\notin '}${SET_TEX[innotinSet]}$.${hintSuffix(task)}`)
+      + erklWenn(task, innotinSet, true));
+    baldWeiter();
   } else {
+    /* Falsch geklickt: der eigene Knopf rot, der richtige grün. Gelb bleibt
+       dem Aufdecken vorbehalten. */
     (isIn?bi:bn).className='btn-show-err';
     (innotinIsIn?bi:bn).className='btn-show-ok';
     showFeedback('fbInNotin','err',
-      `✗ Falsch. Es gilt $${task.tex} ${sym} ${SET_TEX[innotinSet]}$.${hintSuffix(task)}`);
+      T(`✗ Falsch. Es gilt $${zahlTex(task)} ${sym} ${SET_TEX[innotinSet]}$.${hintSuffix(task)}`,
+        `✗ Wrong. We have $${zahlTex(task)} ${sym} ${SET_TEX[innotinSet]}$.${hintSuffix(task)}`)
+      + erklBox(task, innotinSet));
   }
 }
+
+/** Lösung bei den einzelnen Mengen zeigen. */
+function revealInNotinAnswer(){
+  if(!currentTask||taskAnswered) return;
+  taskAnswered=true;
+  punkteZaehlen(false);
+  const bi=document.getElementById('btnIn'), bn=document.getElementById('btnNotIn');
+  bi.disabled=true; bn.disabled=true;
+  (innotinIsIn?bi:bn).className='btn-show-fehlt';
+  const sym=innotinIsIn?'\\in':'\\notin';
+  showFeedback('fbInNotin','info',
+    T(`Lösung:&nbsp;Es gilt $${zahlTex(currentTask)} ${sym} ${SET_TEX[innotinSet]}$.${hintSuffix(currentTask)}`,
+      `Solution:&nbsp;We have $${zahlTex(currentTask)} ${sym} ${SET_TEX[innotinSet]}$.${hintSuffix(currentTask)}`)
+    + erklBox(currentTask, innotinSet));
+}
+
+/** Kurz aufblinken lassen - so sieht man, dass sich etwas von selbst geändert hat. */
+function blinken(el){
+  if(!el) return;
+  el.classList.remove('blinkt');
+  void el.offsetWidth;                    /* Neustart der Abspielung erzwingen */
+  el.classList.add('blinkt');
+  setTimeout(()=>el.classList.remove('blinkt'), 2400);
+}
+/** Nach einer richtigen Antwort kommt von selbst die nächste Aufgabe.
+    Wer das nicht mag, drückt lange auf „Neue Aufgabe generieren" - dann
+    bleibt die gelöste Aufgabe stehen. Der Knopf zeigt, was gerade gilt. */
+let autoWeiter=true;
+let _weiterZeit=null;
+function baldWeiter(){
+  if(!autoWeiter) return;
+  if(_weiterZeit) clearTimeout(_weiterZeit);
+  _weiterZeit=setTimeout(()=>{ _weiterZeit=null; newTask(); }, 2200);
+}
+/* Ist der Sprung eingeschaltet, reicht bei einer richtigen Antwort die grüne
+   Markierung - für eine Begründung bliebe gar keine Zeit. */
+function erklWenn(task, fokus, richtig){
+  return (richtig && autoWeiter) ? '' : erklBox(task, fokus);
+}
+function autoMalen(){
+  document.querySelectorAll('#genRow button, #genRow2 button').forEach(b=>{
+    if(b.classList.contains('zb-reset')) return;
+    b.classList.toggle('auto-an', autoWeiter);
+    b.classList.toggle('auto-aus', !autoWeiter);
+    b.title = autoWeiter
+      ? T('Automatische Aufgabe ist an: nach einer richtigen Antwort kommt die nächste von selbst. Langes Drücken schaltet sie ab.',
+          'Automatic next task is on: after a correct answer the next one follows by itself. A long press switches it off.')
+      : T('Automatische Aufgabe ist aus. Langes Drücken schaltet sie ein.',
+          'Automatic next task is off. A long press switches it on.');
+  });
+}
+function autoUmschalten(){
+  autoWeiter=!autoWeiter;
+  if(!autoWeiter && _weiterZeit){ clearTimeout(_weiterZeit); _weiterZeit=null; }
+  autoMalen();
+  updateURL();
+}
+/* Langes Drücken auf dem Knopf schaltet um - ohne dass die Seite dafür einen
+   weiteren Schalter braucht. */
+function autoVerdrahten(){
+  document.querySelectorAll('#genRow button, #genRow2 button').forEach(b=>{
+    if(b.classList.contains('zb-reset')) return;
+    let t=null, lang=false;
+    b.addEventListener('pointerdown',ev=>{
+      if(ev.button!=null&&ev.button!==0) return;
+      lang=false;
+      t=setTimeout(()=>{ lang=true; autoUmschalten(); }, 550);
+    });
+    ['pointerup','pointerleave','pointercancel'].forEach(e=>
+      b.addEventListener(e,()=>clearTimeout(t)));
+    b.addEventListener('contextmenu',ev=>{ ev.preventDefault(); clearTimeout(t); lang=true; autoUmschalten(); });
+    b.addEventListener('click',ev=>{
+      clearTimeout(t);
+      if(lang){ lang=false; ev.preventDefault(); ev.stopImmediatePropagation(); }
+    }, true);
+  });
+  autoMalen();
+}
+/* Punktestand wie auf den anderen Seiten. Eine Aufgabe zählt genau einmal. */
+let punkte={ok:0,n:0};
+/* Jeder Spielmodus führt zusätzlich seinen eigenen Stand - er steht rechts in
+   seiner Kachel und bleibt leer, solange es dort keine Aufgabe gab. */
+let punkteModus={};
+function punkteMalen(){
+  document.querySelectorAll('.zb-zaehler').forEach(e=>{
+    e.textContent=T('Richtig: '+punkte.ok+' / '+punkte.n, 'Correct: '+punkte.ok+' / '+punkte.n);
+  });
+  if(window.abKachelZaehler)
+    abKachelZaehler(document.getElementById('segModi'), punkteModus);
+}
+function punkteZaehlen(richtig){
+  if(_gezaehlt) return;
+  _gezaehlt=true;
+  punkte.n++; if(richtig) punkte.ok++;
+  const id=(MODI.find(m=>m[0]===st.mode)||[])[1];
+  if(id){
+    if(!punkteModus[id]) punkteModus[id]={ok:0,n:0};
+    punkteModus[id].n++; if(richtig) punkteModus[id].ok++;
+  }
+  punkteMalen();
+}
+let _gezaehlt=false;
 
 /* ════════════════════════════════════════════════════════
    MODUSWECHSEL & EINSTELLUNGEN
    ════════════════════════════════════════════════════════ */
+const MODI = [['tabelle','mTabelle'], ['venn','mVenn'], ['innotin','mInNotin']];
+/* Welche Modi sind angehakt? Mindestens einer bleibt immer übrig. */
+function aktiveModi(){
+  const l = MODI.filter(m => { const c=document.getElementById(m[1]); return c && c.checked; })
+                .map(m => m[0]);
+  return l.length ? l : ['tabelle'];
+}
+/* Für die nächste Aufgabe einen Modus auslosen. */
+function modusLosen(){
+  const l = aktiveModi();
+  return l[Math.floor(Math.random()*l.length)];
+}
+function modiMalen(){
+  const host=document.getElementById('segModi');
+  if(host && window.abKachelnMalen) abKachelnMalen(host);
+  if(host && window.abKachelAktuell) abKachelAktuell(host, MODI.find(m=>m[0]===st.mode)?.[1] || null);
+}
 function switchMode(mode){
   st.mode=mode;
   document.getElementById('modeTabelle').classList.toggle('hide',mode!=='tabelle');
@@ -796,8 +1546,8 @@ function switchMode(mode){
   document.getElementById('modeInNotin').classList.toggle('hide',mode!=='innotin');
   updateShowIVisibility();
   if(mode==='venn') buildVennSvg(getShownSets());
+  modiMalen();
   updateURL();
-  newTask();
 }
 
 function updateShowIVisibility(){
@@ -811,14 +1561,91 @@ function updateShowIVisibility(){
   if(note) note.style.display=applicable?'none':'inline';
 }
 
+/* ── Schwierigkeitsstufen ──────────────────────────────────────────────────
+   Die Stufe setzt den größten Zahlbereich und die eigene Spalte für die
+   irrationalen Zahlen. Der Spielmodus hat seinen eigenen Schalter und bleibt
+   unangetastet; jede Einstellung steht weiterhin einzeln im
+   Einstellungsbereich.                                                     */
+/* Die Stufe stellt den Regler „versteckte Zahlen" ein. */
+const STUFEN = {
+  einf:   { versteckt:0,   tmode:'auto'   },
+  leicht: { versteckt:0,   tmode:'single' },
+  normal: { versteckt:50,  tmode:'single' },
+  schwer: { versteckt:100, tmode:'random' }
+};
+/* Hat die Nutzerin den Antwortmodus selbst gewählt, bleibt er stehen. */
+let tmodeVonHand = false;
+function stufe(){
+  const e=document.querySelector('input[name="diff"]:checked');
+  return e?e.value:'normal';
+}
+/* Ein Blick auf alle Einstellungen - so wie auf den anderen Aufgabenseiten.
+   Der maximale Zahlbereich gehört bewusst nicht zur Schwierigkeit: den stellt
+   die Lehrkraft für ihre Klasse ein und gibt ihn per Link weiter. */
+function einstellungen(){
+  return { modi:aktiveModi().join(','), maxIdx:st.maxIdx, showI:st.showI, tmode:st.tmode,
+           versteckt:Math.round(verstecktAnteil()*100), modiVonHand:modiVonHand,
+           diff:stufe() };
+}
+function stufeAnwenden(name){
+  const v=STUFEN[name];
+  if(!v) return;
+  const r=document.getElementById('verstecktRegler');
+  if(r) r.value=v.versteckt;
+  if(v.tmode && !tmodeVonHand && st.tmode!==v.tmode){
+    st.tmode=v.tmode;
+    const el=document.querySelector(`input[name="tmode"][value="${v.tmode}"]`);
+    if(el){ el.checked=true; blinken(el.closest('label')); }
+    refreshActiveLabels();
+  }
+  modiNachStufe(name);
+  verstecktUI();
+}
+/* Welche Stufe ist die wievielte? Die Sterne an den Kästchen (data-stufe)
+   sagen, ab welcher Stufe ein Spielmodus dazukommt. */
+const STUFEN_NR = { einf:1, leicht:2, normal:3, schwer:4 };
+/* Hat die Nutzerin die Modi selbst gewählt, lässt die Schwierigkeit sie von
+   da an in Ruhe. */
+let modiVonHand = false;
+function modiNachStufe(name){
+  const n = STUFEN_NR[name];
+  if(!n || modiVonHand) return;
+  const ziel = {}; let eins = false;
+  MODI.forEach(m => {
+    const c = document.getElementById(m[1]);
+    if(!c || !c.dataset || !c.dataset.stufe) return;
+    ziel[m[1]] = (parseInt(c.dataset.stufe,10)||1) <= n;
+    if(ziel[m[1]]) eins = true;
+  });
+  if(!eins) return;                  /* nie alles abschalten */
+  Object.keys(ziel).forEach(id => { document.getElementById(id).checked = ziel[id]; });
+  /* Welcher Modus dran ist, lost die nächste Aufgabe ohnehin neu aus. */
+  modiMalen();
+}
+/* Der Regler zeigt seinen Wert an. */
+function verstecktUI(){
+  const r=document.getElementById('verstecktRegler');
+  const w=document.getElementById('verstecktWert');
+  if(r && w) w.innerHTML=r.value+'&nbsp;%';
+}
+function aufIndividuell(){
+  if(stufe()==='indiv') return;
+  const e=document.querySelector('input[name="diff"][value="indiv"]');
+  if(e){ e.checked=true; if(window.abGliderAlle) abGliderAlle(); verstecktUI(); }
+}
+
 /* ════════════════════════════════════════════════════════
    URL-PERSISTENZ
    ════════════════════════════════════════════════════════ */
 function updateURL(){
   const u=new URL(window.location);
-  u.searchParams.set('mode', st.mode);
+  u.searchParams.set('modi', aktiveModi().join(','));
+  if(modiVonHand) u.searchParams.set('mh','1'); else u.searchParams.delete('mh');
   u.searchParams.set('max',  st.maxIdx);
   u.searchParams.set('showI',st.showI?'1':'0');
+  u.searchParams.set('diff', stufe());
+  u.searchParams.set('versteckt', String(Math.round(verstecktAnteil()*100)));
+  if(autoWeiter) u.searchParams.delete('auto'); else u.searchParams.set('auto','0');
   const tm=document.querySelector('input[name="tmode"]:checked');
   if(tm) u.searchParams.set('tmode',tm.value);
   history.replaceState({},'',u);
@@ -828,19 +1655,30 @@ function loadURL(){
   const u=new URL(window.location);
   const g=(k,d)=>u.searchParams.has(k)?u.searchParams.get(k):d;
 
-  st.mode  = g('mode','tabelle');
+  autoWeiter = g('auto','1')!=='0';
+  modiVonHand = g('mh','0')==='1';
+  if(u.searchParams.has('modi')){
+    const l=g('modi','tabelle').split(',').filter(Boolean);
+    MODI.forEach(m=>{ const c=document.getElementById(m[1]); if(c) c.checked = l.indexOf(m[0])>=0; });
+    if(!aktiveModi().length){ const c=document.getElementById('mTabelle'); if(c) c.checked=true; }
+  } else modiNachStufe(g('diff','normal'));
+  st.mode  = aktiveModi()[0];
   st.maxIdx= Math.min(4,Math.max(0,parseInt(g('max','3'))||3));
   st.showI = g('showI','0')==='1';
   const tmVal=g('tmode','single');
 
   // DOM-Elemente setzen
-  const mEl=document.querySelector(`input[name="spielmodus"][value="${st.mode}"]`);
-  if(mEl) mEl.checked=true;
   document.getElementById('maxSetSlider').value=st.maxIdx;
   document.getElementById('cbShowI').checked=st.showI;
   const tmEl=document.querySelector(`input[name="tmode"][value="${tmVal}"]`);
   if(tmEl) tmEl.checked=true;
   st.tmode=tmVal;
+  const dEl=document.querySelector(`input[name="diff"][value="${g('diff','normal')}"]`);
+  if(dEl) dEl.checked=true;
+  const r=document.getElementById('verstecktRegler');
+  if(r && u.searchParams.has('versteckt')) r.value = g('versteckt','50');
+  else if(r && STUFEN[g('diff','normal')]) r.value = STUFEN[g('diff','normal')].versteckt;
+  verstecktUI();
 
   // Aktive Labels hervorheben
   refreshActiveLabels();
@@ -875,11 +1713,30 @@ document.addEventListener('DOMContentLoaded', ()=>{
   document.getElementById('modeVenn').classList.toggle('hide',st.mode!=='venn');
   document.getElementById('modeInNotin').classList.toggle('hide',st.mode!=='innotin');
   if(st.mode==='venn') buildVennSvg(getShownSets());
+  modiMalen();
 
   // Spielmodus-Umschalten → neue Aufgabe
-  document.querySelectorAll('input[name="spielmodus"]').forEach(el=>
-    el.addEventListener('change',()=>{ st.mode=el.value; switchMode(el.value); refreshActiveLabels(); })
-  );
+  document.querySelectorAll('.zb-reset').forEach(b=>b.addEventListener('click',()=>{
+    punkte.ok=0; punkte.n=0; punkteModus={}; punkteMalen();
+  }));
+  punkteMalen();
+  autoVerdrahten();
+  window.addEventListener('tl-sprache', autoMalen);
+
+  // Spielmodi: Kacheln über der Aufgabe, Kästchen in den Einstellungen
+  const modiHost=document.getElementById('segModi');
+  if(modiHost && window.abKacheln){
+    abKacheln(modiHost, MODI.map(m=>({ haupt:m[1], nurDieser:true })), ()=>{
+      modiVonHand=true; updateURL(); newTask();
+    });
+  }
+  MODI.forEach(m=>{
+    const c=document.getElementById(m[1]);
+    if(c) c.addEventListener('change',()=>{
+      if(!aktiveModi().length) c.checked=true;
+      modiVonHand=true; modiMalen(); updateURL(); newTask();
+    });
+  });
 
   // Slider: maximaler Zahlbereich
   document.getElementById('maxSetSlider').addEventListener('input',function(){
@@ -897,9 +1754,24 @@ document.addEventListener('DOMContentLoaded', ()=>{
     updateURL();
   });
 
+  // Gestalt der Zahlen
+  const reg=document.getElementById('verstecktRegler');
+  if(reg) reg.addEventListener('input',()=>{ verstecktUI(); aufIndividuell(); updateURL(); newTask(); });
+
+  // Schwierigkeitsstufe
+  document.querySelectorAll('input[name="diff"]').forEach(el=>
+    el.addEventListener('change',()=>{
+      if(el.value!=='indiv') stufeAnwenden(el.value);
+      else if(window.abEinstellungenOeffnen) abEinstellungenOeffnen('#settingsBox');
+      updateURL();
+      newTask();
+    })
+  );
+
   // Tabellenantwort-Modus
   document.querySelectorAll('input[name="tmode"]').forEach(el=>
     el.addEventListener('change',()=>{
+      tmodeVonHand=true;          /* ab jetzt lässt die Stufe ihn in Ruhe */
       st.tmode=el.value;
       if(st.mode==='tabelle'&&currentTask){
         if(el.value==='random') tableColOrder=shuffle([...getShownSets()]);
@@ -925,6 +1797,17 @@ document.addEventListener('DOMContentLoaded', ()=>{
   // sonst übernimmt startup.ready den newTask()-Aufruf
 });
 </script>
-<script src="last-update.js" defer></script>
+<script src="last-update.js" defer>
+</script>
+<script>
+/* Beim Klick auf "Fehler melden" wird die gerade angezeigte Aufgabe
+   mitgeschickt - direkt aus dem DOM, also immer der aktuelle Stand. */
+window.fehlerKontext = function () {
+  const el = document.getElementById('tcell-task') || document.getElementById('innotinTask')
+           || document.getElementById('taskTable');
+  if (!el) return '';
+  return (typeof tlFormelText === 'function') ? tlFormelText(el) : el.innerText;
+};
+</script>
 </body>
 </html>

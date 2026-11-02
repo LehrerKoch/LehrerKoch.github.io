@@ -3,17 +3,20 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="shortcut icon" type="image/x-icon" href="aleph_zero_logo.ico">
+<script>try{var t=localStorage.getItem('matheToolsTheme');if(t==='dark'||(!t&&window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.classList.add('dark');}catch(e){}</script>
+<script src="theme-language.js" defer></script>
 
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-5K8WYYXDL2"></script>
-    <script>
+    <!-- Besuchszaehlung (Google Analytics). Geladen wird sie erst, wenn der
+         Besucher zustimmt - siehe einwilligung.js. -->
+<script>
         window.dataLayer = window.dataLayer || [];
         function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-        gtag('config', 'G-5K8WYYXDL2');
+        window.TK_GA_ID = 'G-5K8WYYXDL2';   /* Google Analytics laedt erst nach Einwilligung, siehe einwilligung.js */
     </script>
+<script src="einwilligung.js" defer></script>
 
-<title>Trio</title>
+<title data-de="Trio" data-en="Trio">Trio</title>
 <style>
 
 body {
@@ -26,7 +29,6 @@ body {
   justify-content: flex-start;
   min-height: 100vh;
   background-color: #f4f4f4;
-  overflow-y: scroll;
 }
 
 /* ── Spielregeln ─────────────────────────────── */
@@ -191,18 +193,44 @@ button {
 .footer-content > :last-child   { justify-self: end; }
 .footer-topic a { color: inherit; text-decoration: underline; }
 
+/* ══ Dark Mode (Hellmodus bleibt unverändert) ══ */
+html.dark { color-scheme: dark; background: #14181c; }
+html.dark body { background-color: #14181c; color: #e7eae8; }
+html.dark #rules-section { background: #1c2229; border-color: #3a434b; color: #c3ccd4; }
+html.dark #trio-container { border-color: #4a545e; }
+html.dark .trio-cell { border-color: #4a545e; color: #14181c; }
+html.dark .label-cell { background-color: #232a32; color: #c3ccd4; }
+html.dark .trio-cell.selected { outline-color: #5b9bd5; }
+html.dark .trio-cell.no-sol { background-color: #3a3218 !important; outline-color: #ffc107 !important; color: #f0e6c8 !important; }
+html.dark #result-panel.ok  { background: #16301a; border-color: #43a047; }
+html.dark #result-panel.err { background: #3a1a1e; border-color: #e53935; }
+html.dark #result-panel.err .result-title { color: #ef5350; }
+html.dark #solutions-list { color: #d7dee4; }
+/* Die beiden Pastellknoepfe behalten ihre Farbe - dann braucht es dunkle Schrift */
+html.dark #neu-button,
+html.dark #zufallszahl-button { color: #1a1d21; }
+html.dark .site-footer { border-top-color: #3a434b; color: #9aa5b1; }
+/* Die runden Schalter liegen frei oben rechts – die Regeln der Seite
+   fuer <button> duerfen sie nicht verformen. */
+.tl-knopf { padding: 0 !important; margin: 0 !important; }
+
 </style>
+<!-- Vergroesserung auf sehr grossen Bildschirmen (Promethean, 4K).
+     Kleine gemeinsame Datei; fehlt sie, bleibt einfach alles unvergroessert. -->
+<link rel="stylesheet" href="gross.css">
 </head>
 <body>
 
 <details id="rules-section" open>
-  <summary>Spielregeln</summary>
-  <div class="rules-body">
-    Finde genau 3 Zahlen in einer geraden Linie (horizontal, vertikal, diagonal) mit beliebigen
-    Rechenoperationen dazwischen (Plus, Minus, Mal, Geteilt), um auf die gesuchte Zufallszahl zu kommen.
-    Z.&thinsp;B. kann man, um auf 14 zu kommen, die 3 Zahlen 3,&thinsp;5,&thinsp;1 (in dieser Reihenfolge)
-    auswählen, denn 3&thinsp;&middot;&thinsp;5&thinsp;&minus;&thinsp;1&thinsp;=&thinsp;14.
-    Beachte Punkt- vor Strichrechnung.
+  <summary data-de="Spielregeln" data-en="How to play">Spielregeln</summary>
+  <div class="rules-body"
+       data-de="Finde genau 3 Zahlen in einer geraden Linie (waagerecht, senkrecht oder diagonal) und verbinde sie mit zwei Rechenzeichen (Plus, Minus, Mal, Geteilt), sodass die gesuchte Zufallszahl herauskommt. Um etwa auf 14 zu kommen, kannst du die Zahlen 3,&thinsp;5,&thinsp;1 (in dieser Reihenfolge) wählen, denn 3&thinsp;&middot;&thinsp;5&thinsp;&minus;&thinsp;1&thinsp;=&thinsp;14. Punkt- vor Strichrechnung gilt auch hier."
+       data-en="Find exactly 3 numbers in a straight line (horizontal, vertical or diagonal) and join them with two operations (plus, minus, times, divided by) so that the target number comes out. To reach 14, for example, you could pick 3,&thinsp;5,&thinsp;1 (in that order), since 3&thinsp;&middot;&thinsp;5&thinsp;&minus;&thinsp;1&thinsp;=&thinsp;14. The usual order of operations applies.">
+    Finde genau 3 Zahlen in einer geraden Linie (waagerecht, senkrecht oder diagonal) und verbinde sie
+    mit zwei Rechenzeichen (Plus, Minus, Mal, Geteilt), sodass die gesuchte Zufallszahl herauskommt.
+    Um etwa auf 14 zu kommen, kannst du die Zahlen 3,&thinsp;5,&thinsp;1 (in dieser Reihenfolge)
+    wählen, denn 3&thinsp;&middot;&thinsp;5&thinsp;&minus;&thinsp;1&thinsp;=&thinsp;14.
+    Punkt- vor Strichrechnung gilt auch hier.
   </div>
 </details>
 
@@ -210,16 +238,19 @@ button {
 <div id="trio-container"></div>
 
 <div class="button-container">
-  <button id="zufallszahl-button">Neue Zufallszahl</button>
-  <button id="neu-button">Neue Anordnung</button>
+  <button id="zufallszahl-button" data-de="Neue Zufallszahl" data-en="New target number">Neue Zufallszahl</button>
+  <button id="neu-button" data-de="Neues Spielfeld" data-en="New board">Neues Spielfeld</button>
 </div>
 <div id="result-panel">
   <div class="result-title" id="result-title"></div>
-  <button id="reveal-btn">Lösungen anzeigen</button>
+  <button id="reveal-btn" data-de="Lösungen anzeigen" data-en="Show solutions">Lösungen anzeigen</button>
   <div id="solutions-list"></div>
 </div>
 
 <script>
+/* Faellt ohne theme-language.js auf Deutsch zurueck */
+function T(de, en) { return (typeof tlText === 'function') ? tlText(de, en) : de; }
+
 /* ════════════════════════════════════════════════
    Zustand
 ════════════════════════════════════════════════ */
@@ -230,6 +261,7 @@ let gridNums   = [];     // gridNums[r][c]
 let targetNum  = 0;
 let solutions  = [];
 let numberPool = [];     // gewichteter Pool, wird bei Neuer Anordnung neu befüllt
+let letztesErgebnis = null; // {a, m, b, ok} - damit die Meldung dem Sprachwechsel folgt
 
 /* ════════════════════════════════════════════════
    DOM-Referenzen
@@ -343,7 +375,7 @@ function buildPool() {
 function generateRandomNumber() {
   if (numberPool.length === 0) numberPool = buildPool();
   targetNum = numberPool.pop();
-  numDisplay.textContent = 'Zufallszahl: ' + targetNum;
+  numDisplay.textContent = T('Zufallszahl: ', 'Target number: ') + targetNum;
 }
 
 /* ════════════════════════════════════════════════
@@ -366,6 +398,7 @@ function resetState() {
 
   resultPanel.style.display = 'none';
   resultPanel.className     = '';
+  letztesErgebnis           = null;
   resultTitle.textContent   = '';
   revealBtn.style.display   = 'none';
   solList.style.display     = 'none';
@@ -457,14 +490,16 @@ function onCellClick() {
     if (solutions.length > 0) {
       triple.forEach(el => el.classList.add('correct'));
       resultPanel.className    = 'ok';
-      resultTitle.textContent  = `✓ Korrekt!  (${a}|${m}|${b})`;
+      letztesErgebnis = { a, m, b, ok: true };
+      resultTitle.textContent  = T(`✓ Korrekt!  (${a}|${m}|${b})`, `✓ Correct!  (${a}|${m}|${b})`);
       revealBtn.style.display  = 'inline-block';
       resultPanel.style.display = 'block';
       gameState = 'showing_result';
     } else {
       // Keine Hervorhebung der Zellen – Spieler kann sofort neu wählen
       resultPanel.className    = 'err';
-      resultTitle.textContent  = `Keine Lösung für ${a}, ${m}, ${b}.`;
+      letztesErgebnis = { a, m, b, ok: false };
+      resultTitle.textContent  = T(`Keine Lösung für ${a}, ${m}, ${b}.`, `No solution using ${a}, ${m}, ${b}.`);
       revealBtn.style.display  = 'none';
       resultPanel.style.display = 'block';
       gameState = 'idle';
@@ -528,6 +563,18 @@ function revealSolutions() {
 ════════════════════════════════════════════════ */
 generateTrio();
 generateRandomNumber();
+
+// Beim Sprachwechsel nur die Beschriftungen erneuern - das Spielfeld,
+// die Zufallszahl und eine offene Auswahl bleiben unangetastet.
+window.addEventListener('tl-sprache', () => {
+  numDisplay.textContent = T('Zufallszahl: ', 'Target number: ') + targetNum;
+  if (letztesErgebnis) {
+    const { a, m, b, ok } = letztesErgebnis;
+    resultTitle.textContent = ok
+      ? T(`✓ Korrekt!  (${a}|${m}|${b})`, `✓ Correct!  (${a}|${m}|${b})`)
+      : T(`Keine Lösung für ${a}, ${m}, ${b}.`, `No solution using ${a}, ${m}, ${b}.`);
+  }
+});
 </script>
 
 <div id="lobby-spacer"></div>
@@ -535,10 +582,21 @@ generateRandomNumber();
   <div class="footer-content">
       M.&nbsp;Koch
       <span class="footer-topic"><a href="./index.html">Mathe-Tools</a></span>
-      <span class="footer-update">Last updated:&nbsp;<span id="last-update">...</span></span>
+      <span class="footer-update"><span class="fu-wort" data-de="Zuletzt aktualisiert:" data-en="Last updated:">Zuletzt aktualisiert:</span><span id="last-update">...</span></span>
   </div>
 </footer>
 <script src="last-update.js" defer></script>
 
+<script>
+/* Beim Klick auf "Fehler melden": gesuchte Zahl und aktuelle Auswahl */
+window.fehlerKontext = function () {
+  const teile = [T('Zufallszahl', 'Target number') + ': ' + targetNum];
+  if (letztesErgebnis) {
+    const { a, m, b } = letztesErgebnis;
+    teile.push(T('Auswahl', 'Selection') + ': ' + a + ', ' + m + ', ' + b);
+  }
+  return teile.join(' \u00b7 ');
+};
+</script>
 </body>
 </html>

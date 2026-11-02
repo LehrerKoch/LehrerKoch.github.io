@@ -1,0 +1,1547 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="shortcut icon" type="image/x-icon" href="aleph_zero_logo.ico">
+<script>try{var t=localStorage.getItem('matheToolsTheme');if(t==='dark'||(!t&&window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.classList.add('dark');}catch(e){}</script>
+<title data-de="Nullprodukte: faktorisierte Gleichungen lösen" data-en="Zero products: solving factorised equations">Nullprodukte: faktorisierte Gleichungen lösen</title>
+<script src="theme-language.js" defer></script>
+<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="aufgaben.css">
+<link rel="stylesheet" href="scale.css">
+<script src="scale.js" defer></script>
+<script src="aufgaben.js" defer></script>
+<script src="polynome.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<script>
+function T(de, en){ return (typeof tlText === 'function') ? tlText(de, en) : de; }
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+window.TK_GA_ID = 'G-5K8WYYXDL2';
+</script>
+<script src="einwilligung.js" defer></script>
+<style>
+#task { font-size: 1.45em; }
+#loesung { font-size: 1.25em; }
+#weg { font-size: 1.05em; line-height: 1.55; }
+#antwortBereich .pg-jn { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+.weg-merke { color: var(--ab-leise); font-size: .9em; }
+
+/* Umschalten zwischen Training und Erkundung */
+.hidden { display: none !important; }
+
+/* ── Erkundungsmodus (Aussehen) ─────────────────────────────────────────── */
+#modeErk .erk-intro { color: var(--ab-leise); font-size: .95em; margin: .2em 0 12px; }
+#modeErk .erk-term { text-align: center; font-size: 1.4em; margin: 10px 0 4px; }
+.erk-regler { display: flex; align-items: center; justify-content: center; gap: 10px;
+  flex-wrap: wrap; margin: 10px 0 6px; }
+.erk-regler input[type=range] { width: min(320px, 70vw); accent-color: var(--ab-gr); }
+.erk-regler .wert { font-weight: bold; font-size: 1.1em; min-width: 72px; text-align: center;
+  color: var(--ab-gr-dunkel); }
+.erk-regler input[type=text] { width: 86px; font-size: 1em; padding: 5px 8px; text-align: center;
+  border: 1.5px solid var(--ab-neutral-r); border-radius: 6px; background: var(--ab-weiss); color: var(--ab-text); }
+.erk-tab { width: 100%; max-width: 560px; margin: 10px auto; border-collapse: collapse; }
+.erk-tab td, .erk-tab th { padding: 6px 9px; border-bottom: 1px solid var(--ab-gr-rand); text-align: center; }
+.erk-tab th { font-size: .85em; color: var(--ab-leise); font-weight: bold; }
+.erk-tab tr.null td { background: var(--ab-gr-an); font-weight: bold; color: var(--ab-gr-dunkel); }
+.erk-tab tr.produkt td { border-top: 2px solid var(--ab-gr); border-bottom: none; font-weight: bold; }
+.erk-fazit { text-align: center; margin: 8px 0 4px; font-size: 1.05em; }
+.erk-fazit.null { color: var(--ab-gr-dunkel); font-weight: bold; }
+.erk-sprung { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; margin-top: 8px; }
+.erk-kopf { display: flex; justify-content: flex-end; margin: 0 0 2px; }
+#modeErk .erk-eingesetzt { font-size: 1.15em; margin: 0 0 6px; color: var(--ab-bl-dunkel); }
+#modeErk .erk-term mjx-container[display="true"] { margin: .15em 0; }
+#modeErk .erk-term { padding: 0; }
+html.dark #modeErk .erk-eingesetzt { color: #9fc4ea; }
+/* Fester Platz für die eingesetzte Zeile. Der Regler springt in Halben, also
+   wechselt die Formel ständig zwischen ganzer Zahl und Bruch - und ein Bruch
+   ist fast doppelt so hoch. Ohne Reserve rutscht dabei alles darunter hin und
+   her. Die Formel bleibt oben stehen, der Platz darunter ist einfach frei. */
+#modeErk .erk-eingesetzt { min-height: 3.9em; margin-bottom: 0; }
+/* Feste Spaltenbreiten: sonst springt die Tabelle, sobald aus 2 eine 2,5 wird. */
+.erk-tab { table-layout: fixed; }
+.erk-tab col.sp-klammer { width: 30%; }
+.erk-tab col.sp-ein { width: 34%; }
+.erk-tab col.sp-pfeil { width: 10%; }
+.erk-tab col.sp-wert { width: 26%; }
+/* Aus demselben Grund eine feste Zeilenhöhe: in der Spalte „eingesetzt"
+   stehen dieselben Brüche. */
+.erk-tab td { overflow-wrap: anywhere; height: 3.2em; }
+</style>
+</head>
+<body class="tk-seite">
+
+<header class="tool-kopf">
+  <div class="tk-text">
+    <h1 data-de="Nullprodukte: faktorisierte Gleichungen lösen" data-en="Zero products: solving factorised equations">Nullprodukte: faktorisierte Gleichungen lösen</h1>
+    <p class="tk-unter" data-de="Ein Produkt ist 0, wenn einer der Faktoren 0 ist." data-en="A product is 0 when one of its factors is 0.">Ein Produkt ist 0, wenn einer der Faktoren 0 ist.</p>
+  </div>
+</header>
+
+<div class="seg-block"><div id="modeSwitch" class="seg" role="tablist">
+  <button data-mode="erkundung" data-de="Erkundung" data-en="Exploration">Erkundung</button>
+  <button data-mode="uebung" class="on" data-de="Training" data-en="Practice">Training</button>
+</div></div>
+
+<div id="modeUeb">
+
+<details class="einst" id="dSettings">
+<summary data-de="Einstellungen" data-en="Settings">Einstellungen</summary>
+<div class="settings-grid">
+
+  <div class="form-block">
+    <b data-de="Aufgabenstile" data-en="Kinds of task">Aufgabenstile</b>
+    <span class="d" data-de="Welche Aufgabenstellungen sollen vorkommen? Die Kacheln über der Aufgabe zeigen dieselbe Auswahl." data-en="Which kinds of question should appear? The tiles above the task show the same choice.">Welche Aufgabenstellungen sollen vorkommen? Die Kacheln über der Aufgabe zeigen dieselbe Auswahl.</span>
+    <label class="opt"><input type="checkbox" id="stilLoesen" checked><span><span data-de="Gleichung lösen" data-en="Solve the equation">Gleichung lösen</span><span class="d" data-de="das Produkt steht schon gleich 0" data-en="the product is already equal to 0">das Produkt steht schon gleich 0</span></span></label>
+    <label class="opt"><input type="checkbox" id="stilNullstelle" checked><span><span data-de="Nullstellen finden" data-en="Find the roots">Nullstellen finden</span><span class="d" data-de="erst f(x) = 0 setzen, dann lösen" data-en="first set f(x) = 0, then solve">erst f(x) = 0 setzen, dann lösen</span></span></label>
+    <label class="opt"><input type="checkbox" id="stilErkennen"><span><span data-de="Art erkennen" data-en="Recognise the type">Art erkennen</span><span class="d" data-de="Steht wirklich ein Produkt gleich 0?" data-en="Is there really a product equal to 0?">Steht wirklich ein Produkt gleich 0?</span></span></label>
+    <label class="opt"><input type="checkbox" id="stilEinsetzen"><span><span data-de="Stelle prüfen" data-en="Test a value">Stelle prüfen</span><span class="d" data-de="durch Einsetzen prüfen, ob eine Zahl Lösung ist" data-en="substitute a value to check whether it is a solution">durch Einsetzen prüfen, ob eine Zahl Lösung ist</span></span></label>
+  </div>
+
+  <div class="form-block">
+    <b data-de="Anzahl der Faktoren" data-en="Number of factors">Anzahl der Faktoren</b>
+    <span class="d" data-de="Diese Stufe setzt der Schwierigkeitsgrad über der Aufgabe." data-en="This level is set by the difficulty above the task.">Diese Stufe setzt der Schwierigkeitsgrad über der Aufgabe.</span>
+    <label class="opt"><input type="radio" name="anzahl" value="2" checked><span data-de="zwei Faktoren" data-en="two factors">zwei Faktoren</span></label>
+    <label class="opt"><input type="radio" name="anzahl" value="3"><span data-de="drei Faktoren" data-en="three factors">drei Faktoren</span></label>
+    <label class="opt"><input type="radio" name="anzahl" value="4"><span data-de="vier Faktoren" data-en="four factors">vier Faktoren</span></label>
+    <label class="opt"><input type="radio" name="anzahl" value="5"><span data-de="fünf Faktoren" data-en="five factors">fünf Faktoren</span></label>
+    <label class="opt"><input type="radio" name="anzahl" value="gemischt"><span data-de="zwei bis vier Faktoren" data-en="two to four factors">zwei bis vier Faktoren</span></label>
+    <label class="opt"><input type="radio" name="anzahl" value="mind2"><span><span data-de="mindestens zwei" data-en="at least two">mindestens zwei</span><span class="d" data-de="jeder weitere Faktor kommt seltener dazu als der davor – im Schnitt knapp fünf, höchstens acht" data-en="each further factor is added less often than the one before – just under five on average, eight at most">jeder weitere Faktor kommt seltener dazu als der davor – im Schnitt knapp fünf, höchstens acht</span></span></label>
+  </div>
+
+  <div class="form-block">
+    <b data-de="Art der Faktoren" data-en="Kind of factors">Art der Faktoren</b>
+    <div class="slider-row opt-regler" data-fuer="fakZahl"><label class="opt"><input type="checkbox" id="fakZahl" checked><span data-de="Zahlfaktor" data-en="number factor">Zahlfaktor</span></label><span class="sl-end" data-de="seltener" data-en="less often">seltener</span><input type="range" class="sl" id="wfakZahl" min="1" max="10" value="5"><span class="sl-end" data-de="häufiger" data-en="more often">häufiger</span><span class="d" data-de="eine Zahl vor dem Produkt: 3·(x − 1)(x + 2) – sie kann nie 0 werden und liefert keine Lösung" data-en="a number in front of the product: 3·(x − 1)(x + 2) – it can never be 0 and gives no solution">eine Zahl vor dem Produkt: 3·(x − 1)(x + 2) – sie kann nie 0 werden und liefert keine Lösung</span></div>
+    <div class="slider-row opt-regler" data-fuer="fakLin"><label class="opt"><input type="checkbox" id="fakLin" checked><span data-de="normal" data-en="normal">normal</span></label><span class="sl-end" data-de="seltener" data-en="less often">seltener</span><input type="range" class="sl" id="wfakLin" min="1" max="10" value="9"><span class="sl-end" data-de="häufiger" data-en="more often">häufiger</span><span class="d" data-de="der Normalfall: (x − 3)" data-en="the normal case: (x − 3)">der Normalfall: (x − 3)</span></div>
+    <div class="slider-row opt-regler" data-fuer="fakNullX"><label class="opt"><input type="checkbox" id="fakNullX"><span data-de="nur Potenzen von x (x, x², x³)" data-en="powers of x only (x, x², x³)">nur Potenzen von x (x, x², x³)</span></label><span class="sl-end" data-de="seltener" data-en="less often">seltener</span><input type="range" class="sl" id="wfakNullX" min="1" max="10" value="4"><span class="sl-end" data-de="häufiger" data-en="more often">häufiger</span><span class="d" data-de="die Nullstelle ist dann 0" data-en="the root is then 0">die Nullstelle ist dann 0</span></div>
+    <div class="slider-row opt-regler" data-fuer="fakFaktor"><label class="opt"><input type="checkbox" id="fakFaktor"><span data-de="mit Vorfaktor (2x − 6)" data-en="with a coefficient (2x − 6)">mit Vorfaktor (2x − 6)</span></label><span class="sl-end" data-de="seltener" data-en="less often">seltener</span><input type="range" class="sl" id="wfakFaktor" min="1" max="10" value="4"><span class="sl-end" data-de="häufiger" data-en="more often">häufiger</span><span class="d" data-de="eine kleine Rechnung mehr" data-en="one small calculation more">eine kleine Rechnung mehr</span></div>
+    <label class="opt unter"><input type="checkbox" id="fakGedreht"><span><span data-de="Linearfaktoren auch gedreht (3 − x)" data-en="linear factors reversed as well (3 − x)">Linearfaktoren auch gedreht (3 − x)</span><span class="d" data-de="dieselbe Nullstelle, nur ungewohnt geschrieben – das Minus vor dem x wird gern übersehen" data-en="the same root, only written unusually – the minus in front of the x is easily overlooked">dieselbe Nullstelle, nur ungewohnt geschrieben – das Minus vor dem x wird gern übersehen</span></span></label>
+    <div class="slider-row opt-regler" data-fuer="fakQuad"><label class="opt"><input type="checkbox" id="fakQuad"><span data-de="quadratische Faktoren" data-en="quadratic factors">quadratische Faktoren</span></label><span class="sl-end" data-de="seltener" data-en="less often">seltener</span><input type="range" class="sl" id="wfakQuad" min="1" max="10" value="2"><span class="sl-end" data-de="häufiger" data-en="more often">häufiger</span><span class="d" data-de="z. B. x² − 5x + 6 – dieser Faktor muss selbst noch gelöst werden" data-en="e.g. x² − 5x + 6 – this factor still has to be solved itself">z. B. x² − 5x + 6 – dieser Faktor muss selbst noch gelöst werden</span></div>
+    <div class="slider-row opt-regler" data-fuer="fakPot"><label class="opt"><input type="checkbox" id="fakPot"><span data-de="mit Nullstelle" data-en="with a root">mit Nullstelle</span></label><span class="sl-end" data-de="seltener" data-en="less often">seltener</span><input type="range" class="sl" id="wfakPot" min="1" max="10" value="2"><span class="sl-end" data-de="häufiger" data-en="more often">häufiger</span><span class="d" data-de="z. B. x³ − 8 – weiter durch Wurzelziehen" data-en="e.g. x³ − 8 – continue by taking a root">z. B. x³ − 8 – weiter durch Wurzelziehen</span></div>
+    <div class="slider-row opt-regler" data-fuer="fakOhne"><label class="opt"><input type="checkbox" id="fakOhne"><span data-de="ohne Nullstelle" data-en="without a root">ohne Nullstelle</span></label><span class="sl-end" data-de="seltener" data-en="less often">seltener</span><input type="range" class="sl" id="wfakOhne" min="1" max="10" value="1"><span class="sl-end" data-de="häufiger" data-en="more often">häufiger</span><span class="d" data-de="z. B. x² + 4 – dieser Faktor liefert keine Lösung" data-en="e.g. x² + 4 – this factor gives no solution">z. B. x² + 4 – dieser Faktor liefert keine Lösung</span></div>
+    <div class="slider-row opt-regler" data-fuer="fakIrrational"><label class="opt"><input type="checkbox" id="fakIrrational"><span data-de="mit Wurzel" data-en="with a surd">mit Wurzel</span></label><span class="sl-end" data-de="seltener" data-en="less often">seltener</span><input type="range" class="sl" id="wfakIrrational" min="1" max="10" value="1"><span class="sl-end" data-de="häufiger" data-en="more often">häufiger</span><span class="d" data-de="z. B. x² − 5 – die Lösung ist dann eine Wurzel" data-en="e.g. x² − 5 – the solution is then a square root">z. B. x² − 5 – die Lösung ist dann eine Wurzel</span></div>
+  </div>
+
+  <div class="form-block">
+    <b data-de="Mehrfache Faktoren" data-en="Repeated factors">Mehrfache Faktoren</b>
+    <span class="d" data-de="Derselbe Faktor darf mehrfach vorkommen – die Nullstelle zählt trotzdem nur einmal." data-en="The same factor may occur several times – the root still counts only once.">Derselbe Faktor darf mehrfach vorkommen – die Nullstelle zählt trotzdem nur einmal.</span>
+    <label class="opt"><input type="checkbox" id="mehrfach"><span><span data-de="Faktoren dürfen mehrfach auftauchen" data-en="factors may occur several times">Faktoren dürfen mehrfach auftauchen</span><span class="d" data-de="schaltet die drei Schreibweisen darunter frei" data-en="unlocks the three notations below">schaltet die drei Schreibweisen darunter frei</span></span></label>
+    <label class="opt"><input type="checkbox" id="mehrKlammer" checked><span><span data-de="… als zwei Klammern (x − 3)(x − 3)" data-en="… as two brackets (x − 3)(x − 3)">… als zwei Klammern (x − 3)(x − 3)</span></span></label>
+    <label class="opt"><input type="checkbox" id="mehrPotenz"><span><span data-de="… als Potenz (x − 3)²" data-en="… as a power (x − 3)²">… als Potenz (x − 3)²</span></span></label>
+    <label class="opt"><input type="checkbox" id="mehrVersteckt"><span><span data-de="… versteckt in einem anderen Faktor" data-en="… hidden inside another factor">… versteckt in einem anderen Faktor</span><span class="d" data-de="z. B. (x − 3)(x² − x − 6): die 3 steckt auch im quadratischen Term" data-en="e.g. (x − 3)(x² − x − 6): the 3 is also inside the quadratic term">z. B. (x − 3)(x² − x − 6): die 3 steckt auch im quadratischen Term</span></span></label>
+  </div>
+
+  <div class="form-block">
+    <b data-de="Zahlen" data-en="Numbers">Zahlen</b>
+    <label class="opt"><input type="radio" name="loesLevel" value="klein"><span data-de="kleine ganze Zahlen (bis 6)" data-en="small whole numbers (up to 6)">kleine ganze Zahlen (bis 6)</span></label>
+    <label class="opt"><input type="radio" name="loesLevel" value="ganz" checked><span data-de="ganze Zahlen (bis 12)" data-en="whole numbers (up to 12)">ganze Zahlen (bis 12)</span></label>
+    <label class="opt"><input type="radio" name="loesLevel" value="bruch"><span data-de="auch halbe Zahlen" data-en="halves as well">auch halbe Zahlen</span></label>
+  </div>
+
+  <div class="form-block">
+    <b data-de="Darstellung" data-en="Presentation">Darstellung</b>
+    <label class="opt"><input type="checkbox" id="ausmultipliziert"><span><span data-de="ausmultiplizierte Form zeigen" data-en="show the expanded form">ausmultiplizierte Form zeigen</span><span class="d" data-de="in der Lösung zusätzlich das ausmultiplizierte Polynom" data-en="the expanded polynomial in the solution as well">in der Lösung zusätzlich das ausmultiplizierte Polynom</span></span></label>
+    <label class="opt"><input type="checkbox" id="mitSkizze" checked><span data-de="Skizze in der Lösung" data-en="sketch in the solution">Skizze in der Lösung</span></label>
+    <label class="opt"><input type="checkbox" id="erkFalsch" checked><span><span data-de="beim Erkennen auch unpassende Gleichungen" data-en="also unsuitable equations when recognising">beim Erkennen auch unpassende Gleichungen</span><span class="d" data-de="z. B. ein Produkt, das nicht 0, sondern 12 ergibt" data-en="e.g. a product that equals 12 instead of 0">z. B. ein Produkt, das nicht 0, sondern 12 ergibt</span></span></label>
+  </div>
+
+  <div class="form-block">
+    <b data-de="Reihenfolge der Faktoren" data-en="Order of the factors">Reihenfolge der Faktoren</b>
+    <label class="opt"><input type="checkbox" id="sortiert" checked><span><span data-de="Faktoren sortiert schreiben" data-en="write the factors in order">Faktoren sortiert schreiben</span><span class="d" data-de="erst die Zahl, dann Potenzen von x, dann Linearfaktoren, dann Potenzen davon, zuletzt die übrigen Terme" data-en="first the number, then powers of x, then linear factors, then powers of those, finally the remaining terms">erst die Zahl, dann Potenzen von x, dann Linearfaktoren, dann Potenzen davon, zuletzt die übrigen Terme</span></span></label>
+  </div>
+
+  <div class="form-block">
+    <b data-de="Schreibweise der Lösungen" data-en="How solutions are written">Schreibweise der Lösungen</b>
+    <span class="d" data-de="Wie sollen die Lösungen am Ende dastehen?" data-en="How should the solutions be written in the end?">Wie sollen die Lösungen am Ende dastehen?</span>
+    <label class="opt"><input type="radio" name="loesForm" value="index" checked><span><span data-de="durchnummeriert" data-en="numbered">durchnummeriert</span><span class="d" data-de="x₁ = …  x₂ = … – eine doppelte Lösung als x₁,₂ = …" data-en="x₁ = …  x₂ = … – a double solution as x₁,₂ = …">x₁ = …  x₂ = … – eine doppelte Lösung als x₁,₂ = …</span></span></label>
+    <label class="opt"><input type="radio" name="loesForm" value="oder"><span><span data-de="mit „oder“" data-en="with “or”">mit „oder“</span><span class="d">x = … ∨ x = …</span></span></label>
+    <label class="opt"><input type="radio" name="loesForm" value="menge"><span><span data-de="Lösungsmenge" data-en="solution set">Lösungsmenge</span><span class="d">L = { … }</span></span></label>
+    <label class="opt"><input type="checkbox" id="loesWedge"><span><span data-de="beim Durchnummerieren mit ∧ statt Leerraum" data-en="use ∧ instead of a gap when numbering">beim Durchnummerieren mit ∧ statt Leerraum</span></span></label>
+  </div>
+
+
+  </div>
+  <div class="seed-zeile">
+    <label class="opt"><input type="checkbox" id="seedAn"><span data-de="fester Zufalls-Seed" data-en="fixed random seed">fester Zufalls-Seed</span></label>
+    <input type="text" id="seedWert" autocomplete="off" inputmode="numeric" aria-label="Seed" data-de-aria-label="Seed" data-en-aria-label="Seed">
+    <button type="button" class="btn-secondary" id="seedNeu" title="neuen Seed würfeln" data-de-title="neuen Seed würfeln" data-en-title="roll a new seed">⟳</button>
+    <span class="d" data-de="Mit demselben Seed bekommen alle dieselbe Folge von Aufgaben – der Seed steht dann im geteilten Link." data-en="With the same seed everyone gets the same sequence of tasks – the seed is then part of the shared link.">Mit demselben Seed bekommen alle dieselbe Folge von Aufgaben – der Seed steht dann im geteilten Link.</span>
+  </div>
+<div class="settings-foot">
+  <button class="btn-secondary" id="btnShare" data-de="🔗 Link mit allen Einstellungen kopieren" data-en="🔗 Copy link with all settings">🔗 Link mit allen Einstellungen kopieren</button>
+  <button class="btn-secondary" id="btnReset" data-de="↺ Standard wiederherstellen" data-en="↺ Restore defaults">↺ Standard wiederherstellen</button>
+  </div>
+</details>
+
+<div id="topControls">
+  <div class="tc-item">
+    <details class="auswahl" id="stilBox" open>
+      <summary><span data-de="Aufgabenstile" data-en="Kinds of task">Aufgabenstile</span><span class="ausw-zahl" id="stilZahl"></span></summary>
+      <button type="button" class="btn-secondary ausw-alle" id="stilAlle"></button>
+      <div class="tiles eng drei" id="segStile"></div>
+    </details>
+  </div>
+  <div class="tc-row">
+    <div class="tc-item tc-mitte">
+      <span class="tc-label" data-de="Anzahl der Faktoren" data-en="Number of factors">Anzahl der Faktoren</span>
+      <div class="seg" id="segAnzahl">
+        <label><input type="radio" name="anzahlTop" value="2" checked><span>2</span></label>
+        <label><input type="radio" name="anzahlTop" value="3"><span>3</span></label>
+        <label><input type="radio" name="anzahlTop" value="4"><span>4</span></label>
+        <label><input type="radio" name="anzahlTop" value="gemischt"><span data-de="2 bis 4" data-en="2 to 4">2 bis 4</span></label>
+        <label><input type="radio" name="anzahlTop" value="mind2"><span data-de="2 und mehr" data-en="2 and more">2 und mehr</span></label>
+      </div>
+    </div>
+    <div class="tc-item tc-mitte">
+      <span class="tc-label"><span data-de="Faktoren" data-en="Factors">Faktoren</span></span>
+      <div class="pills" id="segFak"></div>
+    </div>
+  </div>
+  <div class="tc-item tc-diff tc-mitte">
+    <span class="tc-label" data-de="Schwierigkeit" data-en="Difficulty">Schwierigkeit</span>
+    <div class="seg-switch diff-switch" id="segDiff">
+      <input type="radio" name="diff" id="diffEinf" value="einf"><label for="diffEinf" data-de="Einführung" data-en="Introduction">Einführung</label>
+      <input type="radio" name="diff" id="diffLeicht" value="leicht"><label for="diffLeicht" data-de="Leicht" data-en="Easy">Leicht</label>
+      <input type="radio" name="diff" id="diffNormal" value="normal" checked><label for="diffNormal" data-de="Normal" data-en="Normal">Normal</label>
+      <input type="radio" name="diff" id="diffSchwer" value="schwer"><label for="diffSchwer" data-de="Herausfordernd" data-en="Challenging">Herausfordernd</label>
+      <input type="radio" name="diff" id="diffIndiv" value="indiv"><label for="diffIndiv" data-de="Individuell" data-en="Custom" data-de-title="öffnet die Einstellungen" data-en-title="opens the settings" title="öffnet die Einstellungen">Individuell</label>
+      <span class="seg-glider"></span>
+    </div>
+  </div>
+  </div>
+
+<div id="genRow">
+  <button id="genBtn" data-de='<span class="auto-kreis">&#x27F3;</span>&nbsp;Neue Aufgabe generieren' data-en='<span class="auto-kreis">&#x27F3;</span>&nbsp;Generate a new task'><span class="auto-kreis">&#x27F3;</span>&nbsp;Neue Aufgabe generieren</button>
+  <button id="manualBtn" class="btn-secondary" type="button" title="Eigene Gleichung" data-de-title="Eigene Gleichung" data-en-title="Your own equation" data-de='&#9998;<span class="mb-text">&nbsp;Eigene Gleichung</span>' data-en='&#9998;<span class="mb-text">&nbsp;Your own equation</span>'>&#9998;<span class="mb-text">&nbsp;Eigene Gleichung</span></button>
+  <span class="punkte rechts"><button id="btnPunkteReset" type="button" title="Punktzahl zurücksetzen" data-de-title="Punktzahl zurücksetzen" data-en-title="Reset the score">↺</button><span id="counter">Richtig: 0 / 0</span></span>
+  </div>
+
+<div id="manualPanel" hidden>
+  <div class="mp-kopf" data-de="Eigene Gleichung eingeben" data-en="Enter your own equation">Eigene Gleichung eingeben</div>
+  <div class="mp-hinweis" data-de="Hier kannst du ein Nullprodukt eintippen, z. B. (x-3)(x+2)=0 oder 2(x-1)(x+4)(x-5)=0." data-en="Type a zero product here, e.g. (x-3)(x+2)=0 or 2(x-1)(x+4)(x-5)=0.">Hier kannst du ein Nullprodukt eintippen, z. B. (x-3)(x+2)=0 oder 2(x-1)(x+4)(x-5)=0.</div>
+  <div class="mp-zeile">
+    <input type="text" id="eigeneEingabe" autocomplete="off" placeholder="(x-3)(x+2)=0" data-de-placeholder="(x-3)(x+2)=0" data-en-placeholder="(x-3)(x+2)=0">
+    <button type="button" id="eigeneBtn" data-de="übernehmen" data-en="use it">übernehmen</button>
+    <button type="button" class="btn-secondary" id="eigeneAbbruch" data-de="Abbrechen" data-en="Cancel">Abbrechen</button>
+  </div>
+  <div class="meld" id="eigeneMeldung"></div>
+  </div>
+
+
+<div class="task" id="taskBox">
+  <div class="task-head">
+    <h2 data-de="Aufgabe" data-en="Task">Aufgabe</h2>
+    <button class="share-btn" id="btnTeilen" title="Diese Aufgabe teilen (Link kopieren)" data-de-title="Diese Aufgabe teilen (Link kopieren)" data-en-title="Share this task (copy link)" data-de="🔗&nbsp;Teilen" data-en="🔗&nbsp;Share">🔗&nbsp;Teilen</button>
+  </div>
+
+  <p id="taskText" class="task-hinweis"></p>
+  <div class="scale-wrapper">
+    <div id="task" class="scale-el"></div>
+  </div>
+  </div>
+
+<div id="antwortBereich"></div>
+
+<details class="quizklapp" id="quizDetails">
+  <summary><span class="linie" aria-hidden="true"></span><span class="reiter" data-de="Quiz als Hilfestellung" data-en="Quiz as a hint">Quiz als Hilfestellung</span><span class="linie" aria-hidden="true"></span></summary>
+  <div id="quizArea"></div>
+</details>
+
+<details class="loesung" id="dLoesung" style="margin-top:16px;">
+  <summary><span class="wenn-zu" data-de="Lösung einblenden" data-en="Show answer">Lösung einblenden</span><span class="wenn-auf" data-de="Lösung ausblenden" data-en="Hide answer">Lösung ausblenden</span></summary>
+  <div class="scale-wrapper"><div id="loesung" class="scale-el"></div></div>
+  <div class="pg-skizze" id="skizze"></div>
+  <details class="weg" id="dWeg">
+    <summary data-de="Vollständiger Lösungsweg" data-en="Complete worked solution">Vollständiger Lösungsweg</summary>
+    <div id="weg"></div>
+  </details>
+</details>
+
+</div><!-- /modeUeb -->
+
+<!-- ═══ Erkundungsmodus ═══════════════════════════════════════════════════ -->
+<div id="modeErk" class="hidden">
+  <p class="erk-intro" data-de="Setze verschiedene Zahlen für x ein und sieh zu, was mit den einzelnen Klammern passiert. Sobald eine Klammer 0 wird, ist auch das ganze Produkt 0 – und genau das sind die Lösungen." data-en="Substitute different numbers for x and watch what happens to the individual brackets. As soon as one bracket becomes 0, the whole product is 0 – and those are exactly the solutions.">Setze verschiedene Zahlen für x ein und sieh zu, was mit den einzelnen Klammern passiert. Sobald eine Klammer 0 wird, ist auch das ganze Produkt 0 – und genau das sind die Lösungen.</p>
+  <div class="erk-kopf">
+    <button type="button" class="btn-secondary" id="erkNeuOben" data-de="⟳ Neue Aufgabe generieren" data-en="⟳ Generate a new task">⟳ Neue Aufgabe generieren</button>
+  </div>
+  <div class="erk-term scale-wrapper"><div id="erkTerm" class="scale-el"></div></div>
+  <div class="erk-term erk-eingesetzt scale-wrapper"><div id="erkTermX" class="scale-el"></div></div>
+  <div class="erk-regler">
+    <span class="wert" id="erkWert">x = 0</span>
+    <input type="range" id="erkRegler" min="-10" max="10" step="0.5" value="0" aria-label="Wert für x" data-de-aria-label="Wert für x" data-en-aria-label="Value for x">
+    <input type="text" id="erkFeld" value="0" autocomplete="off" aria-label="Wert für x eingeben" data-de-aria-label="Wert für x eingeben" data-en-aria-label="Enter a value for x">
+  </div>
+  <div id="erkTabelle"></div>
+  <div class="erk-fazit" id="erkFazit"></div>
+  <div class="erk-sprung" id="erkSprung"></div>
+  <div class="pg-skizze" id="erkSkizze"></div>
+  <div class="erk-sprung" style="margin-top:14px;">
+    <button type="button" class="btn-secondary" id="erkNeu" data-de="⟳ Neue Aufgabe generieren" data-en="⟳ Generate a new task">⟳ Neue Aufgabe generieren</button>
+  </div>
+  </div>
+
+<div id="lobby-spacer"></div>
+<footer class="site-footer">
+  <div class="footer-content">
+      M.&nbsp;Koch
+      <span class="footer-topic"><a href="./index.html">Mathe-Tools</a></span>
+      <span class="footer-update"><span class="fu-wort" data-de="Zuletzt aktualisiert:" data-en="Last updated:">Zuletzt aktualisiert:</span><span id="last-update">...</span></span>
+  </div>
+</footer>
+<script src="last-update.js" defer></script>
+
+<script>
+"use strict";
+/* ═══════════════════════════════════════════════════════════════════════════
+   Nullprodukte:  (x − 3)·(x + 2)·… = 0
+   Jeder Faktor ist ein kleines Objekt mit tex(), wert(x) und loes().
+   ═══════════════════════════════════════════════════════════════════════════ */
+var STD = {
+  stilLoesen: true, stilNullstelle: true, stilErkennen: false, stilEinsetzen: false,
+  anzahl: '2',
+  fakLin: true, fakNullX: false, fakGedreht: false, fakFaktor: false, fakQuad: false,
+  fakPot: false, fakOhne: false, fakZahl: false, fakIrrational: false, sortiert: true,
+  mehrfach: false, mehrKlammer: true, mehrPotenz: false, mehrVersteckt: false,
+  loesLevel: 'ganz', ausmultipliziert: false, mitSkizze: true, erkFalsch: true, loesForm: 'index', loesWedge: false,
+  diff: 'normal'
+};
+var STUFEN = {
+  /* Einführung: nur Linearfaktoren - sonst nichts. */
+  einf:   { anzahl:'2', fakLin:true, fakNullX:false, fakGedreht:false, fakFaktor:false, fakQuad:false,
+            fakPot:false, fakOhne:false, fakZahl:false, fakIrrational:false, mehrfach:false,
+            loesLevel:'klein', ausmultipliziert:false,
+            regler:{ fakLin:10 } },
+  /* Leicht: dazu der Zahlfaktor, Linearfaktoren mit Vorfaktor und reine
+     Potenzen von x (Nullstelle 0). */
+  leicht: { anzahl:'2', fakLin:true, fakNullX:true, fakGedreht:false, fakFaktor:true, fakQuad:false,
+            fakPot:false, fakOhne:false, fakZahl:true, fakIrrational:false, mehrfach:false,
+            loesLevel:'klein', ausmultipliziert:false,
+            regler:{ fakLin:9, fakNullX:4, fakFaktor:4, fakZahl:4 } },
+  /* Normal: alles - nur nicht gedreht. */
+  normal: { anzahl:'3', fakLin:true, fakNullX:true, fakGedreht:false, fakFaktor:true, fakQuad:true,
+            fakPot:true, fakOhne:true, fakZahl:true, fakIrrational:true, mehrfach:true,
+            mehrKlammer:false, mehrPotenz:true, mehrVersteckt:true, loesLevel:'ganz', ausmultipliziert:false,
+            regler:{ fakLin:9, fakNullX:4, fakFaktor:4, fakZahl:5, fakQuad:2, fakPot:2, fakOhne:1, fakIrrational:1 } },
+  /* Herausfordernd: dazu die gedrehten Linearfaktoren. */
+  schwer: { anzahl:'mind2', fakLin:true, fakNullX:true, fakGedreht:true, fakFaktor:true, fakQuad:true,
+            fakPot:true, fakOhne:true, fakZahl:true, fakIrrational:true, mehrfach:true,
+            mehrKlammer:true, mehrPotenz:true, mehrVersteckt:true, loesLevel:'bruch', ausmultipliziert:true,
+            regler:{ fakLin:8, fakNullX:5, fakFaktor:4, fakZahl:7, fakQuad:3, fakPot:3, fakOhne:2, fakIrrational:2 } }
+};
+
+/* Der Standard ist genau die Standard-Schwierigkeit: so stimmen Kästchen,
+   Kacheln, Regler und der Schwierigkeitsbalken von Anfang an überein. */
+(function(){
+  var p = STUFEN[STD.diff] || {};
+  Object.keys(p).forEach(function(k){ if (k !== 'regler') STD[k] = p[k]; });
+})();
+
+var KURZ = {
+  loesForm:'lf', loesWedge:'lw',
+  stilLoesen:'sl', stilNullstelle:'sn', stilErkennen:'se', stilEinsetzen:'si',
+  anzahl:'an', fakLin:'fl', fakNullX:'fx', fakGedreht:'fg', fakFaktor:'ff', fakQuad:'fq', fakPot:'fp',
+  mehrfach:'mf', mehrKlammer:'mk', mehrPotenz:'mp', mehrVersteckt:'mv',
+  fakOhne:'fo', fakZahl:'fz', fakIrrational:'fi', sortiert:'so', loesLevel:'ll', ausmultipliziert:'am', mitSkizze:'sk', erkFalsch:'ef', diff:'d'
+};
+/* Die Faktorarten - einzeln anwählbar, Häufigkeit über die Regler. */
+/* Die Faktorarten, zwischen denen gewürfelt wird. „Gedreht" steht bewusst
+   NICHT dabei: es ist keine eigene Art, sondern nur eine Schreibweise, die
+   jeden Linearfaktor treffen kann. */
+var FAKARTEN = ['fakLin','fakNullX','fakFaktor','fakQuad','fakPot','fakOhne','fakIrrational'];
+/* Alles außer „linear" steckt im Menü des Chips „gemischt". */
+/* Die Gruppen in der Chipleiste: Linearfaktoren und Potenzfaktoren haben
+   jeweils Unterformen (Pfeil, langer Druck oder Rechtsklick). */
+var LINGRUPPE = ['fakLin','fakNullX','fakFaktor'];
+var POTGRUPPE = ['fakPot','fakOhne','fakIrrational'];
+var STILE = ['stilLoesen','stilNullstelle','stilErkennen','stilEinsetzen'];
+
+function haken(id){ var e = document.getElementById(id); return !!(e && e.checked); }
+function setzeHaken(id, v){ var e = document.getElementById(id); if (e) e.checked = !!v; }
+function radioWert(name){ var e = document.querySelector('input[name="' + name + '"]:checked'); return e ? e.value : null; }
+function radioSetzen(name, wert){
+  var e = document.querySelector('input[name="' + name + '"][value="' + wert + '"]');
+  if (e) e.checked = true; return !!e;
+}
+function einstellungen(){
+  var s = {};
+  Object.keys(STD).forEach(function(k){
+    s[k] = (typeof STD[k] === 'boolean') ? haken(k) : (radioWert(k) || STD[k]);
+  });
+  return s;
+}
+function einstellungenSetzen(s){
+  Object.keys(STD).forEach(function(k){
+    if (typeof STD[k] === 'boolean') setzeHaken(k, s[k]); else radioSetzen(k, s[k]);
+  });
+  obenAbgleichen();
+  if (window.abGliderAlle) abGliderAlle();
+  kachelnMalen();
+}
+/* Von Hand geänderte Einstellungen werden gemerkt. Die Stufe bleibt stehen –
+   sie sagt weiterhin, wie schwer die Zahlen sein sollen –, überschreibt aber
+   nichts mehr, was man selbst eingestellt hat. */
+var VON_HAND = {};
+function aufIndividuell(){ /* die Stufe bleibt, wie sie ist */ }
+function vonHandMerken(ziel){
+  if (!ziel) return;
+  var k = ziel.id || ziel.name;
+  if (k && k !== 'diff') VON_HAND[k] = true;
+}
+document.addEventListener('change', function(ev){
+  var t = ev.target;
+  if (!t || t.name === 'diff') return;
+  vonHandMerken(t);
+}, true);
+/** Die Häufigkeiten einer Stufe, ohne die Regler, die von Hand stehen.
+    Der Regler zu ‚keine Lösung‘ heißt wfallKeine, das Kästchen fallKeine -
+    beide Namen gelten als ‚von Hand‘. */
+function reglerOhneHand(regler){
+  var raus = {};
+  Object.keys(regler || {}).forEach(function(k){
+    if (VON_HAND[k] || VON_HAND['w' + k]) return;
+    raus[k] = regler[k];
+  });
+  return raus;
+}
+function stufeAnwenden(stufe){
+  var p = STUFEN[stufe]; if (!p) return;
+  Object.keys(p).forEach(function(k){
+    if (k === 'regler' || VON_HAND[k]) return;      /* von Hand gewählt bleibt */
+    if (typeof p[k] === 'boolean') setzeHaken(k, p[k]); else radioSetzen(k, p[k]);
+  });
+  /* Die Stufe stellt auch ein, wie oft welcher Fall drankommt - aber nur
+     dort, wo man den Regler nicht selbst angefasst hat. */
+  if (p.regler && window.abReglerSetzen) abReglerSetzen(reglerOhneHand(p.regler));
+  obenAbgleichen(); kachelnMalen();
+}
+function obenAbgleichen(){
+  radioSetzen('anzahlTop', radioWert('anzahl') || '2');
+  /* Die drei Schreibweisen gelten nur, wenn mehrfache Faktoren erlaubt sind. */
+  ['mehrKlammer','mehrPotenz','mehrVersteckt'].forEach(function(id){
+    var e = document.getElementById(id);
+    if (e && e.parentNode) e.parentNode.style.opacity = haken('mehrfach') ? '' : '.45';
+    if (e) e.disabled = !haken('mehrfach');
+  });
+  if (window.abGliderAlle) abGliderAlle();
+  if (window.abReglerAbgleichen) abReglerAbgleichen();
+}
+
+function urlSchreiben(mitAufgabe){
+  var s = einstellungen(), p = new URLSearchParams();
+  Object.keys(KURZ).forEach(function(k){
+    if (String(s[k]) === String(STD[k])) return;
+    p.set(KURZ[k], (typeof s[k] === 'boolean') ? (s[k] ? '1' : '0') : s[k]);
+  });
+  if (mitAufgabe && A){
+    p.set('t', [A.stil, A.zahl, A.fak.map(function(f){ return f.code; }).join('~'),
+                A.rechts || 0, A.probe === undefined ? 0 : A.probe].join('_'));
+  }
+  var qs = p.toString();
+  var url = location.origin + location.pathname + (qs ? '?' + qs : '');
+  /* Ein fester Seed gehoert mit in den Link - sonst wuerfelt die
+     Gegenseite andere Aufgaben. */
+  return window.abSeedAnhaengen ? abSeedAnhaengen(url) : url;
+}
+function urlLesen(){
+  var p = new URLSearchParams(location.search), s = {};
+  Object.keys(STD).forEach(function(k){ s[k] = STD[k]; });
+  Object.keys(KURZ).forEach(function(k){
+    var v = p.get(KURZ[k]); if (v === null) v = p.get(k); if (v === null) return;
+    s[k] = (typeof STD[k] === 'boolean') ? (v === '1' || v === 'true') : v;
+  });
+  return s;
+}
+function linkKopieren(text, knopf){
+  if (window.abKopiere){ abKopiere(text, knopf, T('✓ Link kopiert', '✓ Link copied')); return; }
+  try { if (navigator.clipboard) navigator.clipboard.writeText(text); } catch (e) {}
+}
+
+/* ── Faktoren ───────────────────────────────────────────────────────────── */
+/* code: kurze Schreibweise für den Teilen-Link, z. B. "lin:3" oder "quad:2.5" */
+function fakLinear(a, gedreht, vor, potenz){
+  /* vor·x − vor·a   bzw.   a − x; potenz > 1 schreibt die Klammer als Potenz */
+  var v = vor || 1, pz = potenz || 1;
+  return {
+    potenz: pz,
+    code: (gedreht ? 'g' : 'l') + ':' + a + ':' + v + (pz > 1 ? ':' + pz : ''),
+    /* Bei der Nullstelle 0 steht nur x da - „x + 0" wäre unsinnig. */
+    /* Mit Vorfaktor heißt der Faktor v·(x − a) = v·x − v·a - das Absolutglied
+       wird also mitmultipliziert, sonst stimmte die Nullstelle nicht mehr. */
+    tex: (Math.abs(a) < 1e-9)
+      ? ((gedreht ? '-' : '') + (Math.abs(v - 1) < 1e-9 ? '' : pgZahl(v)) + 'x')
+      : (gedreht ? (pgZahl(a) + '-' + (Math.abs(v - 1) < 1e-9 ? '' : pgZahl(v)) + 'x')
+                 : ((Math.abs(v - 1) < 1e-9 ? '' : pgZahl(v)) + 'x'
+                    + (a > 0 ? '-' : '+') + pgZahl(Math.abs(v * a)))),
+    wert: function(x){ return Math.pow(gedreht ? (a - v * x) : (v * x - v * a), pz); },
+    loes: function(){ return [gedreht ? a / v : a]; },
+    art: 'lin'
+  };
+}
+function fakQuadratisch(r1, r2){
+  var p = -(r1 + r2), q = r1 * r2;
+  return {
+    code: 'q:' + r1 + ':' + r2,
+    tex: pgPoly({ 2: 1, 1: p, 0: q }),
+    wert: function(x){ return x * x + p * x + q; },
+    loes: function(){ return (Math.abs(r1 - r2) < 1e-9) ? [r1] : [Math.min(r1, r2), Math.max(r1, r2)]; },
+    art: 'quad'
+  };
+}
+function fakPotenz(n, w){
+  return {
+    code: 'p:' + n + ':' + w,
+    tex: pgPoly((function(){ var o = {}; o[n] = 1; o[0] = -Math.pow(w, n); return o; })()),
+    wert: function(x){ return Math.pow(x, n) - Math.pow(w, n); },
+    loes: function(){ return (n % 2 === 0) ? [-Math.abs(w), Math.abs(w)] : [w]; },
+    art: 'pot'
+  };
+}
+/** x² − w mit irrationalen Nullstellen ±√w. */
+function fakIrr(w){
+  return {
+    code: 'i:' + w,
+    tex: pgPoly({ 2: 1, 0: -w }),
+    wert: function(x){ return x * x - w; },
+    loes: function(){ return [-Math.sqrt(w), Math.sqrt(w)]; },
+    art: 'irr', w: w
+  };
+}
+function fakOhneNull(c){
+  return {
+    code: 'o:' + c,
+    tex: pgPoly({ 2: 1, 0: c }),
+    wert: function(x){ return x * x + c; },
+    loes: function(){ return []; },
+    art: 'ohne'
+  };
+}
+function fakAusCode(code){
+  var t = code.split(':');
+  if (t[0] === 'l') return fakLinear(parseFloat(t[1]), false, parseFloat(t[2]) || 1, parseFloat(t[3]) || 1);
+  if (t[0] === 'g') return fakLinear(parseFloat(t[1]), true, parseFloat(t[2]) || 1, parseFloat(t[3]) || 1);
+  if (t[0] === 'q') return fakQuadratisch(parseFloat(t[1]), parseFloat(t[2]));
+  if (t[0] === 'p') return fakPotenz(parseInt(t[1], 10), parseFloat(t[2]));
+  if (t[0] === 'o') return fakOhneNull(parseFloat(t[1]));
+  if (t[0] === 'i') return fakIrr(parseFloat(t[1]));
+  return fakLinear(1, false, 1);
+}
+
+/* ── Aufgabe würfeln ────────────────────────────────────────────────────── */
+var A = null, richtig = 0, gesamt = 0;
+function zufall(n){ return Math.floor(Math.random() * n); }
+function waehle(l){ return l[zufall(l.length)]; }
+function aktiveStile(s){ var l = STILE.filter(function(k){ return s[k]; }); return l.length ? l : ['stilLoesen']; }
+
+function neueAufgabe(){
+  var s = einstellungen();
+  try { history.replaceState({}, '', urlSchreiben(false)); } catch (e) {}
+  var stil = waehle(aktiveStile(s)).replace('stil', '').toLowerCase();
+  var anz;
+  if (s.anzahl === 'gemischt') anz = waehle([2, 3, 3, 4]);
+  else if (s.anzahl === 'mind2'){
+    /* Mindestens zwei Faktoren; jeder weitere kommt mit kleinerer
+       Wahrscheinlichkeit dazu als der davor. Das ergibt im Schnitt knapp
+       fünf Faktoren: drei kommen gut vor, sieben sind selten (etwa 7 %),
+       acht sind fast unmöglich (unter 1 %). */
+    var WEITER = [0.93, 0.85, 0.72, 0.52, 0.28, 0.10];
+    anz = 2;
+    while (anz < 8 && Math.random() < WEITER[anz - 2]) anz++;
+  } else anz = parseInt(s.anzahl, 10) || 2;
+
+  var gross = (s.loesLevel === 'klein') ? 6 : 12;
+  var werte = [];
+  /* Die 0 fehlt hier mit Absicht: Faktoren mit der Nullstelle 0 sind reine
+     Potenzen von x und kommen nur über „nur Potenzen von x". */
+  for (var i = -gross; i <= gross; i++) if (i !== 0) werte.push(i);
+  if (s.loesLevel === 'bruch') werte = werte.concat([-2.5, -1.5, -0.5, 0.5, 1.5, 2.5]);
+
+  /* Welche Faktorart kommt dran? Nach den Reglern in den Einstellungen. */
+  var ARTID = { fakLin:'lin', fakNullX:'nullx', fakFaktor:'faktor', fakQuad:'quad',
+                fakPot:'pot', fakOhne:'ohne', fakIrrational:'irr' };
+  var zieheArt = function(){
+    var id = (window.abZiehe ? abZiehe(FAKARTEN) : null);
+    return id ? ARTID[id] : 'lin';
+  };
+  var arten = FAKARTEN.filter(function(id){ return s[id]; }).map(function(id){ return ARTID[id]; });
+  if (!arten.length) arten = ['lin'];
+
+  /* Welche Schreibweisen für mehrfache Faktoren sind frei? */
+  var mehrArten = [];
+  if (s.mehrfach){
+    if (s.mehrKlammer) mehrArten.push('klammer');
+    if (s.mehrPotenz) mehrArten.push('potenz');
+    if (s.mehrVersteckt) mehrArten.push('versteckt');
+  }
+
+  var fak = [], benutzt = [], schutz = 0;
+  for (var k = 0; k < anz && schutz < 60; k++){
+    schutz++;
+    /* ab dem zweiten Faktor darf einer wiederholt werden */
+    if (k > 0 && mehrArten.length && Math.random() < 0.45){
+      var lins = fak.filter(function(f){ return f.art === 'lin' && f.potenz === 1; });
+      if (lins.length){
+        var vorlage = waehle(lins), nst = vorlage.loes()[0];
+        var wie = waehle(mehrArten);
+        if (wie === 'klammer'){
+          fak.push(fakAusCode(vorlage.code));
+          continue;
+        }
+        if (wie === 'potenz'){
+          /* Die Potenz ERSETZT einen vorhandenen Faktor, liefert also keinen
+             neuen - deshalb zaehlt dieser Durchlauf nicht mit (k--). */
+          var t2 = vorlage.code.split(':');
+          fak[fak.indexOf(vorlage)] = fakLinear(parseFloat(t2[1]), t2[0] === 'g', parseFloat(t2[2]) || 1, 2);
+          k--;
+          continue;
+        }
+        /* versteckt: ein quadratischer Faktor, der dieselbe Nullstelle enthält */
+        var partner = waehle(werte.filter(function(w){ return Math.abs(w - nst) > 1e-9; }));
+        fak.push(fakQuadratisch(Math.min(nst, partner), Math.max(nst, partner)));
+        benutzt.push(partner);
+        continue;
+      }
+    }
+    var art = (k === 0) ? (s.fakLin ? 'lin' : arten[0]) : zieheArt();   /* der erste bleibt einfach */
+    if (art === 'nullx'){
+      /* Reine Potenz von x: die Nullstelle ist 0. Gibt es sie schon, wird
+         stattdessen ein gewöhnlicher Linearfaktor genommen. */
+      if (benutzt.indexOf(0) < 0){
+        benutzt.push(0);
+        fak.push(fakLinear(0, false, 1, waehle([1, 1, 1, 2, 3])));
+        continue;
+      }
+      art = 'lin';
+    }
+    if (art === 'lin' || art === 'faktor'){
+      /* Ein leeres Feld ist in JavaScript wahr - deshalb ausdrücklich prüfen,
+         sonst käme „undefined" als Nullstelle heraus. */
+      var frei = werte.filter(function(w){ return benutzt.indexOf(w) < 0; });
+      if (!frei.length) frei = werte;
+      var a = waehle(frei);
+      benutzt.push(a);
+      /* „Gedreht" ist keine eigene Art, sondern eine Schreibweise: jeder
+         Linearfaktor kann sie treffen, wenn sie erlaubt ist. */
+      var gedreht = !!s.fakGedreht && Math.random() < 0.4;
+      fak.push(fakLinear(a, gedreht, art === 'faktor' ? waehle([2, 3, 4, 5]) : 1));
+    } else if (art === 'quad'){
+      var freiQ = werte.filter(function(w){ return benutzt.indexOf(w) < 0; });
+      if (freiQ.length < 2) freiQ = werte;
+      var r1 = waehle(freiQ), r2 = waehle(freiQ);
+      fak.push(fakQuadratisch(r1, r2)); benutzt.push(r1); benutzt.push(r2);
+    } else if (art === 'pot'){
+      var n = waehle([2, 3]);
+      var w2 = waehle([1, 2, 3, 4]);
+      fak.push(fakPotenz(n, w2)); benutzt.push(w2);
+    } else if (art === 'irr'){
+      /* x² − 5: die Nullstellen sind ±√5 */
+      var w3 = waehle([2, 3, 5, 6, 7, 10, 11]);
+      fak.push(fakIrr(w3));
+    } else {
+      fak.push(fakOhneNull(waehle([1, 4, 9, 2, 5])));
+    }
+  }
+  /* Zwei wortgleiche Klammern gibt es nur, wenn sie ausdrücklich erlaubt sind -
+     sonst wird die zweite durch einen neuen Linearfaktor ersetzt. */
+  if (!(s.mehrfach && s.mehrKlammer)){
+    var gesehen = {};
+    fak = fak.map(function(f8){
+      if (!gesehen[f8.code]){ gesehen[f8.code] = 1; return f8; }
+      var frei2 = werte.filter(function(w){ return benutzt.indexOf(w) < 0; });
+      if (!frei2.length) frei2 = werte;
+      var a9 = waehle(frei2);
+      benutzt.push(a9);
+      var neu8 = fakLinear(a9, false, 1);
+      gesehen[neu8.code] = 1;
+      return neu8;
+    });
+  }
+  /* Sortiert: erst Potenzen von x (Nullstelle 0), dann Linearfaktoren, dann
+     deren Potenzen, zuletzt die übrigen Terme. Die Zahl steht ohnehin vorn. */
+  if (s.sortiert){
+    var rang = function(f){
+      var l = f.loes();
+      if (f.art === 'lin' && l.length && Math.abs(l[0]) < 1e-9) return 0;
+      if (f.art === 'lin') return (f.potenz > 1) ? 2 : 1;
+      if (f.art === 'pot') return 3;
+      return 4;
+    };
+    fak = fak.map(function(f, i){ return { f: f, i: i }; })
+             .sort(function(a8, b8){
+               var r = rang(a8.f) - rang(b8.f);
+               if (r) return r;
+               var la = a8.f.loes(), lb = b8.f.loes();
+               if (la.length && lb.length && Math.abs(la[0] - lb[0]) > 1e-9) return la[0] - lb[0];
+               return a8.i - b8.i;
+             })
+             .map(function(e){ return e.f; });
+  }
+  /* Der Zahlfaktor hat einen eigenen Regler: er sagt, wie oft überhaupt eine
+     Zahl vor dem Produkt steht. */
+  var wZ = (window.abGewicht ? abGewicht('fakZahl') : 5);
+  var zahl = (s.fakZahl && Math.random() < wZ / (wZ + 5)) ? waehle([2, 2, 3, 3, 4, 5, -2, -3]) : 1;
+
+  var loes = [];
+  fak.forEach(function(f){ f.loes().forEach(function(x){ loes.push(x); }); });
+  loes = loes.filter(function(x, i, l){ return l.findIndex(function(y){ return Math.abs(y - x) < 1e-9; }) === i; });
+  loes.sort(function(m, n2){ return m - n2; });
+
+  A = { stil: stil, fak: fak, zahl: zahl, loes: loes };
+  if (stil === 'einsetzen'){
+    var kandidat = (Math.random() < 0.5 && loes.length) ? waehle(loes) : waehle(werte);
+    A.probe = Math.round(kandidat * 1000) / 1000;
+    A.probeIst = loes.some(function(x){ return Math.abs(x - A.probe) < 1e-9; });
+  }
+  if (stil === 'erkennen'){
+    var falsch = s.erkFalsch && Math.random() < 0.5;
+    A.erkLoesbar = !falsch;
+    A.rechts = falsch ? waehle([6, 12, 24, -6]) : 0;
+  }
+  zeichne();
+}
+
+/* ── Zeichnen ───────────────────────────────────────────────────────────── */
+/** Ein Faktor als TeX. Um einen einzelnen Summanden (x, 2x) gehört keine
+    Klammer - „(x)" sähe seltsam aus. Bei einer Potenz nur um x selbst nicht,
+    denn (2x)² ist eben nicht 2x². */
+function fakTeX(f, erstes){
+  var t = f.tex, pz = (f.potenz && f.potenz > 1) ? ('^{' + f.potenz + '}') : '';
+  var kern = String(t).replace(/\s|\\,/g, '');
+  if (pz){
+    if (kern === 'x' || (erstes && kern === '-x')) return kern + pz;
+  } else if (/^-?\d*x$/.test(kern)){
+    if (erstes || kern.charAt(0) !== '-') return kern;
+  }
+  return '\\left(' + t + '\\right)' + pz;
+}
+function produktTeX(){
+  var t = (Math.abs(A.zahl - 1) < 1e-9) ? '' : (Math.abs(A.zahl + 1) < 1e-9 ? '-' : pgZahl(A.zahl) + '\\cdot ');
+  return t + A.fak.map(function(f, i){ return fakTeX(f, !t && i === 0); }).join('');
+}
+function aufgabeTeX(){
+  if (A.stil === 'nullstelle') return 'f(x) = ' + produktTeX();
+  if (A.stil === 'erkennen') return produktTeX() + ' = ' + pgZahl(A.rechts || 0);
+  return produktTeX() + ' = 0';
+}
+function aufgabenText(){
+  switch (A.stil){
+    case 'nullstelle': return T('Bestimme alle Nullstellen von f.', 'Find all roots of f.');
+    case 'erkennen':   return T('Lässt sich diese Gleichung mit dem Satz vom Nullprodukt lösen?',
+                                'Can this equation be solved with the zero product property?');
+    case 'einsetzen':  return T('Prüfe durch Einsetzen, ob \\(x = ' + pgZahl(A.probe) + '\\) eine Lösung ist.',
+                                'Substitute to check whether \\(x = ' + pgZahl(A.probe) + '\\) is a solution.');
+    default:           return T('Löse die Gleichung.', 'Solve the equation.');
+  }
+}
+function fWert(x){
+  var p = A.zahl;
+  A.fak.forEach(function(f){ p *= f.wert(x); });
+  return p;
+}
+function zeichne(){
+  if (!A) return;
+  document.getElementById('taskText').innerHTML = aufgabenText();
+  document.getElementById('task').innerHTML = '\\[' + aufgabeTeX() + '\\]';
+  /* Die Erkundung zeigt dieselbe Aufgabe - sie wird gleich mit umgestellt. */
+  erkAusAufgabe();
+  var me = document.getElementById('modeErk');
+  if (me && !me.classList.contains('hidden')) erkMalen();
+  loesungZeichnen(); antwortZeichnen(); quizBauen();
+  var d = document.getElementById('dLoesung'); if (d) d.open = false;
+  var w = document.getElementById('dWeg'); if (w) w.open = false;
+  mj(document.getElementById('taskBox'));
+}
+/* Formeln setzen. Zwei Dinge sind dabei wichtig:
+   - Ein zweiter Lauf über schon gesetzte Formeln würde die unsichtbare
+     MathML-Fassung als neue Formel ansehen; die Zeile wird dann zu hoch
+     und oben wie unten abgeschnitten. Darum wird nur gesetzt, wo noch
+     echte \( … \) stehen.
+   - Zwei Läufe gleichzeitig kämen sich in die Quere, deshalb laufen sie
+     nacheinander. */
+var mjKette = null;
+function mj(node){
+  if (!node) return;
+  var nachmessen = function(){
+    if (window.scaleToFit) node.querySelectorAll('.scale-el').forEach(function(e){ scaleToFit(e); });
+  };
+  if (!(window.MathJax && MathJax.typesetPromise)){ nachmessen(); return; }
+  mjKette = (mjKette || Promise.resolve()).then(function(){
+    var t = node.textContent || '';
+    if (t.indexOf('\\(') < 0 && t.indexOf('\\[') < 0) return null;
+    return MathJax.typesetPromise([node]);
+  }).then(function(){
+    nachmessen();
+    /* Zu breite Formeln verkleinern, damit nichts über den Rand ragt. */
+    if (window.abFormelnPassen) abFormelnPassen(node);
+  }).catch(function(){});
+}
+/** Das Produkt ausmultipliziert. */
+function ausmultipliziert(){
+  var koeff = { 0: A.zahl };
+  A.fak.forEach(function(f){
+    var teil;
+    if (f.art === 'lin'){
+      var t = f.code.split(':'), a = parseFloat(t[1]), v = parseFloat(t[2]) || 1;
+      teil = (t[0] === 'g') ? { 1: -v, 0: a } : { 1: v, 0: -v * a };
+      /* eine Potenz heißt: der Faktor steckt mehrfach im Produkt */
+      for (var w3 = 1; w3 < (f.potenz || 1); w3++){
+        var q3 = {};
+        Object.keys(teil).forEach(function(e1){
+          Object.keys((t[0] === 'g') ? { 1: -v, 0: a } : { 1: v, 0: -v * a }).forEach(function(e2){
+            var basis = (t[0] === 'g') ? { 1: -v, 0: a } : { 1: v, 0: -v * a };
+            var e = Number(e1) + Number(e2);
+            q3[e] = (q3[e] || 0) + teil[e1] * basis[e2];
+          });
+        });
+        teil = q3;
+      }
+    } else if (f.art === 'quad'){
+      var q = f.code.split(':'), r1 = parseFloat(q[1]), r2 = parseFloat(q[2]);
+      teil = { 2: 1, 1: -(r1 + r2), 0: r1 * r2 };
+    } else if (f.art === 'pot'){
+      var pp = f.code.split(':'), n = parseInt(pp[1], 10), w = parseFloat(pp[2]);
+      teil = {}; teil[n] = 1; teil[0] = -Math.pow(w, n);
+    } else {
+      var oo = f.code.split(':');
+      teil = { 2: 1, 0: parseFloat(oo[1]) };
+    }
+    var neu = {};
+    Object.keys(koeff).forEach(function(e1){
+      Object.keys(teil).forEach(function(e2){
+        var e = Number(e1) + Number(e2);
+        neu[e] = (neu[e] || 0) + koeff[e1] * teil[e2];
+      });
+    });
+    koeff = neu;
+  });
+  Object.keys(koeff).forEach(function(e){ if (Math.abs(koeff[e]) < 1e-9) delete koeff[e]; });
+  return pgPoly(koeff);
+}
+/** Wie oft ist x Lösung? Potenzen und doppelte Faktoren zählen mehrfach. */
+function vielfachheit(x){
+  var n = 0;
+  (A.fak || []).forEach(function(f){
+    var p = f.potenz || 1, l = f.loes();
+    l.forEach(function(w){ if (Math.abs(w - x) < 1e-9) n += p; });
+    /* ein quadratischer Faktor mit doppelter Nullstelle zählt doppelt */
+    if (f.art === 'quad' && l.length === 1 && Math.abs(l[0] - x) < 1e-9) n += p;
+  });
+  return Math.max(1, n);
+}
+/** Die Lösungen in der eingestellten Schreibweise. */
+function loesAusgabe(liste, opt){
+  opt = opt || {};
+  if (!window.pgLoesungen){
+    if (!liste.length) return '\\mathbb{L} = \\{\\,\\}';
+    return '\\mathbb{L} = \\left\\{' + liste.map(function(e){ return (typeof e === 'string') ? e : e.tex; }).join(';\\ ') + '\\right\\}';
+  }
+  var art = radioWert('loesForm') || 'index';
+  var t = pgLoesungen(liste, { art: art, trenner: haken('loesWedge') ? 'wedge' : 'komma',
+                               v: opt.v || 'x', keine: opt.keine });
+  /* Bei der Lösungsmenge sagt das leere Klammerpaar allein wenig. */
+  if (!liste.length && art === 'menge')
+    t += ' \\quad \\text{(' + (opt.keine || T('keine Lösung', 'no solution')) + ')}';
+  return t;
+}
+function loesungsTeX(){
+  if (A.stil === 'erkennen') return '\\text{' + (A.erkLoesbar ? T('ja', 'yes') : T('nein', 'no')) + '}';
+  if (A.stil === 'einsetzen')
+    return '\\text{' + (A.probeIst ? T('ja, x = ', 'yes, x = ') : T('nein, x = ', 'no, x = ')) + '}'
+         + pgZahl(A.probe) + '\\text{' + (A.probeIst ? T(' ist eine Lösung', ' is a solution')
+                                                     : T(' ist keine Lösung', ' is not a solution')) + '}';
+  return loesAusgabe(A.loes.map(function(x){ return { tex: pgZahl(x), n: vielfachheit(x) }; }));
+}
+function loesungZeichnen(){
+  var box = document.getElementById('loesung');
+  box.innerHTML = '\\[' + loesungsTeX() + '\\]';
+  if (haken('ausmultipliziert') && A.stil !== 'erkennen' && A.stil !== 'einsetzen')
+    box.innerHTML += '<p class="weg-merke">' + T('Ausmultipliziert:', 'Expanded:') + ' \\(' + ausmultipliziert() + ' = 0\\)</p>';
+  var sk = document.getElementById('skizze');
+  sk.innerHTML = '';
+  if (haken('mitSkizze') && window.pgSkizze && A.stil !== 'erkennen')
+    pgSkizze(sk, { f: fWert, stellen: A.loes });
+  wegZeichnen();
+  mj(document.getElementById('dLoesung'));
+}
+/** Eine Lösung als TeX - irrationale Werte als Wurzel. */
+function loesTeX(x){
+  if (pgGanz(x)) return pgZahl(x);
+  var br = pgBruch(x);
+  if (br && br.d <= 20) return pgZahl(x);
+  var q = x * x;
+  if (Math.abs(q - Math.round(q)) < 1e-9)
+    return (x < 0 ? '-' : '') + pgWurzel(Math.round(q));
+  return pgZahl(Math.round(x * 1000) / 1000);
+}
+/** Das Produkt wird in einzelne Gleichungen aufgespalten - als kleines
+    Diagramm: oben die Gleichung, darunter je ein Ast pro Faktor.
+    stufe: 1 = nur die Aufspaltung, 2 = auch die Lösungen darunter. */
+function nullproduktBaum(stufe){
+  var h = '<div class="np-baum">';
+  /* Die Gleichungen als abgesetzte Formeln (\\[ \\]): nur die bekommen von
+     abFormelnPassen eine eigene Kastenbreite und werden auf schmalen
+     Bildschirmen verkleinert statt herauszuragen. */
+  h += '<div class="np-wurzel">\\[' + produktTeX() + ' = 0\\]</div>';
+  h += '<div class="np-regel">' + T('ein Faktor muss 0 sein', 'one factor has to be 0') + '</div>';
+  h += '<div class="np-aeste">';
+  A.fak.forEach(function(f, i){
+    var l = f.loes();
+    h += '<div class="np-ast">';
+    h += '<div class="np-glg">\\[' + ((f.potenz > 1) ? fakTeX(f, true) : f.tex) + ' = 0\\]</div>';
+    if (stufe > 1){
+      h += '<div class="np-pfeil">\u2193</div>';
+      h += '<div class="np-loes">\\[' + (l.length
+        ? l.map(function(x){ return 'x = ' + loesTeX(x); }).join(T('\\;\\text{oder}\\;', '\\;\\text{or}\\;'))
+        : '\\text{' + T('keine Lösung', 'no solution') + '}') + '\\]</div>';
+    }
+    h += '</div>';
+  });
+  h += '</div></div>';
+  return h;
+}
+
+function wegZeichnen(){
+  var z = [];
+  if (A.stil === 'erkennen'){
+    z.push('<p>' + (A.erkLoesbar
+      ? T('Links steht ein <b>Produkt</b>, rechts eine <b>0</b> – genau dann hilft der Satz vom Nullprodukt.',
+          'On the left there is a <b>product</b>, on the right a <b>0</b> – exactly then the zero product property helps.')
+      : T('Rechts steht <b>nicht 0</b>. Dann darf man die Faktoren nicht einzeln gleich 0 setzen – man müsste erst ausmultiplizieren und alles auf eine Seite bringen.',
+          'The right-hand side is <b>not 0</b>. Then you must not set the factors equal to 0 one by one – you would first have to expand and move everything to one side.')) + '</p>');
+    document.getElementById('weg').innerHTML = z.join('');
+    return;
+  }
+  if (A.stil === 'einsetzen'){
+    z.push('<p>' + T('Setze die Zahl in jeden Faktor ein:', 'Substitute the number into every factor:') + '</p>');
+    z.push('\\[\\begin{aligned}' + A.fak.map(function(f){
+      return '\\left(' + f.tex + '\\right) &= ' + pgZahl(Math.round(f.wert(A.probe) * 1e6) / 1e6);
+    }).join(' \\\\ ') + '\\end{aligned}\\]');
+    z.push('<p>' + (A.probeIst
+      ? T('Mindestens ein Faktor wird 0 – damit ist das ganze Produkt 0, die Zahl ist also eine Lösung.',
+          'At least one factor becomes 0 – so the whole product is 0 and the number is a solution.')
+      : T('Kein Faktor wird 0 – das Produkt ist also nicht 0, die Zahl ist keine Lösung.',
+          'No factor becomes 0 – so the product is not 0 and the number is not a solution.')) + '</p>');
+    document.getElementById('weg').innerHTML = z.join('');
+    return;
+  }
+  if (A.stil === 'nullstelle')
+    z.push('<p>' + T('Nullstellen heißt: \\(f(x) = 0\\) setzen.', 'Roots means: set \\(f(x) = 0\\).') + '</p>\\[' + produktTeX() + ' = 0\\]');
+  z.push('<p>' + T('<b>Satz vom Nullprodukt:</b> Ein Produkt ist genau dann 0, wenn <b>mindestens ein Faktor</b> 0 ist. Also wird jeder Faktor einzeln gleich 0 gesetzt:',
+                   '<b>Zero product property:</b> a product is 0 exactly when <b>at least one factor</b> is 0. So each factor is set equal to 0 separately:') + '</p>');
+  /* Jeder Faktor bekommt eine eigene Zeile. Wird sie zu lang, steht die Folge
+     darunter - sonst läuft sie auf schmalen Schirmen seitlich hinaus. */
+  if (Math.abs(A.zahl - 1) > 1e-9)
+    z.push('<p class="weg-merke">' + T('Die Zahl ', 'The number ') + '\\(' + pgZahl(A.zahl) + '\\)'
+      + T(' ist nie 0 – sie liefert keine Lösung.', ' is never 0 – it gives no solution.') + '</p>');
+  z.push(nullproduktBaum(2));
+  z.push('<p>' + T('Alle gefundenen Werte zusammen bilden die Lösungsmenge:',
+                   'All the values found together form the solution set:') + '</p>');
+  z.push('\\[' + loesungsTeX() + '\\]');
+  if (haken('ausmultipliziert'))
+    z.push('<p>' + T('Ausmultipliziert sähe dieselbe Gleichung so aus – an ihr wäre die Lösung viel schwerer abzulesen:',
+                     'Expanded, the same equation would look like this – the solutions would be much harder to see:')
+         + '</p>\\[' + ausmultipliziert() + ' = 0\\]');
+  var links = [];
+  if (A.fak.some(function(f){ return f.art === 'quad'; }))
+    links.push('<a href="quadratische_gleichungen.html">' + T('quadratische Gleichungen', 'quadratic equations') + '</a>');
+  if (A.fak.some(function(f){ return f.art === 'pot' || f.art === 'ohne'; }))
+    links.push('<a href="potenzgleichungen.html">' + T('Potenzgleichungen', 'power equations') + '</a>');
+  links.push('<a href="ausklammern.html">' + T('Ausklammern', 'factoring out') + '</a>');
+  z.push('<p class="weg-merke">' + T('Verwandte Seiten: ', 'Related pages: ') + links.join(' · ') + '</p>');
+  document.getElementById('weg').innerHTML = z.join('');
+}
+
+/* ── Eigene Lösung eingeben ─────────────────────────────────────────────── */
+/** Wie oft kommt eine Nullstelle vor? Mehrere Faktoren mit derselben
+    Nullstelle - oder ein Potenzfaktor - machen sie mehrfach. */
+function vielfachkeiten(){
+  var zaehl = [];
+  (A.fak || []).forEach(function(f){
+    var n = (f.art === 'pot' && f.n) ? f.n : 1;
+    (f.loes() || []).forEach(function(x){
+      var tref = zaehl.find(function(e){ return Math.abs(e.x - x) < 1e-9; });
+      if (tref) tref.n += n; else zaehl.push({ x: x, n: n });
+    });
+  });
+  var raus = {};
+  zaehl.forEach(function(e){ if (e.n >= 2) raus[e.x] = e.n; });
+  return raus;
+}
+function antwortZeichnen(){
+  var host = document.getElementById('antwortBereich');
+  host.innerHTML = ''; host.className = '';
+  if (!window.pgAntwort) return;
+  if (A.stil === 'erkennen' || A.stil === 'einsetzen'){
+    var frage = document.createElement('div');
+    frage.className = 'pg-frage';
+    frage.textContent = (A.stil === 'erkennen')
+      ? T('Hilft hier der Satz vom Nullprodukt?', 'Does the zero product property help here?')
+      : T('Ist die Zahl eine Lösung?', 'Is the number a solution?');
+    var knoepfe = document.createElement('div'); knoepfe.className = 'pg-jn';
+    var fb = document.createElement('div'); fb.className = 'pg-fb';
+    var richtigWert = (A.stil === 'erkennen') ? A.erkLoesbar : A.probeIst;
+    [[true, T('ja', 'yes')], [false, T('nein', 'no')]].forEach(function(pp){
+      var b = document.createElement('button');
+      b.type = 'button'; b.className = 'pg-wahl-knopf'; b.textContent = pp[1];
+      b.addEventListener('click', function(){
+        if (b.disabled) return;
+        if (pp[0] === richtigWert){
+          b.classList.add('ok'); fb.className = 'pg-fb ok'; fb.textContent = T('✓ Richtig!', '✓ Correct!');
+          zaehle(true); [].forEach.call(knoepfe.children, function(x){ x.disabled = true; });
+        } else {
+          b.classList.add('err'); fb.className = 'pg-fb err';
+          fb.innerHTML = T('Das stimmt nicht – sieh dir die Lösung an.', 'That is not right – have a look at the solution.');
+          zaehle(false);
+        }
+      });
+      knoepfe.appendChild(b);
+    });
+    host.className = 'pg-antwort';
+    host.appendChild(frage); host.appendChild(knoepfe); host.appendChild(fb);
+    return;
+  }
+  (window.pgAntwortListe || pgAntwort)(host, {
+    loesungen: A.loes,
+    max: Math.max(4, A.fak.reduce(function(m, f){ return m + (f.art === 'lin' ? 1 : 2); }, 0)),
+    /* Welche Nullstelle wie oft vorkommt - für den Hinweis nach dem Lösen. */
+    vielfach: vielfachkeiten(),
+    frage: (A.stil === 'nullstelle')
+      ? T('Gib alle Nullstellen von f an.', 'State all roots of f.')
+      : T('Gib alle Lösungen der Gleichung an.', 'State all solutions of the equation.'),
+    onFertig: function(ok){ zaehle(ok); },
+    hinweis: function(anzahl, werte){
+      var vzFehler = werte && werte.some(function(v){
+        return v !== null && A.loes.some(function(l){ return Math.abs(v + l) < 1e-9 && Math.abs(l) > 1e-9; });
+      });
+      if (vzFehler)
+        return T('Achte auf das Vorzeichen: Aus (x − 3) = 0 folgt x = +3.',
+                 'Mind the sign: (x − 3) = 0 gives x = +3.');
+      if (A.fak.some(function(f){ return f.art === 'ohne'; }) && anzahl > A.loes.length)
+        return T('Ein Faktor liefert gar keine Lösung – prüfe, welcher.',
+                 'One factor gives no solution at all – check which one.');
+      if (Math.abs(A.zahl - 1) > 1e-9 && anzahl > A.loes.length)
+        return T('Der Zahlfaktor vorn kann nie 0 werden – er liefert keine Lösung.',
+                 'The number in front can never be 0 – it gives no solution.');
+      return null;
+    }
+  });
+}
+function zaehle(ok){
+  gesamt++; if (ok) richtig++;
+  var c = document.getElementById('counter');
+  if (c) c.textContent = T('Richtig: ', 'Correct: ') + richtig + ' / ' + gesamt;
+}
+
+/* ── Quiz ───────────────────────────────────────────────────────────────── */
+function quizBauen(){
+  var host = document.getElementById('quizArea');
+  if (!host || !window.pgQuiz) return;
+  var schritte = [];
+
+  /* Vor allem anderen: Steht die Gleichung schon in der Form „… = 0"? */
+  if (A.stil !== 'erkennen' && A.stil !== 'einsetzen' && window.pgSchrittNullForm)
+    schritte.push(pgSchrittNullForm(A.stil === 'loesen', aufgabeTeX(), { art: A.stil }));
+  if (A.stil === 'erkennen' || A.stil === 'einsetzen'){
+    schritte.push({ titel: T('Entscheiden', 'Decide'), art: 'wahl',
+      frage: (A.stil === 'erkennen') ? T('Steht rechts eine 0?', 'Is there a 0 on the right?')
+                                     : T('Wird einer der Faktoren 0?', 'Does one of the factors become 0?'),
+      optionen: [T('ja', 'yes'), T('nein', 'no')],
+      richtig: ((A.stil === 'erkennen') ? A.erkLoesbar : A.probeIst) ? 0 : 1,
+      hilfe: [T('Der Satz vom Nullprodukt gilt nur, wenn das Produkt gleich 0 ist.',
+                'The zero product property only holds when the product equals 0.')] });
+    pgQuiz(host, schritte, { gleichung: aufgabeTeX() });
+    return;
+  }
+  schritte.push({ titel: T('Satz vom Nullprodukt', 'Zero product property'), art: 'wahl',
+    frage: T('Wann ist ein Produkt gleich 0?', 'When is a product equal to 0?'),
+    optionen: [T('wenn mindestens ein Faktor 0 ist', 'when at least one factor is 0'),
+               T('wenn alle Faktoren 0 sind', 'when all factors are 0'),
+               T('wenn die Summe 0 ist', 'when the sum is 0')],
+    richtig: 0, kurz: T('ein Faktor genügt', 'one factor is enough'),
+    hilfe: [T('Multipliziert man irgendetwas mit 0, kommt 0 heraus.',
+              'Multiplying anything by 0 gives 0.')] });
+  /* Erst das Bild: aus dem einen Produkt werden mehrere kleine Gleichungen.
+     Danach wird jede davon einzeln gelöst - sonst kommt der Sprung zu den
+     Faktoren aus dem Nichts. */
+  schritte.push({ titel: T('Aufspalten', 'Split it up'), art: 'wahl',
+    frage: T('In wie viele einzelne Gleichungen zerfällt das Produkt?',
+             'Into how many separate equations does the product split?')
+         + nullproduktBaum(1),
+    optionen: ['1', '2', '3', '4', '5'].slice(0, Math.max(3, Math.min(5, A.fak.length + 1))),
+    richtig: A.fak.length - 1,
+    kurz: A.fak.length + ' ' + T('Gleichungen', 'equations'),
+    falschText: T('Jeder Faktor wird für sich gleich 0 gesetzt – zähle die Klammern.',
+                  'Each factor is set equal to 0 on its own – count the brackets.'),
+    hilfe: [T('Eine Zahl vor dem Produkt zählt nicht mit: sie ist nie 0.',
+              'A number in front of the product does not count: it is never 0.')] });
+  /* Für jeden Faktor nur noch die Lösungen abfragen - der Rechenweg dahinter
+     gehört auf die jeweilige Seite, nicht hierher. */
+  A.fak.forEach(function(f, i){
+    var l = f.loes();
+    var kopf = T((i + 1) + '. Faktor von ' + A.fak.length, 'Factor ' + (i + 1) + ' of ' + A.fak.length);
+    var gl = ((f.potenz > 1) ? fakTeX(f, true) : f.tex) + ' = 0';
+    if (l.length > 1){
+      schritte.push({ titel: kopf, art: 'felder', gleichung: gl,
+        frage: T('Welche Lösungen hat dieser Faktor?', 'Which solutions does this factor have?'),
+        felder: l.map(function(x, j){
+          return { name: 'x_' + (j + 1), soll: x, tol: 1e-3,
+                   fehler: [[-x, T('Achte auf das Vorzeichen.', 'Mind the sign.')]] };
+        }),
+        kurz: l.map(function(x){ return 'x = ' + loesTeX(x); }).join(',\\; '),
+        hilfe: [T('Setze nur diesen Faktor gleich 0.', 'Set just this factor equal to 0.')] });
+      return;
+    }
+    schritte.push({ titel: kopf, art: 'eingabe', gleichung: gl,
+      /* Die Frage ist für alle Faktoren gleich formuliert - sonst wäre schon
+         an ihr abzulesen, ob dieser Faktor eine Lösung hat. */
+      frage: T('Welche Lösung hat dieser Faktor?', 'Which solution does this factor have?'),
+      platzhalter: T('Zahl', 'number'),
+      vorFeld: 'x',
+      knoepfe: [{ text: T('keine Lösung', 'no solution'), wert: 'keine' }],
+      kurz: l.length ? ('x = ' + loesTeX(l[0])) : T('keine Lösung', 'no solution'),
+      pruefe: function(txt){
+        var t2 = String(txt).trim().toLowerCase();
+        var keine = /^(keine|none|-|k)$/.test(t2);
+        if (!l.length) return keine ? true
+          : T('Dieser Faktor wird nie 0 – nimm den Knopf „keine Lösung".',
+              'This factor is never 0 – use the “no solution” button.');
+        if (keine) return T('Doch – dieser Faktor hat eine Lösung.', 'It does – this factor has a solution.');
+        var v = pgLese(txt);
+        if (v === null) return T('Bitte eine Zahl eingeben.', 'Please enter a number.');
+        if (pgGleich(v, l[0], 1e-3)) return true;
+        if (pgGleich(v, -l[0], 1e-3)) return T('Achte auf das Vorzeichen.', 'Mind the sign.');
+        return T('Noch nicht.', 'Not yet.');
+      },
+      hilfe: [T('Setze nur diesen einen Faktor gleich 0 und löse nach x auf.',
+                'Set just this one factor equal to 0 and solve for x.')] });
+  });
+  schritte.push({ titel: T('Lösungsmenge', 'Solution set'), art: 'wahl',
+    frage: T('Wie viele verschiedene Lösungen hat die Gleichung?', 'How many different solutions does the equation have?'),
+    optionen: ['0', '1', '2', '3', '4', '5'],
+    richtig: Math.min(5, A.loes.length),
+    kurz: A.loes.length + ' ' + T('Lösung(en)', 'solution(s)'),
+    falschText: T('Zähle gleiche Werte nur einmal – und Faktoren ohne Nullstelle gar nicht.',
+                  'Count equal values only once – and factors without a root not at all.'),
+    hilfe: [T('Sammle alle Werte aus den einzelnen Faktoren.', 'Collect all values from the individual factors.')] });
+  /* Sobald „f(x) = 0" beantwortet ist, steht über den Schritten auch die
+     Gleichung mit der 0 - sonst stünde dort noch die Funktionsgleichung,
+     obwohl man längst mit der Nullform weiterrechnet. */
+  pgQuiz(host, schritte, { gleichung: window.pgGleichungFolge
+    ? pgGleichungFolge([[0, aufgabeTeX()], [1, produktTeX() + ' = 0']])
+    : aufgabeTeX() });
+}
+
+/* ── Erkundungsmodus ────────────────────────────────────────────────────── */
+/* Die Erkundung zeigt immer DIE Aufgabe, die auch im Übungsmodus steht -
+   so sieht man dieselbe Gleichung einmal zum Rechnen und einmal zum
+   Ausprobieren. */
+var E = null;
+function erkAusAufgabe(){
+  if (!A) return;
+  var x = E ? E.x : 0;
+  E = { fak: A.fak, zahl: A.zahl, x: x };
+}
+/** Einen Faktor mit eingesetzter Zahl zeigen: aus (x − 3) wird (2 − 3).
+    Klammern um die Zahl nur, wo sie gebraucht werden: bei negativen Zahlen,
+    vor einem Exponenten und hinter einem Vorfaktor. */
+function fakEingesetztTeX(f, x, erstes){
+  var roh = String(f.tex);
+  var ein = roh.replace(/(\d*)x(\^\{\d+\})?/g, function(_, zahl, pot){
+    var braucht = (x < 0) || !!pot || (!!zahl && !pgGanz(x));
+    var k = braucht ? ('\\left(' + pgZahl(x) + '\\right)') : pgZahl(x);
+    return (zahl ? (zahl + '\\cdot ' + k) : k) + (pot || '');
+  });
+  var pz = (f.potenz && f.potenz > 1) ? ('^{' + f.potenz + '}') : '';
+  /* Steht oben eine Klammer, steht sie auch hier - sonst sähe die Zeile
+     anders aus als die darüber. */
+  var obenOhne = (fakTeX(f, erstes).indexOf('\\left(') !== 0);
+  return obenOhne && !pz ? ein : ('\\left(' + ein + '\\right)' + pz);
+}
+/** Zahl in der Erkundungstabelle: hier ist eine Dezimalzahl lesbarer als
+    ein Bruch - man vergleicht ja nur mit der 0. */
+function erkZahl(w){
+  var r = Math.round(w * 1e4) / 1e4;
+  return String(r).replace('.', ',');
+}
+function erkMalen(){
+  if (!A) return;
+  if (!E || E.fak !== A.fak) erkAusAufgabe();
+  if (!E) return;
+  var x = E.x;
+  var vor = (Math.abs(E.zahl - 1) < 1e-9) ? '' : (Math.abs(E.zahl + 1) < 1e-9 ? '-' : pgZahl(E.zahl) + '\\cdot ');
+  var term = vor + E.fak.map(function(f, i){ return fakTeX(f, !vor && i === 0); }).join('');
+  document.getElementById('erkTerm').innerHTML = '\\[' + term + ' = 0\\]';
+  /* Dieselbe Zeile noch einmal - diesmal mit der Zahl statt des x. */
+  var termX = vor + E.fak.map(function(f, i){ return fakEingesetztTeX(f, x, !vor && i === 0); }).join('');
+  document.getElementById('erkTermX').innerHTML = '\\[' + termX + '\\]';
+
+  document.getElementById('erkWert').textContent = 'x = ' + pgZahlText(x);
+  var regler = document.getElementById('erkRegler');
+  if (regler){
+    /* Der Regler soll jede Nullstelle erreichen können. */
+    var alleN = [];
+    E.fak.forEach(function(f){ f.loes().forEach(function(n){ if (isFinite(n)) alleN.push(n); }); });
+    alleN.push(x, 0);
+    var lo = Math.min.apply(null, alleN), hi = Math.max.apply(null, alleN);
+    regler.min = Math.min(-5, Math.floor(lo) - 2);
+    regler.max = Math.max(5, Math.ceil(hi) + 2);
+    if (Math.abs(parseFloat(regler.value) - x) > 1e-9) regler.value = x;
+  }
+  var feld = document.getElementById('erkFeld');
+  if (feld && document.activeElement !== feld) feld.value = pgZahlText(x);
+
+  var produkt = E.zahl, zeilen = '';
+  E.fak.forEach(function(f, i){
+    var w = f.wert(x);
+    produkt *= w;
+    var null0 = Math.abs(w) < 1e-9;
+    zeilen += '<tr class="' + (null0 ? 'null' : '') + '">'
+      + '<td>\\(' + fakTeX(f, i === 0) + '\\)</td>'
+      + '<td>\\(' + fakEingesetztTeX(f, x, i === 0) + '\\)</td>'
+      + '<td>=</td><td>' + erkZahl(w)
+      + (null0 ? ' ' + T('(Null!)', '(zero!)') : '') + '</td></tr>';
+  });
+  var istNull = Math.abs(produkt) < 1e-9;
+  zeilen += '<tr class="produkt"><td>' + T('Produkt', 'product') + '</td><td></td><td>=</td><td>'
+          + erkZahl(produkt) + '</td></tr>';
+  document.getElementById('erkTabelle').innerHTML =
+    '<table class="erk-tab"><colgroup><col class="sp-klammer"><col class="sp-ein">'
+    + '<col class="sp-pfeil"><col class="sp-wert"></colgroup>'
+    + '<tr><th>' + T('Klammer', 'bracket') + '</th><th>' + T('eingesetzt', 'substituted')
+    + '</th><th></th><th>' + T('Wert', 'value') + '</th></tr>' + zeilen + '</table>';
+  var fazit = document.getElementById('erkFazit');
+  fazit.className = 'erk-fazit' + (istNull ? ' null' : '');
+  fazit.innerHTML = istNull
+    ? T('Eine Klammer ist 0 – also ist das ganze Produkt 0. x = ' + pgZahlText(x) + ' ist eine Lösung.',
+        'One bracket is 0 – so the whole product is 0. x = ' + pgZahlText(x) + ' is a solution.')
+    : T('Keine Klammer ist 0 – ein Produkt aus lauter Zahlen ungleich 0 kann nie 0 werden.',
+        'No bracket is 0 – a product of numbers that are all different from 0 can never be 0.');
+  /* Sprungknöpfe zu den Nullstellen */
+  var sprung = document.getElementById('erkSprung');
+  sprung.innerHTML = '';
+  var schon = [];
+  E.fak.forEach(function(f){
+    f.loes().forEach(function(n){
+      if (!isFinite(n)) return;
+      if (schon.some(function(w){ return Math.abs(w - n) < 1e-9; })) return;
+      schon.push(n);
+      var b = document.createElement('button');
+      b.type = 'button'; b.className = 'btn-secondary';
+      b.textContent = 'x = ' + pgZahlText(n);
+      b.addEventListener('click', function(){ E.x = n; erkMalen(); });
+      sprung.appendChild(b);
+    });
+  });
+  if (window.pgSkizze){
+    var fw = function(v){ var p = E.zahl; E.fak.forEach(function(f){ p *= f.wert(v); }); return p; };
+    var nst = schon.slice();
+    pgSkizze(document.getElementById('erkSkizze'), { f: fw, stellen: nst, marke: x });
+  }
+  mj(document.getElementById('modeErk'));
+}
+function modusSetzen(m){
+  document.getElementById('modeUeb').classList.toggle('hidden', m !== 'uebung');
+  document.getElementById('modeErk').classList.toggle('hidden', m !== 'erkundung');
+  document.querySelectorAll('#modeSwitch button').forEach(function(b){
+    b.classList.toggle('on', b.dataset.mode === m);
+  });
+  if (m === 'erkundung'){ erkAusAufgabe(); erkMalen(); }
+  /* Nach oben zur Umschaltleiste: der umgeschaltete Bereich fängt dort an,
+     sonst sieht man nach dem Klick unten weiter dasselbe und denkt, es sei
+     nichts passiert. */
+  var leiste = document.getElementById('modeSwitch');
+  if (leiste && leiste.parentElement && leiste.parentElement.scrollIntoView){
+    try { leiste.parentElement.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+    catch (e) { leiste.parentElement.scrollIntoView(true); }
+  }
+}
+
+/* ── Verdrahtung ────────────────────────────────────────────────────────── */
+var KACHELN = STILE.map(function(id){ return { haupt: id, nurDieser: true }; });
+function kachelnMalen(){
+  if (window.abKachelnMalen){
+    abKachelnMalen(document.getElementById('segStile'));
+    abKachelnMalen(document.getElementById('segFak'));
+  }
+  var zf = document.getElementById('fakZahl');
+  if (zf) zf.textContent = ' (' + FAKARTEN.filter(haken).length + '/' + FAKARTEN.length + ')';
+  var n = STILE.filter(haken).length;
+  var z = document.getElementById('stilZahl');
+  if (z) z.textContent = ' (' + n + '/' + STILE.length + ')';
+  var alle = document.getElementById('stilAlle');
+  if (alle) alle.textContent = (n === STILE.length) ? T('keine', 'none') : T('alle', 'all');
+}
+/** „(x-3)(x+2)=0" lesen. */
+function eigeneUebernehmen(){
+  var feld = document.getElementById('eigeneEingabe');
+  var meld = document.getElementById('eigeneMeldung');
+  var txt = String(feld.value || '').replace(/\s+/g, '').replace(/[−–—]/g, '-').replace(/,/g, '.').replace(/·|×/g, '*');
+  var seiten = txt.split('=');
+  if (seiten.length === 2 && seiten[1] !== '0'){
+    meld.className = 'meld err';
+    meld.textContent = T('Rechts muss 0 stehen – sonst hilft der Satz vom Nullprodukt nicht.',
+                         'The right-hand side has to be 0 – otherwise the zero product property does not help.');
+    return;
+  }
+  var links = seiten[0];
+  var zahl = 1;
+  var m = links.match(/^(-?\d+(?:\.\d+)?)\*?(?=\()/);
+  if (m){ zahl = parseFloat(m[1]); links = links.slice(m[0].length); }
+  var teile = links.match(/\([^()]*\)/g);
+  if (!teile || !teile.length || teile.join('').length !== links.replace(/\*/g, '').length){
+    meld.className = 'meld err';
+    /* Keine Klammern? Dann ist es eine gewöhnliche Gleichung - und für die
+       gibt es eine eigene Seite. */
+    var hin = '';
+    if (window.pgLeseGleichung && window.pgNichtHier){
+      var g2 = pgLeseGleichung(feld.value);
+      if (g2){
+        var d2 = {};
+        Object.keys(g2.links).forEach(function(e){ d2[e] = (d2[e] || 0) + g2.links[e]; });
+        Object.keys(g2.rechts).forEach(function(e){ d2[e] = (d2[e] || 0) - g2.rechts[e]; });
+        try { hin = pgNichtHier(pgKoeffAus(d2), 'nullprodukt'); } catch (x) { hin = ''; }
+      }
+    }
+    meld.innerHTML = T('Bitte als Produkt von Klammern schreiben, z. B. (x-3)(x+2)=0',
+                       'Please write it as a product of brackets, e.g. (x-3)(x+2)=0') + hin;
+    return;
+  }
+  var fak = [], fehler = false;
+  teile.forEach(function(t){
+    var inhalt = t.slice(1, -1);
+    var poly = window.pgLesePolyTeil ? pgLesePolyTeil(inhalt) : null;
+    if (!poly){ fehler = true; return; }
+    var exps = Object.keys(poly).map(Number).filter(function(e){ return Math.abs(poly[e]) > 1e-9; });
+    var hoch = Math.max.apply(null, exps.concat([0]));
+    if (hoch === 1){
+      var v = poly[1], c = poly[0] || 0;
+      fak.push(fakLinear(-c / v, v < 0, Math.abs(v)));
+      if (v < 0) fak[fak.length - 1] = fakLinear(-c / -v, true, Math.abs(v));
+    } else if (hoch === 2 && Math.abs(poly[2] - 1) < 1e-9){
+      var p = poly[1] || 0, q = poly[0] || 0, D = p * p / 4 - q;
+      if (D < -1e-9) fak.push(fakOhneNull(q));
+      else {
+        var r1 = -p / 2 - Math.sqrt(Math.max(0, D)), r2 = -p / 2 + Math.sqrt(Math.max(0, D));
+        fak.push(fakQuadratisch(Math.round(r1 * 1e6) / 1e6, Math.round(r2 * 1e6) / 1e6));
+      }
+    } else fehler = true;
+  });
+  if (fehler || !fak.length){
+    meld.className = 'meld err';
+    meld.textContent = T('Die Klammern dürfen linear oder quadratisch (mit x²) sein.',
+                         'The brackets may be linear or quadratic (with x²).');
+    return;
+  }
+  setzeAufgabe('loesen', zahl, fak);
+  meld.className = 'meld ok';
+  meld.textContent = T('Übernommen.', 'Taken over.');
+}
+function setzeAufgabe(stil, zahl, fak, extra){
+  var loes = [];
+  fak.forEach(function(f){ f.loes().forEach(function(x){ loes.push(x); }); });
+  loes = loes.filter(function(x, i, l){ return l.findIndex(function(y){ return Math.abs(y - x) < 1e-9; }) === i; });
+  loes.sort(function(m, n){ return m - n; });
+  A = { stil: stil, zahl: zahl, fak: fak, loes: loes };
+  if (extra){
+    A.rechts = extra.rechts || 0;
+    A.erkLoesbar = !A.rechts;
+    A.probe = extra.probe || 0;
+    A.probeIst = loes.some(function(x){ return Math.abs(x - A.probe) < 1e-9; });
+  }
+  zeichne();
+}
+/** Eine Gleichung, die eine andere Seite übergeben hat (?gl=…), übernehmen. */
+function gleichungAusURL(){
+  var g = new URLSearchParams(location.search).get('gl');
+  if (!g) return false;
+  var feld = document.getElementById('eigeneEingabe');
+  if (!feld) return false;
+  feld.value = g;
+  eigeneUebernehmen();
+  return !!A;
+}
+function aufgabeAusURL(){
+  var v = new URLSearchParams(location.search).get('t');
+  if (!v) return false;
+  var q = v.split('_');
+  if (q.length < 3) return false;
+  var zahl = parseFloat(q[1]);
+  var fak = q[2].split('~').map(fakAusCode);
+  if (!isFinite(zahl) || !fak.length) return false;
+  setzeAufgabe(q[0], zahl, fak, { rechts: parseFloat(q[3]) || 0, probe: parseFloat(q[4] || '0') });
+  return true;
+}
+
+function notbehelf(){
+  if (typeof window.pgZahl === 'function') return;
+  window.pgGanz  = function(x){ return Math.abs(x - Math.round(x)) < 1e-9; };
+  window.pgBruch = function(x){
+    for (var d = 1; d <= 100; d++){ var n = x * d; if (Math.abs(n - Math.round(n)) < 1e-9) return { n: Math.round(n), d: d }; }
+    return null;
+  };
+  window.pgZahl = function(x){
+    if (pgGanz(x)) return String(Math.round(x));
+    var b = pgBruch(x);
+    return (b && b.d <= 100) ? ((b.n < 0 ? '-' : '') + '\\frac{' + Math.abs(b.n) + '}{' + b.d + '}')
+                             : String(Math.round(x * 1e6) / 1e6).replace('.', '{,}');
+  };
+  window.pgZahlText = function(x){ return pgGanz(x) ? String(Math.round(x)) : String(Math.round(x * 1e6) / 1e6).replace('.', ','); };
+  window.pgGleich = function(a, b, t){ return Math.abs(a - b) < (t || 1e-6); };
+  window.pgPoly = function(o, opt){
+    var v = (opt && opt.v) || 'x';
+    var liste = Object.keys(o).map(Number).sort(function(a, b){ return b - a; }), out = '', erst = true;
+    liste.forEach(function(e){
+      var k = o[e];
+      if (Math.abs(k) < 1e-12) return;
+      var vz = erst ? (k < 0 ? '-' : '') : (k < 0 ? '-' : '+');
+      var a = Math.abs(k);
+      var zahl = (e !== 0 && Math.abs(a - 1) < 1e-9) ? '' : pgZahl(a);
+      out += vz + zahl + (e === 0 ? '' : (e === 1 ? v : v + '^{' + e + '}'));
+      erst = false;
+    });
+    return out || '0';
+  };
+}
+
+window.addEventListener('load', function(){
+  notbehelf();
+  einstellungenSetzen(urlLesen());
+  if (window.abSeedAusURL) abSeedAusURL();
+  if (window.abKacheln) abKacheln(document.getElementById('segStile'), KACHELN, function(){
+    /* Der Aufgabenstil gehört nicht zur Schwierigkeit - die Stufe bleibt stehen. */
+    kachelnMalen(); neueAufgabe();
+  });
+  kachelnMalen();
+  document.querySelectorAll('#modeSwitch button').forEach(function(b){
+    b.addEventListener('click', function(){ modusSetzen(b.dataset.mode); });
+  });
+  document.querySelectorAll('input[name="anzahlTop"]').forEach(function(e){
+    e.addEventListener('change', function(){ radioSetzen('anzahl', e.value); aufIndividuell(); neueAufgabe(); });
+  });
+  document.querySelectorAll('input[name="anzahl"]').forEach(function(e){
+    e.addEventListener('change', function(){ radioSetzen('anzahlTop', e.value);
+      if (window.abGliderAlle) abGliderAlle(); aufIndividuell(); neueAufgabe(); });
+  });
+  /* Die Faktorarten als Chips. Zahlfaktor und quadratische Faktoren stehen
+     für sich, Linear- und Potenzfaktoren haben Unterformen im Menü
+     (Pfeil, langer Druck oder Rechtsklick). */
+  if (window.abPillen) abPillen(document.getElementById('segFak'), [
+      { haupt: 'fakZahl' },
+      { name: 'Linearfaktoren', nameEn: 'linear factors', subs: LINGRUPPE,
+        titel: 'Welche Linearfaktoren dürfen vorkommen?',
+        titelEn: 'Which linear factors may occur?' },
+      { name: 'Potenzfaktoren', nameEn: 'power factors', subs: POTGRUPPE,
+        titel: 'Welche Potenzfaktoren dürfen vorkommen?',
+        titelEn: 'Which power factors may occur?' },
+      { haupt: 'fakQuad' }
+    ], function(){
+      if (!FAKARTEN.filter(haken).length) setzeHaken('fakLin', true);
+      obenAbgleichen(); aufIndividuell(); kachelnMalen(); neueAufgabe();
+    });
+  FAKARTEN.concat(['fakZahl','fakGedreht','mehrfach','mehrKlammer','mehrPotenz','mehrVersteckt']).forEach(function(id){
+    var e = document.getElementById(id);
+    if (e) e.addEventListener('change', function(){
+      if (!FAKARTEN.filter(haken).length) setzeHaken('fakLin', true);
+      obenAbgleichen(); aufIndividuell(); neueAufgabe();
+    });
+  });
+  document.querySelectorAll('.slider-row input[type="range"]').forEach(function(e){
+    e.addEventListener('change', function(){ aufIndividuell(); neueAufgabe(); });
+  });
+  var sortK = document.getElementById('sortiert');
+  if (sortK) sortK.addEventListener('change', function(){ aufIndividuell(); neueAufgabe(); });
+  STILE.forEach(function(id){
+    var e = document.getElementById(id);
+    if (e) e.addEventListener('change', function(){ kachelnMalen(); neueAufgabe(); });
+  });
+  document.querySelectorAll('input[name="loesLevel"], #erkFalsch').forEach(function(e){
+    e.addEventListener('change', function(){ aufIndividuell(); neueAufgabe(); });
+  });
+  document.querySelectorAll('#ausmultipliziert, #mitSkizze').forEach(function(e){
+    e.addEventListener('change', function(){ aufIndividuell(); if (A) loesungZeichnen(); });
+  });
+  document.querySelectorAll('input[name="diff"]').forEach(function(e){
+    e.addEventListener('change', function(){
+      if (e.value !== 'indiv') stufeAnwenden(e.value);
+      neueAufgabe();
+      if (e.value === 'indiv' && window.abEinstellungenOeffnen) abEinstellungenOeffnen('#dSettings');
+    });
+  });
+  var alle = document.getElementById('stilAlle');
+  if (alle) alle.addEventListener('click', function(){
+    var an = STILE.filter(haken).length < STILE.length;
+    STILE.forEach(function(id){ setzeHaken(id, an); });
+    if (!STILE.filter(haken).length) setzeHaken('stilLoesen', true);
+    kachelnMalen(); neueAufgabe();
+  });
+  /* Schreibweise der Lösungen: nur die Anzeige ändert sich, nicht die Aufgabe. */
+  document.querySelectorAll('input[name="loesForm"], #loesWedge').forEach(function(e){
+    e.addEventListener('change', function(){
+      if (!A) return;
+      loesungZeichnen();
+      if (typeof quizBauen === 'function') quizBauen();
+    });
+  });
+  document.getElementById('genBtn').addEventListener('click', function(){ neueAufgabe(); });
+  document.getElementById('btnShare').addEventListener('click', function(){ linkKopieren(urlSchreiben(false), this); });
+  document.getElementById('btnTeilen').addEventListener('click', function(){ linkKopieren(urlSchreiben(true), this); });
+  document.getElementById('btnReset').addEventListener('click', function(){
+    VON_HAND = {};
+    var s = {}; Object.keys(STD).forEach(function(k){ s[k] = STD[k]; });
+    einstellungenSetzen(s); neueAufgabe();
+  });
+  /* „Eigene Gleichung": der Knopf neben „Neue Aufgabe generieren" klappt das
+     Feld auf und wieder zu. */
+  var mKnopf = document.getElementById('manualBtn');
+  var mFeld  = document.getElementById('manualPanel');
+  function manualAuf(zeigen){
+    if (!mFeld) return;
+    mFeld.hidden = !zeigen;
+    if (mKnopf) mKnopf.classList.toggle('on', !!zeigen);
+    if (zeigen){
+      var e = document.getElementById('eigeneEingabe');
+      if (e) { try { e.focus(); } catch (x) {} }
+    }
+  }
+  if (mKnopf) mKnopf.addEventListener('click', function(){ manualAuf(mFeld.hidden); });
+  var mAb = document.getElementById('eigeneAbbruch');
+  if (mAb) mAb.addEventListener('click', function(){ manualAuf(false); });
+  document.getElementById('eigeneBtn').addEventListener('click', eigeneUebernehmen);
+  document.getElementById('eigeneEingabe').addEventListener('keydown', function(ev){ if (ev.key === 'Enter') eigeneUebernehmen(); });
+  document.getElementById('btnPunkteReset').addEventListener('click', function(){
+    richtig = 0; gesamt = 0;
+    document.getElementById('counter').textContent = T('Richtig: ', 'Correct: ') + '0 / 0';
+  });
+  document.getElementById('dWeg').addEventListener('toggle', function(){ if (this.open) mj(document.getElementById('weg')); });
+  document.getElementById('dLoesung').addEventListener('toggle', function(){ if (this.open) mj(document.getElementById('dLoesung')); });
+
+  /* Erkundungsmodus */
+  document.getElementById('erkRegler').addEventListener('input', function(){
+    E.x = parseFloat(this.value); erkMalen();
+  });
+  document.getElementById('erkFeld').addEventListener('input', function(){
+    var v = pgLese ? pgLese(this.value) : parseFloat(this.value);
+    if (v !== null && isFinite(v)){ E.x = v; erkMalen(); }
+  });
+  /* Beide „Neue Aufgabe"-Knöpfe im Erkundungsmodus würfeln dieselbe Aufgabe
+     wie der Übungsmodus - es gibt nur eine aktuelle Gleichung. */
+  ['erkNeu', 'erkNeuOben'].forEach(function(id){
+    var k = document.getElementById(id);
+    if (k) k.addEventListener('click', function(){ neueAufgabe(); erkAusAufgabe(); erkMalen(); });
+  });
+
+  if (!gleichungAusURL() && !aufgabeAusURL()) neueAufgabe();
+});
+
+function neuZeichnen(){ if (A) zeichne(); if (E) erkMalen(); kachelnMalen(); }
+window.addEventListener('tl-sprache', neuZeichnen);
+window.addEventListener('tl-theme',   function(){ if (A) loesungZeichnen(); if (E) erkMalen(); });
+window.fehlerKontext = function(){
+  var el = document.getElementById('task');
+  var aufgabe = el ? ((typeof tlFormelText === 'function') ? tlFormelText(el) : el.innerText) : '';
+  return [A ? A.stil : '', aufgabe].filter(Boolean).join(' \u00b7 ');
+};
+</script>
+</body>
+</html>

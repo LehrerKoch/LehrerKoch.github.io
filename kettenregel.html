@@ -3,73 +3,100 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Kettenregel Übung</title>
+<link rel="shortcut icon" type="image/x-icon" href="aleph_zero_logo.ico">
+<script>try{var t=localStorage.getItem('matheToolsTheme');if(t==='dark'||(!t&&window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.classList.add('dark');}catch(e){}</script>
+<title data-de="Kettenregel" data-en="Chain Rule">Kettenregel</title>
 <link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="aufgaben.css">
+<script src="aufgaben.js" defer></script>
 <link rel="stylesheet" href="scale.css">
 <script src="scale.js" defer></script>
+<script src="theme-language.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-5K8WYYXDL2"></script>
+    <!-- Besuchszaehlung (Google Analytics). Geladen wird sie erst, wenn der
+         Besucher zustimmt - siehe einwilligung.js. -->
 <script>
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-
-    gtag('config', 'G-5K8WYYXDL2');
+    window.TK_GA_ID = 'G-5K8WYYXDL2';   /* Google Analytics laedt erst nach Einwilligung, siehe einwilligung.js */
 </script>
+<script src="einwilligung.js" defer></script>
 <style>
 #task { font-size: 1.8em; }
 #solution { color:red; font-size:1.6em }
-button { align-self: flex-start; margin-top: 15px; padding: 5px; cursor: pointer; border: 2px solid #1f6b24; border-radius: 8px; font-size: 1em; transition: border-color 0.15s, filter 0.15s; }
-button:hover { filter: brightness(0.93); border-color: #0e4511; }
+html.dark #solution { color:#ef5350 }
+/* Knopfform wie auf den übrigen Aufgabenseiten: kein eigener Rahmen. */
+button { align-self: flex-start; margin-top: 15px; padding: 10px 20px; cursor: pointer; border: none; border-radius: 8px; font-size: 1em; transition: filter 0.15s; }
+button:hover { filter: brightness(0.93); }
 </style>
+<script>
+/* MathJax ist nicht immer da (offline oder blockiert) - dann bleibt die Seite
+   trotzdem bedienbar. */
+function mjSetzen(ziele){
+  if (window.MathJax && MathJax.typesetPromise) return MathJax.typesetPromise(ziele);
+  return Promise.resolve();
+}
+function mjStart(fn){
+  if (window.MathJax && MathJax.startup && MathJax.startup.promise) MathJax.startup.promise.then(fn);
+  else fn();
+}
+</script>
 </head>
 
-<body>
+<body class="tk-seite">
 
-<h1>Kettenregel Übung</h1>
+<header class="tool-kopf">
+  <div class="tk-text">
+    <h1 data-de="Kettenregel" data-en="Chain Rule">Kettenregel</h1>
+    <p class="tk-unter" data-de="Kettenregel sicher anwenden" data-en="Apply the chain rule with confidence">Kettenregel sicher anwenden</p>
+  </div>
+</header>
 
-<details>
-<summary>Einstellungen</summary>
+<details class="einst" id="settingsDetails">
+<summary data-de="Einstellungen" data-en="Settings">Einstellungen</summary>
+<div class="settings-grid">
 
 <div class="form-block">
-<b>Äußere Funktion</b><br>
-<label><input type="checkbox" class="outer" value="linear" checked> Linear</label><br>
-<label><input type="checkbox" class="outer" value="power" checked> Potenz</label><br>
-<label><input type="checkbox" class="outer" value="exp" checked> e-Funktion</label><br>
-<label><input type="checkbox" class="outer" value="ln" checked> ln</label><br>
-<label><input type="checkbox" class="outer" value="frac" checked> Bruch</label><br>
-<label><input type="checkbox" class="outer" value="sqrt" checked> Wurzel</label><br>
-<label><input type="checkbox" class="outer" value="trig" checked> Trigonometrisch</label>
+<b data-de="Äußere Funktion" data-en="Outer function">Äußere Funktion</b><br>
+<label class="opt"><input type="checkbox" class="outer" value="linear" checked><span data-de="Linear" data-en="Linear">Linear</span></label>
+<label class="opt"><input type="checkbox" class="outer" value="power" checked><span data-de="Potenz" data-en="Power">Potenz</span></label>
+<label class="opt"><input type="checkbox" class="outer" value="exp" checked><span data-de="e-Funktion" data-en="Exponential">e-Funktion</span></label>
+<label class="opt"><input type="checkbox" class="outer" value="ln" checked>ln</label>
+<label class="opt"><input type="checkbox" class="outer" value="frac" checked><span data-de="Bruch" data-en="Reciprocal">Bruch</span></label>
+<label class="opt"><input type="checkbox" class="outer" value="sqrt" checked><span data-de="Wurzel" data-en="Square root">Wurzel</span></label>
+<label class="opt"><input type="checkbox" class="outer" value="trig" checked><span data-de="Trigonometrisch" data-en="Trigonometric">Trigonometrisch</span></label>
 </div>
 
 <div class="form-block">
-<b>Innere Funktion</b><br>
-<label><input type="checkbox" class="inner" value="linear" checked disabled> Linear</label><br>
-<label><input type="checkbox" class="inner" value="power"> Potenz</label><br>
-<label><input type="checkbox" class="inner" value="exp"> e-Funktion</label><br>
-<label><input type="checkbox" class="inner" value="ln"> ln</label><br>
-<label><input type="checkbox" class="inner" value="frac"> Bruch</label><br>
-<label><input type="checkbox" class="inner" value="sqrt"> Wurzel</label><br>
-<label><input type="checkbox" class="inner" value="trig"> Trigonometrisch</label>
+<b data-de="Innere Funktion" data-en="Inner function">Innere Funktion</b><br>
+<label class="opt"><input type="checkbox" class="inner" value="linear" checked disabled><span data-de="Linear" data-en="Linear">Linear</span></label>
+<label class="opt"><input type="checkbox" class="inner" value="power"><span data-de="Potenz" data-en="Power">Potenz</span></label>
+<label class="opt"><input type="checkbox" class="inner" value="exp"><span data-de="e-Funktion" data-en="Exponential">e-Funktion</span></label>
+<label class="opt"><input type="checkbox" class="inner" value="ln">ln</label>
+<label class="opt"><input type="checkbox" class="inner" value="frac"><span data-de="Bruch" data-en="Reciprocal">Bruch</span></label>
+<label class="opt"><input type="checkbox" class="inner" value="sqrt"><span data-de="Wurzel" data-en="Square root">Wurzel</span></label>
+<label class="opt"><input type="checkbox" class="inner" value="trig"><span data-de="Trigonometrisch" data-en="Trigonometric">Trigonometrisch</span></label>
 </div>
 
+</div>
 </details>
 
-<button onclick="newTask()">Neue Aufgabe</button>
+<div id="genRow"><button id="genBtn" onclick="newTask()" data-de="&#x27F3;&nbsp;Neue Aufgabe generieren" data-en="&#x27F3;&nbsp;Generate a new task">&#x27F3;&nbsp;Neue Aufgabe generieren</button></div>
 
-<h2>Aufgabe</h2>
+<div class="task">
+<div class="task-head"><h2 data-de="Aufgabe" data-en="Task">Aufgabe</h2></div>
 <div class="scale-wrapper">
       <div id="task" class="scale-el"></div>
 </div>
+</div>
 
-<details>
-<summary>Lösung</summary>
+<details class="loesung">
+<summary><span class="wenn-zu" data-de="Lösung einblenden" data-en="Show solution">Lösung einblenden</span><span class="wenn-auf" data-de="Lösung ausblenden" data-en="Hide solution">Lösung ausblenden</span></summary>
 <div class="scale-wrapper">
       <div id="solution" class="scale-el"></div>
 </div>
 <br>
-<button id="stepBtn" onclick="openSteps()">
+<button id="stepBtn" onclick="openSteps()" data-de="Auf ableitungsrechner.de öffnen" data-en="Open on derivative-calculator.net">
 Auf ableitungsrechner.de öffnen</button>
 </details>
 
@@ -200,8 +227,11 @@ let currentExpr = "";
 
 
 function openSteps(){
-   const url =
-     "https://www.ableitungsrechner.net/#expr="
+   // Englische Zwillingsseite von ableitungsrechner.net (gleiche URL-Parameter)
+   const basis = (typeof tlSprache === 'function' && tlSprache() === 'en')
+     ? "https://www.derivative-calculator.net/"
+     : "https://www.ableitungsrechner.net/";
+   const url = basis + "#expr="
      + encodeURIComponent(currentExpr)
      + "&showsteps=1";
 
@@ -233,12 +263,12 @@ let O = outerFunc(outer, I.f, I.d);
  document.getElementById("task").innerHTML=`$$f(x)=${O.f}$$`;
  document.getElementById("solution").innerHTML=`$$f'(x)=${O.d}$$`;
 
- MathJax.typesetPromise();
+ mjSetzen();
 currentExpr = O.f;
 
 }
 
-MathJax.startup.promise.then(() => newTask());
+mjStart(() => newTask());
 </script>
 
 <div id="lobby-spacer"></div>
@@ -246,9 +276,19 @@ MathJax.startup.promise.then(() => newTask());
   <div class="footer-content">
       M.&nbsp;Koch
       <span class="footer-topic"><a href="./index.html">Mathe-Tools</a></span>
-      <span class="footer-update">Last updated:&nbsp;<span id="last-update">...</span></span>
+      <span class="footer-update"><span class="fu-wort" data-de="Zuletzt aktualisiert:" data-en="Last updated:">Zuletzt aktualisiert:</span><span id="last-update">...</span></span>
   </div>
 </footer>
-<script src="last-update.js" defer></script>
+<script src="last-update.js" defer>
+</script>
+<script>
+/* Beim Klick auf "Fehler melden" wird die gerade angezeigte Aufgabe
+   mitgeschickt - direkt aus dem DOM, also immer der aktuelle Stand. */
+window.fehlerKontext = function () {
+  const el = document.getElementById('task');
+  if (!el) return '';
+  return (typeof tlFormelText === 'function') ? tlFormelText(el) : el.innerText;
+};
+</script>
 </body>
 </html>

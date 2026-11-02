@@ -315,7 +315,7 @@
         ? '<span class="pname"></span><span class="pzahl"></span>' + pfeil
         : ('<span class="tk">\u2713</span>'
           + '<span class="ttext">'
-          +   '<span class="tzaehler"></span><span class="tname"></span>'
+          +   '<span class="tname"></span><span class="tzaehler"></span>'
           +   '<span class="tsub"></span>'
           + '</span>' + pfeil);
       host.appendChild(b);
@@ -404,8 +404,12 @@
       var subs = art.subs || [];
       var selbst = !!art.haupt && liste.indexOf(art.haupt) >= 0;
       var drin   = subs.some(function(s){ return liste.indexOf(s) >= 0; });
-      b.classList.toggle('aktuell', !host._nurSub && selbst && !subs.length);
-      b.classList.toggle('aktuell-gruppe', !host._nurSub && (drin || (selbst && subs.length > 0)));
+      /* Wer die Art inzwischen abgewählt hat, soll sie nicht mehr grün
+         hervorgehoben sehen - sie kommt ja nicht wieder dran. */
+      var kommtNoch = (!art.haupt || an(art.haupt)) && (!subs.length || subs.some(an));
+      b.classList.toggle('aktuell', !host._nurSub && selbst && !subs.length && kommtNoch);
+      b.classList.toggle('aktuell-gruppe', !host._nurSub && kommtNoch
+        && (drin || (selbst && subs.length > 0)));
     });
     /* Nur das von hier geoeffnete Menue - andere Seiten nutzen .pop auch
        fuer eigene Einblendungen, die stehen bleiben muessen. */
@@ -429,9 +433,10 @@
       var ein = hauptAn && (subs.length === 0 || aktiv.length > 0);
       b.classList.toggle('on', ein);
       b.classList.toggle('empty', hauptAn && subs.length > 0 && aktiv.length === 0);
-      /* Ein Oval mit Unterformen bekommt einen gestrichelten Rand - so sieht
-         man ihm an, dass dahinter noch eine Auswahl steckt. */
-      b.classList.toggle('hatunter', ein && subs.length > 0);
+      /* Gestrichelt ist nur, was unvollständig ist: sind alle Unterformen
+         eingeschaltet oder ist der Block ganz aus, steckt nichts Halbes
+         dahinter. */
+      b.classList.toggle('hatunter', ein && subs.length > 0 && aktiv.length < subs.length);
       if (pill){
         /* Sterne stehen über dem Namen (siehe .pname in aufgaben.css) - sonst
            schiebt sich die Beschriftung bei jeder Stufe anders weit nach rechts. */
@@ -440,7 +445,7 @@
         var pz = b.querySelector('.pzahl');
         /* Ist das Oval aus, zählt die innere Auswahl nicht - dann steht da 0/5
            und nicht 3/5, auch wenn drei Haken gesetzt geblieben sind. */
-        if (pz) pz.textContent = subs.length ? ((ein ? aktiv.length : 0) + '/' + subs.length) : '';
+        if (pz) pz.textContent = subs.length ? ('(' + (ein ? aktiv.length : 0) + '/' + subs.length + ')') : '';
         return;
       }
       b.querySelector('.tname').innerHTML = (art.haupt ? beschriftung(art.haupt)
@@ -452,17 +457,12 @@
         return;
       }
       if (aktiv.length === 0){ u.innerHTML = TX('nichts ausgewählt', 'nothing selected'); return; }
-      /* Bei vielen Unterpunkten wird nicht aufgezählt, sondern gezählt. */
-      if (subs.length > 6 && aktiv.length < subs.length){
-        u.innerHTML = aktiv.length + TX(' von ', ' of ') + subs.length;
-        return;
-      }
-      /* immerListe: auch bei „alle" werden die Unterpunkte aufgezählt - bei
-         eigenen Einträgen sagt „alle" nichts aus. */
-      if (aktiv.length === subs.length && !art.immerListe){ u.textContent = TX('alle', 'all'); return; }
-      /* nicht alle gewählt: die Kurzformen auflisten, auf Wunsch mit Vorsatz */
+      /* Es stehen immer die Kurzformen der eingeschalteten Unterpunkte da -
+         bei sehr vielen bricht die Liste nach fünf ab. */
+      var kurz = aktiv.map(beschriftungKurz);
+      if (kurz.length > 6) kurz = kurz.slice(0, 5).concat(['…']);
       u.innerHTML = (art.vorsatz ? TX(art.vorsatz, art.vorsatzEn || art.vorsatz) : '')
-        + aktiv.map(beschriftungKurz).join(' · ');
+        + kurz.join(' · ');
     });
     if (!pill) zaehlerMalen(host);
     if (host._aktuell) abKachelAktuell(host, host._aktuell);
@@ -480,7 +480,7 @@
       var e = b.querySelector('.tzaehler');
       if (!e) return;
       var w = art.haupt ? z[art.haupt] : null;
-      e.textContent = (w && w.n > 0) ? (w.ok + '/' + w.n) : '';
+      e.textContent = (w && w.n > 0) ? ('(' + w.ok + '/' + w.n + ')') : '';
     });
   }
   function abKachelZaehler(host, werte){
@@ -947,6 +947,9 @@
     if (!c || !box) return;
     c.style.transform = 'none';
     c.style.transformOrigin = 'top left';
+    /* Eine eigene Anzeigeart aus einem frueheren Lauf wieder weg - sonst
+       misst der naechste Lauf die schon verkleinerte Formel. */
+    c.style.display = '';
     box.style.height = '';
     box.style.overflow = '';
     /* Die wahre Breite der Formel. Bei einem Container, der die ganze Zeile
@@ -959,6 +962,14 @@
     var platz = box.clientWidth;
     if (!platz || !breit || breit <= platz + 1) return;
     var k = Math.max(0.4, platz / breit);
+    /* Auf ein Element im Textfluss (display:inline) wirkt kein transform -
+       MathJax setzt seine Behaelter fuer \( ... \) genau so. Dann half das
+       Verkleinern gar nichts und die Formel lief weiter ueber den Rand. */
+    if (getComputedStyle(c).display === 'inline') c.style.display = 'inline-block';
+    /* Steht die Formel mittig und haengt links wie rechts heraus, muss auch
+       von der Mitte aus verkleinert werden - sonst rutscht sie nach links. */
+    var bl = box.getBoundingClientRect().left, cl = c.getBoundingClientRect().left;
+    c.style.transformOrigin = (cl < bl - 1) ? 'top center' : 'top left';
     /* Luft nach oben und unten: MathJax rechnet die Kastenhoehe knapp, ein
        Exponent oder ein Bruchstrich ragt ein paar Pixel darueber hinaus.
        Ohne diese Reserve schneidet „overflow: hidden" sie ab. */

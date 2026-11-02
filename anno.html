@@ -3,19 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <link rel="shortcut icon" type="image/x-icon" href="aleph_zero_logo.ico">
+    <script>try{var t=localStorage.getItem('matheToolsTheme');if(t==='dark'||(!t&&window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.classList.add('dark');}catch(e){}</script>
     <title>Anno Mathematica</title>
     <link rel="stylesheet" href="Anno/style.css">
+    <script src="theme-language.js" defer></script>
     <script>
         window.MathJax = { tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] } };
     </script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-5K8WYYXDL2"></script>
-    <script>
+    <!-- Besuchszaehlung (Google Analytics). Geladen wird sie erst, wenn der
+         Besucher zustimmt - siehe einwilligung.js. -->
+<script>
         window.dataLayer = window.dataLayer || [];
         function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-        gtag('config', 'G-5K8WYYXDL2');
+        window.TK_GA_ID = 'G-5K8WYYXDL2';   /* Google Analytics laedt erst nach Einwilligung, siehe einwilligung.js */
+    </script>
+<script src="einwilligung.js" defer></script>
+    <script>
+    /* Footer-Datum: diese Seite und die Spieldateien */
+    var LAST_UPDATE_FILES = ['anno.html', 'Anno'];
     </script>
     <script src="last-update.js" defer></script>
 
@@ -54,6 +61,10 @@
            also wirkt die Regel sofort beim ersten Paint.         ── */
         html[data-subject="math"]        .subject-informatik { display: none !important; }
         html[data-subject="informatik"]  .subject-math       { display: none !important; }
+
+        /* Sprachvarianten (gesetzt von theme-language.js über <html lang>) */
+        html[lang="en"] .lang-de       { display: none !important; }
+        html:not([lang="en"]) .lang-en { display: none !important; }
             
         /* ── Quellen-Akkordeon ── */
         details.quellen-details {
@@ -318,14 +329,84 @@
         }
 
         /* game-rules border */
-        html[data-subject="informatik"] #game-rules {
+        html[data-subject="informatik"] .game-rules {
             border-left-color: var(--accent) !important;
         }
         /* Vorderseite: nur der Titel ist accent-farbig, der Fließtext bleibt schwarz */
         html[data-subject="informatik"] .card-front .card-text {
             color: var(--text-front) !important;
         }
+
+        /* ── Theme-/Sprach-/Melde-Knoepfe: schwebend oben rechts, auf allen
+              Ansichten sichtbar (liegt deshalb ausserhalb von #lobby) ── */
+        /* Die drei Schalter sind hier eine Nummer kleiner und sitzen mittig
+           in der Kopfzeile - in voller Groesse sprengen sie deren Hoehe. */
+        #themeLangSlot {
+            position: fixed;
+            top: max(5px, calc((var(--header-h) - 32px) / 2));
+            right: 10px;
+            z-index: 1100;
+            gap: 6px;
+        }
+        #themeLangSlot .tl-knopf {
+            width: 32px !important;
+            height: 32px !important;
+            font-size: 1em !important;
+        }
+        #themeLangSlot .tl-knopf.tl-sprachknopf { font-size: 0.7em !important; }
+        #themeLangSlot .tl-knopf.tl-meldenknopf { font-size: 0.85em !important; }
+
+        /* Kopfzeile im Spiel: Beenden links, Punkte und Kartenzahl mittig,
+           rechts bleibt der Platz fuer die Schalter frei. */
+        header { justify-content: space-between; }
+        .header-stats {
+            display: flex;
+            align-items: center;
+            gap: clamp(14px, 5vw, 48px);
+            min-width: 0;
+        }
+        .header-schalterplatz { width: 114px; flex: 0 0 auto; }
+        .quit-btn { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 5px; }
+        /* Auf schmalen Geraeten reicht das Kreuz */
+        @media (max-width: 560px) {
+            .quit-btn .quit-text { display: none; }
+            .quit-btn { padding-left: 9px; padding-right: 9px; }
+            .header-stats { gap: clamp(10px, 3.5vw, 20px); }
+        }
+        #lobby-card-count { color: #555; }
+
+        /* ══════════════════════════════════════════════
+           DARK MODE (Hellmodus bleibt unverändert)
+        ══════════════════════════════════════════════ */
+        html.dark #lobby-card-count { color: #9aa5a0; }
+        html.dark details.quellen-details {
+            background: #1b2126;
+            border-color: #333c44;
+            color: #b6bdb9;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+        }
+        html.dark details.quellen-details summary { background: #232a31; color: #9aa5a0; }
+        html.dark .quellen-body h4 { color: #9aa5a0; }
+        html.dark .quellen-close-btn { background: #232a31; border-top-color: #333c44; color: #9aa5a0; }
+        html.dark .seg-control { background: #3a434b; }
+        html.dark .seg-btn { color: #a5adb5; }
+        html.dark .seg-btn.active { color: #fff; }
+        html.dark .seg-btn:not(.active):hover { color: #d6d9dc; }
+        html.dark #guess-input { background: #1b2126; border-color: #4a545c; color: #e7eae8; }
+        html.dark #guess-input:disabled { background: #232a31; color: #7d868e; }
+        html.dark #guess-submit-btn:disabled { background: #4a545c; }
+        html.dark .guess-hint { color: #8a949c; }
+        html.dark .site-footer { border-top-color: #3a434b; color: #9aa5a0d8; }
+        html.dark #lobby {
+            scrollbar-color: rgba(255,255,255,0.25) transparent;
+        }
+        html.dark #lobby::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.25); }
+        html.dark[data-subject="informatik"] { --accent: #43a047; }
+        html.dark[data-subject="informatik"] #lobby h1 { color: #81c784; }
     </style>
+<!-- Vergroesserung auf sehr grossen Bildschirmen (Promethean, 4K).
+     Kleine gemeinsame Datei; fehlt sie, bleibt einfach alles unvergroessert. -->
+<link rel="stylesheet" href="gross.css">
 </head>
 <body>
 
@@ -343,6 +424,8 @@
     <!-- ════════════════════════════════════
          LOBBY
     ════════════════════════════════════ -->
+    <div id="themeLangSlot"></div>
+
     <div id="lobby">
 
         <!-- Titel -->
@@ -353,14 +436,14 @@
         <div style="text-align:center; margin-top:-4px;">
             <a class="subject-switch-btn subject-math"
                id="switch-to-informatik"
-               href="#">🖥️ Zur Informatik-Version</a>
+               href="#" data-de="🖥️ Zur Informatik-Version" data-en="🖥️ Computer science version">🖥️ Zur Informatik-Version</a>
             <a class="subject-switch-btn subject-informatik"
                id="switch-to-math"
-               href="#">📐 Zur Mathe-Version</a>
+               href="#" data-de="📐 Zur Mathe-Version" data-en="📐 Maths version">📐 Zur Mathe-Version</a>
         </div>
 
         <!-- Spielregeln – Mathe -->
-        <div id="game-rules" class="subject-math">
+        <div class="game-rules subject-math lang-de">
             <h2>Spielregeln &amp; Lernziel</h2>
             <p>Willkommen bei <em>Anno Mathematica</em>! Dieses Spiel hilft dir dabei, ein Gefühl für die historische Entwicklung der Mathematik zu entwickeln – von antiken Entdeckungen bis zur modernen, ungelösten Problemen.</p>
             <p><strong>So geht's:</strong> Ziehe die Karten aus deiner Hand an die richtige Stelle im Zeitstrahl. Ziel ist es, eine chronologisch korrekte Reihenfolge von <em>alt (links) nach neu (rechts)</em> zu bilden.<br>
@@ -393,8 +476,41 @@
             </details>
         </div>
 
+        <!-- Game rules – Maths (English) -->
+        <div class="game-rules subject-math lang-en">
+            <h2>Rules &amp; Learning Goal</h2>
+            <p>Welcome to <em>Anno Mathematica</em>! This game helps you develop a feeling for the historical development of mathematics &ndash; from ancient discoveries to modern, unsolved problems.</p>
+            <p><strong>How to play:</strong> Drag the cards from your hand to the right position on the timeline. The goal is to build a chronologically correct order from <em>old (left) to new (right)</em>.<br>
+            Optionally pick topic filters &ndash; e.&nbsp;g. <code>!easy</code> for easier cards &ndash; and a game mode, then start the game. Have fun!</p>
+            <details class="quellen-details">
+                <summary>📚 Further Reading &amp; Sources</summary>
+                <div class="quellen-body">
+                    <h4>Sources</h4>
+                    The game is based on the real card game <em>'Anno Domini'</em>; with its cooperative approach it is meant above all to be fun and to invite you to browse the fascinating history of mathematics.<br>
+                    The cards were generated with the help of AI and aim to cover important milestones, personalities and discoveries in the history of mathematics. Despite careful curation, errors or inaccuracies can occur &ndash; don't hesitate to report such cases to me!
+                    <br>
+                    Here are some resources if you would like to dive deeper:
+                    <h4>Online resources</h4>
+                    <ul>
+                        <li><a href="https://detektor.fm/serien/geschichten-aus-der-mathematik" target="_blank" rel="noopener">Geschichten aus der Mathematik (podcast, German)</a> &ndash; each episode portrays an interesting figure from mathematics</li>
+                        <li><a href="https://mathigon.org/timeline" target="_blank" rel="noopener">Timeline of Mathematics (Mathigon)</a> &ndash; detailed timeline with the most important figures in mathematics and short background notes</li>
+                        <li><a href="https://www.youtube.com/playlist?list=PLb0zKSynM2PD9aEfKM1gfaPZTooCJNhDy" target="_blank" rel="noopener">Eine kurze Geschichte der Mathematik (YouTube playlist by Weitz, German)</a> &ndash; recording of a short lecture series (6 parts) on the fundamental stages of the history of mathematics</li>
+                    </ul>
+                    <h4>Books</h4>
+                    <ul>
+                        <li><a href="https://www.thalia.de/shop/home/artikeldetails/A1066410627" target="_blank" rel="noopener">Weitz, E.: <em>Gesichter der Mathematik &ndash; 111 Portraits und biographische Miniaturen</em> (German)</a><br>
+                        A lovely book of short portraits that spark curiosity for further exploration</li>
+                        <li><a href="https://www.thalia.de/shop/home/artikeldetails/A1007537828" target="_blank" rel="noopener">Wallace, D. F.: <em>Everything and More &ndash; A Compact History of Infinity</em> (German edition: <em>Die Entdeckung des Unendlichen</em>)</a><br>
+                        The book that first sparked my interest in the history of mathematics</li>
+                        <li><a href="https://www.thalia.de/shop/home/artikeldetails/A1000200894" target="_blank" rel="noopener">Singh, S.: <em>Fermat's Last Theorem</em> (German edition: <em>Fermats letzter Satz</em>)</a><br>
+                        The classic of maths history, told like a thriller</li>
+                    </ul>
+                </div>
+            </details>
+        </div>
+
         <!-- Spielregeln – Informatik -->
-        <div id="game-rules" class="subject-informatik">
+        <div class="game-rules subject-informatik lang-de">
             <h2>Spielregeln &amp; Lernziel</h2>
             <p>Willkommen bei <em>Anno Informatica</em>! Dieses Spiel vermittelt dir einen Überblick über die Geschichte der Informatik und Computertechnik – von den ersten mechanischen Rechenmaschinen bis zur modernen KI-Forschung.</p>
             <p><strong>So geht's:</strong> Ziehe die Karten aus deiner Hand an die richtige Stelle im Zeitstrahl. Ziel ist es, eine chronologisch korrekte Reihenfolge von <em>alt (links) nach neu (rechts)</em> zu bilden.<br>
@@ -402,7 +518,6 @@
             <details class="quellen-details">
                 <summary>📚 Weiterführendes &amp; Quellen</summary>
                 <div class="quellen-body">
-                    <div class="quellen-body">
                     <h4>Quellen</h4>
                     Das Spiel basiert auf dem echten Kartenspiel <em>Anno Domini</em>, soll durch seinen kooperativen Zugang aber vor allem Spaß machen und zum Stöbern in der faszinierenden Geschichte der Informatik und von Computern anregen.<br>
                     Die Karten sind mittels KI generiert und sollen wichtige Meilensteine, Persönlichkeiten und Entdeckungen der Informatik- und Computergeschichte abdecken. Trotz sorgfältiger Gestaltung können Fehler oder Ungenauigkeiten auftreten – zögere nicht, mir solche Fälle zu melden!
@@ -426,21 +541,47 @@
             </details>
         </div>
 
+        <!-- Game rules – Computer science (English) -->
+        <div class="game-rules subject-informatik lang-en">
+            <h2>Rules &amp; Learning Goal</h2>
+            <p>Welcome to <em>Anno Informatica</em>! This game gives you an overview of the history of computer science and computing &ndash; from the first mechanical calculating machines to modern AI research.</p>
+            <p><strong>How to play:</strong> Drag the cards from your hand to the right position on the timeline. The goal is to build a chronologically correct order from <em>old (left) to new (right)</em>.<br>
+            Optionally pick topic filters and a game mode, then start the game. Have fun!</p>
+            <details class="quellen-details">
+                <summary>📚 Further Reading &amp; Sources</summary>
+                <div class="quellen-body">
+                    <h4>Sources</h4>
+                    The game is based on the real card game <em>Anno Domini</em>; with its cooperative approach it is meant above all to be fun and to invite you to browse the fascinating history of computer science and computing.<br>
+                    The cards were generated with the help of AI and aim to cover important milestones, personalities and discoveries in the history of computing. Despite careful curation, errors or inaccuracies can occur &ndash; don't hesitate to report such cases to me!
+                    <br>
+                    Here are some resources if you would like to dive deeper:
+                    <h4>Books</h4>
+                    <ul>
+                        <li><a href="https://www.thalia.de/shop/home/artikeldetails/A1074131287" target="_blank" rel="noopener">Wolf, J.: <em>Computer-Geschichte(n)</em> (German)</a><br>
+                        A detailed account of the most important stages of computing history</li>
+                        <li><a href="https://www.thalia.de/shop/home/artikeldetails/A1061522534" target="_blank" rel="noopener">Ignotofsky, R.: <em>History of the Computer</em></a><br>
+                        A beautifully designed book with short overviews of the different eras</li>
+                    </ul>
+                <button class="quellen-close-btn" onclick="this.closest('details').open=false">▲ collapse</button>
+                </div>
+            </details>
+        </div>
+
         <div id="tag-filters"></div>
 
         <div class="mode-selection">
             <div class="mode-switch-wrap">
                 <div class="seg-control">
-                    <button class="seg-btn active" data-mode="direct"  onclick="setLobbyMode('direct')">Direktes Aufdecken</button>
-                    <button class="seg-btn"         data-mode="risk"    onclick="setLobbyMode('risk')">Risiko-Variante</button>
-                    <button class="seg-btn"         data-mode="guess"   onclick="setLobbyMode('guess')">Jahr schätzen</button>
+                    <button class="seg-btn active" data-mode="direct"  onclick="setLobbyMode('direct')" data-de="Direktes Aufdecken" data-en="Instant Reveal">Direktes Aufdecken</button>
+                    <button class="seg-btn"         data-mode="risk"    onclick="setLobbyMode('risk')" data-de="Risiko-Variante" data-en="Risk Mode">Risiko-Variante</button>
+                    <button class="seg-btn"         data-mode="guess"   onclick="setLobbyMode('guess')" data-de="Jahr schätzen" data-en="Guess the Year">Jahr schätzen</button>
                 </div>
             </div>
             <div id="mode-description"></div>
         </div>
 
         <div class="cards-slider-wrap">
-            <label for="cards-slider">Anzahl (zu ziehender) Karten: <strong id="slider-display">10</strong></label>
+            <label for="cards-slider"><span data-de="Anzahl (zu ziehender) Karten:" data-en="Number of cards to draw:">Anzahl (zu ziehender) Karten:</span> <strong id="slider-display">10</strong></label>
             <div class="slider-row">
                 <input type="range" id="cards-slider" min="1" max="30" value="10"
                     oninput="document.getElementById('slider-display').textContent=this.value; updateURL()">
@@ -449,9 +590,9 @@
                 <span>1</span><span>5</span><span>10</span><span>15</span><span>20</span><span>25</span><span>30</span>
             </div>
         </div>
-        <div id="lobby-card-count" style="text-align:center;font-size:0.78em;color:#555;margin-top:1px;"></div>
+        <div id="lobby-card-count" style="text-align:center;font-size:0.78em;margin-top:1px;"></div>
 
-        <button onclick="startNewGame()" class="lobby-btn primary-btn" style="margin-top: 10px;">▶ Spiel starten</button>
+        <button onclick="startNewGame()" class="lobby-btn primary-btn" style="margin-top: 10px;" data-de="▶ Spiel starten" data-en="▶ Start game">▶ Spiel starten</button>
 
         <div id="lobby-spacer"></div>
 
@@ -459,7 +600,7 @@
             <div class="footer-content">
                 M.&nbsp;Koch
                 <span class="footer-topic"><a href="./index.html">Mathe-Tools</a></span>
-                <span class="footer-update">Last updated:&nbsp;<span id="last-update">...</span></span>
+                <span class="footer-update"><span class="fu-wort" data-de="Zuletzt aktualisiert:" data-en="Last updated:">Zuletzt aktualisiert:</span><span id="last-update">...</span></span>
             </div>
         </footer>
     </div>
@@ -470,10 +611,10 @@
     <div id="game-over" class="hidden">
         <div class="game-over-inner">
             <div class="game-over-icon">🎉</div>
-            <h2>Spiel beendet!</h2>
-            <div class="final-score-label">Deine Punktzahl</div>
+            <h2 data-de="Spiel beendet!" data-en="Game over!">Spiel beendet!</h2>
+            <div class="final-score-label" data-de="Deine Punktzahl" data-en="Your score">Deine Punktzahl</div>
             <div class="final-score-value" id="final-score-value">0</div>
-            <button onclick="location.reload()" class="restart-btn">Nochmal spielen</button>
+            <button onclick="location.reload()" class="restart-btn" data-de="Nochmal spielen" data-en="Play again">Nochmal spielen</button>
         </div>
     </div>
 
@@ -481,26 +622,33 @@
          GAME UI
     ════════════════════════════════════ -->
     <header>
-        <div class="header-stat">Punkte: <span id="score">0</span> <span id="potential-points" class="potential" style="display:none;"></span></div>
-        <div class="header-stat">Noch <span id="remaining">20</span> Karten</div>
-        <button onclick="location.reload()" class="quit-btn">✕ Beenden</button>
+        <button onclick="location.reload()" class="quit-btn" title="Spiel beenden"
+                data-de-title="Spiel beenden" data-en-title="End game">
+            <span aria-hidden="true">✕</span><span class="quit-text" data-de="Beenden" data-en="Quit">Beenden</span>
+        </button>
+        <div class="header-stats">
+            <div class="header-stat"><span data-de="Punkte:" data-en="Points:">Punkte:</span> <span id="score">0</span> <span id="potential-points" class="potential" style="display:none;"></span></div>
+            <div class="header-stat"><span data-de="Noch" data-en="">Noch</span> <span id="remaining">20</span> <span data-de="Karten" data-en="cards left">Karten</span></div>
+        </div>
+        <!-- haelt rechts den Platz fuer die schwebenden Schalter frei -->
+        <div class="header-schalterplatz" aria-hidden="true"></div>
     </header>
 
     <!-- ROUND RESULT BAR -->
     <div id="round-result-bar" class="result-bar-placeholder">
         <span id="round-result-msg"></span>
-        <button id="round-result-btn">Weiter →</button>
+        <button id="round-result-btn" data-de="Weiter →" data-en="Continue →">Weiter →</button>
     </div>
 
     <main id="timeline-area">
         <div id="timeline"></div>
         <div class="controls-container">
             <div class="timeline-direction">
-                <span class="arrow-label">älter</span>
+                <span class="arrow-label" data-de="älter" data-en="older">älter</span>
                 <div class="arrow-line"></div>
-                <span class="arrow-label">neuer</span>
+                <span class="arrow-label" data-de="neuer" data-en="newer">neuer</span>
             </div>
-            <button id="reveal-risk-btn" onclick="revealRisk()" style="display:none;">Reihe werten</button>
+            <button id="reveal-risk-btn" onclick="revealRisk()" style="display:none;" data-de="Reihe werten" data-en="Score the row">Reihe werten</button>
         </div>
     </main>
 
@@ -514,16 +662,17 @@
         <div id="guess-input-area">
             <input type="number" id="guess-input"
                    placeholder="Jahr  (negativ = v. Chr.)"
+                   data-de-placeholder="Jahr  (negativ = v. Chr.)" data-en-placeholder="Year  (negative = BC)"
                    onkeydown="if(event.key==='Enter'){ event.preventDefault(); submitGuess(); }">
-            <button id="guess-submit-btn" onclick="submitGuess()">✓ Bestätigen</button>
-            <div class="guess-hint">Negative Zahl für v. Chr. &nbsp;·&nbsp; Beispiel: &minus;500 für 500 v. Chr.</div>
+            <button id="guess-submit-btn" onclick="submitGuess()" data-de="✓ Bestätigen" data-en="✓ Submit">✓ Bestätigen</button>
+            <div class="guess-hint" data-de="Negative Zahl für v. Chr. &nbsp;·&nbsp; Beispiel: &minus;500 für 500 v. Chr." data-en="Negative number for BC &nbsp;·&nbsp; example: &minus;500 for 500 BC">Negative Zahl für v. Chr. &nbsp;·&nbsp; Beispiel: &minus;500 für 500 v. Chr.</div>
         </div>
     </div>
 
     <!-- ZOOM MODAL -->
     <div id="zoom-modal" class="hidden">
         <div class="zoom-container"></div>
-        <button onclick="closeZoom()" style="padding: 10px 40px; cursor:pointer; margin-top: 20px;">Zurück</button>
+        <button onclick="closeZoom()" style="padding: 10px 40px; cursor:pointer; margin-top: 20px;" data-de="Zurück" data-en="Back">Zurück</button>
     </div>
 
     <!-- TOAST -->

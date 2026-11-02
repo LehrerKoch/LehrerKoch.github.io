@@ -3,22 +3,27 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="shortcut icon" type="image/x-icon" href="aleph_zero_logo.ico">
   <script>
     window.MathJax = { tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] } };
   </script>
   <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-  <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-5K8WYYXDL2"></script>
-    <script>
+    <!-- Besuchszaehlung (Google Analytics). Geladen wird sie erst, wenn der
+         Besucher zustimmt - siehe einwilligung.js. -->
+<script>
         window.dataLayer = window.dataLayer || [];
         function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-        gtag('config', 'G-5K8WYYXDL2');
+        window.TK_GA_ID = 'G-5K8WYYXDL2';   /* Google Analytics laedt erst nach Einwilligung, siehe einwilligung.js */
     </script>
+<script src="einwilligung.js" defer></script>
   
     <script src="last-update.js" defer></script>
-  <title>Buchstaben-Trainer</title>
+  <script>try{var t=localStorage.getItem('matheToolsTheme');if(t==='dark'||(!t&&window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.classList.add('dark');}catch(e){}</script>
+  <title data-de="Buchstaben-Trainer" data-en="Letter Trainer">Buchstaben-Trainer</title>
+  <script src="theme-language.js" defer></script>
   <link rel="stylesheet" type="text/css" href="styles.css">
+  <link rel="stylesheet" href="aufgaben.css">
+  <script src="aufgaben.js" defer></script>
   <link rel="stylesheet" type="text/css" href="scale.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -53,10 +58,9 @@
     }
     #toast.show { opacity: 1; }
     body { 
-      font-family: sans-serif; 
+      font-family: Calibri, sans-serif; 
       -webkit-user-select: none;
       user-select: none;
-      overflow-x: clip; /* clip statt hidden – sonst bricht position:sticky */
       max-width: 1200px; margin: 0 auto; 
     }
     #flashOverlay {
@@ -68,7 +72,9 @@
 
     h1 { margin-bottom: 10px; }
     
-    #letterSettings { padding: 16px; overflow-x: auto; }
+    #letterSettings { padding: 16px; overflow-x: auto; max-width: 100%; min-width: 0; }
+    /* der Flex-Kasten darum darf schrumpfen, sonst schiebt die Tabelle ihn auf */
+    .form-block div:has(> #letterSettings) { min-width: 0; max-width: 100%; }
     table.letter-table { width: auto; border-collapse: collapse; font-size: 0.85em; white-space: nowrap; }
     table.letter-table td, table.letter-table th { border: 1px solid #383838; padding: 1px 4px; vertical-align: middle; line-height: 1.1; }
     .col-active { width: 75px; text-align: center; }
@@ -93,7 +99,10 @@
       z-index: 2; box-sizing: border-box; 
       transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
       transform-style: preserve-3d;
-      touch-action: manipulation;
+      /* Wischen klappt so auch mit Stift (Promethean): waagerechtes Ziehen wird
+         nicht vom Browser zum Schieben/Scrollen abgefangen, senkrecht scrollt
+         die Seite weiter, Zwei-Finger-Zoom bleibt erhalten. */
+      touch-action: pan-y pinch-zoom;
     }
 
     #taskCard.flipped { transform: translate(-50%, -50%) rotateY(180deg); }
@@ -112,8 +121,8 @@
     .big-char { font-size: 2.8em; font-weight: bold; margin: 0; line-height: 1; }
     .sub-info { font-size: 0.8em; color: #666; margin-top: 8px; min-height: 1em; }
 
-    #showSolutionBtn { width:100%; margin-top: 15px; padding: 10px; cursor: pointer; border: 2px solid #1f6b24; border-radius: 8px; font-size: 1em; transition: border-color 0.15s, filter 0.15s; }
-    #showSolutionBtn:hover { filter: brightness(0.93); border-color: #0e4511; }
+    /* „Lösung anzeigen" ist überall der blaue Knopf aus aufgaben.css. */
+    #showSolutionBtn { margin-top: 15px; }
     #loesung { text-align:center; font-weight: bold; border-top: 1px dashed #ccc; padding-top: 8px; margin-top: 8px; width: 80%; }
     #loesung .loesung-type { font-size: 0.72em; color: #555; font-weight: normal; display: block; margin-top: 2px; }
 
@@ -230,6 +239,9 @@
   z-index: 100;
   display: flex;
   align-items: center;
+  /* auf schmalen Schirmen darf die Zeile umbrechen, sonst laeuft sie hinaus */
+  flex-wrap: wrap;
+  row-gap: 4px;
 }
 
 /* Settings – ganzer Bereich wenn offen: sehr helles Blau/Grau */
@@ -391,34 +403,70 @@ table.letter-table th:nth-child(2){
   from { opacity: 0; transform: translateY(-5px); }
   to { opacity: 1; transform: translateY(0); }
 }
-  </style>
+  
+/* ══ Dark Mode (Hellmodus bleibt unverändert) ══ */
+html.dark table.letter-table td, html.dark table.letter-table th { border-color:#4a545e; }
+html.dark .th-btn { background:#2e3840; }
+html.dark .th-btn:hover { background:#3a4550; }
+html.dark .row-disabled { background-color:#232a32 !important; color:#7d868e; }
+html.dark #taskWrap { border-color:#3a434b; }
+html.dark #wrongBtn { background-color:#4a2020; color:#f3d5d5; }
+html.dark #correctBtn { background-color:#1e4a22; color:#d7f0d8; }
+html.dark .card-face { background-color:#1e2429 !important; color:#e7eae8; }
+html.dark #loesung { border-top-color:#4a545e; }
+html.dark #loesung .loesung-type { color:#9aa5b1; }
+html.dark .choice-btn { background:#232a32; color:#e7eae8; border-color:#4a545e; }
+html.dark .choice-btn:hover { background:#2e3840; }
+html.dark .choice-btn.wrong { background-color:#4a2020; border-color:#ef5350; color:#f3d5d5; }
+html.dark .choice-btn.correct { background-color:#1e4a22; border-color:#4caf50; color:#d7f0d8; }
+html.dark .choice-btn.revealed { background-color:#3a3320; border-color:#e0a800; color:#ffd98a; }
+html.dark #settingsDetails[open] { background:#1b2026; }
+html.dark details[open] > #settingssummary { background:#2a3340; }
+html.dark #settingssummary { background-color:#232c38; }
+html.dark .slider-tick-labels { color:#9aa5b1; }
+html.dark .sub-info { color:#9aa5b1; }
+html.dark .radio-group label { background:#232a32; border-color:#4a545e; color:#e7eae8; }
+html.dark .radio-group label:hover { background:#2e3840; }
+html.dark .radio-group label:has(input:checked) { background:#3a6f9e; color:#fff; }
+html.dark #helpDetails { border-color:#3a434b !important; background:#1b2026; }
+html.dark #helpSummary { background:#1e2429 !important; color:#b6c0c9 !important; }
+html.dark #helpSummary span { border-bottom-color:#4a545e !important; }
+html.dark #toast { background:#2e3840; color:#e7eae8; }
+html.dark #resetScoreBtn, html.dark #undoBtn { border-color:#4a545e !important; color:#b6c0c9 !important; }
+html.dark .site-footer { border-top-color:#3a434b; color:#9aa5b1; }
+</style>
 </head>
-<body>
+<body class="tk-seite">
   <div id="flashOverlay"></div>
   <div id="toast"></div>
   <div style="position:relative; z-index:1;">
-  <h1>Buchstaben-Trainer</h1>
+  <header class="tool-kopf">
+    <div class="tk-text">
+      <h1 data-de="Buchstaben-Trainer" data-en="Letter Trainer">Buchstaben-Trainer</h1>
+      <p class="tk-unter" data-de="Griechische, hebräische und kyrillische Buchstaben kennenlernen" data-en="Learn the Greek, Hebrew and Cyrillic letters">Griechische, hebräische und kyrillische Buchstaben kennenlernen</p>
+    </div>
+  </header>
 
   <details id="settingsDetails">
-    <summary id ='settingssummary'><summarytext>Settings</summarytext><button id="shareBtn" type="button" onclick="shareSettings(event)" title="Einstellungen als Link kopieren" tabindex="-1"><svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></button><span class="settings-spacer"></span><label class="lang-label" onclick="event.stopPropagation()">Sprache:&nbsp;<select id="languageSelect" style="padding:3px 7px; font-size:1em; border-radius:8px;">
-      <option value="greek">🇬🇷 Griechisch</option>
-      <option value="hebrew">🇮🇱 Hebräisch</option>
-      <option value="cyrillic">🇷🇺 Kyrillisch</option>
+    <summary id ='settingssummary'><summarytext data-de="Einstellungen" data-en="Settings">Einstellungen</summarytext><button id="shareBtn" type="button" onclick="shareSettings(event)" title="Einstellungen als Link kopieren" data-de-title="Einstellungen als Link kopieren" data-en-title="Copy the settings as a link" tabindex="-1"><svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></button><span class="settings-spacer"></span><label class="lang-label" onclick="event.stopPropagation()"><span data-de="Sprache:" data-en="Script:">Sprache:</span>&nbsp;<select id="languageSelect" style="padding:3px 7px; font-size:1em; border-radius:8px;">
+      <option value="greek" data-de="🇬🇷 Griechisch" data-en="🇬🇷 Greek">🇬🇷 Griechisch</option>
+      <option value="hebrew" data-de="🇮🇱 Hebräisch" data-en="🇮🇱 Hebrew">🇮🇱 Hebräisch</option>
+      <option value="cyrillic" data-de="🇷🇺 Kyrillisch" data-en="🇷🇺 Cyrillic">🇷🇺 Kyrillisch</option>
     </select></label></summary>
     <form id="settingsForm">
       <div class="form-block" style="margin-top:15px;">
-        <b>Aufgabenarten:</b><br>
+        <b data-de="Aufgabenarten:" data-en="Kind of task:">Aufgabenarten:</b><br>
         <div class="radio-group" id="taskModeGroup">
-          <label><input type="radio" name="taskMode" value="recognize" checked oninput="updateURL(); resetAndNewTask();">Buchstaben erkennen</label>
-          <label><input type="radio" name="taskMode" value="random" oninput="updateURL(); resetAndNewTask();">Zufällig</label>
-          <label><input type="radio" name="taskMode" value="write" oninput="updateURL(); resetAndNewTask();">Buchstaben zeichnen</label>
+          <label><input type="radio" name="taskMode" value="recognize" checked oninput="updateURL(); resetAndNewTask();"><span data-de="Buchstaben erkennen" data-en="Recognise letters">Buchstaben erkennen</span></label>
+          <label><input type="radio" name="taskMode" value="random" oninput="updateURL(); resetAndNewTask();"><span data-de="Zufällig" data-en="Random">Zufällig</span></label>
+          <label><input type="radio" name="taskMode" value="write" oninput="updateURL(); resetAndNewTask();"><span data-de="Buchstaben zeichnen" data-en="Write letters">Buchstaben zeichnen</span></label>
         </div>
       </div>
 
       <div class="form-block" style="margin-top:10px;">
-        <b>Multiple Choice Einstellungen:</b>
+        <b data-de="Multiple Choice Einstellungen:" data-en="Multiple-choice settings:">Multiple Choice Einstellungen:</b>
         <div id="degreeBlock" style="margin-top:6px;">
-          <b>Antwortanzahl: <span id="choiceCountDisplay">4</span></b><br>
+          <b><span data-de="Antwortanzahl:" data-en="Number of answers:">Antwortanzahl:</span> <span id="choiceCountDisplay">4</span></b><br>
           <div class="slider-wrap">
             <input type="range" id="choiceCountSlider" min="2" max="8" value="4" step="2" oninput="document.getElementById('choiceCountDisplay').textContent=this.value; updateURL(); resetAndNewTask();">
             <div class="slider-tick-labels" id="choiceTickLabels">
@@ -427,27 +475,27 @@ table.letter-table th:nth-child(2){
           </div>
         </div>
         <label style="font-size: 0.9em; cursor: pointer;">
-          <input type="checkbox" id="forceChoices" onchange="onForceChoicesChange();"> Antwortmöglichkeiten dauerhaft einblenden
+          <input type="checkbox" id="forceChoices" onchange="onForceChoicesChange();"> <span data-de="Antwortmöglichkeiten dauerhaft einblenden" data-en="Always show the answer options">Antwortmöglichkeiten dauerhaft einblenden</span>
         </label>
       </div>
 
 <div class="form-block" style="display: flex; flex-direction: column; align-items: flex-start;">
   
     
-  <b>Schriftstil:</b>
+  <b data-de="Schriftstil:" data-en="Type style:">Schriftstil:</b>
   <div style="display: flex; flex-direction: column; align-items: center;">
-    <div class="radio-group" id="fontStyleGroup" style="display: flex; justify-content: center; margin-bottom: 0px;">
+    <div class="radio-group" id="fontStyleGroup" style="display: flex; justify-content: center; margin-bottom: 0px; flex-wrap: wrap;">
       <label style="display: flex; align-items: center; gap: 5px;">
         <input type="radio" name="fontStyle" value="standard" checked oninput="document.getElementById('cursiveMode').checked=false; document.getElementById('serifMode').checked=false; onCursiveModeChange();">
-        Druckschrift
+        <span data-de="Druckschrift" data-en="Print">Druckschrift</span>
       </label>
       <label style="display: flex; align-items: center; gap: 5px;">
         <input type="radio" name="fontStyle" value="serif" oninput="document.getElementById('cursiveMode').checked=false; document.getElementById('serifMode').checked=true; onCursiveModeChange();">
-        Serifenschrift
+        <span data-de="Serifenschrift" data-en="Serif">Serifenschrift</span>
       </label>
       <label style="display: flex; align-items: center; gap: 5px;">
         <input type="radio" name="fontStyle" value="cursive" oninput="document.getElementById('cursiveMode').checked=true; document.getElementById('serifMode').checked=false; onCursiveModeChange();">
-        Kursivschrift
+        <span data-de="Kursivschrift" data-en="Cursive">Kursivschrift</span>
       </label>
     </div>
 
@@ -460,23 +508,23 @@ table.letter-table th:nth-child(2){
 </div>
 
       <div class="form-block" style="margin-top:10px;">
-        <b>Darstellung:</b><br>
+        <b data-de="Darstellung:" data-en="Display:">Darstellung:</b><br>
         <label style="font-size: 0.9em; cursor: pointer;">
-          <input type="checkbox" id="skipAnimations" onchange="updateURL()"> Flip-Animation überspringen
+          <input type="checkbox" id="skipAnimations" onchange="updateURL()"> <span data-de="Flip-Animation überspringen" data-en="Skip the flip animation">Flip-Animation überspringen</span>
         </label>
       </div>
     </form>
   </details>
 
-  <p id="taskLabel" style="text-align: center; margin-top: 20px; font-weight: bold;">Initialisiere...</p>
+  <p id="taskLabel" style="text-align: center; margin-top: 20px; font-weight: bold;" data-de="Initialisiere..." data-en="Starting up...">Initialisiere...</p>
   <p style="text-align: center; display: flex; align-items: center; justify-content: center; gap: 8px;">
-    <button id="resetScoreBtn" title="Punktzahl & Stapel zurücksetzen" style="background:none;border:1px solid #ccc;border-radius:6px;cursor:pointer;font-size:0.85em;padding:2px 6px;color:#666;line-height:1.4;" onclick="resetAndNewTask()">↺</button>
+    <button id="resetScoreBtn" title="Punktzahl & Stapel zurücksetzen" data-de-title="Punktzahl & Stapel zurücksetzen" data-en-title="Reset score and card pile" style="background:none;border:1px solid #ccc;border-radius:6px;cursor:pointer;font-size:0.85em;padding:2px 6px;color:#666;line-height:1.4;" onclick="resetAndNewTask()">↺</button>
     <span id="counter">Richtig: 0 / 0</span>
-    <button id="undoBtn" title="Rückgängig (Strg+Z)" disabled style="background:none;border:1px solid #ccc;border-radius:6px;font-size:0.9em;padding:2px 6px;color:#999;cursor:default;opacity:0.35;transition:opacity 0.2s,color 0.2s,border-color 0.2s;">↶</button>
+    <button id="undoBtn" title="Rückgängig (Strg+Z)" data-de-title="Rückgängig (Strg+Z)" data-en-title="Undo (Ctrl+Z)" disabled style="background:none;border:1px solid #ccc;border-radius:6px;font-size:0.9em;padding:2px 6px;color:#999;cursor:default;opacity:0.35;transition:opacity 0.2s,color 0.2s,border-color 0.2s;">↶</button>
   </p>
 
   <div id="taskWrap">
-    <button id="wrongBtn">Noch unsicher</button>
+    <button id="wrongBtn" data-de="Noch unsicher" data-en="Not sure yet">Noch unsicher</button>
     <div id="taskCard">
         <div class="card-face" id="faceFront">
             <div class="scale-wrapper"><div id="taskText" class="big-char scale-el"></div></div>
@@ -487,18 +535,18 @@ table.letter-table th:nth-child(2){
             <div class="scale-wrapper"><div id="loesung" class="scale-el"></div></div>
         </div>
     </div>
-    <button id="correctBtn">Kann ich sicher</button>
+    <button id="correctBtn" data-de="Kann ich sicher" data-en="I know this one">Kann ich sicher</button>
   </div>
 
   <details id="helpDetails" style="margin-top: 25px; border: 1px solid #eee; border-radius: 8px;">
   <summary id="helpSummary" style="cursor: pointer; padding: 8px 12px; color: #666; font-size: 0.9em; background: #fafafa; border-radius: 8px; list-style: none;">
     <button id="pinChoicesBtn" onclick="pinChoices(event)" title="Antwortmöglichkeiten dauerhaft einblenden">📌</button>
-    <span style="border-bottom: 1px dashed #ccc;">Hilfestellung: Antwortmöglichkeiten</span>
+    <span style="border-bottom: 1px dashed #ccc;" data-de="Hilfestellung: Antwortmöglichkeiten" data-en="Help: answer options">Hilfestellung: Antwortmöglichkeiten</span>
   </summary>
   <div id="choiceContainer" style="padding: 15px 10px 10px 10px;"></div>
 </details>
 
-  <button id="showSolutionBtn" class="btn">Lösung anzeigen</button>
+  <button id="showSolutionBtn" class="btn-loesung" data-de="Lösung anzeigen" data-en="Show the answer">Lösung anzeigen</button>
 
   </div>
 
@@ -558,6 +606,12 @@ let lastAction = null; // for undo: {task, wasCorrect, correctCount, totalCount,
 // Crucially, clears MathJax's internal cache for those elements first to prevent memory buildup.
 let _mjPending = false;
 let _mjElements = new Set();
+// Sprache: Text in der gerade eingestellten Sprache (ohne theme-language.js: Deutsch)
+function T(de, en) { return (typeof tlText === 'function') ? tlText(de, en) : de; }
+// Buchstaben-Typen: intern deutsch, angezeigt je nach Sprache
+const TYP_EN = { 'klein':'small', 'groß':'capital', 'Variante':'variant', 'Nikud':'nikud' };
+function typName(t) { return T(t, TYP_EN[t] || t); }
+
 function typesetMath(el) {
   if (!window.MathJax) return;
   if (el) _mjElements.add(el);
@@ -673,7 +727,8 @@ function updatePinBtn() {
   if (!btn) return;
   const pinned = document.getElementById('forceChoices').checked;
   btn.classList.toggle('active', pinned);
-  btn.title = pinned ? 'Antwortmöglichkeiten dauerhaft einblenden: AN' : 'Antwortmöglichkeiten dauerhaft einblenden: AUS';
+  btn.title = pinned ? T('Antwortmöglichkeiten dauerhaft einblenden: AN','Always show the answer options: ON')
+                     : T('Antwortmöglichkeiten dauerhaft einblenden: AUS','Always show the answer options: OFF');
 }
 
 function pinChoices(e) {
@@ -698,13 +753,13 @@ function shareSettings(e) {
   e.stopPropagation();
   const url = location.href;
   if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(url).then(() => showToast('🔗 Link kopiert!'));
+    navigator.clipboard.writeText(url).then(() => showToast(T('🔗 Link kopiert!','🔗 Link copied!')));
   } else {
     const ta = document.createElement('textarea');
     ta.value = url; ta.style.position = 'fixed'; ta.style.opacity = '0';
     document.body.appendChild(ta); ta.select();
     document.execCommand('copy'); document.body.removeChild(ta);
-    showToast('🔗 Link kopiert!');
+    showToast(T('🔗 Link kopiert!','🔗 Link copied!'));
   }
 }
 
@@ -749,10 +804,18 @@ function loadFromURL() {
   } catch(e) { return false; }
 }
 
-function flashResult(color) {
+/* Der Blitz nimmt die Farbe des Modus: hell ein blasses Grün bzw. Rot,
+   dunkel ein kräftiges dunkles Grün bzw. Rot. Im Dunkelmodus wirkte das
+   blasse Grün sonst wie ein weißer Blitz. */
+function blitzFarbe(richtig) {
+  const dunkel = document.documentElement.classList.contains('dark');
+  if (dunkel) return richtig ? '#1e4a22' : '#4a2020';
+  return richtig ? '#d4edda' : '#f8d7da';
+}
+function flashResult(richtig) {
   const overlay = document.getElementById('flashOverlay');
   overlay.style.transition = 'none';
-  overlay.style.backgroundColor = color;
+  overlay.style.backgroundColor = blitzFarbe(richtig);
   overlay.style.opacity = '1';
   setTimeout(() => { overlay.style.transition = 'opacity 1s'; overlay.style.opacity = '0'; }, 50);
 }
@@ -783,22 +846,22 @@ function renderLetterSettings() {
   const box = document.getElementById('letterSettings'), alphabet = alphabets[currentLanguage];
   const hasUpper = alphabet.some(l => l.upper !== ''), hasVariants = alphabet.some(l => l.variants.length > 0);
   const hasNikud = alphabet.some(l => l.nikud && l.nikud.length > 0);
-  let html = `<table class="letter-table"><thead><tr><th class="col-active"><button type="button" class="th-btn" onclick="toggleAllRows()">Aktiv</button></th><th>Name</th><th><button type="button" class="th-btn" onclick="toggleColumn('klein')">Klein</button></th>`;
-  if (hasUpper) html += `<th><button type="button" class="th-btn" onclick="toggleColumn('groß')">Groß</button></th>`;
-  if (hasVariants) html += `<th><button type="button" class="th-btn" onclick="toggleColumn('Variante')">Var.</button></th>`;
-  if (hasNikud) html += `<th><button type="button" class="th-btn" onclick="toggleColumn('Nikud')">Nikud</button></th>`;
+  let html = `<table class="letter-table"><thead><tr><th class="col-active"><button type="button" class="th-btn" data-th="aktiv" onclick="toggleAllRows()">${T('Aktiv','Active')}</button></th><th data-th="name">${T('Name','Name')}</th><th><button type="button" class="th-btn" data-th="klein" onclick="toggleColumn('klein')">${T('Klein','Small')}</button></th>`;
+  if (hasUpper) html += `<th><button type="button" class="th-btn" data-th="gross" onclick="toggleColumn('groß')">${T('Groß','Capital')}</button></th>`;
+  if (hasVariants) html += `<th><button type="button" class="th-btn" data-th="var" onclick="toggleColumn('Variante')">${T('Var.','Var.')}</button></th>`;
+  if (hasNikud) html += `<th><button type="button" class="th-btn" data-th="nikud" onclick="toggleColumn('Nikud')">${T('Nikud','Nikud')}</button></th>`;
   html += `</tr></thead><tbody>`;
   alphabet.forEach((l, idx) => {
     const isNikudOnly = !l.lower && !l.upper && !(l.variants && l.variants.length) && (l.nikud && l.nikud.length > 0);
     const dv = (v) => displayTableVal(v);
     if (isNikudOnly) {
-      html += `<tr id="row-${idx}"><td class="col-active"><button type="button" id="btn-toggle-${idx}" class="btn-toggle btn-on" onclick="toggleRow(${idx})">AN</button><input type="checkbox" id="cb-${idx}" name="letterBase" value="${idx}" checked style="display:none"></td><td>${l.base}</td><td></td>`;
+      html += `<tr id="row-${idx}"><td class="col-active"><button type="button" id="btn-toggle-${idx}" class="btn-toggle btn-on" onclick="toggleRow(${idx})">${T('AN','ON')}</button><input type="checkbox" id="cb-${idx}" name="letterBase" value="${idx}" checked style="display:none"></td><td>${l.base}</td><td></td>`;
       if (hasUpper) html += `<td></td>`;
       if (hasVariants) html += `<td></td>`;
       if (hasNikud) html += `<td>${(l.nikud||[]).map((v,j)=>`<label><input type="checkbox" name="letter" id="lcb_${idx}_nikud_${j}" value="${idx}_nikud_${j}" checked data-type="Nikud" onchange="updateURL(); resetAndNewTask();"> ${dv(v)}</label>`).join('<br>')}</td>`;
       html += `</tr>`;
     } else {
-      html += `<tr id="row-${idx}"><td class="col-active"><button type="button" id="btn-toggle-${idx}" class="btn-toggle btn-on" onclick="toggleRow(${idx})">AN</button><input type="checkbox" id="cb-${idx}" name="letterBase" value="${idx}" checked style="display:none"></td><td>${l.base}</td><td>${l.lower && dv(l.lower) ? `<label><input type="checkbox" name="letter" id="lcb_${idx}_lower" value="${idx}_lower" checked data-type="klein" onchange="updateURL(); resetAndNewTask();"> ${dv(l.lower)}</label>` : ''}</td>`;
+      html += `<tr id="row-${idx}"><td class="col-active"><button type="button" id="btn-toggle-${idx}" class="btn-toggle btn-on" onclick="toggleRow(${idx})">${T('AN','ON')}</button><input type="checkbox" id="cb-${idx}" name="letterBase" value="${idx}" checked style="display:none"></td><td>${l.base}</td><td>${l.lower && dv(l.lower) ? `<label><input type="checkbox" name="letter" id="lcb_${idx}_lower" value="${idx}_lower" checked data-type="klein" onchange="updateURL(); resetAndNewTask();"> ${dv(l.lower)}</label>` : ''}</td>`;
       if (hasUpper) html += `<td>${l.upper && dv(l.upper) ? `<label><input type="checkbox" name="letter" id="lcb_${idx}_upper" value="${idx}_upper" checked data-type="groß" onchange="updateURL(); resetAndNewTask();"> ${dv(l.upper)}</label>` : ''}</td>`;
       if (hasVariants) html += `<td>${l.variants.map((v,j)=>dv(v) ? `<label><input type="checkbox" name="letter" id="lcb_${idx}_var_${j}" value="${idx}_var_${j}" checked data-type="Variante" onchange="updateURL(); resetAndNewTask();"> ${dv(v)}</label>` : '').filter(Boolean).join('<br>')}</td>`;
       if (hasNikud) html += `<td>${(l.nikud||[]).map((v,j)=>`<label><input type="checkbox" name="letter" id="lcb_${idx}_nikud_${j}" value="${idx}_nikud_${j}" checked data-type="Nikud" onchange="updateURL(); resetAndNewTask();"> ${dv(v)}</label>`).join('<br>')}</td>`;
@@ -816,7 +879,7 @@ function resetAndNewTask() {
   const undoBtn = document.getElementById('undoBtn');
   if (undoBtn) { undoBtn.disabled = true; undoBtn.style.opacity = '0.35'; undoBtn.style.color = '#999'; undoBtn.style.borderColor = '#ccc'; undoBtn.style.cursor = 'default'; }
   const counter = document.getElementById('counter');
-  if (counter) counter.textContent = `Richtig: 0 / 0`;
+  if (counter) counter.textContent = T('Richtig: 0 / 0', 'Correct: 0 / 0');
   generateTask();
 }
 
@@ -825,7 +888,7 @@ function toggleRow(idx, forceState = null, skipReset = false) {
   if (!mainCb) return;
   mainCb.checked = forceState !== null ? forceState : !mainCb.checked;
   row.classList.toggle('row-disabled', !mainCb.checked);
-  if (btn) { btn.textContent = mainCb.checked ? "AN" : "AUS"; btn.className = mainCb.checked ? "btn-toggle btn-on" : "btn-toggle btn-off"; }
+  if (btn) { btn.textContent = mainCb.checked ? T('AN','ON') : T('AUS','OFF'); btn.className = mainCb.checked ? "btn-toggle btn-on" : "btn-toggle btn-off"; }
   if (!skipReset) { updateURL(); resetAndNewTask(); }
 }
 
@@ -843,6 +906,20 @@ function toggleAllRows() {
   updateURL(); resetAndNewTask();
 }
 
+// Aufgabentext merken, damit ein Sprachwechsel ihn neu schreiben kann
+let aktAufgabenArt = null, aktTyp = null;
+function setzeAufgabenText(art, typ) {
+  if (art !== undefined) { aktAufgabenArt = art; aktTyp = typ || null; }
+  const lbl = document.getElementById('taskLabel'), sub = document.getElementById('taskSub');
+  if (!lbl) return;
+  if (aktAufgabenArt === null)                lbl.textContent = T('Bitte Buchstaben wählen','Please choose some letters');
+  else if (aktAufgabenArt === 'recognize')    lbl.textContent = T('Wie nennt man diesen Buchstaben?','What is this letter called?');
+  else if (aktAufgabenArt === 'write')        lbl.textContent = T('Wie wird dieser Buchstabe geschrieben?','How is this letter written?');
+  else if (aktAufgabenArt === 'undo-recognize') lbl.textContent = T('Was ist das?','What is this?');
+  else                                        lbl.textContent = T('Schreibe:','Write:');
+  if (sub) sub.textContent = (aktTyp && (aktAufgabenArt === 'write' || aktAufgabenArt === 'undo-write')) ? `(${typName(aktTyp)})` : '';
+}
+
 function showToast(msg, duration = 1800) {
   const t = document.getElementById('toast');
   t.textContent = msg;
@@ -854,8 +931,8 @@ function generateTask() {
   pendingTaskTimer = null;
   if (taskPool.length === 0) {
     refillPool();
-    if (taskPool.length === 0) { document.getElementById('taskLabel').textContent = "Bitte Buchstaben wählen"; return; }
-    showToast('🎉 Alle Karten geschafft! Stapel wird neu gemischt…');
+    if (taskPool.length === 0) { setzeAufgabenText(null); return; }
+    showToast(T('🎉 Alle Karten geschafft! Stapel wird neu gemischt…','🎉 All cards done! Shuffling the pile…'));
   }
   let taskIdx;
   do { taskIdx = Math.floor(Math.random() * taskPool.length); } while (taskPool.length > 1 && taskPool[taskIdx].id === lastTaskID);
@@ -887,7 +964,7 @@ function generateTask() {
     if (mode === 'recognize') {
       taskTextBack.innerHTML = displayVal(selected.val);
       taskTextBack.classList.add('char-display');    // Ghost = Zeichen → kursiv
-      window.currentSolution = `${selected.base}<span class="loesung-type">(${selected.type})</span>`;
+      window.currentSolution = `${selected.base}<span class="loesung-type">(${typName(selected.type)})</span>`;
     } else {
       taskTextBack.innerHTML = selected.base;
       taskTextBack.classList.remove('char-display'); // Ghost = Name → nicht kursiv
@@ -903,8 +980,8 @@ function generateTask() {
   const frontVal = mode === 'recognize' ? displayVal(selected.val) : selected.base;
   const taskTextEl = document.getElementById('taskText');
   taskTextEl.classList.toggle('char-display', mode === 'recognize'); // front shows char when recognizing
-  if (mode === 'recognize') { document.getElementById('taskLabel').textContent = "Wie nennt man diesen Buchstaben?"; taskTextEl.innerHTML = frontVal; document.getElementById('taskSub').textContent = ""; }
-  else { document.getElementById('taskLabel').textContent = "Wie wird dieser Buchstabe geschrieben?"; taskTextEl.innerHTML = frontVal; document.getElementById('taskSub').textContent = `(${selected.type})`; }
+  if (mode === 'recognize') { setzeAufgabenText('recognize'); taskTextEl.innerHTML = frontVal; }
+  else { setzeAufgabenText('write', selected.type); taskTextEl.innerHTML = frontVal; }
   if (isMathContent(mode === 'recognize' ? selected.val : selected.base) && window.MathJax && MathJax.typesetPromise) {
     if (MathJax.typesetClear) MathJax.typesetClear([faceFront]);
     MathJax.typesetPromise([faceFront]).then(() => {
@@ -988,7 +1065,7 @@ function handleChoice(btn, isCorrect) {
             totalCount++; correctCount++;
             taskPool.splice(currentTask.poolIdx, 1);
         }
-        document.getElementById('counter').textContent = `Richtig: ${correctCount} / ${totalCount}`;
+        document.getElementById('counter').textContent = T(`Richtig: ${correctCount} / ${totalCount}`, `Correct: ${correctCount} / ${totalCount}`);
         if (pendingTaskTimer) clearTimeout(pendingTaskTimer);
         if (document.getElementById('skipAnimations').checked) {
             pendingTaskTimer = setTimeout(generateTask, 0);
@@ -1000,7 +1077,7 @@ function handleChoice(btn, isCorrect) {
         btn.classList.add('wrong');
         totalCount++;
         if (!choiceState.answeredWrong) choiceState.answeredWrong = true;
-        document.getElementById('counter').textContent = `Richtig: ${correctCount} / ${totalCount}`;
+        document.getElementById('counter').textContent = T(`Richtig: ${correctCount} / ${totalCount}`, `Correct: ${correctCount} / ${totalCount}`);
     }
 }
 
@@ -1072,7 +1149,7 @@ function showSolution() {
     });
     totalCount++;
     choiceState.answeredWrong = true;
-    document.getElementById('counter').textContent = `Richtig: ${correctCount} / ${totalCount}`;
+    document.getElementById('counter').textContent = T(`Richtig: ${correctCount} / ${totalCount}`, `Correct: ${correctCount} / ${totalCount}`);
     if (pendingTaskTimer) clearTimeout(pendingTaskTimer);
     // Always flip and wait normally — skip-animation does not affect this path
     flipToSolution();
@@ -1098,13 +1175,13 @@ function markAnswer(correct) {
   document.getElementById('undoBtn').style.borderColor = '#e0a800';
   document.getElementById('undoBtn').style.cursor = 'pointer';
 
-  flashResult(correct ? "#d4edda" : "#f8d7da");
+  flashResult(correct);
   totalCount++; 
   if (correct) { 
     correctCount++; 
     taskPool.splice(currentTask.poolIdx, 1); 
   }
-  document.getElementById('counter').textContent = `Richtig: ${correctCount} / ${totalCount}`;
+  document.getElementById('counter').textContent = T(`Richtig: ${correctCount} / ${totalCount}`, `Correct: ${correctCount} / ${totalCount}`);
   
   currentTask = null;
   if (pendingTaskTimer) clearTimeout(pendingTaskTimer);
@@ -1168,7 +1245,7 @@ function undoLastAction() {
   taskPool = lastAction.taskPoolSnapshot;
   correctCount = lastAction.correctCountBefore;
   totalCount = lastAction.totalCountBefore;
-  document.getElementById('counter').textContent = `Richtig: ${correctCount} / ${totalCount}`;
+  document.getElementById('counter').textContent = T(`Richtig: ${correctCount} / ${totalCount}`, `Correct: ${correctCount} / ${totalCount}`);
   // Restore the task that was played and re-show it
   currentTask = lastAction.task;
   choiceState = { answeredWrong: false };
@@ -1198,7 +1275,7 @@ function undoLastAction() {
     document.getElementById('loesung').innerHTML = '';
     document.querySelectorAll('.card-face').forEach(f => { f.style.backgroundColor = 'white'; });
     const taskTextBackU = document.getElementById('taskTextBack');
-    if (mode === 'recognize') { taskTextBackU.innerHTML = displayVal(selected.val); taskTextBackU.classList.add('char-display'); window.currentSolution = `${selected.base}<span class="loesung-type">(${selected.type})</span>`; }
+    if (mode === 'recognize') { taskTextBackU.innerHTML = displayVal(selected.val); taskTextBackU.classList.add('char-display'); window.currentSolution = `${selected.base}<span class="loesung-type">(${typName(selected.type)})</span>`; }
     else { taskTextBackU.innerHTML = selected.base; taskTextBackU.classList.remove('char-display'); window.currentSolution = `${displayVal(selected.val)}`; }
     if (isMathContent(mode === 'recognize' ? selected.val : selected.base)) typesetMath(document.getElementById('faceBack'));
     scheduleScale();
@@ -1209,9 +1286,8 @@ function undoLastAction() {
   const frontValUndo = mode === 'recognize' ? displayVal(selected.val) : selected.base;
   const taskTextElU = document.getElementById('taskText');
   taskTextElU.classList.toggle('char-display', mode === 'recognize');
-  document.getElementById('taskLabel').textContent = mode === 'recognize' ? "Was ist das?" : "Schreibe:";
+  setzeAufgabenText(mode === 'recognize' ? 'undo-recognize' : 'undo-write', selected.type);
   taskTextElU.innerHTML = frontValUndo;
-  document.getElementById('taskSub').textContent = mode === 'recognize' ? "" : `(${selected.type})`;
   if (isMathContent(mode === 'recognize' ? selected.val : selected.base) && window.MathJax && MathJax.typesetPromise) {
     if (MathJax.typesetClear) MathJax.typesetClear([faceFront]);
     MathJax.typesetPromise([faceFront]).then(() => {
@@ -1285,6 +1361,37 @@ window.onload = () => {
   updatePinBtn();
   resetAndNewTask();
 };
+
+/* ═══ Sprache / Fehler melden ═══ */
+window.addEventListener('tl-sprache', () => {
+  // Tabellenkopf und AN/AUS-Knöpfe neu beschriften (Auswahl bleibt erhalten)
+  const kopf = { aktiv:['Aktiv','Active'], name:['Name','Name'], klein:['Klein','Small'],
+                 gross:['Groß','Capital'], var:['Var.','Var.'], nikud:['Nikud','Nikud'] };
+  document.querySelectorAll('[data-th]').forEach(el => {
+    const k = kopf[el.dataset.th];
+    if (k) el.textContent = T(k[0], k[1]);
+  });
+  document.querySelectorAll('.btn-toggle').forEach(b => {
+    const an = b.classList.contains('btn-on');
+    b.textContent = an ? T('AN','ON') : T('AUS','OFF');
+  });
+  // Aufgabentext, Zähler, Pin-Tooltip
+  setzeAufgabenText();
+  const counter = document.getElementById('counter');
+  if (counter) counter.textContent = T(`Richtig: ${correctCount} / ${totalCount}`, `Correct: ${correctCount} / ${totalCount}`);
+  updatePinBtn();
+});
+
+window.fehlerKontext = function () {
+  const schrift = { greek: T('Griechisch','Greek'), hebrew: T('Hebräisch','Hebrew'), cyrillic: T('Kyrillisch','Cyrillic') }[currentLanguage] || currentLanguage;
+  const modus = document.querySelector('input[name="taskMode"]:checked');
+  const art = modus ? { recognize: T('Buchstaben erkennen','recognise letters'),
+                        random:    T('Zufällig','random'),
+                        write:     T('Buchstaben zeichnen','write letters') }[modus.value] : '';
+  const karte = document.getElementById('taskText');
+  const zeichen = karte ? karte.textContent.trim() : '';
+  return [schrift, art, zeichen].filter(Boolean).join(' \u00b7 ');
+};
 </script>
 <script src="scale.js"></script>
 
@@ -1293,7 +1400,7 @@ window.onload = () => {
 <div class="footer-content">
     M.&nbsp;Koch
     <span class="footer-topic"><a href="./index.html">Mathe-Tools</a></span>
-    <span class="footer-update">Last updated:&nbsp;<span id="last-update">...</span></span>
+    <span class="footer-update"><span class="fu-wort" data-de="Zuletzt aktualisiert:" data-en="Last updated:">Zuletzt aktualisiert:</span><span id="last-update">...</span></span>
 </div>
 </footer>
 </body>

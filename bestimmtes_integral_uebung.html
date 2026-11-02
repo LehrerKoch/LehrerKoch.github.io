@@ -3,149 +3,194 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Bestimmtes Integral Übung</title>
+<link rel="shortcut icon" type="image/x-icon" href="aleph_zero_logo.ico">
+<script>try{var t=localStorage.getItem('matheToolsTheme');if(t==='dark'||(!t&&window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.classList.add('dark');}catch(e){}</script>
+<script src="theme-language.js" defer></script>
+<title data-de="Bestimmtes Integral" data-en="Definite Integrals">Bestimmtes Integral</title>
 <link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="aufgaben.css">
 <link rel="stylesheet" href="scale.css">
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-5K8WYYXDL2"></script>
+    <!-- Besuchszaehlung (Google Analytics). Geladen wird sie erst, wenn der
+         Besucher zustimmt - siehe einwilligung.js. -->
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', 'G-5K8WYYXDL2');
+  window.TK_GA_ID = 'G-5K8WYYXDL2';   /* Google Analytics laedt erst nach Einwilligung, siehe einwilligung.js */
 </script>
+<script src="einwilligung.js" defer></script>
 <script src="scale.js" defer></script>
+<script src="aufgaben.js" defer></script>
 <style>
 #task-instruction { font-size: 1.1em; text-align: left; margin-bottom: 0.2em; }
 #task-formula { font-size: 1.6em; text-align: center; }
 #solution { color:red; font-size:1.3em; text-align:center; }
-#solutionPath {
-    margin: 1em;
-    border-width: thin;
-}
-button { align-self: flex-start; margin-top: 15px; padding: 5px; cursor: pointer; border: 2px solid #1f6b24; border-radius: 8px; font-size: 1em; transition: border-color 0.15s, filter 0.15s; }
-button:hover { filter: brightness(0.93); border-color: #0e4511; }
-
-#solutionPathContent { color:blue; font-size:1.0em}
+#solutionPathContent { font-size:1.0em }
 .solution-path-inner {
   display: inline-block;
   text-align: left;
 }
-.slider-container { margin: 10px 0; }
-.slider-container input[type="range"] { width: 200px; }
+.extlink { text-align:center; margin:8px 0 4px; }
 
-/* ---- Toggle Switch ---- */
-.mode-switch-wrap {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin: 10px 0 6px 0;
-  font-size: 0.95em;
-}
-.switch {
-  position: relative;
-  display: inline-block;
-  width: 52px;
-  height: 26px;
-  flex-shrink: 0;
-}
-.switch input { opacity: 0; width: 0; height: 0; }
-.switch .knob {
-  position: absolute;
-  cursor: pointer;
-  inset: 0;
-  background: #4caf50;
-  border-radius: 26px;
-  transition: background 0.25s;
-}
-.switch .knob::before {
-  content: '';
-  position: absolute;
-  width: 20px; height: 20px;
-  left: 3px; bottom: 3px;
-  background: white;
-  border-radius: 50%;
-  transition: transform 0.25s;
-}
-.switch input:checked + .knob { background: #e07b00; }
-.switch input:checked + .knob::before { transform: translateX(26px); }
-.mode-label-exact  { color: #2a7a2a; font-weight: bold; }
-.mode-label-round  { color: #c05000; font-weight: bold; }
+/* Anzeige der Lösung: kleiner Schalter im Lösungsbereich */
+.mode-switch-wrap { display:flex; align-items:center; justify-content:center; gap:8px;
+  margin:4px 0 8px; font-size:.95em; flex-wrap:wrap; }
+
+/* ---- Dark Mode (Hellmodus oben bleibt unverändert) ---- */
+html.dark #solution { color:#ef5350; }
 </style>
 </head>
 
-<body>
-<h1>Bestimmtes Integral Übung</h1>
+<body class="tk-seite">
+<header class="tool-kopf">
+  <div class="tk-text">
+    <h1 data-de="Bestimmtes Integral" data-en="Definite Integrals">Bestimmtes Integral</h1>
+    <p class="tk-unter" data-de="Bestimmte Integrale berechnen" data-en="Calculate definite integrals">Bestimmte Integrale berechnen</p>
+  </div>
+</header>
 
-<details>
-<summary>Einstellungen</summary>
-
-<div class="form-block">
-<b>Funktionstyp</b><br>
-<label><input type="radio" name="funcType" value="power"> Nur Potenzfunktionen</label><br>
-<label><input type="radio" name="funcType" value="powerWithFactor"> Potenzfunktion mit Faktorregel</label><br>
-<label><input type="radio" name="funcType" value="polynomial" checked> Polynome</label><br>
-</div>
-
-<div class="form-block">
-<div class="slider-container">
-<b>Maximaler Grad: <span id="degreeValue">3</span></b><br>
-<input type="range" id="maxDegree" min="1" max="10" value="3">
-</div>
-</div>
+<!-- ═══ Einstellungen ═══════════════════════════════════════════════════════
+     Hier stehen ALLE Einstellungen - auch die, die oben über der Aufgabe noch
+     einmal als Schalter erscheinen, und auch die, die der Schwierigkeitsgrad
+     von selbst setzt.                                                      -->
+<details class="einst" id="dSettings">
+<summary data-de="Einstellungen" data-en="Settings">Einstellungen</summary>
+<div class="settings-grid">
 
 <div class="form-block">
-<b>Koeffizienten &amp; Grenzen</b><br>
-<label><input type="checkbox" id="allowDecimals"> Dezimalzahlen erlauben</label><br>
-<label><input type="checkbox" id="allowFractions"> Brüche erlauben</label><br>
+<b data-de="Funktionstyp" data-en="Type of function">Funktionstyp</b>
+<span class="d" data-de="Wie ist die zu integrierende Funktion aufgebaut?" data-en="How is the function to be integrated built up?">Wie ist die zu integrierende Funktion aufgebaut?</span>
+<label class="opt"><input type="radio" name="funcType" value="power"><span><span data-de="Nur Potenzfunktionen" data-en="Power functions only">Nur Potenzfunktionen</span><span class="d" data-de="ein einzelnes \(x^n\)" data-en="a single \(x^n\)">ein einzelnes \(x^n\)</span></span></label>
+<label class="opt"><input type="radio" name="funcType" value="powerWithFactor"><span><span data-de="Potenzfunktion mit Faktorregel" data-en="Power function with constant factor">Potenzfunktion mit Faktorregel</span><span class="d" data-de="ein Vielfaches von \(x^n\)" data-en="a multiple of \(x^n\)">ein Vielfaches von \(x^n\)</span></span></label>
+<label class="opt"><input type="radio" name="funcType" value="polynomial" checked><span><span data-de="Polynome" data-en="Polynomials">Polynome</span><span class="d" data-de="mehrere Summanden" data-en="several summands">mehrere Summanden</span></span></label>
 </div>
 
 <div class="form-block">
-<b>Sonderfälle Integralgrenzen</b><br>
-<label><input type="checkbox" id="allowSwapped"> Integralgrenzen vertauscht</label><br>
-<label><input type="checkbox" id="allowEqual"> Integralgrenzen gleich</label><br>
+<b data-de="Sonderfälle bei den Integralgrenzen" data-en="Special cases for the limits">Sonderfälle bei den Integralgrenzen</b>
+<span class="d" data-de="Zusätzliche Fälle, die in den Aufgaben vorkommen dürfen." data-en="Extra cases that may occur in the tasks.">Zusätzliche Fälle, die in den Aufgaben vorkommen dürfen.</span>
+<label class="opt"><input type="checkbox" id="allowSwapped"><span><span data-de="Integralgrenzen vertauscht" data-en="Limits swapped">Integralgrenzen vertauscht</span><span class="d" data-de="untere Grenze größer als obere – das Ergebnis wechselt das Vorzeichen" data-en="lower limit larger than the upper one – the result changes sign">untere Grenze größer als obere – das Ergebnis wechselt das Vorzeichen</span></span></label>
+<label class="opt"><input type="checkbox" id="allowEqual"><span><span data-de="Integralgrenzen gleich" data-en="Limits equal">Integralgrenzen gleich</span><span class="d" data-de="das Integral ist dann immer 0" data-en="the integral is then always 0">das Integral ist dann immer 0</span></span></label>
 </div>
 
+<div class="form-block">
+<b data-de="Umfang der Funktion" data-en="Size of the function">Umfang der Funktion</b>
+<span class="d" data-de="Diese Werte setzt der Schwierigkeitsgrad über der Aufgabe." data-en="These values are set by the difficulty above the task.">Diese Werte setzt der Schwierigkeitsgrad über der Aufgabe.</span>
+<div class="row slider-row">
+  <span class="sl-name"><span data-de="Höchster Exponent" data-en="Highest exponent">Höchster Exponent</span>: <b id="degreeValue">3</b></span>
+  <input type="range" class="sl" id="maxDegree" min="1" max="10" value="3"
+         aria-label="Höchster Exponent" data-de-aria-label="Höchster Exponent" data-en-aria-label="Highest exponent">
+</div>
+<label class="opt"><input type="checkbox" id="allowDecimals"><span><span data-de="Dezimalzahlen erlauben" data-en="Allow decimals">Dezimalzahlen erlauben</span><span class="d" data-de="Koeffizienten und Grenzen wie 2,5" data-en="coefficients and limits such as 2.5">Koeffizienten und Grenzen wie 2,5</span></span></label>
+<label class="opt"><input type="checkbox" id="allowFractions"><span><span data-de="Brüche erlauben" data-en="Allow fractions">Brüche erlauben</span><span class="d" data-de="Koeffizienten wie \(\tfrac{3}{4}\)" data-en="coefficients such as \(\tfrac{3}{4}\)">Koeffizienten wie \(\tfrac{3}{4}\)</span></span></label>
+</div>
+
+<div class="form-block">
+<b data-de="Anzeige der Lösung" data-en="Display of the solution">Anzeige der Lösung</b>
+<span class="d" data-de="Derselbe Schalter steht auch im Lösungsbereich." data-en="The same switch is also shown with the solution.">Derselbe Schalter steht auch im Lösungsbereich.</span>
+<label class="opt"><input type="radio" name="rounding" value="exact" checked><span data-de="Genau (Brüche)" data-en="Exact (fractions)">Genau (Brüche)</span></label>
+<label class="opt"><input type="radio" name="rounding" value="round"><span data-de="Gerundet (2 Stellen)" data-en="Rounded (2 decimals)">Gerundet (2 Stellen)</span></label>
+</div>
+
+</div>
+<div class="settings-foot">
+  <button class="btn-secondary" id="btnShare" data-de="🔗 Link mit allen Einstellungen kopieren" data-en="🔗 Copy link with all settings">🔗 Link mit allen Einstellungen kopieren</button>
+  <button class="btn-secondary" id="btnReset" data-de="↺ Standard wiederherstellen" data-en="↺ Restore defaults">↺ Standard wiederherstellen</button>
+</div>
 </details>
 
-<button onclick="newTask()">Neue Aufgabe</button>
-
-<h2>Aufgabe</h2>
-<div id="task-instruction"></div>
-<div class="scale-wrapper">
-  <div id="task-formula" class="scale-el"></div>
+<!-- ═══ Schalter über der Aufgabe ═══════════════════════════════════════ -->
+<div id="topControls">
+  <div class="tc-row">
+    <div class="tc-item">
+      <span class="tc-label" data-de="Funktionstyp" data-en="Type of function">Funktionstyp</span>
+      <div class="seg" id="segType">
+        <label><input type="radio" name="funcTypeTop" value="power"><span data-de="Potenzfunktion" data-en="Power function">Potenzfunktion</span></label>
+        <label><input type="radio" name="funcTypeTop" value="powerWithFactor"><span data-de="mit Faktorregel" data-en="with factor rule">mit Faktorregel</span></label>
+        <label><input type="radio" name="funcTypeTop" value="polynomial" checked><span data-de="Polynom" data-en="Polynomial">Polynom</span></label>
+      </div>
+    </div>
+    <div class="tc-item">
+      <span class="tc-label" data-de="Sonderfälle der Grenzen" data-en="Special cases for the limits">Sonderfälle der Grenzen</span>
+      <div class="pills" id="segFaelle">
+        <label class="pill"><input type="checkbox" id="allowSwappedTop"><span data-de="vertauscht" data-en="swapped">vertauscht</span></label>
+        <label class="pill"><input type="checkbox" id="allowEqualTop"><span data-de="gleich" data-en="equal">gleich</span></label>
+      </div>
+    </div>
+  </div>
+  <div class="tc-item tc-diff">
+    <span class="tc-label" data-de="Schwierigkeit" data-en="Difficulty">Schwierigkeit</span>
+    <div class="seg-switch diff-switch" id="segDiff">
+      <input type="radio" name="diff" id="diffEinf" value="einf"><label for="diffEinf" data-de="Einführung" data-en="Introduction">Einführung</label>
+      <input type="radio" name="diff" id="diffLeicht" value="leicht"><label for="diffLeicht" data-de="Leicht" data-en="Easy">Leicht</label>
+      <input type="radio" name="diff" id="diffNormal" value="normal" checked><label for="diffNormal" data-de="Normal" data-en="Normal">Normal</label>
+      <input type="radio" name="diff" id="diffSchwer" value="schwer"><label for="diffSchwer" data-de="Herausfordernd" data-en="Challenging">Herausfordernd</label>
+      <input type="radio" name="diff" id="diffIndiv" value="indiv"><label for="diffIndiv" data-de="Individuell" data-en="Custom" data-de-title="öffnet die Einstellungen" data-en-title="opens the settings" title="öffnet die Einstellungen">Individuell</label>
+      <span class="seg-glider"></span>
+    </div>
+  </div>
 </div>
 
-<details id="solutionDetailsContainer">
-  <summary>Lösung</summary>
+<div id="genRow"><button id="genBtn" data-de="⟳&nbsp;Neue Aufgabe generieren" data-en="⟳&nbsp;Generate a new task">⟳&nbsp;Neue Aufgabe generieren</button></div>
 
-  <!-- Toggle Slider -->
-  <div class="mode-switch-wrap" style="justify-content:center;">
-    <span class="mode-label-exact">Genau (Brüche)</span>
-    <label class="switch">
-      <input type="checkbox" id="roundingToggle">
-      <span class="knob"></span>
-    </label>
-    <span class="mode-label-round">Gerundet (2 Stellen)</span>
+<div class="task" id="taskBox">
+  <div class="task-head">
+    <h2 data-de="Aufgabe" data-en="Task">Aufgabe</h2>
+    <button class="share-btn" id="btnTeilen" title="Diese Aufgabe teilen (Link kopieren)" data-de-title="Diese Aufgabe teilen (Link kopieren)" data-en-title="Share this task (copy link)" data-de="&#128279;&nbsp;Teilen" data-en="&#128279;&nbsp;Share">&#128279;&nbsp;Teilen</button>
   </div>
-
+  <div id="task-instruction"></div>
   <div class="scale-wrapper">
-    <div id="solution" class="scale-el"></div>
+    <div id="task-formula" class="scale-el"></div>
+  </div>
+</div>
+
+<details class="loesung" id="solutionDetailsContainer">
+  <summary><span class="wenn-zu" data-de="Lösung einblenden" data-en="Show solution">Lösung einblenden</span><span class="wenn-auf" data-de="Lösung ausblenden" data-en="Hide solution">Lösung ausblenden</span></summary>
+
+  <div class="mode-switch-wrap">
+    <span data-de="Anzeige:" data-en="Display:">Anzeige:</span>
+    <div class="mini-seg" id="segRunden">
+      <label><input type="radio" name="roundingTop" value="exact" checked><span data-de="Genau (Brüche)" data-en="Exact (fractions)">Genau (Brüche)</span></label>
+      <label><input type="radio" name="roundingTop" value="round"><span data-de="Gerundet (2 Stellen)" data-en="Rounded (2 decimals)">Gerundet (2 Stellen)</span></label>
+    </div>
   </div>
 
-  <details id="solutionPath">
-    <summary>Lösungsweg</summary>
+  <div class="res">
+    <div class="scale-wrapper">
+      <div id="solution" class="scale-el"></div>
+    </div>
+  </div>
+
+  <details class="weg" id="solutionPath">
+    <summary data-de="Lösungsweg" data-en="Solution path">Lösungsweg</summary>
     <div class="scale-wrapper">
       <div id="solutionPathContent" class="scale-el"></div>
     </div>
   </details>
 
-  <br>
-  <button id="stepBtn" onclick="openSteps()">Auf integralrechner.de öffnen</button>
+  <div class="extlink">
+    <button id="stepBtn" class="btn-solution" onclick="openSteps()" data-de="Auf integralrechner.de öffnen" data-en="Open on integral-calculator.com">Auf integralrechner.de öffnen</button>
+  </div>
 </details>
 
 <script>
+/* Dezimaltrennzeichen: Komma im Deutschen ({,} in LaTeX), Punkt im Englischen.
+   Faellt ohne theme-language.js auf die deutsche Schreibweise zurueck. */
+function DZ(wert, tex) {
+  return (typeof tlDezimal === 'function')
+    ? tlDezimal(wert, tex)
+    : String(wert).replace('.', tex ? '{,}' : ',');
+}
+
+/* Stellt das Dezimaltrennzeichen eines fertigen TeX-Ausdrucks auf die
+   aktuelle Sprache um (Komma <-> Punkt). */
+function DZT(text) {
+  return (typeof tlDezimalText === 'function') ? tlDezimalText(text, true) : text;
+}
+
+// Übersetzungshilfe: nutzt theme-language.js, fällt ohne sie auf Deutsch zurück
+function T(de, en) { return (typeof tlText === 'function') ? tlText(de, en) : de; }
+function solFarbe() { return (typeof tlDunkel === 'function' && tlDunkel()) ? '#8ab4f8' : 'blue'; }
+
 function scaleToFit(el) {
     if (!el) return;
     el.style.transform = 'none';
@@ -244,7 +289,7 @@ function ratToRoundedLatex(r) {
   let rounded = Math.round(v * 100) / 100;
   // Remove trailing zeros after decimal point
   let s = rounded.toFixed(2).replace(/0+$/, '').replace(/\.$/, '');
-  return s.replace('.', '{,}');
+  return DZ(s, true);
 }
 
 // Is a rational exactly representable as a 2-decimal-place number?
@@ -256,70 +301,174 @@ function ratIsExactAt2(r) {
 // ================================================================
 // URL SYNC
 // ================================================================
-function updateURL(){
-  let type = document.querySelector('input[name="funcType"]:checked').value;
-  let deg  = document.getElementById('maxDegree').value;
-  let dec  = document.getElementById('allowDecimals').checked ? 1 : 0;
-  let frac = document.getElementById('allowFractions').checked ? 1 : 0;
-  let sw   = document.getElementById('allowSwapped').checked ? 1 : 0;
-  let eq   = document.getElementById('allowEqual').checked ? 1 : 0;
-  let url  = new URL(window.location);
-  url.searchParams.set('type', type);
-  url.searchParams.set('degree', deg);
-  url.searchParams.set('decimals', dec);
-  url.searchParams.set('fractions', frac);
-  url.searchParams.set('swapped', sw);
-  url.searchParams.set('equal', eq);
-  url.searchParams.set('rounded', document.getElementById('roundingToggle').checked ? 1 : 0);
-  history.replaceState({}, '', url);
+/* ═══════════════════════════════════════════════════════════════════════════
+   EINSTELLUNGEN, SCHWIERIGKEIT UND ADRESSZEILE
+   Jede Einstellung steht genau EINMAL - im Bereich "Einstellungen". Die
+   Schalter über der Aufgabe (und der Anzeige-Schalter in der Lösung) sind nur
+   eine zweite Bedienstelle für denselben Wert.
+   ═══════════════════════════════════════════════════════════════════════════ */
+const STD = { funcType: 'polynomial', degree: 3, decimals: false, fractions: false,
+              swapped: false, equal: false, rounding: 'exact', diff: 'normal' };
+/* Eine Schwierigkeitsstufe setzt nur den Umfang der Funktion. Funktionstyp und
+   Sonderfälle bleiben die Wahl der Nutzerin - sie haben eigene Schalter. */
+const STUFEN = {
+  einf:   { degree: 1, decimals: false, fractions: false },
+  leicht: { degree: 2, decimals: false, fractions: false },
+  normal: { degree: 3, decimals: false, fractions: false },
+  schwer: { degree: 5, decimals: true,  fractions: true  }
+};
+const KURZ = { funcType: 'type', degree: 'degree', decimals: 'decimals',
+               fractions: 'fractions', swapped: 'swapped', equal: 'equal',
+               rounding: 'rounded', diff: 'diff' };
+
+function radioWert(name){
+  const e = document.querySelector('input[name="' + name + '"]:checked');
+  return e ? e.value : null;
 }
-function loadURL(){
-  let url = new URL(window.location);
-  if(url.searchParams.has('type'))
-    document.querySelector(`input[name="funcType"][value="${url.searchParams.get('type')}"]`).checked = true;
-  if(url.searchParams.has('degree')){
-    document.getElementById('maxDegree').value = url.searchParams.get('degree');
-    document.getElementById('degreeValue').textContent = url.searchParams.get('degree');
+function radioSetzen(name, wert){
+  const e = document.querySelector('input[name="' + name + '"][value="' + wert + '"]');
+  if (e) e.checked = true;
+  return !!e;
+}
+function haken(id){ const e = document.getElementById(id); return !!(e && e.checked); }
+function hakenSetzen(id, an){ const e = document.getElementById(id); if (e) e.checked = !!an; }
+function gradAnzeigen(){
+  const s = document.getElementById('maxDegree'), a = document.getElementById('degreeValue');
+  if (s && a) a.textContent = s.value;
+}
+function einstellungen(){
+  const s = document.getElementById('maxDegree');
+  return { funcType:  radioWert('funcType') || STD.funcType,
+           degree:    s ? parseInt(s.value, 10) : STD.degree,
+           decimals:  haken('allowDecimals'),
+           fractions: haken('allowFractions'),
+           swapped:   haken('allowSwapped'),
+           equal:     haken('allowEqual'),
+           rounding:  radioWert('rounding') || STD.rounding,
+           diff:      radioWert('diff') || STD.diff };
+}
+function einstellungenSetzen(e){
+  radioSetzen('funcType', e.funcType); radioSetzen('funcTypeTop', e.funcType);
+  radioSetzen('rounding', e.rounding); radioSetzen('roundingTop', e.rounding);
+  radioSetzen('diff', e.diff);
+  const s = document.getElementById('maxDegree');
+  if (s) s.value = Math.max(1, Math.min(10, e.degree || STD.degree));
+  hakenSetzen('allowDecimals', e.decimals);
+  hakenSetzen('allowFractions', e.fractions);
+  hakenSetzen('allowSwapped', e.swapped);   hakenSetzen('allowSwappedTop', e.swapped);
+  hakenSetzen('allowEqual', e.equal);       hakenSetzen('allowEqualTop', e.equal);
+  gradAnzeigen();
+  if (window.abGliderAlle) abGliderAlle();
+}
+function aufIndividuell(){
+  if (radioWert('diff') !== 'indiv'){
+    radioSetzen('diff', 'indiv');
+    if (window.abGliderAlle) abGliderAlle();
   }
-  if(url.searchParams.has('decimals'))
-    document.getElementById('allowDecimals').checked = url.searchParams.get('decimals') === '1';
-  if(url.searchParams.has('fractions'))
-    document.getElementById('allowFractions').checked = url.searchParams.get('fractions') === '1';
-  if(url.searchParams.has('swapped'))
-    document.getElementById('allowSwapped').checked = url.searchParams.get('swapped') === '1';
-  if(url.searchParams.has('equal'))
-    document.getElementById('allowEqual').checked = url.searchParams.get('equal') === '1';
-  // Default: unchecked (exact/Brüche), only set to rounded if explicitly '1'
-  if(url.searchParams.has('rounded'))
-    document.getElementById('roundingToggle').checked = url.searchParams.get('rounded') === '1';
 }
-function syncDegreeDisplay(){
-  document.getElementById('degreeValue').textContent = document.getElementById('maxDegree').value;
+function stufeAnwenden(stufe){
+  const p = STUFEN[stufe];
+  if (!p) return;
+  const s = document.getElementById('maxDegree');
+  if (s) s.value = p.degree;
+  hakenSetzen('allowDecimals', p.decimals);
+  hakenSetzen('allowFractions', p.fractions);
+  gradAnzeigen();
 }
-loadURL(); syncDegreeDisplay();
-document.querySelectorAll('input').forEach(e => e.addEventListener('change', () => {
-  syncDegreeDisplay(); updateURL();
+function urlSchreiben(mitAufgabe){
+  const s = einstellungen(), p = new URLSearchParams();
+  Object.keys(KURZ).forEach(k => {
+    if (String(s[k]) === String(STD[k])) return;
+    p.set(KURZ[k], (typeof s[k] === 'boolean') ? (s[k] ? '1' : '0') : s[k]);
+  });
+  if (mitAufgabe) p.set('sd', AUFGABENSTART);   /* genau diese Aufgabe */
+  const qs = p.toString();
+  return location.origin + location.pathname + (qs ? '?' + qs : '');
+}
+function urlLesen(){
+  const p = new URLSearchParams(location.search), s = Object.assign({}, STD);
+  Object.keys(KURZ).forEach(k => {
+    const v = p.get(KURZ[k]);
+    if (v === null) return;
+    if (typeof STD[k] === 'boolean') s[k] = (v === '1' || v === 'true');
+    else if (typeof STD[k] === 'number') s[k] = parseInt(v, 10) || STD[k];
+    else s[k] = v;
+  });
+  /* ältere Links schrieben rounded=1 bzw. rounded=0 */
+  if (s.rounding === '1') s.rounding = 'round';
+  if (s.rounding === '0') s.rounding = 'exact';
+  return s;
+}
+function urlMerken(){ try { history.replaceState({}, '', urlSchreiben(false)); } catch (e) {} }
+function linkKopieren(text, knopf){
+  if (window.abKopiere){ abKopiere(text, knopf, T('✓ Link kopiert', '✓ Link copied')); return; }
+  try { if (navigator.clipboard) navigator.clipboard.writeText(text); } catch (e) {}
+}
+/* Dieselbe Einstellung an zwei Stellen bedienbar halten */
+function spiegleRadio(a, b, nachher){
+  document.querySelectorAll('input[name="' + a + '"], input[name="' + b + '"]')
+    .forEach(e => e.addEventListener('change', () => {
+      radioSetzen(a, e.value); radioSetzen(b, e.value);
+      if (window.abGliderAlle) abGliderAlle();
+      nachher();
+    }));
+}
+function spiegleHaken(a, b, nachher){
+  [a, b].forEach(id => { const e = document.getElementById(id); if (!e) return;
+    e.addEventListener('change', () => { hakenSetzen(a, e.checked); hakenSetzen(b, e.checked); nachher(); });
+  });
+}
+
+einstellungenSetzen(urlLesen());
+
+spiegleRadio('funcType', 'funcTypeTop', () => newTask());
+spiegleHaken('allowSwapped', 'allowSwappedTop', () => newTask());
+spiegleHaken('allowEqual', 'allowEqualTop', () => newTask());
+spiegleRadio('rounding', 'roundingTop', () => { urlMerken(); renderSolution(); });
+/* Was die Schwierigkeit sonst setzt: von Hand geändert heißt "Individuell" */
+document.querySelectorAll('#maxDegree, #allowDecimals, #allowFractions')
+  .forEach(e => e.addEventListener('change', () => { gradAnzeigen(); aufIndividuell(); newTask(); }));
+document.getElementById('maxDegree').addEventListener('input', gradAnzeigen);
+document.querySelectorAll('input[name="diff"]').forEach(e => e.addEventListener('change', () => {
+  if (e.value !== 'indiv') stufeAnwenden(e.value);
+  newTask();
+  if (e.value === 'indiv' && window.abEinstellungenOeffnen) abEinstellungenOeffnen('#dSettings');
 }));
-document.getElementById('maxDegree').addEventListener('input', () => {
-  document.getElementById('degreeValue').textContent = document.getElementById('maxDegree').value;
-  updateURL();
-});
+document.getElementById('genBtn').addEventListener('click', () => newTask());
+document.getElementById('btnShare').addEventListener('click', function(){ linkKopieren(urlSchreiben(false), this); });
+document.getElementById('btnTeilen').addEventListener('click', function(){ linkKopieren(urlSchreiben(true), this); });
+document.getElementById('btnReset').addEventListener('click', () => { einstellungenSetzen(STD); newTask(); });
 
 // ================================================================
+
+/* ── Zufall mit Startwert ────────────────────────────────────────────────
+   Jede Aufgabe entsteht aus einem Startwert. Steht dieser im Link, kommt
+   dieselbe Aufgabe wieder heraus - so lässt sich eine einzelne Aufgabe
+   weitergeben. Verfahren: mulberry32, kurz und für diesen Zweck gut genug. */
+let AUFGABENSTART = 1;
+function neuerStartwert(){ return (Math.random() * 4294967296) >>> 0; }
+function setzeStartwert(s){ AUFGABENSTART = s >>> 0; _z = AUFGABENSTART; }
+let _z = 1;
+function zufall(){
+  _z = (_z + 0x6D2B79F5) >>> 0;
+  let t = Math.imul(_z ^ (_z >>> 15), 1 | _z);
+  t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+  return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+}
 // RANDOM HELPERS
 // ================================================================
-const rand = (a, b) => Math.floor(Math.random() * (b - a + 1)) + a;
-const randDecimal = (a, b) => parseFloat((Math.random() * (b - a) + a).toFixed(1));
+const rand = (a, b) => Math.floor(zufall() * (b - a + 1)) + a;
+const randDecimal = (a, b) => parseFloat((zufall() * (b - a) + a).toFixed(1));
 
 // Returns a coeff object (same format as before, used for LaTeX display of f(x)/F(x))
 function generateCoeff() {
   let allowDec  = document.getElementById('allowDecimals').checked;
   let allowFrac = document.getElementById('allowFractions').checked;
-  if(allowFrac && Math.random() < 0.3) {
+  if(allowFrac && zufall() < 0.3) {
     let num = rand(-9, 9); if(num === 0) num = 1;
     // Use makeFraction helper to simplify
     return mf(num, rand(2, 9));
-  } else if(allowDec && Math.random() < 0.3) {
+  } else if(allowDec && zufall() < 0.3) {
     let val = parseFloat(randDecimal(-9, 9));
     if(val === 0) val = 1;
     return { type: 'decimal', value: val };
@@ -330,10 +479,10 @@ function generateCoeff() {
 function generateBound() {
   let allowDec  = document.getElementById('allowDecimals').checked;
   let allowFrac = document.getElementById('allowFractions').checked;
-  if(allowFrac && Math.random() < 0.3) {
+  if(allowFrac && zufall() < 0.3) {
     let num = rand(-10, 10), den = rand(2, 4);
     return mf(num, den);
-  } else if(allowDec && Math.random() < 0.3) {
+  } else if(allowDec && zufall() < 0.3) {
     return { type: 'decimal', value: parseFloat(randDecimal(-5, 5)) };
   } else {
     return { type: 'integer', value: rand(-5, 5) };
@@ -362,7 +511,7 @@ function coeffToString(c, skipOne = false) {
     if(c.value === 0) return '0';
     if(skipOne && c.value ===  1) return '';
     if(skipOne && c.value === -1) return '-';
-    return c.value.toString().replace('.', '{,}');
+    return DZ(c.value.toString(), true);
   } else {
     if(c.value === 0) return '0';
     if(skipOne && c.value ===  1) return '';
@@ -417,7 +566,10 @@ function substitutePolyString(intCoeffs, valLatex) {
              : cStr === '' ? xPart
              : cStr === '-' ? `-${xPart}`
              : `${cStr}\\cdot ${xPart}`;
-    terms.push({ term, isNegative: coeffIsNeg(c) });
+    /* Das Merkmal heisst "neg" - so liest es die Schleife darunter. Hiess es
+       "isNegative", stand bei negativen Koeffizienten ein Pluszeichen davor:
+       F(-5) = 3*(-5)^2 + -8*(-5). */
+    terms.push({ term, neg: coeffIsNeg(c) });
   }
   let r = '';
   for(let i = 0; i < terms.length; i++) r += (i === 0 ? '' : (terms[i].neg ? '' : '+')) + terms[i].term;
@@ -461,7 +613,7 @@ function formatRat(r, mode, appendDecimal = false) {
     let rounded = Math.round(ratToFloat(r) * 100) / 100;
     let isExactAt2 = ratIsExactAt2(r);
     let sign = isExactAt2 ? '=' : '\\approx';
-    let decStr = rounded.toFixed(2).replace(/0+$/, '').replace(/\.$/, '').replace('.', '{,}');
+    let decStr = DZ(rounded.toFixed(2).replace(/0+$/, '').replace(/\.$/, ''), true);
     return `${base} ${sign} ${decStr}`;
   }
   return base;
@@ -480,7 +632,7 @@ function eqSign(r, mode) {
 // ================================================================
 function boundToLatex(c) {
   if(c.type === 'fraction') return `${c.num < 0 ? '-' : ''}\\frac{${Math.abs(c.num)}}{${c.den}}`;
-  if(c.type === 'decimal')  return c.value.toString().replace('.', '{,}');
+  if(c.type === 'decimal')  return DZ(c.value.toString(), true);
   return c.value.toString();
 }
 
@@ -495,13 +647,17 @@ let _renderData   = null;
 function openSteps(){
   let lo = encodeURIComponent(coeffToPlain(currentBounds.a).toString());
   let hi = encodeURIComponent(coeffToPlain(currentBounds.b).toString());
-  window.open(`https://www.integralrechner.de/#expr=${encodeURIComponent(currentExpr)}&lbound=${lo}&ubound=${hi}`, '_blank');
+  // Englische Zwillingsseite von integralrechner.de (gleiche URL-Parameter)
+  const basis = (typeof tlSprache === 'function' && tlSprache() === 'en')
+    ? 'https://www.integral-calculator.com/'
+    : 'https://www.integralrechner.de/';
+  window.open(`${basis}#expr=${encodeURIComponent(currentExpr)}&lbound=${lo}&ubound=${hi}`, '_blank');
 }
 
 // Re-render solution+lösungsweg with current toggle state
 function renderSolution() {
   if(!_renderData) return;
-  let mode = document.getElementById('roundingToggle').checked ? 'round' : 'exact';
+  let mode = (radioWert('rounding') === 'round') ? 'round' : 'exact';
   let { aLatex, bLatex, F, intermediate, FbRat, FaRat, resultRat,
         FbSubst, FaSubst, f, useEqual, useSwapped } = _renderData;
 
@@ -538,15 +694,15 @@ function renderSolution() {
   &${eqFinal} \\mathbf{${resultStr}}
 \\end{aligned}`;
 
-let intermediateHTML = `<div class="solution-path-inner" style="color:blue; font-size:0.88em; padding: 3px;">
+let intermediateHTML = `<div class="solution-path-inner" style="color:${solFarbe()}; font-size:0.88em; padding: 3px;">
 $$\\begin{aligned}
-&\\textbf{1. Stammfunktion bestimmen:} \\\\
+&\\textbf{${T('1. Stammfunktion bestimmen:', '1. Find an antiderivative:')}} \\\\
 &\\qquad F\\left(x\\right) = ${intermediate} \\\\
 &\\qquad \\phantom{F\\left(x\\right)} = ${F} \\\\[6pt]
-&\\textbf{2. Obere Grenze einsetzen } \\left(x = ${bLatex}\\right)\\text{:} \\\\
+&\\textbf{${T('2. Obere Grenze einsetzen', '2. Substitute the upper limit')} } \\left(x = ${bLatex}\\right)\\text{:} \\\\
 &\\qquad F\\left(${bLatex}\\right) = ${FbSubst} \\\\
 &\\qquad \\phantom{F\\left(${bLatex}\\right)} ${eqFb} ${FbStr} \\\\[6pt]
-&\\textbf{3. Untere Grenze einsetzen } \\left(x = ${aLatex}\\right)\\text{:} \\\\
+&\\textbf{${T('3. Untere Grenze einsetzen', '3. Substitute the lower limit')} } \\left(x = ${aLatex}\\right)\\text{:} \\\\
 &\\qquad F\\left(${aLatex}\\right) = ${FaSubst} \\\\
 &\\qquad \\phantom{F\\left(${aLatex}\\right)} ${eqFa} ${FaStr}
 \\end{aligned}$$
@@ -554,11 +710,11 @@ $$\\begin{aligned}
 
   document.getElementById('solutionPathContent').innerHTML = intermediateHTML;
   document.getElementById('solution').innerHTML = `$$${solutionLatex}$$`;
-  MathJax.typesetPromise().then(() => scaleAllElements());
+  if (window.MathJax && MathJax.typesetPromise) MathJax.typesetPromise().then(() => scaleAllElements());
+  else scaleAllElements();
 }
 
 // Listen to toggle
-document.getElementById('roundingToggle').addEventListener('change', () => { updateURL(); renderSolution(); });
 document.getElementById('solutionPath')?.addEventListener('toggle', () => {
   if (window.MathJax) MathJax.typesetPromise().then(() => scaleToFit(document.getElementById('solutionPathContent')));
 });
@@ -566,8 +722,12 @@ document.getElementById('solutionPath')?.addEventListener('toggle', () => {
 // ================================================================
 // TASK GENERATOR
 // ================================================================
-function newTask(){
-  document.querySelectorAll('details').forEach(d => d.removeAttribute('open'));
+function newTask(startwert){
+  /* Nur die Lösung wird zugeklappt - der Einstellungsbereich bleibt offen. */
+  document.querySelectorAll('#solutionDetailsContainer, #solutionPath')
+    .forEach(d => d.removeAttribute('open'));
+  setzeStartwert(startwert == null ? neuerStartwert() : startwert);
+  urlMerken();
 
   let funcType     = document.querySelector('input[name="funcType"]:checked').value;
   let maxDeg       = parseInt(document.getElementById('maxDegree').value);
@@ -597,7 +757,7 @@ function newTask(){
   }
 
   // ---- Bounds with special cases ----
-  let r = Math.random();
+  let r = zufall();
   let useEqual   = allowEqual   && r < 0.05;
   let useSwapped = !useEqual && allowSwapped && r < 0.20;
 
@@ -671,17 +831,43 @@ function newTask(){
   // if(useEqual)   specialNote = ' <span style="color:#888;font-size:0.85em">(Integralgrenzen gleich)</span>';
   // if(useSwapped) specialNote = ' <span style="color:#888;font-size:0.85em">(Integralgrenzen vertauscht: \\(a > b\\))</span>';
 
-  document.getElementById('task-instruction').innerHTML = `Berechne das bestimmte Integral:${specialNote}`;
-  document.getElementById('task-formula').innerHTML = `$$\\int\\limits_{${aLatex}}^{${bLatex}} \\left(${f}\\right)\\,\\mathrm{d}x = \\,?$$`;
+  document.getElementById('task-instruction').innerHTML = `${T('Berechne das bestimmte Integral:', 'Evaluate the definite integral:')}${specialNote}`;
+  zeichneAufgabenformel();
 
-  MathJax.typesetPromise().then(() => {
-    renderSolution();
-    scaleAllElements();
-  });
+  if (window.MathJax && MathJax.typesetPromise)
+    MathJax.typesetPromise().then(() => { renderSolution(); scaleAllElements(); });
+  else { renderSolution(); scaleAllElements(); }
 
 }
 
-MathJax.startup.promise.then(() => newTask());
+// Sprach-/Themewechsel: Aufgabenstellung und Lösung(-sweg) neu zeichnen,
+// ohne eine neue Aufgabe zu würfeln.
+// Aufgabenformel aus den gespeicherten Daten zeichnen - das
+// Dezimaltrennzeichen folgt dabei der aktuellen Sprache.
+function zeichneAufgabenformel() {
+  if (!_renderData) return;
+  const { aLatex, bLatex, f } = _renderData;
+  document.getElementById('task-formula').innerHTML =
+    `$$\\int\\limits_{${DZT(aLatex)}}^{${DZT(bLatex)}} \\left(${DZT(f)}\\right)\\,\\mathrm{d}x = \\,?$$`;
+}
+
+function zeichneNeu() {
+  if (!_renderData) return;
+  const anweisung = document.getElementById('task-instruction');
+  if (anweisung) anweisung.innerHTML = T('Berechne das bestimmte Integral:', 'Evaluate the definite integral:');
+  zeichneAufgabenformel();
+  renderSolution();
+}
+window.addEventListener('tl-sprache', zeichneNeu);
+window.addEventListener('tl-theme',   zeichneNeu);
+
+/* Die erste Aufgabe, sobald MathJax bereit ist. Fehlt MathJax, wird trotzdem
+   gerechnet - dann eben ohne gesetzte Formeln. */
+const _sd = new URLSearchParams(location.search).get('sd');
+const ersteAufgabe = () => newTask(_sd == null ? null : (parseInt(_sd, 10) >>> 0));
+if (window.MathJax && MathJax.startup && MathJax.startup.promise)
+  MathJax.startup.promise.then(ersteAufgabe);
+else ersteAufgabe();
 </script>
 
 <div id="lobby-spacer"></div>
@@ -689,9 +875,19 @@ MathJax.startup.promise.then(() => newTask());
   <div class="footer-content">
       M.&nbsp;Koch
       <span class="footer-topic"><a href="./index.html">Mathe-Tools</a></span>
-      <span class="footer-update">Last updated:&nbsp;<span id="last-update">...</span></span>
+      <span class="footer-update"><span class="fu-wort" data-de="Zuletzt aktualisiert:" data-en="Last updated:">Zuletzt aktualisiert:</span><span id="last-update">...</span></span>
   </div>
 </footer>
-<script src="last-update.js" defer></script>
+<script src="last-update.js" defer>
+</script>
+<script>
+/* Beim Klick auf "Fehler melden" wird die gerade angezeigte Aufgabe
+   mitgeschickt - direkt aus dem DOM, also immer der aktuelle Stand. */
+window.fehlerKontext = function () {
+  const el = document.getElementById('task-formula');
+  if (!el) return '';
+  return (typeof tlFormelText === 'function') ? tlFormelText(el) : el.innerText;
+};
+</script>
 </body>
 </html>

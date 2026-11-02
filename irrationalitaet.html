@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Widerspruchsbeweis</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f5f8fa;
+      margin: 2em;
+    }
+
+    h1 {
+      text-align: center;
+    }
+
+    #container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    ol {
+      list-style: decimal;
+      padding: 0;
+    }
+
+    li {
+      background-color: #d7eaff;
+      margin: 0.5em 0;
+      padding: 0.8em;
+      border-radius: 10px;
+      cursor: move;
+      transition: background-color 0.3s;
+    }
+
+    .buttons {
+      display: flex;
+      justify-content: center;
+      gap: 1em;
+      margin: 1em 0;
+    }
+
+    button {
+      padding: 0.6em 1.2em;
+      border: none;
+      border-radius: 8px;
+      background-color: #007bff;
+      color: white;
+      font-size: 1em;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    .radio-group {
+      display: flex;
+      justify-content: center;
+      gap: 2em;
+      margin-top: 2em;
+    }
+
+    .gruen {
+      background-color: #b8e6b8 !important;
+    }
+
+    .rot {
+      background-color: #f8b0b0 !important;
+    }
+
+    footer {
+      margin-top: 2em;
+      text-align: center;
+      font-size: 0.7em;
+      color: #555;
+      border-top: 1px solid #ccc;
+      padding-top: 0.5em;
+    }
+
+    .dual {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1em;
+      border-left: 2px solid #aaa;
+      padding-left: 1em;
+    }
+
+    .dual div:first-child {
+      border-right: 2px solid #aaa;
+      padding-right: 1em;
+    }
+  </style>
+<!-- Vergroesserung auf sehr grossen Bildschirmen (Promethean, 4K).
+     Kleine gemeinsame Datei; fehlt sie, bleibt einfach alles unvergroessert. -->
+<link rel="stylesheet" href="gross.css">
+<script src="einwilligung.js" defer></script>
+</head>
+<body>
+  <div id="container">
+    <h1>Widerspruchsbeweis</h1>
+
+    <div class="radio-group">
+      <label><input type="radio" name="modus" value="krimi" checked> Kriminalfall</label>
+      <label><input type="radio" name="modus" value="beides"> Beides</label>
+      <label><input type="radio" name="modus" value="irr"> Irrationalität</label>
+    </div>
+    <div class="buttons">
+      <button id="shuffleBtn">Neu</button>
+      <button id="checkBtn">Überprüfen</button>
+    </div>
+<div><b>Bringe die Aussagen in die richtige Reihenfolge:</b></div>
+    <ol id="sortable"></ol>
+
+    <footer>
+      Quelle: Spies, S. (2018). Vom Widerspruch, zugleich gerade und ungerade zu sein. <i>Mathematik lehren</i>, 208, 16-20
+    </footer>
+  </div>
+
+  <script>
+    const krimi = [
+      "Wir nehmen mal an, der Verdächtige ist der Täter.",
+      "Dann hätte er in der Zeit zwischen 1 und 2 Uhr nachts am Tatort in Frankfurt sein müssen.",
+      "Der Routenplaner liefert uns die Information, dass man für die Strecke zwischen München & Frankfurt auch ohne Verkehr knapp 4 Stunden benötigt.",
+      "Also hätte der Verdächtige spätestens um 22 Uhr in München losfahren müssen und wäre um ca. 23.00 Uhr in Ingolstadt gewesen.",
+      "Nun gibt es aber glaubhafte Belege dafür, dass er erst um 23.00 Uhr die Spätschicht in München beendet hat.",
+      "Dann müssen wir also zu dem Schluss kommen, dass der Verdächtige in der fraglichen Nacht an zwei Orten gleichzeitig hätte sein müssen, wenn unsere Annahme zuträfe ...",
+      "Damit ist unsere Annahme zu einem (sofort einsichtigen) Widerspruch geführt und ihr Gegenteil (der Verdächtige war nicht der Täter) belegt. Wir müssen also einen anderen Täter suchen."
+    ];
+
+    const irr = [
+      "Wir nehmen einmal an, √2 ist rational.",
+      "Dann müsste man die Zahl als vollständig gekürzten Bruch darstellen können (√2 = m/n) mit natürlichen Zahlen m und n. Quadrieren dieser Darstellung ergäbe 2·n² = m², was zeigt, dass m² eine gerade Zahl sein muss.",
+      "Eine Quadratzahl ist genau dann gerade, wenn ihre Wurzel ebenfalls gerade ist.",
+      "Also ist m eine gerade Zahl und damit muss n ungerade sein, da sonst m/n kürzbar wäre.",
+      "Wenn m gerade ist, ist die Hälfte von m wieder eine natürliche Zahl, zum Beispiel p, d.h. m = 2·p. Also gilt 2·n² = (2·p)² und damit n² = 2·2·p². Das bedeutet, dass n² und damit n gerade ist.",
+      "Wenn die Annahme zuträfe, wäre die natürliche Zahl n ungerade und gerade zugleich.",
+      "Dies ist ein offensichtlicher Widerspruch und damit ist die Annahme falsch. √2 ist also nicht rational und damit irrational."
+    ];
+
+    const list = document.getElementById("sortable");
+    const shuffleBtn = document.getElementById("shuffleBtn");
+    const checkBtn = document.getElementById("checkBtn");
+    const radios = document.querySelectorAll("input[name='modus']");
+    let currentMode = "krimi";
+
+    function createList(shuffle = true) {
+      list.innerHTML = "";
+      let source =
+        currentMode === "krimi"
+          ? krimi
+          : currentMode === "irr"
+          ? irr
+          : krimi.map((_, i) => [krimi[i], irr[i]]);
+
+      let indices = Array.from({ length: 7 }, (_, i) => i);
+      if (shuffle) indices.sort(() => Math.random() - 0.5);
+
+      indices.forEach((i) => {
+        const li = document.createElement("li");
+        li.draggable = true;
+        li.style.backgroundColor = "#d7eaff";
+        li.setAttribute("data-index", i);
+
+        if (currentMode === "beides") {
+          const div = document.createElement("div");
+          div.className = "dual";
+          div.innerHTML = `<div>${krimi[i]}</div><div>${irr[i]}</div>`;
+          li.appendChild(div);
+        } else if (currentMode === "krimi") {
+          li.textContent = krimi[i];
+        } else {
+          li.textContent = irr[i];
+        }
+
+        list.appendChild(li);
+      });
+
+      enableDrag();
+    }
+
+    function enableDrag() {
+      let dragged;
+      list.querySelectorAll("li").forEach((li) => {
+        li.addEventListener("dragstart", () => {
+          dragged = li;
+          li.style.opacity = 0.5;
+        });
+        li.addEventListener("dragend", () => (dragged.style.opacity = 1));
+        li.addEventListener("dragover", (e) => e.preventDefault());
+        li.addEventListener("drop", (e) => {
+          e.preventDefault();
+          if (dragged !== li) {
+            const nodes = [...list.children];
+            const draggedIndex = nodes.indexOf(dragged);
+            const droppedIndex = nodes.indexOf(li);
+            if (draggedIndex < droppedIndex) li.after(dragged);
+            else li.before(dragged);
+          }
+        });
+      });
+    }
+
+    function updateDisplayMode() {
+      const order = [...list.children].map(li => parseInt(li.getAttribute("data-index")));
+      list.innerHTML = "";
+
+      order.forEach((index) => {
+        const li = document.createElement("li");
+        li.draggable = true;
+        li.style.backgroundColor = "#d7eaff";
+        li.setAttribute("data-index", index);
+
+        if (currentMode === "beides") {
+          const div = document.createElement("div");
+          div.className = "dual";
+          div.innerHTML = `<div>${krimi[index]}</div><div>${irr[index]}</div>`;
+          li.appendChild(div);
+        } else if (currentMode === "krimi") {
+          li.textContent = krimi[index];
+        } else {
+          li.textContent = irr[index];
+        }
+
+        list.appendChild(li);
+      });
+
+      enableDrag();
+    }
+
+    function checkOrder() {
+      const nodes = [...list.children];
+      nodes.forEach((li, i) => {
+        const index = parseInt(li.getAttribute("data-index"));
+        if (index === i) {
+          li.classList.add("gruen");
+          li.classList.remove("rot");
+        } else {
+          li.classList.add("rot");
+          li.classList.remove("gruen");
+        }
+      });
+    }
+
+    shuffleBtn.addEventListener("click", () => createList(true));
+    checkBtn.addEventListener("click", checkOrder);
+
+    radios.forEach((r) =>
+      r.addEventListener("change", () => {
+        currentMode = r.value;
+        updateDisplayMode(); // behält Reihenfolge bei
+      })
+    );
+
+    createList(true);
+  </script>
+</body>
+</html>

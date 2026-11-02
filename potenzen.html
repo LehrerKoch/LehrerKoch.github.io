@@ -3,28 +3,31 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="shortcut icon" type="image/x-icon" href="aleph_zero_logo.ico">
+  <script>try{var t=localStorage.getItem('matheToolsTheme');if(t==='dark'||(!t&&window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.classList.add('dark');}catch(e){}</script>
   <script>
     window.MathJax = { tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] } };
   </script>
   <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-  <title>Potenzen Übungsaufgaben</title>
+  <title data-de="Potenzen" data-en="Powers">Potenzen</title>
+  <script src="theme-language.js" defer></script>
   <link rel="stylesheet" type="text/css" href="styles.css">
+  <link rel="stylesheet" type="text/css" href="aufgaben.css">
+  <script src="aufgaben.js" defer></script>
   <style>
-    body { 
-      font-family: sans-serif; 
-      -webkit-user-select: none; 
-      user-select: none; 
-      overflow-x: hidden; 
-      max-width: 1200px; margin: 0 auto;
-    }
+    /* Die Aufgabenform steht mittig über der Aufgabe. */
+    #topControls .tc-mitte{ align-items:center; }
+    #topControls .tc-mitte .tc-label{ text-align:center; width:100%; }
+    body { font-family: Calibri, sans-serif; -webkit-user-select: none; user-select: none; }
     h1 { margin-bottom: 10px; }
     *:focus { outline: none; }
-    #showSolutionBtn { width:100%; margin-top: 15px; padding: 10px; cursor: pointer; border: 2px solid #1f6b24; border-radius: 8px; font-size: 1em; transition: border-color 0.15s, filter 0.15s; }
-    #showSolutionBtn:hover { filter: brightness(0.93); border-color: #0e4511; }
+    #showSolutionBtn:hover { filter: brightness(0.93); }
     
 
+    /* Das Blinken liegt ueber der Seite, damit auch die Auswahlbereiche
+       und die Karte mitgetoent werden - nicht nur der Hintergrund. */
     #flashOverlay {
-      position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      position: fixed; inset: 0; pointer-events: none; z-index: 900;
       opacity: 0; transition: opacity 1s;
     }
     #toast {
@@ -55,6 +58,10 @@
       z-index: 2; box-sizing: border-box;
       transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
       transform-style: preserve-3d;
+      /* Wischen klappt so auch mit Stift (Promethean): waagerechtes Ziehen wird
+         nicht vom Browser zum Schieben/Scrollen abgefangen, senkrecht scrollt
+         die Seite weiter, Zwei-Finger-Zoom bleibt erhalten. */
+      touch-action: pan-y pinch-zoom;
     }
     #taskCard.flipped { transform: translate(-50%, -50%) rotateY(180deg); }
 
@@ -97,8 +104,7 @@
       pointer-events: none;
     }
 
-    #showSolutionBtn { width: 100%; margin-top: 15px; padding: 10px; cursor: pointer; }
-    body.eingabe-modus #showSolutionBtn { margin-top: 32px; }
+    body.eingabe-modus #showSolutionBtn { margin-top: 24px; }
 
     /* Settings — radio group identical to quadratzahlen.html */
     .radio-group { display: inline-flex; border-radius: 6px; overflow: hidden; border: 2px solid #4CAF50; margin: 6px 0 12px 0; }
@@ -158,7 +164,8 @@
     }
     #inputArea.active { display: flex; }
     #answerInput {
-      width: min(320px, 90vw); padding: 8px 12px; font-size: 1.1em;
+      /* darf schrumpfen, damit „Pruefen" daneben Platz hat */
+      width: 100%; min-width: 0; padding: 8px 12px; font-size: 1.05em;
       border: 2px solid #ccc; border-radius: 8px; text-align: center;
       outline: none; transition: border-color 0.2s, background 0.2s;
     }
@@ -167,12 +174,12 @@
     #answerInput.wrong   { border-color: #dc3545; background: #f8d7da; color: #721c24; }
     #answerInput.reveal  { border-color: #e0a800; background: #fff3cd; color: #7a5800; }
     #checkBtn {
-      padding: 9px 24px; font-size: 1em; border-radius: 8px;
-      border: 2px solid #4CAF50; background: #e8f5e9; color: #1b5e20;
-      cursor: pointer; font-weight: bold; transition: background 0.15s, border-color 0.15s;
-      letter-spacing: 0.02em;
+      padding: 9px 16px; font-size: .95em; border-radius: 8px;
+      border: none; background: #4a9a4a; color: #fff;
+      cursor: pointer; font-weight: bold; transition: filter 0.15s;
+      letter-spacing: 0.02em; white-space: nowrap;
     }
-    #checkBtn:hover { background: #c8e6c9; border-color: #388e3c; }
+    #checkBtn:hover { filter: brightness(.92); }
     #answerHint {
       font-size: 0.82em; color: #7a5800; background: #fff3cd;
       border: 1px solid #e0a800; border-radius: 6px;
@@ -207,100 +214,159 @@
       60%      { box-shadow: 0 0 0 3px #e65100, 0 0 12px 3px rgba(230,81,0,0.4); }
     }
     details.settings-glow { animation: settingsGlow 1.8s ease 2; border-radius: 4px; }
+
+    /* ══════════════════════════════════════════════════════════════
+       Dunkelmodus – nur Zusaetze, der Hellmodus oben bleibt unveraendert.
+       ══════════════════════════════════════════════════════════════ */
+    html.dark #taskWrap { border-color: #3a434b; }
+    html.dark #taskCard .card-face { background: #1b2126; border-color: #4a545e; }
+    html.dark .card-back { background-color: #232a32; }
+    html.dark .card-sub { color: #9aa5b1; }
+    html.dark #wrongBtn  { background-color: #3b1f22; color: #f3b5ba; }
+    html.dark #correctBtn{ background-color: #1e3b26; color: #b8e6c4; }
+    html.dark #loesungHinweis { color: #9aa5b1 !important; }
+
+    html.dark .radio-group { border-color: #4caf50; }
+    html.dark .radio-group label { background: #232a32; color: #dfe4e8; border-right-color: #4caf50; }
+    html.dark .radio-group label:hover { background: #2c3a2e; }
+    html.dark .radio-group label:has(input:checked) { background: #4caf50; color: #fff; }
+
+    html.dark .section-toggle-btn { background: #2a3138; border-color: #5a646d; color: #dfe4e8; }
+    html.dark .section-toggle-btn:hover { background: #333c44; }
+
+    html.dark #answerInput { background: #1e2429; color: #e7eae8; border-color: #4a545e; }
+    html.dark #answerInput::placeholder { color: #7c8792; }
+    html.dark #answerInput.correct { border-color: #4caf50; background: #1e3b26; color: #b8e6c4; }
+    html.dark #answerInput.wrong   { border-color: #a04a52; background: #3b1f22; color: #f3b5ba; }
+    html.dark #answerInput.reveal  { border-color: #a8862a; background: #3a3320; color: #f0dca0; }
+    html.dark #answerHint { background: #3a3320; color: #f0dca0; }
+    html.dark #nextTaskBtn { background: #23372a !important; color: #b6e3bd !important; }
+    html.dark #nextTaskBtn:hover { background: #2c4633 !important; }
+    html.dark #toast { background: #2e3840; color: #e7eae8; }
   </style>
+<script src="einwilligung.js" defer></script>
 </head>
-<body>
+<body class="tk-seite">
   <div id="flashOverlay"></div>
   <div id="toast"></div>
   <div id="toastTop"></div>
   <div style="position:relative; z-index:1;">
 
-  <h1>Potenzen Übungsaufgaben</h1>
+  <header class="tool-kopf">
+    <div class="tk-text">
+      <h1 data-de="Potenzen" data-en="Powers">Potenzen</h1>
+      <p class="tk-unter" data-de="Übe Quadratzahlen, andere Potenzen und Wurzeln" data-en="Practise square numbers, other powers and roots">Übe Quadratzahlen, andere Potenzen und Wurzeln</p>
+    </div>
+  </header>
 
-  <details>
-    <summary>Settings</summary>
-    <form id="settingsForm">
+  <details class="einst" id="settingsDetails">
+    <summary data-de="Einstellungen" data-en="Settings">Einstellungen</summary>
+    <form id="settingsForm" class="settings-grid">
       <div class="form-block">
-        <b>Zahlenbereiche:</b><br>
-        <button type="button" onclick="toggleGroup('sq1_10')">Quadratzahlen 1–10</button><br>
+        <b data-de="Zahlenbereiche:" data-en="Number ranges:">Zahlenbereiche:</b><br>
+        <button type="button" onclick="toggleGroup('sq1_10')" data-de="Quadratzahlen 1–10" data-en="Square numbers 1–10">Quadratzahlen 1–10</button><br>
         <div id="sq1_10" class="cb-grid"></div>
-        <button type="button" onclick="toggleGroup('sq11_20')">Quadratzahlen 11–20</button><br>
+        <button type="button" onclick="toggleGroup('sq11_20')" data-de="Quadratzahlen 11–20" data-en="Square numbers 11–20">Quadratzahlen 11–20</button><br>
         <div id="sq11_20" class="cb-grid"></div>
-        <button type="button" onclick="toggleGroup('sq21_25')">Quadratzahlen 21–25</button><br>
+        <button type="button" onclick="toggleGroup('sq21_25')" data-de="Quadratzahlen 21–25" data-en="Square numbers 21–25">Quadratzahlen 21–25</button><br>
         <div id="sq21_25" class="cb-grid"></div>
-        <button type="button" onclick="toggleGroup('pow2')">Zweierpotenzen (2&#x2070;&#x2013;2&#x00B9;&#x2070;)</button><br>
+        <button type="button" onclick="toggleGroup('pow2')" data-de="Zweierpotenzen (2&#x2070;&#x2013;2&#x00B9;&#x2070;)" data-en="Powers of two (2&#x2070;&#x2013;2&#x00B9;&#x2070;)">Zweierpotenzen (2&#x2070;&#x2013;2&#x00B9;&#x2070;)</button><br>
         <div id="pow2" class="cb-grid"></div>
-        <button type="button" onclick="toggleGroup('powExtra')">Weitere wichtige Potenzen</button><br>
+        <button type="button" onclick="toggleGroup('powExtra')" data-de="Wichtige Potenzen" data-en="Important powers">Wichtige Potenzen</button><br>
         <div id="powExtra" class="cb-grid"></div>
-        <button type="button" onclick="toggleGroup('custom')">Eigene Potenzen</button><br>
+        <button type="button" onclick="toggleGroup('custom')" data-de="Eigene Potenzen" data-en="Your own powers">Eigene Potenzen</button><br>
         <div id="custom" class="cb-grid"></div>
-        <div style="display:flex;gap:4px;align-items:center;margin:2px 0 8px 0;font-size:0.82em;">
-          <span>Basis:</span>
+        <div id="eigeneZeile" style="display:flex;gap:4px;align-items:center;margin:2px 0 8px 0;font-size:0.82em;flex-wrap:wrap;">
+          <span data-de="Basis:" data-en="Base:">Basis:</span>
           <input type="number" id="customBase" min="1" max="9999" style="width:50px;padding:2px 4px;font-size:1em;" placeholder="3">
-          <span>Exponent:</span>
+          <span data-de="Exponent:" data-en="Exponent:">Exponent:</span>
           <input type="number" id="customExp" min="-20" max="20" style="width:40px;padding:2px 4px;font-size:1em;" placeholder="6">
           <button type="button" id="addCustomBtn" style="padding:2px 8px;">+</button>
         </div>
       </div>
 
       <div class="form-block">
-        <b>Optionen:</b><button type="button" class="section-toggle-btn" onclick="toggleSection(['multifactor','fractional','fractions','fracPow'])">alle</button><br>
-        <label style="font-size:0.82em;cursor:pointer;display:inline-block;margin:1px 0"><input type="checkbox" id="multifactor"> Auch 10-, 100-, 1000-fach
-          <span style="font-family:monospace">z.B. 300<sup>2</sup></span></label><br>
-        <label style="font-size:0.82em;cursor:pointer;display:inline-block;margin:1px 0"><input type="checkbox" id="fractional"> Auch Zehntel, Hundertstel, Tausendstel
-          <span style="font-family:monospace">z.B. 0,03<sup>2</sup></span></label><br>
-        <label style="font-size:0.82em;cursor:pointer;display:inline-block;margin:1px 0"><input type="checkbox" id="fractions"> Auch Br&uuml;che
-          <span style="font-family:monospace">z.B. (3/5)<sup>2</sup></span></label><br>
-        <label style="font-size:0.82em;cursor:pointer;display:inline-block;margin:1px 0"><input type="checkbox" id="fracPow"> Auch Br&uuml;che von Potenzen
-          <span style="font-family:monospace">z.B. 66<sup>2</sup>/42<sup>2</sup></span></label><br>
+        <b data-de="Besondere Zahlen" data-en="Special numbers">Besondere Zahlen</b>
+        <span class="d" data-de="Dieselbe Auswahl steht als Kachel über der Aufgabe." data-en="The same selection is also a tile above the task.">Dieselbe Auswahl steht als Kachel über der Aufgabe.</span>
+        <label class="opt"><input type="checkbox" id="multifactor" data-kurz="10-, 100-fach" data-kurz-en="10×, 100×"><span><span data-de="Auch 10-, 100-, 1000-fach" data-en="Also 10×, 100×, 1000×">Auch 10-, 100-, 1000-fach</span><span class="d" style="font-family:monospace">z.B. 300<sup>2</sup></span></span></label>
+        <label class="opt"><input type="checkbox" id="fractional" data-kurz="Zehntel" data-kurz-en="tenths"><span><span data-de="Auch Zehntel, Hundertstel, Tausendstel" data-en="Also tenths, hundredths, thousandths">Auch Zehntel, Hundertstel, Tausendstel</span><span class="d" style="font-family:monospace">z.B. 0,03<sup>2</sup></span></span></label>
+        <label class="opt"><input type="checkbox" id="fractions" data-kurz="Brüche" data-kurz-en="fractions"><span><span data-de="Auch Br&uuml;che" data-en="Also fractions">Auch Br&uuml;che</span><span class="d" style="font-family:monospace">z.B. (3/5)<sup>2</sup></span></span></label>
+        <label class="opt"><input type="checkbox" id="fracPow" data-kurz="Brüche von Potenzen" data-kurz-en="fractions of powers"><span><span data-de="Auch Br&uuml;che von Potenzen" data-en="Also fractions of powers">Auch Br&uuml;che von Potenzen</span><span class="d" style="font-family:monospace">z.B. 66<sup>2</sup>/42<sup>2</sup></span></span></label>
       </div>
 
       <div class="form-block">
-        <b>Vorzeichen der Basis:</b><button type="button" class="section-toggle-btn" onclick="toggleSection(['negBase','negBaseNoParens'])">alle</button><br>
-        <label style="font-size:0.82em;cursor:pointer;display:inline-block;margin:1px 0"><input type="checkbox" id="negBase"> Auch negative Basen
-          <span style="font-family:monospace">z.B. (-3)<sup>4</sup></span></label><br>
-        <label style="font-size:0.82em;cursor:pointer;display:inline-block;margin:1px 0"><input type="checkbox" id="negBaseNoParens"> Auch negative Potenzen (ohne Klammer)
-          <span style="font-family:monospace">z.B. &minus;3<sup>4</sup></span></label><br>
+        <b data-de="Vorzeichen der Basis" data-en="Sign of the base">Vorzeichen der Basis</b>
+        <span class="d" data-de="Dieselbe Auswahl steht als Kachel über der Aufgabe." data-en="The same selection is also a tile above the task.">Dieselbe Auswahl steht als Kachel über der Aufgabe.</span>
+        <label class="opt"><input type="checkbox" id="negBase" data-kurz="negative Basen" data-kurz-en="negative bases"><span><span data-de="Auch negative Basen" data-en="Also negative bases">Auch negative Basen</span><span class="d" style="font-family:monospace">z.B. (-3)<sup>4</sup></span></span></label>
+        <label class="opt"><input type="checkbox" id="negBaseNoParens" data-kurz="ohne Klammer" data-kurz-en="without brackets"><span><span data-de="Auch negative Potenzen (ohne Klammer)" data-en="Also negative powers (without brackets)">Auch negative Potenzen (ohne Klammer)</span><span class="d" style="font-family:monospace">z.B. &minus;3<sup>4</sup></span></span></label>
       </div>
 
       <div class="form-block">
-        <b>Besondere Exponenten:</b><button type="button" class="section-toggle-btn" onclick="toggleSection(['negExp','expZero','expOne'])">alle</button><br>
-        <label style="font-size:0.82em;cursor:pointer;display:inline-block;margin:1px 0"><input type="checkbox" id="negExp"> Auch negative Exponenten
-          <span style="font-family:monospace">z.B. 3<sup>&minus;4</sup></span></label><br>
-        <label style="font-size:0.82em;cursor:pointer;display:inline-block;margin:1px 0"><input type="checkbox" id="expZero"> Auch Exponent 0
-          <span style="font-family:monospace">z.B. 3<sup>0</sup> = 1</span></label><br>
-        <label style="font-size:0.82em;cursor:pointer;display:inline-block;margin:1px 0"><input type="checkbox" id="expOne"> Auch Exponent 1
-          <span style="font-family:monospace">z.B. 3<sup>1</sup> = 3</span></label><br>
+        <b data-de="Besondere Exponenten" data-en="Special exponents">Besondere Exponenten</b>
+        <span class="d" data-de="Dieselbe Auswahl steht als Kachel über der Aufgabe." data-en="The same selection is also a tile above the task.">Dieselbe Auswahl steht als Kachel über der Aufgabe.</span>
+        <label class="opt"><input type="checkbox" id="negExp" data-kurz="negative Exponenten" data-kurz-en="negative exponents"><span><span data-de="Auch negative Exponenten" data-en="Also negative exponents">Auch negative Exponenten</span><span class="d" style="font-family:monospace">z.B. 3<sup>&minus;4</sup></span></span></label>
+        <label class="opt"><input type="checkbox" id="expZero" data-kurz="Exponent 0" data-kurz-en="exponent 0"><span><span data-de="Auch Exponent 0" data-en="Also exponent 0">Auch Exponent 0</span><span class="d" style="font-family:monospace">z.B. 3<sup>0</sup> = 1</span></span></label>
+        <label class="opt"><input type="checkbox" id="expOne" data-kurz="Exponent 1" data-kurz-en="exponent 1"><span><span data-de="Auch Exponent 1" data-en="Also exponent 1">Auch Exponent 1</span><span class="d" style="font-family:monospace">z.B. 3<sup>1</sup> = 3</span></span></label>
       </div>
 
       <div class="form-block">
-        <b>Aufgabentyp:</b><br>
-        <div class="radio-group">
-          <label><input type="radio" name="wurzelmode" value="none" checked> Keine Wurzelaufgaben</label>
-          <label><input type="radio" name="wurzelmode" value="both"> Auch Wurzelaufgaben</label>
-          <label><input type="radio" name="wurzelmode" value="only"> Nur Wurzelaufgaben</label>
-        </div>
+        <b data-de="Aufgabenform" data-en="Task form">Aufgabenform</b>
+        <span class="d" data-de="Derselbe Schalter steht auch über der Aufgabe." data-en="The same switch is also shown above the task.">Derselbe Schalter steht auch über der Aufgabe.</span>
+        <label class="opt"><input type="radio" name="wurzelmode" value="none" checked><span data-de="Keine Wurzelaufgaben" data-en="No root tasks">Keine Wurzelaufgaben</span></label>
+        <label class="opt"><input type="radio" name="wurzelmode" value="both"><span data-de="Auch Wurzelaufgaben" data-en="Also root tasks">Auch Wurzelaufgaben</span></label>
+        <label class="opt"><input type="radio" name="wurzelmode" value="only"><span data-de="Nur Wurzelaufgaben" data-en="Only root tasks">Nur Wurzelaufgaben</span></label>
       </div>
       <div class="form-block">
-        <b>Animationen:</b><br>
-        <label style="font-size:0.82em;cursor:pointer;display:inline-block;margin:1px 0"><input type="checkbox" id="skipAnimations"> Keine Animationen</label><br>
-        <label style="font-size:0.82em;cursor:pointer;display:inline-block;margin:1px 0"><input type="checkbox" id="showHints" checked> Lösungshinweise bei falschen Ergebnissen</label>
+        <b data-de="Anzeige" data-en="Display">Anzeige</b>
+        <label class="opt"><input type="checkbox" id="skipAnimations"><span data-de="Keine Animationen" data-en="No animations">Keine Animationen</span></label>
+        <label class="opt"><input type="checkbox" id="showHints" checked><span data-de="Lösungshinweise bei falschen Ergebnissen" data-en="Hints when the answer is wrong">Lösungshinweise bei falschen Ergebnissen</span></label>
       </div>
     </form>
+<div class="settings-foot">
+  <button class="btn-secondary" id="btnShare" type="button" data-de="🔗 Link mit allen Einstellungen kopieren" data-en="🔗 Copy link with all settings">🔗 Link mit allen Einstellungen kopieren</button>
+</div>
   </details>
 
-  <div style="margin-top:16px;text-align:center;">
-    <div class="radio-group" style="display:inline-flex;">
-      <label><input type="radio" name="spielmodus" value="flashcard" checked> Flash-Cards</label>
-      <label><input type="radio" name="spielmodus" value="eingabe"> L&ouml;sungen eingeben</label>
+  <!-- ═══ Schalter über der Aufgabe ═════════════════════════ -->
+  <div id="topControls" class="eng knapp">
+    <div class="tc-item">
+      <details class="auswahl" id="zahlenBox" open>
+        <summary><span data-de="Welche Potenzen üben?" data-en="Which powers to practise?">Welche Potenzen üben?</span><span class="ausw-zahl" id="zahlenZahl"></span></summary>
+        <button type="button" class="btn-secondary ausw-alle" id="zahlenAlle"></button>
+        <div class="tiles eng drei" id="segZahlen"></div>
+      </details>
+    </div>
+    <div class="tc-item">
+      <details class="auswahl" id="artenBox" open>
+        <summary><span data-de="Besondere Aufgabenarten" data-en="Special kinds of task">Besondere Aufgabenarten</span><span class="ausw-zahl" id="artenZahl"></span></summary>
+        <button type="button" class="btn-secondary ausw-alle" id="artenAlle"></button>
+        <div class="tiles vier eng" id="segArten"></div>
+      </details>
+    </div>
+    <div class="tc-row">
+      <div class="tc-item tc-mitte">
+        <span class="tc-label" data-de="Aufgabenform" data-en="Task form">Aufgabenform</span>
+        <div class="seg" id="segWurzel">
+          <label><input type="radio" name="wurzelmodeTop" value="none" checked><span data-de="Potenzen" data-en="Powers">Potenzen</span></label>
+          <label><input type="radio" name="wurzelmodeTop" value="both"><span data-de="Zufällig" data-en="Random">Zufällig</span></label>
+          <label><input type="radio" name="wurzelmodeTop" value="only"><span data-de="Wurzeln" data-en="Roots">Wurzeln</span></label>
+        </div>
+      </div>
     </div>
   </div>
 
-  <p id="taskLabel" style="text-align:center; margin-top:12px; font-weight:bold;">W&auml;hle Zahlen und starte&hellip;</p>
-  <p id="counter"   style="text-align:center; font-weight:bold;">Richtig: 0 / 0</p>
+  <div id="genRow">
+    <button id="genBtn" type="button" data-de="&#x27F3;&nbsp;Neue Aufgabe generieren" data-en="&#x27F3;&nbsp;Generate a new task">&#x27F3;&nbsp;Neue Aufgabe generieren</button>
+    <span class="punkte rechts"><button id="btnPunkteReset" type="button" title="Punktzahl zurücksetzen" data-de-title="Punktzahl zurücksetzen" data-en-title="Reset the score">↺</button><span id="counter">Richtig: 0 / 0</span><button id="btnPunkteUndo" type="button" disabled title="Rückgängig" data-de-title="Rückgängig" data-en-title="Undo">↶</button></span>
+  </div>
+
+  <div class="task" id="taskBox">
+  <div class="task-head">
+    <h2 id="taskLabel" data-de="Aufgabe" data-en="Task">Aufgabe</h2>
+  </div>
 
   <div id="taskWrap">
-    <button id="wrongBtn">Noch unsicher</button>
+    <button id="wrongBtn" data-de="Noch unsicher" data-en="Not sure yet">Noch unsicher</button>
     <div id="taskCard">
       <div class="card-face" id="faceFront">
         <div class="scale-wrapper"><div id="taskText" class="scale-el"></div></div>
@@ -313,21 +379,43 @@
         <div id="loesungHinweis" style="font-size:0.72em;color:#666;padding:0 8px 8px;text-align:center;flex-shrink:0;"></div>
       </div>
     </div>
-    <button id="correctBtn">Kann ich sicher</button>
+    <button id="correctBtn" data-de="Kann ich sicher" data-en="I know this">Kann ich sicher</button>
+  </div>
+
+  <div class="antwort-zeile">
+    <span class="az-name" data-de="Antwort:" data-en="Answer:">Antwort:</span>
+    <div class="seg klein" id="segSpiel">
+      <label><input type="radio" name="spielmodus" value="flashcard" checked><span data-de="Flash-Cards" data-en="Flash cards">Flash-Cards</span></label>
+      <label><input type="radio" name="spielmodus" value="eingabe"><span data-de="L&ouml;sungen eingeben" data-en="Type the answers">L&ouml;sungen eingeben</span></label>
+    </div>
   </div>
 
   <div id="inputArea">
-    <input type="text" id="answerInput" inputmode="decimal" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Zahl oder Bruch (z.B. 3/5)">
+    <div class="pruef-zeile">
+      <input type="text" id="answerInput" inputmode="decimal" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Zahl oder Bruch (z.B. 3/5)" data-de-placeholder="Zahl oder Bruch (z.B. 3/5)" data-en-placeholder="number or fraction (e.g. 3/5)">
+      <button id="checkBtn" class="pruef-knopf" data-de="Prüfen" data-en="Check">Prüfen</button>
+    </div>
     <div id="answerHint"></div>
-    <button id="checkBtn">L&ouml;sung &uuml;berpr&uuml;fen</button>
   </div>
 
-  <button id="showSolutionBtn" class="btn">L&ouml;sung anzeigen</button>
-  <button id="nextTaskBtn" style="display:none; width:100%; margin-top:8px; padding:10px; cursor:pointer; border:2px solid #388e3c; border-radius:8px; font-size:1em; background:#e8f5e9; color:#1b5e20; font-weight:bold; transition:background 0.15s, border-color 0.15s;" onclick="document.getElementById('nextTaskBtn').style.display='none'; _suppressFocus=false; generateTask();">Neue Aufgabe &#8594;</button>
+  <button id="showSolutionBtn" class="btn-loesung" data-de="Lösung anzeigen" data-en="Show answer">Lösung anzeigen</button>
+  <button id="nextTaskBtn" class="btn-weiter" style="display:none;" onclick="document.getElementById('nextTaskBtn').style.display='none'; _suppressFocus=false; generateTask();" data-de="Neue Aufgabe &#8594;" data-en="New task &#8594;">Neue Aufgabe &#8594;</button>
+  </div>
 
   </div>
 
 <script>
+// ================================================================
+// SPRACHE / THEME (theme-language.js; ohne die Datei bleibt alles deutsch)
+// ================================================================
+function T(de, en) { return (typeof tlText === 'function') ? tlText(de, en) : de; }
+function DUNKEL() {
+  if (typeof tlDunkel === 'function') return tlDunkel();
+  return document.documentElement.classList.contains('dark');
+}
+/* Kartenfarbe - wird auch direkt im style-Attribut gesetzt */
+function KARTENFARBE() { return DUNKEL() ? '#1b2126' : 'white'; }
+
 /* ── MathJax / Scaling ───────────────────────────── */
 // Debounced MathJax: batches requests in one rAF, targets specific elements, clears cache first
 let _mjPending = false, _mjElements = new Set();
@@ -356,22 +444,36 @@ function scheduleScale() {
 
 function scaleToFit(el) {
   if (!el) return;
-  el.style.transform = 'none';
   const wrapper = el.parentElement;
   if (!wrapper) return;
-  requestAnimationFrame(() => {
-    const available = wrapper.clientWidth
-      - parseFloat(getComputedStyle(wrapper).paddingLeft)
-      - parseFloat(getComputedStyle(wrapper).paddingRight);
-    const natural = el.scrollWidth;
-    if (natural > available && available > 0) {
-      const scale = available / natural;
-      el.style.transform = `scale(${scale})`;
-      wrapper.style.height = (el.scrollHeight * scale) + 'px';
-    } else {
-      wrapper.style.height = '';
+  el.style.transformOrigin = 'top left';
+  el.style.transform = 'none';
+  wrapper.style.height = 'auto';
+  // Zweimal warten: MathJax setzt die Formel erst nach und nach zusammen,
+  // sonst wird zu frueh gemessen und die fertige Formel laeuft ueber den Rand.
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    const ws = getComputedStyle(wrapper);
+    const avail = wrapper.clientWidth - parseFloat(ws.paddingLeft || 0) - parseFloat(ws.paddingRight || 0);
+    const nat = el.scrollWidth;
+    el._skalaBreite = nat;
+    if (nat > avail && avail > 0) {
+      const sc = avail / nat;
+      el.style.transform = `scale(${sc})`;
+      wrapper.style.height = (el.scrollHeight * sc
+        + parseFloat(ws.paddingTop || 0) + parseFloat(ws.paddingBottom || 0)) + 'px';
     }
-  });
+    skalaBeobachte(el);
+  }));
+}
+// Nachmessen, wenn sich der Inhalt spaeter noch aendert (transform aendert die
+// Layoutgroesse nicht, deshalb kann keine Schleife entstehen).
+let _skalaBeobachter = null;
+function skalaBeobachte(el) {
+  if (typeof ResizeObserver !== 'function') return;
+  if (!_skalaBeobachter) _skalaBeobachter = new ResizeObserver(es => es.forEach(e => {
+    if (e.target.scrollWidth !== e.target._skalaBreite) scaleToFit(e.target);
+  }));
+  if (!el._skalaBeobachtet) { el._skalaBeobachtet = true; _skalaBeobachter.observe(el); }
 }
 
 function scaleAllElements() {
@@ -379,6 +481,7 @@ function scaleAllElements() {
 }
 
 window.addEventListener('resize', scaleAllElements);
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => scaleAllElements()).catch(() => {});
 
 /* ── Helpers ─────────────────────────────────────── */
 function roundNumber(x, d = 10) { return Number.parseFloat(x.toFixed(d)); }
@@ -393,29 +496,37 @@ function showToast(msg, duration = 1800) {
 }
 
 function showSettingsHint() {
-  // Top toast with downward arrow pointing toward settings
+  /* Der Hinweis zeigt auf den Auswahlbereich über der Aufgabe - dort werden
+     die Potenzen gewählt. Er sitzt direkt darüber, nicht über dem Kopfband. */
+  const ziel = document.getElementById('zahlenBox') || document.getElementById('settingsDetails');
   const t = document.getElementById('toastTop');
   if (t) {
-    t.textContent = '⚙️ Hier mehr Aufgabentypen aktivieren';
+    t.textContent = T('⚙️ Hier mehr Potenzen auswählen', '⚙️ Choose more powers here');
+    if (ziel) {
+      const r = ziel.getBoundingClientRect();
+      t.style.top = Math.max(8, r.top - 46) + 'px';
+    }
     t.classList.add('show');
     clearTimeout(t._hideTimeout);
     t._hideTimeout = setTimeout(() => t.classList.remove('show'), 5000);
   }
-  // Brief orange glow on the details element
-  const det = document.querySelector('details');
-  if (det) {
-    det.classList.remove('settings-glow');
-    void det.offsetHeight; // restart animation
-    det.classList.add('settings-glow');
-    setTimeout(() => det.classList.remove('settings-glow'), 4000);
+  if (ziel) {
+    ziel.open = true;
+    ziel.classList.remove('settings-glow');
+    void ziel.offsetHeight; // restart animation
+    ziel.classList.add('settings-glow');
+    setTimeout(() => ziel.classList.remove('settings-glow'), 4000);
   }
 }
 
 function flashResult(color) {
   const ov = document.getElementById('flashOverlay');
+  const dunkel = DUNKEL();
+  const richtig = color === '#d4edda';
   ov.style.transition = 'none';
-  ov.style.backgroundColor = color;
-  ov.style.opacity = '1';
+  ov.style.backgroundColor = dunkel ? (richtig ? '#1e4a22' : '#4a2020') : color;
+  /* halbdurchsichtig: die Seite bleibt lesbar und wird trotzdem ganz getoent */
+  ov.style.opacity = '0.62';
   setTimeout(() => { ov.style.transition = 'opacity 1s'; ov.style.opacity = '0'; }, 50);
 }
 
@@ -436,6 +547,11 @@ const GROUPS = {
 // Unique key — includes groupId so the same base^exp in different groups is independent
 function taskKey(t) { return `${t.groupId}_${t.base}_${t.exp}`; }
 
+/* Kurzform einer Potenz für die Kachelmenüs: 3⁴ statt „34". */
+const HOCH = {'-':'\u207b','0':'\u2070','1':'\u00b9','2':'\u00b2','3':'\u00b3','4':'\u2074',
+              '5':'\u2075','6':'\u2076','7':'\u2077','8':'\u2078','9':'\u2079'};
+function hochZahl(n){ return String(n).split('').map(c => HOCH[c] || c).join(''); }
+
 /* ── Custom powers ───────────────────────────────── */
 const CUSTOM_TASKS = {}; // key → {base, exp, groupId:'custom'}
 
@@ -455,7 +571,8 @@ function addCustomPower(base, exp, checked = true) {
   const cb = document.createElement('input');
   cb.type = 'checkbox'; cb.name = 'task'; cb.value = key; cb.id = 'cb_' + key;
   cb.checked = checked;
-  cb.addEventListener('change', () => { updateURLParams(); onSettingsChange(); });
+  cb.dataset.kurz = base + hochZahl(exp);
+  cb.addEventListener('change', () => { updateURLParams(); onSettingsChange(); kachelnMalen(); });
 
   const lbl = document.createElement('label');
   lbl.htmlFor = 'cb_' + key;
@@ -551,6 +668,160 @@ function formatResult(base, exp, mult) {
   return applyTexGrouping(intPart, trimmed, false);
 }
 
+/* ════════════════════════════════════════════════════════════════════
+   Kacheln über der Aufgabe
+   Sie bedienen dieselben Kästchen, die auch im Einstellungsbereich
+   stehen - ohne aufgaben.js bleibt der Platz leer und alles ist dort
+   weiterhin erreichbar.
+   ════════════════════════════════════════════════════════════════════ */
+const ZAHL_GRUPPEN = [
+  { id:'sq1_10',   name:'Quadratzahlen 1\u201310',  nameEn:'Square numbers 1\u201310' },
+  { id:'sq11_20',  name:'Quadratzahlen 11\u201320', nameEn:'Square numbers 11\u201320' },
+  { id:'sq21_25',  name:'Quadratzahlen 21\u201325', nameEn:'Square numbers 21\u201325' },
+  { id:'pow2',     name:'Zweierpotenzen',       nameEn:'Powers of two' },
+  { id:'powExtra', name:'Wichtige Potenzen', nameEn:'Important powers' },
+  { id:'custom',   name:'Eigene Potenzen',      nameEn:'Your own powers' }
+];
+const ART_KACHELN = [
+  { name:'Besondere Exponenten', nameEn:'Special exponents',
+    subs:['negExp','expZero','expOne'] },
+  { name:'Negative Basen', nameEn:'Negative bases',
+    subs:['negBase','negBaseNoParens'] },
+  { name:'Br\u00fcche', nameEn:'Fractions',
+    subs:['fractions','fracPow'] },
+  /* 10-, 100-, 1000-fach und Zehntel, Hundertstel, Tausendstel: beides
+     verschiebt nur das Komma - deshalb „Zehnerstufen". */
+  { name:'Zehnerstufen', nameEn:'Powers of ten',
+    subs:['multifactor','fractional'] }
+];
+const ART_IDS = ART_KACHELN.reduce((a, k) => a.concat(k.subs), []);
+
+function zahlSubs(gid){
+  if (gid === 'custom') return Object.keys(CUSTOM_TASKS).map(k => 'cb_' + k);
+  return GROUPS[gid].map(t => `cb_${gid}_${t.base}_${t.exp}`);
+}
+/* Die Kachel, aus der die laufende Aufgabe stammt, bekommt einen Rahmen.
+   aufgaben.js wird mit defer geladen - kommt die erste Aufgabe vorher, wird
+   die Markierung beim Bau der Kacheln nachgeholt. */
+var _kachelZahl = null, _kachelArt = null;
+/* Welche besonderen Aufgabenarten stecken in dieser Aufgabe? Es können
+   mehrere sein - ein Bruch hoch 1 gehört zu „Brüche" und zu „Besondere
+   Exponenten". */
+function artenDerAufgabe(e){
+  if (!e) return null;
+  const t = e.type || '', l = [];
+  if (t === 'negExp'  || t === 'fracNegExp')  l.push('negExp');
+  if (t === 'exp0'    || t === 'fracExp0')    l.push('expZero');
+  if (t === 'exp1'    || t === 'fracExp1')    l.push('expOne');
+  if (t === 'negBase' || t === 'fracNegBase') l.push('negBase');
+  if (t === 'negNoParens')                    l.push('negBaseNoParens');
+  if (t.indexOf('frac') === 0)                l.push(t === 'fracPow' ? 'fracPow' : 'fractions');
+  if (e.mult && e.mult !== 1)                 l.push(e.mult > 1 ? 'multifactor' : 'fractional');
+  return l.length ? l : null;
+}
+function kachelnAktuellMalen(){
+  if (!window.abKachelAktuell) return;
+  abKachelAktuell(document.getElementById('segZahlen'), _kachelZahl);
+  abKachelAktuell(document.getElementById('segArten'), _kachelArt);
+}
+function zahlKacheln(){
+  return ZAHL_GRUPPEN.map(g => {
+    const subs = zahlSubs(g.id);
+    const k = { name: g.name, nameEn: g.nameEn, subs: subs, kurz: true,
+                titel: 'Einzelne Potenzen:', titelEn: 'Single powers:' };
+    if (g.id === 'custom'){
+      /* Bei eigenen Potenzen sagt „alle" nichts - hier stehen sie einzeln. */
+      k.immerListe = true;
+      /* Das Menü zeigt alle eigenen Potenzen und das Feld zum Anlegen einer
+         neuen - dasselbe Feld, das auch im Einstellungsbereich steht. */
+      k.zusatzId = 'eigeneZeile';
+      k.menue = true;
+      k.titel = 'Eigene Potenzen:';
+      k.titelEn = 'Your own powers:';
+      if (!subs.length){
+        k.hinweis = 'noch keine \u2013 hier anlegen';
+        k.hinweisEn = 'none yet \u2013 add one here';
+      }
+    }
+    return k;
+  });
+}
+function zaehlerMalen(){
+  const z = document.querySelectorAll('input[name=task]:checked').length;
+  const e1 = document.getElementById('zahlenZahl');
+  if (e1) e1.textContent = ' (' + z + T(' Potenzen', ' powers') + ')';
+  /* In der Klammer stehen die Kurzfassungen der eingeschalteten Arten -
+     so sieht man ohne Aufklappen, was gerade dabei ist. */
+  const kurz = ART_IDS.filter(id => { const c = document.getElementById(id); return c && c.checked; })
+    .map(id => {
+      const c = document.getElementById(id);
+      const k = c && c.dataset ? ((document.documentElement.lang === 'en' && c.dataset.kurzEn) || c.dataset.kurz) : '';
+      return k || id;
+    });
+  const e2 = document.getElementById('artenZahl');
+  if (e2) e2.textContent = kurz.length ? ' (' + kurz.join(' · ') + ')' : T(' (keine)', ' (none)');
+  if (typeof alleMalen === 'function') alleMalen();
+}
+function kachelnMalen(){
+  if (window.abKachelnMalen){
+    abKachelnMalen(document.getElementById('segZahlen'));
+    abKachelnMalen(document.getElementById('segArten'));
+  }
+  zaehlerMalen();
+}
+/* Die beiden Knöpfe „alle"/„keine": Solange nicht alles an ist, schalten sie
+   alles ein - erst wenn schon alles an ist, schalten sie alles aus. */
+function alleIds(welche){
+  if (welche === 'arten') return ART_IDS.slice();
+  return Array.prototype.map.call(document.querySelectorAll('input[name=task]'), function(c){ return c.id; });
+}
+function alleMalen(){
+  [['zahlenAlle','zahlen'],['artenAlle','arten']].forEach(function(z){
+    const b = document.getElementById(z[0]);
+    if (!b) return;
+    const ids = alleIds(z[1]);
+    const allesAn = ids.length > 0 && ids.every(function(id){
+      const c = document.getElementById(id); return c && c.checked; });
+    b.textContent = allesAn ? T('keine', 'none') : T('alle', 'all');
+    b.title = allesAn ? T('Alle abwählen', 'Clear all') : T('Alle auswählen', 'Select all');
+  });
+}
+function alleVerdrahten(){
+  [['zahlenAlle','zahlen'],['artenAlle','arten']].forEach(function(z){
+    const b = document.getElementById(z[0]);
+    if (!b) return;
+    b.addEventListener('click', function(ev){
+      ev.preventDefault(); ev.stopPropagation();
+      const ids = alleIds(z[1]);
+      const allesAn = ids.length > 0 && ids.every(function(id){
+        const c = document.getElementById(id); return c && c.checked; });
+      ids.forEach(function(id){ const c = document.getElementById(id); if (c) c.checked = !allesAn; });
+      kachelnMalen(); alleMalen(); updateURLParams(); onSettingsChange();
+    });
+  });
+  alleMalen();
+}
+function kachelnBauen(){
+  if (!window.abKacheln){ zaehlerMalen(); return; }
+  const nachher = () => { updateURLParams(); onSettingsChange(); zaehlerMalen(); };
+  abKacheln(document.getElementById('segZahlen'), zahlKacheln(), nachher);
+  abKacheln(document.getElementById('segArten'), ART_KACHELN, nachher);
+  kachelnAktuellMalen();
+  zaehlerMalen();
+  alleVerdrahten();
+}
+/* Die Aufgabenform steht oben und im Einstellungsbereich. */
+function spiegleWurzel(wert){
+  const a = document.querySelector('input[name="wurzelmode"][value="' + wert + '"]');
+  if (a) a.checked = true;
+  const b = document.querySelector('input[name="wurzelmodeTop"][value="' + wert + '"]');
+  if (b) b.checked = true;
+}
+function linkKopieren(text, knopf){
+  if (window.abKopiere){ abKopiere(text, knopf, T('\u2713 Link kopiert', '\u2713 Link copied')); return; }
+  try { if (navigator.clipboard) navigator.clipboard.writeText(text); } catch (e) {}
+}
+
 /* ── Settings / Checkboxes ───────────────────────── */
 function makeCheckboxes(groupId) {
   const container = document.getElementById(groupId);
@@ -562,7 +833,8 @@ function makeCheckboxes(groupId) {
 
     const cb = document.createElement('input');
     cb.type = 'checkbox'; cb.name = 'task'; cb.value = key; cb.id = 'cb_' + key;
-    cb.addEventListener('change', () => { updateURLParams(); onSettingsChange(); });
+    cb.dataset.kurz = task.base + hochZahl(task.exp);
+    cb.addEventListener('change', () => { updateURLParams(); onSettingsChange(); kachelnMalen(); });
 
     const lbl = document.createElement('label');
     lbl.htmlFor = 'cb_' + key;
@@ -639,7 +911,7 @@ function onSettingsChange() {
   // document.getElementById('taskLabel').textContent = '';
   document.getElementById('taskText').innerHTML = '';
   document.getElementById('loesung').innerHTML = '';
-  faces.forEach(f => f.style.backgroundColor = 'white');
+  faces.forEach(f => f.style.backgroundColor = KARTENFARBE());
   card.removeAttribute('style');
   card.classList.remove('flipped');
   setTimeout(generateTask, 100);
@@ -874,7 +1146,7 @@ function reshuffleAvoid(avoidId) {
 }
 
 function updateCounterDisplay() {
-  document.getElementById('counter').textContent = `Richtig: ${korrekteAntworten} / ${anzahlAufgaben}`;
+  document.getElementById('counter').textContent = T(`Richtig: ${korrekteAntworten} / ${anzahlAufgaben}`, `Correct: ${korrekteAntworten} / ${anzahlAufgaben}`);
 }
 
 /* ── Flip Card references ────────────────────────── */
@@ -886,18 +1158,24 @@ function multHintText(mult, exp) {
   if (!mult || mult === 1) return '';
   const isDecimal = mult < 1;
   const word  = isDecimal ? 'Nachkommastelle' : 'Null';
-  const words = isDecimal ? 'Nachkommastellen' : 'Nullen';
+  const words = isDecimal ? T('Nachkommastellen', 'decimal places') : T('Nullen', 'zeros');
   const perFactor = isDecimal ? Math.round(-Math.log10(mult)) : Math.round(Math.log10(mult));
   const total = perFactor * exp;
   const perStr = perFactor === 1 ? `1 ${word}` : `${perFactor} ${words}`;
-  return `${perStr} in jedem der ${exp} Faktoren\n→ insgesamt ${total} ${words}`;
+  return T(`${perStr} in jedem der ${exp} Faktoren\n→ insgesamt ${total} ${words}`, `${perStr} in each of the ${exp} factors\n→ ${total} ${words} in total`);
 }
-function buildTaskAndSolution(entry) {
+function buildTaskAndSolution(entry, fest) {
   const { type, base, exp, mult, den } = entry;
+  // fest enthaelt die einmal ausgewuerfelten Entscheidungen. Beim Neuzeichnen
+  // (Sprach- oder Themewechsel) werden sie wieder hineingereicht, damit
+  // dieselbe Aufgabe herauskommt.
+  const merke = fest || {};
   const wurzelMode = document.querySelector('input[name="wurzelmode"]:checked').value;
   const canInverse = ['normal','negBase','fraction','fracNegBase'].includes(type);
   // exp >= 2 required: sqrt[0]{...} is undefined, sqrt[1]{x}=x is trivial/misleading
-  const isInverse  = canInverse && exp >= 2 && ((wurzelMode === 'only') || (wurzelMode === 'both' && Math.random() < 0.5));
+  const isInverse  = (merke.isInverse !== undefined) ? merke.isInverse
+    : (canInverse && exp >= 2 && ((wurzelMode === 'only') || (wurzelMode === 'both' && Math.random() < 0.5)));
+  merke.isInverse = isInverse;
 
   let aufgabeTex, loesungTex, hinweisText = '';
   // isInverse is needed by computeAnswerHint — expose it via return value
@@ -907,21 +1185,21 @@ function buildTaskAndSolution(entry) {
     const baseStr = formatBase(base, mult || 1);
     aufgabeTex = `${baseStr}^{0} = \\,?`;
     loesungTex = `${baseStr}^{0} = 1`;
-    hinweisText = 'Jede Zahl hoch 0 ergibt 1.';
+    hinweisText = T('Jede Zahl hoch 0 ergibt 1.', 'Any number to the power 0 is 1.');
 
   } else if (type === 'exp1') {
     // base^1 = base
     const baseStr = formatBase(base, mult || 1);
     aufgabeTex = `${baseStr}^{1} = \\,?`;
     loesungTex = `${baseStr}^{1} = ${baseStr}`;
-    hinweisText = 'Jede Zahl hoch 1 ergibt die Basis selbst.';
+    hinweisText = T('Jede Zahl hoch 1 ergibt die Basis selbst.', 'Any number to the power 1 is the base itself.');
 
   } else if (type === 'negExp') {
     // base^(-exp) = 1/base^exp = 1/result
     const resultDen = applyTexGrouping(bigIntPow(String(base), exp), '', false);
     aufgabeTex = `${base}^{-${exp}} = \\,?`;
     loesungTex = `\\begin{aligned}${base}^{-${exp}} &= \\dfrac{1}{${base}^{${exp}}} \\\\[4pt] &= \\dfrac{1}{${resultDen}}\\end{aligned}`;
-    hinweisText = 'Negativer Exponent heißt Kehrwert bilden!';
+    hinweisText = T('Negativer Exponent heißt Kehrwert bilden!', 'A negative exponent means taking the reciprocal!');
   } else if (type === 'negBase') {
     // (-base*mult)^exp
     const m = mult || 1;
@@ -930,11 +1208,11 @@ function buildTaskAndSolution(entry) {
     if (exp === 0) {
       aufgabeTex = `\\left(-${baseStr}\\right)^{0} = \\,?`;
       loesungTex = `\\left(-${baseStr}\\right)^{0} = 1`;
-      hinweisText = 'Jede Zahl hoch 0 ergibt 1.';
+      hinweisText = T('Jede Zahl hoch 0 ergibt 1.', 'Any number to the power 0 is 1.');
     } else if (exp === 1) {
       aufgabeTex = `\\left(-${baseStr}\\right)^{1} = \\,?`;
       loesungTex = `\\left(-${baseStr}\\right)^{1} = -${baseStr}`;
-      hinweisText = 'Jede Zahl hoch 1 ergibt die Basis selbst.';
+      hinweisText = T('Jede Zahl hoch 1 ergibt die Basis selbst.', 'Any number to the power 1 is the base itself.');
     } else {
       const posResult = formatResult(base, exp, m);
       const resultStr = exp % 2 === 0 ? `+${posResult}` : `-${posResult}`;
@@ -942,7 +1220,7 @@ function buildTaskAndSolution(entry) {
         aufgabeTex = `\\left(-${baseStr}\\right)^{${exp}} = \\,?`;
         loesungTex = `\\left(-${baseStr}\\right)^{${exp}} = ${resultStr}`;
         const mh = multHintText(m, exp);
-        hinweisText = mh ? `Das Minus wird mitpotenziert.\n${mh}` : 'Das Minus wird mitpotenziert.';
+        hinweisText = mh ? T(`Das Minus wird mitpotenziert.\n${mh}`, `The minus sign is raised to the power too.\n${mh}`) : T('Das Minus wird mitpotenziert.', 'The minus sign is raised to the power too.');
       } else {
         const posResult2 = formatResult(base, exp, m);
         aufgabeTex = exp === 2
@@ -962,17 +1240,17 @@ function buildTaskAndSolution(entry) {
       // -base^0 = -(base^0) = -1
       aufgabeTex = `-${baseStr}^{0} = \\,?`;
       loesungTex = `-${baseStr}^{0} = -\\left(${baseStr}^{0}\\right) = -1`;
-      hinweisText = 'Das Minus wird nicht mitpotenziert.';
+      hinweisText = T('Das Minus wird nicht mitpotenziert.', 'The minus sign is not raised to the power.');
     } else if (exp === 1) {
       aufgabeTex = `-${baseStr}^{1} = \\,?`;
       loesungTex = `-${baseStr}^{1} = -${baseStr}`;
-      hinweisText = 'Das Minus wird nicht mitpotenziert.';
+      hinweisText = T('Das Minus wird nicht mitpotenziert.', 'The minus sign is not raised to the power.');
     } else {
       const posResult = formatResult(base, exp, m);
       aufgabeTex  = `-${baseStr}^{${exp}} = \\,?`;
       loesungTex  = `\\begin{aligned}-${baseStr}^{${exp}} &= -\\left(${baseStr}^{${exp}}\\right) \\\\[4pt] &= -${posResult}\\end{aligned}`;
       const mhNP = multHintText(m, exp);
-      hinweisText = mhNP ? `Das Minus wird nicht mitpotenziert.\n${mhNP}` : 'Das Minus wird nicht mitpotenziert.';
+      hinweisText = mhNP ? T(`Das Minus wird nicht mitpotenziert.\n${mhNP}`, `The minus sign is not raised to the power.\n${mhNP}`) : T('Das Minus wird nicht mitpotenziert.', 'The minus sign is not raised to the power.');
     }
 
   } else if (type === 'fracNegExp') {
@@ -983,21 +1261,21 @@ function buildTaskAndSolution(entry) {
     const flippedD = applyTexGrouping(bigIntPow(numStr, exp), '', false);
     aufgabeTex = `\\left(\\dfrac{${numStr}}{${denStr}}\\right)^{-${exp}} = \\,?`;
     loesungTex = `\\begin{aligned}\\left(\\dfrac{${numStr}}{${denStr}}\\right)^{-${exp}} &= \\left(\\dfrac{${denStr}}{${numStr}}\\right)^{${exp}} \\\\[4pt] &= \\dfrac{${flippedN}}{${flippedD}}\\end{aligned}`;
-    hinweisText = 'Negativer Exponent heißt Kehrwert bilden!';
+    hinweisText = T('Negativer Exponent heißt Kehrwert bilden!', 'A negative exponent means taking the reciprocal!');
     
   } else if (type === 'fracExp0') {
     const numStr = String(base);
     const denStr = String(den);
     aufgabeTex = `\\left(\\dfrac{${numStr}}{${denStr}}\\right)^{0} = \\,?`;
     loesungTex = `\\left(\\dfrac{${numStr}}{${denStr}}\\right)^{0} = 1`;
-    hinweisText = 'Jede Zahl hoch 0 ergibt 1.';
+    hinweisText = T('Jede Zahl hoch 0 ergibt 1.', 'Any number to the power 0 is 1.');
 
   } else if (type === 'fracExp1') {
     const numStr = String(base);
     const denStr = String(den);
     aufgabeTex = `\\left(\\dfrac{${numStr}}{${denStr}}\\right)^{1} = \\,?`;
     loesungTex = `\\left(\\dfrac{${numStr}}{${denStr}}\\right)^{1} = \\dfrac{${numStr}}{${denStr}}`;
-    hinweisText = 'Jede Zahl hoch 1 ergibt die Basis selbst.';
+    hinweisText = T('Jede Zahl hoch 1 ergibt die Basis selbst.', 'Any number to the power 1 is the base itself.');
 
   } else if (type === 'fracNegBase') {
     // (-num/den)^exp
@@ -1009,7 +1287,7 @@ function buildTaskAndSolution(entry) {
     if (!isInverse) {
       aufgabeTex = `\\left(-\\dfrac{${numStr}}{${denStr}}\\right)^{${exp}} = \\,?`;
       loesungTex = `\\begin{aligned}\\left(-\\dfrac{${numStr}}{${denStr}}\\right)^{${exp}} &= ${sign}\\dfrac{${numStr}^{${exp}}}{${denStr}^{${exp}}} \\\\[4pt] &= ${sign}\\dfrac{${numPow}}{${denPow}}\\end{aligned}`;
-      hinweisText = 'Das Minus wird mitpotenziert.';
+      hinweisText = T('Das Minus wird mitpotenziert.', 'The minus sign is raised to the power too.');
     } else {
       aufgabeTex = exp === 2
         ? `\\sqrt{\\dfrac{${numPow}}{${denPow}}} = \\,?`
@@ -1040,7 +1318,8 @@ function buildTaskAndSolution(entry) {
   } else if (type === 'fracPow') {
     // (base*k)^exp / (den*k)^exp  →  show as expanded, solution shows reduction
     const validFactors = entry.validFactors || [3];
-    const k = randomChoice(validFactors);
+    const k = (merke.k !== undefined) ? merke.k : randomChoice(validFactors);
+    merke.k = k;
     const numExp = base * k; // e.g. 11*6 = 66
     const denExp = den * k;  // e.g. 7*6  = 42
     const numStr = String(numExp);
@@ -1050,7 +1329,7 @@ function buildTaskAndSolution(entry) {
     aufgabeTex = `\\dfrac{${numStr}^{${exp}}}{${denStr}^{${exp}}} = \\,?`;
     // Solution: a^n/b^n = (a/b)^n ÷k = (base/den)^n = numPow/denPow
     loesungTex = `\\begin{aligned}\\!\\dfrac{${numStr}^{${exp}}}{${denStr}^{${exp}}} &= \\left(\\dfrac{${numStr}}{${denStr}}\\right)^{\\!${exp}} \\overset{:${k}}{~=~} \\left(\\dfrac{${base}}{${den}}\\right)^{\\!${exp}} \\!\\\\[4pt] &= \\dfrac{${numPow}}{${denPow}}\\end{aligned}`;
-    hinweisText = `Brüche von Potenzen: a^n / b^n = (a/b)^n.<br>Kürze zuerst den Bruch ${numStr}/${denStr} ÷ ${k} = ${base}/${den}.`;
+    hinweisText = T(`Brüche von Potenzen: a^n / b^n = (a/b)^n.<br>Kürze zuerst den Bruch ${numStr}/${denStr} ÷ ${k} = ${base}/${den}.`, `Powers in a fraction: a^n / b^n = (a/b)^n.<br>First simplify the fraction ${numStr}/${denStr} ÷ ${k} = ${base}/${den}.`);
 
   } else {
     const m = mult || 1;
@@ -1068,12 +1347,12 @@ function buildTaskAndSolution(entry) {
         : `\\sqrt[${exp}]{${resultStr}} = ${baseStr}`;
     }
     // Hinweis: only mult hint for normal exp, but exp=0/exp=1 take priority
-    if (exp === 0)    hinweisText = 'Jede Zahl hoch 0 ergibt 1.';
-    else if (exp === 1) hinweisText = 'Jede Zahl hoch 1 ergibt die Basis selbst.';
+    if (exp === 0)    hinweisText = T('Jede Zahl hoch 0 ergibt 1.', 'Any number to the power 0 is 1.');
+    else if (exp === 1) hinweisText = T('Jede Zahl hoch 1 ergibt die Basis selbst.', 'Any number to the power 1 is the base itself.');
     else if (m !== 1)   hinweisText = multHintText(m, exp);
   }
 
-  return { aufgabeTex, loesungTex, hinweisText, isInverse };
+  return { aufgabeTex, loesungTex, hinweisText, isInverse, fest: merke };
 }
 
 /* ── Spielmodus helpers ──────────────────────────── */
@@ -1142,33 +1421,55 @@ function updateSpielmodusUI(focusOnSwitch = false) {
 }
 
 /* ── Task generation ─────────────────────────────── */
+/* „Neue Aufgabe generieren": Die aktuelle Karte wandert ans Ende des Stapels
+   und die nächste kommt dran. Gewertet wird dabei nichts - weder richtig noch
+   falsch -, und keine Karte geht verloren. */
+function naechsteAufgabe() {
+  if (taskPool.length > 1) taskPool.push(taskPool.shift());
+  window.currentTask = null;
+  _suppressFocus = false;
+  const inp = document.getElementById('answerInput');
+  if (inp) { inp.value = ''; inp.className = ''; }
+  setAnswerHint(null);
+  generateTask();
+}
+
 function generateTask() {
   document.getElementById('nextTaskBtn').style.display = 'none';
   if (taskPool.length === 0) {
     const anyChecked = document.querySelectorAll('input[name=task]:checked').length > 0;
     if (!anyChecked) {
-      document.getElementById('taskLabel').textContent = 'Bitte Zahlen im Settings-Bereich auswählen.';
+      document.getElementById('taskLabel').textContent = T('Bitte Zahlen im Settings-Bereich auswählen.', 'Please select numbers in the settings area.');
       document.getElementById('taskText').innerHTML = '';
       return;
     }
     refillPool(); // already shuffles
-    showToast('🎉 Alle Aufgaben geschafft! Stapel wird neu gemischt…');
+    showToast(T('🎉 Alle Aufgaben geschafft! Stapel wird neu gemischt…', '🎉 All tasks done! Reshuffling the deck…'));
     showSettingsHint();
   }
 
   const entry = taskPool[0];
   window.currentTask = entry;
+  /* Die Kachel, aus der die laufende Aufgabe stammt, bekommt einen Rahmen:
+     die Zahlengruppe und - falls die Aufgabe eine besondere Art ist - deren
+     Kachel. */
+  /* Die Zahlengruppe wird NICHT markiert - sonst stünde die Lösung schon in
+     der Kachelleiste. Die besonderen Aufgabenarten dagegen schon. */
+  _kachelZahl = null;
+  _kachelArt  = artenDerAufgabe(entry);
+  kachelnAktuellMalen();
 
-  const { aufgabeTex, loesungTex, hinweisText, isInverse } = buildTaskAndSolution(entry);
+  const { aufgabeTex, loesungTex, hinweisText, isInverse, fest } = buildTaskAndSolution(entry);
+  window.currentFest = fest;
   window.currentTask = { ...entry, isInverse };
   window.currentSolution = `$$${loesungTex}$$`;
   window.currentHinweis  = hinweisText || '';
   // Store plain-text answer for input mode checking
   window.currentAnswerRaw = entry; // we'll resolve at check time
 
-  document.getElementById('taskLabel').textContent = 'Berechne:';
+  document.getElementById('taskLabel').textContent = T('Berechne:', 'Work out:');
   document.getElementById('taskSub').textContent = '';
-  faces.forEach(f => f.style.backgroundColor = 'white');
+  faces.forEach(f => f.style.backgroundColor = KARTENFARBE());
 
   const sa = skipAnim();
   if (sa) {
@@ -1411,25 +1712,25 @@ function computeAnswerHint(task, given) {
     let displayedVal = null;
     try { displayedVal = computeExpectedRational(displayedTask); } catch(e) {}
     if (displayedVal && rationalsEqual(given, displayedVal))
-      return 'Hier ist eine Wurzel gefragt – du sollst die Wurzel ziehen, nicht die angezeigte Zahl abschreiben!';
+      return T('Hier ist eine Wurzel gefragt – du sollst die Wurzel ziehen, nicht die angezeigte Zahl abschreiben!', "This asks for a root – take the root, don't just copy the number shown!");
     if (displayedVal && displayedVal.den === 1n) {
       const sq = { num: displayedVal.num * displayedVal.num, den: 1n };
       if (rationalsEqual(given, sq))
-        return 'Du hast die angezeigte Zahl potenziert statt die Wurzel zu ziehen!';
+        return T('Du hast die angezeigte Zahl potenziert statt die Wurzel zu ziehen!', 'You raised the number shown to a power instead of taking the root!');
     }
-    return 'Tipp: Welche Zahl ergibt, mit sich selbst potenziert, die angezeigte Zahl?';
+    return T('Tipp: Welche Zahl ergibt, mit sich selbst potenziert, die angezeigte Zahl?', 'Hint: which number, raised to that power, gives the number shown?');
   }
 
   // ── 1. Exponent 0 ────────────────────────────────────────────────────────
   if (exp === 0) {
     if (rationalsEqual(given, { num: 0n, den: 1n }))
-      return 'Vorsicht: x^0 ergibt nicht 0.<br>Jede Zahl hoch 0 ergibt immer 1.';
-    return 'Jede Zahl hoch 0 ergibt 1 (außer 0^0, das ist nicht definiert).';
+      return T('Vorsicht: x^0 ergibt nicht 0.<br>Jede Zahl hoch 0 ergibt immer 1.', 'Careful: x^0 is not 0.<br>Any number to the power 0 is always 1.');
+    return T('Jede Zahl hoch 0 ergibt 1 (außer 0^0, das ist nicht definiert).', 'Any number to the power 0 is 1 (except 0^0, which is undefined).');
   }
 
   // ── 2. Exponent 1 ────────────────────────────────────────────────────────
   if (exp === 1) {
-    return 'Jede Zahl hoch 1 ergibt die Basis selbst.';
+    return T('Jede Zahl hoch 1 ergibt die Basis selbst.', 'Any number to the power 1 is the base itself.');
   }
 
   // ── Ab hier: exp >= 2 oder negativ ──────────────────────────────────────
@@ -1459,45 +1760,45 @@ function computeAnswerHint(task, given) {
     const multResultAbs = { num: BigInt(absBase) * mr.num * BigInt(exp), den: mr.den };
     if (!rationalsEqual(multResultAbs, absR(expected)) && rationalsEqual(absR(given), multResultAbs)) {
       const factors = Array(exp).fill(String(effVal)).join(' · ');
-      return `Du hast Basis × Exponent gerechnet. Richtig ist: Multipliziere die Basis ${exp}-mal mit sich selbst:<br>${factors}.`;
+      return T(`Du hast Basis × Exponent gerechnet. Richtig ist: Multipliziere die Basis ${exp}-mal mit sich selbst:<br>${factors}.`, `You multiplied base × exponent. Instead, multiply the base by itself ${exp} times:<br>${factors}.`);
     }
   }
 
   // ── 5. Falsches Vorzeichen (negBase / negNoParens / fracNegBase) ──────────
   if (type === 'negBase' && exp % 2 === 0 && rationalsEqual(given, negR(expected)))
-    return `Das Minus wird mitpotenziert, und hier ist der Exponent eine gerade Zahl.<br>Minus mal Minus = ...`;
+    return T(`Das Minus wird mitpotenziert, und hier ist der Exponent eine gerade Zahl.<br>Minus mal Minus = ...`, `The minus sign is raised to the power too, and here the exponent is even.<br>Minus times minus = ...`);
 
   if (type === 'negBase' && exp % 2 !== 0 && rationalsEqual(given, absR(expected)))
-    return `Das Minus wird mitpotenziert, und hier ist der Exponent ungerade.<br>Minus mal Minus mal Minus = ...`;
+    return T(`Das Minus wird mitpotenziert, und hier ist der Exponent ungerade.<br>Minus mal Minus mal Minus = ...`, `The minus sign is raised to the power too, and here the exponent is odd.<br>Minus times minus times minus = ...`);
 
   if (type === 'negNoParens' && rationalsEqual(given, absR(expected)))
-    return `Hier steht kein Minus in der Klammer – die Potenz selbst ist negativ.`;
+    return T(`Hier steht kein Minus in der Klammer – die Potenz selbst ist negativ.`, `There is no minus inside the brackets here – the power itself is negative.`);
 
   if (type === 'fracNegBase' && exp % 2 === 0 && rationalsEqual(given, negR(expected)))
-    return `Das Minus wird mitpotenziert, und hier ist der Exponent eine gerade Zahl.<br>Minus mal Minus = ...`;
+    return T(`Das Minus wird mitpotenziert, und hier ist der Exponent eine gerade Zahl.<br>Minus mal Minus = ...`, `The minus sign is raised to the power too, and here the exponent is even.<br>Minus times minus = ...`);
 
   if (type === 'fracNegBase' && exp % 2 !== 0 && rationalsEqual(given, absR(expected)))
-    return `Das Minus wird mitpotenziert, und hier ist der Exponent ungerade.<br>Minus mal Minus mal Minus = ...`;
+    return T(`Das Minus wird mitpotenziert, und hier ist der Exponent ungerade.<br>Minus mal Minus mal Minus = ...`, `The minus sign is raised to the power too, and here the exponent is odd.<br>Minus times minus times minus = ...`);
 
   // ── 6. Negativer Exponent ────────────────────────────────────────────────
   if (type === 'negExp') {
     const posExp    = { num: BigInt(base) ** BigInt(exp), den: 1n };
     const negPosExp = { num: -(BigInt(base) ** BigInt(exp)), den: 1n };
     if (rationalsEqual(given, posExp))
-      return `Achtung: Der Exponent ist negativ!<br>${base}^−${exp} = 1/${base}^${exp}, nicht ${base}^${exp}.`;
+      return T(`Achtung: Der Exponent ist negativ!<br>${base}^−${exp} = 1/${base}^${exp}, nicht ${base}^${exp}.`, `Careful: the exponent is negative!<br>${base}^−${exp} = 1/${base}^${exp}, not ${base}^${exp}.`);
     if (rationalsEqual(given, negPosExp))
-      return `Ein negativer Exponent macht das Ergebnis nicht negativ, sondern bildet den Kehrwert:<br>${base}^−${exp} = 1/${base}^${exp}.`;
-    return `Negativer Exponent bedeutet Kehrwert:<br>${base}^−${exp} = 1 / ${base}^${exp}.`;
+      return T(`Ein negativer Exponent macht das Ergebnis nicht negativ, sondern bildet den Kehrwert:<br>${base}^−${exp} = 1/${base}^${exp}.`, `A negative exponent does not make the result negative, it gives the reciprocal:<br>${base}^−${exp} = 1/${base}^${exp}.`);
+    return T(`Negativer Exponent bedeutet Kehrwert:<br>${base}^−${exp} = 1 / ${base}^${exp}.`, `A negative exponent means the reciprocal:<br>${base}^−${exp} = 1 / ${base}^${exp}.`);
   }
   if (type === 'fracNegExp') {
     const posExp = { num: BigInt(base) ** BigInt(exp), den: BigInt(den) ** BigInt(exp) };
     const onlyNum = { num: BigInt(base) ** BigInt(exp), den: BigInt(den) };
     const onlyDen = { num: BigInt(base), den: BigInt(den) ** BigInt(exp) };
     if (rationalsEqual(given, posExp))
-      return `Negativer Exponent kehrt den Bruch um:<br>(${base}/${den})^−${exp} = (${den}/${base})^${exp}.`;
+      return T(`Negativer Exponent kehrt den Bruch um:<br>(${base}/${den})^−${exp} = (${den}/${base})^${exp}.`, `A negative exponent turns the fraction upside down:<br>(${base}/${den})^−${exp} = (${den}/${base})^${exp}.`);
     if (rationalsEqual(given, onlyNum) || rationalsEqual(given, onlyDen))
-      return `Bei einem Bruch hoch einem Exponenten müssen sowohl Zähler als auch Nenner potenziert werden.<br>Außerdem: Negativer Exponent kehrt den Bruch um:<br>(${base}/${den})^−${exp} = (${den}/${base})^${exp}.`;
-    return `Negativer Exponent kehrt den Bruch um:<br>(${base}/${den})^−${exp} = (${den}/${base})^${exp}.`;
+      return T(`Bei einem Bruch hoch einem Exponenten müssen sowohl Zähler als auch Nenner potenziert werden.<br>Außerdem: Negativer Exponent kehrt den Bruch um:<br>(${base}/${den})^−${exp} = (${den}/${base})^${exp}.`, `For a fraction raised to a power, both numerator and denominator are raised to that power.<br>Also, a negative exponent turns the fraction upside down:<br>(${base}/${den})^−${exp} = (${den}/${base})^${exp}.`);
+    return T(`Negativer Exponent kehrt den Bruch um:<br>(${base}/${den})^−${exp} = (${den}/${base})^${exp}.`, `A negative exponent turns the fraction upside down:<br>(${base}/${den})^−${exp} = (${den}/${base})^${exp}.`);
   }
 
   // ── Ab hier: kein negExp, kein negNoParens mit falschem Vorzeichen ───────
@@ -1507,7 +1808,7 @@ function computeAnswerHint(task, given) {
     const onlyNum = { num: BigInt(base) ** BigInt(exp), den: BigInt(den) };
     const onlyDen = { num: BigInt(base), den: BigInt(den) ** BigInt(exp) };
     if (rationalsEqual(absR(given), absR(onlyNum)) || rationalsEqual(absR(given), absR(onlyDen)))
-      return `Bei einem Bruch hoch einem Exponenten müssen sowohl Zähler als auch Nenner potenziert werden:<br>(${base}/${den})^${exp} = ${base}^${exp} / ${den}^${exp}.`;
+      return T(`Bei einem Bruch hoch einem Exponenten müssen sowohl Zähler als auch Nenner potenziert werden:<br>(${base}/${den})^${exp} = ${base}^${exp} / ${den}^${exp}.`, `For a fraction raised to a power, both numerator and denominator are raised to that power:<br>(${base}/${den})^${exp} = ${base}^${exp} / ${den}^${exp}.`);
   }
 
   // ── Ab hier nur noch ganzzahlige Ergebnisse mit korrektem Vorzeichen ─────
@@ -1526,8 +1827,8 @@ function computeAnswerHint(task, given) {
         const effAlt = m === 1 ? altBase : Math.round(altBase * m);
         const effCur = m === 1 ? absBase : Math.round(absBase * m);
         if (exp === 2)
-          return 'Das ist die falsche Quadratzahl – du hast die Quadratzahl der Nachbarzahl berechnet.';
-        return `Du hast ${effAlt}^${exp} berechnet, gefragt war aber ${effCur}^${exp}.`;
+          return T('Das ist die falsche Quadratzahl – du hast die Quadratzahl der Nachbarzahl berechnet.', "That's the wrong square number – you squared the neighbouring number.");
+        return T(`Du hast ${effAlt}^${exp} berechnet, gefragt war aber ${effCur}^${exp}.`, `You worked out ${effAlt}^${exp}, but the question was ${effCur}^${exp}.`);
       }
     }
     for (const altExp of [exp - 1, exp + 1]) {
@@ -1535,7 +1836,7 @@ function computeAnswerHint(task, given) {
       const r = scaledPow(absBase, altExp);
       if (r && rationalsEqual(givAbs, r)) {
         const effCur = m === 1 ? absBase : Math.round(absBase * m);
-        return `Du hast ${effCur}^${altExp} berechnet, gefragt war aber ${effCur}^${exp}.`;
+        return T(`Du hast ${effCur}^${altExp} berechnet, gefragt war aber ${effCur}^${exp}.`, `You worked out ${effCur}^${altExp}, but the question was ${effCur}^${exp}.`);
       }
     }
   }
@@ -1551,7 +1852,7 @@ function computeAnswerHint(task, given) {
       if (r && rationalsEqual(givAbs, r)) {
         const effAlt = m === 1 ? altBase : Math.round(altBase * m);
         const effCur = m === 1 ? absBase : Math.round(absBase * m);
-        return `Du hast ${effAlt}^${exp} = ${Number(r.num / r.den)} berechnet, gefragt war aber ${effCur}^${exp}.`;
+        return T(`Du hast ${effAlt}^${exp} = ${Number(r.num / r.den)} berechnet, gefragt war aber ${effCur}^${exp}.`, `You worked out ${effAlt}^${exp} = ${Number(r.num / r.den)}, but the question was ${effCur}^${exp}.`);
       }
     }
   }
@@ -1563,7 +1864,7 @@ function computeAnswerHint(task, given) {
     if (exp !== absBase) {
       const r = scaledPow(exp, absBase);
       if (r && rationalsEqual(givAbs, r))
-        return `Du hast Basis und Exponent vertauscht: ${exp}^${absBase} statt ${absBase}^${exp}.`;
+        return T(`Du hast Basis und Exponent vertauscht: ${exp}^${absBase} statt ${absBase}^${exp}.`, `You swapped base and exponent: ${exp}^${absBase} instead of ${absBase}^${exp}.`);
     }
   }
 
@@ -1575,7 +1876,7 @@ function computeAnswerHint(task, given) {
       let diffs = 0;
       for (let i = 0; i < expStr.length; i++) if (expStr[i] !== givStr[i]) diffs++;
       if (diffs === 1)
-        return 'Die Antwort ist fast richtig – nur eine Ziffer stimmt nicht.';
+        return T('Die Antwort ist fast richtig – nur eine Ziffer stimmt nicht.', 'Almost right – just one digit is wrong.');
     }
   }
 
@@ -1610,13 +1911,13 @@ function computeAnswerHint(task, given) {
         const givZ    = givStr.length - stripZ(givStr).length;
         const effStr  = Math.round(Math.abs(base) * m).toString();
         const baseZ   = effStr.length - effStr.replace(/0+$/, '').length;
-        const richtung = givZ > expZ ? 'zu viele' : 'zu wenige';
+        const richtung = givZ > expZ ? T('zu viele', 'too many') : T('zu wenige', 'too few');
         const rechenweg = baseZ > 0
-          ? `${baseZ} Null${baseZ > 1 ? 'en' : ''} in jedem der ${exp} Faktoren → insgesamt ${baseZ}·${exp} Nullen`
+          ? T(`${baseZ} Null${baseZ > 1 ? 'en' : ''} in jedem der ${exp} Faktoren → insgesamt ${baseZ}·${exp} Nullen`, `${baseZ} zero${baseZ > 1 ? 's' : ''} in each of the ${exp} factors → ${baseZ}·${exp} zeros in total`)
           : '';
         return rechenweg
-          ? `Die Antwort hat die richtige Zahl, aber ${richtung} Nullen.<br>${rechenweg}.`
-          : `Die Antwort hat die richtige Zahl, aber ${richtung} Nullen.`;
+          ? T(`Die Antwort hat die richtige Zahl, aber ${richtung} Nullen.<br>${rechenweg}.`, `The answer has the right digits, but ${richtung} zeros.<br>${rechenweg}.`)
+          : T(`Die Antwort hat die richtige Zahl, aber ${richtung} Nullen.`, `The answer has the right digits, but ${richtung} zeros.`);
       }
     }
     // Dezimalzahlen (m < 1): zu viele/wenige Nachkommastellen
@@ -1631,13 +1932,13 @@ function computeAnswerHint(task, given) {
         const mDec = mDot >= 0 ? mStr.length - mDot - 1 : 0;
         const expDec = Number(er.den === 1n ? 0 : er.den.toString().length - 1);
         const givDec = Number(gr.den === 1n ? 0 : gr.den.toString().length - 1);
-        const richtung = givDec > expDec ? 'zu viele' : 'zu wenige';
+        const richtung = givDec > expDec ? T('zu viele', 'too many') : T('zu wenige', 'too few');
         const rechenweg = mDec > 0
-          ? `${mDec} Nachkommastelle${mDec > 1 ? 'n' : ''} in jedem der ${exp} Faktoren → insgesamt ${mDec}·${exp} Nachkommastellen`
+          ? T(`${mDec} Nachkommastelle${mDec > 1 ? 'n' : ''} in jedem der ${exp} Faktoren → insgesamt ${mDec}·${exp} Nachkommastellen`, `${mDec} decimal place${mDec > 1 ? 's' : ''} in each of the ${exp} factors → ${mDec}·${exp} decimal places in total`)
           : '';
         return rechenweg
-          ? `Die Antwort hat die richtige Zahl, aber ${richtung} Nachkommastellen.<br>${rechenweg}.`
-          : `Die Antwort hat die richtige Zahl, aber ${richtung} Nachkommastellen.`;
+          ? T(`Die Antwort hat die richtige Zahl, aber ${richtung} Nachkommastellen.<br>${rechenweg}.`, `The answer has the right digits, but ${richtung} decimal places.<br>${rechenweg}.`)
+          : T(`Die Antwort hat die richtige Zahl, aber ${richtung} Nachkommastellen.`, `The answer has the right digits, but ${richtung} decimal places.`);
       }
       // Fallback: Zähler verschieden, aber Ziffernfolge (ohne abschließende Nullen) gleich
       // z.B. expected=256/100000000, given=256/10000 → nach reduceR: 4/1953125 vs 16/625
@@ -1668,13 +1969,13 @@ function computeAnswerHint(task, given) {
             const mDec2 = mDot >= 0 ? mStr.length - mDot - 1 : 0;
             const expPlaces = (expDec2.includes('.') ? expDec2.split('.')[1].length : 0);
             const givPlaces = (givDec2.includes('.') ? givDec2.split('.')[1].length : 0);
-            const richtung = givPlaces > expPlaces ? 'zu viele' : 'zu wenige';
+            const richtung = givPlaces > expPlaces ? T('zu viele', 'too many') : T('zu wenige', 'too few');
             const rechenweg = mDec2 > 0
-              ? `${mDec2} Nachkommastelle${mDec2 > 1 ? 'n' : ''} in jedem der ${exp} Faktoren → insgesamt ${mDec2}·${exp} Nachkommastellen`
+              ? T(`${mDec2} Nachkommastelle${mDec2 > 1 ? 'n' : ''} in jedem der ${exp} Faktoren → insgesamt ${mDec2}·${exp} Nachkommastellen`, `${mDec2} decimal place${mDec2 > 1 ? 's' : ''} in each of the ${exp} factors → ${mDec2}·${exp} decimal places in total`)
               : '';
             return rechenweg
-              ? `Die Antwort hat die richtige Zahl, aber ${richtung} Nachkommastellen.<br>${rechenweg}.`
-              : `Die Antwort hat die richtige Zahl, aber ${richtung} Nachkommastellen.`;
+              ? T(`Die Antwort hat die richtige Zahl, aber ${richtung} Nachkommastellen.<br>${rechenweg}.`, `The answer has the right digits, but ${richtung} decimal places.<br>${rechenweg}.`)
+              : T(`Die Antwort hat die richtige Zahl, aber ${richtung} Nachkommastellen.`, `The answer has the right digits, but ${richtung} decimal places.`);
           }
         }
       }
@@ -1683,19 +1984,19 @@ function computeAnswerHint(task, given) {
 
   // ── 13. Vorzeichen falsch (kein spezifischer Fall oben gegriffen) ─────────
   if (rationalsEqual(absR(given), absR(expected)))
-    return 'Achtung: Das Vorzeichen stimmt nicht.';
+    return T('Achtung: Das Vorzeichen stimmt nicht.', 'Careful: the sign is wrong.');
 
   // ── fracPow: Bruch von Potenzen ──────────────────────────────────────────
   if (type === 'fracPow') {
     const onlyNum = { num: BigInt(base) ** BigInt(exp), den: BigInt(den) };
     const onlyDen = { num: BigInt(base), den: BigInt(den) ** BigInt(exp) };
     if (rationalsEqual(absR(given), absR(onlyNum)) || rationalsEqual(absR(given), absR(onlyDen)))
-      return `Kürze den Bruch zuerst und potenziere dann beide Teile: (${base}/${den})^${exp} = ${base}^${exp} / ${den}^${exp}.`;
-    return `Tipp: a^n / b^n = (a/b)^n. Kürze zuerst den Bruch, dann potenziere.`;
+      return T(`Kürze den Bruch zuerst und potenziere dann beide Teile: (${base}/${den})^${exp} = ${base}^${exp} / ${den}^${exp}.`, `Simplify the fraction first, then raise both parts to the power: (${base}/${den})^${exp} = ${base}^${exp} / ${den}^${exp}.`);
+    return T(`Tipp: a^n / b^n = (a/b)^n. Kürze zuerst den Bruch, dann potenziere.`, `Hint: a^n / b^n = (a/b)^n. Simplify the fraction first, then raise to the power.`);
   }
 
   // ── 14. Kein Fall erkannt ────────────────────────────────────────────────
-  return 'Falsch.';
+  return T('Falsch.', 'Wrong.');
 }
 
 function setAnswerHint(text) {
@@ -1734,6 +2035,7 @@ function checkAnswer() {
 
   const correct = given !== null && rationalsEqual(expected, given);
 
+  punkteMerken();
   flashResult(correct ? '#d4edda' : '#f8d7da');
   anzahlAufgaben++;
   const id = JSON.stringify(window.currentTask);
@@ -1751,6 +2053,7 @@ function checkAnswer() {
 
   if (correct) {
     inp.className = 'correct';
+    window.letzteEingabe = undefined;
     setAnswerHint(null);
     window.currentTask = null;
     _suppressFocus = false;
@@ -1758,6 +2061,7 @@ function checkAnswer() {
     setTimeout(generateTask, 1200);
   } else {
     inp.className = 'wrong';
+    window.letzteEingabe = given;   // fuer das Neuzeichnen bei Sprachwechsel
     setAnswerHint(computeAnswerHint(window.currentTask, given));
     inp.select();
   }
@@ -1766,6 +2070,7 @@ function checkAnswer() {
 function revealAnswer() {
   if (!window.currentSolution) return;
   if (window.currentTask) {
+    punkteMerken();
     flashResult('#f8d7da');
     anzahlAufgaben++;
     reshuffleAvoid(JSON.stringify(window.currentTask));
@@ -1778,11 +2083,12 @@ function revealAnswer() {
   setAnswerHint(null);
   _suppressFocus = false; // next task should auto-focus
   flipToSolution();
-  // In Eingabe-Modus: show "Neue Aufgabe" button instead of auto-advancing
+  // In Eingabe-Modus: show T("Neue Aufgabe", "New task") button instead of auto-advancing
   document.getElementById('nextTaskBtn').style.display = 'block';
 }
 
 function markAnswer(correct) {
+  punkteMerken();
   if (!window.currentTask) return;
   flashResult(correct ? '#d4edda' : '#f8d7da');
   const id = JSON.stringify(window.currentTask);
@@ -1867,7 +2173,7 @@ const handleEnd = () => {
   const threshold = card.parentElement.offsetWidth * 0.25;
   const triggered = currentX > threshold || currentX < -threshold;
   const wasCorrect = currentX > 0;
-  faces.forEach(f => f.style.backgroundColor = 'white');
+  faces.forEach(f => f.style.backgroundColor = KARTENFARBE());
   const sa = skipAnim();
   if (!sa) card.style.transition = 'transform 0.6s cubic-bezier(0.4,0,0.2,1)';
   if (triggered) {
@@ -1937,13 +2243,30 @@ document.addEventListener('DOMContentLoaded', () => {
   const sm = document.querySelector(`input[name="spielmodus"][value="${params.spielmodus}"]`);
   if (sm) sm.checked = true;
 
+  spiegleWurzel(params.wurzelmode);
+
   // All settings inputs trigger URL update + settings change
   document.querySelectorAll('#settingsForm input[type=checkbox], #settingsForm input[type=radio]').forEach(input => {
     input.addEventListener('change', () => {
       updateURLParams();
       onSettingsChange();
+      kachelnMalen();
     });
   });
+  // Aufgabenform: oben und in den Einstellungen dasselbe
+  document.querySelectorAll('input[name="wurzelmode"], input[name="wurzelmodeTop"]').forEach(input => {
+    input.addEventListener('change', () => {
+      spiegleWurzel(input.value);
+      updateURLParams();
+      onSettingsChange();
+    });
+  });
+  document.getElementById('genBtn').addEventListener('click', () => naechsteAufgabe());
+  document.getElementById('btnShare').addEventListener('click', function(){
+    updateURLParams();
+    linkKopieren(location.href, this);
+  });
+  kachelnBauen();
 
   // Spielmodus is outside settingsForm — attach separately
   document.querySelectorAll('input[name="spielmodus"]').forEach(input => {
@@ -1959,17 +2282,22 @@ document.addEventListener('DOMContentLoaded', () => {
     const base = parseInt(document.getElementById('customBase').value, 10);
     const exp  = parseInt(document.getElementById('customExp').value,  10);
     if (!Number.isInteger(base) || !Number.isInteger(exp) || base < 1) {
-      showToast('Bitte gültige Basis (≥1) und Exponenten eingeben.');
+      showToast(T('Bitte gültige Basis (≥1) und Exponenten eingeben.', 'Please enter a valid base (≥1) and exponent.'));
       return;
     }
     const added = addCustomPower(base, exp, true);
-    if (!added) { showToast(`${base}^${exp} ist bereits vorhanden.`); return; }
+    if (!added) { showToast(T(`${base}^${exp} ist bereits vorhanden.`, `${base}^${exp} is already in the list.`)); return; }
     const cb = document.getElementById(`cb_custom_${base}_${exp}`);
-    if (cb) cb.addEventListener('change', () => { updateURLParams(); onSettingsChange(); });
+    if (cb) cb.addEventListener('change', () => { updateURLParams(); onSettingsChange(); kachelnMalen(); });
     document.getElementById('customBase').value = '';
     document.getElementById('customExp').value  = '';
     updateURLParams();
     onSettingsChange();
+    /* War das Menü offen, zeigt es die neue Potenz gleich mit. */
+    const warOffen = !!document.querySelector('.pop');
+    kachelnBauen();
+    if (warOffen && window.abMenuOeffnen)
+      abMenuOeffnen(document.getElementById('segZahlen'), ZAHL_GRUPPEN.length - 1);
   });
 
   // Enter in custom inputs triggers add
@@ -2001,11 +2329,97 @@ document.addEventListener('DOMContentLoaded', () => {
   updateCounterDisplay();
   setTimeout(generateTask, 0);
 
-  // Show settings hint on first visit (no URL params = no configured settings yet)
-  if (isFreshVisit) {
-    setTimeout(showSettingsHint, 800);
-  }
+  /* Früher klappte der Auswahlbereich beim ersten Besuch nach kurzer Zeit von
+     selbst auf und leuchtete auf - das wirkte wie ein Flackern. Der Hinweis
+     kommt jetzt nur noch, wenn der Stapel wirklich leer gespielt wurde. */
 });
+// ================================================================
+// SPRACHE / THEME WECHSELN - die laufende Aufgabe bleibt erhalten
+// ================================================================
+function neuZeichnen() {
+  updateCounterDisplay();
+  faces.forEach(f => f.style.backgroundColor = KARTENFARBE());
+  const t = window.currentTask;
+  if (!t) {
+    const tl = document.getElementById('taskLabel');
+    if (tl && !document.getElementById('taskText').innerHTML.trim()) {
+      tl.textContent = T('Wähle Zahlen und starte…', 'Choose numbers and start…');
+    }
+    return;
+  }
+  // Mit den gemerkten Entscheidungen kommt genau dieselbe Aufgabe heraus.
+  const { loesungTex, hinweisText } = buildTaskAndSolution(t, window.currentFest);
+  window.currentSolution = `$$${loesungTex}$$`;
+  window.currentHinweis  = hinweisText || '';
+  document.getElementById('taskLabel').textContent = T('Berechne:', 'Work out:');
+
+  const lo = document.getElementById('loesung');
+  if (lo && lo.innerHTML.trim()) {
+    lo.innerHTML = window.currentSolution;
+    const lh = document.getElementById('loesungHinweis');
+    if (lh && lh.innerHTML.trim()) lh.innerHTML = window.currentHinweis;
+    typesetMath(document.getElementById('faceBack'));
+  }
+  // Rueckmeldung im Eingabemodus in der neuen Sprache
+  const hinweisEl = document.getElementById('answerHint');
+  if (hinweisEl && hinweisEl.classList.contains('visible') && window.letzteEingabe !== undefined) {
+    setAnswerHint(computeAnswerHint(window.currentTask, window.letzteEingabe));
+  }
+  scheduleScale();
+}
+window.addEventListener('tl-sprache', () => { if (typeof kachelnMalen === 'function') kachelnMalen(); });
+window.addEventListener('tl-sprache', neuZeichnen);
+window.addEventListener('tl-theme',   neuZeichnen);
+
+/* Aktuelle Aufgabe fuer den Fehler-melden-Knopf */
+window.fehlerKontext = function () {
+  const t = window.currentTask;
+  if (!t) return '';
+  const teile = [];
+  const el = document.getElementById('taskText');
+  if (el) {
+    const txt = (typeof tlFormelText === 'function') ? tlFormelText(el) : el.innerText;
+    if (txt) teile.push(txt.replace(/\s+/g, ' ').trim());
+  }
+  teile.push(t.base + '^' + t.exp + (t.den ? '/' + t.den : '') + (t.isInverse ? ' (Wurzel)' : ''));
+  const inp = document.getElementById('answerInput');
+  if (inp && inp.value.trim()) teile.push(T('Eingabe: ', 'input: ') + inp.value.trim());
+  return teile.join(' \u00b7 ');
+};
+
+/* ── Punktestand: zurücksetzen und rückgängig ─────────────────────────────
+   Ein Vertipper kostet so keine Serie: „rückgängig" stellt Punktzahl, Stapel
+   und die zuletzt gezeigte Karte wieder her.                               */
+let _stand = null;
+function _undoKnopf(an){
+  const u = document.getElementById('btnPunkteUndo');
+  if (u) u.disabled = !an;
+}
+function punkteMerken(){
+  _stand = { r: korrekteAntworten, g: anzahlAufgaben,
+             pool: taskPool.slice(), karte: window.currentTask };
+  _undoKnopf(true);
+}
+function punkteZuruecksetzen(){
+  korrekteAntworten = 0; anzahlAufgaben = 0; _stand = null; _undoKnopf(false);
+  updateCounterDisplay();
+}
+function punkteRueckgaengig(){
+  if (!_stand) return;
+  korrekteAntworten = _stand.r; anzahlAufgaben = _stand.g;
+  taskPool = _stand.pool;
+  _stand = null; _undoKnopf(false);
+  updateCounterDisplay();
+  if (_stand === null && taskPool.length) generateTask();
+}
+document.addEventListener('DOMContentLoaded', () => {
+  const r = document.getElementById('btnPunkteReset');
+  if (r) r.addEventListener('click', punkteZuruecksetzen);
+  const u = document.getElementById('btnPunkteUndo');
+  if (u) u.addEventListener('click', punkteRueckgaengig);
+});
+
+
 </script>
 
 <div id="lobby-spacer"></div>
@@ -2013,7 +2427,7 @@ document.addEventListener('DOMContentLoaded', () => {
   <div class="footer-content">
       M.&nbsp;Koch
       <span class="footer-topic"><a href="./index.html">Mathe-Tools</a></span>
-      <span class="footer-update">Last updated:&nbsp;<span id="last-update">...</span></span>
+      <span class="footer-update"><span class="fu-wort" data-de="Zuletzt aktualisiert:" data-en="Last updated:">Zuletzt aktualisiert:</span><span id="last-update">...</span></span>
   </div>
 </footer>
 <script src="last-update.js" defer></script>

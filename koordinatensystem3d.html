@@ -3,19 +3,22 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>3D-Koordinatensystem – Punkte einzeichnen</title>
+<link rel="shortcut icon" type="image/x-icon" href="aleph_zero_logo.ico">
+<script>try{var t=localStorage.getItem('matheToolsTheme');if(t==='dark'||(!t&&window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.classList.add('dark');}catch(e){}</script>
+<title data-de="3D-Koordinatensystem – Punkte einzeichnen" data-en="3D coordinate system – plotting points">3D-Koordinatensystem – Punkte einzeichnen</title>
+<script src="theme-language.js" defer></script>
 <link rel="stylesheet" href="styles.css">
-<!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-5K8WYYXDL2"></script>
-    <script>
+    <!-- Besuchszaehlung (Google Analytics). Geladen wird sie erst, wenn der
+         Besucher zustimmt - siehe einwilligung.js. -->
+<script>
         window.dataLayer = window.dataLayer || [];
         function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-        gtag('config', 'G-5K8WYYXDL2');
+        window.TK_GA_ID = 'G-5K8WYYXDL2';   /* Google Analytics laedt erst nach Einwilligung, siehe einwilligung.js */
     </script>
+<script src="einwilligung.js" defer></script>
 <style>
 /* ---- Basis (entspricht styles.css, damit die Seite auch einzeln funktioniert) ---- */
-html{scrollbar-gutter:stable;overflow-y:scroll}
+html{scrollbar-gutter:stable}
 body{font-family:Calibri,"Segoe UI",system-ui,sans-serif;display:flex;flex-direction:column;padding:0 2%;margin:0;color:#111}
 button{background:#4CAF50;color:#fff;border:none;padding:10px 20px;font-size:12px;margin:4px 2px;border-radius:5px;cursor:pointer}
 details{border:2px solid #000;border-radius:6px;padding:8px 10px;margin:10px 0}
@@ -40,7 +43,7 @@ details[open]>summary::before{transform:rotate(90deg)}
         grid-template-columns: 1fr auto 1fr;
         align-items: center;
         margin: 0 auto;
-        max-width: 800px;
+        max-width: var(--tk-breite, 960px);
     }
     .footer-content > :first-child {
         justify-self: start;
@@ -58,7 +61,7 @@ details[open]>summary::before{transform:rotate(90deg)}
 
 /* ---- Seiteneigenes ---- */
 :root{--k3-line:#222;--k3-muted:#6f7a83;--k3-soft:#f4f6f8;--k3-accent:#2e6fb7;--k3-hi:#ef6c00}
-h1{font-size:1.45rem;margin:14px 0 2px}
+h1{font-size:1.45rem;margin:14px 0 2px;padding-right:150px}
 .sub{color:var(--k3-muted);margin:0 0 8px;font-size:.95rem}
 .head-row{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap}
 /* (Badge entfernt) */
@@ -138,7 +141,7 @@ h1{font-size:1.45rem;margin:14px 0 2px}
 .coord-row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin:12px 0 2px}
 .coord{display:flex;align-items:center;gap:6px;background:#fff;border:1px solid #d7dde3;border-radius:8px;padding:5px 9px}
 .coord label{font-weight:bold;min-width:2.2em}
-.coord input[type=number]{width:3.9em;text-align:center;font-size:15px;padding:4px 3px;border:1px solid #bfc7ce;border-radius:5px}
+.coord input[type=number],.coord input[inputmode=decimal]{width:3.9em;text-align:center;font-size:15px;padding:4px 3px;border:1px solid #bfc7ce;border-radius:5px}
 .coord input.ok{border:2px solid #4CAF50;background:#eaf6ea;color:#1f5e22;font-weight:bold}
 .coord input.bad{border:2px solid #c62828;background:#fdecec;color:#8f2020;font-weight:bold}
 .coord input[type=range]{width:112px}
@@ -160,6 +163,8 @@ input:disabled,select:disabled{background:#e4e9ed;color:#78868f;border-color:#c3
   background:#fff7e8;border:2px solid #f0cf9a;border-left:7px solid #ef6c00;border-radius:9px;padding:8px 14px}
 .task .q{color:#8a4b00}
 .lay-hint{font-size:13.5px;color:#a3400b;font-weight:600;margin-top:5px;font-style:italic}
+.task-sub{font-size:14px;color:#666}
+.free-hint{width:100%;font-size:12.5px;color:#6f7a83}
 .task .q{font-weight:bold;font-size:1.15rem}
 .actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:12px}
 .btn-check{background:#4CAF50;padding:11px 26px;font-size:15px;font-weight:bold}
@@ -200,212 +205,273 @@ details.inner{border:1px solid #b9c4cd;border-radius:6px;padding:6px 8px;margin:
 details.inner>summary{font-weight:600;font-size:13.5px}
 @keyframes k3flash{0%,100%{background:transparent}25%,75%{background:#ffe9a8}}
 .flash{animation:k3flash 1.1s ease-in-out 2}
+/* ══════════════════════════════════════════════════════════════
+   Dunkelmodus – nur Zusätze; der Hellmodus oben bleibt unverändert.
+   Die Zeichnung selbst wird im Skript umgefärbt (svgDunkel);
+   gespeichert (PNG/SVG) wird immer die helle Fassung.
+   ══════════════════════════════════════════════════════════════ */
+html.dark{--k3-muted:#9aa5b1;--k3-soft:#1e2429;--k3-accent:#5b9bd9}
+html.dark body{color:#e7eae8}
+html.dark details{border-color:#4a545e}
+html.dark .form-block{border-color:#4a545e}
+html.dark .seg{background:#1b2026;border-color:#4a545e}
+html.dark .seg button{background:#1b2026;color:#d7dee4;border-right-color:#3a434b}
+html.dark .seg button.on{background:#3d7a48;color:#fff}
+html.dark .segchk label{background:#1b2026;color:#d7dee4;border-right-color:#3a434b}
+html.dark .segchk label.on{background:#3d7a48;color:#fff}
+html.dark #stageBox{background:#161b20;border-color:#3a434b}
+html.dark .stage-info{background:rgba(22,27,32,.8);color:#e7eae8}
+html.dark .stage-hint{background:rgba(22,27,32,.82)}
+html.dark .sbtn{background:rgba(30,36,41,.94);color:#d7dee4;border-color:#4a545e}
+html.dark .sbtn:hover{background:#243140;color:#9fc5e8}
+html.dark .menu{background:#1e2429;border-color:#4a545e;box-shadow:0 6px 18px rgba(0,0,0,.5)}
+html.dark .menu button{background:#1e2429;color:#e0e6ea}
+html.dark .menu button:hover{background:#243140}
+html.dark .menu .sep{background:#3a434b}
+html.dark .fs-prev{color:#cfd6da}
+html.dark .stepcard{background:#172230;border-color:#2f4f6f;border-left-color:var(--k3-accent)}
+html.dark .stepcard .bar .cnt, html.dark .stepcard .txt b{color:#9fc5e8}
+html.dark .stepcard .nav{background:#2e6fb7}
+html.dark .stepcard .nav:disabled{background:#33404c;color:#8a96a0}
+html.dark .coord{background:#1b2026;border-color:#3a434b}
+html.dark .coord input[type=number],html.dark .coord input[inputmode=decimal]{background:#11161a;color:#e7eae8;border-color:#4a545e}
+html.dark .coord input.ok{background:#1a2a1c;border-color:#5cb860;color:#a5d6a7}
+html.dark .coord input.bad{background:#2e1a1a;border-color:#e57373;color:#ffcdd2}
+html.dark input[type=checkbox]{background:#1b2026;border-color:#6b7780}
+html.dark input[type=checkbox]:checked{background:#4CAF50;border-color:#4CAF50}
+html.dark input[type=checkbox]:disabled{background:#2a3138;border-color:#4a545e}
+html.dark input[type=color]{background:#1b2026;border-color:#4a545e}
+html.dark input[type=text], html.dark input[type=number], html.dark select{background:#1b2026;color:#e7eae8;border-color:#4a545e}
+html.dark input:disabled, html.dark select:disabled{background:#262d34;color:#8a96a0;border-color:#3a434b;-webkit-text-fill-color:#8a96a0}
+html.dark .task{background:#2a2216;border-color:#6d5324;border-left-color:#ef6c00}
+html.dark .task .q{color:#ffcc80}
+html.dark .task-sub{color:#b8b0a4}
+html.dark .lay-hint{color:#ffab70}
+html.dark .btn-sol{background:#1b2026;color:#9fc5e8;border-color:#5b9bd9}
+html.dark .btn-sol:hover{background:#243140}
+html.dark .btn-next{background:#56656e}
+html.dark .btn-next:hover{background:#65767f}
+html.dark .fb.ok{background:#1a2a1c;border-color:#3d5a3d;color:#a5d6a7}
+html.dark .fb.bad{background:#2e1a1a;border-color:#6d3434;color:#ffab9f}
+html.dark .fb.warn{background:#2e2616;border-color:#6d5324;color:#ffcc80}
+html.dark .fb.sol{background:#172230;border-color:#2f4f6f;color:#9fc5e8}
+html.dark .set-line .lbl{color:#c8d0d6}
+html.dark .tip{text-decoration-color:#6f8aa3}
+html.dark .share{background:#1c2733;color:#9fc5e8;border-color:#2f4f6f}
+html.dark .sub-block, html.dark details.inner{background:#1b2026;border-color:#3a434b}
+html.dark .free-hint{color:#9aa5b1}
+@keyframes k3flashDunkel{0%,100%{background:transparent}25%,75%{background:#4a3f18}}
+html.dark .flash{animation-name:k3flashDunkel}
 @media(max-width:700px){ .coord-row:not(.tight){flex-direction:column;align-items:center} }
 @media(max-width:430px){ .coord-row.tight{flex-direction:column;align-items:center} }
 @media(max-width:560px){
   #stageBox{width:calc(100% - 64px);height:min(56vh,460px)}
   .coord input[type=range]{width:84px}
-  h1{font-size:1.2rem}
+  h1{font-size:1.2rem;padding-right:0;margin-top:52px}
   .axgrid.g5{grid-template-columns:2.4em repeat(4,4.2em)}
   .axgrid.g4{grid-template-columns:2.4em repeat(2,4.2em) auto}
   .set-line .lbl{min-width:7.5em}
 }
 </style>
 </head>
-<body>
-<h1>Punkte im 3D-Koordinatensystem einzeichnen</h1>
-<p class="sub">Schrägbild zeichnen, Schritt für Schritt – und dieselbe Situation direkt im Raum ansehen.</p>
+<body class="tk-seite">
+<header class="tool-kopf">
+  <div class="tk-text">
+    <h1 data-de="Punkte im 3D-Koordinatensystem einzeichnen" data-en="Plotting points in a 3D coordinate system">Punkte im 3D-Koordinatensystem einzeichnen</h1>
+    <p class="tk-unter" data-de="Schrägbild zeichnen – und dieselbe Situation direkt im Raum ansehen" data-en="Draw the oblique image – and view the same situation directly in space">Schrägbild zeichnen – und dieselbe Situation direkt im Raum ansehen</p>
+  </div>
+</header>
 
 <div class="switch-row">
-  <span class="seg" data-seg="mode"><button data-v="erk">Erkundungsmodus</button><button data-v="ueb">Übungsmodus</button></span>
+  <span class="seg" data-seg="mode"><button data-v="erk" data-de="Erkundung" data-en="Exploration">Erkundung</button><button data-v="ueb" data-de="Training" data-en="Practice">Training</button></span>
 </div>
 
 <!-- ===== Einstellungen ===== -->
 <details id="settings">
-<summary>Einstellungen</summary>
+<summary data-de="Einstellungen" data-en="Settings">Einstellungen</summary>
 <div class="settings-grid">
 
-  <div class="form-block" id="blkAxes"><b class="tip" data-tip="Aussehen, Lage und Beschriftung der drei Koordinatenachsen.">Achsen</b>
-    <div class="set-line"><span class="lbl tip" data-tip="Namen der Achsen: x, y, z (Mittelstufe), x₁, x₂, x₃ (Oberstufe) oder frei wählbar. Die Namen werden überall übernommen.">Bezeichnung</span>
-      <span class="seg small" data-seg="naming"><button data-v="xyz">x, y, z</button><button data-v="x123">x₁, x₂, x₃</button><button data-v="custom">frei</button></span>
+  <div class="form-block" id="blkAxes"><b class="tip" data-tip="Aussehen, Lage und Beschriftung der drei Koordinatenachsen." data-de-tip="Aussehen, Lage und Beschriftung der drei Koordinatenachsen." data-en-tip="Appearance, position and labels of the three coordinate axes." data-de="Achsen" data-en="Axes">Achsen</b>
+    <div class="set-line"><span class="lbl tip" data-tip="Namen der Achsen: x, y, z (Mittelstufe), x₁, x₂, x₃ (Oberstufe) oder frei wählbar. Die Namen werden überall übernommen." data-de-tip="Namen der Achsen: x, y, z (Mittelstufe), x₁, x₂, x₃ (Oberstufe) oder frei wählbar. Die Namen werden überall übernommen." data-en-tip="Names of the axes: x, y, z (lower secondary), x₁, x₂, x₃ (upper secondary) or your own choice. The names are used everywhere." data-de="Bezeichnung" data-en="Names">Bezeichnung</span>
+      <span class="seg small" data-seg="naming"><button data-v="xyz">x, y, z</button><button data-v="x123">x₁, x₂, x₃</button><button data-v="custom" data-de="frei" data-en="custom">frei</button></span>
       <span id="cnBox" class="hidden"><input type="text" class="tiny" id="cn0"><input type="text" class="tiny" id="cn1"><input type="text" class="tiny" id="cn2"></span>
     </div>
     <div class="set-line">
-      <label class="chk"><input type="checkbox" id="cbNames"> Achsen beschriften</label>
-      <label class="chk"><input type="checkbox" id="cbNums"> Zahlen</label>
-      <label class="chk"><input type="checkbox" id="cbTicks"> Striche</label>
-      <span>alle <input type="number" class="tiny" id="numEvery" min="0.5" step="0.5"> Einheiten</span>
+      <label class="chk"><input type="checkbox" id="cbNames"> <span data-de="Achsen beschriften" data-en="Label axes">Achsen beschriften</span></label>
+      <label class="chk"><input type="checkbox" id="cbNums"> <span data-de="Zahlen" data-en="Numbers">Zahlen</span></label>
+      <label class="chk"><input type="checkbox" id="cbTicks"> <span data-de="Striche" data-en="Ticks">Striche</span></label>
+      <span><span data-de="alle" data-en="every">alle</span> <input type="number" class="tiny" id="numEvery" min="0.5" step="0.5"> <span data-de="Einheiten" data-en="units">Einheiten</span></span>
     </div>
     <div class="set-line">
-      <label class="chk"><input type="checkbox" id="cbDeep2"> tiefe Achse nur jede 2. Stelle beschriften</label>
-      <label class="chk"><input type="checkbox" id="cbAxExt"> Achsen ein Kästchen länger als der letzte Wert</label>
-      <label class="chk"><input type="checkbox" id="cbHidDash"> verdeckte Achsen gestrichelt</label>
+      <label class="chk"><input type="checkbox" id="cbDeep2"> <span data-de="tiefe Achse nur jede 2. Stelle beschriften" data-en="label only every 2nd value on the depth axis">tiefe Achse nur jede 2. Stelle beschriften</span></label>
+      <label class="chk"><input type="checkbox" id="cbAxExt"> <span data-de="Achsen ein Kästchen länger als der letzte Wert" data-en="axes one square longer than the last value">Achsen ein Kästchen länger als der letzte Wert</span></label>
+      <label class="chk"><input type="checkbox" id="cbHidDash"> <span data-de="verdeckte Achsen gestrichelt" data-en="hidden axes dashed">verdeckte Achsen gestrichelt</span></label>
     </div>
-    <div class="set-line"><span class="lbl tip" data-tip="Größe und Fettschrift aller Zahlen und Achsennamen in der Zeichnung.">Schrift</span>
+    <div class="set-line"><span class="lbl tip" data-tip="Größe und Fettschrift aller Zahlen und Achsennamen in der Zeichnung." data-de-tip="Größe und Fettschrift aller Zahlen und Achsennamen in der Zeichnung." data-en-tip="Size and boldness of all numbers and axis names in the drawing." data-de="Schrift" data-en="Font">Schrift</span>
       <input type="range" id="fontRange" min="50" max="250" step="5" style="width:130px">
       <input type="number" class="tiny" id="fontScale" min="50" max="250" step="5"> %
-      <label class="chk"><input type="checkbox" id="cbLblBold"> fett</label>
-      <span class="fs-prev" id="fsPrev">Beispiel 12</span>
+      <label class="chk"><input type="checkbox" id="cbLblBold"> <span data-de="fett" data-en="bold">fett</span></label>
+      <span class="fs-prev" id="fsPrev" data-de="Beispiel 12" data-en="Example 12">Beispiel 12</span>
     </div>
-    <div class="set-line"><span class="lbl tip" data-tip="Farbe der Beschriftung: wie die jeweilige Achse, durchgehend schwarz oder je Achse eigene Farben.">Schriftfarbe</span>
-      <span class="seg small" data-seg="lblcol"><button data-v="axis">wie Achse</button><button data-v="black">schwarz</button><button data-v="custom">eigene</button></span>
+    <div class="set-line"><span class="lbl tip" data-tip="Farbe der Beschriftung: wie die jeweilige Achse, durchgehend schwarz oder je Achse eigene Farben." data-de-tip="Farbe der Beschriftung: wie die jeweilige Achse, durchgehend schwarz oder je Achse eigene Farben." data-en-tip="Colour of the labels: like the respective axis, black throughout or a separate colour for each axis." data-de="Schriftfarbe" data-en="Font colour">Schriftfarbe</span>
+      <span class="seg small" data-seg="lblcol"><button data-v="axis" data-de="wie Achse" data-en="like axis">wie Achse</button><button data-v="black" data-de="schwarz" data-en="black">schwarz</button><button data-v="custom" data-de="eigene" data-en="custom">eigene</button></span>
       <span id="lblColBox"><input type="color" id="lc0"><input type="color" id="lc1"><input type="color" id="lc2"></span>
     </div>
-    <div class="set-line"><span class="lbl tip" data-tip="Welche Achse wohin zeigt. Standard ist x nach vorne, y nach rechts, z nach oben; alternativ x nach rechts, y nach oben, z nach vorne. Unter „frei&quot; lässt sich jede Achse einzeln zuordnen.">Achsenlage</span>
-      <span class="seg small" data-seg="lay"><button data-v="std1" id="layL1"></button><button data-v="std2" id="layL2"></button><button data-v="frei">frei</button></span>
+    <div class="set-line"><span class="lbl tip" data-tip="Welche Achse wohin zeigt. Standard ist x nach vorne, y nach rechts, z nach oben; alternativ x nach rechts, y nach oben, z nach vorne. Unter „frei&quot; lässt sich jede Achse einzeln zuordnen." data-de-tip="Welche Achse wohin zeigt. Standard ist x nach vorne, y nach rechts, z nach oben; alternativ x nach rechts, y nach oben, z nach vorne. Unter „frei&quot; lässt sich jede Achse einzeln zuordnen." data-en-tip="Which axis points where. The default is x to the front, y to the right, z upwards; alternatively x to the right, y upwards, z to the front. Under “custom” each axis can be assigned individually." data-de="Achsenlage" data-en="Axis layout">Achsenlage</span>
+      <span class="seg small" data-seg="lay"><button data-v="std1" id="layL1"></button><button data-v="std2" id="layL2"></button><button data-v="frei" data-de="frei" data-en="custom">frei</button></span>
     </div>
     <div class="axgrid g4 hidden" id="layGrid"></div>
-    <div class="set-line"><span class="lbl tip" data-tip="Art des Schrägbilds. Karopapier: eine Einheit der Tiefenachse ist ein Kästchen diagonal. Darunter lassen sich die Richtungen als 2D-Vektoren frei einstellen.">Richtung der Achsen</span>
+    <div class="set-line"><span class="lbl tip" data-tip="Art des Schrägbilds. Karopapier: eine Einheit der Tiefenachse ist ein Kästchen diagonal. Darunter lassen sich die Richtungen als 2D-Vektoren frei einstellen." data-de-tip="Art des Schrägbilds. Karopapier: eine Einheit der Tiefenachse ist ein Kästchen diagonal. Darunter lassen sich die Richtungen als 2D-Vektoren frei einstellen." data-en-tip="Type of oblique drawing. Squared paper: one unit on the depth axis is one square diagonally. Below, the directions can be set freely as 2D vectors." data-de="Richtung der Achsen" data-en="Axis directions">Richtung der Achsen</span>
       <select id="selProj" class="sel-proj">
-        <option value="karo">Karopapier (1 Einheit = 1 Kästchen diagonal)</option>
-        <option value="kabinett">Kabinett (45°, Verkürzung ½)</option>
-        <option value="kavalier">Kavalier (45°, ohne Verkürzung)</option>
-        <option value="iso">isometrisch (30°/30°)</option>
-        <option value="frei">eigene Werte</option>
+        <option value="karo" data-de="Karopapier (1 Einheit = 1 Kästchen diagonal)" data-en="Squared paper (1 unit = 1 square diagonally)">Karopapier (1 Einheit = 1 Kästchen diagonal)</option>
+        <option value="kabinett" data-de="Kabinett (45°, Verkürzung ½)" data-en="Cabinet (45°, foreshortening ½)">Kabinett (45°, Verkürzung ½)</option>
+        <option value="kavalier" data-de="Kavalier (45°, ohne Verkürzung)" data-en="Cavalier (45°, no foreshortening)">Kavalier (45°, ohne Verkürzung)</option>
+        <option value="iso" data-de="isometrisch (30°/30°)" data-en="isometric (30°/30°)">isometrisch (30°/30°)</option>
+        <option value="frei" data-de="eigene Werte" data-en="custom values">eigene Werte</option>
       </select>
     </div>
     <div class="axgrid g4" id="dirGrid"></div>
-    <p class="hint">Angabe als 2D-Vektor in Kästchen: nach rechts / nach oben.</p>
-    <div class="set-line"><span class="lbl tip" data-tip="„dynamisch&quot; passt den sichtbaren Zahlenbereich automatisch an den Zeichenbereich an – beim Zoomen und Verschieben ändert er sich mit. Sonst gelten die eingetragenen Werte von/bis.">Bereich / Skalierung</span>
-      <label class="chk"><input type="checkbox" id="cbDyn"> dynamisch (füllt den Zeichenbereich)</label>
-      <label class="chk" id="axFullWrap"><input type="checkbox" id="cbAxFull"> Achsen bis zum Rand</label>
-      <label class="chk"><input type="checkbox" id="cbScaleEq"> überall gleiche Skalierung</label>
-      <label class="chk"><input type="checkbox" id="cbColEq"> überall gleiche Farbe</label>
+    <p class="hint" data-de="Angabe als 2D-Vektor in Kästchen: nach rechts / nach oben." data-en="Given as a 2D vector in squares: to the right / upwards.">Angabe als 2D-Vektor in Kästchen: nach rechts / nach oben.</p>
+    <div class="set-line"><span class="lbl tip" data-tip="„dynamisch&quot; passt den sichtbaren Zahlenbereich automatisch an den Zeichenbereich an – beim Zoomen und Verschieben ändert er sich mit. Sonst gelten die eingetragenen Werte von/bis." data-de-tip="„dynamisch&quot; passt den sichtbaren Zahlenbereich automatisch an den Zeichenbereich an – beim Zoomen und Verschieben ändert er sich mit. Sonst gelten die eingetragenen Werte von/bis." data-en-tip="“dynamic” adapts the visible range of numbers to the drawing area automatically – it changes as you zoom and pan. Otherwise the entered from/to values apply." data-de="Bereich / Skalierung" data-en="Range / scale">Bereich / Skalierung</span>
+      <label class="chk"><input type="checkbox" id="cbDyn"> <span data-de="dynamisch (füllt den Zeichenbereich)" data-en="dynamic (fills the drawing area)">dynamisch (füllt den Zeichenbereich)</span></label>
+      <label class="chk" id="axFullWrap"><input type="checkbox" id="cbAxFull"> <span data-de="Achsen bis zum Rand" data-en="axes up to the edge">Achsen bis zum Rand</span></label>
+      <label class="chk"><input type="checkbox" id="cbScaleEq"> <span data-de="überall gleiche Skalierung" data-en="same scale everywhere">überall gleiche Skalierung</span></label>
+      <label class="chk"><input type="checkbox" id="cbColEq"> <span data-de="überall gleiche Farbe" data-en="same colour everywhere">überall gleiche Farbe</span></label>
     </div>
     <div class="axgrid g5" id="axGrid"></div>
     <div class="set-line">
-      <label class="chk"><input type="checkbox" id="cbColorful"> farbige Achsen (x rot, y grün, z blau)</label>
+      <label class="chk"><input type="checkbox" id="cbColorful"> <span data-de="farbige Achsen (x rot, y grün, z blau)" data-en="coloured axes (x red, y green, z blue)">farbige Achsen (x rot, y grün, z blau)</span></label>
     </div>
     <div class="set-line">
-      <label class="chk"><input type="checkbox" id="cbNeg"> negative Achsenteile zeichnen</label>
-      <span id="negBox">Farbe:
-        <span class="seg small" data-seg="neg"><button data-v="same">wie Achse</button><button data-v="gray">hellgrau</button><button data-v="custom">eigene</button></span>
+      <label class="chk"><input type="checkbox" id="cbNeg"> <span data-de="negative Achsenteile zeichnen" data-en="draw negative parts of the axes">negative Achsenteile zeichnen</span></label>
+      <span id="negBox"><span data-de="Farbe:" data-en="Colour:">Farbe:</span>
+        <span class="seg small" data-seg="neg"><button data-v="same" data-de="wie Achse" data-en="like axis">wie Achse</button><button data-v="gray" data-de="hellgrau" data-en="light grey">hellgrau</button><button data-v="custom" data-de="eigene" data-en="custom">eigene</button></span>
         <input type="color" id="negCol">
       </span>
     </div>
   </div>
 
-  <div class="form-block" id="blkGrid"><b class="tip" data-tip="Welche Koordinatenebenen als Gitter gezeichnet werden und wie das Gitter aussieht.">Raster</b>
-    <div class="set-line"><label class="chk"><input type="checkbox" id="cbNoGrid"> kein Raster</label></div>
+  <div class="form-block" id="blkGrid"><b class="tip" data-tip="Welche Koordinatenebenen als Gitter gezeichnet werden und wie das Gitter aussieht." data-de-tip="Welche Koordinatenebenen als Gitter gezeichnet werden und wie das Gitter aussieht." data-en-tip="Which coordinate planes are drawn as a grid and what the grid looks like." data-de="Raster" data-en="Grid">Raster</b>
+    <div class="set-line"><label class="chk"><input type="checkbox" id="cbNoGrid"> <span data-de="kein Raster" data-en="no grid">kein Raster</span></label></div>
     <div id="gridSettings">
-    <div class="set-line"><span class="lbl tip" data-tip="Karopapier zeigt das gewohnte Gitter der Zeichenebene, Boden und Wand die jeweilige Koordinatenebene, Ecke alle drei im positiven Bereich (wie eine Zimmerecke).">Ebenen</span>
+    <div class="set-line"><span class="lbl tip" data-tip="Karopapier zeigt das gewohnte Gitter der Zeichenebene, Boden und Wand die jeweilige Koordinatenebene, Ecke alle drei im positiven Bereich (wie eine Zimmerecke)." data-de-tip="Karopapier zeigt das gewohnte Gitter der Zeichenebene, Boden und Wand die jeweilige Koordinatenebene, Ecke alle drei im positiven Bereich (wie eine Zimmerecke)." data-en-tip="Squares shows the usual grid of the drawing plane, floor and wall the respective coordinate plane, corner all three in the positive region (like the corner of a room)." data-de="Ebenen" data-en="Planes">Ebenen</span>
       <span class="seg small" data-seg="grid">
-        <button data-v="karo">Karo (<span class="nm-karo"></span>)</button>
-        <button data-v="boden">Boden (<span class="nm-boden"></span>)</button>
-        <button data-v="wand">Wand (<span class="nm-wand"></span>)</button>
-        <button data-v="ecke">Ecke</button>
-        <button data-v="frei">eigene</button>
+        <button data-v="karo"><span data-de="Karo" data-en="Squares">Karo</span> (<span class="nm-karo"></span>)</button>
+        <button data-v="boden"><span data-de="Boden" data-en="Floor">Boden</span> (<span class="nm-boden"></span>)</button>
+        <button data-v="wand"><span data-de="Wand" data-en="Wall">Wand</span> (<span class="nm-wand"></span>)</button>
+        <button data-v="ecke" data-de="Ecke" data-en="Corner">Ecke</button>
+        <button data-v="frei" data-de="eigene" data-en="custom">eigene</button>
       </span>
     </div>
     <div class="sub-block hidden" id="gridFree">
-      <div class="set-line"><span style="width:100%;font-size:12.5px;color:#6f7a83">Welche Ebenen sollen gezeichnet werden – und jeweils auch der negative Teil?</span></div>
-      <div class="set-line"><label class="chk"><input type="checkbox" class="gpl" data-p="yz"> <span class="nm-yz"></span>-Ebene</label>
-        <label class="chk"><input type="checkbox" class="gneg" data-p="yz"> auch negativ</label></div>
-      <div class="set-line"><label class="chk"><input type="checkbox" class="gpl" data-p="xy"> <span class="nm-xy"></span>-Ebene</label>
-        <label class="chk"><input type="checkbox" class="gneg" data-p="xy"> auch negativ</label></div>
-      <div class="set-line"><label class="chk"><input type="checkbox" class="gpl" data-p="xz"> <span class="nm-xz"></span>-Ebene</label>
-        <label class="chk"><input type="checkbox" class="gneg" data-p="xz"> auch negativ</label></div>
+      <div class="set-line"><span class="free-hint" data-de="Welche Ebenen sollen gezeichnet werden – und jeweils auch der negative Teil?" data-en="Which planes should be drawn – and the negative part of each as well?">Welche Ebenen sollen gezeichnet werden – und jeweils auch der negative Teil?</span></div>
+      <div class="set-line"><label class="chk"><input type="checkbox" class="gpl" data-p="yz"> <span class="nm-yz"></span><span data-de="-Ebene" data-en="-plane">-Ebene</span></label>
+        <label class="chk"><input type="checkbox" class="gneg" data-p="yz"> <span data-de="auch negativ" data-en="also negative">auch negativ</span></label></div>
+      <div class="set-line"><label class="chk"><input type="checkbox" class="gpl" data-p="xy"> <span class="nm-xy"></span><span data-de="-Ebene" data-en="-plane">-Ebene</span></label>
+        <label class="chk"><input type="checkbox" class="gneg" data-p="xy"> <span data-de="auch negativ" data-en="also negative">auch negativ</span></label></div>
+      <div class="set-line"><label class="chk"><input type="checkbox" class="gpl" data-p="xz"> <span class="nm-xz"></span><span data-de="-Ebene" data-en="-plane">-Ebene</span></label>
+        <label class="chk"><input type="checkbox" class="gneg" data-p="xz"> <span data-de="auch negativ" data-en="also negative">auch negativ</span></label></div>
     </div>
-    <div class="set-line"><span class="lbl tip" data-tip="Kantenlänge der Rasterkästchen in Einheiten. 0,5 entspricht dem üblichen Karopapier mit zwei Kästchen je Einheit.">Abstand</span>
-      <label class="chk"><input type="checkbox" id="cbGridEq"> überall gleich</label>
+    <div class="set-line"><span class="lbl tip" data-tip="Kantenlänge der Rasterkästchen in Einheiten. 0,5 entspricht dem üblichen Karopapier mit zwei Kästchen je Einheit." data-de-tip="Kantenlänge der Rasterkästchen in Einheiten. 0,5 entspricht dem üblichen Karopapier mit zwei Kästchen je Einheit." data-en-tip="Side length of the grid squares in units. 0.5 corresponds to the usual squared paper with two squares per unit." data-de="Abstand" data-en="Spacing">Abstand</span>
+      <label class="chk"><input type="checkbox" id="cbGridEq"> <span data-de="überall gleich" data-en="same everywhere">überall gleich</span></label>
       <span id="gsBox"></span>
     </div>
-    <div class="set-line"><span class="lbl tip" data-tip="Farbe und Linienart des Rasters. Betonte Linien helfen beim Abzählen ganzer Einheiten.">Aussehen</span>
+    <div class="set-line"><span class="lbl tip" data-tip="Farbe und Linienart des Rasters. Betonte Linien helfen beim Abzählen ganzer Einheiten." data-de-tip="Farbe und Linienart des Rasters. Betonte Linien helfen beim Abzählen ganzer Einheiten." data-en-tip="Colour and line style of the grid. Emphasised lines help with counting whole units." data-de="Aussehen" data-en="Appearance">Aussehen</span>
       <input type="color" id="gridCol">
-      <span class="seg small" data-seg="gridstyle"><button data-v="solid">durchgezogen</button><button data-v="dash">gestrichelt</button></span>
-      <label class="chk"><input type="checkbox" id="cbGridBold"> jede</label>
-      <input type="number" class="tiny" id="gridBoldN" min="2" max="20" step="1"> <span>. Linie betonen</span>
+      <span class="seg small" data-seg="gridstyle"><button data-v="solid" data-de="durchgezogen" data-en="solid">durchgezogen</button><button data-v="dash" data-de="gestrichelt" data-en="dashed">gestrichelt</button></span>
+      <label class="chk"><input type="checkbox" id="cbGridBold"> <span data-de="jede" data-en="bold line every">jede</span></label>
+      <input type="number" class="tiny" id="gridBoldN" min="2" max="20" step="1"> <span data-de=". Linie betonen" data-en=" lines">. Linie betonen</span>
     </div>
     </div>
   </div>
 
-  <div class="form-block"><b class="tip" data-tip="Wie eingezeichnete Punkte aussehen und beschriftet werden.">Darstellung der Punkte</b>
-    <div class="set-line"><span class="lbl tip" data-tip="Wie eingezeichnete Punkte dargestellt werden und in welcher Farbe.">Punktsymbol</span>
-      <span class="seg small" data-seg="ptstyle"><button data-v="dot">Punkt</button><button data-v="cross">Kreuz</button><button data-v="circle">Kreis</button></span>
+  <div class="form-block"><b class="tip" data-tip="Wie eingezeichnete Punkte aussehen und beschriftet werden." data-de-tip="Wie eingezeichnete Punkte aussehen und beschriftet werden." data-en-tip="How plotted points look and are labelled." data-de="Darstellung der Punkte" data-en="Point display">Darstellung der Punkte</b>
+    <div class="set-line"><span class="lbl tip" data-tip="Wie eingezeichnete Punkte dargestellt werden und in welcher Farbe." data-de-tip="Wie eingezeichnete Punkte dargestellt werden und in welcher Farbe." data-en-tip="How plotted points are shown and in which colour." data-de="Punktsymbol" data-en="Point symbol">Punktsymbol</span>
+      <span class="seg small" data-seg="ptstyle"><button data-v="dot" data-de="Punkt" data-en="Dot">Punkt</button><button data-v="cross" data-de="Kreuz" data-en="Cross">Kreuz</button><button data-v="circle" data-de="Kreis" data-en="Circle">Kreis</button></span>
       <input type="color" id="ptCol">
     </div>
-    <div class="set-line"><span class="lbl tip" data-tip="Ob am Punkt nur sein Name, Name und Koordinaten oder gar nichts steht.">Beschriftung</span>
-      <span class="seg small" data-seg="ptlabel"><button data-v="both">Name+Koord.</button><button data-v="name">nur Name</button><button data-v="none">keine</button></span>
+    <div class="set-line"><span class="lbl tip" data-tip="Ob am Punkt nur sein Name, Name und Koordinaten oder gar nichts steht." data-de-tip="Ob am Punkt nur sein Name, Name und Koordinaten oder gar nichts steht." data-en-tip="Whether the point shows only its name, its name and coordinates, or nothing at all." data-de="Beschriftung" data-en="Label">Beschriftung</span>
+      <span class="seg small" data-seg="ptlabel"><button data-v="both" data-de="Name+Koord." data-en="Name+coord.">Name+Koord.</button><button data-v="name" data-de="nur Name" data-en="name only">nur Name</button><button data-v="none" data-de="keine" data-en="none">keine</button></span>
     </div>
-    <div class="set-line"><label class="chk"><input type="checkbox" id="cbBase"> Grundpunkt in der Grundebene mitzeichnen</label></div>
+    <div class="set-line"><label class="chk"><input type="checkbox" id="cbBase"> <span data-de="Grundpunkt in der Grundebene mitzeichnen" data-en="also draw the base point in the ground plane">Grundpunkt in der Grundebene mitzeichnen</span></label></div>
   </div>
 
-  <div class="form-block" id="blkErk"><b class="tip" data-tip="Einstellungen für das freie Erkunden: Auf welchem Weg der Punkt Schritt für Schritt entsteht.">Erkundungsmodus</b>
-    <div class="set-line"><span class="lbl tip" data-tip="Reihenfolge der Konstruktion im Erkundungsmodus: Achse für Achse, erst die beiden Koordinaten der Zeichenebene, erst der Grundpunkt in der Grundebene oder über den Koordinatenquader.">Weg zum Punkt</span>
+  <div class="form-block" id="blkErk"><b class="tip" data-tip="Einstellungen für das freie Erkunden: Auf welchem Weg der Punkt Schritt für Schritt entsteht." data-de-tip="Einstellungen für das freie Erkunden: Auf welchem Weg der Punkt Schritt für Schritt entsteht." data-en-tip="Settings for free exploration: the route by which the point is built up step by step." data-de="Erkundungsmodus" data-en="Explore mode">Erkundungsmodus</b>
+    <div class="set-line"><span class="lbl tip" data-tip="Reihenfolge der Konstruktion im Erkundungsmodus: Achse für Achse, erst die beiden Koordinaten der Zeichenebene, erst der Grundpunkt in der Grundebene oder über den Koordinatenquader." data-de-tip="Reihenfolge der Konstruktion im Erkundungsmodus: Achse für Achse, erst die beiden Koordinaten der Zeichenebene, erst der Grundpunkt in der Grundebene oder über den Koordinatenquader." data-en-tip="Order of construction in explore mode: axis by axis, first the two coordinates of the drawing plane, first the base point in the ground plane, or via the coordinate cuboid." data-de="Weg zum Punkt" data-en="Route to the point">Weg zum Punkt</span>
       <span class="seg small" data-seg="app"></span>
     </div>
-    <div class="set-line" id="orderLine"><span class="lbl tip" data-tip="Bei „Achse für Achse&quot;: welche Koordinate zuerst abgetragen wird.">Reihenfolge</span>
-      <span class="seg small" data-seg="order"><button data-v="012">1. – 2. – 3.</button><button data-v="102">2. – 1. – 3.</button><button data-v="201">3. – 1. – 2.</button></span>
+    <div class="set-line" id="orderLine"><span class="lbl tip" data-tip="Bei „Achse für Achse&quot;: welche Koordinate zuerst abgetragen wird." data-de-tip="Bei „Achse für Achse&quot;: welche Koordinate zuerst abgetragen wird." data-en-tip="With “axis by axis”: which coordinate is plotted first." data-de="Reihenfolge" data-en="Order">Reihenfolge</span>
+      <span class="seg small" data-seg="order"><button data-v="012" data-de="1. – 2. – 3." data-en="1st – 2nd – 3rd">1. – 2. – 3.</button><button data-v="102" data-de="2. – 1. – 3." data-en="2nd – 1st – 3rd">2. – 1. – 3.</button><button data-v="201" data-de="3. – 1. – 2." data-en="3rd – 1st – 2nd">3. – 1. – 2.</button></span>
     </div>
-    <div class="set-line"><label class="chk"><input type="checkbox" class="cbInt" id="cbInt"> nur ganzzahlige Koordinaten eingeben</label></div>
+    <div class="set-line"><label class="chk"><input type="checkbox" class="cbInt" id="cbInt"> <span data-de="nur ganzzahlige Koordinaten eingeben" data-en="enter whole-number coordinates only">nur ganzzahlige Koordinaten eingeben</span></label></div>
   </div>
 
-  <div class="form-block" id="blkUeb"><b class="tip" data-tip="Einstellungen für die Aufgaben: Art, Schwierigkeit, Zahlenbereich und Genauigkeit.">Übungsmodus</b>
-    <div class="set-line"><span class="lbl tip" data-tip="Voreinstellungen für alle Aufgaben-Einstellungen. „Individuell&quot; öffnet die Einzeleinstellungen.">Schwierigkeit</span>
-      <span class="seg small" data-seg="diff"><button data-v="einf">Einführung</button><button data-v="leicht">Leicht</button><button data-v="normal">Normal</button><button data-v="heraus">Herausfordernd</button><button data-v="indiv">Individuell</button></span>
+  <div class="form-block" id="blkUeb"><b class="tip" data-tip="Einstellungen für die Aufgaben: Art, Schwierigkeit, Zahlenbereich und Genauigkeit." data-de-tip="Einstellungen für die Aufgaben: Art, Schwierigkeit, Zahlenbereich und Genauigkeit." data-en-tip="Settings for the tasks: type, difficulty, range of numbers and accuracy." data-de="Übungsmodus" data-en="Practice mode">Übungsmodus</b>
+    <div class="set-line"><span class="lbl tip" data-tip="Voreinstellungen für alle Aufgaben-Einstellungen. „Individuell&quot; öffnet die Einzeleinstellungen." data-de-tip="Voreinstellungen für alle Aufgaben-Einstellungen. „Individuell&quot; öffnet die Einzeleinstellungen." data-en-tip="Presets for all task settings. “Custom” opens the individual settings." data-de="Schwierigkeit" data-en="Difficulty">Schwierigkeit</span>
+      <span class="seg small" data-seg="diff"><button data-v="einf" data-de="Einführung" data-en="Introduction">Einführung</button><button data-v="leicht" data-de="Leicht" data-en="Easy">Leicht</button><button data-v="normal">Normal</button><button data-v="heraus" data-de="Herausfordernd" data-en="Challenging">Herausfordernd</button><button data-v="indiv" data-de="Individuell" data-en="Custom">Individuell</button></span>
     </div>
-    <div class="set-line"><span class="lbl tip" data-tip="Welche Aufgabenarten gestellt werden. Mehrere möglich – es wird dann zufällig gewählt.">Aufgabentypen</span>
+    <div class="set-line"><span class="lbl tip" data-tip="Welche Aufgabenarten gestellt werden. Mehrere möglich – es wird dann zufällig gewählt." data-de-tip="Welche Aufgabenarten gestellt werden. Mehrere möglich – es wird dann zufällig gewählt." data-en-tip="Which kinds of tasks are set. Several are possible – one is then chosen at random." data-de="Aufgabentypen" data-en="Task types">Aufgabentypen</span>
       <span class="seg small segchk" data-chips="utypes"></span>
     </div>
-    <div class="set-line" id="readAppLine"><span class="lbl tip" data-tip="Nach welchem Weg die Hilfsstrecken beim Ablesen gezeichnet werden. Mehrere Wege möglich; „wie im Erkundungsmodus&quot; übernimmt die dortige Einstellung.">Weg beim Ablesen</span>
-      <label class="chk"><input type="checkbox" id="cbReadLike"> wie im Erkundungsmodus</label>
+    <div class="set-line" id="readAppLine"><span class="lbl tip" data-tip="Nach welchem Weg die Hilfsstrecken beim Ablesen gezeichnet werden. Mehrere Wege möglich; „wie im Erkundungsmodus&quot; übernimmt die dortige Einstellung." data-de-tip="Nach welchem Weg die Hilfsstrecken beim Ablesen gezeichnet werden. Mehrere Wege möglich; „wie im Erkundungsmodus&quot; übernimmt die dortige Einstellung." data-en-tip="Which route the auxiliary lines follow when reading off. Several routes are possible; “as in explore mode” uses the setting there." data-de="Weg beim Ablesen" data-en="Route when reading off">Weg beim Ablesen</span>
+      <label class="chk"><input type="checkbox" id="cbReadLike"> <span data-de="wie im Erkundungsmodus" data-en="as in explore mode">wie im Erkundungsmodus</span></label>
     </div>
     <div class="set-line" id="readAppLine2"><span class="lbl"></span>
       <span class="seg small segchk" data-chips="readapps"></span>
     </div>
-    <details class="inner" id="findBox"><summary>Welche Fragen bei „Punkte gesucht"?</summary>
+    <details class="inner" id="findBox"><summary data-de="Welche Fragen bei „Punkte gesucht&quot;?" data-en="Which questions for “Find points”?">Welche Fragen bei „Punkte gesucht"?</summary>
       <div class="chip-list" id="findList" style="flex-direction:column;gap:4px;margin-top:6px"></div>
-      <div><button class="share" id="findAll">alle / keine</button></div>
+      <div><button class="share" id="findAll" data-de="alle / keine" data-en="all / none">alle / keine</button></div>
     </details>
-    <div class="set-line"><span class="lbl tip" data-tip="Woher die Zahlen der Aufgaben stammen: aus dem gerade sichtbaren Bereich oder aus einem festen Zahlenbereich. Punkte liegen immer im sichtbaren Ausschnitt.">Koordinaten</span>
-      <span class="seg small" data-seg="urange"><button data-v="view">sichtbar</button><button data-v="fix">fest</button></span>
-      <label class="chk" id="uEqWrap"><input type="checkbox" id="cbUEq"> überall gleich</label>
+    <div class="set-line"><span class="lbl tip" data-tip="Woher die Zahlen der Aufgaben stammen: aus dem gerade sichtbaren Bereich oder aus einem festen Zahlenbereich. Punkte liegen immer im sichtbaren Ausschnitt." data-de-tip="Woher die Zahlen der Aufgaben stammen: aus dem gerade sichtbaren Bereich oder aus einem festen Zahlenbereich. Punkte liegen immer im sichtbaren Ausschnitt." data-en-tip="Where the numbers in the tasks come from: the currently visible range or a fixed range of numbers. Points always lie in the visible section." data-de="Koordinaten" data-en="Coordinates">Koordinaten</span>
+      <span class="seg small" data-seg="urange"><button data-v="view" data-de="sichtbar" data-en="visible">sichtbar</button><button data-v="fix" data-de="fest" data-en="fixed">fest</button></span>
+      <label class="chk" id="uEqWrap"><input type="checkbox" id="cbUEq"> <span data-de="überall gleich" data-en="same everywhere">überall gleich</span></label>
     </div>
     <div class="axgrid g4" id="uRngGrid"></div>
     <div class="set-line">
-      <label class="chk"><input type="checkbox" id="cbUPos"> nur positive Werte</label>
-      <label class="chk"><input type="checkbox" id="cbUFrac"> auch gebrochene Zahlen</label>
-      <span>mit <input type="number" class="tiny" id="uFracP" min="0" max="100" step="5"> % je Koordinate</span>
+      <label class="chk"><input type="checkbox" id="cbUPos"> <span data-de="nur positive Werte" data-en="positive values only">nur positive Werte</span></label>
+      <label class="chk"><input type="checkbox" id="cbUFrac"> <span data-de="auch gebrochene Zahlen" data-en="also fractional numbers">auch gebrochene Zahlen</span></label>
+      <span><span data-de="mit" data-en="with">mit</span> <input type="number" class="tiny" id="uFracP" min="0" max="100" step="5"> <span data-de="% je Koordinate" data-en="% per coordinate">% je Koordinate</span></span>
     </div>
     <div class="set-line">
-      <label class="chk"><input type="checkbox" id="cbUEven"> nur gerade Werte auf der tiefen Achse</label>
-      <label class="chk"><input type="checkbox" id="cbUOnlySel"> nur ausgewählte Ansicht</label>
+      <label class="chk"><input type="checkbox" id="cbUEven"> <span data-de="nur gerade Werte auf der tiefen Achse" data-en="only even values on the depth axis">nur gerade Werte auf der tiefen Achse</span></label>
+      <label class="chk"><input type="checkbox" id="cbUOnlySel"> <span data-de="nur ausgewählte Ansicht" data-en="selected view only">nur ausgewählte Ansicht</span></label>
     </div>
-    <div class="set-line"><span class="lbl tip" data-tip="Wie genau beim Einzeichnen getroffen werden muss.">Genauigkeit</span>
-      <span class="seg small" data-seg="tol"><button data-v="streng">streng</button><button data-v="normal">normal</button><button data-v="gross">großzügig</button></span>
-      <label class="chk"><input type="checkbox" id="cbAutoHelp"> bei falscher Antwort Lösung anzeigen</label>
+    <div class="set-line"><span class="lbl tip" data-tip="Wie genau beim Einzeichnen getroffen werden muss." data-de-tip="Wie genau beim Einzeichnen getroffen werden muss." data-en-tip="How precisely the position has to be hit when plotting." data-de="Genauigkeit" data-en="Accuracy">Genauigkeit</span>
+      <span class="seg small" data-seg="tol"><button data-v="streng" data-de="streng" data-en="strict">streng</button><button data-v="normal">normal</button><button data-v="gross" data-de="großzügig" data-en="generous">großzügig</button></span>
+      <label class="chk"><input type="checkbox" id="cbAutoHelp"> <span data-de="bei falscher Antwort Lösung anzeigen" data-en="show the solution after a wrong answer">bei falscher Antwort Lösung anzeigen</span></label>
     </div>
   </div>
 
 </div>
-<div style="text-align:center"><button class="share" id="btnReset">↺ Standard wiederherstellen</button></div>
+<div style="text-align:center"><button class="share" id="btnReset" data-de="↺ Standard wiederherstellen" data-en="↺ Restore defaults">↺ Standard wiederherstellen</button></div>
 </details>
 
 <!-- ===== Schnelleinstellungen ===== -->
 <div class="quickbar">
-  <div class="qgrp"><span class="qlbl tip" data-tip="Art des Schrägbilds – wie die Tiefenachse gezeichnet wird.">Ansicht</span>
+  <div class="qgrp"><span class="qlbl tip" data-tip="Art des Schrägbilds – wie die Tiefenachse gezeichnet wird." data-de-tip="Art des Schrägbilds – wie die Tiefenachse gezeichnet wird." data-en-tip="Type of oblique drawing – how the depth axis is drawn." data-de="Ansicht" data-en="View">Ansicht</span>
     <select class="sel-proj">
-      <option value="karo">Karopapier (1 Einheit = 1 Kästchen diagonal)</option>
-      <option value="kabinett">Kabinett (45°, Verkürzung ½)</option>
-      <option value="kavalier">Kavalier (45°, ohne Verkürzung)</option>
-      <option value="iso">isometrisch (30°/30°)</option>
-      <option value="frei">eigene Werte</option>
+      <option value="karo" data-de="Karopapier (1 Einheit = 1 Kästchen diagonal)" data-en="Squared paper (1 unit = 1 square diagonally)">Karopapier (1 Einheit = 1 Kästchen diagonal)</option>
+      <option value="kabinett" data-de="Kabinett (45°, Verkürzung ½)" data-en="Cabinet (45°, foreshortening ½)">Kabinett (45°, Verkürzung ½)</option>
+      <option value="kavalier" data-de="Kavalier (45°, ohne Verkürzung)" data-en="Cavalier (45°, no foreshortening)">Kavalier (45°, ohne Verkürzung)</option>
+      <option value="iso" data-de="isometrisch (30°/30°)" data-en="isometric (30°/30°)">isometrisch (30°/30°)</option>
+      <option value="frei" data-de="eigene Werte" data-en="custom values">eigene Werte</option>
     </select>
   </div>
-  <div class="qgrp"><span class="qlbl tip" data-tip="Welche Koordinatenebene als Gitter gezeichnet wird.">Raster</span>
+  <div class="qgrp"><span class="qlbl tip" data-tip="Welche Koordinatenebene als Gitter gezeichnet wird." data-de-tip="Welche Koordinatenebene als Gitter gezeichnet wird." data-en-tip="Which coordinate plane is drawn as a grid." data-de="Raster" data-en="Grid">Raster</span>
     <span class="seg small" data-seg="grid">
-      <button data-v="aus">aus</button>
-      <button data-v="karo">Karo (<span class="nm-karo"></span>)</button>
-      <button data-v="boden">Boden (<span class="nm-boden"></span>)</button>
-      <button data-v="wand">Wand (<span class="nm-wand"></span>)</button>
-      <button data-v="ecke">Ecke</button>
-      <button data-v="frei">eigene</button>
+      <button data-v="aus" data-de="aus" data-en="off">aus</button>
+      <button data-v="karo"><span data-de="Karo" data-en="Squares">Karo</span> (<span class="nm-karo"></span>)</button>
+      <button data-v="boden"><span data-de="Boden" data-en="Floor">Boden</span> (<span class="nm-boden"></span>)</button>
+      <button data-v="wand"><span data-de="Wand" data-en="Wall">Wand</span> (<span class="nm-wand"></span>)</button>
+      <button data-v="ecke" data-de="Ecke" data-en="Corner">Ecke</button>
+      <button data-v="frei" data-de="eigene" data-en="custom">eigene</button>
     </span>
   </div>
-  <div class="qgrp erk-only"><span class="qlbl tip" data-tip="Auf welchem Weg der Punkt Schritt für Schritt entsteht.">Weg zum Punkt</span><span class="seg small" data-seg="app"></span></div>
-  <div class="qgrp ueb-only"><span class="qlbl tip" data-tip="Welche Aufgabenarten gestellt werden – mehrere möglich.">Aufgabentyp</span><span class="seg small segchk" data-chips="utypes"></span></div>
-  <div class="qgrp ueb-only"><span class="qlbl tip" data-tip="Voreinstellung für alle Aufgaben-Einstellungen.">Schwierigkeit</span>
-    <span class="seg small" data-seg="diff"><button data-v="einf">Einführung</button><button data-v="leicht">Leicht</button><button data-v="normal">Normal</button><button data-v="heraus">Herausfordernd</button><button data-v="indiv">Individuell</button></span>
+  <div class="qgrp erk-only"><span class="qlbl tip" data-tip="Auf welchem Weg der Punkt Schritt für Schritt entsteht." data-de-tip="Auf welchem Weg der Punkt Schritt für Schritt entsteht." data-en-tip="The route by which the point is built up step by step." data-de="Weg zum Punkt" data-en="Route to the point">Weg zum Punkt</span><span class="seg small" data-seg="app"></span></div>
+  <div class="qgrp ueb-only"><span class="qlbl tip" data-tip="Welche Aufgabenarten gestellt werden – mehrere möglich." data-de-tip="Welche Aufgabenarten gestellt werden – mehrere möglich." data-en-tip="Which kinds of tasks are set – several are possible." data-de="Aufgabentyp" data-en="Task type">Aufgabentyp</span><span class="seg small segchk" data-chips="utypes"></span></div>
+  <div class="qgrp ueb-only"><span class="qlbl tip" data-tip="Voreinstellung für alle Aufgaben-Einstellungen." data-de-tip="Voreinstellung für alle Aufgaben-Einstellungen." data-en-tip="Preset for all task settings." data-de="Schwierigkeit" data-en="Difficulty">Schwierigkeit</span>
+    <span class="seg small" data-seg="diff"><button data-v="einf" data-de="Einführung" data-en="Introduction">Einführung</button><button data-v="leicht" data-de="Leicht" data-en="Easy">Leicht</button><button data-v="normal">Normal</button><button data-v="heraus" data-de="Herausfordernd" data-en="Challenging">Herausfordernd</button><button data-v="indiv" data-de="Individuell" data-en="Custom">Individuell</button></span>
   </div>
 </div>
 
@@ -414,19 +480,19 @@ details.inner>summary{font-weight:600;font-size:13.5px}
 <div id="stageBox">
   <div id="svgHolder" style="position:absolute;inset:0"></div>
   <div class="stage-info" id="stageInfo"></div>
-  <div class="stage-tl"><button class="sbtn wide hidden" id="btnNewTop" title="Neue Aufgabe">↻ Neue Aufgabe</button></div>
+  <div class="stage-tl"><button class="sbtn wide hidden" id="btnNewTop" title="Neue Aufgabe" data-de-title="Neue Aufgabe" data-en-title="New task" data-de="↻ Neue Aufgabe" data-en="↻ New task">↻ Neue Aufgabe</button></div>
   <div class="stage-hint" id="stageHint"></div>
   <div class="stage-tools">
-    <button class="sbtn" id="btnZoomIn" title="Vergrößern">+</button>
-    <button class="sbtn" id="btnZoomOut" title="Verkleinern">−</button>
-    <button class="sbtn" id="btnFit" title="Ansicht zurücksetzen">⌂</button>
-    <button class="sbtn" id="btnResize" title="Größe des Zeichenbereichs frei ziehen">⤡</button>
-    <button class="sbtn" id="btnMenu" title="Teilen und speichern">⤓</button>
+    <button class="sbtn" id="btnZoomIn" title="Vergrößern" data-de-title="Vergrößern" data-en-title="Zoom in">+</button>
+    <button class="sbtn" id="btnZoomOut" title="Verkleinern" data-de-title="Verkleinern" data-en-title="Zoom out">−</button>
+    <button class="sbtn" id="btnFit" title="Ansicht zurücksetzen" data-de-title="Ansicht zurücksetzen" data-en-title="Reset view">⌂</button>
+    <button class="sbtn" id="btnResize" title="Größe des Zeichenbereichs frei ziehen" data-de-title="Größe des Zeichenbereichs frei ziehen" data-en-title="Drag to resize the drawing area">⤡</button>
+    <button class="sbtn" id="btnMenu" title="Teilen und speichern" data-de-title="Teilen und speichern" data-en-title="Share and save">⤓</button>
     <div class="menu hidden" id="expMenu">
-      <button data-x="link">🔗 Link mit allen Einstellungen kopieren</button>
+      <button data-x="link" data-de="🔗 Link mit allen Einstellungen kopieren" data-en="🔗 Copy link with all settings">🔗 Link mit allen Einstellungen kopieren</button>
       <div class="sep"></div>
-      <button data-x="png">🖼️ Ansicht als PNG speichern</button>
-      <button data-x="svg">📐 Ansicht als SVG speichern</button>
+      <button data-x="png" data-de="🖼️ Ansicht als PNG speichern" data-en="🖼️ Save view as PNG">🖼️ Ansicht als PNG speichern</button>
+      <button data-x="svg" data-de="📐 Ansicht als SVG speichern" data-en="📐 Save view as SVG">📐 Ansicht als SVG speichern</button>
     </div>
   </div>
   <div class="stage-br"><button class="sbtn vw" id="btnView"></button></div>
@@ -438,17 +504,17 @@ details.inner>summary{font-weight:600;font-size:13.5px}
   <div class="coord-row" id="coordRow"></div>
   <div class="stepcard">
     <div class="bar">
-      <button class="nav" id="stPrev">‹ zurück</button>
+      <button class="nav" id="stPrev" data-de="‹ zurück" data-en="‹ back">‹ zurück</button>
       <span class="cnt" id="stCnt"></span>
-      <button class="nav" id="stNext">weiter ›</button>
-      <label class="chk" style="margin-left:6px"><input type="checkbox" id="cbAll"> alle Schritte</label>
+      <button class="nav" id="stNext" data-de="weiter ›" data-en="next ›">weiter ›</button>
+      <label class="chk" style="margin-left:6px"><input type="checkbox" id="cbAll"> <span data-de="alle Schritte" data-en="all steps">alle Schritte</span></label>
     </div>
     <div class="txt" id="stNote"></div>
   </div>
   <div class="chk-row">
-    <label class="chk"><input type="checkbox" id="cbHelp"> Hilfsstrecken einblenden</label>
-    <label class="chk"><input type="checkbox" id="cbPt"> Punkt einzeichnen</label>
-    <label class="chk"><input type="checkbox" class="cbInt" id="cbInt2"> nur ganzzahlige Koordinaten</label>
+    <label class="chk"><input type="checkbox" id="cbHelp"> <span data-de="Hilfsstrecken einblenden" data-en="show auxiliary lines">Hilfsstrecken einblenden</span></label>
+    <label class="chk"><input type="checkbox" id="cbPt"> <span data-de="Punkt einzeichnen" data-en="plot the point">Punkt einzeichnen</span></label>
+    <label class="chk"><input type="checkbox" class="cbInt" id="cbInt2"> <span data-de="nur ganzzahlige Koordinaten" data-en="whole-number coordinates only">nur ganzzahlige Koordinaten</span></label>
   </div>
 </section>
 
@@ -457,17 +523,17 @@ details.inner>summary{font-weight:600;font-size:13.5px}
   <div id="taskBar" class="task hidden"></div>
   <div id="readRow" class="coord-row tight hidden"></div>
   <div class="actions">
-    <button class="btn-check hidden" id="btnCheck">Prüfen</button>
-    <button class="btn-sol" id="btnSol">Lösung zeigen</button>
-    <button class="btn-next" id="btnNext">Neue Aufgabe ↻</button>
+    <button class="btn-check hidden" id="btnCheck" data-de="Prüfen" data-en="Check">Prüfen</button>
+    <button class="btn-sol" id="btnSol" data-de="Lösung zeigen" data-en="Show solution">Lösung zeigen</button>
+    <button class="btn-next" id="btnNext" data-de="Neue Aufgabe ↻" data-en="New task ↻">Neue Aufgabe ↻</button>
   </div>
   <div class="fb hidden" id="fb"></div>
   <div class="score" id="score"></div>
   <div class="stepcard hidden" id="solCard">
     <div class="bar">
-      <button class="nav" id="soPrev">‹ zurück</button>
+      <button class="nav" id="soPrev" data-de="‹ zurück" data-en="‹ back">‹ zurück</button>
       <span class="cnt" id="soCnt"></span>
-      <button class="nav" id="soNext">weiter ›</button>
+      <button class="nav" id="soNext" data-de="weiter ›" data-en="next ›">weiter ›</button>
     </div>
     <div class="txt" id="solNote"></div>
   </div>
@@ -478,7 +544,7 @@ details.inner>summary{font-weight:600;font-size:13.5px}
 <div class="footer-content">
     M.&nbsp;Koch
     <span class="footer-topic"><a href="./index.html">Mathe-Tools</a></span>
-    <span class="footer-update">Last updated:&nbsp;<span id="last-update">...</span></span>
+    <span class="footer-update"><span class="fu-wort" data-de="Zuletzt aktualisiert:" data-en="Last updated:">Zuletzt aktualisiert:</span><span id="last-update">...</span></span>
 </div>
 </footer>
 <script src="last-update.js" defer></script>
@@ -491,6 +557,20 @@ details.inner>summary{font-weight:600;font-size:13.5px}
    ======================================================================= */
 const $  = s => document.querySelector(s);
 const $$ = s => Array.from(document.querySelectorAll(s));
+
+/* ---------------------------------------------------------------- Sprache und Farbschema
+   theme-language.js (Knöpfe oben rechts) ist optional – ohne die Datei bleibt die Seite
+   deutsch und hell. Umschalten zeichnet nur neu: Punkt, Aufgabe, Antworten und
+   Rückmeldung bleiben erhalten. */
+function T(de, en){ return (typeof tlText === 'function') ? tlText(de, en) : de; }
+function EN(){ return (typeof tlSprache === 'function') && tlSprache() === 'en'; }
+function DUNKEL(){ return document.documentElement.classList.contains('dark'); }
+/* Eingabe -> Zahl: Komma und Punkt sind beide erlaubt */
+function zahlEin(s){
+  s = String(s==null ? '' : s).trim().replace(/[−–]/g, '-');
+  if(typeof tlZahlAus === 'function') return tlZahlAus(s);
+  return parseFloat(s.replace(',', '.'));
+}
 
 /* ---------------------------------------------------------------- 1) Zustand */
 const FIND_IDS = ['urs','achse','ebene','grund','lage','spiegel','versch','gleich','mitte','ecke'];
@@ -583,7 +663,7 @@ function deserialize(){
 
 /* ---------------------------------------------------------------- Helfer */
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
-const fmt = n => { if(!isFinite(n)) return '?'; return String(Math.round(n*1000)/1000).replace('.',','); };
+const fmt = n => { if(!isFinite(n)) return '?'; return String(Math.round(n*1000)/1000).replace('.', EN() ? '.' : ','); };
 const SUB=['₁','₂','₃'];
 function axName(i){
   if(S.naming==='x123') return 'x'+SUB[i];
@@ -624,6 +704,8 @@ const roleOf  = i => S.lay.indexOf(String(i));
 const axOfRole= r => +S.lay[r];
 const dirOf   = i => { const r=roleOf(i); return r===0?S.rolev.f : r===1?S.rolev.r : S.rolev.u; };
 const ROLE_TXT= ['vorne','rechts','oben'];
+const ROLE_TXT_EN = ['front','right','up'];
+const roleTxt = r => (EN() ? ROLE_TXT_EN : ROLE_TXT)[r];
 
 /* ---------------------------------------------------------------- 2) Projektion */
 function proj(p){
@@ -998,7 +1080,40 @@ function render(){
   }
   lastSVG='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+r2(W)+' '+r2(H)+'" width="100%" height="100%">'
     +'<rect x="0" y="0" width="'+r2(W)+'" height="'+r2(H)+'" fill="#ffffff"/>'+parts.join('')+'</svg>';
-  $('#svgHolder').innerHTML = lastSVG;
+  /* gespeichert wird immer die helle Fassung (lastSVG), angezeigt im Dunkelmodus die umgefärbte */
+  $('#svgHolder').innerHTML = DUNKEL() ? svgDunkel(lastSVG) : lastSVG;
+}
+/* ---- Dunkelmodus: Hintergrund, Raster und Standardfarben umfärben; eigene dunkle
+   Farben werden so weit aufgehellt, dass sie auf dem dunklen Grund lesbar bleiben ---- */
+const DUNKEL_BG = '#161b20';
+const SVG_DUNKEL = {
+  '#ffffff':DUNKEL_BG, '#fff':DUNKEL_BG,                 /* Hintergrund, Schriftschatten, Kreis-Füllung */
+  '#222222':'#dfe4e8', '#222':'#dfe4e8',                 /* Achsen und Beschriftung */
+  '#d9d9d9':'#3a434b', '#989898':'#56606a',              /* Raster (normal / betont) */
+  '#b6b6b6':'#5f6b75',                                   /* negative Achsenteile (hellgrau) */
+  '#2e6fb7':'#6aa6e6', '#ef6c00':'#ffa24d',              /* Hilfsstrecken, Hervorhebung */
+  '#d32f2f':'#ef6b6b', '#2e7d32':'#66bb6a', '#1565c0':'#64a8f0',
+  '#00838f':'#4dd0e1', '#6a1b9a':'#ce93d8', '#1b5e20':'#81c784', '#7b1fa2':'#ce93d8'
+};
+function hexRGB(h){
+  h = h.replace('#','');
+  if(h.length===3) h = h.split('').map(c=>c+c).join('');
+  const n = parseInt(h.slice(0,6),16);
+  return [(n>>16)&255, (n>>8)&255, n&255];
+}
+function lum(c){ return c.map(v=>{ v/=255; return v<=0.03928 ? v/12.92 : Math.pow((v+0.055)/1.055,2.4); })
+  .reduce((s,v,i)=>s+v*[0.2126,0.7152,0.0722][i],0); }
+function farbeDunkel(c){
+  const k = c.toLowerCase();
+  if(SVG_DUNKEL[k]) return SVG_DUNKEL[k];
+  if(!/^#[0-9a-f]{3}([0-9a-f]{3})?$/.test(k)) return c;
+  let rgb = hexRGB(k);
+  const bg = lum(hexRGB(DUNKEL_BG));
+  for(let n=0; n<12 && (lum(rgb)+0.05)/(bg+0.05) < 3.6; n++) rgb = rgb.map(v=>Math.round(v+(255-v)*0.18));
+  return '#'+rgb.map(v=>v.toString(16).padStart(2,'0')).join('');
+}
+function svgDunkel(svg){
+  return svg.replace(/(fill|stroke)="(#[0-9a-fA-F]{3,6})"/g, (m,a,c)=>a+'="'+farbeDunkel(c)+'"');
 }
 
 /* Standardausschnitt */
@@ -1037,26 +1152,33 @@ function fitView(){
 /* ---------------------------------------------------------------- 4) Schritte */
 const HC='#2e6fb7', HI='#ef6c00';
 const roleWord=(i,pos)=>{ const r=roleOf(i);
+  if(EN()) return r===0 ? (pos?'to the front':'to the back') : r===1 ? (pos?'to the right':'to the left') : (pos?'upwards':'downwards');
   return r===0 ? (pos?'nach vorne':'nach hinten') : r===1 ? (pos?'nach rechts':'nach links') : (pos?'nach oben':'nach unten'); };
 function moveTxt(i,d,first){
   const nm='<b>'+axNameHTML(i)+'</b>';
-  if(Math.abs(d)<1e-9) return 'Der Wert '+nm+' = 0 bedeutet: In Richtung der '+axNameHTML(i)+'-Achse geht es nicht weiter.';
+  if(Math.abs(d)<1e-9) return T('Der Wert '+nm+' = 0 bedeutet: In Richtung der '+axNameHTML(i)+'-Achse geht es nicht weiter.',
+    'The value '+nm+' = 0 means: you do not move in the direction of the '+axNameHTML(i)+'-axis.');
   const n=fmt(Math.abs(d)), w=roleWord(i,d>0);
-  if(first) return 'Trage '+nm+' = '+fmt(d)+' auf der '+axNameHTML(i)+'-Achse ab: '+n+' Einheiten '+w+'.';
-  return 'Gehe von dort aus '+n+' Einheiten parallel zur '+axNameHTML(i)+'-Achse – also '+w+' ('+nm+' = '+fmt(d)+').';
+  if(first) return T('Trage '+nm+' = '+fmt(d)+' auf der '+axNameHTML(i)+'-Achse ab: '+n+' Einheiten '+w+'.',
+    'Plot '+nm+' = '+fmt(d)+' on the '+axNameHTML(i)+'-axis: '+n+' units '+w+'.');
+  return T('Gehe von dort aus '+n+' Einheiten parallel zur '+axNameHTML(i)+'-Achse – also '+w+' ('+nm+' = '+fmt(d)+').',
+    'From there, go '+n+' units parallel to the '+axNameHTML(i)+'-axis – that is, '+w+' ('+nm+' = '+fmt(d)+').');
 }
 const APPS = [
-  {v:'achsen', lbl:()=>'Achse für Achse'},
-  {v:'zeichen',lbl:()=>axNameHTML(axOfRole(1))+'-'+axNameHTML(axOfRole(2))+' zuerst'},
-  {v:'grund',  lbl:()=>'Grundpunkt'},
-  {v:'quader', lbl:()=>'Quader'}
+  {v:'achsen', lbl:()=>T('Achse für Achse','Axis by axis')},
+  {v:'zeichen',lbl:()=>axNameHTML(axOfRole(1))+'-'+axNameHTML(axOfRole(2))+T(' zuerst',' first')},
+  {v:'grund',  lbl:()=>T('Grundpunkt','Base point')},
+  {v:'quader', lbl:()=>T('Quader','Cuboid')}
 ];
 function stepsFor(P, appr, intro){
   const AP = appr || S.approach;
   const A=[0,0,0], st=[], f=axOfRole(0), r=axOfRole(1), u=axOfRole(2);
-  if(intro) st.push({txt:'Einzuzeichnen ist der Punkt <b>'+esc(ptStr('P',P))+'</b> mit '
+  if(intro) st.push({txt:T('Einzuzeichnen ist der Punkt <b>'+esc(ptStr('P',P))+'</b> mit '
     +axNameHTML(0)+' = '+fmt(P[0])+', '+axNameHTML(1)+' = '+fmt(P[1])+' und '+axNameHTML(2)+' = '+fmt(P[2])
-    +'. Mit „weiter" siehst du Schritt für Schritt, wie er entsteht.', items:[]});
+    +'. Mit „weiter" siehst du Schritt für Schritt, wie er entsteht.',
+      'The point to plot is <b>'+esc(ptStr('P',P))+'</b> with '
+    +axNameHTML(0)+' = '+fmt(P[0])+', '+axNameHTML(1)+' = '+fmt(P[1])+' and '+axNameHTML(2)+' = '+fmt(P[2])
+    +'. With “next” you can see step by step how it is built up.'), items:[]});
   const D=P.slice();
   const seg=(a,b)=>({k:'l', a:a.slice(), b:b.slice(), c:HC, w:2.4, d:'7 4', ly:LY.help, role:'seg'});
   const dot=a=>({k:'pt', a:a.slice(), c:HC, st:'dot', ly:LY.pt, role:'dot'});
@@ -1078,20 +1200,26 @@ function stepsFor(P, appr, intro){
     const a1 = zc?r:f, a2 = zc?u:r, a3 = zc?f:u;
     const p1=unitP(a1,D[a1]), p2=unitP(a2,D[a2]), corner=alongAxis(p1,a2,D[a2]);
     const cName = zc ? 'P<tspan font-size="0.72em" dy="0.28em">0</tspan>' : "P'";
-    st.push({txt:(zc?'Zeichne den Punkt zuerst wie im gewohnten 2D-System: ':'')+moveTxt(a1,D[a1],true),
+    st.push({txt:(zc?T('Zeichne den Punkt zuerst wie im gewohnten 2D-System: ','First draw the point as in the usual 2D system: '):'')+moveTxt(a1,D[a1],true),
              items: Math.abs(D[a1])>1e-9?[seg(A,p1),dot(p1)]:[dot(p1)]});
-    st.push({txt:'Trage genauso <b>'+axNameHTML(a2)+'</b> = '+fmt(D[a2])+' auf der '+axNameHTML(a2)+'-Achse ab.',
+    st.push({txt:T('Trage genauso <b>'+axNameHTML(a2)+'</b> = '+fmt(D[a2])+' auf der '+axNameHTML(a2)+'-Achse ab.',
+                   'In the same way, plot <b>'+axNameHTML(a2)+'</b> = '+fmt(D[a2])+' on the '+axNameHTML(a2)+'-axis.'),
              items: Math.abs(D[a2])>1e-9?[seg(A,p2),dot(p2)]:[dot(p2)]});
     st.push({txt: zc
-        ? 'Ergänze die beiden Strecken zu einem <b>Rechteck</b>: Die Parallelen zu den Achsen schneiden sich im Punkt '
-          +'('+fmt(0)+'|'+fmt(D[a1])+'|'+fmt(D[a2])+') in der '+axNameHTML(a1)+'-'+axNameHTML(a2)+'-Ebene.'
-        : 'Zeichne durch beide Punkte die Parallelen zur jeweils anderen Achse. Ihr Schnittpunkt ist der <b>Grundpunkt</b> in der '
+        ? T('Ergänze die beiden Strecken zu einem <b>Rechteck</b>: Die Parallelen zu den Achsen schneiden sich im Punkt '
+          +'('+fmt(0)+'|'+fmt(D[a1])+'|'+fmt(D[a2])+') in der '+axNameHTML(a1)+'-'+axNameHTML(a2)+'-Ebene.',
+            'Complete the two segments to a <b>rectangle</b>: the parallels to the axes meet at the point '
+          +'('+fmt(0)+'|'+fmt(D[a1])+'|'+fmt(D[a2])+') in the '+axNameHTML(a1)+'-'+axNameHTML(a2)+'-plane.')
+        : T('Zeichne durch beide Punkte die Parallelen zur jeweils anderen Achse. Ihr Schnittpunkt ist der <b>Grundpunkt</b> in der '
           +axNameHTML(a1)+'-'+axNameHTML(a2)+'-Ebene.',
+            'Through both points, draw the parallel to the other axis. They meet at the <b>base point</b> in the '
+          +axNameHTML(a1)+'-'+axNameHTML(a2)+'-plane.'),
              items:[{k:'l',a:p1,b:corner,c:HC,w:1.8,d:'4 4',ly:LY.help,role:'seg'},
                     {k:'l',a:p2,b:corner,c:HC,w:1.8,d:'4 4',ly:LY.help,role:'seg'}, dot(corner),
                     {k:'tx',a:corner,s:cName,c:HC,fs:fsz(13.5),fw:'bold',dxy:[8,12],an:'start',va:'mid',ly:LY.txt}]});
-    st.push({txt: (zc ? 'Jetzt kommt die dritte Koordinate dazu: von dort ' : 'Zum Schluss von dort ')
-             +fmt(Math.abs(D[a3]))+' Einheiten '+roleWord(a3,D[a3]>0)
+    st.push({txt: (zc ? T('Jetzt kommt die dritte Koordinate dazu: von dort ', 'Now add the third coordinate: from there, ')
+                      : T('Zum Schluss von dort ', 'Finally, from there, '))
+             +fmt(Math.abs(D[a3]))+T(' Einheiten ',' units ')+roleWord(a3,D[a3]>0)
              +' (<b>'+axNameHTML(a3)+'</b> = '+fmt(D[a3])+').',
              items: Math.abs(D[a3])>1e-9?[seg(corner,P)]:[]});
   } else {
@@ -1105,12 +1233,13 @@ function stepsFor(P, appr, intro){
       if(b===0){ (a+c===0?first:rest).push([from, idx(a,1,c)]); }
       if(c===0){ (a+b===0?first:rest).push([from, idx(a,b,1)]); }
     }
-    st.push({txt:'Die drei Koordinaten sind die Kantenlängen eines Quaders: '+fmt(D[0])+' – '+fmt(D[1])+' – '+fmt(D[2])
-             +'. Zeichne die drei Kanten vom Ursprung aus.',
+    st.push({txt:T('Die drei Koordinaten sind die Kantenlängen eines Quaders: ','The three coordinates are the edge lengths of a cuboid: ')
+             +fmt(D[0])+' – '+fmt(D[1])+' – '+fmt(D[2])
+             +T('. Zeichne die drei Kanten vom Ursprung aus.','. Draw the three edges from the origin.'),
              items:first.map(([a,b])=>({k:'l',a:V[a],b:V[b],c:HC,w:2.4,ly:LY.help,role:'seg'}))});
-    st.push({txt:'Ergänze den Quader – die verdeckten Kanten gestrichelt.',
+    st.push({txt:T('Ergänze den Quader – die verdeckten Kanten gestrichelt.','Complete the cuboid – with the hidden edges dashed.'),
              items:rest.map(([a,b])=>({k:'l',a:V[a],b:V[b],c:HC,w:1.5,d:'5 4',op:.85,ly:LY.help,role:'seg'}))});
-    st.push({txt:'Der gesuchte Punkt liegt in der Ecke, die dem Ursprung gegenüberliegt.', items:[]});
+    st.push({txt:T('Der gesuchte Punkt liegt in der Ecke, die dem Ursprung gegenüberliegt.','The required point is at the corner opposite the origin.'), items:[]});
   }
 
   const fin=[];
@@ -1120,7 +1249,7 @@ function stepsFor(P, appr, intro){
     fin.push({k:'pt',a:b,c:HC,st:'circle',ly:LY.pt});
     fin.push({k:'tx',a:b,s:"P'",c:HC,fs:fsz(13),fw:'bold',dxy:[8,12],an:'start',va:'mid',ly:LY.txt});
   }
-  st.push({txt:'Fertig: '+esc(ptStr('P',P))+' ist eingezeichnet.', items:fin});
+  st.push({txt:T('Fertig: '+esc(ptStr('P',P))+' ist eingezeichnet.','Done: '+esc(ptStr('P',P))+' has been plotted.'), items:fin});
   return st;
 }
 function collectSteps(st, upto, highlight){
@@ -1202,77 +1331,90 @@ function projKernel(){
 
 /* --- Fragen für „Punkte gesucht" --- */
 const FIND = {
-  urs:{lbl:'Koordinaten des Ursprungs', mk(){
-    return {q:'Gib die Koordinaten des Koordinatenursprungs an.', sol:[0,0,0], extra:{kind:'point'},
+  urs:{get lbl(){ return T('Koordinaten des Ursprungs','Coordinates of the origin'); }, mk(){
+    return {get q(){ return T('Gib die Koordinaten des Koordinatenursprungs an.','State the coordinates of the origin.'); }, sol:[0,0,0], extra:{kind:'point'},
             chk:v=>v.every(x=>Math.abs(x)<1e-9)}; }},
-  achse:{lbl:'Punkt auf einer bestimmten Achse', mk(){
+  achse:{get lbl(){ return T('Punkt auf einer bestimmten Achse','Point on a given axis'); }, mk(){
     const i=ri(3); let t=randCoord(i,true); if(Math.abs(t)<1e-9) t=1;
-    return {q:'Gib die Koordinaten eines Punktes an, der auf der '+axNameHTML(i)+'-Achse liegt (nicht der Ursprung).',
+    return {get q(){ return T('Gib die Koordinaten eines Punktes an, der auf der '+axNameHTML(i)+'-Achse liegt (nicht der Ursprung).',
+                              'State the coordinates of a point that lies on the '+axNameHTML(i)+'-axis (not the origin).'); },
       sol:unitP(i,t), many:true, extra:{kind:'axis', i:i}, chk:v=>Math.abs(v[i])>1e-9 && [0,1,2].every(j=>j===i||Math.abs(v[j])<1e-9)}; }},
-  ebene:{lbl:'Punkt in einer Koordinatenebene', mk(){
+  ebene:{get lbl(){ return T('Punkt in einer Koordinatenebene','Point in a coordinate plane'); }, mk(){
     const k=ri(3), [i,j]=[0,1,2].filter(x=>x!==k);
     const s=[0,0,0]; s[i]=randCoord(i,true)||1; s[j]=randCoord(j,true)||1;
-    return {q:'Gib die Koordinaten eines Punktes an, der in der '+axNameHTML(i)+'-'+axNameHTML(j)+'-Ebene liegt (nicht der Ursprung).',
+    return {get q(){ return T('Gib die Koordinaten eines Punktes an, der in der '+axNameHTML(i)+'-'+axNameHTML(j)+'-Ebene liegt (nicht der Ursprung).',
+                              'State the coordinates of a point that lies in the '+axNameHTML(i)+'-'+axNameHTML(j)+'-plane (not the origin).'); },
       sol:s, many:true, extra:{kind:'plane', i:i, j:j},
       chk:v=>Math.abs(v[k])<1e-9 && v.some(x=>Math.abs(x)>1e-9)}; }},
-  grund:{lbl:'Grundpunkt (Schatten) eines Punktes', mk(){
+  grund:{get lbl(){ return T('Grundpunkt (Schatten) eines Punktes','Base point (shadow) of a point'); }, mk(){
     const P=randPoint(), u=axOfRole(2), f=axOfRole(0), r=axOfRole(1), s=P.slice(); s[u]=0;
     return {given:[{n:'P',p:P}], sol:s, chk:v=>eqP(v,s), extra:{kind:'drop', i:f, j:r},
-      q:'Gib die Koordinaten des Grundpunktes von P an – also des Punktes senkrecht darunter in der '
-        +axNameHTML(f)+'-'+axNameHTML(r)+'-Ebene.'}; }},
-  lage:{lbl:'Punkt in bestimmter Lage zu P', mk(){
+      get q(){ return T('Gib die Koordinaten des Grundpunktes von P an – also des Punktes senkrecht darunter in der '
+        +axNameHTML(f)+'-'+axNameHTML(r)+'-Ebene.',
+        'State the coordinates of the base point of P – that is, the point directly below it in the '
+        +axNameHTML(f)+'-'+axNameHTML(r)+'-plane.'); }}; }},
+  lage:{get lbl(){ return T('Punkt in bestimmter Lage zu P','Point in a given position relative to P'); }, mk(){
     const P=randPoint(true), f=axOfRole(0), r=axOfRole(1), u=axOfRole(2);
     const R=[
-      {t:'genau über P', s:alongAxis(P,u,2),  c:v=>v[u]>P[u]+1e-9 && Math.abs(v[f]-P[f])<1e-9 && Math.abs(v[r]-P[r])<1e-9},
-      {t:'genau unter P',s:alongAxis(P,u,-2), c:v=>v[u]<P[u]-1e-9 && Math.abs(v[f]-P[f])<1e-9 && Math.abs(v[r]-P[r])<1e-9},
-      {t:'weiter vorne als P',  s:alongAxis(P,f,2),  c:v=>v[f]>P[f]+1e-9},
-      {t:'weiter hinten als P', s:alongAxis(P,f,-2), c:v=>v[f]<P[f]-1e-9},
-      {t:'weiter rechts als P', s:alongAxis(P,r,2),  c:v=>v[r]>P[r]+1e-9},
-      {t:'weiter links als P',  s:alongAxis(P,r,-2), c:v=>v[r]<P[r]-1e-9},
-      {t:'höher als P',         s:alongAxis(P,u,3),  c:v=>v[u]>P[u]+1e-9}
+      {t:'genau über P', e:'directly above P', s:alongAxis(P,u,2),  c:v=>v[u]>P[u]+1e-9 && Math.abs(v[f]-P[f])<1e-9 && Math.abs(v[r]-P[r])<1e-9},
+      {t:'genau unter P', e:'directly below P',s:alongAxis(P,u,-2), c:v=>v[u]<P[u]-1e-9 && Math.abs(v[f]-P[f])<1e-9 && Math.abs(v[r]-P[r])<1e-9},
+      {t:'weiter vorne als P', e:'further to the front than P',  s:alongAxis(P,f,2),  c:v=>v[f]>P[f]+1e-9},
+      {t:'weiter hinten als P', e:'further back than P', s:alongAxis(P,f,-2), c:v=>v[f]<P[f]-1e-9},
+      {t:'weiter rechts als P', e:'further to the right than P', s:alongAxis(P,r,2),  c:v=>v[r]>P[r]+1e-9},
+      {t:'weiter links als P', e:'further to the left than P',  s:alongAxis(P,r,-2), c:v=>v[r]<P[r]-1e-9},
+      {t:'höher als P', e:'higher than P',         s:alongAxis(P,u,3),  c:v=>v[u]>P[u]+1e-9}
     ], w=pick(R);
     return {given:[{n:'P',p:P}], sol:w.s, chk:w.c, many:true, extra:{kind:'arrow'},
-      q:'Gib die Koordinaten eines Punktes an, der '+w.t+' liegt.'}; }},
-  spiegel:{lbl:'Punkt an Ebene/Achse/Ursprung spiegeln', mk(){
+      get q(){ return T('Gib die Koordinaten eines Punktes an, der '+w.t+' liegt.','State the coordinates of a point that lies '+w.e+'.'); }}; }},
+  spiegel:{get lbl(){ return T('Punkt an Ebene/Achse/Ursprung spiegeln','Reflect a point in a plane/axis/the origin'); }, mk(){
     const P=randPoint(true), k=ri(3), [i,j]=[0,1,2].filter(x=>x!==k), m=ri(3);
     let q,s,ex;
     if(m===0){ s=P.slice(); s[k]=-s[k]; ex={kind:'mirror', mode:'plane', i:i, j:j};
-      q='Spiegle P an der '+axNameHTML(i)+'-'+axNameHTML(j)+'-Ebene. Gib die Koordinaten des Bildpunktes an.'; }
+      q=()=>T('Spiegle P an der '+axNameHTML(i)+'-'+axNameHTML(j)+'-Ebene. Gib die Koordinaten des Bildpunktes an.',
+              'Reflect P in the '+axNameHTML(i)+'-'+axNameHTML(j)+'-plane. State the coordinates of the image point.'); }
     else if(m===1){ s=P.slice(); s[i]=-s[i]; s[j]=-s[j]; ex={kind:'mirror', mode:'axis', k:k};
-      q='Spiegle P an der '+axNameHTML(k)+'-Achse. Gib die Koordinaten des Bildpunktes an.'; }
+      q=()=>T('Spiegle P an der '+axNameHTML(k)+'-Achse. Gib die Koordinaten des Bildpunktes an.',
+              'Reflect P in the '+axNameHTML(k)+'-axis. State the coordinates of the image point.'); }
     else { s=P.map(x=>-x); ex={kind:'mirror', mode:'origin'};
-      q='Spiegle P am Koordinatenursprung. Gib die Koordinaten des Bildpunktes an.'; }
-    return {given:[{n:'P',p:P}], sol:s, chk:v=>eqP(v,s), extra:ex, q}; }},
-  versch:{lbl:'Punkt verschieben', mk(){
+      q=()=>T('Spiegle P am Koordinatenursprung. Gib die Koordinaten des Bildpunktes an.',
+              'Reflect P in the origin. State the coordinates of the image point.'); }
+    return {given:[{n:'P',p:P}], sol:s, chk:v=>eqP(v,s), extra:ex, get q(){ return q(); }}; }},
+  versch:{get lbl(){ return T('Punkt verschieben','Translate a point'); }, mk(){
     const P=randPoint(true), i=ri(3), d=pick([-3,-2,-1,1,2,3]);
     const s=alongAxis(P,i,d);
     return {given:[{n:'P',p:P}], sol:s, chk:v=>eqP(v,s), extra:{kind:'arrow'},
-      q:'Verschiebe P um '+Math.abs(d)+' Einheiten '+roleWord(i,d>0)+' (parallel zur '+axNameHTML(i)+'-Achse). '
-        +'Gib die Koordinaten des neuen Punktes an.'}; }},
-  gleich:{lbl:'Punkt, der an derselben Stelle gezeichnet wird', mk(){
+      get q(){ return T('Verschiebe P um '+Math.abs(d)+' Einheiten '+roleWord(i,d>0)+' (parallel zur '+axNameHTML(i)+'-Achse). '
+        +'Gib die Koordinaten des neuen Punktes an.',
+        'Move P by '+Math.abs(d)+' units '+roleWord(i,d>0)+' (parallel to the '+axNameHTML(i)+'-axis). '
+        +'State the coordinates of the new point.'); }}; }},
+  gleich:{get lbl(){ return T('Punkt, der an derselben Stelle gezeichnet wird','Point drawn at the same position'); }, mk(){
     const P=randPoint(true), K=projKernel();
     if(!K) return FIND.grund.mk();
     let s=add(P,K);
     const t=proj2(P);
     return {given:[{n:'P',p:P}], sol:s, many:true, extra:{kind:'line', dir:K},
-      note:'In der 3D-Ansicht siehst du, dass all diese Punkte auf einer Geraden hintereinander liegen.',
+      get note(){ return T('In der 3D-Ansicht siehst du, dass all diese Punkte auf einer Geraden hintereinander liegen.',
+                           'In the 3D view you can see that all these points lie one behind the other on a line.'); },
       chk:v=>{ const w=proj2(v); return Math.abs(w[0]-t[0])<1e-6 && Math.abs(w[1]-t[1])<1e-6 && !eqP(v,P); },
-      q:'Gib die Koordinaten eines Punktes an, der im Schrägbild an <b>derselben Stelle</b> gezeichnet werden müsste wie P (aber nicht P selbst ist).'}; }},
-  mitte:{lbl:'Mittelpunkt zweier Punkte', mk(){
+      get q(){ return T('Gib die Koordinaten eines Punktes an, der im Schrägbild an <b>derselben Stelle</b> gezeichnet werden müsste wie P (aber nicht P selbst ist).',
+                        'State the coordinates of a point that would be drawn at <b>the same position</b> as P in the oblique drawing (but is not P itself).'); }}; }},
+  mitte:{get lbl(){ return T('Mittelpunkt zweier Punkte','Midpoint of two points'); }, mk(){
     const A=randPoint(true), B=[0,1,2].map(i=>{ const [lo,hi]=taskRange(i);
       let d=pick([-2,2,-4,4]); let v=A[i]+d; if(v<lo||v>hi) v=A[i]-d; if(v<lo||v>hi) v=A[i]; return v; });
     const s=[0,1,2].map(i=>(A[i]+B[i])/2);
     return {given:[{n:'A',p:A},{n:'B',p:B}], sol:s, chk:v=>eqP(v,s), extra:{kind:'segment'},
-      q:'Gib die Koordinaten des Mittelpunktes der Strecke AB an.'}; }},
-  ecke:{lbl:'weitere Ecke eines Quaders', mk(){
+      get q(){ return T('Gib die Koordinaten des Mittelpunktes der Strecke AB an.','State the coordinates of the midpoint of the segment AB.'); }}; }},
+  ecke:{get lbl(){ return T('weitere Ecke eines Quaders','Another corner of a cuboid'); }, mk(){
     const A=randPoint(true), B=[0,1,2].map(i=>{ const [lo,hi]=taskRange(i);
       let v=A[i]+pick([-3,-2,2,3]); if(v<lo||v>hi) v=A[i]-(v-A[i]); return clamp(v,lo,hi); });
     for(let i=0;i<3;i++) if(Math.abs(B[i]-A[i])<1e-9) B[i]=A[i]+1;
     const s=[B[0],A[1],A[2]];
     return {given:[{n:'A',p:A},{n:'B',p:B}], sol:s, many:true, extra:{kind:'box'},
       chk:v=>[0,1,2].every(i=>Math.abs(v[i]-A[i])<1e-9||Math.abs(v[i]-B[i])<1e-9) && !eqP(v,A) && !eqP(v,B),
-      q:'A und B sind gegenüberliegende Ecken eines Quaders, dessen Kanten parallel zu den Achsen verlaufen. '
-        +'Gib die Koordinaten einer <b>weiteren Ecke</b> dieses Quaders an.'}; }}
+      get q(){ return T('A und B sind gegenüberliegende Ecken eines Quaders, dessen Kanten parallel zu den Achsen verlaufen. '
+        +'Gib die Koordinaten einer <b>weiteren Ecke</b> dieses Quaders an.',
+        'A and B are opposite corners of a cuboid whose edges are parallel to the axes. '
+        +'State the coordinates of <b>another corner</b> of this cuboid.'); }}; }}
 };
 
 let viewBackup=null;
@@ -1372,7 +1514,7 @@ function solItems(out){
   else if(e.kind==='line' && P && e.dir) out.push(ln(add(P,scal(e.dir,-4)), add(P,scal(e.dir,4)), '6 4', 1.8));
   else if(e.kind==='segment' && P && B) out.push(ln(P,B,null,2.2));
   else if(e.kind==='box' && P && B) boxEdges(P,B).forEach(([a,b])=>out.push(ln(a,b,'5 4',1.5)));
-  pointItem(out, sol, (task.many?'möglich: ':'')+ptStr('',sol), SOL_COL,
+  pointItem(out, sol, (task.many?T('möglich: ','possible: '):'')+ptStr('',sol), SOL_COL,
             {style:'circle', shortLabel:true, dxy:[11,16]});
 }
 function givenItems(out){
@@ -1430,17 +1572,17 @@ function judge(q){
   for(const pm of [[0,2,1],[1,0,2],[1,2,0],[2,0,1],[2,1,0]]){
     const diff=[0,1,2].filter(i=>pm[i]!==i);
     cand.push({p:[P[pm[0]],P[pm[1]],P[pm[2]]],
-      msg: diff.length===2 ? 'Du hast '+nm(diff[0])+' und '+nm(diff[1])+' vertauscht.'
-                           : 'Die drei Koordinaten sind in der falschen Reihenfolge abgetragen.'});
+      msg: diff.length===2 ? ()=>T('Du hast '+nm(diff[0])+' und '+nm(diff[1])+' vertauscht.','You have swapped '+nm(diff[0])+' and '+nm(diff[1])+'.')
+                           : ()=>T('Die drei Koordinaten sind in der falschen Reihenfolge abgetragen.','The three coordinates have been plotted in the wrong order.')});
   }
   for(let i=0;i<3;i++){
     if(Math.abs(P[i])<1e-9) continue;
     const s=P.slice(); s[i]=-s[i];
-    cand.push({p:s, msg:'Auf der '+nm(i)+'-Achse bist du in die falsche Richtung gegangen.'});
+    cand.push({p:s, msg:()=>T('Auf der '+nm(i)+'-Achse bist du in die falsche Richtung gegangen.','On the '+nm(i)+'-axis you went in the wrong direction.')});
     const z=P.slice(); z[i]=0;
-    cand.push({p:z, msg:'Der Wert '+nm(i)+' = '+fmt(P[i])+' wurde gar nicht abgetragen.'});
+    cand.push({p:z, msg:()=>T('Der Wert '+nm(i)+' = '+fmt(P[i])+' wurde gar nicht abgetragen.','The value '+nm(i)+' = '+fmt(P[i])+' was not plotted at all.')});
     const d=P.slice(); d[i]=2*P[i];
-    cand.push({p:d, msg:'Auf der '+nm(i)+'-Achse hast du eine Einheit doppelt so lang gezeichnet wie vorgesehen.'});
+    cand.push({p:d, msg:()=>T('Auf der '+nm(i)+'-Achse hast du eine Einheit doppelt so lang gezeichnet wie vorgesehen.','On the '+nm(i)+'-axis you drew one unit twice as long as intended.')});
   }
   let best=null;
   for(const c of cand){
@@ -1448,9 +1590,10 @@ function judge(q){
     if(d<=Math.max(tol*1.3,20) && (!best||d<best.d)) best={d,msg:c.msg};
   }
   const dir=[];
-  if(Math.abs(q[0]-t[0])*vw.k>tol*.7) dir.push(q[0]>t[0]?'zu weit rechts':'zu weit links');
-  if(Math.abs(q[1]-t[1])*vw.k>tol*.7) dir.push(q[1]>t[1]?'zu weit oben':'zu weit unten');
-  return {ok:false, hint:best?best.msg:null, dir:dir.join(' und ')};
+  if(Math.abs(q[0]-t[0])*vw.k>tol*.7) dir.push(q[0]>t[0]?['zu weit rechts','too far right']:['zu weit links','too far left']);
+  if(Math.abs(q[1]-t[1])*vw.k>tol*.7) dir.push(q[1]>t[1]?['zu weit oben','too high']:['zu weit unten','too low']);
+  /* Texte als Funktionen: sie werden erst beim Anzeigen (auch nach einem Sprachwechsel) gebildet */
+  return {ok:false, hint:best?best.msg:null, dir:()=>dir.map(x=>T(x[0],x[1])).join(T(' und ',' and '))};
 }
 
 /* ---------------------------------------------------------------- 6) Oberfläche */
@@ -1482,6 +1625,7 @@ const PRESETS = {
           uRangeMode:'view', uEqRange:true, uRng:[[-5,5],[-5,5],[-5,5]], uFinds:FIND_IDS.slice()}
 };
 const TYPE_LBL = {draw:'Einzeichnen', read:'Ablesen', find:'Punkte gesucht'};
+const TYPE_LBL_EN = {draw:'Plot', read:'Read off', find:'Find points'};
 
 function applyGridMode(){
   const f=GRIDS[S.gridMode];
@@ -1522,14 +1666,14 @@ function buildDynamicUI(){
   $$('.nm-yz').forEach(e=>e.innerHTML=axNameHTML(1)+'-'+axNameHTML(2));
   $$('.nm-xy').forEach(e=>e.innerHTML=axNameHTML(0)+'-'+axNameHTML(1));
   $$('.nm-xz').forEach(e=>e.innerHTML=axNameHTML(0)+'-'+axNameHTML(2));
-  $('#layL1').innerHTML = axNameHTML(0)+' vorne, '+axNameHTML(1)+' rechts, '+axNameHTML(2)+' oben';
-  $('#layL2').innerHTML = axNameHTML(0)+' rechts, '+axNameHTML(1)+' oben, '+axNameHTML(2)+' vorne';
+  $('#layL1').innerHTML = axNameHTML(0)+T(' vorne, ',' front, ')+axNameHTML(1)+T(' rechts, ',' right, ')+axNameHTML(2)+T(' oben',' up');
+  $('#layL2').innerHTML = axNameHTML(0)+T(' rechts, ',' right, ')+axNameHTML(1)+T(' oben, ',' up, ')+axNameHTML(2)+T(' vorne',' front');
   $$('[data-seg="app"]').forEach(g=>{
     g.innerHTML = APPS.map(a=>'<button data-v="'+a.v+'">'+a.lbl()+'</button>').join('');
   });
   $$('[data-chips="utypes"]').forEach(g=>{
     g.innerHTML = Object.keys(TYPE_LBL).map(k=>'<label><input type="checkbox" class="utype" data-t="'+k+'"><span>'
-      +TYPE_LBL[k]+'</span></label>').join('');
+      +(EN() ? TYPE_LBL_EN : TYPE_LBL)[k]+'</span></label>').join('');
   });
   $$('.utype').forEach(c=>c.addEventListener('change', ()=>{
     const t=c.dataset.t;
@@ -1557,7 +1701,8 @@ function buildDynamicUI(){
 function nIn(v,id,attr){ return '<input type="number" id="'+id+'" value="'+v+'" '+(attr||'')+'>'; }
 
 function buildAxGrid(){
-  let h='<span class="hd"></span><span class="hd">von</span><span class="hd">bis</span><span class="hd">1 Einheit</span><span class="hd">Farbe</span>';
+  let h='<span class="hd"></span><span class="hd">'+T('von','from')+'</span><span class="hd">'+T('bis','to')+'</span><span class="hd">'+T('1 Einheit','1 unit')
+    +'</span><span class="hd">'+T('Farbe','Colour')+'</span>';
   for(let i=0;i<3;i++){
     h+='<b>'+axNameHTML(i)+'</b>'
       + nIn(S.rng[i][0],'rn'+i,'step="1"'+(S.dynRange?' disabled':''))
@@ -1576,11 +1721,12 @@ function buildAxGrid(){
   }
 }
 function buildDirGrid(){
-  let h='<span class="hd"></span><span class="hd">nach rechts</span><span class="hd">nach oben</span><span class="hd">Richtung</span>';
+  let h='<span class="hd"></span><span class="hd">'+T('nach rechts','to the right')+'</span><span class="hd">'+T('nach oben','upwards')
+    +'</span><span class="hd">'+T('Richtung','Direction')+'</span>';
   for(let i=0;i<3;i++){
     const v=dirOf(i);
     h+='<b>'+axNameHTML(i)+'</b>'+nIn(num(v[0]),'dx'+i,'step="0.1"')+nIn(num(v[1]),'dy'+i,'step="0.1"')
-      +'<span class="hd">'+ROLE_TXT[roleOf(i)]+'</span>';
+      +'<span class="hd">'+roleTxt(roleOf(i))+'</span>';
   }
   $('#dirGrid').innerHTML=h;
   const R=['f','r','u'];
@@ -1596,10 +1742,10 @@ function buildLayGrid(){
   const g=$('#layGrid');
   g.classList.toggle('hidden', S.layMode!=='frei');
   if(S.layMode!=='frei'){ g.innerHTML=''; return; }
-  let h='<span class="hd"></span><span class="hd">zeigt …</span><span class="hd"></span><span class="hd"></span>';
+  let h='<span class="hd"></span><span class="hd">'+T('zeigt …','points …')+'</span><span class="hd"></span><span class="hd"></span>';
   for(let i=0;i<3;i++){
     h+='<b>'+axNameHTML(i)+'</b><select id="ly'+i+'">'
-      + ROLE_TXT.map((t,r)=>'<option value="'+r+'"'+(roleOf(i)===r?' selected':'')+'>'+t+'</option>').join('')
+      + ROLE_TXT.map((t,r)=>'<option value="'+r+'"'+(roleOf(i)===r?' selected':'')+'>'+roleTxt(r)+'</option>').join('')
       + '</select><span></span><span></span>';
   }
   g.innerHTML=h;
@@ -1628,10 +1774,10 @@ function buildURngGrid(){
   const g=$('#uRngGrid');
   g.classList.toggle('hidden', S.uRangeMode!=='fix');
   if(S.uRangeMode!=='fix'){ g.innerHTML=''; return; }
-  let h='<span class="hd"></span><span class="hd">von</span><span class="hd">bis</span><span class="hd"></span>';
+  let h='<span class="hd"></span><span class="hd">'+T('von','from')+'</span><span class="hd">'+T('bis','to')+'</span><span class="hd"></span>';
   const rows = S.uEqRange ? [0] : [0,1,2];
   for(const i of rows){
-    h+='<b>'+(S.uEqRange?'alle':axNameHTML(i))+'</b>'
+    h+='<b>'+(S.uEqRange?T('alle','all'):axNameHTML(i))+'</b>'
       +nIn(S.uRng[i][0],'un'+i,'step="1"')+nIn(S.uRng[i][1],'ux'+i,'step="1"')+'<span></span>';
   }
   g.innerHTML=h;
@@ -1698,7 +1844,8 @@ function syncRangeFields(){
 function paintSteps(){
   const st=stepsFor(S.P, null, true);
   step=clamp(step,0,st.length-1);
-  $('#stCnt').textContent = S.stepAll ? ('alle '+st.length+' Schritte') : ('Schritt '+(step+1)+' von '+st.length);
+  $('#stCnt').textContent = S.stepAll ? T('alle '+st.length+' Schritte','all '+st.length+' steps')
+                                        : T('Schritt '+(step+1)+' von '+st.length,'Step '+(step+1)+' of '+st.length);
   $('#stNote').innerHTML = S.stepAll ? st.map((s,i)=>'<b>'+(i+1)+'.</b> '+s.txt).join('<br>') : st[step].txt;
   $('#stPrev').disabled = S.stepAll || step===0;
   $('#stNext').disabled = S.stepAll || step===st.length-1;
@@ -1707,10 +1854,14 @@ function paintSteps(){
 /* Hinweis, wenn die Achsen nicht in der gewohnten Lage liegen */
 function layHint(){
   if(S.lay==='012') return '';
-  return '<div class="lay-hint">⚠ Achtung: Die Achsen liegen hier anders als gewohnt – '
+  return '<div class="lay-hint">'+T('⚠ Achtung: Die Achsen liegen hier anders als gewohnt – '
     + axNameHTML(axOfRole(0))+' zeigt nach vorne, '
     + axNameHTML(axOfRole(1))+' nach rechts und '
-    + axNameHTML(axOfRole(2))+' nach oben.</div>';
+    + axNameHTML(axOfRole(2))+' nach oben.',
+      '⚠ Note: the axes are arranged differently from usual here – '
+    + axNameHTML(axOfRole(0))+' points to the front, '
+    + axNameHTML(axOfRole(1))+' to the right and '
+    + axNameHTML(axOfRole(2))+' upwards.')+'</div>';
 }
 function paintTask(){
   const bar=$('#taskBar');
@@ -1719,34 +1870,36 @@ function paintTask(){
   if(!show){ bar.className='task hidden'; return; }
   bar.className='task';
   if(task.type==='draw')
-    bar.innerHTML='<div class="q">Zeichne den Punkt '+esc(ptStr('P',task.P))+' ein.</div>'
-      +'<div style="font-size:14px;color:#666">Tippe oder klicke an die Stelle, an der der Punkt liegt.</div>'+layHint();
+    bar.innerHTML='<div class="q">'+T('Zeichne den Punkt '+esc(ptStr('P',task.P))+' ein.','Plot the point '+esc(ptStr('P',task.P))+'.')+'</div>'
+      +'<div class="task-sub">'+T('Tippe oder klicke an die Stelle, an der der Punkt liegt.','Tap or click where the point lies.')+'</div>'+layHint();
   else if(task.type==='read')
-    bar.innerHTML='<div class="q">Welche Koordinaten hat der eingezeichnete Punkt P?</div>'
-      +'<div style="font-size:14px;color:#666">Die Hilfsstrecken zeigen dir, wie er entstanden ist.</div>'+layHint();
+    bar.innerHTML='<div class="q">'+T('Welche Koordinaten hat der eingezeichnete Punkt P?','What are the coordinates of the plotted point P?')+'</div>'
+      +'<div class="task-sub">'+T('Die Hilfsstrecken zeigen dir, wie er entstanden ist.','The auxiliary lines show you how it was built up.')+'</div>'+layHint();
   else
     bar.innerHTML='<div class="q">'+task.q+'</div>'
-      +(task.many?'<div style="font-size:14px;color:#666">Es gibt mehrere richtige Antworten.</div>':'')+layHint();
+      +(task.many?'<div class="task-sub">'+T('Es gibt mehrere richtige Antworten.','There are several correct answers.')+'</div>':'')+layHint();
   const withInput = task.type!=='draw';
   $('#readRow').classList.toggle('hidden', !withInput);
   $('#btnCheck').classList.toggle('hidden', !withInput);
   if(withInput && !$('#q0')) buildReadRow();
-  $('#score').textContent = nTotal ? ('Richtig: '+nRight+' von '+nTotal) : '';
-  $('#btnSol').textContent = solVisible ? 'Lösung ausblenden' : 'Lösung zeigen';
+  $('#score').textContent = nTotal ? T('Richtig: '+nRight+' von '+nTotal,'Correct: '+nRight+' of '+nTotal) : '';
+  $('#btnSol').textContent = solVisible ? T('Lösung ausblenden','Hide solution') : T('Lösung zeigen','Show solution');
 }
 function buildReadRow(){
   let h='';
   for(let i=0;i<3;i++) h+='<div class="coord"><label>'+axNameHTML(i)+' =</label>'
-    +'<input type="number" id="q'+i+'" step="'+(S.uFrac?0.05:1)+'"></div>';
+    +'<input type="text" inputmode="decimal" autocomplete="off" spellcheck="false" id="q'+i+'"></div>';
   $('#readRow').innerHTML=h;
   for(let i=0;i<3;i++) $('#q'+i).addEventListener('keydown',e=>{ if(e.key==='Enter') checkAnswer(); });
 }
-function feedback(cls,html){ const f=$('#fb'); f.className='fb '+cls; f.innerHTML=html; }
+/* Rückmeldung: der Text wird als Funktion gemerkt und nach einem Sprachwechsel neu gebildet */
+let FB=null;
+function feedback(cls,html){ const f=$('#fb'); f.className='fb '+cls; f.innerHTML=(typeof html==='function')?html():html; FB={cls, html}; }
 function checkAnswer(){
   if(!task || task.type==='draw') return;
   if(!$('#q0')) buildReadRow();
-  const v=[0,1,2].map(i=>parseFloat($('#q'+i).value));
-  if(v.some(x=>!isFinite(x))){ feedback('warn','Bitte trage alle drei Koordinaten ein.'); return; }
+  const v=[0,1,2].map(i=>zahlEin($('#q'+i).value));
+  if(v.some(x=>!isFinite(x))){ feedback('warn',()=>T('Bitte trage alle drei Koordinaten ein.','Please enter all three coordinates.')); return; }
   const first = !task.counted;          /* nur der erste Versuch zählt für den Punktestand */
   if(first){ task.counted=true; nTotal++; }
   answered=true;
@@ -1756,11 +1909,13 @@ function checkAnswer(){
     hit.forEach((good,i)=>mark(i,good));
     const ok=hit.every(Boolean);
     clickOK=ok;
-    if(ok){ if(first) nRight++; feedback('ok','Richtig! Der Punkt ist '+esc(ptStr('P',task.P))+'.'); }
+    if(ok){ if(first) nRight++; feedback('ok',()=>T('Richtig! Der Punkt ist '+esc(ptStr('P',task.P))+'.','Correct! The point is '+esc(ptStr('P',task.P))+'.')); }
     else{
       const wrong=[0,1,2].filter(i=>!hit[i]).map(i=>axNameHTML(i));
-      feedback('bad','Noch nicht richtig. Der Punkt ist '+esc(ptStr('P',task.P))+'. Sieh dir die '
-        +wrong.join('- und ')+'-Koordinate noch einmal an.');
+      feedback('bad',()=>T('Noch nicht richtig. Der Punkt ist '+esc(ptStr('P',task.P))+'. Sieh dir die '
+        +wrong.join('- und ')+'-Koordinate noch einmal an.',
+        'Not right yet. The point is '+esc(ptStr('P',task.P))+'. Look at the '
+        +wrong.join(' and ')+(wrong.length>1?' coordinates':' coordinate')+' again.'));
       if(S.autoHelp && first) showSolution(true);
     }
   } else {
@@ -1768,9 +1923,12 @@ function checkAnswer(){
     const ok=!!task.chk(v);
     clickOK=ok;
     [0,1,2].forEach(i=>mark(i,ok));
-    if(ok){ if(first) nRight++; feedback('ok','Richtig! '+esc(ptStr('',v)).replace('(','(')+' erfüllt die Bedingung.'
-      +(task.many?' (Es gibt noch viele weitere Möglichkeiten.)':'')); }
-    else feedback('bad','Das passt noch nicht. Ein möglicher Punkt wäre '+esc(ptStr('',task.sol))+'.'
+    if(ok){ if(first) nRight++; feedback('ok',()=>T('Richtig! '+esc(ptStr('',v)).replace('(','(')+' erfüllt die Bedingung.'
+      +(task.many?' (Es gibt noch viele weitere Möglichkeiten.)':''),
+      'Correct! '+esc(ptStr('',v))+' satisfies the condition.'
+      +(task.many?' (There are many other possibilities.)':''))); }
+    else feedback('bad',()=>T('Das passt noch nicht. Ein möglicher Punkt wäre '+esc(ptStr('',task.sol))+'.',
+                              'That does not fit yet. One possible point would be '+esc(ptStr('',task.sol))+'.')
       +(task.note?'<br>'+task.note:''));
   }
   paintTask(); render();
@@ -1782,16 +1940,20 @@ function showSolution(on){
     const first = !answered;
     answered=true;
     if(task.type==='read' && first)
-      feedback('sol','Der gesuchte Punkt ist <b>'+esc(ptStr('P',task.P))
-        +'</b>. Unten kannst du Schritt für Schritt nachvollziehen, wie er eingezeichnet wurde.');
+      feedback('sol',()=>T('Der gesuchte Punkt ist <b>'+esc(ptStr('P',task.P))
+        +'</b>. Unten kannst du Schritt für Schritt nachvollziehen, wie er eingezeichnet wurde.',
+        'The required point is <b>'+esc(ptStr('P',task.P))
+        +'</b>. Below you can follow step by step how it was plotted.'));
   }
   if(task && task.type==='find'){
     $('#solCard').className='stepcard hidden';
     if(solVisible){
       if(!task.counted){ task.counted=true; nTotal++; }
       answered=true;
-      feedback('sol','Ein möglicher Punkt ist <b>'+esc(ptStr('',task.sol))+'</b>.'
-        +(task.many?' Es gibt noch weitere richtige Antworten.':'')
+      feedback('sol',()=>T('Ein möglicher Punkt ist <b>'+esc(ptStr('',task.sol))+'</b>.'
+        +(task.many?' Es gibt noch weitere richtige Antworten.':''),
+        'One possible point is <b>'+esc(ptStr('',task.sol))+'</b>.'
+        +(task.many?' There are other correct answers as well.':''))
         +(task.note?'<br>'+task.note:''));
     }
   } else {
@@ -1804,26 +1966,28 @@ function paintSolNote(){
   if(!task || task.type==='find') return;
   const st=stepsFor(task.P, task.appr);
   solStep=clamp(solStep,0,st.length-1);
-  $('#soCnt').textContent='Schritt '+(solStep+1)+' von '+st.length;
+  $('#soCnt').textContent=T('Schritt '+(solStep+1)+' von '+st.length,'Step '+(solStep+1)+' of '+st.length);
   $('#solNote').innerHTML=st[solStep].txt;
   $('#soPrev').disabled=solStep===0;
   $('#soNext').disabled=solStep===st.length-1;
 }
 function tapAnswer(q){
   if(!task||task.type!=='draw'||answered||solVisible) return;
-  if(S.view==='3d'){ feedback('warn','Zum Einzeichnen bitte auf das 2D-Schrägbild umschalten – im Raum ist die Stelle nicht eindeutig anzuklicken.'); return; }
+  if(S.view==='3d'){ feedback('warn',()=>T('Zum Einzeichnen bitte auf das 2D-Schrägbild umschalten – im Raum ist die Stelle nicht eindeutig anzuklicken.',
+    'To plot, please switch to the 2D oblique drawing – in space the position cannot be clicked unambiguously.')); return; }
   clickPt=q;
   const res=judge(q); clickOK=res.ok;
   if(!task.counted){ task.counted=true; nTotal++; if(res.ok) nRight++; }
   if(res.ok){
     answered=true;
-    feedback('ok','Richtig! Genau dort liegt '+esc(ptStr('P',task.P))+'.');
+    feedback('ok',()=>T('Richtig! Genau dort liegt '+esc(ptStr('P',task.P))+'.','Correct! That is exactly where '+esc(ptStr('P',task.P))+' lies.'));
   } else {
-    let m='Noch nicht richtig – dein Kreuz liegt '+(res.dir||'neben der richtigen Stelle')+'.';
-    if(res.hint) m+='<br><b>Vermutung:</b> '+res.hint;
+    const m=()=>T('Noch nicht richtig – dein Kreuz liegt '+(res.dir()||'neben der richtigen Stelle')+'.',
+                  'Not right yet – your cross is '+(res.dir()||'next to the correct position')+'.')
+      +(res.hint ? '<br><b>'+T('Vermutung:','Guess:')+'</b> '+res.hint() : '');
     if(S.autoHelp){ answered=true; feedback('bad',m); showSolution(true); return; }
     answered=false;                       /* ohne Lösung: neuer Versuch erlaubt */
-    feedback('bad', m+'<br>Du kannst es gleich noch einmal versuchen.');
+    feedback('bad', ()=>m()+'<br>'+T('Du kannst es gleich noch einmal versuchen.','You can try again straight away.'));
   }
   paintTask(); render();
 }
@@ -1883,13 +2047,13 @@ function syncControls(){
   $$('.ueb-only').forEach(e=>e.classList.toggle('hidden', S.mode!=='ueb'));
   $('#btnNewTop').classList.toggle('hidden', S.mode!=='ueb' || !task);
   $('#btnView').textContent = S.view==='2d' ? '3D' : '2D';
-  $('#btnView').title = S.view==='2d' ? 'In die räumliche Ansicht wechseln' : 'Zurück zum Schrägbild';
+  $('#btnView').title = S.view==='2d' ? T('In die räumliche Ansicht wechseln','Switch to the 3D view') : T('Zurück zum Schrägbild','Back to the oblique drawing');
   const drawTask = S.mode==='ueb' && task && task.type==='draw' && !answered;
   const parts = S.view==='3d'
-    ? (drawTask ? ['Zum Einzeichnen auf 2D umschalten']
-                : ['Ziehen = drehen','rechte Maustaste / 2 Finger = verschieben','Mausrad = zoomen'])
-    : (drawTask ? ['Tippe an die Stelle, an der der Punkt liegt']
-                : ['Ziehen = verschieben','Mausrad = zoomen']);
+    ? (drawTask ? [T('Zum Einzeichnen auf 2D umschalten','Switch to 2D to plot')]
+                : [T('Ziehen = drehen','drag = rotate'),T('rechte Maustaste / 2 Finger = verschieben','right mouse button / 2 fingers = pan'),T('Mausrad = zoomen','mouse wheel = zoom')])
+    : (drawTask ? [T('Tippe an die Stelle, an der der Punkt liegt','Tap where the point lies')]
+                : [T('Ziehen = verschieben','drag = pan'),T('Mausrad = zoomen','mouse wheel = zoom')]);
   $('#stageHint').innerHTML = parts.map(t=>'<span>'+t+'</span>').join('');
   $('#stageInfo').innerHTML = S.mode==='erk' ? esc(ptStr('P',S.P)) : '';
   $('#stageInfo').classList.toggle('hidden', S.mode!=='erk');
@@ -2023,15 +2187,15 @@ function expPNG(){
     c.drawImage(img,0,0,cv.width,cv.height);
     cv.toBlob(b=>saveBlob(b,exportName('png')),'image/png');
   };
-  img.onerror=()=>alert('Das Bild konnte nicht erzeugt werden.');
+  img.onerror=()=>alert(T('Das Bild konnte nicht erzeugt werden.','The image could not be created.'));
   img.src='data:image/svg+xml;base64,'+btoa(unescape(encodeURIComponent(svgForExport())));
 }
 async function copyLink(btn){
   serialize();
   let ok=true;
   try{ await navigator.clipboard.writeText(location.href); }catch(e){ ok=false; }
-  btn.textContent = ok ? '✓ Link kopiert' : 'Link steht in der Adresszeile';
-  setTimeout(()=>{ btn.textContent='🔗 Link mit allen Einstellungen kopieren'; closeMenu(); },1400);
+  btn.textContent = ok ? T('✓ Link kopiert','✓ Link copied') : T('Link steht in der Adresszeile','The link is in the address bar');
+  setTimeout(()=>{ btn.textContent=T('🔗 Link mit allen Einstellungen kopieren','🔗 Copy link with all settings'); closeMenu(); },1400);
 }
 
 /* --- Verdrahtung --- */
@@ -2212,6 +2376,7 @@ function initUI(){
   window.addEventListener('resize',()=>{ clearTimeout(rT); rT=setTimeout(render,120); });
   initPointer();
 }
+let GESTARTET=false;   /* Sprach-/Farbwechsel erst nach init() verarbeiten */
 function init(){
   deserialize();
   if(!new URLSearchParams(location.search).has('rv') && PROJ[S.proj])
@@ -2222,8 +2387,38 @@ function init(){
   buildDynamicUI(); initUI(); initTips(); syncControls();
   paintSteps(); render();
   if(S.mode==='ueb'){ if(!task) newTask(); }
+  GESTARTET=true;
 }
 if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', init); else init();
+
+/* ---------------------------------------------------------------- Sprache / Farbschema
+   Beim Sprachwechsel alle erzeugten Beschriftungen neu aufbauen – Punkt, Aufgabe,
+   eingetippte Antworten, Rückmeldung und Lösungsschritt bleiben erhalten. */
+function neuBeschriften(){
+  const rr=[0,1,2].map(i=>{ const e=$('#q'+i); return e ? {v:e.value, c:e.className} : null; });
+  buildDynamicUI();
+  rr.forEach((x,i)=>{ const e=$('#q'+i); if(x && e){ e.value=x.v; e.className=x.c; } });
+  syncControls(); paintSteps(); paintTask();
+  if(solVisible) paintSolNote();
+  const f=$('#fb');
+  if(FB && f && !f.classList.contains('hidden')) feedback(FB.cls, FB.html);
+  render();
+}
+window.addEventListener('tl-sprache', ()=>{ if(!GESTARTET) return; try{ neuBeschriften(); }catch(e){ if(window.console) console.error(e); } });
+window.addEventListener('tl-theme', ()=>{ if(!GESTARTET) return; try{ render(); }catch(e){} });
+/* Fehler melden: aktueller Punkt bzw. aktuelle Aufgabe (die Einstellungen stehen in der URL) */
+window.fehlerKontext = function(){
+  const ohneTags = x => String(x).replace(/<[^>]+>/g,'');
+  if(S.mode==='erk'){
+    const a=APPS.find(x=>x.v===S.approach);
+    return T('Erkundung: ','Explore: ')+'P('+S.P.join('|')+'), '+ohneTags(a?a.lbl():S.approach)+', '+S.view.toUpperCase();
+  }
+  if(!task) return T('Übung','Practice');
+  const f=$('#taskBar');
+  return T('Übung: ','Practice: ')+(EN()?TYPE_LBL_EN:TYPE_LBL)[task.type]+(task.id&&FIND[task.id]?' / '+FIND[task.id].lbl:'')
+    +(task.P?', P('+task.P.join('|')+')':'')
+    +(task.sol?T(', Lösung (',', solution (')+task.sol.join('|')+')':'')+' – '+(f?f.textContent:'');
+};
 
 </script>
 </body>

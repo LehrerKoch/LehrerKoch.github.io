@@ -3,22 +3,27 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Baumdiagramm-Trainer</title>
+  <link rel="shortcut icon" type="image/x-icon" href="aleph_zero_logo.ico">
+  <script>try{var t=localStorage.getItem('matheToolsTheme');if(t==='dark'||(!t&&window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.classList.add('dark');}catch(e){}</script>
+  <title data-de="Baumdiagramm-Trainer" data-en="Tree Diagram Trainer">Baumdiagramm-Trainer</title>
+  <script src="theme-language.js" defer></script>
   <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="aufgaben.css">
+  <script src="aufgaben.js" defer></script>
   <script>MathJax = { tex:{ inlineMath:[['\\(','\\)']] }, svg:{ fontCache:'global' } };</script>
   <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
   <script>
         window.dataLayer = window.dataLayer || [];
         function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-        gtag('config', 'G-5K8WYYXDL2');
+        window.TK_GA_ID = 'G-5K8WYYXDL2';   /* Google Analytics laedt erst nach Einwilligung, siehe einwilligung.js */
     </script>
+<script src="einwilligung.js" defer></script>
   <style>
     html, body { height: 100%; }
     body {
       display: flex; flex-direction: column;
       min-height: 100svh;
-      box-sizing: border-box; overflow-x: hidden;
+      box-sizing: border-box;
     }
 
     /* ── Header ───────────────────────────────────────── */
@@ -27,41 +32,19 @@
     }
     #header-row h1 { margin: 0; font-size: 1.35em; }
 
-    /* ── Neue-Aufgabe-Zeile (zwischen Aufgabe und Baum) ── */
-    #neu-row {
-      flex-shrink: 0;
-      padding: 4px 0 3px;
-    }
+    /* Die Seite ist eine Spalte; nur der Baum darf wachsen. */
+    #topControls, #genRow { flex-shrink: 0; }
 
-    /* ── Segmented Controls ───────────────────────────── */
-    .seg { display: inline-flex; }
-    .seg button {
-      background: #ddd; color: #333;
-      padding: 5px 12px; font-size: 11px;
-      border: 1px solid #bbb; border-radius: 0; margin: 0;
-    }
-    .seg button:first-child { border-radius: 4px 0 0 4px; }
-    .seg button:last-child  { border-radius: 0 4px 4px 0; }
-    .seg button.on          { background: #4CAF50; color:#fff; border-color:#388e3c; }
-    .seg button:disabled    { opacity:.35; cursor:not-allowed; }
-    .srow.dimmed            { opacity:.42; pointer-events:none; }
+    /* ── Schalter ─────────────────────────────────────────
+       Aussehen und Dunkelmodus kommen aus aufgaben.css. */
+    .seg label:has(input:disabled) { opacity:.35; pointer-events:none; }
+    .form-block.dimmed      { opacity:.42; pointer-events:none; }
 
     /* ── Einstellungen ────────────────────────────────── */
     #settings { flex-shrink: 0; }
-    #settings > div { padding: 6px 0 4px 14px; }
-    .srow {
-      display: flex; align-items: center;
-      gap: 12px; margin: 6px 0; flex-wrap: wrap;
-    }
-    .srow > label { font-weight:bold; min-width:220px; font-size:.88em; }
 
     /* ── Aufgabenbereich ─────────────────────────────── */
-    #task-area {
-      flex-shrink: 0;
-      border: 2px solid #000; border-radius: 5px;
-      padding: 10px 14px; margin: 6px 0 5px;
-      background: #fafafa;
-    }
+    #task-area { flex-shrink: 0; margin: 6px 0 5px; }
     #task-header {
       display: flex; justify-content: space-between; align-items: baseline;
       gap: 8px;
@@ -124,9 +107,9 @@
     }
     #ergebnis.ok  { color:#28a745; }
     #ergebnis.nok { color:#dc3545; }
-    #btn-ok       { background:#2196F3; }
-    #btn-hint-btn { background:#FF9800; }
-    #btn-show     { background:#7b1fa2; }
+    /* Prüfen grün wie überall, Hilfe gelb, Lösung blau. */
+    #btn-hint-btn { background:var(--ab-ge-knopf,#E0A800); color:var(--ab-ge-schrift,#3a2c00); }
+    #btn-show     { background:var(--ab-bl-knopf,#1f6bb8); }
 
     /* ── Wahrscheinlichkeitsfelder ────────────────────── */
     .pf-g       { cursor:pointer; }
@@ -156,84 +139,116 @@
     }
 
     .site-footer { flex-shrink:0; }
-  </style>
+  
+/* ══ Dark Mode (Hellmodus bleibt unverändert) ══ */
+html.dark #progress { color:#9aa5b1; }
+html.dark #progress .p-rem { color:#e7eae8; }
+html.dark #task-hint { color:#c3ccd4; background:#232a32; }
+html.dark #ergebnis.ok  { color:#81c784; }
+html.dark #ergebnis.nok { color:#ef5350; }
+html.dark .pf-rect { fill:#232a32; stroke:#5a646d; }
+html.dark .pf-g:hover .pf-rect { stroke:#4caf50; }
+html.dark .pf-g.sel  .pf-rect { fill:#1b3350; stroke:#5b9bd5; }
+html.dark .pf-g.ok   .pf-rect { fill:#1e4a22; stroke:#4caf50; }
+html.dark .pf-g.nok  .pf-rect { fill:#4a2020; stroke:#ef5350; }
+html.dark .pf-g.show .pf-rect { fill:#4a3c14; stroke:#e0a800; }
+html.dark .site-footer { border-top-color:#3a434b; color:#9aa5b1; }
+</style>
 </head>
-<body>
+<body class="tk-seite">
 
-<div id="header-row">
-  <h1>Baumdiagramm – Felder erkennen</h1>
-</div>
+<header class="tool-kopf">
+  <div class="tk-text">
+    <h1 data-de="Baumdiagramm – Felder erkennen" data-en="Tree Diagram – Identify the Cells">Baumdiagramm – Felder erkennen</h1>
+    <p class="tk-unter" data-de="Welche Ereignisse stehen an welcher Stelle im Baumdiagramm?" data-en="Which events belong at which position in the tree diagram?">Welche Ereignisse stehen an welcher Stelle im Baumdiagramm?</p>
+  </div>
+</header>
 
-<details id="settings">
-  <summary>Einstellungen</summary>
-  <div>
-    <div class="srow">
-      <label>Stufen:</label>
+<details class="einst" id="settings">
+  <summary data-de="Einstellungen" data-en="Settings">Einstellungen</summary>
+  <div class="settings-grid">
+    <div class="form-block">
+      <b data-de="Stufen" data-en="Levels">Stufen</b>
       <div class="seg" id="s-stufen">
-        <button data-v="2" class="on">2</button>
-        <button data-v="3">3</button>
+        <label><input type="radio" name="g-stufen" value="2" checked><span>2</span></label>
+        <label><input type="radio" name="g-stufen" value="3"><span>3</span></label>
       </div>
     </div>
-    <div class="srow">
-      <label>Äste pro Knoten:</label>
+    <div class="form-block">
+      <b data-de="Äste pro Knoten" data-en="Branches per node">Äste pro Knoten</b>
       <div class="seg" id="s-aeste">
-        <button data-v="2" class="on">2</button>
-        <button data-v="3">3</button>
-        <button data-v="4">4</button>
+        <label><input type="radio" name="g-aeste" value="2" checked><span>2</span></label>
+        <label><input type="radio" name="g-aeste" value="3"><span>3</span></label>
+        <label><input type="radio" name="g-aeste" value="4"><span>4</span></label>
       </div>
     </div>
-    <div class="srow" id="row-neg">
-      <label>Beschriftung (2 Äste):</label>
+    <div class="form-block" id="row-neg">
+      <b data-de="Beschriftung (2 Äste)" data-en="Labels (2 branches)">Beschriftung (2 Äste)</b>
       <div class="seg" id="s-neg">
-        <button data-v="1" class="on">Negiert (A&thinsp;/&thinsp;Ā)</button>
-        <button data-v="0">Verschieden (A&thinsp;/&thinsp;B)</button>
+        <label><input type="radio" name="g-neg" value="1" checked><span data-de="Negiert (A&thinsp;/&thinsp;Ā)" data-en="Negated (A&thinsp;/&thinsp;Ā)">Negiert (A&thinsp;/&thinsp;Ā)</span></label>
+        <label><input type="radio" name="g-neg" value="0"><span data-de="Verschieden (A&thinsp;/&thinsp;B)" data-en="Different (A&thinsp;/&thinsp;B)">Verschieden (A&thinsp;/&thinsp;B)</span></label>
       </div>
     </div>
-    <div class="srow">
-      <label>Bedingte-W.-Aufgaben:</label>
+    <div class="form-block">
+      <b data-de="Bedingte-W.-Aufgaben" data-en="Conditional probability tasks">Bedingte-W.-Aufgaben</b>
       <div class="seg" id="s-cond">
-        <button data-v="1" class="on">Ja</button>
-        <button data-v="0">Nein</button>
+        <label><input type="radio" name="g-cond" value="1" checked><span data-de="Ja" data-en="Yes">Ja</span></label>
+        <label><input type="radio" name="g-cond" value="0"><span data-de="Nein" data-en="No">Nein</span></label>
       </div>
     </div>
-    <div class="srow" id="row-cstyle">
-      <label>Notation bedingte W-keit:</label>
+    <div class="form-block" id="row-cstyle">
+      <b data-de="Notation bedingte W-keit" data-en="Notation for conditional probability">Notation bedingte W-keit</b>
       <div class="seg" id="s-cstyle">
-        <button data-v="sub" class="on">P<sub>B</sub>(A)</button>
-        <button data-v="bar">P(A|B)</button>
+        <label><input type="radio" name="g-cstyle" value="sub" checked><span>P<sub>B</sub>(A)</span></label>
+        <label><input type="radio" name="g-cstyle" value="bar"><span>P(A|B)</span></label>
       </div>
     </div>
-    <div class="srow">
-      <label>Notation Schnitt:</label>
+    <div class="form-block">
+      <b data-de="Notation Schnitt" data-en="Notation for intersection">Notation Schnitt</b>
       <div class="seg" id="s-inter">
-        <button data-v="cap" class="on">P(A&#8745;B)</button>
-        <button data-v="con">P(AB)</button>
+        <label><input type="radio" name="g-inter" value="cap" checked><span>P(A&#8745;B)</span></label>
+        <label><input type="radio" name="g-inter" value="con"><span>P(AB)</span></label>
       </div>
     </div>
-    <div class="srow" id="row-union">
-      <label>Vereinigungs-Aufgaben (2&thinsp;Äste):</label>
+    <div class="form-block" id="row-union">
+      <b data-de="Vereinigungs-Aufgaben (2&thinsp;Äste)" data-en="Union tasks (2&thinsp;branches)">Vereinigungs-Aufgaben (2&thinsp;Äste)</b>
       <div class="seg" id="s-union">
-        <button data-v="0" class="on">Nein</button>
-        <button data-v="1">Ja</button>
+        <label><input type="radio" name="g-union" value="0" checked><span data-de="Nein" data-en="No">Nein</span></label>
+        <label><input type="radio" name="g-union" value="1"><span data-de="Ja" data-en="Yes">Ja</span></label>
       </div>
     </div>
   </div>
 </details>
 
-<div id="task-area">
+<!-- ═══ Schalter über der Aufgabe ═══════════════════════════ -->
+<div id="topControls">
+  <div class="tc-item tc-diff">
+    <span class="tc-label" data-de="Schwierigkeit" data-en="Difficulty">Schwierigkeit</span>
+    <div class="seg-switch diff-switch" id="segDiff">
+      <input type="radio" name="diff" id="diffEinf" value="einf"><label for="diffEinf" data-de="Einführung" data-en="Introduction">Einführung</label>
+      <input type="radio" name="diff" id="diffLeicht" value="leicht"><label for="diffLeicht" data-de="Leicht" data-en="Easy">Leicht</label>
+      <input type="radio" name="diff" id="diffNormal" value="normal" checked><label for="diffNormal" data-de="Normal" data-en="Normal">Normal</label>
+      <input type="radio" name="diff" id="diffSchwer" value="schwer"><label for="diffSchwer" data-de="Herausfordernd" data-en="Challenging">Herausfordernd</label>
+      <input type="radio" name="diff" id="diffIndiv" value="indiv"><label for="diffIndiv" data-de="Individuell" data-en="Custom" data-de-title="öffnet die Einstellungen" data-en-title="opens the settings" title="öffnet die Einstellungen">Individuell</label>
+      <span class="seg-glider"></span>
+    </div>
+  </div>
+</div>
+
+<div id="genRow">
+  <button id="btn-neu" data-de='<span class="auto-kreis">&#x27F3;</span>&nbsp;Neue Aufgabe generieren' data-en='<span class="auto-kreis">&#x27F3;</span>&nbsp;Generate a new task'><span class="auto-kreis">&#x27F3;</span>&nbsp;Neue Aufgabe generieren</button>
+</div>
+
+<div class="task" id="task-area">
   <div id="task-header">
-    <div id="task-q">Aufgabe wird geladen&hellip;</div>
+    <div id="task-q" data-de="Aufgabe wird geladen…" data-en="Loading task…">Aufgabe wird geladen&hellip;</div>
     <span id="progress"></span>
   </div>
   <div id="task-hint"></div>
   <div id="task-btns">
-    <button id="btn-hint-btn" disabled>? Hinweis</button>
-    <button id="btn-show"     disabled>&#8594; Lösung zeigen</button>
+    <button id="btn-hint-btn" disabled data-de="? Hinweis" data-en="? Hint">? Hinweis</button>
+    <button id="btn-show"     disabled data-de="&#8594; Lösung zeigen" data-en="&#8594; Show solution">&#8594; Lösung zeigen</button>
   </div>
-</div>
-
-<div id="neu-row">
-  <button id="btn-neu">&#9654; Neue Aufgabe</button>
 </div>
 
 <div id="tree-wrap">
@@ -241,7 +256,7 @@
 </div>
 
 <div id="btn-row">
-  <button id="btn-ok" disabled>&#10003; Bestätigen</button>
+  <button id="btn-ok" disabled data-de="&#10003; Bestätigen" data-en="&#10003; Confirm">&#10003; Bestätigen</button>
 </div>
 <div id="ergebnis"></div>
 
@@ -252,16 +267,68 @@
   <div class="footer-content">
       M.&nbsp;Koch
       <span class="footer-topic"><a href="./index.html">Mathe-Tools</a></span>
-      <span class="footer-update">Last updated:&nbsp;<span id="last-update">...</span></span>
+      <span class="footer-update"><span class="fu-wort" data-de="Zuletzt aktualisiert:" data-en="Last updated:">Zuletzt aktualisiert:</span><span id="last-update">...</span></span>
   </div>
 </footer>
 <script src="last-update.js" defer></script>
 
 <script>
+/* Faellt ohne theme-language.js auf Deutsch zurueck. */
+function mjTypeset(elemente) {
+  if (!window.MathJax) return Promise.resolve();
+  if (MathJax.typesetPromise) return MathJax.typesetPromise(elemente).catch(() => {});
+  if (MathJax.startup && MathJax.startup.promise) {
+    return MathJax.startup.promise
+      .then(() => MathJax.typesetPromise ? MathJax.typesetPromise(elemente) : null)
+      .catch(() => {});
+  }
+  return Promise.resolve();
+}
+
+function T(de, en) { return (typeof tlText === 'function') ? tlText(de, en) : de; }
+/* Farben der Baumgrafik - im dunklen Modus hell auf dunkel */
+function BAUMFARBEN() {
+  const d = (typeof tlDunkel === 'function') && tlDunkel();
+  return d
+    ? { ast:'#9aa5b1', astHell:'#4a545e', knoten:'#d7dee4', knotenFuell:'#232a32', text:'#e7eae8', punkt:'#d7dee4' }
+    : { ast:'#555',    astHell:'#ccc',    knoten:'#333',    knotenFuell:'#fff',    text:'#111',    punkt:'#333'    };
+}
+
 // ═══════════════════════════════════════════════════
 //  EINSTELLUNGS-STATE
 // ═══════════════════════════════════════════════════
 const S = { stufen:2, aeste:2, neg:true, cond:true, cStyle:'sub', inter:'cap', union:false };
+
+/* ── Schwierigkeitsstufen ──────────────────────────────────────────────────
+   Die Stufe setzt die Größe des Baums und die Aufgabenarten. Die Schreibweisen
+   bleiben die Wahl der Nutzerin; jede Einstellung steht weiterhin einzeln im
+   Einstellungsbereich.                                                     */
+const STUFEN = {
+  einf:   { stufen:2, aeste:2, cond:false, union:false },
+  leicht: { stufen:2, aeste:2, cond:true,  union:false },
+  normal: { stufen:2, aeste:2, cond:true,  union:true  },
+  schwer: { stufen:3, aeste:3, cond:true,  union:false }
+};
+function stufe() {
+  const e = document.querySelector('input[name="diff"]:checked');
+  return e ? e.value : 'normal';
+}
+function stufeSetzen(name) {
+  const e = document.querySelector(`input[name="diff"][value="${name}"]`);
+  if (e && !e.checked) { e.checked = true; if (window.abGliderAlle) abGliderAlle(); }
+}
+function aufIndividuell() { if (stufe() !== 'indiv') stufeSetzen('indiv'); }
+function stufeAnwenden(name) {
+  const v = STUFEN[name];
+  if (!v) return;
+  S.stufen = v.stufen; S.aeste = v.aeste; S.cond = v.cond; S.union = v.union;
+  syncControls(); updateUI(); saveSettings(); rebuild();
+}
+/* Ein Blick auf alle Einstellungen - so wie auf den anderen Aufgabenseiten. */
+function einstellungen() {
+  return { stufen:S.stufen, aeste:S.aeste, neg:S.neg, cond:S.cond,
+           cStyle:S.cStyle, inter:S.inter, union:S.union, diff:stufe() };
+}
 
 // ═══════════════════════════════════════════════════
 //  URL-PERSISTENZ (Einstellungen im Hash)
@@ -275,14 +342,17 @@ function saveSettings() {
   p.set('cStyle', S.cStyle);
   p.set('inter',  S.inter);
   p.set('union',  S.union ? '1' : '0');
-  history.replaceState(null, '', '#' + p.toString());
+  p.set('diff',   stufe());
+  // Wie auf den anderen Aufgabenseiten stehen die Einstellungen in der
+  // Adresszeile selbst; alte Links mit # wirken weiterhin (siehe loadSettings).
+  history.replaceState(null, '', location.pathname + '?' + p.toString());
 }
 
 function loadSettings() {
-  const hash = location.hash.slice(1);
-  if (!hash) return;
+  const quelle = location.search.slice(1) || location.hash.slice(1);
+  if (!quelle) return;
   try {
-    const p = new URLSearchParams(hash);
+    const p = new URLSearchParams(quelle);
     if (p.has('stufen')) S.stufen = +p.get('stufen');
     if (p.has('aeste'))  S.aeste  = +p.get('aeste');
     if (p.has('neg'))    S.neg    = p.get('neg')    === '1';
@@ -290,14 +360,15 @@ function loadSettings() {
     if (p.has('cStyle')) S.cStyle = p.get('cStyle');
     if (p.has('inter'))  S.inter  = p.get('inter');
     if (p.has('union'))  S.union  = p.get('union') === '1';
+    if (p.has('diff'))   stufeSetzen(p.get('diff'));
   } catch(e) { /* ungültiger Hash → ignorieren */ }
 }
 
 function syncControls() {
   // Segmented-Controls auf S-Werte setzen
   const setOn = (id, v) => {
-    document.getElementById(id).querySelectorAll('button').forEach(b => {
-      b.classList.toggle('on', b.dataset.v === String(v));
+    document.getElementById(id).querySelectorAll('input[type="radio"]').forEach(r => {
+      r.checked = (r.value === String(v));
     });
   };
   setOn('s-stufen', S.stufen);
@@ -322,18 +393,22 @@ let nodes = [], task = null, sel = new Set(), fieldStateMap = {}, phase = 'idle'
 // ═══════════════════════════════════════════════════
 let taskQueue   = [];
 let lastCorrect = null;
+let ergebnisArt = null;   // null | 'ok' | 'nok' | 'sol' - fuer Sprachwechsel
 let queueTotal  = 0;
 
 // ═══════════════════════════════════════════════════
 //  LAYOUT-KONSTANTEN
 // ═══════════════════════════════════════════════════
+/* Der Baum fuellt die Breite besser aus, wenn er oben und unten weniger
+   Luft mitbringt: die Hoehe bestimmt den Massstab, und jeder gesparte
+   senkrechte Punkt macht das Bild breiter. */
 const NODE_R  = 28;
-const MX      = 18;
-const MT      = 54;
-const LEVEL_H = 168;
-const JO      = 84;
+const MX      = 12;
+const MT      = 42;
+const LEVEL_H = 160;
+const JO      = 72;
 const FH      = 34;
-const BOT     = 38;
+const BOT     = 26;
 
 // ═══════════════════════════════════════════════════
 //  BESCHRIFTUNGS-HELFER
@@ -410,7 +485,7 @@ function buildUnionTasks(leaves) {
       const l1nd = nodes.find(n => n.level === 1 && n.branchIdx === bi1);
       tasks.push({
         type:'union', subtype:'fixN', unionLeaves:cLv,
-        hint: 'Vereinigung: Markiere alle Pfad-Felder, die zu diesem Ereignis der 1. Stufe gehören.',
+        hint: () => T('Vereinigung: Markiere alle Pfad-Felder, die zu diesem Ereignis der 1. Stufe gehören.', 'Union: mark every path cell belonging to this event on level 1.'),
         correct: cLv.map(l => `j_${l.id}`),
         correctSets: [
           new Set(cLv.map(l => `j_${l.id}`)),
@@ -424,7 +499,7 @@ function buildUnionTasks(leaves) {
       if (cLv.length < 2) continue;
       tasks.push({
         type:'union', subtype:'fixN', unionLeaves:cLv,
-        hint: 'Vereinigung: Markiere alle Pfad-Felder, die zu diesem Ereignis der 2. Stufe gehören.',
+        hint: () => T('Vereinigung: Markiere alle Pfad-Felder, die zu diesem Ereignis der 2. Stufe gehören.', 'Union: mark every path cell belonging to this event on level 2.'),
         correct: cLv.map(l => `j_${l.id}`),
         correctSets: [new Set(cLv.map(l => `j_${l.id}`))]
       });
@@ -437,7 +512,7 @@ function buildUnionTasks(leaves) {
           const lbl1 = evtLbl(1, bi1), lbl2 = evtLbl(2, bi2);
           tasks.push({
             type:'union', subtype:'or', lbl1, lbl2, unionLeaves:cLv,
-            hint: 'Vereinigung zweier Ereignisse: Markiere alle Pfad-Felder außer dem, das keines der beiden Ereignisse enthält.',
+            hint: () => T('Vereinigung zweier Ereignisse: Markiere alle Pfad-Felder außer dem, das keines der beiden Ereignisse enthält.', 'Union of two events: mark every path cell except the one containing neither event.'),
             correct: cLv.map(l => `j_${l.id}`),
             correctSets: [new Set(cLv.map(l => `j_${l.id}`))]
           });
@@ -454,7 +529,7 @@ function buildUnionTasks(leaves) {
         if (cLv.length < 2) continue;
         tasks.push({
           type:'union', subtype:'fixN', unionLeaves:cLv,
-          hint: 'Vereinigung: Markiere alle Pfad-Felder unter diesem Ereignispaar (1.+2. Stufe).',
+          hint: () => T('Vereinigung: Markiere alle Pfad-Felder unter diesem Ereignispaar (1.+2. Stufe).', 'Union: mark every path cell below this pair of events (levels 1 and 2).'),
           correct: cLv.map(l => `j_${l.id}`),
           correctSets: [new Set(cLv.map(l => `j_${l.id}`))]
         });
@@ -468,7 +543,7 @@ function buildUnionTasks(leaves) {
       const l1nd = nodes.find(n => n.level === 1 && n.branchIdx === bi1);
       tasks.push({
         type:'union', subtype:'fixN', unionLeaves:cLv,
-        hint: 'Vereinigung: Markiere alle Pfad-Felder unter diesem Ereignis der 1. Stufe.',
+        hint: () => T('Vereinigung: Markiere alle Pfad-Felder unter diesem Ereignis der 1. Stufe.', 'Union: mark every path cell below this event on level 1.'),
         correct: cLv.map(l => `j_${l.id}`),
         correctSets: [
           new Set(cLv.map(l => `j_${l.id}`)),
@@ -482,7 +557,7 @@ function buildUnionTasks(leaves) {
       if (cLv.length < 2) continue;
       tasks.push({
         type:'union', subtype:'fixN', unionLeaves:cLv,
-        hint: 'Vereinigung: Markiere alle Pfad-Felder mit diesem Ereignis auf der letzten Stufe.',
+        hint: () => T('Vereinigung: Markiere alle Pfad-Felder mit diesem Ereignis auf der letzten Stufe.', 'Union: mark every path cell with this event on the last level.'),
         correct: cLv.map(l => `j_${l.id}`),
         correctSets: [new Set(cLv.map(l => `j_${l.id}`))]
       });
@@ -504,7 +579,7 @@ function buildTaskQueue() {
     const leavesUnder = leaves.filter(l => l.path[0] === nd.branchIdx);
     q.push({
       type: 'eL1', nd,
-      hint:    'Diese Wahrscheinlichkeit steht an einem Ast der ersten Stufe.',
+      hint:    () => T('Diese Wahrscheinlichkeit steht an einem Ast der ersten Stufe.', 'This probability sits on a branch of the first level.'),
       correct: [`e_${nd.id}`],
       correctSets: [
         new Set([`e_${nd.id}`]),
@@ -520,9 +595,9 @@ function buildTaskQueue() {
       const multiCond = condLbls.length > 1;
       q.push({
         type: 'cond', nd, condLbls,
-        hint: multiCond
-          ? 'Bedingte W-keit mit Schnitt-Bedingung: ein einzelnes Ast-Feld auf der letzten Stufe.'
-          : 'Bedingte Wahrscheinlichkeiten stehen an den Ästen der Folgestufe.',
+        hint: () => multiCond
+          ? T('Bedingte W-keit mit Schnitt-Bedingung: ein einzelnes Ast-Feld auf der letzten Stufe.', 'Conditional probability with an intersection as the condition: a single branch cell on the last level.')
+          : T('Bedingte Wahrscheinlichkeiten stehen an den Ästen der Folgestufe.', 'Conditional probabilities sit on the branches of the following level.'),
         correct: [`e_${nd.id}`],
         correctSets: [new Set([`e_${nd.id}`])]
       });
@@ -543,7 +618,8 @@ function buildTaskQueue() {
         const cnt = targetNds.length;
         q.push({
           type: 'condMarg', condLabel, evtLabel, targetNds,
-          hint: `Bedingte W-keit mit einfacher Bedingung: Es gibt ${cnt} passende Ast-Felder auf der letzten Stufe – markiere alle!`,
+          hint: () => T(`Bedingte W-keit mit einfacher Bedingung: Es gibt ${cnt} passende Ast-Felder auf der letzten Stufe – markiere alle!`,
+      `Conditional probability with a simple condition: there are ${cnt} matching branch cells on the last level – mark them all!`),
           correct: targetNds.map(nd2 => `e_${nd2.id}`),
           correctSets: [new Set(targetNds.map(nd2 => `e_${nd2.id}`))]
         });
@@ -555,7 +631,7 @@ function buildTaskQueue() {
   leaves.forEach(lf => {
     q.push({
       type: 'leaf', lf,
-      hint:    'Pfadwahrscheinlichkeiten stehen im Feld ganz unten am Ende des Pfades.',
+      hint:    () => T('Pfadwahrscheinlichkeiten stehen im Feld ganz unten am Ende des Pfades.', 'Path probabilities sit in the cell at the very end of the path.'),
       correct: [`j_${lf.id}`],
       correctSets: [new Set([`j_${lf.id}`])]
     });
@@ -571,7 +647,8 @@ function buildTaskQueue() {
         const n = cLeaves.length;
         q.push({
           type: 'marg', exNd, lv, bi,
-          hint:    `Gesamtwahrscheinlichkeit: Summe aus ${n} Pfad-Feld${n>1?'ern':''}.`,
+          hint:    () => T(`Gesamtwahrscheinlichkeit: Summe aus ${n} Pfad-Feld${n>1?'ern':''}.`,
+                     `Total probability: the sum of ${n} path cell${n>1?'s':''}.`),
           correct: cLeaves.map(l => `j_${l.id}`),
           correctSets: [new Set(cLeaves.map(l => `j_${l.id}`))]
         });
@@ -600,7 +677,7 @@ function updateProgress() {
   const el = document.getElementById('progress');
   if (!el) return;
   const rem = taskQueue.length;
-  el.innerHTML = `<span class="p-rem">${rem}</span>&thinsp;/&thinsp;${queueTotal} offen`;
+  el.innerHTML = `<span class="p-rem">${rem}</span>&thinsp;/&thinsp;${queueTotal} ${T('offen', 'open')}`;
 }
 
 // ═══════════════════════════════════════════════════
@@ -617,21 +694,26 @@ function showToast(msg) {
 //  AUFGABEN-BESCHREIBUNG (notations-abhängig)
 // ═══════════════════════════════════════════════════
 function getTaskDesc(t) {
-  if (t.type === 'eL1')  return `Wo findest du \\(~${fmtP(t.nd.label)}~\\) im Baumdiagramm?`;
+  const wo  = (was) => T(`Wo findest du \\(~${was}~\\) im Baumdiagramm?`,
+                         `Where do you find \\(~${was}~\\) in the tree diagram?`);
+  const alle = (was) => T(`Markiere alle Felder für \\(~${was}~\\) im Baumdiagramm!`,
+                          `Mark every cell for \\(~${was}~\\) in the tree diagram!`);
+
+  if (t.type === 'eL1')  return wo(fmtP(t.nd.label));
   if (t.type === 'cond') {
     const givStr = t.condLbls.join(' \\cap ');
-    return `Wo findest du \\(~${fmtC(t.nd.label, givStr)}~\\) im Baumdiagramm?`;
+    return wo(fmtC(t.nd.label, givStr));
   }
   if (t.type === 'condMarg')
-    return `Markiere alle Felder für \\(~${fmtC(t.evtLabel, t.condLabel)}~\\) im Baumdiagramm!`;
-  if (t.type === 'leaf') return `Wo findest du \\(~${fmtI(pathLbls(t.lf))}~\\) im Baumdiagramm?`;
-  if (t.type === 'marg') return `Wo findest du \\(~${fmtP(t.exNd.label)}~\\) im Baumdiagramm?`;
+    return alle(fmtC(t.evtLabel, t.condLabel));
+  if (t.type === 'leaf') return wo(fmtI(pathLbls(t.lf)));
+  if (t.type === 'marg') return wo(fmtP(t.exNd.label));
   if (t.type === 'union') {
     if (t.subtype === 'or')
-      return `Markiere alle Felder für \\(~P\\!\\left(${t.lbl1} \\cup ${t.lbl2}\\right)~\\)!`;
+      return alle(`P\\!\\left(${t.lbl1} \\cup ${t.lbl2}\\right)`);
     // fixN: Vereinigung der Pfad-Schnittmengen – Klammern um jeden Schnitt
     const parts = t.unionLeaves.map(l => `(${fmtIntersect(pathLbls(l))})`);
-    return `Markiere alle Felder für \\(~P\\!\\left(${parts.join(' \\cup ')}\\right)~\\)!`;
+    return alle(`P\\!\\left(${parts.join(' \\cup ')}\\right)`);
   }
   return '';
 }
@@ -640,7 +722,7 @@ function refreshTaskDesc() {
   if (!task) return;
   const qEl = document.getElementById('task-q');
   qEl.innerHTML = getTaskDesc(task);
-  if (window.MathJax) MathJax.typesetPromise([qEl]);
+  mjTypeset([qEl]);
 }
 
 // ═══════════════════════════════════════════════════
@@ -690,7 +772,7 @@ function renderSVG() {
     const r0 = nd.level === 1 ? 13 : NODE_R;
     const ln = mk('line');
     sa(ln, { x1:pc.x+r0*dx/d, y1:pc.y+r0*dy/d, x2:nc.x-NODE_R*dx/d, y2:nc.y-NODE_R*dy/d,
-              stroke:'#555', 'stroke-width':2.2 });
+              stroke:BAUMFARBEN().ast, 'stroke-width':2.2 });
     svg.appendChild(ln);
   });
 
@@ -707,7 +789,7 @@ function renderSVG() {
     const fy = y + JO;
     const dash = mk('line');
     sa(dash, { x1:x, y1:y+NODE_R+4, x2:x, y2:fy-FH/2-2,
-               stroke:'#ccc', 'stroke-width':1.6, 'stroke-dasharray':'5,3' });
+               stroke:BAUMFARBEN().astHell, 'stroke-width':1.6, 'stroke-dasharray':'5,3' });
     svg.appendChild(dash);
     mkField(svg, x-L.FW_J/2, fy-FH/2, L.FW_J, FH, `j_${nd.id}`);
   });
@@ -717,12 +799,12 @@ function renderSVG() {
     const {x, y} = C[nd.id];
     if (nd.level === 0) {
       const c = mk('circle');
-      sa(c, { cx:x, cy:y, r:13, fill:'#333' });
+      sa(c, { cx:x, cy:y, r:13, fill:BAUMFARBEN().punkt });
       svg.appendChild(c);
     } else {
       const g = mk('g');
       const circ = mk('circle');
-      sa(circ, { cx:x, cy:y, r:NODE_R, fill:'#fff', stroke:'#333', 'stroke-width':2.5 });
+      sa(circ, { cx:x, cy:y, r:NODE_R, fill:BAUMFARBEN().knotenFuell, stroke:BAUMFARBEN().knoten, 'stroke-width':2.5 });
       g.appendChild(circ);
       drawNodeLbl(g, x, y, nd.label, 20);
       svg.appendChild(g);
@@ -740,13 +822,13 @@ function drawNodeLbl(parent, cx, cy, lbl, fs) {
     const letter = lbl.slice(10,-1);
     const txt = mk('text');
     sa(txt, { x:cx, y:cy, 'text-anchor':'middle', 'dominant-baseline':'middle',
-               'font-family':'serif', 'font-size':fs, fill:'#111' });
+               'font-family':'serif', 'font-size':fs, fill:BAUMFARBEN().text });
     txt.textContent = letter;
     parent.appendChild(txt);
     const bw = fs * 0.62;
     const bar = mk('line');
     sa(bar, { x1:cx-bw/2, y1:cy-fs*0.60, x2:cx+bw/2, y2:cy-fs*0.60,
-               stroke:'#111', 'stroke-width':1.9 });
+               stroke:BAUMFARBEN().text, 'stroke-width':1.9 });
     parent.appendChild(bar);
   } else if (isSub) {
     const m = lbl.match(/^(.+)_\{(.+)\}$/);
@@ -755,20 +837,20 @@ function drawNodeLbl(parent, cx, cy, lbl, fs) {
       const tM = mk('text');
       sa(tM, { x:cx-fsS*0.38, y:cy+fs*0.10,
                 'text-anchor':'middle', 'dominant-baseline':'middle',
-                'font-family':'serif', 'font-size':fs, fill:'#111' });
+                'font-family':'serif', 'font-size':fs, fill:BAUMFARBEN().text });
       tM.textContent = m[1];
       parent.appendChild(tM);
       const tS = mk('text');
       sa(tS, { x:cx+fs*0.34, y:cy+fs*0.46,
                 'text-anchor':'start', 'dominant-baseline':'middle',
-                'font-family':'serif', 'font-size':fsS, fill:'#111' });
+                'font-family':'serif', 'font-size':fsS, fill:BAUMFARBEN().text });
       tS.textContent = m[2];
       parent.appendChild(tS);
     }
   } else {
     const txt = mk('text');
     sa(txt, { x:cx, y:cy, 'text-anchor':'middle', 'dominant-baseline':'middle',
-               'font-family':'serif', 'font-size':fs, fill:'#111' });
+               'font-family':'serif', 'font-size':fs, fill:BAUMFARBEN().text });
     txt.textContent = lbl;
     parent.appendChild(txt);
   }
@@ -778,7 +860,7 @@ function mkField(svg, x, y, w, h, fid) {
   const g = mk('g');
   g.classList.add('pf-g');
   g.dataset.fid = fid;
-  sa(g, { tabindex:'0', role:'button', 'aria-label':'Wahrscheinlichkeitsfeld' });
+  sa(g, { tabindex:'0', role:'button', 'aria-label':T('Wahrscheinlichkeitsfeld', 'probability cell') });
   const r = mk('rect');
   r.classList.add('pf-rect');
   sa(r, { x, y, width:w, height:h, rx:5, ry:5 });
@@ -855,7 +937,7 @@ function newTask() {
     taskQueue.shift();
     if (taskQueue.length === 0) {
       // Alle geschafft!
-      showToast('🎉 Alle Aufgaben richtig gelöst! Neustart…');
+      showToast(T('🎉 Alle Aufgaben richtig gelöst! Neustart…', '🎉 All tasks solved correctly! Starting over…'));
       initQueue();  // neu aufbauen und neu mischen
     }
   } else if (lastCorrect === false) {
@@ -876,14 +958,14 @@ function newTask() {
   const qEl = document.getElementById('task-q');
   qEl.innerHTML = getTaskDesc(task);
   const hEl = document.getElementById('task-hint');
-  hEl.textContent   = task.hint;
+  hEl.textContent   = hinweisText();
   hEl.style.display = 'none';
-  setResult('','');
+  zeigeErgebnis(null);
   document.getElementById('btn-ok')      .disabled = true;
   document.getElementById('btn-hint-btn').disabled = false;
   document.getElementById('btn-show')    .disabled = false;
   updateProgress();
-  if (window.MathJax) MathJax.typesetPromise([qEl]);
+  mjTypeset([qEl]);
 }
 
 function evaluate() {
@@ -904,7 +986,8 @@ function evaluate() {
     sel.forEach(f => markFld(f, primarySet.has(f) ? 'ok' : 'nok'));
     primarySet.forEach(f => { if (!sel.has(f)) markFld(f, 'show'); });
   }
-  setResult(right ? '✓ Richtig!' : '✗ Leider falsch.', right ? 'ok' : 'nok');
+  zeigeErgebnis(right ? 'ok' : 'nok');
+  antwortGemeldet(right);
   ['btn-ok','btn-hint-btn','btn-show'].forEach(id =>
     document.getElementById(id).disabled = true);
 }
@@ -920,9 +1003,23 @@ function showSolution() {
   phase = 'done';
   lastCorrect = false;  // Lösung gezeigt = nicht gelöst
   task.correct.forEach(f => markFld(f,'show'));
-  setResult('→ Lösung angezeigt.','');
+  zeigeErgebnis('sol');
   ['btn-ok','btn-hint-btn','btn-show'].forEach(id =>
     document.getElementById(id).disabled = true);
+}
+
+function hinweisText() {
+  if (!task) return '';
+  return (typeof task.hint === 'function') ? task.hint() : (task.hint || '');
+}
+
+// Ergebnis-Text merken, damit ein Sprachwechsel ihn neu schreiben kann
+function zeigeErgebnis(art) {
+  ergebnisArt = art || null;
+  if (!ergebnisArt)          { setResult('', '');                                                     return; }
+  if (ergebnisArt === 'ok')  { setResult(T('\u2713 Richtig!', '\u2713 Correct!'), 'ok');                     return; }
+  if (ergebnisArt === 'nok') { setResult(T('\u2717 Leider falsch.', "\u2717 Sorry, that's wrong."), 'nok');  return; }
+  setResult(T('\u2192 L\u00f6sung angezeigt.', '\u2192 Solution shown.'), '');
 }
 
 function setResult(text, cls) {
@@ -936,12 +1033,8 @@ function setResult(text, cls) {
 //  EINSTELLUNGS-UI
 // ═══════════════════════════════════════════════════
 function segCtrl(id, cb) {
-  document.getElementById(id).querySelectorAll('button').forEach(btn =>
-    btn.addEventListener('click', () => {
-      if (btn.disabled) return;
-      document.getElementById(id).querySelectorAll('button').forEach(b => b.classList.remove('on'));
-      btn.classList.add('on'); cb(btn.dataset.v);
-    })
+  document.getElementById(id).querySelectorAll('input[type="radio"]').forEach(r =>
+    r.addEventListener('change', () => { if (r.checked && !r.disabled) cb(r.value); })
   );
 }
 
@@ -954,11 +1047,12 @@ function updateUI() {
   setDimmed('row-neg',    S.aeste !== 2);
   setDimmed('row-cstyle', !S.cond);
   setDimmed('row-union',  S.aeste !== 2);
-  const btn4 = document.querySelector('#s-aeste [data-v="4"]');
-  btn4.disabled = S.stufen === 3;
+  const vier = document.querySelector('#s-aeste input[value="4"]');
+  if (vier) vier.disabled = S.stufen === 3;
   if (S.stufen === 3 && S.aeste > 3) {
-    document.querySelector('#s-aeste [data-v="4"]').classList.remove('on');
-    document.querySelector('#s-aeste [data-v="3"]').classList.add('on');
+    if (vier) vier.checked = false;
+    const drei = document.querySelector('#s-aeste input[value="3"]');
+    if (drei) drei.checked = true;
     S.aeste = 3;
   }
 }
@@ -966,23 +1060,51 @@ function updateUI() {
 // Struktur-Änderung → Neuaufbau alles
 function rebuild() { buildNodes(); initQueue(); adjustAndRender(); newTask(); }
 
-segCtrl('s-stufen', v => { S.stufen = +v;     updateUI(); saveSettings(); rebuild(); });
-segCtrl('s-aeste',  v => { S.aeste  = +v;     updateUI(); saveSettings(); rebuild(); });
+segCtrl('s-stufen', v => { S.stufen = +v; aufIndividuell(); updateUI(); saveSettings(); rebuild(); });
+segCtrl('s-aeste',  v => { S.aeste  = +v; aufIndividuell(); updateUI(); saveSettings(); rebuild(); });
 segCtrl('s-neg',    v => { S.neg    = v==='1'; saveSettings(); rebuild(); });
-segCtrl('s-cond',   v => { S.cond   = v==='1'; updateUI(); saveSettings(); rebuild(); });
+segCtrl('s-cond',   v => { S.cond   = v==='1'; aufIndividuell(); updateUI(); saveSettings(); rebuild(); });
 
 // Nur Notation → Beschreibung neu rendern, Queue bleibt
 segCtrl('s-cstyle', v => { S.cStyle = v; saveSettings(); refreshTaskDesc(); });
 segCtrl('s-inter',  v => { S.inter  = v; saveSettings(); refreshTaskDesc(); });
 
 // Struktur/Aufgabenart → Neuaufbau
-segCtrl('s-union',  v => { S.union  = v==='1'; updateUI(); saveSettings(); rebuild(); });
+segCtrl('s-union',  v => { S.union  = v==='1'; aufIndividuell(); updateUI(); saveSettings(); rebuild(); });
+
+// Schwierigkeitsstufe
+document.querySelectorAll('input[name="diff"]').forEach(e =>
+  e.addEventListener('change', () => {
+    if (!e.checked) return;
+    if (e.value !== 'indiv') stufeAnwenden(e.value);
+    else { saveSettings();
+           if (window.abEinstellungenOeffnen) abEinstellungenOeffnen('#settings'); }
+  })
+);
 
 document.getElementById('btn-neu').addEventListener('click', () => {
   // Ohne Antwort weggeklickt → wie "falsch" behandeln (bleibt in Queue)
   if (phase === 'active') lastCorrect = false;
   newTask();
 });
+
+/* ── Automatische Aufgabe ────────────────────────────────────────────────
+   Langes Drücken auf „Neue Aufgabe generieren" schaltet sie um. Ist sie an,
+   leuchtet das Bild nach jeder Antwort kurz grün bzw. rot auf, und nach einer
+   richtigen Antwort kommt die nächste Aufgabe von selbst. Zu Beginn ist sie
+   aus - wer sie mag, schaltet sie ein. */
+function antwortGemeldet(richtig){
+  if (!(window.abAutoAn && abAutoAn())) return;
+  if (window.abBlitz) abBlitz(richtig);
+  if (richtig && window.abAutoBald) abAutoBald();
+}
+function autoBauen(){
+  if (!window.abAutoStart) return;
+  abAutoStart({ an:false, naechste:function(){ newTask(); } });
+}
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', autoBauen);
+else autoBauen();
+
 document.getElementById('btn-ok')      .addEventListener('click', evaluate);
 document.getElementById('btn-hint-btn').addEventListener('click', showHint);
 document.getElementById('btn-show')    .addEventListener('click', showSolution);
@@ -999,6 +1121,30 @@ requestAnimationFrame(() => {
   adjustAndRender();
   newTask();
 });
+</script>
+<script>
+// ══════ Sprache / Theme / Fehler melden ══════
+window.addEventListener('tl-theme', () => {
+  adjustAndRender();          // SVG mit den Farben des neuen Themes neu zeichnen
+});
+
+window.addEventListener('tl-sprache', () => {
+  refreshTaskDesc();
+  const hEl = document.getElementById('task-hint');
+  if (hEl) hEl.textContent = hinweisText();
+  document.querySelectorAll('[data-fid]').forEach(g =>
+    g.setAttribute('aria-label', T('Wahrscheinlichkeitsfeld', 'probability cell')));
+  updateProgress();
+  zeigeErgebnis(ergebnisArt);
+});
+
+window.fehlerKontext = function () {
+  const el      = document.getElementById('task-q');
+  const aufgabe = el ? ((typeof tlFormelText === 'function') ? tlFormelText(el) : el.innerText) : '';
+  const einst   = T(`Stufen: ${S.stufen}, \u00c4ste: ${S.aeste}`,
+                    `Levels: ${S.stufen}, branches: ${S.aeste}`);
+  return [einst, aufgabe].filter(Boolean).join(' \u00b7 ');
+};
 </script>
 </body>
 </html>

@@ -3,22 +3,27 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Flächen erkennen</title>
+<link rel="shortcut icon" type="image/x-icon" href="aleph_zero_logo.ico">
+<script>try{var t=localStorage.getItem('matheToolsTheme');if(t==='dark'||(!t&&window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.classList.add('dark');}catch(e){}</script>
+<title data-de="Flächen erkennen" data-en="Recognising shapes">Flächen erkennen</title>
+<script src="theme-language.js" defer></script>
 
 <!-- Portal-Basisstil (im Repo vorhanden); Inline-Stile unten ergänzen/überschreiben -->
 <link rel="stylesheet" href="styles.css">
-<!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-5K8WYYXDL2"></script>
-    <script>
+<link rel="stylesheet" href="aufgaben.css">
+<script src="aufgaben.js" defer></script>
+    <!-- Besuchszaehlung (Google Analytics). Geladen wird sie erst, wenn der
+         Besucher zustimmt - siehe einwilligung.js. -->
+<script>
         window.dataLayer = window.dataLayer || [];
         function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-        gtag('config', 'G-5K8WYYXDL2');
+        window.TK_GA_ID = 'G-5K8WYYXDL2';   /* Google Analytics laedt erst nach Einwilligung, siehe einwilligung.js */
     </script>
+<script src="einwilligung.js" defer></script>
 
 <style>
 /* ---- Basis (Fallback, falls styles.css fehlt) ---- */
-html{scrollbar-gutter:stable;overflow-y:scroll;}
+html{scrollbar-gutter:stable;}
 body{font-family:Calibri,'Segoe UI',sans-serif;display:flex;flex-direction:column;padding:0 2%;margin:0;color:#1a1a1a;line-height:1.4;background:#fff;}
 h1{font-size:1.5em;margin:.5em 0 .3em;}
 button{background:#4CAF50;color:#fff;border:none;padding:10px 20px;font-size:12px;margin:4px 2px;border-radius:5px;cursor:pointer;}
@@ -34,21 +39,48 @@ details[open]>summary::before{transform:rotate(90deg);}
 /* ---- Seiten-spezifisch ---- */
 :root{--accent:#4CAF50;--accent-d:#3c9040;--line:#cfcfcf;--soft:#f5f7f5;--blue:#2f6fb0;--amber:#e08b00;--muted:#5b6b60;}
 *{box-sizing:border-box;}
-.wrap{max-width:860px;width:100%;margin:0 auto;}
+.wrap{max-width:var(--tk-breite,960px);width:100%;margin:0 auto;
+      /* senkrechte Spalte, die den uebrigen Platz bekommt - so sitzt die
+         Fussleiste darin unten am Fensterrand */
+      display:flex;flex-direction:column;flex:1 0 auto;}
 .muted{color:#666;font-size:.9em;}
 .small{font-size:.85em;}
 .hidden{display:none !important;}
 
 /* Segmented switches */
 .seg{display:inline-flex;flex-wrap:wrap;gap:0;border:1.5px solid var(--accent);border-radius:8px;overflow:hidden;background:#fff;vertical-align:middle;}
-.seg button{background:#fff;color:#2a2a2a;border:none;border-right:1px solid var(--line);margin:0;padding:7px 12px;font-size:12px;border-radius:0;}
-.seg button:last-child{border-right:none;}
+/* Die Trennlinien zwischen den Feldern zeichnet aufgaben.css (als Schatten
+   nach links) - eine eigene Linie daneben sah uneinheitlich aus. */
+.seg button{background:#fff;color:#2a2a2a;border:none;margin:0;padding:7px 12px;font-size:12px;border-radius:0;
+  /* Trennlinie nach links (und nach oben, wenn der Schalter umbricht) - genau
+     wie in aufgaben.css. position:relative hält die Linie über dem Nachbarn,
+     auch wenn dieser gerade unter der Maus steht. */
+  position:relative;
+  box-shadow:-1.5px 0 0 var(--ab-gr,var(--accent)), 0 -1.5px 0 var(--ab-gr,var(--accent));}
+/* Stehen zwei gewählte Felder nebeneinander, hebt sich die eigene Schriftfarbe
+   dort immer ab - das Grün täte es auf Grün nicht. */
+.seg button.on + button.on{box-shadow:-1.5px 0 0 currentColor, 0 -1.5px 0 currentColor;}
 .seg button.on{background:var(--accent);color:#fff;font-weight:bold;}
 .seg.small button{padding:5px 9px;font-size:11px;}
 .seg.tiny button{padding:4px 8px;font-size:10.5px;}
 .seg.checks button{display:inline-flex;align-items:center;justify-content:center;gap:5px;padding:6px 9px;font-size:11.5px;}
 #studentPanel .ctl{text-align:center;}
 #studentPanel .ctl>.lbl{text-align:center;}
+/* Aufgabentypen über der Aufgabe: vier nebeneinander, auf dem Handy zwei. */
+#studentPanel .typ-list{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;text-align:left;}
+@media(max-width:760px){ #studentPanel .typ-list{grid-template-columns:repeat(2,minmax(0,1fr));} }
+#studentPanel .typ{padding:8px 10px;}
+/* Die Erklärung bleibt auch auf schmalen Bildschirmen stehen - sie ist für
+   die Lernenden der wichtigste Teil der Kachel. */
+#studentPanel .typ .td{display:block;}
+@media(max-width:760px){ #studentPanel .typ .td{font-size:.76em;line-height:1.25;} }
+/* Der Schwierigkeitsregler steht hier mittig. */
+#topControls .tc-diff{align-items:center;}
+#topControls .tc-diff .tc-label{text-align:center;width:100%;}
+/* Schwierigkeit eines Aufgabentyps: kleine Sterne, die nie umbrechen. */
+.sterne{font-size:.72em;color:#c98a00;letter-spacing:.04em;margin-left:.4ch;
+  white-space:nowrap;vertical-align:.12em;}
+html.dark .sterne{color:#e8b84b;}
 .seg button .tk2{flex:0 0 auto;width:14px;height:14px;border:1.5px solid #b6c6b8;border-radius:4px;background:#fff;
   display:inline-flex;align-items:center;justify-content:center;font-size:10px;line-height:1;color:transparent;}
 .seg button.on .tk2{background:#fff;border-color:var(--accent-d);color:var(--accent-d);}
@@ -72,7 +104,7 @@ button:focus-visible{outline:2px solid #2f6fb0;outline-offset:2px;}
   transition:border-color .12s,background .12s,box-shadow .12s;}
 .tab svg,.tab svg.fig{width:46px !important;height:34px !important;max-width:none;display:block;opacity:.5;transition:opacity .12s;margin:0;}
 
-.tab.on{border-color:var(--accent);background:#e9f7ea;color:#14481a;box-shadow:0 2px 9px rgba(76,175,80,.32);}
+.tab.on{border-color:var(--accent);background:#c8f0c8;color:#14481a;box-shadow:0 2px 9px rgba(76,175,80,.32);}
 .tab.on svg,.tab.on svg.fig{opacity:1;}
 .tab.partial{border-style:dashed;background:#f4fbf5;}
 .tab .caret{position:absolute;top:3px;right:6px;font-size:10px;color:#9db3a0;}
@@ -102,10 +134,12 @@ details.plat .tabs{margin-top:8px;}
 .pop-back{position:fixed;inset:0;z-index:55;background:transparent;}
 
 /* ---- Aufgabenkarte ---- */
-.task-card{border:2px solid #222;border-radius:12px;padding:14px 16px;margin:14px 0;background:#fff;}
+.task-card{position:relative;border:1.5px solid #4a9a4a;border-radius:12px;padding:14px 16px;margin:14px 0;background:#f8fff8;}
 .task-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px;}
 .task-title{font-weight:bold;font-size:1.05em;}
-.badge{font-size:11px;padding:2px 8px;border-radius:10px;background:#eef2ef;color:#3c6b3c;border:1px solid #cfe0cf;}
+/* Das Schild sitzt oben rechts auf dem Rand des Aufgabenfelds. */
+.badge{position:absolute;top:-10px;right:14px;z-index:2;font-size:11px;padding:2px 9px;
+  border-radius:10px;background:#eef7ee;color:#3c6b3c;border:1px solid #cfe0cf;}
 .fig-wrap{border:1px solid var(--line);border-radius:10px;padding:6px;background:#fbfdfb;display:inline-block;max-width:100%;}
 svg.fig{display:block;width:100%;max-width:340px;height:auto;margin:0 auto;}
 .fig-center{text-align:center;}
@@ -161,11 +195,31 @@ svg.fig{display:block;width:100%;max-width:340px;height:auto;margin:0 auto;}
 .new-row{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:12px 0 2px;}
 .new-row.below{margin:2px 0 12px;}
 .new-row .stat{margin:0;font-size:.9em;color:var(--muted);}
+/* Punktestand wie auf den anderen Aufgabenseiten. */
+.punkte{display:inline-flex;align-items:center;gap:7px;font-weight:bold;font-size:.92em;margin-left:auto;white-space:nowrap;}
+/* Auf sehr schmalen Schirmen soll der Knopf nicht die halbe Seite einnehmen. */
+@media(max-width:430px){
+  .btn-new{padding:8px 10px;font-size:.86em;}
+  .punkte{font-size:.8em;gap:5px;}
+}
+.punkte button{background:none;border:1.5px solid var(--line);border-radius:7px;color:var(--muted);
+  font-size:.95em;line-height:1.3;padding:2px 8px;margin:0;cursor:pointer;font-family:inherit;
+  transition:color .15s,border-color .15s,background .15s;}
+.punkte button:hover{color:var(--accent-d);border-color:var(--accent);background:#eaf7ea;}
+html.dark .punkte button:hover{background:#24462a;}
 .btn-ghost{background:#fff;color:#444;border:1px solid var(--line);}
-.btn-hint{background:#fff;color:var(--amber);border:1.5px solid var(--amber);font-weight:bold;}
-.btn-sol{background:#fff;color:var(--blue);border:1.5px solid var(--blue);font-weight:bold;}
+/* Hilfe ist überall gelb hinterlegt, Prüfen überall ein grüner Knopf. */
+.btn-hint{background:#fffbe8;color:#7a5b00;border:1.5px solid #e8d48a;font-weight:bold;}
+.btn-hint:hover{background:#fff4cf;}
+.btn-sol{background:var(--accent);color:#fff;border:1.5px solid var(--accent-d);
+  font-weight:bold;font-size:.98em;padding:9px 18px;}
+.btn-sol:hover{background:var(--accent-d);}
+/* Prüfen steht mittig unter den Antworten. */
+.act-row.pruef{justify-content:center;}
 .btn-ok{background:#fff;color:#2e7d32;border:1.5px solid #2e7d32;font-weight:bold;}
 .btn-no{background:#fff;color:#c62828;border:1.5px solid #c62828;font-weight:bold;}
+/* Die Selbstkontrolle ist die Hauptsache nach dem Aufdecken - entsprechend groß. */
+.btn-ok.gross,.btn-no.gross{font-size:1em;padding:10px 20px;}
 .sol-box{border:1.5px solid var(--blue);border-radius:10px;background:#f0f7ff;padding:10px 13px;margin-top:10px;}
 .sol-box .c2{padding-top:0;}
 @media(max-width:620px){ .sol-box .two-col{gap:0;} .sol-box .c1,.sol-box .c2{min-width:0;flex:1 1 100%;} .sol-box .haus{margin-top:2px;} }
@@ -260,11 +314,17 @@ svg.stage{display:block;width:100%;height:400px;touch-action:none;cursor:crossha
 .typ{display:flex;align-items:flex-start;gap:10px;width:100%;text-align:left;margin:0;padding:9px 11px;
   border:1.5px solid #dce5dd;border-radius:11px;background:#fff;color:#243026;cursor:pointer;}
 
-.typ.on{border-color:var(--accent);background:#f1faf2;}
+/* Dasselbe Grün wie bei den Kacheln der anderen Seiten. */
+.typ.on{border-color:var(--accent);background:#c8f0c8;}
+/* Die Kachel, aus der die laufende Aufgabe stammt. */
+.typ.aktuell{outline:3px solid var(--accent);outline-offset:1px;box-shadow:none;}
+html.dark .typ.aktuell{outline-color:#7dd287;box-shadow:none;}
 .typ .tk{flex:0 0 auto;width:20px;height:20px;border-radius:6px;border:2px solid #c3d2c5;background:#fff;
   display:flex;align-items:center;justify-content:center;font-size:13px;line-height:1;color:transparent;margin-top:1px;}
 .typ.on .tk{background:var(--accent);border-color:var(--accent-d);color:#fff;}
-.typ .tt{display:flex;flex-direction:column;gap:2px;min-width:0;}
+.typ .tt{display:block;min-width:0;flex:1 1 auto;}
+.typ .tn{display:block;}
+.typ .td{margin-top:2px;}
 .typ .tn{font-weight:bold;font-size:.93em;}
 .typ.on .tn{color:#1d5522;}
 .typ .td{font-size:.8em;color:#767f77;line-height:1.3;}
@@ -315,7 +375,7 @@ svg.stage{display:block;width:100%;height:400px;touch-action:none;cursor:crossha
         grid-template-columns: 1fr auto 1fr;
         align-items: center;
         margin: 0 auto;
-        max-width: 800px;
+        max-width: var(--tk-breite, 960px);
     }
     .footer-content > :first-child {
         justify-self: start;
@@ -347,7 +407,7 @@ svg.stage{display:block;width:100%;height:400px;touch-action:none;cursor:crossha
 @media(max-width:900px){ .pick-grid.many{grid-template-columns:repeat(2,minmax(0,1fr));} }
 @media(max-width:640px){
   #studentPanel .seg.checks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%;}
-  #studentPanel .seg.checks button{border-right:1px solid var(--line);border-bottom:1px solid var(--line);justify-content:flex-start;text-align:left;}
+  #studentPanel .seg.checks button{justify-content:flex-start;text-align:left;}
   .tabs.many{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;}
   .tabs.many .tab{width:auto;}
   .tab{padding:5px 6px 4px;}
@@ -370,23 +430,147 @@ svg.stage{display:block;width:100%;height:400px;touch-action:none;cursor:crossha
   .two-col{flex-direction:column;}
   .pick-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
 }
+/* Platz fuer die Schalter oben rechts */
+h1{padding-right:150px;}
+@media(max-width:560px){h1{padding-right:0;margin-top:52px;}}
+/* ══════════════════════════════════════════════════════════════
+   Dunkelmodus – nur Zusaetze; der Hellmodus oben bleibt unveraendert.
+   ══════════════════════════════════════════════════════════════ */
+html.dark{--accent:#5cb860;--accent-d:#4a9a4e;--line:#3a434b;--soft:#1e2429;--blue:#6fb0e8;--amber:#ffb74d;--muted:#9aa5b1;}
+html.dark body{background:#14181c;color:#e7eae8;}
+html.dark h1{color:#e7eae8;}
+html.dark .muted{color:#9aa5b1;}
+html.dark details{border-color:#4a545e;}
+html.dark .seg{background:#1b2026;}
+html.dark .seg button{background:#1b2026;color:#d7dee4;border-right-color:#3a434b;}
+html.dark .seg button.on{background:#3d7a48;color:#fff;}
+html.dark .seg button .tk2{background:#242b33;border-color:#4a545e;}
+html.dark .seg button.on .tk2{background:#1b2026;border-color:#a5d6a7;color:#a5d6a7;}
+html.dark .pick-head .ph{color:#a5d6a7;}
+html.dark ::selection{background:#2f5c39;}
+html.dark .tab{border-color:#2c343b;background:#1b2026;color:#b6c0c9;}
+html.dark .tab.on{border-color:var(--accent);background:#1d2e20;color:#c9e6cb;box-shadow:0 2px 9px rgba(76,175,80,.25);}
+html.dark .tab.partial{background:#1a241c;}
+html.dark .tab .caret{color:#6f8872;}
+html.dark .tab.on .caret{color:#a5d6a7;}
+html.dark .tree-opts{border-top-color:#2c343b;}
+html.dark details.plat{border-color:#2c343b;background:#1a1f24;}
+html.dark details.plat>summary{color:#a5d6a7;}
+html.dark .pop{background:#1b2026;border-color:var(--accent);box-shadow:0 8px 22px rgba(0,0,0,.5);}
+html.dark .pop h5{color:#a5d6a7;}
+html.dark .pop h5 button{background:#1b2026;color:#a5d6a7;border-color:var(--accent);}
+html.dark .task-card{background:#161d18;border-color:#4a8a4a;}
+html.dark .badge{background:#22302a;color:#9ed3a1;border-color:#3a5a3e;}
+html.dark .fig-wrap{background:#161b20;border-color:var(--line);}
+html.dark .prop-box{background:#16202b;border-color:var(--blue);}
+html.dark .prop-box .q{color:var(--blue);}
+html.dark .claim-box{background:#201a2b;border-color:#9a7fd0;}
+html.dark .claim-box .q{color:#c3aef0;}
+html.dark .mini-set{color:#8e9a90;}
+html.dark .mini-set.sep{border-top-color:#2c343b;}
+html.dark .mini-set .seg{border-color:#3f5a41;}
+html.dark .mini-set .seg button{color:#b6c0c9;}
+html.dark .mini-set .seg button.on{background:#244029;color:#c9e6cb;}
+html.dark .pick{background:#161b20;border-color:var(--line);}
+html.dark .pick.sel{border-color:var(--accent);}
+html.dark .pick.ok{border-color:#4caf50;background:#1d3524;}
+html.dark .pick.no{border-color:#e57373;background:#3a2224;}
+html.dark .pick.warn{border-color:#c9a227;background:#332c12;}
+html.dark .pick.miss{border-color:#4caf50;}
+html.dark .choice{background:#1b2026;border-color:#3a434b;color:#e7eae8;box-shadow:none;}
+html.dark .choice.sel{border-color:var(--accent);background:#1d2e20;}
+html.dark .choice.ok{border-color:#4caf50;background:#1d3524;color:#a5d6a7;}
+html.dark .choice.no{border-color:#e57373;background:#3a2224;color:#ef9a9a;}
+html.dark .choice.warn{border-color:#c9a227;background:#332c12;color:#e8d9a0;}
+html.dark .choice.miss{border-color:#4caf50;background:#1b2026;}
+html.dark .why{color:#b6c0c9;}
+html.dark .why.ok{color:#81c784;} html.dark .why.no{color:#ef9a9a;} html.dark .why.warn{color:#e8d9a0;}
+html.dark .ask2{color:var(--blue);}
+html.dark .btn-new{background:#3d8b41;border-color:#4a9a4e;color:#fff;box-shadow:0 2px 6px rgba(0,0,0,.4);}
+html.dark .btn-ghost{background:#1b2026;color:#c3ccd4;border-color:var(--line);}
+html.dark .btn-hint{background:#3a3016;color:#ffd97a;border-color:#8a7320;}
+html.dark .btn-hint:hover{background:#473a19;}
+html.dark .btn-sol{background:var(--accent);color:#fff;border-color:var(--accent-d);}
+html.dark .btn-ok{background:#1b2026;color:#81c784;border-color:#4caf50;}
+html.dark .btn-no{background:#1b2026;color:#ef9a9a;border-color:#e57373;}
+html.dark .sol-box{background:#16202b;border-color:var(--blue);}
+html.dark .sol-box h4{color:var(--blue);}
+html.dark .help-box{background:#241f14;border-color:var(--amber);}
+html.dark .help-box h4{color:var(--amber);}
+html.dark .help-box dt{color:#e8c47a;}
+html.dark .help-box dd{color:#c9c3b0;}
+html.dark .nchip{background:#22302a;color:#9ed3a1;border-color:#3a5a3e;}
+html.dark .nchip.pre{background:#3d8b41;color:#fff;border-color:#4caf50;}
+html.dark .build-tools{background:#1b2026;border-color:var(--line);}
+html.dark .build-tools .ctrl{color:#dfe4e8;}
+html.dark .build-tools .btn{background:#1b2026;color:#c3ccd4;border-color:var(--line);}
+html.dark .stage-wrap{background:#161b20;border-color:var(--line);}
+html.dark svg.stage{background:#161b20;}
+html.dark .stage-hint{background:rgba(20,24,28,.85);}
+html.dark .stage-val{background:rgba(20,24,28,.88);color:#a5d6a7;}
+html.dark .panel{background:#1b2026;border-color:var(--line);}
+html.dark .big-name{color:#a5d6a7;}
+html.dark .props-list{color:#c3ccd4;}
+html.dark .share-btn{background:#1b2026;color:#a5d6a7;border-color:var(--accent);}
+html.dark .toast{background:#3d7a48;}
+html.dark .form-block{background:#1a1f24;border-color:#2c343b;}
+html.dark .form-block>.lbl{color:#a5d6a7;}
+html.dark .check-line>input{background:#242b33;border-color:var(--accent);}
+html.dark .check-line>input:checked{background:var(--accent);border-color:var(--accent);}
+html.dark .typ{background:#1b2026;border-color:#2c343b;color:#dfe4e8;}
+html.dark .typ.on{border-color:var(--accent);background:#1d2e20;}
+html.dark .typ .tk{background:#242b33;border-color:#4a545e;}
+html.dark .typ.on .tk{background:var(--accent);border-color:var(--accent-d);color:#14181c;}
+html.dark .typ.on .tn{color:#c9e6cb;}
+html.dark .typ .td{color:#9aa5b1;}
+html.dark .props-pick summary{color:#a5d6a7;}
+html.dark .props-pick .pgrp{color:#c9e6cb;}
+html.dark .site-footer{border-top-color:#3a434b;color:#9aa5b1;}
+html.dark button:disabled{background:#3a434b;color:#8b949c;}
+@media (hover:hover) and (pointer:fine){
+  html.dark .tab:hover{border-color:#4f7a53;}
+  html.dark .pop .row:hover{background:#1f2e20;}
+  html.dark .typ:hover{border-color:#4f7a53;}
+}
+/* Grautoene, die direkt im style-Attribut stehen */
+html.dark [style*="color:#888"],html.dark [style*="color:#777"],html.dark [style*="color:#666"],
+html.dark [style*="color:#555"],html.dark [style*="color:#3a4a3c"]{color:#b6c0c9 !important}
 </style>
 </head>
-<body>
+<body class="tk-seite">
 <div class="wrap">
-  <h1>Flächen erkennen</h1>
-  <p class="muted small">Erkenne Dreiecke, Vierecke und Kreise an ihrer Gestalt, an ihrem Namen oder an ihren Eigenschaften — vom Haus der Vierecke bis zum konkaven Viereck.</p>
+  <header class="tool-kopf">
+    <div class="tk-text">
+      <h1 data-de="Flächen erkennen" data-en="Recognising shapes">Flächen erkennen</h1>
+      <p class="tk-unter" data-de="Dreiecke, Vierecke und Kreise an Gestalt, Namen oder Eigenschaften erkennen" data-en="Recognise triangles, quadrilaterals and circles by shape, name or properties">Dreiecke, Vierecke und Kreise an Gestalt, Namen oder Eigenschaften erkennen</p>
+    </div>
+  </header>
 
-  <div style="text-align:center;margin:6px 0 12px;"><div id="mode-switch" class="seg" role="tablist">
-    <button data-mode="erkundung">Erkundungsmodus</button>
-    <button data-mode="uebung" class="on">Übungsmodus</button>
+  <div class="seg-block"><div id="mode-switch" class="seg" role="tablist">
+    <button data-mode="erkundung" data-de="Erkundung" data-en="Exploration">Erkundung</button>
+    <button data-mode="uebung" class="on" data-de="Training" data-en="Practice">Training</button>
   </div></div>
 
-  <details id="teacherSettings"><summary>Einstellungen</summary><div id="teacherBody" style="margin-top:8px;"></div></details>
+
+  <details class="einst" id="teacherSettings"><summary data-de="Einstellungen" data-en="Settings">Einstellungen</summary><div id="teacherBody" style="margin-top:8px;"></div></details>
 
   <div id="mode-uebung">
     <div id="shapePick" class="pick-wrap"></div>
     <div id="studentPanel"></div>
+  <!-- ═══ Schwierigkeit über der Aufgabe ═══════════════════════════ -->
+    <div id="topControls" class="nur-uebung">
+      <div class="tc-item tc-diff">
+        <span class="tc-label" data-de="Schwierigkeit" data-en="Difficulty">Schwierigkeit</span>
+        <div class="seg-switch diff-switch" id="segDiff">
+          <input type="radio" name="diff" id="diffEinf" value="einf"><label for="diffEinf" data-de="Einführung" data-en="Introduction">Einführung</label>
+          <input type="radio" name="diff" id="diffLeicht" value="leicht"><label for="diffLeicht" data-de="Leicht" data-en="Easy">Leicht</label>
+          <input type="radio" name="diff" id="diffNormal" value="normal" checked><label for="diffNormal" data-de="Normal" data-en="Normal">Normal</label>
+          <input type="radio" name="diff" id="diffSchwer" value="schwer"><label for="diffSchwer" data-de="Herausfordernd" data-en="Challenging">Herausfordernd</label>
+          <input type="radio" name="diff" id="diffIndiv" value="indiv"><label for="diffIndiv" data-de="Individuell" data-en="Custom" data-de-title="öffnet die Einstellungen" data-en-title="opens the settings" title="öffnet die Einstellungen">Individuell</label>
+          <span class="seg-glider"></span>
+        </div>
+      </div>
+    </div>
     <div id="newTop" class="new-row"></div>
     <div id="taskArea"></div>
     <div id="newBottom" class="new-row below"></div>
@@ -394,7 +578,7 @@ svg.stage{display:block;width:100%;height:400px;touch-action:none;cursor:crossha
   </div>
 
   <div id="mode-erkundung" class="hidden">
-    <p class="muted small" id="erkIntro">Setze Ecken auf das Raster, zieh sie herum — nebenan siehst du sofort, welche Fläche daraus wird und wo sie im Haus der Vierecke steht.</p>
+    <p class="muted small" id="erkIntro" data-de="Setze Ecken auf das Raster, zieh sie herum — nebenan siehst du sofort, welche Fläche daraus wird und wo sie im Haus der Vierecke steht." data-en="Place corners on the grid and drag them around — alongside you immediately see which shape you get and where it sits in the hierarchy of quadrilaterals.">Setze Ecken auf das Raster, zieh sie herum — nebenan siehst du sofort, welche Fläche daraus wird und wo sie im Haus der Vierecke steht.</p>
     <div id="erkBody"></div>
     <div id="lobby-spacer2" style="flex:1 0 20px;"></div>
   </div>
@@ -404,11 +588,12 @@ svg.stage{display:block;width:100%;height:400px;touch-action:none;cursor:crossha
 <div class="footer-content">
     M.&nbsp;Koch
     <span class="footer-topic"><a href="./index.html">Mathe-Tools</a></span>
-    <span class="footer-update">Last updated:&nbsp;<span id="last-update">...</span></span>
+    <span class="footer-update"><span class="fu-wort" data-de="Zuletzt aktualisiert:" data-en="Last updated:">Zuletzt aktualisiert:</span><span id="last-update">...</span></span>
 </div>
 </footer>
 <script src="last-update.js" defer></script>
-<script src="scale.js" defer></script>
+<script src="scale.js" defer>
+</script>
 <script>
 const PAGE='flaechen';
 /* =======================================================================
@@ -609,11 +794,11 @@ const NAMES={
 const SHORT={gleichseitig:'gleichseitig',gleichschenklig:'gleichschenklig',spitzwinklig:'spitzwinklig',
   rechtwinklig:'rechtwinklig',stumpfwinklig:'stumpfwinklig',konkav:'konkaves Viereck',
   viereck:'beliebiges Viereck',prisma:'sonstiges Prisma',wuerfel:'Hexaeder / Würfel',quader:'Quader'};
-function nameOf(id){ return NAMES[id]||id; }
+function nameOf(id){ return (EN()?NAMES_EN[id]:NAMES[id])||id; }
 /* Name mit Zusatz, wo die reine Kurzbezeichnung zu wenig sagt */
 function nameOfCls(cls,id){
   const p=id||(cls&&cls.precise);
-  if(cls&&cls.tags&&p==='drache'&&cls.tags.has('konkav')) return 'konkaver Drache (Pfeilviereck)';
+  if(cls&&cls.tags&&p==='drache'&&cls.tags.has('konkav')) return T('konkaver Drache (Pfeilviereck)','concave kite (dart)');
   return nameOf(p);
 }
 
@@ -662,6 +847,9 @@ const ANG_LETTERS=['\u03b1','\u03b2','\u03b3','\u03b4','\u03b5','\u03b6'];
 const ANG_COLORS=['#0f8c7d','#b5308e','#8552c9','#c0392b','#2f6fb0','#e08b00'];
 /* Voreinstellung der Auswahl: alle Unterformen der Familien dieser Seite */
 const ALL_SUBS={}; FAMS_PAGE.forEach(f=>ALL_SUBS[f]=FAM[f].subs.slice());
+/* Was zu Beginn eingeschaltet ist: alles außer dem konkaven Viereck. Das
+   Pfeilviereck ist ein Sonderfall - wer es üben will, schaltet es dazu. */
+const STD_SUBS={}; FAMS_PAGE.forEach(f=>STD_SUBS[f]=ALL_SUBS[f].filter(x=>x!=='konkav'));
 const SUB_OF={}; GROUPS.forEach(g=>g.subs.forEach(x=>SUB_OF[x]=g.id));
 
 function famOf(id){
@@ -671,6 +859,7 @@ function famOf(id){
 /* „stimmt, aber nicht genau genug" – Begründungen */
 function whyGeneral(precise,picked){
   const a=nameOf(precise), b=nameOf(picked);
+  if(EN()) return 'Correct — '+anEn(a)+a+' is also '+anEn(b)+b+'. But the most precise name is wanted.';
   return 'Stimmt – '+(/^[AEIOU]/.test(a)?'ein ':'ein ')+a+' ist auch '+artIndef(b)+' '+b+'. Gesucht ist aber die genaueste Bezeichnung.';
 }
 function artIndef(n){ return /^(Raute|Pyramide|Ellipse|Kugel)/.test(n)?'eine':'ein'; }
@@ -709,22 +898,38 @@ function triAngles(id,R){
 function genQuadRaw(id,R){
   switch(id){
     case 'quadrat': return [[0,0],[1,0],[1,1],[0,1]];
-    case 'rechteck':{ const b=rr(R,0.42,0.72); return [[0,0],[1,0],[1,b],[0,b]]; }
-    case 'raute':{ const th=(R()<0.5?rr(R,40,70):rr(R,110,140))*D2R;
+    case 'rechteck':{ const b=rr(R,0.34,0.80); return [[0,0],[1,0],[1,b],[0,b]]; }
+    case 'raute':{ const th=(R()<0.5?rr(R,34,74):rr(R,106,146))*D2R;
       return [[0,0],[1,0],[1+Math.cos(th),Math.sin(th)],[Math.cos(th),Math.sin(th)]]; }
-    case 'parallelogramm':{ const b=rr(R,0.52,0.78), th=(R()<0.5?rr(R,48,72):rr(R,108,132))*D2R;
+    case 'parallelogramm':{ const b=rr(R,0.44,0.86), th=(R()<0.5?rr(R,42,76):rr(R,104,138))*D2R;
       return [[0,0],[1,0],[1+b*Math.cos(th),b*Math.sin(th)],[b*Math.cos(th),b*Math.sin(th)]]; }
-    case 'trapez':{ const c=rr(R,0.28,0.62), h=rr(R,0.48,0.85), o=rr(R,-0.12,0.5);
-      return [[0,0],[1,0],[o+c,h],[o,h]]; }
-    case 'drache':{ const w=rr(R,0.32,0.6), y=R()<0.5?rr(R,0.22,0.4):rr(R,0.6,0.78);
-      return [[0,0],[w,y],[0,1],[-w,y]]; }
-    case 'konkav':{ const cx=rr(R,0.3,0.8), cy=rr(R,0.85,1.15);
-      const A=[0,0],B=[1,0],C=[cx,cy];
-      const g=[(A[0]+B[0]+C[0])/3,(A[1]+B[1]+C[1])/3];
-      const D=[g[0]+rr(R,-0.16,0.16), g[1]*rr(R,0.62,0.95)];
-      return [A,B,C,D]; }
-    case 'viereck':{ const p=[]; const base=[R()*40, 90+R()*60, 180+R()*50, 270+R()*50];
-      base.forEach(a=>{ const r=rr(R,0.72,1.08); p.push([r*Math.cos(a*D2R), r*Math.sin(a*D2R)]); });
+    /* Trapez: beide parallelen Seiten wechseln sich als die längere ab, und
+       der Versatz reicht von „fast gleichschenklig" bis deutlich schief. */
+    case 'trapez':{ const c=rr(R,0.22,0.70), h=rr(R,0.42,0.95), o=rr(R,-0.26,0.62);
+      return R()<0.5 ? [[0,0],[1,0],[o+c,h],[o,h]]
+                     : [[o,0],[o+c,0],[1,h],[0,h]]; }
+    /* Drache: die Achse ist einmal kurz, einmal lang, und der Querbalken
+       sitzt mal weit oben, mal weit unten - nicht immer dieselbe Form. */
+    case 'drache':{ const w=rr(R,0.26,0.72), h=rr(R,0.85,1.35);
+      const y=(R()<0.5?rr(R,0.18,0.42):rr(R,0.58,0.82))*h;
+      return [[0,0],[w,y],[0,h],[-w,y]]; }
+    /* Konkav (Pfeilviereck): aus drei Ecken auf einem Kreis wird eine Kante
+       nach innen gezogen. Welche Kante das ist, wie weit die Delle in die
+       Figur reicht und wie das Grunddreieck aussieht, wechselt jedes Mal -
+       sonst entstünde immer derselbe Pfeil, nur gedreht. */
+    case 'konkav':{
+      const a0=R()*360, d1=rr(R,90,142), d2=rr(R,90,142);
+      const P=[a0,a0+d1,a0+d1+d2].map(a=>{ const r=rr(R,0.82,1.12);
+        return [r*Math.cos(a*D2R), r*Math.sin(a*D2R)]; });
+      const k=Math.floor(R()*3);
+      const A=P[k], B=P[(k+1)%3], C=P[(k+2)%3];
+      const q=rr(R,0.28,0.72);                       /* wo auf der Kante AB */
+      const t=rr(R,0.16,0.34);                       /* wie tief nach innen */
+      const F=[A[0]+(B[0]-A[0])*q, A[1]+(B[1]-A[1])*q];
+      const D=[F[0]+(C[0]-F[0])*t, F[1]+(C[1]-F[1])*t];
+      return [A,D,B,C]; }
+    case 'viereck':{ const p=[]; const base=[R()*46, 86+R()*68, 176+R()*58, 266+R()*58];
+      base.forEach(a=>{ const r=rr(R,0.66,1.12); p.push([r*Math.cos(a*D2R), r*Math.sin(a*D2R)]); });
       return p; }
   }
   return [[0,0],[1,0],[1,1],[0,1]];
@@ -747,13 +952,26 @@ function genFlaeche(id,R,opt){
     if(polyArea(pts)<0) pts=pts.slice().reverse();
     const c=classify({kind:'poly',pts},K,opt.trapIncl);
     if(!c.ok||c.precise!==id) continue;
+    /* Für jedes Viereck: keine gedrückten Winkel und keine Seite, die neben
+       den anderen verschwindet - sonst ist auf dem Bild nichts zu erkennen. */
+    if(!isTri&&FAM.viereck.precise.indexOf(id)>=0){
+      const V=polyInfo(pts,1.6);
+      const sMin=Math.min.apply(null,V.side), sMax=Math.max.apply(null,V.side);
+      if(sMin<0.3*sMax) continue;
+      const wMin=Math.min.apply(null,V.ang.map(a=>a>180?360-a:a));
+      if(wMin<26) continue;
+      if(Math.max.apply(null,V.ang)>312) continue;
+    }
     if(id==='viereck'||id==='konkav'){
       // „beliebig" heißt: keine gleich langen Seiten, keine Parallelen, keine rechten Winkel
       const J=polyInfo(pts,1.6);
       if(J.eqGroups.some(g=>g.length>1)||J.parPairs.length||J.right.length) continue;
       const mn=Math.min.apply(null,J.ang.map(a=>a>180?360-a:a));
-      if(mn<32) continue;
-      if(id==='konkav'&&Math.max.apply(null,J.ang)>305) continue;
+      if(mn<(id==='konkav'?28:32)) continue;
+      /* Die Einbuchtung muss deutlich zu sehen sein: ein Winkel knapp über
+         180 Grad wirkt wie eine gerade Seite. */
+      if(id==='konkav'){ const mx=Math.max.apply(null,J.ang);
+        if(mx<200||mx>305) continue; }
       if(id==='viereck'&&Math.max.apply(null,J.ang)>142) continue;
     }
     if(id==='viereck'&&c.tags.size!==1) continue;
@@ -975,6 +1193,25 @@ function genPlaton(id){
    ======================================================================= */
 const CLR={ink:'#28502a', fill:'rgba(76,175,80,.14)', mark:'#3a4a3c', hidden:'#93a795'};
 const LEN_COLORS=['#c0392b','#2f6fb0','#8552c9','#e08b00','#0f8c7d','#b5308e'];
+/* Skizzenfarben im Dunkelmodus: die fertige SVG-Zeichnung laeuft einmal durch
+   diese Tabelle (statt jede Aufrufstelle einzeln anzufassen). */
+const SVG_DUNKEL={
+  'fill="#fff" stroke="#fff"':'fill="#161b20" stroke="#161b20"',   // Rand hinter Beschriftungen
+  '#28502a':'#8fce92', 'rgba(76,175,80,.14)':'rgba(92,184,96,.20)', '#3a4a3c':'#b6c0c9', '#93a795':'#6f8872',
+  '#c0392b':'#ef8a80', '#2f6fb0':'#7fb8ea', '#8552c9':'#c79bea', '#e08b00':'#f0b75a',
+  '#0f8c7d':'#5fc7ad', '#b5308e':'#e88bd0', '#4a5a4c':'#b6c0c9', '#e7f5e9':'#1f2e21',
+  '#b9c4ba':'#4a554c', '#bdd2c0':'#3f5042', '#e3ebe4':'#2a332c', '#444':'#b6c0c9', '#173':'#a8dcab',
+  '#2c4a2e':'#a5d6a7', '#e6ece7':'#2a332c', '#d3ded4':'#35423a', '#9db3a0':'#6f8872', '#5b6b60':'#9aa5b1',
+  '#98a89b':'#6f7d72', '#d5e2d7':'#2c3a2e', 'rgba(200,60,60,.10)':'rgba(239,138,128,.16)', '#c62828':'#ef9a9a',
+  '#f6f0ff':'#2a2438', '#7a5cb0':'#c3aef0'
+};
+const SVG_RE=new RegExp(Object.keys(SVG_DUNKEL).sort((a,b)=>b.length-a.length)
+  .map(k=>k.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|'),'gi');
+function svgFarben(out){
+  if(!DUNKEL()) return out;
+  return String(out).replace(SVG_RE, m=>SVG_DUNKEL[m.toLowerCase()]||SVG_DUNKEL[m]||m);
+}
+
 
 function svgSub(t){ return String(t).replace(/_\{?([A-Za-z0-9]+)\}?/g,'<tspan baseline-shift="-22%" font-size="10.5">$1</tspan>'); }
 function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
@@ -1177,9 +1414,15 @@ function figSpec(fig,mode,opt){
       spec.labels.push({text:SIDE_LETTERS[gi[i]%SIDE_LETTERS.length],at:[(a[0]+b[0])/2,(a[1]+b[1])/2],
         dx:nn[0]*15, dy:-nn[1]*15, color:c, bold:true, size:13.5});
     }
-    // gleich große Winkel: Bogen + gleicher Buchstabe
+    // gleich große Winkel: Bogen + gleicher Buchstabe.
+    // Beim Dreieck gilt die uebliche Zuordnung "a liegt gegenueber von alpha":
+    // Seite i verlaeuft von P[i] nach P[i+1] und liegt damit der Ecke i+2
+    // gegenueber - die Ecke j bekommt also den Buchstaben der Seite j+1.
+    // Bei Vierecken und mehr ist es umgekehrt ueblich (a = AB, alpha bei A),
+    // dort bleibt es bei der bisherigen Gruppierung gleich grosser Winkel.
+    const winkelIndex = i => (n===3 ? gi[(i+1)%n] : (ai[i]||0));
     rest.forEach(i=>{
-      const k=ai[i]||0, c=col?ANG_COLORS[k%ANG_COLORS.length]:'#4a5a4c';
+      const k=winkelIndex(i), c=col?ANG_COLORS[k%ANG_COLORS.length]:'#4a5a4c';
       const bi=bisec(i);
       spec.arcs.push({at:P[i],d1:nrm2(sub2(P[(i+1)%n],P[i])),d2:nrm2(sub2(P[(i-1+n)%n],P[i])),r:15,n:1,color:c,big:I.ang[i]>180});
       const far=I.ang[i]<46?32:(I.ang[i]<80?26:22);
@@ -1609,7 +1852,7 @@ function netSpec(S,mode){
 function dreiSVG(S,mode,opt){
   const o=Object.assign({w:340,h:280,pad:10,cls:'fig'},opt||{});
   o.h=Math.max(o.h,Math.round(o.w*0.94));         // fast quadratisch: nutzt beide Hälften des Kreuzes
-  const views=[{v:V_FRONT,t:'Vorderansicht'},{v:V_SIDE,t:'Seitenansicht'},{v:V_TOP,t:'Draufsicht'}];
+  const views=[{v:V_FRONT,t:T('Vorderansicht','Front view')},{v:V_SIDE,t:T('Seitenansicht','Side view')},{v:V_TOP,t:T('Draufsicht','Top view')}];
   const sp=views.map(x=>solidSpec(S,mode,x.v));
   const bb=sp.map(spec=>{ const P=[];
     (spec.fills||[]).forEach(f=>f.pts.forEach(p=>P.push(p)));
@@ -1643,9 +1886,9 @@ function dreiSVG(S,mode,opt){
       '" font-size="10.5" fill="#5b6b60" text-anchor="'+(end?'end':'start')+
       '" font-family="Calibri,\'Segoe UI\',sans-serif">'+t+'</text>'; };
   const dy=(mode==='plain')?5:13;
-  out+=cap(spots[0][0], ym-gap/2-hF*sc-dy, 'Vorderansicht');
-  out+=cap(spots[1][0], ym-gap/2-hF*sc-dy, 'Seitenansicht');
-  out+=cap(spots[2][0], ym+gap/2-dy, 'Draufsicht');
+  out+=cap(spots[0][0], ym-gap/2-hF*sc-dy, T('Vorderansicht','Front view'));
+  out+=cap(spots[1][0], ym-gap/2-hF*sc-dy, T('Seitenansicht','Side view'));
+  out+=cap(spots[2][0], ym+gap/2-dy, T('Draufsicht','Top view'));
   return out+'</svg>';
 }
 /* Mittelpunkt und Radius eines Körpers (für Kamera und Bildausschnitt) */
@@ -1661,6 +1904,12 @@ function bodyRadius(fig){
 }
 /* Warum es kein Netz gibt — als kleiner grauer Hinweis unten im Bild */
 function netNote(fig){
+  if(EN()){
+    if(fig.id==='kugel') return ['This solid cannot be unfolded into the plane —','so here is the oblique view.'];
+    if(fig.twist) return ['Twisted solids have no flat net —','so here is the oblique view.'];
+    if(fig.round&&fig.skew) return ['Oblique round solids have no flat net —','so here is the oblique view.'];
+    return ['No non-overlapping net can be drawn for this solid —','so here is the oblique view.'];
+  }
   if(fig.id==='kugel') return ['Dieser Körper lässt sich nicht in die Ebene abwickeln —','deshalb hier das Schrägbild.'];
   if(fig.twist) return ['Tordierte Körper haben kein ebenes Netz —','deshalb hier das Schrägbild.'];
   if(fig.round&&fig.skew) return ['Schiefe runde Körper haben kein ebenes Netz —','deshalb hier das Schrägbild.'];
@@ -1738,19 +1987,22 @@ function hausSVG(active,precise,opt){
   let s='<svg class="haus" viewBox="24 5 292 '+((active&&active.has('konkav'))?266:256)+'" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">';
   HAUS_EDGES.forEach(e=>{ const a=N[e[0]],b=N[e[1]];
     const on=active&&active.has(e[0])&&active.has(e[1]);
-    s+='<line x1="'+a.x+'" y1="'+(a.y+13)+'" x2="'+b.x+'" y2="'+(b.y-13)+'" stroke="'+(on?'#4CAF50':'#c9d6ca')+
+    s+='<line x1="'+a.x+'" y1="'+(a.y+13)+'" x2="'+b.x+'" y2="'+(b.y-13)+'" stroke="'+(on?'#4CAF50':(DUNKEL()?'#3a453c':'#c9d6ca'))+
        '" stroke-width="'+(on?2.6:1.5)+'"/>'; });
   HAUS_NODES.forEach(n=>{
     const on=active&&active.has(n.id), pr=(n.id===precise);
-    const bg=pr?'#2e7d32':(on?'#dff2e0':'#fff'), fg=pr?'#fff':(on?'#1e5c22':'#7a877b');
-    const bd=pr?'#1b5e20':(on?'#4CAF50':'#cfd8d0');
-    s+='<g><rect x="'+(n.x-n.w/2)+'" y="'+(n.y-13)+'" width="'+n.w+'" height="26" rx="9" fill="'+bg+
+    const dk=DUNKEL();
+    const bg=pr?(dk?'#3d8b41':'#2e7d32'):(on?(dk?'#1f3a23':'#dff2e0'):(dk?'#1b2026':'#fff'));
+    const fg=pr?'#fff':(on?(dk?'#c9e6cb':'#1e5c22'):(dk?'#8e9a90':'#7a877b'));
+    const bd=pr?(dk?'#a5d6a7':'#1b5e20'):(on?'#4CAF50':(dk?'#3a453c':'#cfd8d0'));
+    const nw=(EN()&&n.id==='viereck')?100:(EN()&&n.id==='trapez'?72:n.w);
+    s+='<g><rect x="'+(n.x-nw/2)+'" y="'+(n.y-13)+'" width="'+nw+'" height="26" rx="9" fill="'+bg+
        '" stroke="'+bd+'" stroke-width="'+(pr?2.2:1.4)+'"/>'+
        '<text x="'+n.x+'" y="'+(n.y+1)+'" font-size="12.5" font-family="Calibri,\'Segoe UI\',sans-serif" fill="'+fg+
-       '" text-anchor="middle" dominant-baseline="middle"'+(pr?' font-weight="bold"':'')+'>'+HAUS_SHORT[n.id]+'</text></g>';
+       '" text-anchor="middle" dominant-baseline="middle"'+(pr?' font-weight="bold"':'')+'>'+(EN()?HAUS_SHORT_EN:HAUS_SHORT)[n.id]+'</text></g>';
   });
   if(active&&active.has('konkav'))
-    s+='<text x="316" y="266" font-size="11.5" font-family="Calibri,sans-serif" fill="#a35a00" text-anchor="end">konkav (Pfeilviereck)</text>';
+    s+='<text x="316" y="266" font-size="11.5" font-family="Calibri,sans-serif" fill="'+(DUNKEL()?'#ffb74d':'#a35a00')+'" text-anchor="end">'+T('konkav (Pfeilviereck)','concave (dart)')+'</text>';
   return s+'</svg>';
 }
 /* =======================================================================
@@ -1762,7 +2014,9 @@ function el(tag,cls,txt){ const n=document.createElement(tag); if(cls)n.classNam
 function on(n,ev,fn){ n.addEventListener(ev,fn); return n; }
 
 const OBJ=IS_F?'Fläche':'Körper';
-const TYPES=[
+/* Die Tabellen werden als Funktionen gelesen, damit ein Sprachwechsel
+   sofort die richtigen Beschriftungen liefert. */
+const TYPES_DE=[
   {id:'bild2name', name:OBJ+' benennen', short:'Benennen',
    desc:'Skizze anschauen und den passenden Namen nennen'},
   {id:'name2bild', name:OBJ+' finden', short:'Finden',
@@ -1772,32 +2026,110 @@ const TYPES=[
   {id:'wahrfalsch',name:'Wahr oder falsch?', short:'Wahr/Falsch',
    desc:'Eine Behauptung prüfen — zu einer Skizze oder ganz allgemein'}
 ];
+const TYPES_EN=[
+  {id:'bild2name', name:IS_F?'Name the shape':'Name the solid', short:'Name',
+   desc:'Look at the sketch and give the right name'},
+  {id:'name2bild', name:IS_F?'Find the shape':'Find the solid', short:'Find',
+   desc:IS_F?'Choose the right sketch for a name, or build it yourself':'Choose the right solid for a name'},
+  {id:'eig2name',  name:'Match the description', short:'Description',
+   desc:'Work out the name from the properties'},
+  {id:'wahrfalsch',name:'True or false?', short:'True/False',
+   desc:'Check a statement — about a sketch or in general'}
+];
+/* Schwierigkeit der Aufgabentypen: die Stufe, ab der sie dazukommen. */
+const TYP_STERNE={bild2name:1, name2bild:1, eig2name:2, wahrfalsch:2};
+function sterneHTML(n){
+  n=Math.max(0,Math.min(4,n|0));
+  return n?('<span class="sterne">'+new Array(n+1).join('\u2605')+'</span>'):'';
+}
+const TYPESL=()=>EN()?TYPES_EN:TYPES_DE;
+const TYPES=TYPES_DE;   // Kennungen und Reihenfolge (sprachunabhaengig)
+const VIEWSL=()=>[['schraeg',T('Schrägbild','Oblique')],['d3','3D'],['netz',T('Netz','Net')],['drei',T('Dreitafel','3 views')]];
 const VIEWS=[['schraeg','Schrägbild'],['d3','3D'],['netz','Netz'],['drei','Dreitafel']];
+const BASEPOSL=()=>[['unten',T('unten','bottom')],['vorne',T('vorne','front')],['seite',T('Seite','side')]];
 const BASEPOS=[['unten','unten'],['vorne','vorne'],['seite','Seite']];
 const N_OPTS=[2,3,4,6,8];
+/* Anzahl der Textantworten im Quiz; 0 bedeutet „alle". */
+const N_TEXT=[2,4,6,8,0];
+const PRESENTSL=()=>[['plain',T('ohne','none')],['marks',T('markiert','marked')],['label',T('Beschriftung','labels')],['color',T('farbig','colour')]];
 const PRESENTS=[['plain','ohne'],['marks','markiert'],['label','Beschriftung'],['color','farbig']];
 
 const state={
   mode:'uebung',
-  subs:JSON.parse(JSON.stringify(ALL_SUBS)),
+  subs:JSON.parse(JSON.stringify(STD_SUBS)),
   skew:false, twist:false, trueCirc:false,
   types:['bild2name','name2bild','eig2name','wahrfalsch'],
   ansText:'quiz', ansBild:'quiz', quizMode:'genau',
-  present:'plain', rotate:true, nOpts:4,
+  present:'plain', rotate:true, nOpts:4, nText:0,
+  typenVonHand:false, darstVonHand:false,
   view:'schraeg', views:['schraeg','d3','netz','drei'], viewSwitch:true, viewEach:false,
   basePr:['unten','vorne','seite'], basePy:['unten'], az:-0.62, el:0.42,
   trapIncl:true, triCombo:false, hausShow:true,
   propsOff:[],
+  diff:'normal',
   eGrid:1, eSnap:true, eHaus:true, eShape:'viereck', eEll:'achsen',
   eMarks:IS_F, eLen:IS_F, hiddenEdges:true
 };
+/* ── Schwierigkeitsstufen ──────────────────────────────────────────────────
+   Die Stufe bestimmt, wie viel Hilfe die Skizze gibt, wie viele Bilder zur
+   Auswahl stehen und wie genau der Name sein muss. Welche Formen überhaupt
+   drankommen, bleibt die Auswahl über der Aufgabe; jede Einstellung steht
+   weiterhin einzeln im Einstellungsbereich.                                */
+const STUFEN = {
+  einf:   { present:'color', rotate:false, nOpts:2, nText:2, quizMode:'genau', ansText:'quiz',
+            typen:['bild2name','name2bild'], ohneAnsicht:['drei'] },
+  leicht: { present:'label', rotate:false, nOpts:4, nText:4, quizMode:'genau', ansText:'quiz',
+            typen:['bild2name','name2bild','eig2name','wahrfalsch'] },
+  normal: { present:'plain', rotate:true,  nOpts:4, nText:0, quizMode:'genau', ansText:'quiz',
+            typen:['bild2name','name2bild','eig2name','wahrfalsch'] },
+  schwer: { present:'plain', rotate:true,  nOpts:4, nText:0, quizMode:'alle',  ansText:'quiz',
+            typen:['bild2name','name2bild','eig2name','wahrfalsch'] }
+};
+function stufe(){
+  const e=document.querySelector('input[name="diff"]:checked');
+  return e?e.value:(state.diff||'normal');
+}
+function stufeSetzen(name){
+  state.diff=name;
+  const e=document.querySelector('input[name="diff"][value="'+name+'"]');
+  if(e && !e.checked){ e.checked=true; if(window.abGliderAlle) abGliderAlle(); }
+}
+function aufIndividuell(){ if(stufe()!=='indiv') stufeSetzen('indiv'); }
+function stufeAnwenden(name){
+  const v=STUFEN[name];
+  if(!v) return;
+  state.diff=name;
+  /* Hat die Nutzerin Darstellung oder Antwortart selbst eingestellt, bleibt
+     das so - die Stufe fasst sie dann nicht mehr an. */
+  if(!state.darstVonHand){
+    state.present=v.present; state.rotate=v.rotate;
+    state.nOpts=v.nOpts; state.nText=v.nText;
+    state.quizMode=v.quizMode; state.ansText=v.ansText;
+  }
+  /* Dasselbe für die Aufgabentypen und die erlaubten Ansichten. */
+  if(!state.typenVonHand){
+    if(v.typen) state.types=v.typen.slice();
+    if(!IS_F){
+      const ohne=v.ohneAnsicht||[];
+      const l=VIEWS.map(x=>x[0]).filter(x=>ohne.indexOf(x)<0);
+      state.views=l.length?l:['schraeg'];
+    }
+  }
+}
+/* Ein Blick auf alle Einstellungen - so wie auf den anderen Aufgabenseiten. */
+function einstellungen(){
+  return { present:state.present, rotate:state.rotate, nOpts:state.nOpts,
+           nText:state.nText, quizMode:state.quizMode, ansText:state.ansText,
+           types:state.types.slice().sort().join(','), diff:stufe() };
+}
+
 const P_LIST={dreieck:'sd',viereck:'sv',kreis:'sk',koerper:'so'};
 const sameList=(a,b)=>a.length===b.length&&a.every(x=>b.indexOf(x)>=0);
 
 function serialize(){
   const p=new URLSearchParams();
   p.set('em',state.mode);
-  FAMS_PAGE.forEach(f=>{ if(!sameList(state.subs[f],ALL_SUBS[f])) p.set(P_LIST[f],state.subs[f].join(',')); });
+  FAMS_PAGE.forEach(f=>{ if(!sameList(state.subs[f],STD_SUBS[f])) p.set(P_LIST[f],state.subs[f].join(',')); });
   if(!IS_F){ if(state.skew)p.set('ks','1'); if(state.twist)p.set('kt','1'); if(state.trueCirc)p.set('kc','1');
     if(state.view!=='schraeg')p.set('vw',state.view);
     if(state.views.length!==VIEWS.length)p.set('va',state.views.join(','));
@@ -1808,10 +2140,14 @@ function serialize(){
     if(state.basePr.join()!=='unten,vorne,seite')p.set('bp',state.basePr.join(','));
     if(state.basePy.join()!=='unten')p.set('by',state.basePy.join(',')); }
   p.set('at',state.types.join(','));
+  p.set('df',stufe());
   p.set('ta',state.ansText); if(IS_F)p.set('ba',state.ansBild); p.set('qm',state.quizMode);
   p.set('pr',state.present);
   if(!state.rotate)p.set('ro','0');
   if(state.nOpts!==4)p.set('no',String(state.nOpts));
+  if(state.nText!==0)p.set('nt',String(state.nText));
+  if(state.typenVonHand)p.set('th','1');
+  if(state.darstVonHand)p.set('dh','1');
   if(!state.trapIncl)p.set('ti','0'); if(state.triCombo)p.set('tc','1'); if(!state.hausShow)p.set('hs','0');
   if(state.propsOff.length)p.set('po',state.propsOff.join(','));
   if(IS_F&&state.eShape!=='viereck')p.set('ef',state.eShape);
@@ -1843,6 +2179,8 @@ function deserialize(){
   const bf=(x,d)=>{ const l=x.split(',').filter(y=>['unten','vorne','seite'].indexOf(y)>=0); return l.length?l:d; };
   state.basePr=bf(g('bp','unten,vorne,seite'),['unten','vorne','seite']);
   state.basePy=bf(g('by','unten'),['unten']);
+  const df=g('df','normal');
+  if(['einf','leicht','normal','schwer','indiv'].indexOf(df)>=0) state.diff=df;
   if(p.has('at')) state.types=p.get('at').split(',').filter(x=>TYPES.some(t=>t.id===x));
   if(!state.types.length) state.types=['bild2name'];
   state.ansText=g('ta','quiz')==='aufdecken'?'aufdecken':'quiz';
@@ -1852,6 +2190,10 @@ function deserialize(){
   state.rotate=g('ro','1')!=='0';
   const no=parseInt(g('no','4'),10)||4;
   state.nOpts=N_OPTS.indexOf(no)>=0?no:4;
+  const nt=parseInt(g('nt','0'),10)||0;
+  state.nText=N_TEXT.indexOf(nt)>=0?nt:0;
+  state.typenVonHand=g('th','0')==='1';
+  state.darstVonHand=g('dh','0')==='1';
   state.trapIncl=g('ti','1')!=='0';
   state.triCombo=g('tc','0')==='1';
   state.hausShow=g('hs','1')!=='0';
@@ -1897,12 +2239,12 @@ function showToast(msg){ if(!toastEl){toastEl=el('div','toast');document.body.ap
 function copyShareLink(){
   const u=location.href;
   if(navigator.clipboard&&navigator.clipboard.writeText)
-    navigator.clipboard.writeText(u).then(()=>showToast('Link kopiert'),()=>fallbackCopy(u));
+    navigator.clipboard.writeText(u).then(()=>showToast(T('Link kopiert','Link copied')),()=>fallbackCopy(u));
   else fallbackCopy(u);
 }
 function fallbackCopy(t){ try{ const ta=el('textarea'); ta.value=t; ta.style.position='fixed'; ta.style.opacity='0';
-  document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); showToast('Link kopiert'); }
-  catch(e){ showToast('Kopieren nicht möglich'); } }
+  document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); showToast(T('Link kopiert','Link copied')); }
+  catch(e){ showToast(T('Kopieren nicht möglich','Could not copy')); } }
 function checkLine(checked,text,fn){
   const l=el('label','check-line'); const i=el('input'); i.type='checkbox'; i.checked=!!checked;
   on(i,'change',()=>fn(i.checked)); l.appendChild(i); l.appendChild(el('span',null,text)); return l;
@@ -1937,9 +2279,10 @@ function attachLong(node,onClick,onLong){
   on(node,'pointerdown',e=>{ if(e.button&&e.button!==0)return; long=false; sx=e.clientX; sy=e.clientY;
     clear(); t=setTimeout(()=>{ long=true; onLong&&onLong(); },450); });
   on(node,'pointermove',e=>{ if(t&&(Math.abs(e.clientX-sx)>9||Math.abs(e.clientY-sy)>9)) clear(); });
-  on(node,'pointerup',e=>{ clear(); if(!long) onClick&&onClick(e); });
+  /* Nur die linke Taste schaltet um - die rechte öffnet bloß das Menü. */
+  on(node,'pointerup',e=>{ clear(); if(e.button&&e.button!==0) return; if(!long) onClick&&onClick(e); });
   on(node,'pointercancel',clear); on(node,'pointerleave',clear);
-  on(node,'contextmenu',e=>{ e.preventDefault(); clear(); onLong&&onLong(); });
+  on(node,'contextmenu',e=>{ e.preventDefault(); clear(); long=true; onLong&&onLong(); });
 }
 /* Popover */
 let popEl=null,popBack=null;
@@ -1971,11 +2314,11 @@ function setGroup(g,on_){ g.subs.forEach(id=>setSub(g.fam,id,on_)); }
 function famActive(f){ return state.subs[f]&&state.subs[f].length>0; }
 
 function subMenu(host,g){
-  const h=el('h5'); h.appendChild(el('span',null,'Welche '+g.label+'e?'));
+  const h=el('h5'); h.appendChild(el('span',null,EN()?('Which '+(GPLUR_EN[g.id]||(gLabel(g).toLowerCase()+'s'))+'?'):('Welche '+g.label+'e?')));
   const all=el('button'); h.appendChild(all); host.appendChild(h);
   const rows=[];
   const sync=()=>{ const n=subsOn(g).length;
-    all.textContent=(n===g.subs.length)?'kein':'alle';
+    all.textContent=(n===g.subs.length)?T('kein','none'):T('alle','all');
     rows.forEach(r=>r[0].checked=state.subs[g.fam].indexOf(r[1])>=0); };
   on(all,'click',()=>{ setGroup(g,subsOn(g).length!==g.subs.length); sync(); afterPick(); });
   g.subs.forEach(id=>{
@@ -1995,7 +2338,7 @@ const PREV_OF={platon:['koerper','dodekaeder',1],dreieck:['dreieck','gs_spitz',3
   dodekaeder:['koerper','dodekaeder',1],ikosaeder:['koerper','ikosaeder',1]};
 const prevCache={};
 function previewSVG(id){
-  if(prevCache[id]) return prevCache[id];
+  if(prevCache[id]) return svgFarben(prevCache[id]);
   const c=PREV_OF[id]; if(!c) return '';
   let fig;
   try{
@@ -2003,13 +2346,18 @@ function previewSVG(id){
        :genFlaeche(c[1],rngFrom(c[2]),{rotate:false,trapIncl:true});
   }catch(e){ return ''; }
   prevCache[id]=figToSVG(fig,'plain',{w:46,h:34,pad:2,view:'schraeg',trueCirc:false});
-  return prevCache[id];
+  return svgFarben(prevCache[id]);
 }
 /* --- Auswahl-Kacheln oben auf der Seite --------------------------------- */
+/* Beschriftung der Kacheln (Einzahl) und der Untermenues (Mehrzahl) */
+const GLABEL_EN={dreieck:'Triangle',viereck:'Quadrilateral',kreis:'Circle',wuerfel:'Cube',quader:'Cuboid',
+  prisma:'Prism',pyramide:'Pyramid',zylinder:'Cylinder',kegel:'Cone',kugel:'Sphere',platon:'Platonic'};
+const GPLUR_EN={dreieck:'triangles',viereck:'quadrilaterals',kreis:'circles',platon:'Platonic solids'};
+const gLabel=g=>EN()?(GLABEL_EN[g.id]||g.label):g.label;
 function tabFor(g){
   const n=subsOn(g).length, all=(n===g.subs.length);
   const b=el('button','tab'+(n?(all?' on':' on partial'):''));
-  b.innerHTML=previewSVG(g.id)+'<span class="tl">'+g.label+'</span>'+
+  b.innerHTML=previewSVG(g.id)+'<span class="tl">'+gLabel(g)+'</span>'+
     (g.subs.length>1?'<span class="caret">▾</span><span class="cnt">'+(n&&!all?n+'/'+g.subs.length:'')+'</span>':'');
   const menu=()=>{ if(g.subs.length>1) openPop(b,p=>subMenu(p,g)); };
   attachLong(b,e=>{ if(e&&e.target&&e.target.classList&&e.target.classList.contains('caret')){ menu(); return; }
@@ -2023,14 +2371,14 @@ function buildPick(){
   host.appendChild(row);
   if(!IS_F){
     const o=el('div','tree-opts');
-    [['skew','auch schiefe Körper'],['twist','auch tordierte (verdrehte) Körper']].forEach(x=>{
+    [['skew',T('auch schiefe Körper','oblique solids too')],['twist',T('auch tordierte (verdrehte) Körper','twisted solids too')]].forEach(x=>{
       const l=el('label'); const i=el('input'); i.type='checkbox'; i.checked=!!state[x[0]];
       on(i,'change',()=>{ state[x[0]]=i.checked; afterPick(); });
       l.appendChild(i); l.appendChild(el('span',null,x[1])); o.appendChild(l);
     });
     host.appendChild(o);
   }
-  host.appendChild(el('div','pick-note','Langer Klick (oder ▾) auf eine Kachel öffnet die Unterformen.'));
+  host.appendChild(el('div','pick-note',T('Langer Klick (oder ▾) auf eine Kachel öffnet die Unterformen.','A long press (or ▾) on a tile opens the sub-types.')));
 }
 
 /* --- Einstellungen ------------------------------------------------------ */
@@ -2043,9 +2391,9 @@ function buildSettings(){
   const grid=el('div','settings-grid');
 
   /* Aufgabentypen */
-  const b1=el('div','form-block'); b1.appendChild(el('div','lbl','Aufgabentypen'));
+  const b1=el('div','form-block'); b1.appendChild(el('div','lbl',T('Aufgabentypen','Question types')));
   const list=el('div','typ-list');
-  TYPES.forEach(t=>{
+  TYPESL().forEach(t=>{
     const on_=state.types.indexOf(t.id)>=0;
     const c=el('button','typ'+(on_?' on':''));
     c.innerHTML='<span class="tk">✓</span><span class="tt"><span class="tn"></span><span class="td"></span></span>';
@@ -2057,53 +2405,66 @@ function buildSettings(){
   b1.appendChild(list); grid.appendChild(b1);
 
   /* Antworten */
-  const b2=el('div','form-block'); b2.appendChild(el('div','lbl','Antworten'));
+  const b2=el('div','form-block'); b2.appendChild(el('div','lbl',T('Antworten','Answers')));
   const flow=el('div','opt-flow');
-  flow.appendChild(optRow('bei Namensfragen',segRow([['aufdecken','Lösung aufdecken'],['quiz','Quiz']],state.ansText,
-    v=>{state.ansText=v;afterSettings();},'small')));
-  if(IS_F) flow.appendChild(optRow('bei Bildfragen',segRow([['quiz','Bild anklicken'],['bauen','selbst bauen']],state.ansBild,
+  flow.appendChild(optRow(T('bei Namensfragen','for name questions'),segRow([['aufdecken',T('Lösung aufdecken','reveal the answer')],['quiz','Quiz']],state.ansText,
+    v=>{state.ansText=v;state.darstVonHand=true;aufIndividuell();afterSettings();},'small')));
+  if(IS_F) flow.appendChild(optRow(T('bei Bildfragen','for picture questions'),segRow([['quiz',T('Bild anklicken','click a picture')],['bauen',T('selbst bauen','build it')]],state.ansBild,
     v=>{state.ansBild=v;afterSettings();},'small')));
-  flow.appendChild(optRow('das Quiz verlangt',segRow([['genau','genaueste Bezeichnung'],['alle','alle zutreffenden']],state.quizMode,
-    v=>{state.quizMode=v;afterSettings();},'small')));
+  flow.appendChild(optRow(T('das Quiz verlangt','the quiz asks for'),segRow([['genau',T('genaueste Bezeichnung','the most precise name')],['alle',T('alle zutreffenden','all that apply')]],state.quizMode,
+    v=>{state.quizMode=v;state.darstVonHand=true;aufIndividuell();afterSettings();},'small')));
   b2.appendChild(flow);
   const rgw=el('div','opt-line');
   const rg=el('input'); rg.type='range'; rg.min=0; rg.max=N_OPTS.length-1; rg.step=1;
   rg.value=Math.max(0,N_OPTS.indexOf(state.nOpts));
   const rv=el('span','small',' '+state.nOpts);
   const upd=()=>{ state.nOpts=N_OPTS[+rg.value]; rv.textContent=' '+state.nOpts;
-    serialize(); refreshTask(); renderTask(); };
+    state.darstVonHand=true; aufIndividuell(); serialize(); refreshTask(); renderTask(); };
   on(rg,'input',upd); on(rg,'change',upd);
   rgw.appendChild(rg); rgw.appendChild(rv);
-  const fl2=el('div','opt-flow'); fl2.appendChild(optRow('Bilder zur Auswahl',rgw));
+  const fl2=el('div','opt-flow'); fl2.appendChild(optRow(T('Bilder zur Auswahl','pictures to choose from'),rgw));
+  /* Wie viele Namen stehen im Quiz zur Auswahl? 0 heißt „alle". */
+  const tgw=el('div','opt-line');
+  const tg=el('input'); tg.type='range'; tg.min=0; tg.max=N_TEXT.length-1; tg.step=1;
+  tg.id='reglerText';
+  tg.value=Math.max(0,N_TEXT.indexOf(state.nText));
+  const tv=el('span','small',' '+(state.nText||T('alle','all')));
+  const tupd=()=>{ state.nText=N_TEXT[+tg.value]; tv.textContent=' '+(state.nText||T('alle','all'));
+    state.darstVonHand=true; serialize(); refreshTask(); renderTask(); };
+  on(tg,'input',tupd); on(tg,'change',tupd);
+  tgw.appendChild(tg); tgw.appendChild(tv);
+  fl2.appendChild(optRow(T('Namen zur Auswahl','names to choose from'),tgw));
   b2.appendChild(fl2);
-  if(IS_F) b2.appendChild(el('div','muted small','„Selbst bauen" gibt es bei Dreiecken, Vierecken und Kreisen.'));
+  if(IS_F) b2.appendChild(el('div','muted small',T('„Selbst bauen" gibt es bei Dreiecken, Vierecken und Kreisen.','“Build it” is available for triangles, quadrilaterals and circles.')));
   grid.appendChild(b2);
 
   /* Darstellung */
-  const b3=el('div','form-block'); b3.appendChild(el('div','lbl','Darstellung'));
+  const b3=el('div','form-block'); b3.appendChild(el('div','lbl',T('Darstellung','Presentation')));
   const fl3=el('div','opt-flow');
-  fl3.appendChild(optRow('Beschriftung der Skizzen',segRow(PRESENTS,state.present,
-    v=>{state.present=v;afterSettings();},'small')));
+  fl3.appendChild(optRow(T('Beschriftung der Skizzen','labels on the sketches'),segRow(PRESENTSL(),state.present,
+    v=>{state.present=v;state.darstVonHand=true;aufIndividuell();afterSettings();},'small')));
   if(!IS_F){
-    fl3.appendChild(optRow('Grundfläche beim Prisma',checkSeg(BASEPOS,state.basePr,
+    fl3.appendChild(optRow(T('Grundfläche beim Prisma','base of the prism'),checkSeg(BASEPOSL(),state.basePr,
       (v,b)=>{ state.basePr=toggleIn(state.basePr,v,true); b.classList.toggle('on',state.basePr.indexOf(v)>=0); afterSettings(); },'small')));
-    fl3.appendChild(optRow('Grundfläche bei der Pyramide',checkSeg(BASEPOS,state.basePy,
+    fl3.appendChild(optRow(T('Grundfläche bei der Pyramide','base of the pyramid'),checkSeg(BASEPOSL(),state.basePy,
       (v,b)=>{ state.basePy=toggleIn(state.basePy,v,true); b.classList.toggle('on',state.basePy.indexOf(v)>=0); afterSettings(); },'small')));
   }
   b3.appendChild(fl3);
-  b3.appendChild(el('div','muted small','ohne = nur die Form · markiert = Maßstriche, Bögen, rechte Winkel · '+
-    'Beschriftung = gleich lange Seiten gleicher Buchstabe, gleich große Winkel ebenso · farbig = zusätzlich gleiche Farbe.'));
-  b3.appendChild(checkLine(state.rotate,'Formen zufällig gedreht zeichnen',v=>{state.rotate=v;afterSettings();}));
+  b3.appendChild(el('div','muted small',T('ohne = nur die Form · markiert = Maßstriche, Bögen, rechte Winkel · '+
+    'Beschriftung = gleich lange Seiten gleicher Buchstabe, gleich große Winkel ebenso · farbig = zusätzlich gleiche Farbe.',
+    'none = just the shape · marked = tick marks, arcs, right angles · '+
+    'labels = equal sides get the same letter, equal angles too · colour = same colour as well.')));
+  b3.appendChild(checkLine(state.rotate,T('Formen zufällig gedreht zeichnen','draw shapes randomly rotated'),v=>{state.rotate=v;aufIndividuell();afterSettings();}));
   if(!IS_F){
-    b3.appendChild(checkLine(state.viewSwitch,'Ansicht darf an der Aufgabe umgeschaltet werden',
+    b3.appendChild(checkLine(state.viewSwitch,T('Ansicht darf an der Aufgabe umgeschaltet werden','the view may be switched at the task'),
       v=>{state.viewSwitch=v;afterSettings();}));
-    b3.appendChild(checkLine(state.viewEach,'Bei mehreren Bildern jedes Bild in einer eigenen Ansicht',
+    b3.appendChild(checkLine(state.viewEach,T('Bei mehreren Bildern jedes Bild in einer eigenen Ansicht','with several pictures, each picture in its own view'),
       v=>{state.viewEach=v;afterSettings();}));
-    b3.appendChild(checkLine(state.hiddenEdges,'In der 3D-Ansicht verdeckte Kanten gestrichelt zeigen',
+    b3.appendChild(checkLine(state.hiddenEdges,T('In der 3D-Ansicht verdeckte Kanten gestrichelt zeigen','show hidden edges dashed in the 3D view'),
       v=>{state.hiddenEdges=v;afterSettings();}));
   }
-  if(IS_F) b3.appendChild(checkLine(state.hausShow,'Haus der Vierecke bei der Lösung zeigen',v=>{state.hausShow=v;afterSettings();}));
-  else b3.appendChild(checkLine(!state.trueCirc,'Kreise im Schrägbild vereinfacht zeichnen (waagerechte Ellipse)',
+  if(IS_F) b3.appendChild(checkLine(state.hausShow,T('Haus der Vierecke bei der Lösung zeigen','show the hierarchy of quadrilaterals with the solution'),v=>{state.hausShow=v;afterSettings();}));
+  else b3.appendChild(checkLine(!state.trueCirc,T('Kreise im Schrägbild vereinfacht zeichnen (waagerechte Ellipse)','draw circles simplified in the oblique view (horizontal ellipse)'),
     v=>{state.trueCirc=!v;afterSettings();}));
   grid.appendChild(b3);
 
@@ -2112,17 +2473,17 @@ function buildSettings(){
 
   /* Fachliche Festlegungen (nur Flächen) */
   if(IS_F){
-    const b4=el('div','form-block'); b4.appendChild(el('div','lbl','Fachliche Festlegungen'));
-    b4.appendChild(optRow('ein Trapez hat …',segRow([['1','mind. ein Paar paralleler Seiten'],['0','genau ein Paar']],
+    const b4=el('div','form-block'); b4.appendChild(el('div','lbl',T('Fachliche Festlegungen','Definitions')));
+    b4.appendChild(optRow(T('ein Trapez hat …','a trapezium has …'),segRow([['1',T('mind. ein Paar paralleler Seiten','at least one pair of parallel sides')],['0',T('genau ein Paar','exactly one pair')]],
       state.trapIncl?'1':'0',v=>{ state.trapIncl=(v==='1'); buildAnc(); afterSettings(); },'small')));
-    b4.appendChild(el('div','muted small','„Mindestens ein Paar" ist die Festlegung des Hauses der Vierecke: Jedes Parallelogramm ist dann auch ein Trapez.'));
-    b4.appendChild(checkLine(state.triCombo,'Bei Dreiecken Seiten- und Winkelart in EINEM Namen verlangen (z. B. „gleichschenklig-rechtwinklig")',
+    b4.appendChild(el('div','muted small',T('„Mindestens ein Paar" ist die Festlegung des Hauses der Vierecke: Jedes Parallelogramm ist dann auch ein Trapez.','“At least one pair” is the definition used in the hierarchy of quadrilaterals: every parallelogram is then also a trapezium.')));
+    b4.appendChild(checkLine(state.triCombo,T('Bei Dreiecken Seiten- und Winkelart in EINEM Namen verlangen (z. B. „gleichschenklig-rechtwinklig")','for triangles, ask for the side type and angle type in ONE name (e.g. “isosceles right-angled”)'),
       v=>{state.triCombo=v;afterSettings();}));
-    b4.appendChild(el('div','muted small','Ist der Haken aus, zählt die Seitenart als Hauptname — im Quiz wird nacheinander nach Seiten- und Winkelart gefragt.'));
+    b4.appendChild(el('div','muted small',T('Ist der Haken aus, zählt die Seitenart als Hauptname — im Quiz wird nacheinander nach Seiten- und Winkelart gefragt.','If unticked, the side type counts as the main name — the quiz asks for the side type and then the angle type.')));
     grid.appendChild(b4);
   }
   const sl=el('div','share-line');
-  const sh=el('button','share-btn'); sh.innerHTML='<span class="ico">🔗</span>Link zu diesen Einstellungen';
+  const sh=el('button','share-btn'); sh.innerHTML='<span class="ico">🔗</span>'+T('Link zu diesen Einstellungen','Link to these settings');
   on(sh,'click',copyShareLink); sl.appendChild(sh);
   grid.appendChild(sl);
   b.appendChild(grid);
@@ -2132,21 +2493,21 @@ function propList(){
   const out=[];
   FAMS_PAGE.forEach(f=>FAM[f].precise.concat(FAM[f].subs).concat(IS_F?[]:PLATON).forEach(id=>{
     if(out.some(x=>x.id===id)) return;
-    (PROPS[id]||[]).forEach((txt,i)=>out.push({id:id,i:i,key:id+'#'+i,text:txt}));
+    (PROPSL()[id]||[]).forEach((txt,i)=>out.push({id:id,i:i,key:id+'#'+i,text:txt}));
   }));
   return out;
 }
 const propOn=k=>state.propsOff.indexOf(k)<0;
 function buildPropsBlock(){
-  const box=el('div','form-block'); box.appendChild(el('div','lbl','Abgefragte Eigenschaften'));
+  const box=el('div','form-block'); box.appendChild(el('div','lbl',T('Abgefragte Eigenschaften','Properties asked about')));
   const list=propList();
   const nOn=list.filter(x=>propOn(x.key)).length;
   const d=el('details','props-pick');
-  const sum=el('summary',null,'Beschreibungen auswählen ('+nOn+' von '+list.length+' aktiv)');
+  const sum=el('summary',null,T('Beschreibungen auswählen ('+nOn+' von '+list.length+' aktiv)','Choose descriptions ('+nOn+' of '+list.length+' active)'));
   d.appendChild(sum);
   const act=el('div','opt-line');
-  const ba=el('button','btn-ghost','alle'); on(ba,'click',()=>{ state.propsOff=[]; afterSettings(); });
-  const bn=el('button','btn-ghost','keine'); on(bn,'click',()=>{ state.propsOff=list.map(x=>x.key); afterSettings(); });
+  const ba=el('button','btn-ghost',T('alle','all')); on(ba,'click',()=>{ state.propsOff=[]; afterSettings(); });
+  const bn=el('button','btn-ghost',T('keine','none')); on(bn,'click',()=>{ state.propsOff=list.map(x=>x.key); afterSettings(); });
   act.appendChild(ba); act.appendChild(bn); d.appendChild(act);
   let cur=null;
   list.forEach(x=>{
@@ -2157,35 +2518,69 @@ function buildPropsBlock(){
     lab.appendChild(i); lab.appendChild(el('span',null,x.text)); d.appendChild(lab);
   });
   box.appendChild(d);
-  box.appendChild(el('div','muted small','Gilt für „Eigenschaft → Name". Formen, von denen keine Beschreibung mehr aktiv ist, kommen dort nicht vor.'));
+  box.appendChild(el('div','muted small',T('Gilt für „Eigenschaft → Name". Formen, von denen keine Beschreibung mehr aktiv ist, kommen dort nicht vor.','Applies to “description → name”. Shapes with no active description left do not appear there.')));
   return box;
 }
 
 /* --- Schüler-Steuerleiste ----------------------------------------------- */
 function buildStudentPanel(){
   const p=$('#studentPanel'); p.innerHTML='';
-  const c1=el('div','ctl'); c1.appendChild(el('span','lbl','Aufgabentyp'));
-  c1.appendChild(checkSeg(TYPES.map(t=>[t.id,t.short]),state.types,(v,btn)=>{
-    state.types=toggleIn(state.types,v);
-    btn.classList.toggle('on',state.types.indexOf(v)>=0);
-    afterSettings();
-  }));
+  const c1=el('div','ctl'); c1.appendChild(el('span','lbl',T('Aufgabentyp','Question type')));
+  const liste=el('div','typ-list');
+  TYPESL().forEach(t=>{
+    const an_=state.types.indexOf(t.id)>=0;
+    const c=el('button','typ'+(an_?' on':''));
+    c.dataset.typ=t.id;
+    c.innerHTML='<span class="tk">\u2713</span><span class="tt">'
+      +'<span class="tzaehler"></span><span class="tn"></span>'
+      +'<span class="td"></span></span>';
+    c.querySelector('.tn').innerHTML=t.short+sterneHTML(TYP_STERNE[t.id]||0);
+    c.querySelector('.td').textContent=t.desc;
+    on(c,'click',()=>{
+      state.types=toggleIn(state.types,t.id);
+      state.typenVonHand=true;
+      afterSettings();
+    });
+    liste.appendChild(c);
+  });
+  c1.appendChild(liste);
   p.appendChild(c1);
+  markiereAktuell();
   if(!IS_F){
-    const c2=el('div','ctl'); c2.appendChild(el('span','lbl','Erlaubte Ansichten'));
-    c2.appendChild(checkSeg(VIEWS,state.views,(v,btn)=>{
+    const c2=el('div','ctl'); c2.appendChild(el('span','lbl',T('Erlaubte Ansichten','Views allowed')));
+    c2.appendChild(checkSeg(VIEWSL(),state.views,(v,btn)=>{
       state.views=toggleIn(state.views,v);
+      state.typenVonHand=true;
       btn.classList.toggle('on',state.views.indexOf(v)>=0);
       afterSettings();
     }));
     p.appendChild(c2);
   }
 }
+/* Der gerade verwendete Aufgabentyp bekommt einen Rahmen - so ist erkennbar,
+   woher die laufende Aufgabe stammt. */
+function markiereAktuell(){
+  const p=$('#studentPanel'); if(!p) return;
+  /* Ohne Aufgabe bleibt keine Kachel umrandet. */
+  const typ=task&&task.type;
+  $$('.typ',p).forEach(b=>b.classList.remove('aktuell'));
+  if(typ){ const b=$('.typ[data-typ="'+typ+'"]',p); if(b)b.classList.add('aktuell'); }
+}
 /* Auswahl geändert: die laufende Aufgabe bleibt stehen — neu gewürfelt wird
    ausschließlich über „Neue Aufgabe" (und beim Laden der Seite). */
-function afterPick(){ buildPick(); serialize(); refreshTask(); renderTask(); }
+function afterPick(){
+  buildPick(); serialize();
+  if(!task){ newTask(); } else { refreshTask(); }
+  renderTask();
+}
 /* Einstellung geändert: dieselbe Aufgabe, nur im neuen Gewand */
-function afterSettings(){ buildSettings(); buildStudentPanel(); buildPick(); serialize(); refreshTask(); renderTask(); }
+function afterSettings(){
+  buildSettings(); buildStudentPanel(); buildPick(); serialize();
+  /* Lag keine Aufgabe vor (z. B. weil kein Typ gewählt war), kommt sofort eine
+     neue - sonst bliebe der Hinweistext stehen. Eine laufende Aufgabe bleibt. */
+  if(!task){ newTask(); } else { refreshTask(); }
+  renderTask();
+}
 /* =======================================================================
    7. Aufgaben
    ======================================================================= */
@@ -2276,12 +2671,12 @@ const NOTE_SPECIAL={
 const GEN={drache:'m',kreis:'m',koerper:'m',wuerfel:'m',quader:'m',zylinder:'m',kegel:'m',
   raute:'f',ellipse:'f',pyramide:'f',kugel:'f'};
 const genOf=id=>GEN[id]||'n';
-const sName=id=>nameOf(id).replace(/\s*\(.*\)/,'');
-const jeder=id=>({m:'Jeder ',f:'Jede ',n:'Jedes '})[genOf(id)];
+const sName=id=>nameOf(id).replace(/\s*\(.*\)/,'');   // sprachabhaengig ueber nameOf
+const jeder=id=>EN()?'Every ':({m:'Jeder ',f:'Jede ',n:'Jedes '})[genOf(id)];
 const artOf=id=>genOf(id)==='f'?'eine':'ein';
-const artAkk=id=>({m:'einen',f:'eine',n:'ein'})[genOf(id)];
+const artAkk=id=>EN()?anEn(sName(id)).trim():({m:'einen',f:'eine',n:'ein'})[genOf(id)];
 /* schwache Beugung: „einen Drachen" statt „einen Drache" */
-const akkName=id=>id==='drache'?'Drachen':sName(id);
+const akkName=id=>(!EN()&&id==='drache')?'Drachen':sName(id);
 const PLUR={dreieck:'Dreiecke',viereck:'Vierecke',quadrat:'Quadrate',rechteck:'Rechtecke',
   parallelogramm:'Parallelogramme',trapez:'Trapeze',drache:'Drachenvierecke',raute:'Rauten',
   konkav:'konkave Vierecke',kreis:'Kreise',ellipse:'Ellipsen',
@@ -2290,15 +2685,16 @@ const PLUR={dreieck:'Dreiecke',viereck:'Vierecke',quadrat:'Quadrate',rechteck:'R
   tetraeder:'Tetraeder',oktaeder:'Oktaeder',dodekaeder:'Dodekaeder',ikosaeder:'Ikosaeder'};
 /* Mehrzahl: „gleichschenklige Dreiecke", „Rauten", „Trapeze" … */
 function plural(id){
+  if(EN()) return PLUR_EN[id]||(sName(id)+'s');
   if(PLUR[id]) return PLUR[id];
   const n=sName(id);
   const m=n.match(/^(.*)es (Dreieck|Viereck)$/);
   if(m) return m[1]+'e '+m[2]+'e';
   return n+'e';
 }
-const keinN=id=>({m:'kein',f:'keine',n:'kein'})[genOf(id)];
+const keinN=id=>EN()?'not '+anEn(sName(id)).trim():({m:'kein',f:'keine',n:'kein'})[genOf(id)];
 /* Mehrzahl nach „keine": schwache Beugung — „keine gleichseitigen Dreiecke" */
-function plurWeak(id){ return plural(id).replace(/^([a-zäöüß]+)e (?=[A-ZÄÖÜ])/,'$1en '); }
+function plurWeak(id){ if(EN()) return plural(id); return plural(id).replace(/^([a-zäöüß]+)e (?=[A-ZÄÖÜ])/,'$1en '); }
 /* Als Bezeichnung (Tag) meinen „spitzwinklig" & Co. nur die Winkel- bzw. Seitenart —
    die Beschreibungen in PROPS beschreiben dagegen den genauesten Fall. */
 const TAGDEF={
@@ -2313,6 +2709,12 @@ const TAGDEF={
 };
 /* „Ein Trapez ist ein Viereck mit einem Paar paralleler Seiten." */
 function defSatz(id){
+  if(EN()){
+    if(TAGDEF_EN[id]) return gross(anEn(sName(id)))+sName(id)+' is '+TAGDEF_EN[id]+'.';
+    const d=(PROPS_EN[id]||[])[0];
+    if(!d) return '';
+    return gross(anEn(sName(id)))+sName(id)+' is '+anEn(d)+d+'.';
+  }
   if(TAGDEF[id]) return (genOf(id)==='f'?'Eine ':'Ein ')+sName(id)+' ist '+TAGDEF[id]+'.';
   const d=(PROPS[id]||[])[0];
   if(!d) return '';
@@ -2322,6 +2724,14 @@ function defSatz(id){
 function relClaim(a,b){
   const truth=tagsOfClass(a).has(b), dz=defSatz(b);
   let grund;
+  if(EN()){
+    if(truth) grund='Every '+sName(a)+' meets all the conditions of '+anEn(sName(b))+sName(b)+'.';
+    else if(overlaps(a,b)) grund='There are '+plural(a)+' that are not '+plural(b)+' — here is a counterexample:';
+    else grund='That is never true: '+plural(a)+' and '+plural(b)+' exclude each other — here is an example:';
+    return {kind:'rel',a:a,b:b,truth:truth,
+      text:'Every '+sName(a)+' is '+anEn(sName(b))+sName(b)+'.',
+      why:(dz?dz+' ':'')+grund, ex:truth?null:a};
+  }
   if(truth) grund=jeder(a)+weakName(a)+' erfüllt alles, was '+artNom(b)+' '+sName(b)+' ausmacht.';
   else if(overlaps(a,b)) grund='Es gibt '+plural(a)+', die keine '+plurWeak(b)+' sind — hier ein Gegenbeispiel:';
   else grund='Das trifft nie zu: '+plural(a)+' und '+plural(b)+' schließen einander aus — hier ein Beispiel:';
@@ -2334,7 +2744,7 @@ function overlaps(a,b){
   const fam=famOf(a)||'viereck';
   return FAM[fam].precise.some(p=>tagsOfClass(p).has(a)&&tagsOfClass(p).has(b));
 }
-const artNom=id=>({m:'ein',f:'eine',n:'ein'})[genOf(id)];
+const artNom=id=>EN()?anEn(sName(id)).trim():({m:'ein',f:'eine',n:'ein'})[genOf(id)];
 /* Artikel vor einer Beschreibung wie „ebene Figur, deren …" oder „Viereck mit …" */
 const DEF_FEM={Figur:1,Fläche:1,Menge:1,Raute:1,Pyramide:1,Kugel:1,Ellipse:1};
 function defArt(txt){
@@ -2342,7 +2752,7 @@ function defArt(txt){
   return (m&&DEF_FEM[m[0]])?'eine':'ein';
 }
 /* „jedes gleichschenklige Dreieck" (schwache Beugung nach jedes) */
-const weakName=id=>sName(id).replace(/es (Dreieck|Viereck)$/,'e $1');
+const weakName=id=>EN()?sName(id):sName(id).replace(/es (Dreieck|Viereck)$/,'e $1');
 
 /* --- Behauptungen für „wahr oder falsch" -------------------------------- */
 const CLAIMS_F=[
@@ -2390,7 +2800,197 @@ const CLAIMS_K=[
 ];
 const CLAIMS=IS_F?CLAIMS_F:CLAIMS_K;
 
+/* ══════════════════════════════════════════════════════════════════════════
+   Sprache und Theme
+   Die deutschen Tabellen (NAMES, PROPS, CLAIMS …) bleiben unveraendert; fuer
+   Englisch gibt es gleich aufgebaute Tabellen. Die Auswahl (Index, Kennung)
+   haengt nie an der Sprache – ein Sprachwechsel zeigt dieselbe Aufgabe.
+   ══════════════════════════════════════════════════════════════════════════ */
+function T(de, en){ return (typeof tlText === 'function') ? tlText(de, en) : de; }
+function EN(){ return (typeof tlSprache === 'function') && tlSprache() === 'en'; }
+function DUNKEL(){ return (typeof tlDunkel === 'function') ? tlDunkel()
+  : document.documentElement.classList.contains('dark'); }
+function DEZ(){ return EN() ? '.' : ','; }
+/* englischer unbestimmter Artikel mit Leerzeichen: „a " / „an " */
+function anEn(n){ return /^[aeiouAEIOU]/.test(String(n||'').trim())?'an ':'a '; }
+/* Artikel mit Leerzeichen in der aktuellen Sprache */
+function ART(n){ return EN()? anEn(n) : (artIndef(n)==='eine'?'eine ':'ein '); }
+function gross(s){ s=String(s||''); return s.charAt(0).toUpperCase()+s.slice(1); }
+
+const NAMES_EN={
+  dreieck:'triangle', gleichseitig:'equilateral triangle', gleichschenklig:'isosceles triangle',
+  spitzwinklig:'acute-angled triangle', rechtwinklig:'right-angled triangle', stumpfwinklig:'obtuse-angled triangle',
+  gs_spitz:'isosceles acute-angled triangle', gs_recht:'isosceles right-angled triangle',
+  gs_stumpf:'isosceles obtuse-angled triangle',
+  viereck:'quadrilateral', quadrat:'square', rechteck:'rectangle', parallelogramm:'parallelogram',
+  trapez:'trapezium', drache:'kite', raute:'rhombus', konkav:'concave quadrilateral',
+  kreis:'circle', ellipse:'ellipse',
+  koerper:'solid', wuerfel:'cube', quader:'cuboid', prisma:'prism', pyramide:'pyramid',
+  zylinder:'cylinder', kegel:'cone', kugel:'sphere',
+  tetraeder:'tetrahedron', oktaeder:'octahedron', dodekaeder:'dodecahedron', ikosaeder:'icosahedron',
+  platonisch:'Platonic solid'
+};
+const PLUR_EN={
+  trapez:'trapeziums', raute:'rhombuses', platonisch:'Platonic solids',
+  tetraeder:'tetrahedra', oktaeder:'octahedra', dodekaeder:'dodecahedra', ikosaeder:'icosahedra'
+};
+const HAUS_SHORT_EN={viereck:'Quadrilateral',trapez:'Trapezium',drache:'Kite',parallelogramm:'Parallelogram',
+  rechteck:'Rectangle',raute:'Rhombus',quadrat:'Square'};
+
+const TAGDEF_EN={
+  spitzwinklig:'a triangle in which all angles are less than 90°',
+  rechtwinklig:'a triangle with a right angle',
+  stumpfwinklig:'a triangle with an angle greater than 90°',
+  gleichschenklig:'a triangle in which at least two sides are equal',
+  gleichseitig:'a triangle in which all three sides are equal',
+  viereck:'a flat shape with four corners and four sides',
+  dreieck:'a flat shape with three corners and three sides',
+  koerper:'a three-dimensional shape'
+};
+const NOTE_SPECIAL_EN={
+  zylinder:{prisma:'A cylinder is prism-like, but its base is a circle — that is why it is not called a prism.'},
+  kegel:{pyramide:'A cone tapers to a point like a pyramid, but its base is a circle — that is why it is not called a pyramid.'}
+};
+
+/* Beschreibungen – gleiche Schluessel und gleiche Reihenfolge wie PROPS,
+   denn ausgewaehlt und abgeschaltet wird ueber den Index. */
+const PROPS_EN={
+  gleichseitig:['triangle in which all three sides are equal',
+                'triangle in which all three angles are 60°',
+    'triangle that has three lines of symmetry'],
+  gs_spitz:['triangle with two equal sides in which all angles are less than 90°',
+    'triangle with two equal legs whose largest angle is less than 90°'],
+  gs_recht:['triangle with two equal sides and a right angle',
+    'triangle with a right angle whose two legs are equal',
+    'triangle with the angles 90°, 45° and 45°'],
+  gs_stumpf:['triangle with two equal sides and an angle greater than 90°',
+    'triangle with two equal legs whose apex angle is greater than 90°'],
+  gleichschenklig:['triangle in which two sides are equal',
+                   'triangle in which two angles are equal',
+    'triangle with a line of symmetry through one corner',
+    'triangle whose base angles are equal'],
+  rechtwinklig:['triangle with a 90° angle in which no two sides are equal',
+                'triangle with a corner at which the two sides are perpendicular (no two sides equal)',
+    'triangle whose side lengths satisfy Pythagoras’ theorem (no two sides equal)'],
+  spitzwinklig:['triangle in which all angles are less than 90° and no two sides are equal',
+    'triangle whose largest angle is less than 90° and which has no line of symmetry'],
+  stumpfwinklig:['triangle with an angle greater than 90° in which no two sides are equal',
+    'triangle whose largest angle lies between 90° and 180°, with no equal sides'],
+  quadrat:['quadrilateral in which all sides are equal and all angles are right angles',
+           'rectangle whose sides are all equal',
+    'quadrilateral with four lines of symmetry',
+    'rhombus whose diagonals are equal',
+    'quadrilateral whose diagonals are equal, bisect each other and are perpendicular'],
+  rechteck:['quadrilateral with four right angles',
+            'parallelogram in which one angle is 90°',
+    'quadrilateral whose diagonals are equal and bisect each other',
+    'quadrilateral with two lines of symmetry through the midpoints of the sides'],
+  raute:['quadrilateral in which all sides are equal',
+         'parallelogram with four equal sides',
+    'quadrilateral whose diagonals bisect each other at right angles',
+    'kite in which both diagonals are lines of symmetry'],
+  parallelogramm:['quadrilateral in which both pairs of opposite sides are parallel',
+                  'quadrilateral in which opposite sides are equal and parallel',
+    'quadrilateral whose diagonals bisect each other',
+    'quadrilateral that is point-symmetric about the intersection of its diagonals',
+    'quadrilateral in which opposite angles are equal'],
+  trapez:['quadrilateral with one pair of parallel sides',
+          'quadrilateral in which two opposite sides run parallel to each other',
+    'quadrilateral in which two angles on one side add up to 180°',
+    'quadrilateral with a base and a top side parallel to it'],
+  drache:['quadrilateral with two pairs of equal adjacent sides',
+          'quadrilateral whose diagonals are perpendicular, one of them bisecting the other',
+    'quadrilateral with a line of symmetry through two opposite corners',
+    'quadrilateral made of two isosceles triangles on a common base'],
+  konkav:['quadrilateral with an interior angle greater than 180°',
+          'quadrilateral in which one corner points “inwards”',
+    'quadrilateral in which one diagonal runs outside the shape',
+    'quadrilateral that is not convex'],
+  viereck:['flat shape with four corners and four sides — with no parallel or equal sides',
+    'flat shape with four corners, with no right angles, no parallel and no equal sides'],
+  kreis:['flat shape whose boundary points are all the same distance from the centre',
+    'flat shape that has infinitely many lines of symmetry',
+    'set of all points that are the same distance from a fixed point'],
+  ellipse:['oval shape with two axes of different lengths',
+    'oval shape in which the sum of the distances to two fixed points (the foci) is the same everywhere',
+    'shape with exactly two lines of symmetry of different lengths and no corners'],
+  wuerfel:['solid bounded by six equal squares',
+           'cuboid in which all edges are equal'],
+  quader:['solid bounded by six rectangles',
+          'right prism with a rectangle as its base'],
+  prisma:['solid with two parallel, congruent polygons as its base and top',
+          'solid created by moving a polygon along a straight line'],
+  pyramide:['solid with a polygon as its base whose side faces are triangles with a common apex'],
+  zylinder:['solid with two parallel, congruent circles as its base and top'],
+  kegel:['solid with a circle as its base whose curved surface tapers to an apex'],
+  kugel:['solid whose surface points are all the same distance from the centre'],
+  tetraeder:['solid made of four equilateral triangles',
+             'pyramid whose four faces are all equilateral triangles'],
+  oktaeder:['solid made of eight equilateral triangles',
+            'solid made of two square pyramids joined together'],
+  dodekaeder:['solid made of twelve regular pentagons'],
+  ikosaeder:['solid made of twenty equilateral triangles'],
+  platonisch:['solid whose faces are all congruent regular polygons, with the same number meeting at every corner'],
+  koerper:['three-dimensional shape'], dreieck:['flat shape with three corners']
+};
+function PROPSL(){ return EN()?PROPS_EN:PROPS; }
+
+/* Behauptungen – gleiche Reihenfolge wie CLAIMS_F / CLAIMS_K */
+const CLAIMS_F_EN=[
+  ['In a kite, one diagonal bisects the other.','The line of symmetry bisects the other diagonal — not the other way round.'],
+  ['In a kite, the two diagonals bisect each other.','Only one of the two diagonals is bisected. They bisect each other only in a parallelogram.'],
+  ['In a kite, the diagonals are perpendicular.','The line of symmetry is perpendicular to the other diagonal.'],
+  ['In a parallelogram, the diagonals bisect each other.','Their intersection is the point about which the parallelogram is point-symmetric.'],
+  ['In a parallelogram, the diagonals are equal.','Only the rectangle has equal diagonals.'],
+  ['In a rectangle, the diagonals are equal.','They also bisect each other — all four corners are the same distance from the intersection.'],
+  ['In a rhombus, the diagonals are perpendicular.','After all, a rhombus is also a kite.'],
+  ['In a square, the diagonals are equal and perpendicular.','The square inherits both: equal from the rectangle, perpendicular from the rhombus.'],
+  ['A trapezium always has two pairs of parallel sides.','One pair is enough. With two pairs it would be a parallelogram.'],
+  ['A quadrilateral in which all four sides are equal is always a square.','It is a rhombus — it only becomes a square with right angles.'],
+  ['A quadrilateral with four right angles is always a square.','It is a rectangle; its sides do not have to be equal.'],
+  ['In a parallelogram, opposite angles are equal.','A half-turn about the intersection of the diagonals maps them onto each other.'],
+  ['In a parallelogram, adjacent angles add up to 180°.','They are adjacent angles on two parallel sides.'],
+  ['The interior angles of a quadrilateral add up to 360°.','A diagonal splits any quadrilateral into two triangles: 2 · 180° = 360°.'],
+  ['The interior angles of a triangle add up to 180°.','This is the angle sum theorem and holds for every triangle.'],
+  ['A triangle can have two right angles.','Then 0° would be left for the third angle.'],
+  ['A right-angled triangle can be isosceles.','For example with the angles 90°, 45° and 45°.'],
+  ['An equilateral triangle is always acute-angled.','All its angles are 60°.'],
+  ['In an isosceles triangle, two angles are equal.','The two base angles on the third side are equal.'],
+  ['An obtuse-angled triangle can be isosceles.','For example with the angles 120°, 30° and 30°.'],
+  ['A triangle can have two obtuse angles.','Two angles over 90° would already add up to more than 180°.'],
+  ['In a circle, all boundary points are the same distance from the centre.','This distance is the radius — that is exactly how a circle is defined.'],
+  ['In an ellipse, both axes are always equal.','If they are equal, the ellipse is a circle.'],
+  ['A concave quadrilateral has an interior angle over 180°.','It is exactly this inward-pointing corner that makes a quadrilateral concave.'],
+  ['A square is a rectangle whose sides are all equal.','That is why the square sits at the very bottom of the hierarchy of quadrilaterals.']
+];
+const CLAIMS_K_EN=[
+  ['A cube is a special cuboid.','A cuboid in which all edges are equal.'],
+  ['A cube is bounded by six equal squares.','All twelve edges are equal.'],
+  ['A cuboid always has six rectangular faces.','Opposite faces are congruent and parallel to each other.'],
+  ['A cuboid is a prism with a rectangular base.','A right prism whose side edges are perpendicular to the base.'],
+  ['A prism has two parallel, congruent bases.','It is created by moving a polygon along a straight line.'],
+  ['Even in an oblique prism, the base and the top are congruent.','It is only shifted sideways.'],
+  ['A cylinder is a prism with a circle as its base.','Prisms have polygons as their bases — which is why the cylinder has a different name.'],
+  ['A cylinder has two circular faces.','The base and the top are congruent circles parallel to each other.'],
+  ['A cone is a pyramid with a round base.','Pyramids have a polygon as their base and flat side faces.'],
+  ['All the side faces of a pyramid are triangles.','They all meet at the same apex.'],
+  ['A pyramid always has a quadrilateral as its base.','Any polygon is possible, for example a triangle too.'],
+  ['A cone has exactly one apex.','The curved surface meets there; the base is a circle.'],
+  ['A sphere has exactly one edge.','A sphere has neither corners nor edges.'],
+  ['Every point on the surface of a sphere is the same distance from the centre.','This distance is the radius — that is exactly how a sphere is defined.']
+];
+/* Behauptung in der aktuellen Sprache: Text und Begruendung ueber den Index */
+function claimTexts(c){
+  if(!EN()) return {text:c[0], why:c[3]||''};
+  const src=IS_F?CLAIMS_F:CLAIMS_K, en=IS_F?CLAIMS_F_EN:CLAIMS_K_EN;
+  const i=src.indexOf(c);
+  return (i>=0&&en[i])?{text:en[i][0], why:en[i][1]}:{text:c[0], why:c[3]||''};
+}
+
 let task=null, score={ok:0,n:0};
+/* Punktestand je Aufgabentyp - er steht rechts in der Kachel und bleibt leer,
+   solange es zu dieser Art noch keine Aufgabe gab. */
+let scoreTyp={};
 
 function poolItems(){
   const out=[];
@@ -2448,16 +3048,49 @@ function optionIds(fam){
   // häufig verwechselte Begriffe immer gemeinsam anbieten (auch über die Seite hinaus)
   return withConfusables(ids);
 }
+/* Reihenfolge zufällig - die Lösung soll nicht immer an derselben Stelle stehen. */
+function mischen(l){
+  const a=l.slice();
+  for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const h=a[i]; a[i]=a[j]; a[j]=h; }
+  return a;
+}
+/* Aus allen möglichen Namen so viele auswählen, wie eingestellt sind -
+   die richtigen sind immer dabei. */
+function textAuswahl(ids,t){
+  const n=state.nText|0;
+  const muss=ids.filter(id => (state.quizMode==='alle') ? t.tags.has(id)
+                                                        : (t.need||[]).indexOf(id)>=0);
+  let l=ids.slice();
+  if(n && l.length>n){
+    const rest=mischen(l.filter(x=>muss.indexOf(x)<0));
+    l=muss.concat(rest.slice(0,Math.max(0,n-muss.length)));
+  }
+  return mischen(l);
+}
 function canBuild(fam){ return IS_F&&state.ansBild==='bauen'; }
 /* Für „Eigenschaft → Name" nutzbare Beschreibungen */
-function propsFor(id){ return (PROPS[id]||[]).filter((x,i)=>propOn(id+'#'+i)); }
+function propsFor(id){ return (PROPSL()[id]||[]).filter((x,i)=>propOn(id+'#'+i)); }
 
 /* Die Aufgabe selbst (Form, Typ, Figur) entsteht nur hier — beim Klick auf
    „Neue Aufgabe" und beim Laden der Seite. */
-function newTask(seed){
+/* --- Aufgaben nicht wiederholen -----------------------------------------
+   Zweimal hintereinander dieselbe Aufgabe ist langweilig, und was schon
+   sitzt, muss nicht noch einmal kommen. Deshalb wird gemerkt, welche
+   Aufgaben richtig beantwortet wurden; die werden uebersprungen, bis nichts
+   anderes mehr uebrig ist - dann geht es von vorne los. Falsch beantwortete
+   Aufgaben kommen wieder. Die Kennung beschreibt die Aufgabe, nicht die
+   einzelne Zeichnung: Fragetyp, Familie, Form und gesuchter Name. */
+let aufgVorher = null;
+let aufgVorrat = 0;                 /* grobe Zahl moeglicher Aufgaben */
+const aufgRichtig = new Set();
+const aufgKennung = t => t ? [t.type, t.fam, t.sub, t.target].join('|') : '';
+function aufgGemerkt(t, richtig){
+  const k = aufgKennung(t); if(!k) return;
+  if(richtig) aufgRichtig.add(k); else aufgRichtig.delete(k);
+}
+function baueTask(sd){
   const P=poolItems();
   if(!P.length||!state.types.length){ task=null; return; }
-  const sd=(seed!=null)?seed:((Math.random()*1e9)>>>0);
   const R=rngFrom(sd);
   const withProps=P.filter(it=>propsFor(targetFor(it.sub,rngFrom(1))).length||propsFor(it.sub).length);
   const cl=claimPool();
@@ -2469,12 +3102,36 @@ function newTask(seed){
   if(!types.length){ task=null; return; }   // nichts Passendes möglich -> Hinweis
   const type=pick(R,types);
   const src=(type==='eig2name'&&withProps.length)?withProps:P;
+  aufgVorrat=Math.max(aufgVorrat, types.length*src.length);
   const it=pick(R,src), fam=it.fam, target=targetFor(it.sub,R);
   const fig=makeFig(fam,target,R);
   task={seed:sd,fam:fam,sub:it.sub,target:target,type:type,fig:fig,
         view:IS_F?null:pick(R,state.views.length?state.views:['schraeg']),
         counted:false,claim:null,claimTrap:null};
   deriveTask(task);
+}
+function newTask(seed){
+  if(seed!=null){ baueTask(seed); aufgVorher=aufgKennung(task); return; }
+  let ersatz=null, nurRichtig=null;
+  for(let k=0;k<60;k++){
+    const sd=(Math.random()*1e9)>>>0;
+    baueTask(sd);
+    if(!task) return;
+    const key=aufgKennung(task);
+    if(ersatz==null) ersatz=sd;
+    if(key===aufgVorher) continue;                 // nie zweimal hintereinander
+    if(aufgRichtig.has(key)){ if(nurRichtig==null) nurRichtig=sd; continue; }
+    aufgVorher=key; return;
+  }
+  /* Es blieb nichts Neues uebrig. Sind wirklich schon alle moeglichen Aufgaben
+     richtig beantwortet, faengt eine neue Runde an; sonst wird nur diese eine
+     Aufgabe wiederholt, die Merkliste bleibt aber stehen. */
+  if(nurRichtig!=null){
+    if(aufgRichtig.size>=aufgVorrat) aufgRichtig.clear();
+    baueTask(nurRichtig);
+  }
+  else baueTask(ersatz);
+  aufgVorher=aufgKennung(task);
 }
 /* Alles Abgeleitete (Klassifikation, Antwortmöglichkeiten, Bilder, Beschreibung)
    wird bei jeder Einstellungsänderung neu berechnet — die Aufgabe selbst bleibt
@@ -2493,14 +3150,15 @@ function deriveTask(t){
     let list=propsFor(t.target); if(!list.length) list=propsFor(t.precise);
     if(!list.length) list=propsFor(t.sub);
     t.prop=list.length?pick(R,list)
-      :'Für diese Form ist in den Einstellungen gerade keine Beschreibung aktiviert.';
+      :T('Für diese Form ist in den Einstellungen gerade keine Beschreibung aktiviert.','No description is currently enabled for this shape in the settings.');
   }
   if(t.type==='wahrfalsch'&&(!t.claim||t.claimTrap!==state.trapIncl)){
     t.claim=makeClaim(t,rngFrom((t.seed^0x51ed270b)>>>0)); t.claimTrap=state.trapIncl;
   }
   t.pics=(t.type==='name2bild'&&!canBuild(t.fam))?buildPics(t,rngFrom((t.seed^0x2545f491)>>>0)):null;
 }
-function refreshTask(){ if(task) deriveTask(task); }
+/* Nach einer Einstellungsaenderung wird die Antwortliste neu gezogen. */
+function refreshTask(){ if(task){ task.klicks=[]; task.textIds=null; deriveTask(task); } }
 /* --- Behauptungen ------------------------------------------------------- */
 function selectedIds(){ const s=[]; FAMS_PAGE.forEach(f=>state.subs[f].forEach(x=>s.push(x)));
   return s; }
@@ -2515,8 +3173,8 @@ function makeClaim(t,R){
   const pool=claimPool();
   const useText=pool.text.length&&(R()<0.5);
   if(useText){
-    const c=pick(R,pool.text);
-    return {kind:'text',text:c[0],truth:c[1],why:c[3]||''};
+    const c=pick(R,pool.text), tx=claimTexts(c);
+    return {kind:'text',text:tx.text,truth:c[1],why:tx.why};
   }
   if(R()<0.45){    // allgemeine Aussage aus der Hierarchie: „Jedes X ist ein Y."
     const sel=selectedIds().filter(x=>ANC[x]);
@@ -2533,6 +3191,10 @@ function makeClaim(t,R){
   const cand=claimNames(t.fam);
   const id=pick(R,cand);
   const truth=t.tags.has(id);
+  if(EN()) return {kind:'fig',b:id,truth:truth,
+    text:(IS_F?'This figure':'This drawing')+' shows '+anEn(sName(id))+sName(id)+'.',
+    why:truth?('The drawing meets all the conditions of '+anEn(sName(id))+sName(id)+'.')
+             :('The drawing shows '+anEn(sName(t.precise))+sName(t.precise)+'.')};
   return {kind:'fig',b:id,truth:truth,
     text:'Diese '+(IS_F?'Figur':'Zeichnung')+' zeigt '+artAkk(id)+' '+akkName(id)+'.',
     why:truth?('Die Zeichnung erfüllt alles, was '+artNom(id)+' '+sName(id)+' ausmacht.')
@@ -2585,7 +3247,7 @@ let figReg=[];
 function figHTML(fig,w,h,view,par){
   const o={w:w||330,h:h||260,pad:18,view:view||(task&&task.view)||state.view};
   if(par&&par.cam){ o.cam=par.cam; o.az=par.cam.th; o.el=par.cam.ph; }
-  return figToSVG(fig,state.present,o);
+  return svgFarben(figToSVG(fig,state.present,o));
 }
 /* Bildkasten, der sich beim Umschalten der Darstellung neu zeichnen kann */
 function figBox(fig,w,h,view){
@@ -2663,13 +3325,14 @@ function refreshFigs(){
 function msItem(m,label,node){ const it=el('div','ms-item');
   it.appendChild(el('span','ml',label)); it.appendChild(node); m.appendChild(it); return it; }
 function presentMini(){
-  const m=el('div','mini-set sep');
+  /* ohne Trennlinie: der Schalter gehört sichtbar zum Bild darüber */
+  const m=el('div','mini-set');
   if(!IS_F&&state.viewSwitch)
-    msItem(m,'Ansicht:',segRow(VIEWS,(task&&task.view)||state.view,v=>{
+    msItem(m,T('Ansicht:','View:'),segRow(VIEWSL(),(task&&task.view)||state.view,v=>{
       if(task){ task.view=v; if(task.pics) task.pics.forEach(p=>p.view=null); }
       state.view=v; serialize(); renderTask(); },'tiny'));
-  msItem(m,'Beschriftung:',segRow(PRESENTS,state.present,
-    v=>{ state.present=v; buildSettings(); serialize(); refreshFigs(); },'tiny'));
+  msItem(m,T('Beschriftung:','Labels:'),segRow(PRESENTSL(),state.present,
+    v=>{ state.present=v; state.darstVonHand=true; buildSettings(); serialize(); refreshFigs(); },'tiny'));
   return m;
 }
 function answerMini(t){
@@ -2677,15 +3340,15 @@ function answerMini(t){
   const nameQ=(t.type==='bild2name'||t.type==='eig2name');
   if(t.type==='wahrfalsch') return null;
   if(nameQ){
-    msItem(m,'Antwort:',segRow([['aufdecken','Lösung aufdecken'],['quiz','Quiz']],state.ansText,
-      v=>{state.ansText=v;afterSettings();},'tiny'));
+    msItem(m,T('Antwort:','Answer:'),segRow([['aufdecken',T('Lösung aufdecken','reveal the answer')],['quiz','Quiz']],state.ansText,
+      v=>{state.ansText=v;state.darstVonHand=true;afterSettings();},'tiny'));
   }else if(IS_F){
-    msItem(m,'Antwort:',segRow([['quiz','Bild anklicken'],['bauen','selbst bauen']],state.ansBild,
-      v=>{state.ansBild=v;afterSettings();},'tiny'));
+    msItem(m,T('Antwort:','Answer:'),segRow([['quiz',T('Bild anklicken','click a picture')],['bauen',T('selbst bauen','build it')]],state.ansBild,
+      v=>{state.ansBild=v;state.darstVonHand=true;afterSettings();},'tiny'));
   }
   if(!(nameQ&&state.ansText==='aufdecken'))
-    msItem(m,'verlangt:',segRow([['genau','genaueste'],['alle','alle zutreffenden']],state.quizMode,
-      v=>{state.quizMode=v;afterSettings();},'tiny'));
+    msItem(m,T('verlangt:','asks for:'),segRow([['genau',T('genaueste','most precise')],['alle',T('alle zutreffenden','all that apply')]],state.quizMode,
+      v=>{state.quizMode=v;state.darstVonHand=true;afterSettings();},'tiny'));
   return m;
 }
 function nameChips(tags,precise){
@@ -2700,10 +3363,23 @@ function nameChips(tags,precise){
 function hausBlock(tags,precise){
   if(!IS_F||!state.hausShow||famOf(precise)!=='viereck') return null;
   const d=el('div'); d.innerHTML=hausSVG(tags,precise);
-  d.appendChild(el('div','haus-cap','Haus der Vierecke — grün: alle zutreffenden Bezeichnungen'));
+  d.appendChild(el('div','haus-cap',T('Haus der Vierecke — grün: alle zutreffenden Bezeichnungen','Hierarchy of quadrilaterals — green: all names that apply')));
   return d;
 }
 function askText(t){
+  if(EN()){
+    const genau=(state.quizMode==='genau');
+    if(t.type==='bild2name'||t.type==='eig2name'){
+      const frage=(t.type==='bild2name')?(IS_F?'Which shape is this?':'Which solid is this?'):'Which shape is meant?';
+      if(state.ansText!=='quiz') return frage;
+      return frage+(genau?' Choose only the most precise name.':' Choose all the names that apply.');
+    }
+    if(t.type==='wahrfalsch') return 'Is this statement true?';
+    const n=nameOf(t.askId||t.target), art=anEn(n);
+    if(canBuild(t.fam)) return 'Build '+art+n+(genau?' — so that “'+n+'” is the most precise name.':'.');
+    if(genau) return (IS_F?'Which figure':'Which solid')+' is '+art+n+'? The picture whose most precise name is “'+n+'” is meant.';
+    return 'Select all the pictures that “'+n+'” applies to.';
+  }
   const obj=IS_F?'Fläche':'Körper';
   const genau=(state.quizMode==='genau');
   if(t.type==='bild2name'||t.type==='eig2name'){
@@ -2722,6 +3398,20 @@ function askText(t){
 }
 /* --- Rückmeldungen ------------------------------------------------------ */
 function verdict(t,id){
+  if(EN()){
+    if(t.okSet.has(id)) return {v:'ok',why:'Correct — '+nameOf(id)+'.'};
+    if(t.tags.has(id))  return {v:'warn',why:'Correct, but not precise enough: '+whyGeneral(t.precise,id)};
+    const f1=famOf(id), f2=famOf(t.precise);
+    if(f1&&f2&&(f1==='koerper')!==(f2==='koerper'))
+      return {v:'no',why:(f1==='koerper'?gross(nameOf(id))+' is a SOLID — a flat shape is drawn here.'
+        :gross(nameOf(id))+' is a flat SHAPE — a solid is drawn here.')+
+        ' Don’t mix the two up: '+nameOf(id)+' and '+nameOf(t.precise)+'.'};
+    const sp=NOTE_SPECIAL_EN[t.precise]&&NOTE_SPECIAL_EN[t.precise][id];
+    if(sp) return {v:'no',why:sp};
+    if(tagsOfClass(id).has(t.precise))
+      return {v:'no',why:'Too specific — not every '+nameOf(t.precise)+' is '+anEn(nameOf(id))+nameOf(id)+'.'};
+    return {v:'no',why:'That does not apply here.'};
+  }
   if(t.okSet.has(id)) return {v:'ok',why:'Richtig — '+nameOf(id)+'.'};
   if(t.tags.has(id))  return {v:'warn',why:'Stimmt, aber nicht genau genug: '+whyGeneral(t.precise,id)};
   const f1=famOf(id), f2=famOf(t.precise);
@@ -2735,31 +3425,97 @@ function verdict(t,id){
     return {v:'no',why:'Zu speziell — nicht jedes '+nameOf(t.precise)+' ist '+artIndef(nameOf(id))+' '+nameOf(id)+'.'};
   return {v:'no',why:'Das trifft hier nicht zu.'};
 }
-function countOnce(t,good){ if(t.counted)return; t.counted=true; score.n++; if(good)score.ok++; updateStat(); }
-function updateStat(){ const s=$('#statBox'); if(s) s.textContent=score.n?('richtig: '+score.ok+' von '+score.n):''; }
+function countOnce(t,good){ if(t.counted)return; t.counted=true; score.n++; if(good)score.ok++;
+  /* merken, wie es ausging - die Lösung bleibt bei laufender Automatik aus */
+  t.autoGut=good; antwortGemeldet(t,good);
+  /* Zusätzlich führt jeder Aufgabentyp seinen eigenen Stand. */
+  const ty=t&&t.type;
+  if(ty){ if(!scoreTyp[ty]) scoreTyp[ty]={ok:0,n:0}; scoreTyp[ty].n++; if(good) scoreTyp[ty].ok++; }
+  aufgGemerkt(t,good); updateStat(); }
+function updateStat(){
+  zaehlerMalen();
+  const s=$('#statBox');
+  if(s) s.textContent=T('Richtig: '+score.ok+' / '+score.n, 'Correct: '+score.ok+' / '+score.n);
+}
+
+/* Die Zähler an den Kacheln nachtragen. */
+function zaehlerMalen(){
+  $$('#studentPanel .typ').forEach(b=>{
+    const e=$('.tzaehler',b); if(!e) return;
+    const w=scoreTyp[b.dataset.typ||b.dataset.v];
+    e.textContent=(w&&w.n>0)?(w.ok+'/'+w.n):'';
+  });
+}
 
 /* --- Aufgabe zeichnen --------------------------------------------------- */
-function newBtn(){ const b=el('button','btn-new','Neue Aufgabe'); on(b,'click',()=>{ newTask(); renderTask(); }); return b; }
+function newBtn(){
+  const b=el('button','btn-new');
+  /* Der Kreis steht in einer eigenen Hülle - läuft die Automatik, dreht er sich. */
+  b.appendChild(el('span','auto-kreis','\u27F3'));
+  b.appendChild(document.createTextNode('\u00A0'+T('Neue Aufgabe generieren','Generate a new task')));
+  on(b,'click',()=>{ newTask(); renderTask(); });
+  return b; }
+
+/* ── Automatische Aufgabe ────────────────────────────────────────────────
+   Nur dort, wo die Aufgabe allein durch Anklicken entschieden wird: nicht
+   beim Aufdecken (da prüft man selbst) und nicht beim Bauen. */
+function nurKlicken(){
+  const t=task;
+  if(!t) return false;
+  if(t.type==='bild2name'||t.type==='eig2name') return state.ansText==='quiz';
+  if(t.type==='wahrfalsch') return true;
+  return !canBuild(t.fam);
+}
+/* Läuft die Automatik gerade für diese Aufgabe? */
+function autoLaeuft(){ return !!(window.abAutoAn && abAutoAn()); }
+/* Nach einer entschiedenen Aufgabe: kurz aufleuchten, und wenn sie richtig
+   war, kommt gleich die nächste. */
+function antwortGemeldet(t,gut){
+  if(!autoLaeuft()) return;
+  if(window.abBlitz) abBlitz(gut);
+  if(gut&&window.abAutoBald) abAutoBald();
+}
+let autoAn=false;
+function autoBauen(){
+  if(!window.abAutoStart) return;
+  abAutoStart({ an:autoAn, pause:1500, knoepfe:'.new-row button.btn-new',
+    moeglich:nurKlicken, naechste:()=>{ newTask(); renderTask(); },
+    gemerkt:(an)=>{ autoAn=an; } });
+}
+if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',autoBauen);
+else autoBauen();
 function outerButtons(){
   const t=$('#newTop'); if(t){ t.innerHTML=''; t.appendChild(newBtn());
-    const st=el('span','stat'); st.id='statBox'; t.appendChild(st); }
+    /* Punktestand mit Zurücksetzen - dieselbe Form wie auf den anderen Seiten. */
+    const box=el('span','punkte');
+    const rs=el('button',null,'\u21BA');
+    rs.type='button';
+    rs.title=T('Punktzahl zurücksetzen','Reset the score');
+    on(rs,'click',()=>{ score.ok=0; score.n=0; scoreTyp={}; updateStat(); });
+    const st=el('span'); st.id='statBox';
+    box.appendChild(rs); box.appendChild(st);
+    t.appendChild(box); }
   const b=$('#newBottom'); if(b){ b.innerHTML=''; b.appendChild(newBtn()); }
+  /* Die Knöpfe sind neu - die Automatik hängt sich wieder daran. */
+  if(window.abAutoNeu) abAutoNeu();
 }
 function renderTask(){
   const host=$('#taskArea'); host.innerHTML=''; figReg=[];
   if(!task){ const c=el('div','task-card');
-    const miss=[]; if(!poolItems().length) miss.push(IS_F?'mindestens eine Fläche':'mindestens einen Körper');
-    if(!state.types.length) miss.push('mindestens einen Aufgabentyp');
+    const miss=[]; if(!poolItems().length) miss.push(IS_F?T('mindestens eine Fläche','at least one shape'):T('mindestens einen Körper','at least one solid'));
+    if(!state.types.length) miss.push(T('mindestens einen Aufgabentyp','at least one question type'));
     c.appendChild(el('p',null, miss.length
-      ? ('Es gibt gerade keine Aufgabe: Bitte wähle '+miss.join(' und ')+' aus.')
-      : 'Zu dieser Auswahl lässt sich gerade keine Aufgabe stellen — z. B. weil für die gewählten Formen keine Beschreibungen aktiv sind.'));
+      ? T('Es gibt gerade keine Aufgabe: Bitte wähle '+miss.join(' und ')+' aus.','There is no task at the moment: please select '+miss.join(' and ')+'.')
+      : T('Zu dieser Auswahl lässt sich gerade keine Aufgabe stellen — z. B. weil für die gewählten Formen keine Beschreibungen aktiv sind.','No task can be set for this selection at the moment — e.g. because no descriptions are enabled for the chosen shapes.')));
     host.appendChild(c);
     ['#newTop','#newBottom'].forEach(sel=>{ const n=$(sel); if(n)n.innerHTML=''; });
+    markiereAktuell();            /* ohne Aufgabe bleibt keine Kachel umrandet */
     return; }
-  const t=task, card=el('div','task-card');
+  const t=task, card=el('div','task-card task');
   const head=el('div','task-head');
   head.appendChild(el('span','task-title',askText(t)));
-  const badge=el('span','badge',(TYPES.find(x=>x.id===t.type)||{}).name);
+  /* Das Schild trägt genau den Namen, der auch auf der Kachel steht. */
+  const badge=el('span','badge',(TYPESL().find(x=>x.id===t.type)||{}).short);
   head.appendChild(badge);
   card.appendChild(head);
 
@@ -2769,7 +3525,7 @@ function renderTask(){
     card.appendChild(w);
     answerName(card,t);
   } else if(t.type==='eig2name'){
-    const b=el('div','prop-box'); b.appendChild(el('span','q','Beschreibung'));
+    const b=el('div','prop-box'); b.appendChild(el('span','q',T('Beschreibung','Description')));
     b.appendChild(document.createTextNode(t.prop));
     card.appendChild(b);
     answerName(card,t);
@@ -2781,11 +3537,12 @@ function renderTask(){
   }
   const mini=answerMini(t); if(mini) card.appendChild(mini);
   const act=el('div','act-row main-act center');
-  const hb=el('button','btn-hint','Hilfe'); on(hb,'click',()=>toggleHelp(card,t)); act.appendChild(hb);
+  const hb=el('button','btn-hint',T('Hilfe','Help')); hb.dataset.merk='hilfe'; on(hb,'click',()=>toggleHelp(card,t)); act.appendChild(hb);
   card.appendChild(act);
   host.appendChild(card);
   outerButtons();
   updateStat();
+  markiereAktuell();
 }
 
 /* --- Antwort: wahr oder falsch ----------------------------------------- */
@@ -2793,6 +3550,14 @@ function renderTask(){
    trifft das hier zu — und ist die gezeigte Figur sogar noch spezieller? */
 function figClaimText(t,c){
   const B=c.b, P=t.precise;
+  if(EN()){
+    let s=defSatz(B);
+    if(c.truth){
+      if(P===B||!PROPS[P]) s+=' That is exactly the case here.';
+      else s+=' That is the case here — the drawing even shows '+anEn(sName(P))+sName(P)+', i.e. a special '+sName(B)+'. '+defSatz(P);
+    }else s+=' That is not the case here: the drawing shows '+anEn(sName(P))+sName(P)+'.';
+    return s.trim();
+  }
   const bes={m:'ein besonderer',f:'eine besondere',n:'ein besonderes'}[genOf(B)];
   let s=defSatz(B);
   if(c.truth){
@@ -2806,34 +3571,35 @@ function figClaimText(t,c){
 }
 function answerClaim(card,t){
   const c=t.claim;
+  /* Erst die Behauptung lesen, dann das Bild dazu ansehen. */
+  const b=el('div','claim-box'); b.appendChild(el('span','q',T('Behauptung','Statement')));
+  b.appendChild(document.createTextNode(c.kind==='fig'?(EN()?((IS_F?'This figure':'This drawing')+' shows '+anEn(sName(c.b))+sName(c.b)+'.'):('Diese '+(IS_F?'Figur':'Zeichnung')+' zeigt '+artAkk(c.b)+' '+akkName(c.b)+'.')):c.text));
+  card.appendChild(b);
   if(c.kind==='fig'){
     const w=el('div','fig-center'); w.appendChild(figBox(t.fig,320,250));
     w.appendChild(presentMini());
     card.appendChild(w);
   }
-  const b=el('div','claim-box'); b.appendChild(el('span','q','Behauptung'));
-  b.appendChild(document.createTextNode(c.kind==='fig'?('Diese '+(IS_F?'Figur':'Zeichnung')+' zeigt '+artAkk(c.b)+' '+akkName(c.b)+'.'):c.text));
-  card.appendChild(b);
   const box=el('div','choices big'), why=el('div','why');
-  [['wahr',true],['falsch',false]].forEach(o=>{
-    const btn=el('button','choice',o[0]);
+  [[T('wahr','true'),true],[T('falsch','false'),false]].forEach(o=>{
+    const btn=el('button','choice',o[0]); btn.dataset.wert=o[1]?'1':'0'; btn.dataset.merk='c:'+btn.dataset.wert;
     on(btn,'click',()=>{
       if(t.done)return; t.done=true;
       const good=(o[1]===c.truth);
       btn.classList.add(good?'ok':'no');
-      $$('button.choice',box).forEach(x=>{ if(x!==btn&&((x.textContent==='wahr')===c.truth)) x.classList.add('miss'); });
+      $$('button.choice',box).forEach(x=>{ if(x!==btn&&((x.dataset.wert==='1')===c.truth)) x.classList.add('miss'); });
       why.className='why '+(good?'ok':'no');
-      let txt=(good?'Richtig — die Aussage ist ':'Nicht ganz — die Aussage ist ')+
-        (c.truth?'wahr':'falsch')+'. '+(c.why||'');
-      why.textContent=txt.trim();
+      let txt=EN()?((good?'Correct — the statement is ':'Not quite — the statement is ')+(c.truth?'true':'false')+'. '+(c.why||''))
+        :((good?'Richtig — die Aussage ist ':'Nicht ganz — die Aussage ist ')+(c.truth?'wahr':'falsch')+'. '+(c.why||''));
+      why.textContent=(good&&autoLaeuft())?T('Richtig!','Correct!'):txt.trim();
       countOnce(t,good);
       if(c.kind==='fig') showSolution(card,t,false,figClaimText(t,c));
       else if(c.ex){                                   // Gegenbeispiel zeigen
         const R=rngFrom((t.seed+7)>>>0), fam=famOf(c.ex);
         const f=makeFig(fam,targetFor(c.ex,R),R);
-        const bx=el('div','sol-box'); bx.appendChild(el('h4',null,'Gegenbeispiel'));
+        const bx=el('div','sol-box'); bx.appendChild(el('h4',null,T('Gegenbeispiel','Counterexample')));
         const cen=el('div','fig-center'); cen.appendChild(figBox(f,290,215)); bx.appendChild(cen);
-        bx.appendChild(el('div','muted small',nameOf(c.ex)+' — aber '+keinN(c.b)+' '+sName(c.b)+'.'));
+        bx.appendChild(el('div','muted small',EN()?(gross(nameOf(c.ex))+' — but not '+anEn(sName(c.b))+sName(c.b)+'.'):(nameOf(c.ex)+' — aber '+keinN(c.b)+' '+sName(c.b)+'.')));
         const anchor=card.querySelector('.main-act'); card.insertBefore(bx,anchor||null);
       }
     });
@@ -2846,17 +3612,18 @@ function answerClaim(card,t){
 function answerName(card,t){
   if(state.ansText==='aufdecken'){
     const act=el('div','act-row center');
-    const b=el('button','btn-sol','Lösung aufdecken');
+    const b=el('button','btn-sol',T('Lösung aufdecken','Reveal the answer')); b.dataset.merk='aufdecken';
     on(b,'click',()=>{ b.remove(); showSolution(card,t,true); });
     act.appendChild(b); card.appendChild(act);
     return;
   }
-  const ids=optionIds(t.fam);
+  if(!t.textIds) t.textIds=textAuswahl(optionIds(t.fam),t);
+  const ids=t.textIds;
   const box=el('div','choices'), why=el('div','why'), ask2=el('div','ask2');
   if(state.quizMode==='genau'){
     const twoStep=t.need.length>1;
-    if(twoStep) ask2.textContent='Gefragt sind beide Angaben: Seitenart und Winkelart.';
-    ids.forEach(id=>{ const c=el('button','choice',nameOf(id));
+    if(twoStep) ask2.textContent=T('Gefragt sind beide Angaben: Seitenart und Winkelart.','Both are asked for: the type of sides and the type of angles.');
+    ids.forEach(id=>{ const c=el('button','choice',nameOf(id)); c.dataset.id=id; c.dataset.merk='n:'+id;
       on(c,'click',()=>{
         if(t.done)return;
         if(c.classList.contains('ok'))return;
@@ -2866,13 +3633,13 @@ function answerName(card,t){
           const rest=t.need.filter(x=>t.got.indexOf(x)<0);
           if(rest.length){
             why.className='why ok';
-            why.textContent='Richtig — '+nameOf(id)+'.';
-            ask2.textContent=isSideId(id)?'Und welche Winkelart hat dieses Dreieck?'
-                                         :'Und was gilt für die Seiten dieses Dreiecks?';
+            why.textContent=T('Richtig — ','Correct — ')+nameOf(id)+'.';
+            ask2.textContent=isSideId(id)?T('Und welche Winkelart hat dieses Dreieck?','And what type of angles does this triangle have?')
+                                         :T('Und was gilt für die Seiten dieses Dreiecks?','And what about the sides of this triangle?');
           }else{
             why.className='why ok';
-            why.textContent=twoStep?('Beides richtig — das ist '+artIndef(t.fullName)+' '+t.fullName+'.')
-                                   :('Richtig — '+nameOf(id)+'.');
+            why.textContent=twoStep?(EN()?('Both correct — this is '+anEn(t.fullName)+t.fullName+'.'):('Beides richtig — das ist '+artIndef(t.fullName)+' '+t.fullName+'.'))
+                                   :(T('Richtig — ','Correct — ')+nameOf(id)+'.');
             ask2.textContent='';
             countOnce(t,!t.tried); t.done=true; showSolution(card,t,false);
           }
@@ -2889,10 +3656,10 @@ function answerName(card,t){
     ids.forEach(id=>{ const c=el('button','choice',nameOf(id));
       on(c,'click',()=>{ if(t.done)return;
         if(sel.has(id)){sel.delete(id);c.classList.remove('sel');} else {sel.add(id);c.classList.add('sel');} });
-      c.dataset.id=id; box.appendChild(c); });
+      c.dataset.id=id; c.dataset.merk='n:'+id; box.appendChild(c); });
     card.appendChild(box);
-    const act=el('div','act-row');
-    const pb=el('button','btn-sol','Prüfen');
+    const act=el('div','act-row center pruef');
+    const pb=el('button','btn-sol',T('✓ Prüfen','✓ Check')); pb.dataset.merk='pruefen';
     on(pb,'click',()=>{ if(t.done)return; t.done=true; pb.disabled=true;
       let miss=0,wrong=0;
       $$('button.choice',box).forEach(c=>{ const id=c.dataset.id, should=t.tags.has(id), has=sel.has(id);
@@ -2901,9 +3668,13 @@ function answerName(card,t){
         else if(!should&&has){c.classList.add('no');wrong++;}
         else if(should&&!has){c.classList.add('miss');miss++;} });
       why.className='why '+((!miss&&!wrong)?'ok':'no');
-      why.textContent=(!miss&&!wrong)?'Alles richtig — das sind genau die zutreffenden Bezeichnungen.'
+      why.textContent=EN()
+        ?((!miss&&!wrong)?'All correct — these are exactly the names that apply.'
+          :('Not quite: '+(wrong?wrong+' too many clicked':'')+(wrong&&miss?', ':'')+(miss?miss+' missing':'')+
+            '. Green dashed = missing, red = does not apply.'))
+        :((!miss&&!wrong)?'Alles richtig — das sind genau die zutreffenden Bezeichnungen.'
         :('Noch nicht ganz: '+(wrong?wrong+' zu viel angeklickt':'')+(wrong&&miss?', ':'')+(miss?miss+' fehlt'+(miss>1?'en':''):'')+
-          '. Grün gestrichelt = fehlte, rot = trifft nicht zu.');
+          '. Grün gestrichelt = fehlte, rot = trifft nicht zu.'));
       countOnce(t,!miss&&!wrong); showSolution(card,t,false); });
     act.appendChild(pb); card.appendChild(act); card.appendChild(why);
   }
@@ -2913,7 +3684,7 @@ function answerPics(card,t){
   const grid=el('div','pick-grid'+(t.pics.length>3?' many':'')), why=el('div','why');
   const sel=new Set();
   t.pics.forEach((p,i)=>{
-    const d=el('div','pick'); d.dataset.pi=i;
+    const d=el('div','pick'); d.dataset.pi=i; d.dataset.merk='p:'+i;
     const v=p.view||t.view;
     const ent={node:d,fig:p.fig,w:210,h:170,view:v};
     if(!IS_F&&v==='d3'&&p.fig.kind==='solid') initCam(ent);
@@ -2925,14 +3696,17 @@ function answerPics(card,t){
       if(state.quizMode==='genau'){
         const good=(p.precise===t.precise);
         if(good){ d.classList.add('ok'); why.className='why ok';
-          why.textContent='Richtig — diese Figur ist '+(artIndef(nameOf(t.precise))==='eine'?'eine ':'ein ')+nameOf(t.precise)+'.';
+          why.textContent=T('Richtig — diese Figur ist ','Correct — this figure is ')+ART(nameOf(t.precise))+nameOf(t.precise)+'.';
           t.done=true; countOnce(t,!t.tried); revealPics(grid,t); showSolution(card,t,false);
         } else if(p.tags.has(t.askId)){ d.classList.add('warn'); why.className='why warn';
-          why.textContent='Fast: Diese Figur ist zwar auch '+(artIndef(nameOf(t.askId))==='eine'?'eine ':'ein ')+nameOf(t.askId)+
-            ', aber genauer '+(artIndef(nameOf(p.precise))==='eine'?'eine ':'ein ')+nameOf(p.precise)+'. Gesucht ist die Figur, deren genaueste Bezeichnung „'+nameOf(t.askId)+'" ist.';
+          why.textContent=EN()
+            ?('Close: this figure is also '+anEn(nameOf(t.askId))+nameOf(t.askId)+', but more precisely '+anEn(nameOf(p.precise))+nameOf(p.precise)+
+              '. The figure whose most precise name is “'+nameOf(t.askId)+'” is wanted.')
+            :('Fast: Diese Figur ist zwar auch '+(artIndef(nameOf(t.askId))==='eine'?'eine ':'ein ')+nameOf(t.askId)+
+            ', aber genauer '+(artIndef(nameOf(p.precise))==='eine'?'eine ':'ein ')+nameOf(p.precise)+'. Gesucht ist die Figur, deren genaueste Bezeichnung „'+nameOf(t.askId)+'" ist.');
           t.tried=true;
         } else { d.classList.add('no'); why.className='why no';
-          why.textContent='Das ist '+(artIndef(nameOf(p.precise))==='eine'?'eine ':'ein ')+nameOf(p.precise)+'.'; t.tried=true; }
+          why.textContent=T('Das ist ','That is ')+ART(nameOf(p.precise))+nameOf(p.precise)+'.'; t.tried=true; }
       } else {
         if(sel.has(i)){sel.delete(i);d.classList.remove('sel');} else {sel.add(i);d.classList.add('sel');}
       }
@@ -2942,18 +3716,20 @@ function answerPics(card,t){
   card.appendChild(grid);
   card.appendChild(presentMini());
   if(state.quizMode==='alle'){
-    const act=el('div','act-row'); const pb=el('button','btn-sol','Prüfen');
+    const act=el('div','act-row'); const pb=el('button','btn-sol',T('Prüfen','Check')); pb.dataset.merk='pruefen';
     on(pb,'click',()=>{ if(t.done)return; t.done=true; pb.disabled=true;
       let miss=0,wrong=0;
       $$('.pick',grid).forEach((d,i)=>{ const should=t.pics[i].tags.has(t.askId), has=sel.has(i);
         d.classList.remove('sel');
         if(should&&has)d.classList.add('ok'); else if(!should&&has){d.classList.add('no');wrong++;}
         else if(should&&!has){d.classList.add('miss');miss++;}
-        const tag=el('span','tag'); tag.textContent=nameOf(t.pics[i].precise); tag.style.color=should?'#2e7d32':'#a33';
+        const tag=el('span','tag'); tag.textContent=nameOf(t.pics[i].precise); tag.style.color=should?(DUNKEL()?'#81c784':'#2e7d32'):(DUNKEL()?'#ef9a9a':'#a33');
         tag.style.fontSize='10.5px'; d.appendChild(tag); });
       why.className='why '+((!miss&&!wrong)?'ok':'no');
-      why.textContent=(!miss&&!wrong)?'Alles richtig.'
-        :('Noch nicht ganz: '+(wrong?wrong+' zu viel':'')+(wrong&&miss?', ':'')+(miss?miss+' fehlt'+(miss>1?'en':''):'')+'.');
+      why.textContent=EN()
+        ?((!miss&&!wrong)?'All correct.':('Not quite: '+(wrong?wrong+' too many':'')+(wrong&&miss?', ':'')+(miss?miss+' missing':'')+'.'))
+        :((!miss&&!wrong)?'Alles richtig.'
+        :('Noch nicht ganz: '+(wrong?wrong+' zu viel':'')+(wrong&&miss?', ':'')+(miss?miss+' fehlt'+(miss>1?'en':''):'')+'.'));
       countOnce(t,!miss&&!wrong); });
     act.appendChild(pb); card.appendChild(act);
   }
@@ -2962,39 +3738,45 @@ function answerPics(card,t){
 function revealPics(grid,t){
   $$('.pick',grid).forEach((d,i)=>{ if(d.querySelector('.tag'))return;
     const tag=el('span','tag'); tag.textContent=nameOf(t.pics[i].precise);
-    tag.style.color=t.pics[i].precise===t.precise?'#2e7d32':'#889'; tag.style.fontSize='10.5px'; d.appendChild(tag); });
+    tag.style.color=t.pics[i].precise===t.precise?(DUNKEL()?'#81c784':'#2e7d32'):(DUNKEL()?'#9aa5b1':'#889'); tag.style.fontSize='10.5px'; d.appendChild(tag); });
 }
 /* Antwort: selbst bauen */
 function answerBuild(card,t){
   const wrap=el('div'); card.appendChild(wrap);
   const kind=(t.fam==='kreis')?'kreis':t.fam;
-  const b=makeBuilder(wrap,{compact:true,kind:kind,quiet:true,onChange:null});
+  const b=makeBuilder(wrap,{compact:true,kind:kind,quiet:true,onChange:null,memo:(t.bauMemo||(t.bauMemo={}))});
   const why=el('div','why');
   const act=el('div','act-row');
-  const pb=el('button','btn-sol','Prüfen');
+  const pb=el('button','btn-sol',T('Prüfen','Check')); pb.dataset.merk='pruefen';
   on(pb,'click',()=>{
     const fig=b.getFig();
-    if(!fig){ why.className='why no'; why.textContent='Zieh die Figur zuerst zurecht.'; return; }
+    if(!fig){ why.className='why no'; why.textContent=T('Zieh die Figur zuerst zurecht.','Drag the figure into shape first.'); return; }
     const c=classify(fig,BTOL,state.trapIncl);
-    if(!c.ok){ why.className='why no'; why.textContent='Die Figur ist überschlagen — die Seiten dürfen sich nicht kreuzen.'; return; }
+    if(!c.ok){ why.className='why no'; why.textContent=T('Die Figur ist überschlagen — die Seiten dürfen sich nicht kreuzen.','The figure is self-intersecting — the sides must not cross.'); return; }
     const pr=preciseId(c);
     const good=state.quizMode==='alle'? c.tags.has(t.askId) : (pr===t.precise||okSetOf(c,t.fam).has(t.target));
-    if(good){ why.className='why ok'; why.textContent='Passt — du hast '+(artIndef(nameOf(pr))==='eine'?'eine ':'ein ')+nameOf(pr)+' gebaut.';
+    if(good){ why.className='why ok'; why.textContent=EN()?('That works — you have built '+anEn(nameOf(pr))+nameOf(pr)+'.')
+        :('Passt — du hast '+(artIndef(nameOf(pr))==='eine'?'eine ':'ein ')+nameOf(pr)+' gebaut.');
       if(!t.done){ t.done=true; countOnce(t,!t.tried); } }
     else if(c.tags.has(t.askId)){ why.className='why warn';
-      why.textContent='Das ist zwar auch '+(artIndef(nameOf(t.askId))==='eine'?'eine ':'ein ')+nameOf(t.askId)+
-        ', aber genauer '+(artIndef(nameOf(pr))==='eine'?'eine ':'ein ')+nameOf(pr)+'. Gesucht war eine Figur, deren genaueste Bezeichnung „'+nameOf(t.target)+'" ist.';
+      why.textContent=EN()
+        ?('That is also '+anEn(nameOf(t.askId))+nameOf(t.askId)+', but more precisely '+anEn(nameOf(pr))+nameOf(pr)+
+          '. A figure whose most precise name is “'+nameOf(t.target)+'” was wanted.')
+        :('Das ist zwar auch '+(artIndef(nameOf(t.askId))==='eine'?'eine ':'ein ')+nameOf(t.askId)+
+        ', aber genauer '+(artIndef(nameOf(pr))==='eine'?'eine ':'ein ')+nameOf(pr)+'. Gesucht war eine Figur, deren genaueste Bezeichnung „'+nameOf(t.target)+'" ist.');
       t.tried=true; }
-    else { why.className='why no'; why.textContent='Das ist '+(artIndef(nameOf(pr))==='eine'?'eine ':'ein ')+nameOf(pr)+
-      ' — noch k'+(artIndef(nameOf(t.askId))==='eine'?'eine ':'ein ')+nameOf(t.askId)+'.'; t.tried=true; }
+    else { why.className='why no'; why.textContent=EN()
+      ?('That is '+anEn(nameOf(pr))+nameOf(pr)+' — not yet '+anEn(nameOf(t.askId))+nameOf(t.askId)+'.')
+      :('Das ist '+(artIndef(nameOf(pr))==='eine'?'eine ':'ein ')+nameOf(pr)+
+      ' — noch k'+(artIndef(nameOf(t.askId))==='eine'?'eine ':'ein ')+nameOf(t.askId)+'.'); t.tried=true; }
     const hb=hausBlock(c.tags,pr);
     const old=card.querySelector('.build-haus'); if(old)old.remove();
     if(hb){ hb.className='build-haus'; card.insertBefore(hb,why); }
   });
   act.appendChild(pb);
-  const sb=el('button','btn-ghost','Beispiel zeigen');
+  const sb=el('button','btn-ghost',T('Beispiel zeigen','Show an example')); sb.dataset.merk='beispiel';
   on(sb,'click',()=>{ const ex=el('div','sol-box');
-    ex.appendChild(el('h4',null,'So könnte es aussehen'));
+    ex.appendChild(el('h4',null,T('So könnte es aussehen','It could look like this')));
     const cen=el('div','fig-center'); cen.appendChild(figBox(t.fig,300,230)); ex.appendChild(cen);
     const o=card.querySelector('.sol-box'); if(o)o.remove(); card.insertBefore(ex,why); });
   act.appendChild(sb);
@@ -3002,25 +3784,29 @@ function answerBuild(card,t){
 }
 /* Lösung / Selbsteinschätzung */
 function showSolution(card,t,selfCheck,extra){
+  /* Läuft die Automatik und war die Antwort richtig, bleibt nur das kurze
+     „Richtig" stehen - zum Lesen einer Begründung bliebe keine Zeit. */
+  if(t&&t.autoGut&&autoLaeuft()) return;
   const old=card.querySelector('.sol-box'); if(old)old.remove();
   const box=el('div','sol-box');
-  box.appendChild(el('h4',null,'Lösung'));
+  box.appendChild(el('h4',null,T('Lösung','Solution')));
   const two=el('div','two-col'), c1=el('div','c1'), c2=el('div','c2');
-  c1.appendChild(el('div','big-name',t.fullName));
-  c1.appendChild(el('div','muted small','Zutreffende Bezeichnungen:'));
+  c1.appendChild(el('div','big-name',EN()?gross(t.fullName):t.fullName));
+  c1.appendChild(el('div','muted small',T('Zutreffende Bezeichnungen:','Names that apply:')));
   c1.appendChild(nameChips(t.tags,t.precise));
   if(extra){ const e=el('div','small'); e.style.marginTop='7px'; e.style.color='#3a4a3c';
     e.style.lineHeight='1.35'; e.textContent=extra; c1.appendChild(e); }
-  if(t.type==='eig2name'||selfCheck){
+  /* Bei „Benennen" steht das Bild schon in der Aufgabe - nicht doppelt zeigen. */
+  if(t.type==='eig2name'||(selfCheck&&t.type!=='bild2name')){
     const cen=el('div','fig-center'); cen.style.marginTop='8px'; cen.appendChild(figBox(t.fig,290,215)); c1.appendChild(cen);
   }
   const hb=hausBlock(t.tags,t.precise); if(hb) c2.appendChild(hb);
   two.appendChild(c1); if(c2.childNodes.length) two.appendChild(c2);
   box.appendChild(two);
   if(selfCheck){
-    const act=el('div','act-row center');
-    const y=el('button','btn-ok','Hatte ich richtig');
-    const n=el('button','btn-no','Daneben');
+    const act=el('div','act-row center pruef');
+    const y=el('button','btn-ok gross',T('✓ Hatte ich richtig','✓ I had it right'));
+    const n=el('button','btn-no gross',T('✗ Daneben','✗ I was wrong'));
     on(y,'click',()=>{ countOnce(t,true); newTask(); renderTask(); });
     on(n,'click',()=>{ countOnce(t,false); newTask(); renderTask(); });
     act.appendChild(y); act.appendChild(n); box.appendChild(act);
@@ -3031,16 +3817,16 @@ function showSolution(card,t,selfCheck,extra){
 /* Hilfe: erst das Haus der Vierecke, dann die Merkmale */
 function toggleHelp(card,t){
   const old=card.querySelector('.help-box'); if(old){old.remove();return;}
-  const box=el('div','help-box'); box.appendChild(el('h4',null,'Woran erkennt man das?'));
+  const box=el('div','help-box'); box.appendChild(el('h4',null,T('Woran erkennt man das?','How can you tell?')));
   if(IS_F&&t.fam==='viereck'&&state.hausShow){
     const d=el('div'); d.innerHTML=hausSVG(new Set(),null);
-    d.appendChild(el('div','haus-cap','Haus der Vierecke: nach unten wird es spezieller.'));
+    d.appendChild(el('div','haus-cap',T('Haus der Vierecke: nach unten wird es spezieller.','Hierarchy of quadrilaterals: the further down, the more special.')));
     box.appendChild(d);
   }
   const dl=el('dl');
   FAM[t.fam].subs.forEach(id=>{
     dl.appendChild(el('dt',null,nameOf(id)));
-    dl.appendChild(el('dd',null,(PROPS[id]||['—'])[0]));
+    dl.appendChild(el('dd',null,(PROPSL()[id]||['—'])[0]));
   });
   box.appendChild(dl);
   const anchor=card.querySelector('.main-act');
@@ -3049,7 +3835,8 @@ function toggleHelp(card,t){
 /* =======================================================================
    8. Baubereich — Erkundungsmodus und „selbst bauen"
    ======================================================================= */
-const GRID_STEPS=[2,1,0.5], GRID_LBL=['grob','mittel','fein'];
+const GRID_STEPS=[2,1,0.5], GRID_LBL_DE=['grob','mittel','fein'], GRID_LBL_EN=['coarse','medium','fine'];
+const GRID_LBLL=()=>EN()?GRID_LBL_EN:GRID_LBL_DE;
 const VNAMES=['A','B','C','D','E','F','G','H'];
 /* Ausgangsfiguren bewusst „ohne Besonderheit": keine gleich langen Seiten,
    keine parallelen Seiten, keine rechten Winkel, konvex */
@@ -3062,6 +3849,7 @@ const BTOL=0.25;   // im Baukasten viel strenger messen als bei erzeugten Figure
 
 function makeBuilder(host,opt){
   opt=opt||{};
+  const memo=opt.memo||null;   // {pts,a,b,view} – ueberlebt einen Neuaufbau
   const B={kind:opt.kind||'viereck',
            pts:(opt.start||START_SHAPE[opt.kind||'viereck']||START_SHAPE.viereck).map(p=>p.slice()),
            a:(opt.startA!=null?opt.startA:3), b:(opt.startB!=null?opt.startB:2), tP:0.9,
@@ -3080,34 +3868,34 @@ function makeBuilder(host,opt){
 
   /* Werkzeugleiste */
   function ctrl(){ return el('div','ctrl'); }
-  let c=ctrl(); c.appendChild(el('label',null,'Raster'));
+  let c=ctrl(); c.appendChild(el('label',null,T('Raster','Grid')));
   const gs=el('input'); gs.type='range'; gs.min=0; gs.max=GRID_STEPS.length-1; gs.step=1; gs.value=B.grid;
-  const gl=el('span','small',GRID_LBL[B.grid]);
-  on(gs,'input',()=>{ B.grid=+gs.value; gl.textContent=GRID_LBL[B.grid]; state.eGrid=B.grid; serialize(); draw(); });
+  const gl=el('span','small',GRID_LBLL()[B.grid]);
+  on(gs,'input',()=>{ B.grid=+gs.value; gl.textContent=GRID_LBLL()[B.grid]; state.eGrid=B.grid; serialize(); draw(); });
   c.appendChild(gs); c.appendChild(gl);
   const snapL=el('label',null,''); snapL.style.display='flex'; snapL.style.alignItems='center'; snapL.style.gap='6px';
   const snapI=el('input'); snapI.type='checkbox'; snapI.checked=B.snap;
   on(snapI,'change',()=>{ B.snap=snapI.checked; state.eSnap=B.snap; serialize(); if(B.snap)snapAll(); draw(); });
-  snapL.appendChild(snapI); snapL.appendChild(el('span',null,'einrasten'));
+  snapL.appendChild(snapI); snapL.appendChild(el('span',null,T('einrasten','snap')));
   c.appendChild(snapL); tools.appendChild(c);
   const cbRow=el('div','ctrl'); cbRow.style.gap='14px'; tools.appendChild(cbRow);
   const cb=(lbl,val0,fn)=>{ const i=el('input'); i.type='checkbox'; i.checked=val0;
     on(i,'change',()=>fn(i.checked));
     const l=el('label',null,''); l.style.display='flex'; l.style.alignItems='center'; l.style.gap='6px';
     l.appendChild(i); l.appendChild(el('span',null,lbl)); cbRow.appendChild(l); return i; };
-  cb('Markierungen',B.marks,v=>{ B.marks=v; draw(); });
-  cb('Längen',B.measures,v=>{ B.measures=v; draw(); });
+  cb(T('Markierungen','Marks'),B.marks,v=>{ B.marks=v; draw(); });
+  cb(T('Längen','Lengths'),B.measures,v=>{ B.measures=v; draw(); });
   let ellSeg=null;
   if(B.kind==='kreis'){
-    const cc=ctrl(); cc.appendChild(el('label',null,'ziehen an'));
-    ellSeg=segRow([['achsen','Halbachsen'],['brenn','Brennpunkten']],state.eEll,
+    const cc=ctrl(); cc.appendChild(el('label',null,T('ziehen an','drag the')));
+    ellSeg=segRow([['achsen',T('Halbachsen','semi-axes')],['brenn',T('Brennpunkten','foci')]],state.eEll,
       v=>{ state.eEll=v; if(v==='brenn'&&B.b>B.a){ const t=B.a;B.a=B.b;B.b=t; } serialize(); draw(); },'small');
     cc.appendChild(ellSeg); tools.appendChild(cc);
   }
   const btnRow=el('div','ctrl'); btnRow.style.gap='6px'; btnRow.style.marginLeft='auto';
-  const bRes=el('button','btn','Zurücksetzen');
+  const bRes=el('button','btn',T('Zurücksetzen','Reset'));
   on(bRes,'click',()=>{ reset(); });
-  const bCen=el('button','btn','Ansicht zentrieren');
+  const bCen=el('button','btn',T('Ansicht zentrieren','Centre the view'));
   on(bCen,'click',()=>{ center(); draw(); });
   btnRow.appendChild(bRes); btnRow.appendChild(bCen); tools.appendChild(btnRow);
   if(!noTools) host.appendChild(tools);
@@ -3231,16 +4019,20 @@ function makeBuilder(host,opt){
         out+='<text '+lc+' fill="#fff" stroke="#fff" stroke-width="3.4" stroke-linejoin="round">'+t+'</text>';
         out+='<text '+lc+' fill="#28502a">'+t+'</text>'; }
     });
-    svg.innerHTML=out;
+    svg.innerHTML=svgFarben(out);
     hint.textContent=(B.kind==='kreis')
-      ? (state.eEll==='brenn'?'Brennpunkte verschieben oder P über die Ellipse ziehen · Hintergrund ziehen: verschieben · Mausrad: zoomen'
-                             :'An den Griffen a und b ziehen · Hintergrund ziehen: verschieben · Mausrad: zoomen')
-      : 'Ecken ziehen · Hintergrund ziehen: verschieben · Mausrad / zwei Finger: zoomen';
+      ? (state.eEll==='brenn'?T('Brennpunkte verschieben oder P über die Ellipse ziehen · Hintergrund ziehen: verschieben · Mausrad: zoomen',
+                                  'Move the foci or drag P along the ellipse · drag the background: pan · mouse wheel: zoom')
+                             :T('An den Griffen a und b ziehen · Hintergrund ziehen: verschieben · Mausrad: zoomen',
+                                  'Drag the handles a and b · drag the background: pan · mouse wheel: zoom'))
+      : T('Ecken ziehen · Hintergrund ziehen: verschieben · Mausrad / zwei Finger: zoomen',
+          'Drag the corners · drag the background: pan · mouse wheel / two fingers: zoom');
     const info=analyse();
-    val.textContent=info.short;
+    val.textContent=EN()?gross(info.short):info.short;
+    if(memo){ memo.kind=B.kind; memo.pts=B.pts.map(q=>q.slice()); memo.a=B.a; memo.b=B.b; memo.view=Object.assign({},B.view); }
     if(opt.onChange) opt.onChange(info);
   }
-  function fmtNum(x){ const r=Math.round(x*10)/10; return String(r).replace('.',','); }
+  function fmtNum(x){ const r=Math.round(x*10)/10; return String(r).replace('.',DEZ()); }
   function analyse(){
     if(B.kind==='kreis'){
       const fig={kind:'round',rx:B.a,ry:B.b,rot:0}, cls=classifyRound(fig,BTOL);
@@ -3248,12 +4040,12 @@ function makeBuilder(host,opt){
               round:{a:B.a,b:B.b,e:ecc()}};
     }
     const P=B.pts;
-    if(!isSimple(P)) return {short:'überschlagen — die Seiten kreuzen sich',pts:P,crossed:true};
+    if(!isSimple(P)) return {short:T('überschlagen — die Seiten kreuzen sich','self-intersecting — the sides cross'),pts:P,crossed:true};
     const fig={kind:'poly',pts:P}, cls=classify(fig,BTOL,state.trapIncl);
     if(!cls.ok||!cls.precise)
-      return {short:cls.flat?'keine Fläche — alle Ecken liegen auf einer Geraden':'keine gültige Fläche',pts:P};
+      return {short:cls.flat?T('keine Fläche — alle Ecken liegen auf einer Geraden','not a shape — all corners lie on a line'):T('keine gültige Fläche','not a valid shape'),pts:P};
     let short=nameOfCls(cls);
-    if(cls.degen) short+=' — die gestreckte Ecke zählt nicht mit';
+    if(cls.degen) short+=T(' — die gestreckte Ecke zählt nicht mit',' — the straight corner does not count');
     return {short:short,n:P.length,pts:P,fig:fig,cls:cls,degen:cls.degen,
             precise:preciseId(cls),tags:cls.tags,I:cls.I};
   }
@@ -3320,7 +4112,10 @@ function makeBuilder(host,opt){
     const after=Mi(local(e));
     B.view.cx+=before[0]-after[0]; B.view.cy+=before[1]-after[1]; draw(); },{passive:false});
   function changed(){ draw(); }
-  center(); measure(); draw();
+  if(memo&&memo.kind===B.kind&&memo.pts){ B.pts=memo.pts.map(q=>q.slice()); B.a=memo.a; B.b=memo.b;
+    measure(); if(memo.view) B.view=Object.assign({},memo.view); else center(); }
+  else center();
+  measure(); draw();
   window.addEventListener('resize',()=>{ measure(); draw(); });
   return {getFig:()=>analyse().fig||null, set:p=>{B.pts=p.slice();center();draw();},
           setKind:k=>{ B.kind=k; if(k!=='kreis')B.pts=(START_SHAPE[k]||START_SHAPE.viereck).map(q=>q.slice());
@@ -3330,11 +4125,12 @@ function makeBuilder(host,opt){
 
 /* --- Erkundungsmodus ---------------------------------------------------- */
 let erkBuilt=false, erkBuilder=null;
+const erkMemo={};   // gebaute Figur je Form – bleibt bei Sprach-/Themawechsel erhalten
 function buildErkundung(){
   const host=$('#erkBody'); host.innerHTML='';
   if(!IS_F){ buildErkundungKoerper(); erkBuilt=true; return; }
   const tabs=el('div','tabs'); tabs.style.marginBottom='10px';
-  [['dreieck','Dreieck'],['viereck','Viereck'],['kreis','Kreis']].forEach(t=>{
+  [['dreieck',T('Dreieck','Triangle')],['viereck',T('Viereck','Quadrilateral')],['kreis',T('Kreis','Circle')]].forEach(t=>{
     const b=el('button','tab'+(state.eShape===t[0]?' on':''));
     b.innerHTML=previewSVG(t[0])+'<span class="tl">'+t[1]+'</span>';
     on(b,'click',()=>{ state.eShape=t[0]; serialize(); buildErkundung(); });
@@ -3346,7 +4142,7 @@ function buildErkundung(){
   c1.style.flex='1 1 420px';
   const bhost=el('div'); c1.appendChild(bhost);
   const pan=el('div','panel');
-  pan.appendChild(el('h2',null,'Das ist …'));
+  pan.appendChild(el('h2',null,T('Das ist …','This is …')));
   const big=el('div','big-name','—'); pan.appendChild(big);
   const chips=el('div'); pan.appendChild(chips);
   const props=el('ul','props-list'); pan.appendChild(props);
@@ -3354,21 +4150,32 @@ function buildErkundung(){
   c2.appendChild(pan);
   two.appendChild(c1); two.appendChild(c2); host.appendChild(two);
 
-  erkBuilder=makeBuilder(bhost,{kind:state.eShape,onChange:info=>{
-    big.textContent=info.short;
+  erkMemo[state.eShape]=erkMemo[state.eShape]||{};
+  erkBuilder=makeBuilder(bhost,{kind:state.eShape,memo:erkMemo[state.eShape],onChange:info=>{
+    big.textContent=EN()?gross(info.short):info.short;
     chips.innerHTML=''; props.innerHTML=''; haus.innerHTML='';
     if(info.tags&&info.precise) chips.appendChild(nameChips(info.tags,info.precise));
     const li=[];
     if(info.round){
       const r=info.round;
-      li.push('Halbachsen: a = '+fmt2(r.a)+' und b = '+fmt2(r.b));
-      li.push(r.e<1e-6?'beide Achsen gleich lang — alle Randpunkte haben denselben Abstand vom Mittelpunkt'
-                      :'Brennpunkte im Abstand e = '+fmt2(r.e)+' vom Mittelpunkt');
-      li.push('für jeden Randpunkt gilt: r₁ + r₂ = 2a = '+fmt2(2*r.a));
+      li.push(T('Halbachsen: a = ','Semi-axes: a = ')+fmt2(r.a)+T(' und b = ',' and b = ')+fmt2(r.b));
+      li.push(r.e<1e-6?T('beide Achsen gleich lang — alle Randpunkte haben denselben Abstand vom Mittelpunkt',
+                         'both axes equal — all boundary points are the same distance from the centre')
+                      :T('Brennpunkte im Abstand e = ','Foci at a distance e = ')+fmt2(r.e)+T(' vom Mittelpunkt',' from the centre'));
+      li.push(T('für jeden Randpunkt gilt: r₁ + r₂ = 2a = ','for every boundary point: r₁ + r₂ = 2a = ')+fmt2(2*r.a));
     }
     if(info.I){
       const I=info.I;
       const eq=I.eqGroups.filter(g=>g.length>1);
+      if(EN()){
+        if(eq.length) li.push(eq.map(g=>g.length+' equal sides').join(' and '));
+        else li.push('no two sides equal');
+        if(I.parPairs.length) li.push(I.parPairs.length+' pair'+(I.parPairs.length>1?'s':'')+' of parallel sides');
+        else li.push('no parallel sides');
+        if(I.right.length) li.push(I.right.length+' right angle'+(I.right.length>1?'s':''));
+        if(I.concave) li.push('one interior angle is greater than 180° (concave)');
+        li.push('Angles: '+I.ang.map(a=>Math.round(a)+'°').join(', '));
+      }else{
       if(eq.length) li.push(eq.map(g=>g.length+' gleich lange Seiten').join(' und '));
       else li.push('keine zwei Seiten gleich lang');
       if(I.parPairs.length) li.push(I.parPairs.length+' Paar'+(I.parPairs.length>1?'e':'')+' paralleler Seiten');
@@ -3376,28 +4183,40 @@ function buildErkundung(){
       if(I.right.length) li.push(I.right.length+' rechte'+(I.right.length>1?' Winkel':'r Winkel'));
       if(I.concave) li.push('ein Innenwinkel ist größer als 180° (konkav)');
       li.push('Winkel: '+I.ang.map(a=>Math.round(a)+'°').join(', '));
+      }
     }
     li.forEach(x=>props.appendChild(el('li',null,x)));
     if(info.tags&&famOf(info.precise)==='viereck'&&state.eHaus){
       haus.innerHTML=hausSVG(info.tags,info.precise);
-      haus.appendChild(el('div','haus-cap','Haus der Vierecke'));
+      haus.appendChild(el('div','haus-cap',T('Haus der Vierecke','Hierarchy of quadrilaterals')));
     }
   }});
   erkBuilt=true;
 }
-function fmt2(x){ const r=Math.round(x*100)/100; return String(r).replace('.',','); }
+function fmt2(x){ const r=Math.round(x*100)/100; return String(r).replace('.',DEZ()); }
 
 /* =======================================================================
    8b. Erkundungsmodus für Körper
    ======================================================================= */
 const BASE_TABS=[['dreieck','Dreieck'],['viereck','Viereck'],['fuenfeck','Fünfeck'],
                  ['sechseck','Sechseck'],['kreis','Kreis']];
+const BASE_TABS_EN={dreieck:'Triangle',viereck:'Quadrilateral',fuenfeck:'Pentagon',sechseck:'Hexagon',kreis:'Circle'};
+const NUM_ADJ_EN={3:'triangular',4:'quadrilateral',5:'pentagonal',6:'hexagonal',7:'heptagonal',8:'octagonal'};
+const NUM_NOUN_EN={3:'triangle',4:'quadrilateral',5:'pentagon',6:'hexagon',7:'heptagon',8:'octagon'};
 const NUM_ADJ={3:'dreieckige',4:'viereckige',5:'fünfeckige',6:'sechseckige',7:'siebeneckige',8:'achteckige'};
 const NUM_NOUN={3:'Dreieck',4:'Viereck',5:'Fünfeck',6:'Sechseck',7:'Siebeneck',8:'Achteck'};
 const DAT={m:'einem',f:'einer',n:'einem'};
 /* genaueste Bezeichnung der Grundfläche, z. B. „Trapez" statt nur „Viereck" */
 function baseNameOf(pts,round){
-  if(round) return 'Kreis';
+  if(round) return T('Kreis','circle');
+  if(EN()){
+    const n=pts.length;
+    if(n===3||n===4){
+      const c=classify({kind:'poly',pts:pts},BTOL,state.trapIncl);
+      if(c.ok&&c.precise) return nameOfCls(c);
+    }
+    return NUM_NOUN_EN[n]||(n+'-gon');
+  }
   const n=pts.length;
   if(n===3||n===4){
     const c=classify({kind:'poly',pts:pts},BTOL,state.trapIncl);
@@ -3407,6 +4226,7 @@ function baseNameOf(pts,round){
 }
 function baseNameDat(pts,round){
   const nm=baseNameOf(pts,round);
+  if(EN()) return anEn(nm)+nm.replace(/\s*\(.*\)/,'');
   if(/Kreis/.test(nm)) return 'einem Kreis';
   const id=(/Drache/.test(nm))?'drache':Object.keys(NAMES).filter(k=>NAMES[k]===nm)[0];
   const g=id?genOf(id):'n';
@@ -3426,6 +4246,25 @@ function baseKindOf(pts,tol){
 /* Name des gebauten Körpers */
 function bodyNameOf(E,base2){
   const round=(E.baseKind==='kreis'), spitz=(E.taper===1);
+  if(EN()){
+    if(E.h<0.05) return {name:'not a solid yet',extra:'At height 0 there is only the base — drag it upwards.'};
+    if(round){
+      const nm=spitz?'cone':'cylinder';
+      return {name:gross((E.skew?'oblique ':'')+nm), extra:E.twist?'twisted — the lines on the curved surface are twisted':''};
+    }
+    const n=base2.length, bk=baseKindOf(base2);
+    if(spitz) return {name:gross((E.skew?'oblique ':'')+'pyramid'),
+                      extra:'with '+baseNameDat(base2,false)+' as its base'+(E.twist?', twisted':'')};
+    if(E.twist) return {name:'Twisted solid', extra:'The base and the top are rotated against each other — not a prism'};
+    if(!E.skew&&bk){
+      const L=[]; for(let i=0;i<n;i++) L.push(dist2(base2[i],base2[(i+1)%n]));
+      const gleich=L.every(x=>Math.abs(x-L[0])<=0.01*L[0]);
+      if(bk==='quadrat'&&gleich&&Math.abs(E.h-L[0])<=0.01*Math.max(E.h,L[0]))
+        return {name:'Cube', extra:'all twelve edges are equal — a special cuboid'};
+      return {name:'Cuboid', extra:'a prism with '+baseNameDat(base2,false)+' as its base'};
+    }
+    return {name:gross((E.skew?'oblique ':'right ')+'prism'), extra:'with '+baseNameDat(base2,false)+' as its base'};
+  }
   if(E.h<0.05) return {name:'noch kein Körper',extra:'Bei der Höhe 0 ist nur die Grundfläche da — zieh sie nach oben.'};
   const sk=E.skew?(spitz?'schiefe':'schiefer'):'';
   if(round){
@@ -3451,11 +4290,14 @@ function bodyNameOf(E,base2){
   return {name:(E.skew?'schiefes ':'gerades ')+'Prisma',
           extra:'mit '+baseNameDat(base2,false)+' als Grundfläche'};
 }
+let erkKoerperE=null;
 function buildErkundungKoerper(){
   const host=$('#erkBody'); host.innerHTML='';
-  const E={baseKind:'viereck', pts:START_SHAPE.quadrat.map(p=>p.slice()), a:3, b:3,
+  // Zustand bleibt ueber einen Neuaufbau (Sprach-/Themawechsel) hinweg erhalten
+  const E=erkKoerperE||(erkKoerperE={baseKind:'viereck', pts:START_SHAPE.quadrat.map(p=>p.slice()), a:3, b:3,
            h:3, taper:0, skew:false, twist:false, shMag:0, shDir:0, tw:0,
-           view:'d3', cam:null, S:null};
+           view:'d3', cam:null, S:null});
+  E.S=null;
   const shVec=()=>[E.shMag*Math.cos(E.shDir), E.shMag*Math.sin(E.shDir)];
 
   const two=el('div','two-col erk erk3');
@@ -3465,11 +4307,11 @@ function buildErkundungKoerper(){
   /* ---- Werkzeuge über der Zeichnung ---- */
   const tools=el('div','build-tools');
   const ctrl=lbl=>{ const c=el('div','ctrl'); if(lbl)c.appendChild(el('label',null,lbl)); return c; };
-  let c=ctrl('Körper');
-  c.appendChild(segRow([['0','prismenartig'],['1','spitz']],String(E.taper),
+  let c=ctrl(T('Körper','Solid'));
+  c.appendChild(segRow([['0',T('prismenartig','prism-like')],['1',T('spitz','pointed')]],String(E.taper),
     v=>{ E.taper=+v; render(); },'small'));
   tools.appendChild(c);
-  c=ctrl('Höhe');
+  c=ctrl(T('Höhe','Height'));
   const hs=el('input'); hs.type='range'; hs.min=0; hs.max=80; hs.step=1; hs.value=E.h*10;
   const hv=el('span','small',fmt2(E.h));
   on(hs,'input',()=>{ E.h=(+hs.value)/10; hv.textContent=fmt2(E.h); render(); });
@@ -3480,7 +4322,7 @@ function buildErkundungKoerper(){
     l.appendChild(i); l.appendChild(el('span',null,lbl)); cc.appendChild(l); tools.appendChild(cc); return i; };
   const brk=()=>{ const b=el('div'); b.style.flexBasis='100%'; b.style.height='0'; tools.appendChild(b); };
   brk();
-  const skBox=cb('schief',E.skew,v=>{ E.skew=v; render(); });
+  const skBox=cb(T('schief','oblique'),E.skew,v=>{ E.skew=v; render(); });
   // Regler für Schiefe und Torsion (zusätzlich zu den Griffen im Bild)
   const cSk=ctrl(''); const skR=el('input'); skR.type='range'; skR.min=0; skR.max=30; skR.step=1;
   const skD=el('input'); skD.type='range'; skD.min=0; skD.max=35; skD.step=1;
@@ -3489,18 +4331,18 @@ function buildErkundungKoerper(){
   on(skD,'input',()=>{ E.shDir=(+skD.value)/36*2*Math.PI;
     if(E.shMag<0.05) E.shMag=0.8;                 // sonst wäre die Richtung wirkungslos
     render(); });
-  cSk.appendChild(el('label',null,'Stärke')); cSk.appendChild(skR);
-  cSk.appendChild(el('label',null,'Richtung')); cSk.appendChild(skD);
+  cSk.appendChild(el('label',null,T('Stärke','Amount'))); cSk.appendChild(skR);
+  cSk.appendChild(el('label',null,T('Richtung','Direction'))); cSk.appendChild(skD);
   tools.appendChild(cSk);
   brk();
-  const twBox=cb('tordiert',E.twist,v=>{ E.twist=v; render(); });
-  const cTw=ctrl('Winkel'); const twR=el('input'); twR.type='range'; twR.min=-90; twR.max=90; twR.step=1;
+  const twBox=cb(T('tordiert','twisted'),E.twist,v=>{ E.twist=v; render(); });
+  const cTw=ctrl(T('Winkel','Angle')); const twR=el('input'); twR.type='range'; twR.min=-90; twR.max=90; twR.step=1;
   const twV=el('span','small','');
   on(twR,'input',()=>{ E.tw=(+twR.value)*D2R; render(); });
   cTw.appendChild(twR); cTw.appendChild(twV); tools.appendChild(cTw);
   brk();
-  const cGr=ctrl('Raster');
-  cGr.appendChild(segRow([['0','grob'],['1','mittel'],['2','fein']],String(state.eGrid),
+  const cGr=ctrl(T('Raster','Grid'));
+  cGr.appendChild(segRow([['0',T('grob','coarse')],['1',T('mittel','medium')],['2',T('fein','fine')]],String(state.eGrid),
     v=>{ state.eGrid=+v; serialize(); if(baseB) baseB.redraw(); render(); },'small'));
   tools.appendChild(cGr);
   const cbRow2=el('div','ctrl'); cbRow2.style.gap='14px'; tools.appendChild(cbRow2);
@@ -3508,8 +4350,8 @@ function buildErkundungKoerper(){
     on(i,'change',()=>{ state[key]=i.checked; serialize(); if(baseB) baseB.redraw(); render(); });
     const l=el('label',null,''); l.style.display='flex'; l.style.alignItems='center'; l.style.gap='6px';
     l.appendChild(i); l.appendChild(el('span',null,lbl)); (host||cbRow2).appendChild(l); };
-  eb('einrasten','eSnap',cGr); eb('Markierungen','eMarks'); eb('Längen','eLen');
-  const bRes=el('button','btn','Ansicht zurücksetzen'); bRes.style.marginLeft='auto';
+  eb(T('einrasten','snap'),'eSnap',cGr); eb(T('Markierungen','Marks'),'eMarks'); eb(T('Längen','Lengths'),'eLen');
+  const bRes=el('button','btn',T('Ansicht zurücksetzen','Reset view')); bRes.style.marginLeft='auto';
   on(bRes,'click',()=>{ E.cam=null; render(); });
   tools.appendChild(bRes);
   c1.appendChild(tools);
@@ -3519,18 +4361,20 @@ function buildErkundungKoerper(){
   const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
   svg.setAttribute('class','stage'); wrap.appendChild(svg);
   const val=el('div','stage-val','—'); wrap.appendChild(val);
-  const hint=el('div','stage-hint','Ziehen dreht · rechte Maustaste oder zwei Finger verschieben · Rad zoomt · '+
-    'am Griff oben Höhe (und Schiefe) ziehen, am Rand die Torsion');
+  const hint=el('div','stage-hint',T('Ziehen dreht · rechte Maustaste oder zwei Finger verschieben · Rad zoomt · '+
+    'am Griff oben Höhe (und Schiefe) ziehen, am Rand die Torsion',
+    'Drag to rotate · right mouse button or two fingers to pan · wheel zooms · '+
+    'drag the top handle for height (and slant), the edge handle for twist'));
   wrap.appendChild(hint);
   c1.appendChild(wrap);
 
   /* ---- rechte Spalte: Grundfläche und Steckbrief ---- */
   const pBase=el('div','panel base-stage');
-  pBase.appendChild(el('h2',null,'Grundfläche'));
+  pBase.appendChild(el('h2',null,T('Grundfläche','Base')));
   const tabs=el('div','tabs slim'); tabs.style.marginBottom='6px';
   BASE_TABS.forEach(t=>{
     const b=el('button','tab'+(E.baseKind===t[0]?' on':''));
-    b.innerHTML='<span class="tl">'+t[1]+'</span>';
+    b.innerHTML='<span class="tl">'+(EN()?BASE_TABS_EN[t[0]]:t[1])+'</span>';
     on(b,'click',()=>{ E.baseKind=t[0]; buildBase(); render();
       $$('.tab',tabs).forEach((x,i)=>x.classList.toggle('on',BASE_TABS[i][0]===E.baseKind)); });
     tabs.appendChild(b);
@@ -3540,7 +4384,7 @@ function buildErkundungKoerper(){
   c2.appendChild(pBase);
 
   const pan=el('div','panel');
-  pan.appendChild(el('h2',null,'Das ist …'));
+  pan.appendChild(el('h2',null,T('Das ist …','This is …')));
   const big=el('div','big-name','—'); pan.appendChild(big);
   const extra=el('div','muted small'); pan.appendChild(extra);
   const props=el('ul','props-list'); pan.appendChild(props);
@@ -3550,7 +4394,9 @@ function buildErkundungKoerper(){
   function buildBase(){
     bhost.innerHTML='';
     const kind=(E.baseKind==='kreis')?'kreis':E.baseKind;
-    baseB=makeBuilder(bhost,{kind:kind,height:200,quiet:true,noTools:true,fit:0.42,startA:3,startB:3,
+    E.baseMemo=E.baseMemo||{};
+    if(E.baseMemo.kind&&E.baseMemo.kind!==kind) E.baseMemo={};
+    baseB=makeBuilder(bhost,{kind:kind,height:200,quiet:true,noTools:true,fit:0.42,startA:3,startB:3,memo:E.baseMemo,
       start:(kind==='viereck')?START_SHAPE.quadrat:null,onChange:info=>{
       if(info.round){ E.a=info.round.a; E.b=info.round.b; }
       else if(info.pts&&info.pts.length>=3) E.pts=info.pts.map(p=>p.slice());
@@ -3611,31 +4457,31 @@ function buildErkundungKoerper(){
       '" stroke-width="2.4" pointer-events="none"/>';
     out+='<path d="M'+(q[0]-4).toFixed(1)+' '+(q[1]+1).toFixed(1)+' l4 -5 l4 5" fill="none" stroke="'+CLR.ink+
       '" stroke-width="1.6" pointer-events="none"/>';
-    svg.innerHTML=out;
+    svg.innerHTML=svgFarben(out);
     // Steckbrief
     const nm=bodyNameOf(E,base2());
     val.textContent=nm.name; big.textContent=nm.name; extra.textContent=nm.extra||'';
     props.innerHTML='';
     const li=x=>props.appendChild(el('li',null,x));
-    li('Höhe: '+fmt2(E.h));
+    li(T('Höhe: ','Height: ')+fmt2(E.h));
     if(E.baseKind==='kreis'){
-      li('Grundfläche: '+(Math.abs(E.a-E.b)<0.01?'Kreis mit r = '+fmt2(E.a):'Ellipse mit a = '+fmt2(E.a)+' und b = '+fmt2(E.b)));
-      li(E.taper===1?'Der Mantel läuft in einer Spitze zusammen.':'Grund- und Deckfläche sind deckungsgleiche Kreise.');
+      li(T('Grundfläche: ','Base: ')+(Math.abs(E.a-E.b)<0.01?T('Kreis mit r = ','circle with r = ')+fmt2(E.a):T('Ellipse mit a = ','ellipse with a = ')+fmt2(E.a)+T(' und b = ',' and b = ')+fmt2(E.b)));
+      li(E.taper===1?T('Der Mantel läuft in einer Spitze zusammen.','The curved surface meets at an apex.'):T('Grund- und Deckfläche sind deckungsgleiche Kreise.','The base and the top are congruent circles.'));
     }else{
       const es=new Set(); S.F.forEach(f=>f.idx.forEach((a,i)=>{ const b=f.idx[(i+1)%f.idx.length];
         es.add(Math.min(a,b)+'-'+Math.max(a,b)); }));
-      li('Ecken: '+S.V.length+' · Kanten: '+es.size+' · Flächen: '+S.F.length);
-      li('Grundfläche: '+baseNameOf(base2(),false));
-      if(E.taper===1) li('Alle Seitenflächen sind Dreiecke mit einer gemeinsamen Spitze.');
-      else if(!E.twist) li('Grund- und Deckfläche sind deckungsgleich und zueinander parallel.');
-      if(!E.skew&&!E.twist&&E.taper===0) li('Die Seitenkanten stehen senkrecht auf der Grundfläche.');
+      li(T('Ecken: ','Vertices: ')+S.V.length+T(' · Kanten: ',' · edges: ')+es.size+T(' · Flächen: ',' · faces: ')+S.F.length);
+      li(T('Grundfläche: ','Base: ')+baseNameOf(base2(),false));
+      if(E.taper===1) li(T('Alle Seitenflächen sind Dreiecke mit einer gemeinsamen Spitze.','All the side faces are triangles with a common apex.'));
+      else if(!E.twist) li(T('Grund- und Deckfläche sind deckungsgleich und zueinander parallel.','The base and the top are congruent and parallel to each other.'));
+      if(!E.skew&&!E.twist&&E.taper===0) li(T('Die Seitenkanten stehen senkrecht auf der Grundfläche.','The side edges are perpendicular to the base.'));
     }
     hs.value=Math.round(E.h*10); hv.textContent=fmt2(E.h);
     [[cSk,skR,E.skew],[cSk,skD,E.skew],[cTw,twR,E.twist]].forEach(x=>{
       x[1].disabled=!x[2]; x[0].style.opacity=x[2]?'1':'.45'; });
     twBox.disabled=(E.baseKind==='kreis');
     twBox.parentNode.parentNode.style.opacity=twBox.disabled?'.45':'1';
-    twBox.title=twBox.disabled?'Ein Kreis sieht verdreht genauso aus.':'';
+    twBox.title=twBox.disabled?T('Ein Kreis sieht verdreht genauso aus.','A circle looks the same when rotated.'):'';
     skR.value=Math.round(E.shMag*10);
     let ang=E.shDir; while(ang<0)ang+=2*Math.PI;
     skD.value=Math.round((ang%(2*Math.PI))/(2*Math.PI)*36);
@@ -3754,9 +4600,54 @@ function setMode(m){
   $$('#mode-switch button').forEach(b=>b.classList.toggle('on',b.dataset.mode===m));
   $('#mode-uebung').classList.toggle('hidden',m!=='uebung');
   $('#mode-erkundung').classList.toggle('hidden',m!=='erkundung');
+  /* Der Schwierigkeitsschalter gehört zu den Aufgaben, nicht zum Erkunden. */
+  $$('.nur-uebung').forEach(n=>n.classList.toggle('hidden',m!=='uebung'));
   if(m==='erkundung'){ if(!erkBuilt) buildErkundung(); else if(erkBuilder) erkBuilder.redraw(); }
   serialize();
 }
+/* ══════════════════════════════════════════════════════════════════════════
+   Sprach- und Themawechsel
+   Die Aufgabe haengt am Startwert (task.seed) – neu abgeleitet kommt dieselbe
+   Aufgabe in der neuen Sprache heraus. Bereits gegebene Antworten werden
+   danach in derselben Reihenfolge noch einmal ausgeloest (data-merk).
+   ══════════════════════════════════════════════════════════════════════════ */
+let wiederholen=false;
+document.addEventListener('click',e=>{
+  if(wiederholen||!task) return;
+  const n=e.target&&e.target.closest?e.target.closest('#taskArea [data-merk]'):null;
+  if(n) (task.klicks||(task.klicks=[])).push(n.dataset.merk);
+},true);
+function neuZeichnen(){
+  try{
+    buildPick(); buildSettings(); buildStudentPanel();
+    if(task){
+      const k=(task.klicks||[]).slice(), gezaehlt=task.counted, hilfe=!!document.querySelector('#taskArea .help-box');
+      task.claim=null;                 // Behauptung in der neuen Sprache neu bilden (gleicher Zufall)
+      deriveTask(task); renderTask();
+      wiederholen=true; task.klicks=[];
+      k.forEach(key=>{ const n=document.querySelector('#taskArea [data-merk="'+key+'"]');
+        if(n){ n.click(); task.klicks.push(key); } });
+      wiederholen=false;
+      task.counted=gezaehlt;
+    } else renderTask();
+    if(erkBuilt){ erkBuilt=false; if(state.mode==='erkundung') buildErkundung(); }
+  }catch(e){ wiederholen=false; }
+}
+window.addEventListener('tl-sprache', neuZeichnen);
+window.addEventListener('tl-theme',   neuZeichnen);
+
+/* ── Kontext für den Fehler-melden-Knopf ─────────────────────────────────── */
+window.fehlerKontext=function(){
+  // Die Einstellungen stehen bereits in der URL; hier zaehlt die Aufgabe selbst.
+  if(state.mode==='erkundung') return 'mode=erkundung'+(IS_F?' shape='+state.eShape:'');
+  if(!task) return T('keine Aufgabe','no task');
+  const z=['seed='+task.seed, 'type='+task.type, 'target='+task.target, 'precise='+(task.precise||'?')];
+  if(task.view) z.push('view='+task.view);
+  if(task.claim) z.push('claim='+(task.claim.kind==='text'?task.claim.text:task.claim.kind+':'+(task.claim.b||'')));
+  if(task.klicks&&task.klicks.length) z.push('clicks='+task.klicks.join(','));
+  return z.join('; ');
+};
+
 function boot(){
   deserialize();
   buildAnc();
@@ -3767,6 +4658,25 @@ function boot(){
   serialize();
 }
 document.addEventListener('DOMContentLoaded',boot);
+
+/* ── Schwierigkeitsschalter über der Aufgabe ─────────────────────────────── */
+document.addEventListener('DOMContentLoaded', () => {
+  stufeSetzen(state.diff || 'normal');
+  document.querySelectorAll('input[name="diff"]').forEach(e =>
+    e.addEventListener('change', () => {
+      if (!e.checked) return;
+      if (e.value !== 'indiv'){
+        stufeAnwenden(e.value);
+        buildSettings(); buildStudentPanel(); serialize();
+        newTask(); renderTask();
+      } else {
+        state.diff = 'indiv'; serialize();
+        if (window.abEinstellungenOeffnen) abEinstellungenOeffnen('#teacherSettings');
+        else { const d = document.getElementById('teacherSettings'); if (d) d.open = true; }
+      }
+    }));
+});
+
 </script>
 </body>
 </html>

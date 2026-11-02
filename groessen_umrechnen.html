@@ -3,20 +3,25 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="shortcut icon" type="image/x-icon" href="aleph_zero_logo.ico">
+  <script>try{var t=localStorage.getItem('matheToolsTheme');if(t==='dark'||(!t&&window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.classList.add('dark');}catch(e){}</script>
   <script>
     window.MathJax = { tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] } };
   </script>
   <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-  <title>Größen umrechnen</title>
+  <title data-de="Größen umrechnen" data-en="Converting Units">Größen umrechnen</title>
+  <script src="theme-language.js" defer></script>
   <link rel="stylesheet" type="text/css" href="styles.css">
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-5K8WYYXDL2"></script>
-    <script>
+  <link rel="stylesheet" href="aufgaben.css">
+  <script src="aufgaben.js" defer></script>
+    <!-- Besuchszaehlung (Google Analytics). Geladen wird sie erst, wenn der
+         Besucher zustimmt - siehe einwilligung.js. -->
+<script>
         window.dataLayer = window.dataLayer || [];
         function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-        gtag('config', 'G-5K8WYYXDL2');
+        window.TK_GA_ID = 'G-5K8WYYXDL2';   /* Google Analytics laedt erst nach Einwilligung, siehe einwilligung.js */
     </script>
+<script src="einwilligung.js" defer></script>
   <style>
     :root{
       --green:#4CAF50; --green-d:#388e3c; --green-dd:#2e7d32; --green-l:#e8f5e9;
@@ -25,7 +30,7 @@
     }
 
     html { scrollbar-gutter: stable; }
-    body { font-family: sans-serif; -webkit-user-select: none; user-select: none; overflow-x: hidden; max-width: 680px; margin: 0 auto; padding: 0 12px; }
+    body { font-family: Calibri, sans-serif; -webkit-user-select: none; user-select: none; max-width: 680px; margin: 0 auto; padding: 0 12px; }
     *:focus { outline: none; }
 
     
@@ -43,7 +48,7 @@
         grid-template-columns: 1fr auto 1fr;
         align-items: center;
         margin: 0 auto;
-        max-width: 800px;
+        max-width: var(--tk-breite, 960px);
     }
     .footer-content > :first-child {
         justify-self: start;
@@ -59,7 +64,8 @@
         text-decoration: underline; 
     }
 
-    #app { max-width: 680px; margin: 0 auto; width: 100%; position: relative; z-index: 1; }
+    /* Gleiche Inhaltsbreite wie auf den übrigen Aufgabenseiten (body.tk-seite). */
+    #app { margin: 0 auto; width: 100%; position: relative; z-index: 1; }
 
     #flashOverlay { position: fixed; inset: 0; pointer-events: none; z-index: 0; opacity: 0; transition: opacity 1s; }
     #toast {
@@ -70,7 +76,8 @@
     }
     #toast.show { opacity: 1; }
 
-    h1 { text-align: center; }
+    /* Die einzige Überschrift steht im Kopfband und ist dort – wie auf den
+       anderen Seiten – linksbündig; die frühere zentrierte Regel entfällt. */
 
     /* ── Einheiten-Raster ── */
     .unit-section { margin-bottom: 10px; }
@@ -87,19 +94,44 @@
     .unit-chip {
       width: 100%; box-sizing: border-box; min-height: 46px; padding: 3px 2px;
       display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
-      border: 2px solid var(--green); border-radius: 6px; background: #fff; color: var(--green-dd);
+      border: 1.5px solid var(--ab-neutral-r, #aaa); border-radius: 9px;
+      background: var(--ab-neutral, #f7f7f7); color: var(--ab-text, #222);
       cursor: pointer; user-select: none; touch-action: manipulation;
-      transition: background .12s, color .12s, transform .06s, box-shadow .12s;
+      transition: background .12s, border-color .12s;
     }
-    .unit-chip:active { transform: scale(.95); }
-    .unit-chip.on { background: var(--green); color: #fff; box-shadow: 0 2px 5px rgba(76,175,80,.35); }
+    .unit-chip.on { background: var(--ab-gr-an, #c8f0c8); border-color: var(--ab-gr, #4a9a4a);
+      color: var(--ab-gr-dunkel, #1a4a1a); }
     .unit-chip .u-sym  { font-size: 0.82rem; font-weight: 700; line-height: 1.15; height: 1.2em; }
     .unit-chip .u-name { font-size: 0.5rem; font-weight: 500; opacity: .85; line-height: 1.02; text-align: center; height: 2.05em; overflow: hidden; margin-top: 2px; }
+    /* Beide Schalter brauchen die ganze Breite, sonst brechen die langen
+       Beschriftungen um. Erst auf dem Handy stehen sie untereinander. */
+    #topControls .tc-breit { flex-direction: column; gap: 8px; }
+    #topControls .tc-breit > .tc-item { flex: 1 1 100%; width: 100%; }
+    /* Gleich breite Felder: so stehen „Zufällig" in beiden Schaltern genau
+       untereinander, egal wie lang die Nachbarbeschriftungen sind. */
+    #stepSeg label, #dirSeg label { flex: 1 1 0; min-width: 0; }
+    #stepSeg label > span, #dirSeg label > span { overflow-wrap: anywhere; hyphens: auto; }
+    /* Felder mit Grundbreite 0 schrumpfen bis aufs längste Wort - „Einheiten
+       überspringen" bricht dann um. Darum geben wir dem Schalter oberhalb des
+       Handyformats eine feste Breite und verbieten den Umbruch: die Felder
+       teilen sie sich zu dritt und sind weit genug für eine Zeile. */
+    @media (min-width: 621px) {
+      #stepSeg, #dirSeg { width: min(100%, 560px); }
+      #stepSeg label > span, #dirSeg label > span { white-space: nowrap; }
+    }
+    /* Sieben Spalten müssen auch auf das Handy passen. */
+    @media (max-width: 430px) {
+      .unit-grid { gap: 3px; }
+      .unit-chip { min-height: 42px; padding: 3px 0; }
+      .unit-chip .u-name { font-size: 0.45rem; }
+    }
 
-    .vol-cell { display: flex; flex-direction: column; gap: 4px; }
-    .liter-wrap { display: flex; flex-direction: column; gap: 3px; }
+    .vol-cell { display: flex; flex-direction: column; gap: 5px; }
+    .liter-wrap { display: flex; flex-direction: column; gap: 5px; }
+    /* Gleiche Höhe wie die übrigen Einheiten - sonst steht die Litergruppe
+       gegenüber mm³ und dm³ schief. */
     .liter-chip {
-      width: 100%; box-sizing: border-box; min-height: 27px; padding: 2px 2px;
+      width: 100%; box-sizing: border-box; min-height: 34px; padding: 3px 2px;
       display: flex; flex-direction: column; align-items: center; justify-content: center;
       border: 2px dashed var(--blue); border-radius: 6px; background: #fff; color: var(--blue-d);
       cursor: pointer; user-select: none; touch-action: manipulation; line-height: 1.02;
@@ -107,8 +139,8 @@
     }
     .liter-chip:active { transform: scale(.94); }
     .liter-chip.on { background: var(--blue); color: #fff; border-style: solid; }
-    .liter-chip .l-sym  { font-size: 0.74rem; font-weight: 700; }
-    .liter-chip .l-name { font-size: 0.44rem; font-weight: 500; opacity: .85; }
+    .liter-chip .l-sym  { font-size: 0.8rem; font-weight: 700; }
+    .liter-chip .l-name { font-size: 0.5rem; font-weight: 500; opacity: .85; }
 
     /* ── kompakte Options-Checkboxen (Aufgabentypen / Hinweise) ── */
     .opt-list { margin-top: 2px; }
@@ -124,26 +156,51 @@
     /* ── Dimensions-Umschalter ── */
     #quickControls { margin: 16px 0 4px; }
     #dimToggles { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+    /* Kacheln sehen aus wie die gemeinsamen .tile-Kacheln (aufgaben.css). */
+    /* Aussehen wie die Formkacheln bei „Flächen erkennen": Name oben, darunter
+       eine kleine Zeichnung - nur etwas größer. */
     .dim-box {
-      flex: 1 1 0; min-width: 0; max-width: 200px; min-height: 34px; padding: 5px 8px; -webkit-touch-callout: none;
-      display: inline-flex; flex-direction: column; align-items: center; justify-content: center;
-      border: 2px solid var(--green); border-radius: 7px; background: #fff; color: var(--green-dd);
-      cursor: pointer; user-select: none; touch-action: manipulation; line-height: 1.05;
-      transition: background .12s, color .12s, transform .06s, box-shadow .12s;
+      position: relative;
+      /* Schmal genug, dass alle drei auch auf dem Handy nebeneinander passen. */
+      flex: 1 1 0; min-width: 0; max-width: 160px; padding: 8px 6px;
+      -webkit-touch-callout: none;
+      display: inline-flex; flex-direction: column; align-items: center; justify-content: flex-start;
+      gap: 4px; border: 3px solid #e2eae3; border-radius: 13px;
+      background: #fff; color: #4a5a4c;
+      cursor: pointer; user-select: none; touch-action: manipulation; line-height: 1.1;
+      transition: border-color .12s, background .12s, box-shadow .12s;
     }
-    .dim-box:active { transform: scale(.96); }
-    .dim-box.on { background: var(--green); color: #fff; box-shadow: 0 2px 5px rgba(76,175,80,.35); }
-    .dim-box .dim-name { font-weight: 700; font-size: 0.9rem; }
-    .dim-box .dim-sub  { font-size: 0.62rem; opacity: .9; }
+    .dim-box.on { border-color: var(--ab-gr, #4a9a4a); background: #c8f0c8; color: #14481a;
+      box-shadow: 0 2px 9px rgba(76,175,80,.32); }
+    .dim-box .dim-name { font-weight: 700; font-size: 0.92rem; }
+    .dim-box .dim-bild { width: 100%; display: flex; justify-content: center; }
+    .dim-box .dim-bild svg { width: 92px; height: 62px; display: block; opacity: .55;
+      transition: opacity .12s; }
+    /* Pfeil wie bei den Formkacheln: er öffnet dasselbe Menü. */
+    .dim-box .dim-pfeil { position: absolute; top: 4px; right: 7px; font-size: 11px;
+      color: #9db3a0; line-height: 1; }
+    .dim-box.on .dim-pfeil { color: var(--ab-gr-dunkel, #1a4a1a); }
+    /* Welche Einheiten gerade dabei sind: grün, die übrigen grau. */
+    .dim-box .dim-einh { font-size: 0.6rem; line-height: 1.25; text-align: center;
+      display: flex; flex-wrap: wrap; justify-content: center; gap: 2px 5px; }
+    .dim-box .dim-einh span { color: #9aa49b; }
+    .dim-box .dim-einh span.an { color: var(--ab-gr-dunkel, #1a4a1a); font-weight: 700; }
+    html.dark .dim-box .dim-einh span { color: #aab3b8; }
+    html.dark .dim-box .dim-einh span.an { color: #a5d6a7; }
+    .dim-box.on .dim-bild svg { opacity: 1; }
+    html.dark .dim-box { background: #1b2026; border-color: #39424a; color: #cfd8d2; }
+    html.dark .dim-box.on { background: #24462a; border-color: #5cb860; color: #d4f5d4; }
     .dim-hint-text { text-align: center; font-size: 0.74rem; color: #aaa; margin: 7px 0 4px; }
 
     .unit-menu { position: fixed; z-index: 41; background: #fff; border: 1px solid #cfcfcf; border-radius: 10px;
       box-shadow: 0 8px 24px rgba(0,0,0,.22); padding: 10px; width: 210px; max-height: 76vh; overflow-y: auto;
       display: flex; flex-direction: column; }
     .unit-menu .um-title { font-weight: 700; font-size: 0.86rem; color: var(--green-dd); text-align: center; margin-bottom: 8px; }
-    .unit-menu .um-list { display: flex; flex-direction: column; gap: 4px; }
+    .unit-menu .um-list { display: flex; flex-direction: column; gap: 7px; }
+    /* margin:0 - sonst erbt die Zeile den Rand der allgemeinen Knopfregel und
+       die Abstände sind mal 4, mal 12 Pixel groß. */
     .unit-menu .um-row { display: flex; align-items: center; gap: 8px; width: 100%; box-sizing: border-box;
-      text-align: left; height: 36px; overflow: hidden; padding: 0 9px; border: 1.5px solid var(--green); border-radius: 7px;
+      text-align: left; height: 36px; overflow: hidden; margin: 0; padding: 0 9px; border: 1.5px solid var(--green); border-radius: 7px;
       background: #fff; color: var(--green-dd); cursor: pointer; font: inherit; line-height: 1; }
     .unit-menu .um-row.on { background: var(--green); color: #fff; }
     .unit-menu .um-row .um-check, .unit-menu .um-row .um-sym, .unit-menu .um-row .um-name {
@@ -158,33 +215,28 @@
     .unit-menu .um-split .um-half .um-sym { flex: 0 0 2.6em; min-width: 2.6em; justify-content: flex-start; }
     .unit-menu .um-r { border-color: var(--blue); color: var(--blue-d); }
     .unit-menu .um-r.on { background: var(--blue); color: #fff; }
-    .unit-menu .um-confirm { margin-top: 12px; padding: 8px; border: 2px solid var(--green-dd); border-radius: 7px;
-      background: var(--green); color: #fff; font-weight: 700; cursor: pointer; }
+    /* Blau statt grün: so ist der Knopf nicht mit einer gewählten Einheit zu
+       verwechseln. */
+    .unit-menu .um-confirm { margin-top: 12px; padding: 10px; border: none; border-radius: 22px;
+      background: #1565c0; color: #fff; font-weight: 700; font-size: 1em; cursor: pointer;
+      box-shadow: 0 2px 5px rgba(0,0,0,.14); }
+    .unit-menu .um-confirm:hover { background: #0d47a1; }
     .unit-menu .um-confirm:active { transform: scale(.98); }
 
-    /* ── Segment-Schalter ── */
-    .seg-block { text-align: center; margin: 11px 0; }
-    .seg-block .seg-label { display: block; font-weight: bold; font-size: 0.84rem; color: #444; margin-bottom: 4px; }
-    .segmented { display: inline-flex; border: 2px solid var(--green); border-radius: 7px; overflow: hidden; max-width: 100%; }
-    .segmented label {
-      padding: 5px 12px; font-size: 0.82rem; cursor: pointer; background: #fff; color: var(--green-dd);
-      border-right: 2px solid var(--green); user-select: none; transition: background .12s;
-      display: flex; align-items: center; justify-content: center; touch-action: manipulation; line-height: 1.1; text-align: center;
-    }
-    .segmented label:last-child { border-right: none; }
-    .segmented label:active { background: var(--green-l); }
-    .segmented input { display: none; }
-    .segmented label:has(input:checked) { background: var(--green); color: #fff; }
+    /* ── Segment-Schalter ──
+       Die Schalter (.seg) und ihr Rahmen (.seg-block) kommen aus
+       aufgaben.css - so sehen sie überall gleich aus. */
 
     /* ── Kopfzeile ── */
     #topRow { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 14px; }
     #counter { font-weight: bold; margin: 0; }
 
     /* ── Karte ── */
+    /* Rahmen und Fläche der Aufgabe kommen aus aufgaben.css (.task). */
     #taskWrap {
-      position: relative; width: 100%; height: 200px; margin-top: 8px;
-      border: 1px solid #eee; border-radius: 14px; z-index: 1;
-      display: flex; justify-content: center; align-items: center; background-color: #fafafa;
+      position: relative; width: 100%; height: 200px; margin-top: 8px; z-index: 1;
+      box-sizing: border-box;
+      display: flex; justify-content: center; align-items: center;
     }
     #taskCard { position: relative; text-align: center; border-radius: 15px; width: calc(100% - 40px); max-width: 400px; height: 90%; z-index: 2; box-sizing: border-box; }
     .card-face {
@@ -200,8 +252,9 @@
 
     /* ── Eingabe ── */
     #inputArea { display: flex; flex-direction: column; align-items: center; gap: 10px; margin: 16px 0 0 0; width: 100%; }
+    #inputMethod { display: flex; justify-content: center; min-width: 0; }
     #answerInput {
-      width: min(320px, 90vw); padding: 9px 12px; font-size: 1.1em; border: 2px solid #ccc;
+      width: 100%; max-width: 320px; padding: 9px 12px; font-size: 1.1em; border: 2px solid #ccc;
       border-radius: 8px; text-align: center; outline: none; transition: border-color 0.2s, background 0.2s;
     }
     #answerInput:focus { border-color: var(--green); }
@@ -209,14 +262,8 @@
     #answerInput.wrong   { border-color: #dc3545; background: #f8d7da; color: #721c24; }
     #answerInput:disabled { background: #f4f4f4; color: #999; }
 
-    #checkBtn {
-      padding: 8px 22px; font-size: 0.92em; border-radius: 6px; border: 2px solid var(--green);
-      background: var(--green-l); color: #1b5e20; cursor: pointer; font-weight: bold;
-      transition: background 0.15s, border-color 0.15s; letter-spacing: 0.02em; touch-action: manipulation;
-    }
-    #checkBtn:hover { background: #c8e6c9; border-color: var(--green-d); }
-    #checkBtn:active { transform: scale(.97); }
-    #checkBtn:disabled { opacity: .5; cursor: default; }
+    /* „Prüfen" und „Lösung anzeigen" kommen aus aufgaben.css. */
+    #checkBtn:disabled, #revealBtn:disabled { opacity: .5; cursor: default; }
 
     #answerHint {
       font-size: 0.9em; color: #721c24; background: #f8d7da; border: 1px solid #dc3545;
@@ -238,8 +285,11 @@
     }
     .act-btn:active { transform: scale(.96); }
     .act-btn:disabled { opacity: .45; cursor: default; }
-    .act-btn.hint   { border-color: var(--amber); background: var(--amber-l); color: var(--amber-d); }
-    .act-btn.reveal { border-color: var(--blue);  background: var(--blue-l);  color: var(--blue-d); }
+    /* Hilfestellungen sind überall gelb. */
+    .act-btn.hint {
+      border: none; border-radius: 22px; padding: 9px 18px; font-size: 1em;
+      background: var(--ab-ge-knopf, #E0A800); color: var(--ab-ge-schrift, #3a2c00); font-weight: bold;
+    }
 
     /* ── Hinweis-Karten ── */
     #hintArea { margin: 6px auto 0; max-width: min(480px, 94vw); display: flex; flex-direction: column; gap: 9px; width: 100%; }
@@ -343,89 +393,159 @@
     .shape-legend-row { display: flex; align-items: center; gap: 6px; margin: 3px 0; }
     .shape-legend .sw { width: 14px; height: 14px; border: 1px solid #2e7d32; border-radius: 3px; display: inline-block; flex: 0 0 auto; }
     .shape-legend .tag { color: #777; font-size: 0.8rem; }
+    /* ══════════════════════════════════════════════════════════════
+       Dunkelmodus – nur Zusaetze, der Hellmodus oben bleibt unveraendert.
+       Die Seite arbeitet mit CSS-Variablen; die meisten Farben ergeben
+       sich daher schon aus dem neuen :root-Satz.
+       ══════════════════════════════════════════════════════════════ */
+    html.dark {
+      --green:#4CAF50; --green-d:#66bb6a; --green-dd:#a5d6a7; --green-l:#23372a;
+      --ink:#e7eae8; --muted:#9aa5b1; --blue:#5b9bd5; --blue-l:#1d2c3a; --blue-d:#8fc3ef;
+      --amber:#c8912f; --amber-l:#2f2617; --amber-d:#f0c674;
+    }
+    html.dark body { background:#14181c; color:#e7eae8; }
+    html.dark details { border-color:#3a434b; }
+    html.dark .form-block { border-color:#3a434b; }
+    html.dark .site-footer { border-top-color:#3a434b; color:#9aa5a0d8; }
+    html.dark #toast { background:#2e3840; color:#e7eae8; }
+
+    html.dark .liter-chip {
+      background:#232a32; color:#dfe4e8; border-color:#4a545e; }
+        html.dark .liter-chip.on { background:var(--blue); color:#fff; }
+    html.dark .opt-row.sub::before, html.dark .opt-tag, html.dark .hint-note { color:#8b959e; }
+    html.dark .dim-hint-text { color:#8b959e; }
+    html.dark .unit-menu { background:#1e2429; border-color:#4a545e; color:#e7eae8; }
+    html.dark .unit-menu .um-row { background:#232a32; color:#dfe4e8; border-color:#4a545e; }
+    /* Die gewählten Einheiten bleiben auch im Dunkeln hinterlegt - sonst
+       überdeckt die Regel darüber ihre Farbe. */
+    html.dark .unit-menu .um-row.on { background:#2e7d32; border-color:#4caf50; color:#fff; }
+    html.dark .unit-menu .um-r { border-color:#5a8fd0; color:#9ecbf0; }
+    html.dark .unit-menu .um-r.on { background:#2a5b96; border-color:#5a8fd0; color:#fff; }
+
+    html.dark .card-face { background:#1b2126; border-color:#4a545e; color:#e7eae8; }
+    html.dark #taskLabel { color:#ef5350; }
+    html.dark #answerInput { background:#1e2429; color:#e7eae8; border-color:#4a545e; }
+    html.dark #answerInput::placeholder { color:#7c8792; }
+    html.dark #answerInput.correct { border-color:#4caf50; background:#1e3b26; color:#b8e6c4; }
+    html.dark #answerInput.wrong   { border-color:#a04a52; background:#3b1f22; color:#f3b5ba; }
+    html.dark #answerInput:disabled { background:#232a32; color:#8b959e; }
+    html.dark #answerHint { background:#3b1f22; border-color:#a04a52; color:#f3b5ba; }
+    html.dark .act-btn { background:#242b31; color:#dfe4e8; border-color:#4a545e; }
+    /* Der Hinweisknopf bleibt auch im Dunkelmodus gelb mit dunkler Schrift. */
+    html.dark .act-btn.hint { background:var(--ab-ge-knopf, #E0A800); color:var(--ab-ge-schrift, #3a2c00); border:none; }
+
+    html.dark .hint-card { background:#221d12; border-color:#4a3f22; }
+    html.dark .hint-card.collapsed { background:#1e1a11; }
+    html.dark .hint-text { color:#b0b8bf; }
+    html.dark .hint-seq .u { background:#2a3138; color:#dfe4e8; }
+    html.dark .hint-seq .u.from { background:#1d3350; color:#cfe4ff; }
+    html.dark .hint-seq .u.to   { background:#1e3b26; color:#c8f0c8; }
+    html.dark .hint-seq .u.ghost{ background:#1e2429; color:#6b7580; border-color:#3a434b; }
+    html.dark .hint-seq .arrow  { color:#6b7580; }
+    html.dark .quiz-btn { background:#242b31; color:#dfe4e8; border-color:#4a545e; }
+    html.dark .quiz-btn.correct { border-color:#4caf50; background:#1e3b26; color:#b8e6c4; }
+    html.dark .quiz-btn.wrong   { border-color:#a04a52; background:#3b1f22; color:#f3b5ba; }
+
+    html.dark .navbtn { background:#242b31; color:#dfe4e8; border-color:#4a545e; }
+    html.dark .rail, html.dark .tick { background:#6b7580; }
+    html.dark .tick.start { background:#b0b8bf; }
+    html.dark .tracklbl { color:#b0b8bf; }
+    html.dark .inputrow input[type=text], html.dark .inputrow select {
+      background:#232a32; color:#e7eae8; border-color:#4a545e; }
+    html.dark .panel { background:#1e2429; border-color:#3a434b; }
+    html.dark .panel h3 { color:#9aa5b1; }
+    html.dark .panel .muted { color:#9aa5b1; }
+    html.dark .unitname.rare, html.dark .k-note { color:#e0a878; }
+    html.dark .digit { color:#e7eae8; }
   </style>
 </head>
-<body>
+<body class="tk-seite">
   <div id="flashOverlay"></div>
   <div id="toast"></div>
 
+  <!-- Das Kopfband steht außerhalb von #app, damit es bis zum Fensterrand läuft. -->
+  <header class="tool-kopf">
+    <div class="tk-text">
+      <h1 data-de="Größen umrechnen" data-en="Converting Units">Größen umrechnen</h1>
+      <p class="tk-unter" data-de="Übe das Umrechnen von Größen in verschiedenen Einheiten." data-en="Practise converting quantities between different units.">Übe das Umrechnen von Größen in verschiedenen Einheiten.</p>
+    </div>
+  </header>
+
   <div id="app">
 
-  <h1>Größen umrechnen</h1>
-
   <div class="seg-block" style="margin-top:6px;">
-    <div class="segmented" id="modeSeg">
-      <label><input type="radio" name="mode" value="training" checked> Training</label>
-      <label><input type="radio" name="mode" value="explore"> Erkundung</label>
+    <div class="seg" id="modeSeg">
+      <label><input type="radio" name="mode" value="explore"> <span data-de="Erkundung" data-en="Exploration">Erkundung</span></label>
+      <label><input type="radio" name="mode" value="training" checked> <span data-de="Training" data-en="Practice">Training</span></label>
     </div>
   </div>
 
   <div id="trainingView">
 
-  <details>
-    <summary>Einstellungen</summary>
-    <form id="settingsForm">
+  <details class="einst" id="settingsBox">
+    <summary data-de="Einstellungen" data-en="Settings">Einstellungen</summary>
+    <form id="settingsForm" class="settings-grid">
 
       <div class="form-block">
         <div class="unit-section">
           <div class="unit-section-head">
-            Längenmaße
-            <button type="button" class="link-btn" onclick="toggleGroup('length')">alle&nbsp;an/aus</button>
+            <span data-de="Längenmaße" data-en="Length units">Längenmaße</span>
+            <button type="button" class="link-btn" onclick="toggleGroup('length')" data-de="alle&nbsp;an/aus" data-en="all&nbsp;on/off">alle&nbsp;an/aus</button>
           </div>
           <div id="length" class="unit-grid"></div>
         </div>
 
         <div class="unit-section">
           <div class="unit-section-head">
-            Flächenmaße
-            <button type="button" class="link-btn" onclick="toggleGroup('area')">alle&nbsp;an/aus</button>
+            <span data-de="Flächenmaße" data-en="Area units">Flächenmaße</span>
+            <button type="button" class="link-btn" onclick="toggleGroup('area')" data-de="alle&nbsp;an/aus" data-en="all&nbsp;on/off">alle&nbsp;an/aus</button>
           </div>
           <div id="area" class="unit-grid"></div>
         </div>
 
         <div class="unit-section" style="margin-bottom:2px;">
           <div class="unit-section-head">
-            Raummaße
-            <button type="button" class="link-btn" onclick="toggleGroup('volume')">alle&nbsp;an/aus</button>
-            <button type="button" class="link-btn liter" onclick="toggleLiters()">Liter&nbsp;an/aus</button>
+            <span data-de="Raummaße" data-en="Volume units">Raummaße</span>
+            <button type="button" class="link-btn" onclick="toggleGroup('volume')" data-de="alle&nbsp;an/aus" data-en="all&nbsp;on/off">alle&nbsp;an/aus</button>
+            <button type="button" class="link-btn liter" onclick="toggleLiters()" data-de="Liter&nbsp;an/aus" data-en="litres&nbsp;on/off">Liter&nbsp;an/aus</button>
           </div>
           <div id="volume" class="unit-grid"></div>
         </div>
       </div>
 
       <div class="form-block">
-        <span class="block-label">Aufgabentypen (Zahlen):</span>
+        <span class="block-label" data-de="Aufgabentypen (Zahlen):" data-en="Task types (numbers):">Aufgabentypen (Zahlen):</span>
         <div class="opt-list">
-          <label class="opt-row"><input type="checkbox" id="numInt" checked> Ganze Zahlen</label>
-          <label class="opt-row sub" id="rowIntBoth"><input type="checkbox" id="numIntBoth"> Ergebnis &amp; Lösung ganzzahlig <span class="opt-tag" id="intBothTag"></span></label>
-          <div class="hint-note">Spezialfall von „Ganze Zahlen" – wenn aktiv, wird er immer genutzt.</div>
-          <label class="opt-row"><input type="checkbox" id="numKomma"> Kommazahlen</label>
-          <label class="opt-row dis"><input type="checkbox" disabled> Brüche <span class="opt-tag">in Entwicklung</span></label>
-          <label class="opt-row dis"><input type="checkbox" disabled> Wissenschaftl. Schreibweise <span class="opt-tag">in Entwicklung</span></label>
+          <label class="opt-row"><input type="checkbox" id="numInt" checked> <span data-de="Ganze Zahlen" data-en="Whole numbers">Ganze Zahlen</span></label>
+          <label class="opt-row sub" id="rowIntBoth"><input type="checkbox" id="numIntBoth"> <span data-de="Ergebnis &amp; Lösung ganzzahlig" data-en="Result &amp; answer whole">Ergebnis &amp; Lösung ganzzahlig</span> <span class="opt-tag" id="intBothTag"></span></label>
+          <div class="hint-note" data-de="Spezialfall von „Ganze Zahlen&quot; – wenn aktiv, wird er immer genutzt." data-en="A special case of “whole numbers” – when it is on, it is always used.">Spezialfall von „Ganze Zahlen" – wenn aktiv, wird er immer genutzt.</div>
+          <label class="opt-row"><input type="checkbox" id="numKomma"> <span data-de="Kommazahlen" data-en="Decimal numbers">Kommazahlen</span></label>
+          <label class="opt-row dis"><input type="checkbox" disabled> <span data-de="Brüche" data-en="Fractions">Brüche</span> <span class="opt-tag" data-de="in Entwicklung" data-en="in development">in Entwicklung</span></label>
+          <label class="opt-row dis"><input type="checkbox" disabled> <span data-de="Wissenschaftl. Schreibweise" data-en="Scientific notation">Wissenschaftl. Schreibweise</span> <span class="opt-tag" data-de="in Entwicklung" data-en="in development">in Entwicklung</span></label>
         </div>
       </div>
 
       <div class="form-block">
-        <span class="block-label">Hinweise (welche anzeigen?):</span>
+        <span class="block-label" data-de="Hinweise (welche anzeigen?):" data-en="Hints (which to show?):">Hinweise (welche anzeigen?):</span>
         <div class="opt-list">
-          <label class="opt-row"><input type="checkbox" class="hintEnable" data-hint="0" checked> 1 &middot; Reihenfolge &amp; Stufen</label>
-          <label class="opt-row"><input type="checkbox" class="hintEnable" data-hint="1" checked> 2 &middot; Umrechnungszahl pro Stufe</label>
-          <label class="opt-row"><input type="checkbox" class="hintEnable" data-hint="2" checked> 3 &middot; Mal oder geteilt</label>
-          <label class="opt-row"><input type="checkbox" class="hintEnable" data-hint="3" checked> 4 &middot; Zusammenfassung</label>
+          <label class="opt-row"><input type="checkbox" class="hintEnable" data-hint="0" checked> <span data-de="1 &middot; Reihenfolge &amp; Stufen" data-en="1 &middot; order &amp; steps">1 &middot; Reihenfolge &amp; Stufen</span></label>
+          <label class="opt-row"><input type="checkbox" class="hintEnable" data-hint="1" checked> <span data-de="2 &middot; Umrechnungszahl pro Stufe" data-en="2 &middot; conversion factor per step">2 &middot; Umrechnungszahl pro Stufe</span></label>
+          <label class="opt-row"><input type="checkbox" class="hintEnable" data-hint="2" checked> <span data-de="3 &middot; Mal oder geteilt" data-en="3 &middot; times or divided">3 &middot; Mal oder geteilt</span></label>
+          <label class="opt-row"><input type="checkbox" class="hintEnable" data-hint="3" checked> <span data-de="4 &middot; Zusammenfassung" data-en="4 &middot; summary">4 &middot; Zusammenfassung</span></label>
         </div>
       </div>
 
       <div class="form-block">
-        <span class="block-label">Rückmeldung bei falscher Antwort:</span>
+        <span class="block-label" data-de="Rückmeldung bei falscher Antwort:" data-en="Feedback on a wrong answer:">Rückmeldung bei falscher Antwort:</span>
         <div class="opt-list">
-          <label class="opt-row"><input type="checkbox" id="errHints" checked> Passende Hinweise zu typischen Fehlern anzeigen (statt nur „Falsch")</label>
+          <label class="opt-row"><input type="checkbox" id="errHints" checked> <span data-de="Passende Hinweise zu typischen Fehlern anzeigen (statt nur „Falsch&quot;)" data-en="Show matching hints for typical mistakes (instead of just “wrong”)">Passende Hinweise zu typischen Fehlern anzeigen (statt nur „Falsch")</span></label>
         </div>
       </div>
 
       <div class="form-block">
-        <span class="block-label">Erweiterte Aufgaben:</span>
+        <span class="block-label" data-de="Erweiterte Aufgaben:" data-en="Advanced tasks:">Erweiterte Aufgaben:</span>
         <div class="opt-list">
-          <label class="opt-row dis"><input type="checkbox" disabled> Aufgaben verrechnen (z.B. 3&nbsp;m + 22&nbsp;cm) <span class="opt-tag">in Entwicklung</span></label>
+          <label class="opt-row dis"><input type="checkbox" disabled> <span data-de="Aufgaben verrechnen (z.B. 3&nbsp;m + 22&nbsp;cm)" data-en="Combine quantities (e.g. 3&nbsp;m + 22&nbsp;cm)">Aufgaben verrechnen (z.B. 3&nbsp;m + 22&nbsp;cm)</span> <span class="opt-tag" data-de="in Entwicklung" data-en="in development">in Entwicklung</span></label>
         </div>
       </div>
 
@@ -434,140 +554,159 @@
 
   <div id="quickControls">
     <div id="dimToggles">
-      <div class="dim-box on" data-cat="length"><div class="dim-name">Längen</div><div class="dim-sub">m</div></div>
-      <div class="dim-box on" data-cat="area"><div class="dim-name">Flächen</div><div class="dim-sub">m&sup2;</div></div>
-      <div class="dim-box on" data-cat="volume"><div class="dim-name">Raummaße</div><div class="dim-sub">m&sup3;</div></div>
+      <div class="dim-box on" data-cat="length"><div class="dim-name" data-de="Längenmaße" data-en="Length units">Längenmaße</div><div class="dim-bild"><svg viewBox="0 0 100 70" aria-hidden="true"><line x1="6" y1="35" x2="94" y2="35" stroke="currentColor" stroke-width="3"/><line x1="6" y1="27" x2="6" y2="43" stroke="currentColor" stroke-width="2"/><line x1="14.8" y1="27" x2="14.8" y2="43" stroke="currentColor" stroke-width="2"/><line x1="23.6" y1="27" x2="23.6" y2="43" stroke="currentColor" stroke-width="2"/><line x1="32.4" y1="27" x2="32.4" y2="43" stroke="currentColor" stroke-width="2"/><line x1="41.2" y1="27" x2="41.2" y2="43" stroke="currentColor" stroke-width="2"/><line x1="50" y1="27" x2="50" y2="43" stroke="currentColor" stroke-width="2"/><line x1="58.8" y1="27" x2="58.8" y2="43" stroke="currentColor" stroke-width="2"/><line x1="67.6" y1="27" x2="67.6" y2="43" stroke="currentColor" stroke-width="2"/><line x1="76.4" y1="27" x2="76.4" y2="43" stroke="currentColor" stroke-width="2"/><line x1="85.2" y1="27" x2="85.2" y2="43" stroke="currentColor" stroke-width="2"/><line x1="94" y1="27" x2="94" y2="43" stroke="currentColor" stroke-width="2"/></svg></div></div>
+      <div class="dim-box on" data-cat="area"><div class="dim-name" data-de="Flächenmaße" data-en="Area units">Flächenmaße</div><div class="dim-bild"><svg viewBox="0 0 100 70" aria-hidden="true"><rect x="26" y="11" width="48" height="48" fill="none" stroke="currentColor" stroke-width="2.5"/><line x1="26.0" y1="11" x2="26.0" y2="59" stroke="currentColor" stroke-width="1"/><line x1="30.8" y1="11" x2="30.8" y2="59" stroke="currentColor" stroke-width="1"/><line x1="35.6" y1="11" x2="35.6" y2="59" stroke="currentColor" stroke-width="1"/><line x1="40.4" y1="11" x2="40.4" y2="59" stroke="currentColor" stroke-width="1"/><line x1="45.2" y1="11" x2="45.2" y2="59" stroke="currentColor" stroke-width="1"/><line x1="50.0" y1="11" x2="50.0" y2="59" stroke="currentColor" stroke-width="1"/><line x1="54.8" y1="11" x2="54.8" y2="59" stroke="currentColor" stroke-width="1"/><line x1="59.6" y1="11" x2="59.6" y2="59" stroke="currentColor" stroke-width="1"/><line x1="64.4" y1="11" x2="64.4" y2="59" stroke="currentColor" stroke-width="1"/><line x1="69.2" y1="11" x2="69.2" y2="59" stroke="currentColor" stroke-width="1"/><line x1="74.0" y1="11" x2="74.0" y2="59" stroke="currentColor" stroke-width="1"/><line x1="26.0" y1="11" x2="74.0" y2="11" stroke="currentColor" stroke-width="1"/><line x1="26.0" y1="15.8" x2="74.0" y2="15.8" stroke="currentColor" stroke-width="1"/><line x1="26.0" y1="20.6" x2="74.0" y2="20.6" stroke="currentColor" stroke-width="1"/><line x1="26.0" y1="25.4" x2="74.0" y2="25.4" stroke="currentColor" stroke-width="1"/><line x1="26.0" y1="30.2" x2="74.0" y2="30.2" stroke="currentColor" stroke-width="1"/><line x1="26.0" y1="35" x2="74.0" y2="35" stroke="currentColor" stroke-width="1"/><line x1="26.0" y1="39.8" x2="74.0" y2="39.8" stroke="currentColor" stroke-width="1"/><line x1="26.0" y1="44.6" x2="74.0" y2="44.6" stroke="currentColor" stroke-width="1"/><line x1="26.0" y1="49.4" x2="74.0" y2="49.4" stroke="currentColor" stroke-width="1"/><line x1="26.0" y1="54.2" x2="74.0" y2="54.2" stroke="currentColor" stroke-width="1"/><line x1="26.0" y1="59" x2="74.0" y2="59" stroke="currentColor" stroke-width="1"/></svg></div></div>
+      <div class="dim-box on" data-cat="volume"><div class="dim-name" data-de="Raummaße" data-en="Volume units">Raummaße</div><div class="dim-bild"><svg viewBox="0 0 100 70" aria-hidden="true"><rect x="20" y="20" width="42" height="42" fill="none" stroke="currentColor" stroke-width="2.5"/><line x1="20.0" y1="20.0" x2="20.0" y2="62.0" stroke="currentColor" stroke-width="1"/><line x1="24.2" y1="20.0" x2="24.2" y2="62.0" stroke="currentColor" stroke-width="1"/><line x1="28.4" y1="20.0" x2="28.4" y2="62.0" stroke="currentColor" stroke-width="1"/><line x1="32.6" y1="20.0" x2="32.6" y2="62.0" stroke="currentColor" stroke-width="1"/><line x1="36.8" y1="20.0" x2="36.8" y2="62.0" stroke="currentColor" stroke-width="1"/><line x1="41.0" y1="20.0" x2="41.0" y2="62.0" stroke="currentColor" stroke-width="1"/><line x1="45.2" y1="20.0" x2="45.2" y2="62.0" stroke="currentColor" stroke-width="1"/><line x1="49.4" y1="20.0" x2="49.4" y2="62.0" stroke="currentColor" stroke-width="1"/><line x1="53.6" y1="20.0" x2="53.6" y2="62.0" stroke="currentColor" stroke-width="1"/><line x1="57.8" y1="20.0" x2="57.8" y2="62.0" stroke="currentColor" stroke-width="1"/><line x1="62.0" y1="20.0" x2="62.0" y2="62.0" stroke="currentColor" stroke-width="1"/><line x1="20.0" y1="20.0" x2="62.0" y2="20.0" stroke="currentColor" stroke-width="1"/><line x1="20.0" y1="24.2" x2="62.0" y2="24.2" stroke="currentColor" stroke-width="1"/><line x1="20.0" y1="28.4" x2="62.0" y2="28.4" stroke="currentColor" stroke-width="1"/><line x1="20.0" y1="32.6" x2="62.0" y2="32.6" stroke="currentColor" stroke-width="1"/><line x1="20.0" y1="36.8" x2="62.0" y2="36.8" stroke="currentColor" stroke-width="1"/><line x1="20.0" y1="41.0" x2="62.0" y2="41.0" stroke="currentColor" stroke-width="1"/><line x1="20.0" y1="45.2" x2="62.0" y2="45.2" stroke="currentColor" stroke-width="1"/><line x1="20.0" y1="49.4" x2="62.0" y2="49.4" stroke="currentColor" stroke-width="1"/><line x1="20.0" y1="53.6" x2="62.0" y2="53.6" stroke="currentColor" stroke-width="1"/><line x1="20.0" y1="57.8" x2="62.0" y2="57.8" stroke="currentColor" stroke-width="1"/><line x1="20.0" y1="62.0" x2="62.0" y2="62.0" stroke="currentColor" stroke-width="1"/><path d="M20 20 L34 11 L76 11 L62 20 Z" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/><line x1="24.2" y1="20.0" x2="38.2" y2="11.0" stroke="currentColor" stroke-width="1"/><line x1="21.4" y1="19.1" x2="63.4" y2="19.1" stroke="currentColor" stroke-width="1"/><line x1="28.4" y1="20.0" x2="42.4" y2="11.0" stroke="currentColor" stroke-width="1"/><line x1="22.8" y1="18.2" x2="64.8" y2="18.2" stroke="currentColor" stroke-width="1"/><line x1="32.6" y1="20.0" x2="46.6" y2="11.0" stroke="currentColor" stroke-width="1"/><line x1="24.2" y1="17.3" x2="66.2" y2="17.3" stroke="currentColor" stroke-width="1"/><line x1="36.8" y1="20.0" x2="50.8" y2="11.0" stroke="currentColor" stroke-width="1"/><line x1="25.6" y1="16.4" x2="67.6" y2="16.4" stroke="currentColor" stroke-width="1"/><line x1="41.0" y1="20.0" x2="55.0" y2="11.0" stroke="currentColor" stroke-width="1"/><line x1="27.0" y1="15.5" x2="69.0" y2="15.5" stroke="currentColor" stroke-width="1"/><line x1="45.2" y1="20.0" x2="59.2" y2="11.0" stroke="currentColor" stroke-width="1"/><line x1="28.4" y1="14.6" x2="70.4" y2="14.6" stroke="currentColor" stroke-width="1"/><line x1="49.4" y1="20.0" x2="63.4" y2="11.0" stroke="currentColor" stroke-width="1"/><line x1="29.8" y1="13.7" x2="71.8" y2="13.7" stroke="currentColor" stroke-width="1"/><line x1="53.6" y1="20.0" x2="67.6" y2="11.0" stroke="currentColor" stroke-width="1"/><line x1="31.2" y1="12.8" x2="73.2" y2="12.8" stroke="currentColor" stroke-width="1"/><line x1="57.8" y1="20.0" x2="71.8" y2="11.0" stroke="currentColor" stroke-width="1"/><line x1="32.6" y1="11.9" x2="74.6" y2="11.9" stroke="currentColor" stroke-width="1"/><path d="M62 20 L76 11 L76 53 L62 62 Z" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/><line x1="63.4" y1="19.1" x2="63.4" y2="61.1" stroke="currentColor" stroke-width="1"/><line x1="62.0" y1="24.2" x2="76.0" y2="15.2" stroke="currentColor" stroke-width="1"/><line x1="64.8" y1="18.2" x2="64.8" y2="60.2" stroke="currentColor" stroke-width="1"/><line x1="62.0" y1="28.4" x2="76.0" y2="19.4" stroke="currentColor" stroke-width="1"/><line x1="66.2" y1="17.3" x2="66.2" y2="59.3" stroke="currentColor" stroke-width="1"/><line x1="62.0" y1="32.6" x2="76.0" y2="23.6" stroke="currentColor" stroke-width="1"/><line x1="67.6" y1="16.4" x2="67.6" y2="58.4" stroke="currentColor" stroke-width="1"/><line x1="62.0" y1="36.8" x2="76.0" y2="27.8" stroke="currentColor" stroke-width="1"/><line x1="69.0" y1="15.5" x2="69.0" y2="57.5" stroke="currentColor" stroke-width="1"/><line x1="62.0" y1="41.0" x2="76.0" y2="32.0" stroke="currentColor" stroke-width="1"/><line x1="70.4" y1="14.6" x2="70.4" y2="56.6" stroke="currentColor" stroke-width="1"/><line x1="62.0" y1="45.2" x2="76.0" y2="36.2" stroke="currentColor" stroke-width="1"/><line x1="71.8" y1="13.7" x2="71.8" y2="55.7" stroke="currentColor" stroke-width="1"/><line x1="62.0" y1="49.4" x2="76.0" y2="40.4" stroke="currentColor" stroke-width="1"/><line x1="73.2" y1="12.8" x2="73.2" y2="54.8" stroke="currentColor" stroke-width="1"/><line x1="62.0" y1="53.6" x2="76.0" y2="44.6" stroke="currentColor" stroke-width="1"/><line x1="74.6" y1="11.9" x2="74.6" y2="53.9" stroke="currentColor" stroke-width="1"/><line x1="62.0" y1="57.8" x2="76.0" y2="48.8" stroke="currentColor" stroke-width="1"/></svg></div></div>
     </div>
-    <div class="dim-hint-text">Tippen: an&nbsp;/&nbsp;aus &nbsp;&middot;&nbsp; gedrückt halten: einzelne Einheiten wählen</div>
+    <div class="dim-hint-text" data-de="Tippen: an&nbsp;/&nbsp;aus &nbsp;&middot;&nbsp; gedrückt halten: einzelne Einheiten wählen" data-en="Tap: on&nbsp;/&nbsp;off &nbsp;&middot;&nbsp; press and hold: choose individual units">Tippen: an&nbsp;/&nbsp;aus &nbsp;&middot;&nbsp; gedrückt halten: einzelne Einheiten wählen</div>
 
-    <div class="seg-block">
-      <span class="seg-label">Schrittweite</span>
-      <div class="segmented" id="stepSeg">
-        <label><input type="radio" name="stepMode" value="adjacent"> Nur benachbarte</label>
-        <label><input type="radio" name="stepMode" value="skip" checked> Auch Einheiten überspringen</label>
+    <div id="topControls">
+      <div class="tc-row tc-breit">
+        <div class="tc-item tc-mitte">
+          <span class="tc-label" data-de="Schrittweite" data-en="Step size">Schrittweite</span>
+          <div class="seg" id="stepSeg">
+            <label><input type="radio" name="stepMode" value="adjacent"><span data-de="Benachbart" data-en="Adjacent">Benachbart</span></label>
+            <label><input type="radio" name="stepMode" value="random" checked><span data-de="Zufällig" data-en="Random">Zufällig</span></label>
+            <label><input type="radio" name="stepMode" value="skip"><span data-de="Einheiten überspringen" data-en="Skip units">Einheiten überspringen</span></label>
+          </div>
+        </div>
+        <div class="tc-item tc-mitte">
+          <span class="tc-label" data-de="Umrechnungsrichtung" data-en="Direction">Umrechnungsrichtung</span>
+          <div class="seg" id="dirSeg">
+            <label><input type="radio" name="dirMode" value="up"><span data-de="Klein&nbsp;→&nbsp;Groß" data-en="Small&nbsp;→&nbsp;large">Klein&nbsp;→&nbsp;Groß</span></label>
+            <label><input type="radio" name="dirMode" value="random" checked><span data-de="Zufällig" data-en="Random">Zufällig</span></label>
+            <label><input type="radio" name="dirMode" value="down"><span data-de="Groß&nbsp;→&nbsp;Klein" data-en="Large&nbsp;→&nbsp;small">Groß&nbsp;→&nbsp;Klein</span></label>
+          </div>
+        </div>
       </div>
-    </div>
-
-    <div class="seg-block">
-      <span class="seg-label">Umrechnungsrichtung</span>
-      <div class="segmented" id="dirSeg">
-        <label><input type="radio" name="dirMode" value="up"> Klein&nbsp;→&nbsp;Groß</label>
-        <label><input type="radio" name="dirMode" value="random" checked> Zufällig</label>
-        <label><input type="radio" name="dirMode" value="down"> Groß&nbsp;→&nbsp;Klein</label>
+      <div class="tc-item tc-diff tc-mitte">
+        <span class="tc-label" data-de="Schwierigkeit" data-en="Difficulty">Schwierigkeit</span>
+        <div class="seg-switch diff-switch" id="segDiff">
+          <input type="radio" name="diff" id="diffEinf" value="einf"><label for="diffEinf" data-de="Einführung" data-en="Introduction">Einführung</label>
+          <input type="radio" name="diff" id="diffLeicht" value="leicht"><label for="diffLeicht" data-de="Leicht" data-en="Easy">Leicht</label>
+          <input type="radio" name="diff" id="diffNormal" value="normal" checked><label for="diffNormal" data-de="Normal" data-en="Normal">Normal</label>
+          <input type="radio" name="diff" id="diffSchwer" value="schwer"><label for="diffSchwer" data-de="Herausfordernd" data-en="Challenging">Herausfordernd</label>
+          <input type="radio" name="diff" id="diffIndiv" value="indiv"><label for="diffIndiv" data-de="Individuell" data-en="Custom" data-de-title="öffnet die Einstellungen" data-en-title="opens the settings" title="öffnet die Einstellungen">Individuell</label>
+          <span class="seg-glider"></span>
+        </div>
       </div>
     </div>
   </div>
 
-  <div id="topRow">
-    <button type="button" class="act-btn" id="newTaskBtn">Neue Aufgabe</button>
-    <span id="counter">Richtig: 0 / 0</span>
+  <div id="genRow">
+    <button type="button" id="newTaskBtn" data-de='<span class="auto-kreis">&#x27F3;</span>&nbsp;Neue Aufgabe generieren' data-en='<span class="auto-kreis">&#x27F3;</span>&nbsp;Generate a new task'><span class="auto-kreis">&#x27F3;</span>&nbsp;Neue Aufgabe generieren</button>
+    <span class="punkte rechts"><button id="btnPunkteReset" type="button" title="Punktzahl zurücksetzen" data-de-title="Punktzahl zurücksetzen" data-en-title="Reset the score">↺</button><span id="counter">Richtig: 0 / 0</span></span>
   </div>
 
   <p id="taskLabel"></p>
 
-  <div id="taskWrap">
+  <div class="task" id="taskWrap">
     <div id="taskCard">
       <div class="card-face" id="faceFront">
         <div class="scale-wrapper"><div id="taskText" class="scale-el"></div></div>
-        <div class="card-sub" id="taskSub">Gib die umgerechnete Zahl ein.</div>
+        <div class="card-sub" id="taskSub" data-de="Gib die umgerechnete Zahl ein." data-en="Enter the converted number.">Gib die umgerechnete Zahl ein.</div>
       </div>
     </div>
   </div>
 
-  <div class="seg-block" style="margin-top:14px;">
-    <span class="seg-label">Antwort</span>
-    <div class="segmented" id="answerModeSeg">
-      <label><input type="radio" name="answerMode" value="input" checked> Lösung eingeben</label>
-      <label><input type="radio" name="answerMode" value="comma"> Komma verschieben</label>
+  <div class="antwort-zeile">
+    <span class="az-name" data-de="Antwort" data-en="Answer">Antwort</span>
+    <div class="seg klein" id="answerModeSeg">
+      <label><input type="radio" name="answerMode" value="input" checked><span data-de="Lösung eingeben" data-en="Type the answer">Lösung eingeben</span></label>
+      <label><input type="radio" name="answerMode" value="comma"><span data-de="Komma verschieben" data-en="Move the decimal point">Komma verschieben</span></label>
     </div>
   </div>
 
   <div id="inputArea">
-    <div id="inputMethod" style="width:100%; display:flex; justify-content:center;">
-      <input type="text" id="answerInput" inputmode="decimal" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Zahl eingeben...">
-    </div>
     <div id="commaMethod" class="hidden" style="width:100%;">
       <div class="stage">
-        <button class="navbtn" id="cs-left" type="button" aria-label="Komma nach links">◀</button>
+        <button class="navbtn" id="cs-left" type="button" aria-label="Komma nach links" data-de-aria-label="Komma nach links" data-en-aria-label="Move the decimal point left">◀</button>
         <div class="stripwrap fit-scale"><div class="stripbox" id="cs-stripbox"><div class="strip" id="cs-strip"></div></div></div>
-        <button class="navbtn" id="cs-right" type="button" aria-label="Komma nach rechts">▶</button>
+        <button class="navbtn" id="cs-right" type="button" aria-label="Komma nach rechts" data-de-aria-label="Komma nach rechts" data-en-aria-label="Move the decimal point right">▶</button>
       </div>
-      <p class="comma-hint">Ziehe das Komma an die richtige Stelle und prüfe dann.</p>
+      <p class="comma-hint" data-de="Ziehe das Komma an die richtige Stelle und prüfe dann." data-en="Drag the decimal point to the right place, then check.">Ziehe das Komma an die richtige Stelle und prüfe dann.</p>
+    </div>
+    <div class="pruef-zeile">
+      <div id="inputMethod">
+        <input type="text" id="answerInput" inputmode="decimal" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Zahl eingeben..." data-de-placeholder="Zahl eingeben..." data-en-placeholder="enter a number...">
+      </div>
+      <button id="checkBtn" class="pruef-knopf" data-de="✓&nbsp;Prüfen" data-en="✓&nbsp;Check">✓&nbsp;Prüfen</button>
     </div>
     <div id="solutionBox"></div>
-    <div id="answerHint">Falsch.</div>
-    <button id="checkBtn">Lösung überprüfen</button>
+    <div id="answerHint"></div>
     <div id="actionRow">
-      <button type="button" class="act-btn hint"   id="hintBtn">Hinweis</button>
-      <button type="button" class="act-btn reveal" id="revealBtn">Lösung anzeigen</button>
+      <button type="button" class="act-btn hint" id="hintBtn" data-de="💡&nbsp;Hinweis" data-en="💡&nbsp;Hint">💡&nbsp;Hinweis</button>
     </div>
+    <!-- Die Hinweiskarten stehen direkt unter dem Hinweisknopf - wie auf den
+         anderen Seiten, also noch vor „Lösung anzeigen". -->
     <div id="hintArea"></div>
+    <button type="button" id="revealBtn" class="btn-loesung" data-de="Lösung anzeigen" data-en="Show answer">Lösung anzeigen</button>
   </div>
 
   </div><!-- /trainingView -->
 
   <div id="exploreView" class="hidden">
     <details>
-      <summary>Anzeigeoptionen</summary>
+      <summary data-de="Anzeigeoptionen" data-en="Display options">Anzeigeoptionen</summary>
       <div class="opts">
         <div class="row">
-          <label class="chk"><input type="checkbox" id="ex-tr-units" checked> Einheiten unter der Zahl</label>
-          <label class="chk">Potenz unter der Zahl:
+          <label class="chk"><input type="checkbox" id="ex-tr-units" checked> <span data-de="Einheiten unter der Zahl" data-en="Units below the number">Einheiten unter der Zahl</span></label>
+          <label class="chk"><span data-de="Potenz unter der Zahl:" data-en="Power below the number:">Potenz unter der Zahl:</span>
             <select id="ex-tr-pow">
-              <option value="none" selected>nichts</option>
-              <option value="pow-op">·10ⁿ bzw. :10ⁿ</option>
-              <option value="pow-neg">·10⁻ⁿ (immer Mult.)</option>
-              <option value="val-op">·100 bzw. :100</option>
-              <option value="val-frac">·100 bzw. ·1/100</option>
+              <option value="none" selected data-de="nichts" data-en="none">nichts</option>
+              <option value="pow-op" data-de="·10ⁿ bzw. :10ⁿ" data-en="·10ⁿ or :10ⁿ">·10ⁿ bzw. :10ⁿ</option>
+              <option value="pow-neg" data-de="·10⁻ⁿ (immer Mult.)" data-en="·10⁻ⁿ (always mult.)">·10⁻ⁿ (immer Mult.)</option>
+              <option value="val-op" data-de="·100 bzw. :100" data-en="·100 or :100">·100 bzw. :100</option>
+              <option value="val-frac" data-de="·100 bzw. ·1/100" data-en="·100 or ·1/100">·100 bzw. ·1/100</option>
             </select>
           </label>
         </div>
         <div class="row" id="ex-hiderare-row" style="display:none;">
-          <label class="chk"><input type="checkbox" id="ex-hiderare"> dam / hm ausblenden</label>
+          <label class="chk"><input type="checkbox" id="ex-hiderare"> <span data-de="dam / hm ausblenden" data-en="hide dam / hm">dam / hm ausblenden</span></label>
         </div>
         <div class="row">
-          <label class="chk"><input type="checkbox" id="ex-t-stellen" checked> Panel: Verschiebung</label>
-          <label class="chk"><input type="checkbox" id="ex-t-pot" checked> Panel: Zehnerpotenz</label>
-          <label class="chk"><input type="checkbox" id="ex-t-unit" checked> Panel: Einheit</label>
+          <label class="chk"><input type="checkbox" id="ex-t-stellen" checked> <span data-de="Panel: Verschiebung" data-en="Panel: shift">Panel: Verschiebung</span></label>
+          <label class="chk"><input type="checkbox" id="ex-t-pot" checked> <span data-de="Panel: Zehnerpotenz" data-en="Panel: power of ten">Panel: Zehnerpotenz</span></label>
+          <label class="chk"><input type="checkbox" id="ex-t-unit" checked> <span data-de="Panel: Einheit" data-en="Panel: unit">Panel: Einheit</span></label>
         </div>
       </div>
     </details>
 
     <div class="seg-block">
-      <span class="seg-label">Dimension</span>
-      <div class="segmented" id="ex-dimSeg">
-        <label><input type="radio" name="exDim" value="1" checked> Länge</label>
-        <label><input type="radio" name="exDim" value="2"> Fläche</label>
-        <label><input type="radio" name="exDim" value="3"> Volumen</label>
+      <span class="seg-label" data-de="Dimension" data-en="Dimension">Dimension</span>
+      <div class="seg" id="ex-dimSeg">
+        <label><input type="radio" name="exDim" value="1" checked> <span data-de="Länge" data-en="Length">Länge</span></label>
+        <label><input type="radio" name="exDim" value="2"> <span data-de="Fläche" data-en="Area">Fläche</span></label>
+        <label><input type="radio" name="exDim" value="3"> <span data-de="Volumen" data-en="Volume">Volumen</span></label>
       </div>
       <p class="ex-dim-note" id="ex-dim-note"></p>
     </div>
 
-    <p class="ex-sub">Verschiebe das Komma – dieselbe Zahl, dargestellt in anderen Zehnerpotenzen bzw. Einheiten.</p>
+    <p class="ex-sub" data-de="Verschiebe das Komma – dieselbe Zahl, dargestellt in anderen Zehnerpotenzen bzw. Einheiten." data-en="Move the decimal point – the same number, shown with different powers of ten or units.">Verschiebe das Komma – dieselbe Zahl, dargestellt in anderen Zehnerpotenzen bzw. Einheiten.</p>
 
     <div class="inputrow">
-      <label for="ex-numin">Ausgangszahl</label>
+      <label for="ex-numin" data-de="Ausgangszahl" data-en="Starting number">Ausgangszahl</label>
       <input type="text" id="ex-numin" value="3,45" inputmode="decimal" autocomplete="off" spellcheck="false">
-      <select id="ex-baseunit" aria-label="Einheit der Ausgangszahl"></select>
+      <select id="ex-baseunit" aria-label="Einheit der Ausgangszahl" data-de-aria-label="Einheit der Ausgangszahl" data-en-aria-label="unit of the starting number"></select>
     </div>
     <div class="inputbtn">
-      <button type="button" class="act-btn" id="ex-reset">Komma zurücksetzen</button>
+      <button type="button" class="act-btn" id="ex-reset" data-de="Komma zurücksetzen" data-en="Reset the decimal point">Komma zurücksetzen</button>
     </div>
 
     <div class="stage">
-      <button class="navbtn" id="ex-left" type="button" aria-label="Komma nach links">◀</button>
+      <button class="navbtn" id="ex-left" type="button" aria-label="Komma nach links" data-de-aria-label="Komma nach links" data-en-aria-label="Move the decimal point left">◀</button>
       <div class="stripwrap fit-scale"><div class="stripbox" id="ex-stripbox"><div class="strip" id="ex-strip"></div></div></div>
-      <button class="navbtn" id="ex-right" type="button" aria-label="Komma nach rechts">▶</button>
+      <button class="navbtn" id="ex-right" type="button" aria-label="Komma nach rechts" data-de-aria-label="Komma nach rechts" data-en-aria-label="Move the decimal point right">▶</button>
     </div>
 
     <div class="panels">
-      <div class="panel" id="ex-p-stellen"><h3>Verschiebung</h3><div class="big" id="ex-stellen-txt">—</div></div>
-      <div class="panel" id="ex-p-pot"><h3>Als Zehnerpotenz</h3><div class="big eq pow" id="ex-pot-txt">—</div><div class="muted eq" id="ex-pot-plain"></div></div>
-      <div class="panel" id="ex-p-unit"><h3>Als Einheit</h3><div class="big eq" id="ex-unit-txt">—</div><div class="k-note hidden" id="ex-unit-note"></div></div>
+      <div class="panel" id="ex-p-stellen"><h3 data-de="Verschiebung" data-en="Shift">Verschiebung</h3><div class="big" id="ex-stellen-txt">—</div></div>
+      <div class="panel" id="ex-p-pot"><h3 data-de="Als Zehnerpotenz" data-en="As a power of ten">Als Zehnerpotenz</h3><div class="big eq pow" id="ex-pot-txt">—</div><div class="muted eq" id="ex-pot-plain"></div></div>
+      <div class="panel" id="ex-p-unit"><h3 data-de="Als Einheit" data-en="As a unit">Als Einheit</h3><div class="big eq" id="ex-unit-txt">—</div><div class="k-note hidden" id="ex-unit-note"></div></div>
     </div>
 
     <details id="ex-shape-details" style="margin-top:14px;">
-      <summary>Veranschaulichung</summary>
+      <summary data-de="Veranschaulichung" data-en="Illustration">Veranschaulichung</summary>
       <div style="padding:10px 12px;">
         <p class="ex-shape-cap" id="ex-shape-cap">—</p>
         <div id="ex-shape-host"></div>
@@ -581,15 +720,30 @@
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
 <script>
+// ================================================================
+// SPRACHE / THEME (theme-language.js; ohne die Datei bleibt alles deutsch)
+// ================================================================
+function T(de, en) { return (typeof tlText === 'function') ? tlText(de, en) : de; }
+function DUNKEL() {
+  if (typeof tlDunkel === 'function') return tlDunkel();
+  return document.documentElement.classList.contains('dark');
+}
+/* Zahlformat der aktuellen Sprache: 1.234,5 bzw. 1,234.5 */
+function LOCALE() {
+  return (typeof tlSprache === 'function' && tlSprache() === 'en') ? 'en-GB' : 'de-DE';
+}
 /* ── Helfer ── */
 function randInt(a, b) { return a + Math.floor(Math.random() * (b - a + 1)); }
 function unitLabel(id) { return id.replace('2', '²').replace('3', '³'); }
 function el(cls, html) { const d = document.createElement('div'); d.className = cls; if (html != null) d.innerHTML = html; return d; }
 function formatNum(x) {
-  if (Number.isInteger(x)) return x.toLocaleString('de-DE');
-  return parseFloat(x.toPrecision(12)).toString().replace('.', ',');
+  if (Number.isInteger(x)) return x.toLocaleString(LOCALE());
+  const s = parseFloat(x.toPrecision(12)).toString();
+  return (typeof tlDezimal === 'function') ? tlDezimal(s) : s.replace('.', ',');
 }
-function formatNumTex(x) { return String(x).replace('.', '{,}'); }
+function formatNumTex(x) {
+  return (typeof tlDezimal === 'function') ? tlDezimal(String(x), true) : String(x).replace('.', '{,}');
+}
 function nameHtml(u) {
   if (u.name.startsWith('Quadrat')) return 'Quadrat<br>' + u.name.slice(7);
   if (u.name.startsWith('Kubik'))   return 'Kubik<br>' + u.name.slice(5);
@@ -612,7 +766,15 @@ function scaleAllElements() { document.querySelectorAll('.scale-el').forEach(sca
 window.addEventListener('resize', scaleAllElements);
 
 function showToast(msg, d = 1800) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), d); }
-function flashResult(color) { const ov = document.getElementById('flashOverlay'); ov.style.transition = 'none'; ov.style.backgroundColor = color; ov.style.opacity = '1'; setTimeout(() => { ov.style.transition = 'opacity 1s'; ov.style.opacity = '0'; }, 50); }
+/* Der Blitz nimmt die Farbe des Modus: hell ein blasses Grün bzw. Rot,
+   dunkel ein kräftiges dunkles Grün bzw. Rot. Im Dunkelmodus wirkte das
+   blasse Grün sonst wie ein weißer Blitz. */
+function blitzFarbe(richtig) {
+  const dunkel = document.documentElement.classList.contains('dark');
+  if (dunkel) return richtig ? '#1e4a22' : '#4a2020';
+  return richtig ? '#d4edda' : '#f8d7da';
+}
+function flashResult(richtig) { const ov = document.getElementById('flashOverlay'); ov.style.transition = 'none'; ov.style.backgroundColor = blitzFarbe(richtig); ov.style.opacity = '1'; setTimeout(() => { ov.style.transition = 'opacity 1s'; ov.style.opacity = '0'; }, 50); }
 
 /* ── Einheiten (power = 10^power relativ zur Basiseinheit) ──
    Reihenfolge aufsteigend nach power. off = standardmäßig aus. rare = ungebräuchlich.
@@ -652,18 +814,36 @@ const UNITS = {
 
 const DIM_FACTOR = { length: 10,  area: 100, volume: 1000 };
 const DIM_LOG    = { length: 1,   area: 2,   volume: 3 };
-const TITLES = [
-  'Hinweis 1 · Reihenfolge & Stufen',
-  'Hinweis 2 · Umrechnungszahl pro Stufe',
-  'Hinweis 3 · Mal oder geteilt?',
-  'Hinweis 4 · Zusammenfassung'
-];
+/* Die Titel werden erst beim Anzeigen uebersetzt - eine Liste fertiger
+   Texte wuerde beim Sprachwechsel deutsch stehen bleiben. */
+const TITLES = new Proxy({}, { get(_, i) {
+  return [
+    T('Hinweis 1 · Reihenfolge & Stufen', 'Hint 1 · order & steps'),
+    T('Hinweis 2 · Umrechnungszahl pro Stufe', 'Hint 2 · conversion factor per step'),
+    T('Hinweis 3 · Mal oder geteilt?', 'Hint 3 · times or divided?'),
+    T('Hinweis 4 · Zusammenfassung', 'Hint 4 · summary')
+  ][i];
+}});
 
 /* ── Zustand ── */
 let korrekteAntworten = 0, anzahlAufgaben = 0;
 let currentTask = null, expectedAnswerFloat = null, taskRevealed = false;
 let shownHints = [];
 let pendingTimeout = null;
+/* Nach einer richtigen Antwort kommt von selbst die nächste Aufgabe. Langes
+   Drücken auf „Neue Aufgabe" schaltet das ab und wieder an. */
+let autoAn = true;
+function autoBauen(){
+  if (!window.abAutoStart) return;
+  abAutoStart({
+    an: autoAn,
+    pause: 1000,
+    naechste: generateTask,
+    gemerkt: function(an){ autoAn = an; if (!an && pendingTimeout){ clearTimeout(pendingTimeout); pendingTimeout = null; } }
+  });
+}
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', autoBauen);
+else autoBauen();
 const dimActive = { length: true, area: true, volume: true };
 
 /* ── Chips aufbauen ── */
@@ -728,15 +908,30 @@ function toggleLiters() {
 }
 
 /* ── Dimensions-Umschalter ── */
-function renderDimBoxes() { document.querySelectorAll('.dim-box').forEach(b => b.classList.toggle('on', dimActive[b.dataset.cat])); }
-function toggleDim(cat) { dimActive[cat] = !dimActive[cat]; if (!Object.values(dimActive).some(v => v)) dimActive[cat] = true; renderDimBoxes(); onSettingsChange(); }
+function renderDimBoxes() {
+  document.querySelectorAll('.dim-box').forEach(b => {
+    b.classList.toggle('on', dimActive[b.dataset.cat]);
+    /* Pfeil und Einheitenzeile gehören zur Kachel - beide erst hier, damit sie
+       auch nach einem Sprachwechsel stimmen. */
+    if (!b.querySelector('.dim-pfeil')){
+      const pf = document.createElement('span');
+      pf.className = 'dim-pfeil'; pf.textContent = '▼';
+      b.appendChild(pf);
+    }
+    /* Welche Einheiten dabei sind, steht im Menü der Kachel - dort sind die
+       gewählten grün hinterlegt. Unter der Kachel wäre die Liste nur eng. */
+    const alt = b.querySelector('.dim-einh');
+    if (alt) alt.remove();
+  });
+}
+function toggleDim(cat) { dimActive[cat] = !dimActive[cat]; if (!Object.values(dimActive).some(v => v)) dimActive[cat] = true; renderDimBoxes(); if (typeof urlSchreiben === 'function') urlSchreiben(); onSettingsChange(); }
 function soloDim(cat) { Object.keys(dimActive).forEach(k => dimActive[k] = (k === cat)); renderDimBoxes(); onSettingsChange(); }
 let openUnitMenuRef = null;
 let lastMenuCat = null, lastMenuClosedAt = 0;
 function closeUnitMenu() { if (openUnitMenuRef) { openUnitMenuRef.remove(); openUnitMenuRef = null; } }
 function openUnitMenu(cat, box) {
   closeUnitMenu();
-  const catName = { length: 'Längenmaße', area: 'Flächenmaße', volume: 'Raummaße' }[cat] || 'Einheiten';
+  const catName = { length: T('Längenmaße', 'Length units'), area: T('Flächenmaße', 'Area units'), volume: T('Raummaße', 'Volume units') }[cat] || T('Einheiten', 'units');
   const chipOf = id => document.querySelector(`[data-category="${cat}"][data-id="${id}"]`);
   const mains = UNITS[cat].filter(u => !u.liter).slice().sort((a, b) => b.power - a.power);
   const applies = [];
@@ -747,12 +942,18 @@ function openUnitMenu(cat, box) {
     b.innerHTML = `<span class="um-check"></span><span class="um-sym">${unitLabel(u.id)}</span><span class="um-name">${u.name || ''}</span>`;
     const apply = () => { const on = chip.classList.contains('on'); b.classList.toggle('on', on); b.querySelector('.um-check').textContent = on ? '\u2713' : ''; };
     apply(); applies.push(apply);
-    addPressHandlers(b, () => { chip.classList.toggle('on'); onSettingsChange(); refresh(); }, () => soloUnit(cat, u.id));
+    addPressHandlers(b, () => {
+      chip.classList.toggle('on');
+      /* Wer eine Einheit anhakt, meint auch ihren Bereich. */
+      if (chip.classList.contains('on') && !dimActive[cat]){ dimActive[cat] = true; renderDimBoxes(); }
+      einheitenVonHand = true;
+      onSettingsChange(); refresh();
+    }, () => soloUnit(cat, u.id));
     return b;
   }
 
   const menu = document.createElement('div'); menu.className = 'unit-menu';
-  const title = document.createElement('div'); title.className = 'um-title'; title.textContent = catName + ' wählen';
+  const title = document.createElement('div'); title.className = 'um-title'; title.textContent = catName + T(' wählen', ' – choose');
   menu.appendChild(title);
   const list = document.createElement('div'); list.className = 'um-list';
   mains.forEach(u => {
@@ -767,7 +968,7 @@ function openUnitMenu(cat, box) {
     }
   });
   menu.appendChild(list);
-  const confirm = document.createElement('button'); confirm.type = 'button'; confirm.className = 'um-confirm'; confirm.textContent = 'Bestätigen';
+  const confirm = document.createElement('button'); confirm.type = 'button'; confirm.className = 'um-confirm'; confirm.textContent = T('Bestätigen', 'Confirm');
   confirm.addEventListener('click', closeUnitMenu);
   menu.appendChild(confirm);
 
@@ -791,16 +992,24 @@ function openUnitMenu(cat, box) {
 }
 function addPressHandlers(el, onTap, onLong) {
   let timer = null, longFired = false, moved = false, sx = 0, sy = 0;
+  /* Der kleine Pfeil gehört nicht zum Umschalten - er öffnet gleich das Menü. */
+  const aufPfeil = e => e.target && e.target.classList && e.target.classList.contains('dim-pfeil');
   el.addEventListener('pointerdown', e => {
+    if (aufPfeil(e)){ longFired = true; onLong(); return; }
     if (e.pointerType === 'mouse' && e.button !== 0) return;
     longFired = false; moved = false; sx = e.clientX; sy = e.clientY;
     try { el.setPointerCapture(e.pointerId); } catch (_) {}
     timer = setTimeout(() => { longFired = true; onLong(); }, 480);
   });
   el.addEventListener('pointermove', e => { if (Math.abs(e.clientX - sx) > 12 || Math.abs(e.clientY - sy) > 12) { moved = true; clearTimeout(timer); } });
-  el.addEventListener('pointerup', () => { clearTimeout(timer); if (!longFired && !moved) onTap(); });
+  /* Nur die linke Taste schaltet um - die rechte öffnet bloß das Menü. */
+  el.addEventListener('pointerup', e => { clearTimeout(timer);
+    if (aufPfeil(e)) return;
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    if (!longFired && !moved) onTap(); });
   el.addEventListener('pointercancel', () => clearTimeout(timer));
-  el.addEventListener('contextmenu', e => e.preventDefault());
+  el.addEventListener('contextmenu', e => { e.preventDefault(); clearTimeout(timer);
+    longFired = true; onLong(); });
 }
 
 /* ── Zahlen-Typen ── */
@@ -808,7 +1017,7 @@ function refreshIntBothAvailability() {
   const adj = document.querySelector('input[name="stepMode"]:checked').value === 'adjacent';
   const cb = document.getElementById('numIntBoth'), row = document.getElementById('rowIntBoth');
   cb.disabled = !adj; row.classList.toggle('dis', !adj);
-  document.getElementById('intBothTag').textContent = adj ? '' : '(nur bei „Nur benachbarte")';
+  document.getElementById('intBothTag').textContent = adj ? '' : T('(nur bei „Nur benachbarte")', '(only with „adjacent only")');
   if (!adj) cb.checked = false;
 }
 function activeNumberTypes() {
@@ -834,7 +1043,7 @@ function onSettingsChange() {
   korrekteAntworten = 0; anzahlAufgaben = 0; updateCounterDisplay();
   generateTask();
 }
-function updateCounterDisplay() { document.getElementById('counter').textContent = `Richtig: ${korrekteAntworten} / ${anzahlAufgaben}`; }
+function updateCounterDisplay() { document.getElementById('counter').textContent = T(`Richtig: ${korrekteAntworten} / ${anzahlAufgaben}`, `Correct: ${korrekteAntworten} / ${anzahlAufgaben}`); }
 function setControls(hasTask) {
   document.getElementById('revealBtn').disabled = !hasTask;
   document.getElementById('hintBtn').disabled = !hasTask || document.querySelectorAll('.hintEnable:checked').length === 0;
@@ -843,6 +1052,7 @@ function setControls(hasTask) {
 /* ── Aufgabe erzeugen ── */
 function generateTask() {
   if (pendingTimeout) { clearTimeout(pendingTimeout); pendingTimeout = null; }
+  if (window.abAutoStopp) abAutoStopp();
   taskRevealed = false; shownHints = [];
   const inp = document.getElementById('answerInput');
   inp.disabled = false; inp.value = ''; inp.className = '';
@@ -855,7 +1065,7 @@ function generateTask() {
   const taskTextEl = document.getElementById('taskText');
   const noTask = (msg) => { label.textContent = msg; taskTextEl.innerHTML = ''; currentTask = null; setControls(false); };
 
-  if (!Object.values(dimActive).some(v => v)) return noTask('Bitte oben mindestens einen Größenbereich aktivieren.');
+  if (!Object.values(dimActive).some(v => v)) return noTask(T('Bitte oben mindestens einen Größenbereich aktivieren.', 'Please switch on at least one group of units above.'));
 
   const activeCategories = [];
   Object.keys(UNITS).forEach(cat => {
@@ -863,10 +1073,10 @@ function generateTask() {
     const units = getActiveUnits(cat);
     if (new Set(units.map(u => u.power)).size >= 2) activeCategories.push({ category: cat, units });
   });
-  if (activeCategories.length === 0) return noTask('Bitte mind. 2 Einheiten eines aktiven Bereichs auswählen (Einstellungen).');
+  if (activeCategories.length === 0) return noTask(T('Bitte mind. 2 Einheiten eines aktiven Bereichs auswählen (Einstellungen).', 'Please select at least 2 units from an active group (settings).'));
 
   const numTypes = activeNumberTypes();
-  if (numTypes.length === 0) return noTask('Bitte in den Einstellungen einen Zahlen-Aufgabentyp wählen.');
+  if (numTypes.length === 0) return noTask(T('Bitte in den Einstellungen einen Zahlen-Aufgabentyp wählen.', 'Please choose a number type in the settings.'));
 
   const stepMode = document.querySelector('input[name="stepMode"]:checked').value;
   const dirMode  = document.querySelector('input[name="dirMode"]:checked').value;
@@ -879,13 +1089,13 @@ function generateTask() {
     if (u === v || u.power === v.power) continue;
     if (dirMode === 'up'   && u.power > v.power) continue;
     if (dirMode === 'down' && u.power < v.power) continue;
-    if (stepMode === 'adjacent') {
-      const lo = Math.min(u.power, v.power), hi = Math.max(u.power, v.power);
-      if (enabledUnits.some(w => w.power > lo && w.power < hi)) continue;
-    }
+    const lo = Math.min(u.power, v.power), hi = Math.max(u.power, v.power);
+    const dazwischen = enabledUnits.some(w => w.power > lo && w.power < hi);
+    if (stepMode === 'adjacent' && dazwischen) continue;      /* nur Nachbarn */
+    if (stepMode === 'skip' && !dazwischen) continue;          /* mind. eine überspringen */
     validPairs.push({ from: u, to: v });
   }
-  if (validPairs.length === 0) return noTask('Keine Aufgabe mit diesen Einstellungen möglich.');
+  if (validPairs.length === 0) return noTask(T('Keine Aufgabe mit diesen Einstellungen möglich.', 'No task is possible with these settings.'));
 
   const pair = validPairs[Math.floor(Math.random() * validPairs.length)];
   const type = numTypes[Math.floor(Math.random() * numTypes.length)];
@@ -921,20 +1131,20 @@ function generateTask() {
 /* ── Überprüfung ── */
 function diagnoseError(kActual, digitsMatch) {
   const dp = currentTask.diffPower, cat = currentTask.cat, dimLog = DIM_LOG[cat], fac = DIM_FACTOR[cat];
-  const catN = { length: 'Längen', area: 'Flächen', volume: 'Raummaßen' }[cat];
-  if (!digitsMatch) return 'Die Ziffernfolge passt nicht zur Ausgangszahl. Beim Umrechnen bleiben die Ziffern gleich – es wandert nur das Komma.';
+  const catN = { length: T('Längen', 'lengths'), area: T('Flächen', 'areas'), volume: T('Raummaßen', 'volumes') }[cat];
+  if (!digitsMatch) return T('Die Ziffernfolge passt nicht zur Ausgangszahl. Beim Umrechnen bleiben die Ziffern gleich – es wandert nur das Komma.', "The digits don't match the starting number. When converting, the digits stay the same – only the decimal point moves.");
   const k = kActual;
   if (k === dp) return null;
   const off = k - dp, steps = Math.abs(dp) / dimLog, sgn = dp === 0 ? 0 : (dp > 0 ? 1 : -1);
-  if (Math.abs(off) === 1) return `Fast! Das Komma steht eine Stelle zu weit ${off > 0 ? 'rechts' : 'links'}.`;
+  if (Math.abs(off) === 1) return T(`Fast! Das Komma steht eine Stelle zu weit ${off > 0 ? 'rechts' : 'links'}.`, `Almost! The decimal point is one place too far ${off > 0 ? 'right' : 'left'}.`);
   if (k === -dp && dp !== 0) return `Falsche Richtung – du hast ${dp > 0 ? 'multipliziert statt dividiert' : 'dividiert statt multipliziert'}.`;
   if (dimLog > 1) {
-    if (k === sgn * steps) return `Falsche Umrechnungszahl: bei ${catN} ist der Faktor je Stufe <b>·${fac}</b>, nicht ·10.`;
-    if (k === -sgn * steps) return `Zwei Fehler: falsche Richtung und ·10 statt ·${fac} je Stufe.`;
-    if (dimLog === 3 && Math.abs(k) === steps * 2) return `Falsche Umrechnungszahl: bei Raummaßen ist der Faktor je Stufe <b>·1000</b>, nicht ·100.`;
+    if (k === sgn * steps) return T(`Falsche Umrechnungszahl: bei ${catN} ist der Faktor je Stufe <b>·${fac}</b>, nicht ·10.`, `Wrong conversion factor: for ${catN} the factor per step is <b>·${fac}</b>, not ·10.`);
+    if (k === -sgn * steps) return T(`Zwei Fehler: falsche Richtung und ·10 statt ·${fac} je Stufe.`, `Two mistakes: wrong direction, and ·10 instead of ·${fac} per step.`);
+    if (dimLog === 3 && Math.abs(k) === steps * 2) return T(`Falsche Umrechnungszahl: bei Raummaßen ist der Faktor je Stufe <b>·1000</b>, nicht ·100.`, `Wrong conversion factor: for volumes the factor per step is <b>·1000</b>, not ·100.`);
   }
-  if (k % dimLog === 0) { const st = Math.abs(k) / dimLog; return `Falsche Stufenanzahl: gerechnet mit ${st} ${st === 1 ? 'Stufe' : 'Stufen'}, richtig sind ${steps}.`; }
-  return `Das Komma steht ${Math.abs(off)} Stellen zu weit ${off > 0 ? 'rechts' : 'links'}.`;
+  if (k % dimLog === 0) { const st = Math.abs(k) / dimLog; return T(`Falsche Stufenanzahl: gerechnet mit ${st} ${st === 1 ? 'Stufe' : 'Stufen'}, richtig sind ${steps}.`, `Wrong number of steps: you used ${st} ${st === 1 ? 'step' : 'steps'}, but it should be ${steps}.`); }
+  return T(`Das Komma steht ${Math.abs(off)} Stellen zu weit ${off > 0 ? 'rechts' : 'links'}.`, `The decimal point is ${Math.abs(off)} places too far ${off > 0 ? 'right' : 'left'}.`);
 }
 function checkAnswer() {
   if (!currentTask || taskRevealed) return;
@@ -946,27 +1156,32 @@ function checkAnswer() {
   } else {
     const raw = inp.value.trim().replace(',', '.'); if (!raw) return;
     given = parseFloat(raw);
-    if (isNaN(given)) { const h = document.getElementById('answerHint'); h.textContent = 'Bitte eine gültige Zahl eingeben.'; h.classList.add('visible'); return; }
+    if (isNaN(given)) { const h = document.getElementById('answerHint'); h.textContent = T('Bitte eine gültige Zahl eingeben.', 'Please enter a valid number.'); h.classList.add('visible'); return; }
     const tol = 1e-9 * Math.max(1, Math.abs(expectedAnswerFloat));
     ok = Math.abs(given - expectedAnswerFloat) <= tol;
   }
-  flashResult(ok ? '#d4edda' : '#f8d7da'); anzahlAufgaben++;
+  flashResult(ok); anzahlAufgaben++;
 
   if (ok) {
     korrekteAntworten++;
     if (answerMode === 'comma') trainerStrip.lock(); else inp.className = 'correct';
     document.getElementById('answerHint').classList.remove('visible');
     updateCounterDisplay(); currentTask = null; setControls(false);
-    pendingTimeout = setTimeout(generateTask, 1000);
+    /* Ohne die gemeinsame Datei gibt es keinen Schalter - dann bleibt es beim
+       bisherigen Verhalten und die nächste Aufgabe kommt von selbst. */
+    if (window.abAutoAn) { if (abAutoAn()) abAutoBald(1000); }
+    else pendingTimeout = setTimeout(generateTask, 1000);
   } else {
-    let hint = 'Falsch.';
+    let hint = T('Falsch.', 'Wrong.');
     if (document.getElementById('errHints').checked) {
       let kActual, digitsMatch;
       if (answerMode === 'comma') { kActual = trainerStrip.k - trainerStrip.k0; digitsMatch = true; }
       else { const g = parseNumToSig(given), s = parseNumToSig(currentTask.startValue); digitsMatch = (g.sig === s.sig); kActual = g.k0 - s.k0; }
       const d = diagnoseError(kActual, digitsMatch); if (d) hint = d;
     }
-    const h = document.getElementById('answerHint'); h.innerHTML = hint; h.classList.add('visible');
+    const h = document.getElementById('answerHint');
+    window._hinweisBauer = null;   // Text ist bereits in der aktuellen Sprache gebaut
+    h.innerHTML = hint; h.classList.add('visible');
     if (answerMode === 'input') { inp.className = 'wrong'; inp.select(); }
     updateCounterDisplay();
   }
@@ -977,7 +1192,7 @@ function revealSolution() {
   if (!currentTask) return;
   taskRevealed = true;
   const sb = document.getElementById('solutionBox');
-  sb.innerHTML = `Lösung: ${formatNum(currentTask.expected)} ${unitLabel(currentTask.to.id)}`;
+  sb.innerHTML = T(`Lösung: ${formatNum(currentTask.expected)} ${unitLabel(currentTask.to.id)}`, `Answer: ${formatNum(currentTask.expected)} ${unitLabel(currentTask.to.id)}`);
   sb.classList.add('show');
   if (answerMode === 'comma' && trainerStrip) { trainerStrip.setK(commaTarget); trainerStrip.lock(); }
   else { document.getElementById('answerInput').disabled = true; }
@@ -991,7 +1206,7 @@ function newTask() {
 }
 
 /* ── Hinweis-Logik ── */
-function fmt(x) { return x.toLocaleString('de-DE'); }
+function fmt(x) { return x.toLocaleString(LOCALE()); }
 function hintData() {
   const t = currentTask, cat = t.cat, dp = t.diffPower;
   const isMul = dp > 0, totalFactor = Math.pow(10, Math.abs(dp));
@@ -1062,7 +1277,7 @@ function renderHintFull(id, hasMore) {
   card.appendChild(el('hint-title', TITLES[id]));
 
   if (id === 0) {
-    card.appendChild(el('hint-q', 'Wie viele Stufen gehst du von der Start- zur Zieleinheit?'));
+    card.appendChild(el('hint-q', T('Wie viele Stufen gehst du von der Start- zur Zieleinheit?', 'How many steps do you go from the starting unit to the target unit?')));
     const s = buildSequence(d);
     card.appendChild(s.el);
     if (s.hasRare) card.appendChild(el('hint-text', 'Hinweis: Einheiten wie dam und hm (bzw. dam³, hm³) sind ungebräuchlich und werden im Alltag kaum verwendet – sie erklären aber die zusätzlichen Stufen.'));
@@ -1071,17 +1286,17 @@ function renderHintFull(id, hasMore) {
   }
   else if (id === 1) {
     const dimN = DIM_LOG[d.cat];
-    const pre = (dimN > 1 && !d.fallback) ? `Beachte: die Umrechnung muss in <b>jeder</b> Dimension stattfinden – hier also in allen ${dimN} Dimensionen.` : '';
+    const pre = (dimN > 1 && !d.fallback) ? T(`Beachte: die Umrechnung muss in <b>jeder</b> Dimension stattfinden – hier also in allen ${dimN} Dimensionen.`, `Note: the conversion has to happen in <b>every</b> dimension – here in all ${dimN} dimensions.`) : '';
     const post = `Faustregel: Länge (1D) → 10, Fläche (2D) → 10² = 100, Volumen (3D) → 10³ = ${fmt(1000)}. Pro Stufe zwischen diesen Einheiten: <b>${fmt(d.stepFactor)}</b>.`;
     let vals = [10, 100, 1000];
     if (!vals.includes(d.stepFactor)) vals = [d.stepFactor / 10, d.stepFactor, d.stepFactor * 10].filter(v => v >= 1);
-    buildQuiz(card, 'Welche Umrechnungszahl gehört zu <b>einer</b> Stufe?', pre, post, vals.map(v => ({ label: fmt(v) })), vals.indexOf(d.stepFactor));
+    buildQuiz(card, T('Welche Umrechnungszahl gehört zu <b>einer</b> Stufe?', 'Which conversion factor belongs to <b>one</b> step?'), pre, post, vals.map(v => ({ label: fmt(v) })), vals.indexOf(d.stepFactor));
   }
   else if (id === 2) {
     const fromN = d.t.from.name, toN = d.t.to.name, toSmaller = d.t.to.power < d.t.from.power;
     const pre = `Wenn du ${fromN} hast und diese in ${toN} darstellen möchtest: sind das dann <b>mehr</b> (→ multiplizieren) oder <b>weniger</b> (→ dividieren) ${toN}? Musst du also multiplizieren oder dividieren?`;
     const post = `${toN} ist ${toSmaller ? 'kleiner' : 'größer'} als ${fromN}, du bekommst also ${toSmaller ? 'mehr' : 'weniger'} davon → hier <b>${d.isMul ? 'multiplizieren' : 'dividieren'}</b>.`;
-    buildQuiz(card, `Von <b>${unitLabel(d.t.from.id)}</b> zu <b>${unitLabel(d.t.to.id)}</b>: multiplizieren oder dividieren?`, pre, post, [{ label: 'multiplizieren' }, { label: 'dividieren' }], d.isMul ? 0 : 1);
+    buildQuiz(card, T(`Von <b>${unitLabel(d.t.from.id)}</b> zu <b>${unitLabel(d.t.to.id)}</b>: multiplizieren oder dividieren?`, `From <b>${unitLabel(d.t.from.id)}</b> to <b>${unitLabel(d.t.to.id)}</b>: multiply or divide?`), pre, post, [{ label: 'multiplizieren' }, { label: 'dividieren' }], d.isMul ? 0 : 1);
   }
   else if (id === 3) {
     const correctNum = d.totalFactor;
@@ -1098,11 +1313,11 @@ function renderHintFull(id, hasMore) {
     const post = (d.steps === 1)
       ? `Du rechnest insgesamt <b>${d.isMul ? '&middot;' : ':'} ${fmt(d.totalFactor)}</b> – also die Startzahl ${d.isMul ? '&middot;' : ':'} ${fmt(d.totalFactor)}.`
       : `Pro Stufe ${d.isMul ? '&middot;' : ':'} ${fmt(d.stepFactor)}, und das ${d.steps}-mal ⇒ insgesamt <b>${d.isMul ? '&middot;' : ':'} ${fmt(d.totalFactor)}</b>.`;
-    buildQuiz(card, `Du gehst <b>${d.steps}</b> Stufe${d.steps > 1 ? 'n' : ''} weit. Womit rechnest du <b>insgesamt</b>?`, '', post, opts, ci);
+    buildQuiz(card, T(`Du gehst <b>${d.steps}</b> Stufe${d.steps > 1 ? 'n' : ''} weit. Womit rechnest du <b>insgesamt</b>?`, `You go <b>${d.steps}</b> step${d.steps > 1 ? 's' : ''}. What do you calculate with <b>in total</b>?`), '', post, opts, ci);
   }
   if (hasMore) {
     const nb = document.createElement('button'); nb.type = 'button'; nb.className = 'hint-next-btn';
-    nb.textContent = 'Nächste Hilfestufe \u2192';
+    nb.textContent = T('Nächste Hilfestufe \u2192', 'Next level of help \u2192');
     nb.addEventListener('click', showNextHint);
     card.appendChild(nb);
   }
@@ -1113,8 +1328,8 @@ function renderHintCollapsed(id) {
   const d = hintData();
   const card = el('hint-card collapsed');
   card.appendChild(el('hint-title-sm', TITLES[id]));
-  if (id === 0) { const s = buildSequence(d); card.appendChild(s.el); card.appendChild(el('hint-sum', `${d.steps} Stufe${d.steps > 1 ? 'n' : ''}`)); }
-  else if (id === 1) card.appendChild(el('hint-sum', `Pro Stufe: <b>${fmt(d.stepFactor)}</b>`));
+  if (id === 0) { const s = buildSequence(d); card.appendChild(s.el); card.appendChild(el('hint-sum', T(`${d.steps} Stufe${d.steps > 1 ? 'n' : ''}`, `${d.steps} step${d.steps > 1 ? 's' : ''}`))); }
+  else if (id === 1) card.appendChild(el('hint-sum', T(`Pro Stufe: <b>${fmt(d.stepFactor)}</b>`, `Per step: <b>${fmt(d.stepFactor)}</b>`)));
   else if (id === 2) card.appendChild(el('hint-sum', `<b>${d.isMul ? 'multiplizieren' : 'dividieren'}</b>`));
   else if (id === 3) card.appendChild(el('hint-sum', `Startzahl <b>${d.isMul ? '&middot;' : ':'} ${fmt(d.totalFactor)}</b>`));
   return card;
@@ -1131,8 +1346,8 @@ function renderHints() {
 function showNextHint() {
   if (!currentTask) return;
   const enabled = Array.from(document.querySelectorAll('.hintEnable:checked')).map(c => parseInt(c.dataset.hint)).sort((a, b) => a - b);
-  if (enabled.length === 0) { showToast('Keine Hinweise aktiviert (Einstellungen).'); return; }
-  if (shownHints.length >= enabled.length) { showToast('Keine weiteren Hinweise.'); return; }
+  if (enabled.length === 0) { showToast(T('Keine Hinweise aktiviert (Einstellungen).', 'No hints switched on (settings).')); return; }
+  if (shownHints.length >= enabled.length) { showToast(T('Keine weiteren Hinweise.', 'No further hints.')); return; }
   shownHints.push(enabled[shownHints.length]);
   renderHints();
   if (shownHints.length >= enabled.length) document.getElementById('hintBtn').disabled = true;
@@ -1161,7 +1376,7 @@ function makeStrip(cfg) {
     return fp ? ip + ',' + fp : ip;
   }
   const sup = n => `<sup>${String(n).replace('-', '\u2212')}</sup>`;
-  const grp = x => x.toLocaleString('de-DE');
+  const grp = x => x.toLocaleString(LOCALE());
   const X = c => PAD + c * CELL;
   function powLabel(mode, kk) {
     const e = S.k0 - kk;
@@ -1195,10 +1410,13 @@ function makeStrip(cfg) {
 
     for (let c = 0; c < S.total; c++) {
       let ch = null, added = false;
+      /* Grün sind nur die Nullen, die durch das Verschieben dazukommen.
+         Eine Null, die schon zur Ausgangszahl gehört (die 0 in „140"), bleibt
+         schwarz - sonst sähe die unveränderte Zahl schon verschoben aus. */
       if (c >= sigStart && c <= sigEnd) ch = S.sig[c - sigStart];
-      else if (S.k >= 1 && c > sigEnd && c <= g - 1) { ch = '0'; added = true; }
+      else if (S.k >= 1 && c > sigEnd && c <= g - 1) { ch = '0'; added = (c > g0 - 1); }
       else if (S.k <= 0 && c === g - 1) ch = '0';
-      else if (S.k <= 0 && c >= g && c <= sigStart - 1) { ch = '0'; added = true; }
+      else if (S.k <= 0 && c >= g && c <= sigStart - 1) { ch = '0'; added = (c < g0); }
       if (ch === null) continue;
       const d = document.createElement('div');
       d.className = 'digit' + (added ? ' zero-added' : '');
@@ -1415,7 +1633,7 @@ function setMode(mode) {
   const cur = () => DIMS[DIM];
   const baseU = () => parseInt(el('ex-baseunit').value, 10) || 0;
   const sup = n => `<sup>${String(n).replace('-', '\u2212')}</sup>`;
-  const grp = x => x.toLocaleString('de-DE');
+  const grp = x => x.toLocaleString(LOCALE());
   const unitLbl = pw => cur().units[String(pw)];
 
   function exParse(str) {
@@ -1440,10 +1658,10 @@ function setMode(mode) {
     const n = S.k - S.k0;
     const showStellen = el('ex-t-stellen').checked, showPot = el('ex-t-pot').checked, showUnit = el('ex-t-unit').checked;
     el('ex-p-stellen').classList.toggle('hidden', !showStellen);
-    if (showStellen) el('ex-stellen-txt').textContent = (n === 0) ? 'keine Verschiebung' : `${Math.abs(n)} ${Math.abs(n) === 1 ? 'Stelle' : 'Stellen'} nach ${n > 0 ? 'rechts' : 'links'}`;
+    if (showStellen) el('ex-stellen-txt').textContent = (n === 0) ? T('keine Verschiebung', 'no shift') : T(`${Math.abs(n)} ${Math.abs(n) === 1 ? 'Stelle' : 'Stellen'} nach ${n > 0 ? 'rechts' : 'links'}`, `${Math.abs(n)} ${Math.abs(n) === 1 ? 'place' : 'places'} to the ${n > 0 ? 'right' : 'left'}`);
     el('ex-p-pot').classList.toggle('hidden', !showPot);
     if (showPot) {
-      if (n === 0) { el('ex-pot-txt').innerHTML = `<span class="eq">${numStr(S.k0)}</span> = <span class="eq">${numStr(S.k)}</span>`; el('ex-pot-plain').textContent = '· 1  (unverändert)'; }
+      if (n === 0) { el('ex-pot-txt').innerHTML = `<span class="eq">${numStr(S.k0)}</span> = <span class="eq">${numStr(S.k)}</span>`; el('ex-pot-plain').textContent = T('· 1  (unverändert)', '· 1  (unchanged)'); }
       else { el('ex-pot-txt').innerHTML = `<span class="eq">${numStr(S.k0)}</span> = <span class="eq">${numStr(S.k)}</span> · 10${sup(-n)}`; el('ex-pot-plain').textContent = (n > 0) ? `= ${numStr(S.k)} : ${grp(Math.pow(10, n))}` : `= ${numStr(S.k)} · ${grp(Math.pow(10, -n))}`; }
     }
     el('ex-p-unit').classList.toggle('hidden', !showUnit);
@@ -1453,9 +1671,9 @@ function setMode(mode) {
       if (cur().units.hasOwnProperty(String(u))) {
         const rare = (DIM === 1 && cur().rare.has(u)) ? ' rare' : '';
         out = `${numStr(S.k0)} ${unitLbl(u0)} = <span class="eq">${numStr(S.k)}</span> <span class="unitname${rare}">${unitLbl(u)}</span>`;
-        if (DIM === 1 && cur().rare.has(u)) { noteEl.textContent = 'dam/hm sind gültige Einheiten, werden aber selten verwendet.'; noteEl.classList.remove('hidden'); }
+        if (DIM === 1 && cur().rare.has(u)) { noteEl.textContent = T('dam/hm sind gültige Einheiten, werden aber selten verwendet.', 'dam/hm are valid units, but they are rarely used.'); noteEl.classList.remove('hidden'); }
         else noteEl.classList.add('hidden');
-      } else { out = `<span class="muted">keine benannte Einheit an dieser Stelle</span>`; noteEl.classList.add('hidden'); }
+      } else { out = T(`<span class="muted">keine benannte Einheit an dieser Stelle</span>`, `<span class="muted">no named unit at this position</span>`); noteEl.classList.add('hidden'); }
       el('ex-unit-txt').innerHTML = out;
     }
     renderShape(false);
@@ -1492,7 +1710,7 @@ function setMode(mode) {
       cube.renderer = null;
     }
   }
-  function addNote(host, n) { const p = document.createElement('p'); p.className = 'shape-note'; p.textContent = `Vereinfacht dargestellt – tatsächlich ${grp(n)} Teile je Richtung.`; host.appendChild(p); }
+  function addNote(host, n) { const p = document.createElement('p'); p.className = 'shape-note'; p.textContent = T(`Vereinfacht dargestellt – tatsächlich ${grp(n)} Teile je Richtung.`, `Shown simplified – in reality ${grp(n)} parts in each direction.`); host.appendChild(p); }
   function svgText(x, y, str, o) {
     o = o || {}; const t = document.createElementNS(NS, 'text');
     t.setAttribute('x', x); t.setAttribute('y', y); t.setAttribute('text-anchor', o.anchor || 'middle');
@@ -1581,7 +1799,7 @@ function setMode(mode) {
     spr.scale.set(0.32 * (CW / CH), 0.32, 1); return spr;
   }
   function drawCube(host, n, wholeLbl, pieceLbl) {
-    if (typeof THREE === 'undefined') { const p = document.createElement('p'); p.className = 'shape-note'; p.textContent = '3D-Ansicht konnte nicht geladen werden.'; host.appendChild(p); return; }
+    if (typeof THREE === 'undefined') { const p = document.createElement('p'); p.className = 'shape-note'; p.textContent = T('3D-Ansicht konnte nicht geladen werden.', 'The 3D view could not be loaded.'); host.appendChild(p); return; }
     const size = Math.min(host.clientWidth || 300, 300), drawN = Math.min(n, 100);
     const scene = new THREE.Scene(); scene.background = new THREE.Color(0xffffff);
     const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 100); camera.position.set(1.7, 1.4, 2.1);
@@ -1604,7 +1822,7 @@ function setMode(mode) {
   }
   function caption(m, u) {
     const u0 = baseU();
-    if (u === 0) return `Ausgangseinheit <b>${unitLbl(u0)}</b> – verschiebe das Komma, um die Unterteilung zu sehen.`;
+    if (u === 0) return T(`Ausgangseinheit <b>${unitLbl(u0)}</b> – verschiebe das Komma, um die Unterteilung zu sehen.`, `Starting unit <b>${unitLbl(u0)}</b> – move the decimal point to see the subdivision.`);
     const per = Math.pow(10, u), totalF = Math.pow(10, DIM * u);
     const curPow = u0 - (strip.k - strip.k0);
     const largerPow = Math.max(u0, curPow), smallerPow = Math.min(u0, curPow);
@@ -1632,10 +1850,16 @@ function setMode(mode) {
   window.exploreShape = { render: renderShape, stop: stopCube };
 
   /* ── Verdrahtung ── */
+  function setzeDimHinweis() {
+    const step = DIMS[DIM].step;
+    el('ex-dim-note').textContent = T(
+      `Beim Wechsel zur nächsten Einheit wandert das Komma um ${step} ${step === 1 ? 'Stelle' : 'Stellen'} (${step} ${step === 1 ? 'Dimension' : 'Dimensionen'}).`,
+      `Moving to the next unit shifts the decimal point by ${step} ${step === 1 ? 'place' : 'places'} (${step} ${step === 1 ? 'dimension' : 'dimensions'}).`);
+  }
+  window.exDimHinweis = setzeDimHinweis;
   function setDim(d) {
     DIM = d;
-    const step = DIMS[d].step;
-    el('ex-dim-note').textContent = `Beim Wechsel zur nächsten Einheit wandert das Komma um ${step} ${step === 1 ? 'Stelle' : 'Stellen'} (${step} ${step === 1 ? 'Dimension' : 'Dimensionen'}).`;
+    setzeDimHinweis();
     const p = exParse(el('ex-numin').value) || { sig: '345', k0: 1 };
     rebuildBaseUnits(0);
     strip.setNumber(p.sig, p.k0);
@@ -1660,6 +1884,7 @@ document.addEventListener('DOMContentLoaded', () => {
     addPressHandlers(box,
       () => { if (lastMenuCat === cat && Date.now() - lastMenuClosedAt < 600) { lastMenuCat = null; return; } toggleDim(cat); },
       () => openUnitMenu(cat, box));
+
   });
 
   document.querySelectorAll('input[name="stepMode"], input[name="dirMode"], #settingsForm input[type="checkbox"]')
@@ -1698,6 +1923,200 @@ document.addEventListener('DOMContentLoaded', () => {
   refreshIntBothAvailability();
   onSettingsChange();
 });
+// ================================================================
+// SPRACHE / THEME WECHSELN - die laufende Aufgabe bleibt erhalten
+// ================================================================
+function neuZeichnen() {
+  try {
+    updateCounterDisplay();
+    if (currentTask) {
+      const el = document.getElementById('taskText');
+      const tex = `${formatNumTex(currentTask.startValue)} \\, ${currentTask.from.tex}`
+                + ` = \\text{$\\,\\,\\,\\,\\,$?$\\,\\,\\,\\,\\,$} ${currentTask.to.tex}`;
+      el.innerHTML = `\\(${tex}\\)`;
+      if (window.MathJax && MathJax.typesetPromise) {
+        MathJax.typesetClear && MathJax.typesetClear([el]);
+        MathJax.typesetPromise([el]).then(() => scaleToFit(el));
+      }
+      const sb = document.getElementById('solutionBox');
+      if (sb && sb.classList.contains('show')) {
+        sb.innerHTML = T(`Lösung: ${formatNum(currentTask.expected)} ${unitLabel(currentTask.to.id)}`,
+                         `Answer: ${formatNum(currentTask.expected)} ${unitLabel(currentTask.to.id)}`);
+      }
+    }
+    renderHints();
+    if (window.exDimHinweis) window.exDimHinweis();
+    if (window.exploreStrip) window.exploreStrip.render();
+    if (typeof trainerStrip !== 'undefined' && trainerStrip) trainerStrip.render();
+  } catch (e) {}
+}
+window.addEventListener('tl-sprache', neuZeichnen);
+window.addEventListener('tl-theme',   neuZeichnen);
+
+/* Aktuelle Aufgabe fuer den Fehler-melden-Knopf */
+window.fehlerKontext = function () {
+  const teile = [];
+  if (currentTask) {
+    teile.push(formatNum(currentTask.startValue) + ' ' + unitLabel(currentTask.from.id)
+             + ' \u2192 ' + unitLabel(currentTask.to.id));
+    teile.push(T('Lösung ', 'answer ') + formatNum(currentTask.expected));
+  }
+  const inp = document.getElementById('answerInput');
+  if (inp && inp.value.trim()) teile.push(T('Eingabe: ', 'input: ') + inp.value.trim());
+  return teile.join(' \u00b7 ');
+};
+
+/* ── Punktestand zurücksetzen ───────────────────────────────────────────── */
+function punkteZuruecksetzen(){
+  korrekteAntworten = 0; anzahlAufgaben = 0; updateCounterDisplay();
+}
+document.addEventListener('DOMContentLoaded', () => {
+  const k = document.getElementById('btnPunkteReset');
+  if (k) k.addEventListener('click', punkteZuruecksetzen);
+});
+
+
+
+/* ════════════════════════════════════════════════
+   Schwierigkeitsstufen und Adresszeile
+   ════════════════════════════════════════════════
+   Die Stufe setzt die Art der Zahlen. Schrittweite und Umrechnungsrichtung
+   haben eigene Schalter über der Aufgabe und bleiben unberührt; jede
+   Einstellung steht weiterhin einzeln im Einstellungsbereich.            */
+const STUFEN = {
+  einf:   { ganz:true,  beides:true,  komma:false, schritt:'adjacent',
+            einheiten:{ length:['mm','cm'], area:['mm2','cm2'], volume:['mm3','cm3'] } },
+  leicht: { ganz:true,  beides:false, komma:false, schritt:'adjacent',
+            einheiten:{ length:['mm','cm','dm','m'], area:['mm2','cm2','dm2','m2'],
+                        volume:['mm3','cm3','dm3','m3'] } },
+  normal: { ganz:true,  beides:false, komma:true,  schritt:'random',
+            einheiten:null },                    /* null = die gewöhnliche Vorauswahl */
+  schwer: { ganz:false, beides:false, komma:true,  schritt:'skip',
+            einheiten:'alle' }
+};
+/* Von Hand geändert heißt: die Stufe fasst es nicht mehr an. */
+let schrittVonHand = false, einheitenVonHand = false;
+/** Die Einheiten einer Stufe setzen. */
+function einheitenNachStufe(v){
+  if (einheitenVonHand) return;
+  Object.keys(UNITS).forEach(cat => {
+    UNITS[cat].forEach(u => {
+      const chip = document.querySelector(`.unit-chip[data-category="${cat}"][data-id="${u.id}"]`)
+                || document.querySelector(`[data-category="${cat}"][data-id="${u.id}"]`);
+      if (!chip) return;
+      let an;
+      if (v.einheiten === 'alle')      an = true;
+      else if (v.einheiten === null)   an = !u.off;          /* gewöhnliche Vorauswahl */
+      else                             an = (v.einheiten[cat] || []).indexOf(u.id) >= 0;
+      chip.classList.toggle('on', an);
+    });
+  });
+}
+function stufe(){
+  const e = document.querySelector('input[name="diff"]:checked');
+  return e ? e.value : 'normal';
+}
+function stufeSetzen(name){
+  const e = document.querySelector('input[name="diff"][value="' + name + '"]');
+  if (e && !e.checked){ e.checked = true; if (window.abGliderAlle) abGliderAlle(); }
+}
+function aufIndividuell(){ if (stufe() !== 'indiv') stufeSetzen('indiv'); }
+function stufeAnwenden(name){
+  const v = STUFEN[name];
+  if (!v) return;
+  const h = (id, an) => { const e = document.getElementById(id); if (e) e.checked = an; };
+  h('numInt', v.ganz); h('numIntBoth', v.beides); h('numKomma', v.komma);
+  if (v.schritt && !schrittVonHand){
+    const e = document.querySelector('input[name="stepMode"][value="' + v.schritt + '"]');
+    if (e) e.checked = true;
+  }
+  einheitenNachStufe(v);
+  refreshIntBothAvailability();
+}
+
+/* Ein Blick auf alle Einstellungen - so wie auf den anderen Aufgabenseiten. */
+function einstellungen(){
+  const h = id => !!(document.getElementById(id) || {}).checked;
+  const r = name => (document.querySelector('input[name="' + name + '"]:checked') || {}).value || '';
+  return {
+    modus: r('mode'),
+    dim: Object.keys(dimActive).filter(k => dimActive[k]).join(','),
+    schritt: r('stepMode'), richtung: r('dirMode'),
+    einh: [...document.querySelectorAll('.unit-chip, .liter-chip')]
+            .map(c => c.classList.contains('on') ? '1' : '0').join(''),
+    ganz: h('numInt'), beides: h('numIntBoth'), komma: h('numKomma'),
+    fehler: h('errHints'),
+    hinweise: [...document.querySelectorAll('.hintEnable')].map(c => c.checked ? '1' : '0').join(''),
+    diff: stufe()
+  };
+}
+function urlSchreiben(){
+  const e = einstellungen(), p = new URLSearchParams();
+  Object.keys(e).forEach(k => p.set(k, typeof e[k] === 'boolean' ? (e[k] ? '1' : '0') : String(e[k])));
+  history.replaceState(null, '', location.pathname + '?' + p.toString());
+}
+function urlLesen(){
+  const p = new URLSearchParams(location.search);
+  if (![...p.keys()].length) return;
+  const ja = k => p.get(k) === '1';
+  const h = (id, an) => { const e = document.getElementById(id); if (e) e.checked = an; };
+  const r = (name, wert) => { const e = document.querySelector('input[name="' + name + '"][value="' + wert + '"]');
+                              if (e) e.checked = true; };
+  if (p.has('dim')){
+    const l = p.get('dim').split(',').filter(Boolean);
+    Object.keys(dimActive).forEach(k => { dimActive[k] = l.indexOf(k) >= 0; });
+    if (!Object.values(dimActive).some(v => v)) dimActive.length = true;
+  }
+  if (p.has('einh')){
+    const t = p.get('einh');
+    document.querySelectorAll('.unit-chip, .liter-chip').forEach((c, i) => {
+      if (t[i] !== undefined) c.classList.toggle('on', t[i] === '1');
+    });
+    einheitenVonHand = true;
+  }
+  if (p.has('schritt')){ r('stepMode', p.get('schritt')); schrittVonHand = true; }
+  if (p.has('richtung')) r('dirMode',  p.get('richtung'));
+  if (p.has('ganz'))     h('numInt',     ja('ganz'));
+  if (p.has('beides'))   h('numIntBoth', ja('beides'));
+  if (p.has('komma'))    h('numKomma',   ja('komma'));
+  if (p.has('fehler'))   h('errHints',   ja('fehler'));
+  if (p.has('hinweise')){
+    const t = p.get('hinweise');
+    document.querySelectorAll('.hintEnable').forEach((c, i) => { c.checked = t[i] !== '0'; });
+  }
+  if (p.has('diff')) stufeSetzen(p.get('diff'));
+  if (p.has('modus')){
+    const m = document.querySelector('input[name="mode"][value="' + p.get('modus') + '"]');
+    if (m && !m.checked){ m.checked = true; m.dispatchEvent(new Event('change', { bubbles:true })); }
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  urlLesen();
+  renderDimBoxes();
+  refreshIntBothAvailability();
+  /* von Hand geändert heißt „Individuell" - aber nur bei dem, was die Stufe setzt */
+  ['numInt', 'numIntBoth', 'numKomma'].forEach(id => {
+    const e = document.getElementById(id);
+    if (e) e.addEventListener('change', aufIndividuell);
+  });
+  document.querySelectorAll('input[name="stepMode"]')
+    .forEach(e => e.addEventListener('change', () => { schrittVonHand = true; }));
+  document.querySelectorAll('input[name="stepMode"], input[name="dirMode"], #settingsForm input[type="checkbox"]')
+    .forEach(e => e.addEventListener('change', urlSchreiben));
+  document.querySelectorAll('input[name="mode"]')
+    .forEach(e => e.addEventListener('change', urlSchreiben));
+  document.querySelectorAll('input[name="diff"]').forEach(e =>
+    e.addEventListener('change', () => {
+      if (!e.checked) return;
+      if (e.value !== 'indiv') stufeAnwenden(e.value);
+      else if (window.abEinstellungenOeffnen) abEinstellungenOeffnen('#settingsBox');
+      urlSchreiben();
+      onSettingsChange();
+    }));
+  generateTask();
+});
+
 </script>
 
 <div id="lobby-spacer"></div>
@@ -1705,7 +2124,7 @@ document.addEventListener('DOMContentLoaded', () => {
 <div class="footer-content">
     M.&nbsp;Koch
     <span class="footer-topic"><a href="./index.html">Mathe-Tools</a></span>
-    <span class="footer-update">Last updated:&nbsp;<span id="last-update">...</span></span>
+    <span class="footer-update"><span class="fu-wort" data-de="Zuletzt aktualisiert:" data-en="Last updated:">Zuletzt aktualisiert:</span><span id="last-update">...</span></span>
 </div>
 </footer>
 <script src="last-update.js" defer></script>

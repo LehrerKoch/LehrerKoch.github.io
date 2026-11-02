@@ -1,0 +1,1166 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Baumdiagramm-Trainer</title>
+  <link rel="stylesheet" href="styles.css">
+  <script>MathJax = { tex:{ inlineMath:[['\\(','\\)']] }, svg:{ fontCache:'global' } };</script>
+  <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+  <style>
+    html, body { height: 100%; }
+    body { display:flex; flex-direction:column; min-height:100svh; box-sizing:border-box; }
+
+    /* ── Header ───────────────────────────────── */
+    #header-row { padding:10px 0 4px; flex-shrink:0; }
+    #header-row h1 { margin:0; font-size:1.35em; }
+
+    /* ── Segmented Controls ──────────────────── */
+    .seg { display:inline-flex; flex-wrap:wrap; }
+    .seg button { background:#ddd; color:#333; padding:5px 12px; font-size:11px; border:1px solid #bbb; border-radius:0; margin:0; }
+    .seg button:first-child { border-radius:4px 0 0 4px; }
+    .seg button:last-child  { border-radius:0 4px 4px 0; }
+    .seg button.on          { background:#4CAF50; color:#fff; border-color:#388e3c; }
+    .seg button:disabled    { opacity:.35; cursor:not-allowed; }
+    .srow.dimmed            { opacity:.42; pointer-events:none; }
+
+    /* ── Settings ────────────────────────────── */
+    #settings { flex-shrink:0; }
+    #settings > div { padding:6px 0 4px 14px; }
+    .srow { display:flex; align-items:center; gap:12px; margin:6px 0; flex-wrap:wrap; }
+    .srow > label { font-weight:bold; min-width:210px; font-size:.88em; }
+
+    /* ── Task area ───────────────────────────── */
+    #task-area { flex-shrink:0; border:2px solid #000; border-radius:5px; padding:10px 14px; margin:6px 0 5px; background:#fafafa; }
+    #task-header { display:flex; justify-content:space-between; align-items:baseline; gap:8px; }
+    #task-q { font-size:1.05em; min-height:36px; display:flex; flex-direction:column; gap:4px; flex:1; }
+    #progress { font-size:.78em; color:#777; white-space:nowrap; flex-shrink:0; }
+    #progress .p-rem { font-weight:bold; color:#333; }
+    #task-hint { display:none; font-size:.85em; color:#555; margin-top:7px; padding:5px 10px; border-radius:4px; background:#fff8e1; border-left:3px solid #FF9800; }
+    #task-btns { display:flex; gap:7px; align-items:center; flex-wrap:wrap; margin-top:9px; }
+
+    /* ── New task row ────────────────────────── */
+    #neu-row { flex-shrink:0; padding:4px 0 3px; }
+
+    /* ── Tree wrap ───────────────────────────── */
+    #tree-wrap { flex:1 1 auto; min-height:160px; display:flex; align-items:center; justify-content:center; overflow:hidden; position:relative; }
+    #baum { display:block; overflow:visible; }
+
+    /* ── Tree inputs inside SVG foreignObject ── */
+    .t-inp {
+      width:100%; height:100%;
+      border:1.5px solid #aaa; border-radius:4px;
+      background:white; text-align:center;
+      font-family:inherit;
+      font-size:12px;
+      padding:1px 2px; box-sizing:border-box;
+      outline:none; transition:border-color .12s, background .12s;
+    }
+    .t-inp:focus   { border-color:#0077cc; box-shadow:0 0 0 1.5px #0077cc44; }
+    .t-inp.ok      { background:#d4edda; border-color:#28a745; }
+    .t-inp.nok     { background:#f8d7da; border-color:#dc3545; }
+    .t-inp.show    { background:#fff3cd; border-color:#c07800; }
+    .t-inp.fixed   { background:#f4f4f4; color:#222; cursor:default; font-weight:bold; border-color:#999; }
+    .t-inp.path    { font-style:italic; }
+
+    /* ── Mental (n-Stufen) wrap ──────────────── */
+    #mental-wrap { flex:1 1 auto; display:none; flex-direction:column; align-items:center; justify-content:center; padding:20px; gap:14px; }
+    #mental-wrap.vis { display:flex; }
+    #mental-desc { font-size:.95em; color:#333; max-width:540px; background:#fafafa; border:1px solid #ccc; border-radius:6px; padding:12px 16px; line-height:1.6; }
+    #mental-row  { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+    #mental-ans  { font-size:1.1em; padding:7px 14px; border:2px solid #90caf9; border-radius:6px; width:170px; text-align:center; }
+    #mental-ans.ok  { border-color:#28a745; background:#d4edda; }
+    #mental-ans.nok { border-color:#dc3545; background:#f8d7da; }
+    #mental-hint-box { display:none; font-size:.85em; color:#555; max-width:540px; padding:6px 12px; background:#fff8e1; border-left:3px solid #FF9800; border-radius:4px; }
+
+    /* ── Button row ──────────────────────────── */
+    #btn-row { flex-shrink:0; display:flex; flex-direction:column; align-items:center; padding:8px 0 4px; }
+    #ergebnis { height:1.4em; margin-top:4px; font-weight:bold; font-size:1em; text-align:center; visibility:hidden; }
+    #ergebnis.ok  { color:#28a745; }
+    #ergebnis.nok { color:#dc3545; }
+
+    /* ── Quiz area ───────────────────────────── */
+    #quiz-area { display:none; flex-shrink:0; border:2px solid #1565c0; border-radius:5px; padding:10px 14px; margin:4px 0; background:#e8f1fb; }
+    #quiz-area.vis { display:block; }
+    #quiz-prog { font-size:.78em; color:#555; margin-bottom:4px; }
+    #quiz-q { font-size:1em; font-weight:bold; margin-bottom:8px; min-height:24px; }
+    #quiz-row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+    #quiz-ans { font-size:1em; padding:6px 10px; border:1.5px solid #90caf9; border-radius:5px; width:160px; text-align:center; }
+    #quiz-ans.ok  { background:#d4edda; border-color:#28a745; }
+    #quiz-ans.nok { background:#f8d7da; border-color:#dc3545; }
+    #quiz-hint-box { display:none; font-size:.85em; color:#555; margin-top:7px; padding:5px 10px; border-radius:4px; background:#fff8e1; border-left:3px solid #FF9800; }
+
+    /* ── Button colour overrides ─────────────── */
+    #btn-ok,#quiz-btn-ok,#mental-btn-ok { background:#2196F3; }
+    #btn-hint-btn,#quiz-btn-hint,#mental-btn-hint { background:#FF9800; }
+    #btn-show,#quiz-btn-show { background:#7b1fa2; }
+    #quiz-btn-next { background:#4CAF50; display:none; }
+
+    /* ── Toast ───────────────────────────────── */
+    #toast { position:fixed; bottom:72px; left:50%; transform:translateX(-50%) translateY(12px); background:#2e7d32; color:#fff; padding:12px 28px; border-radius:10px; font-size:1.05em; font-weight:bold; box-shadow:0 4px 16px rgba(0,0,0,.3); opacity:0; pointer-events:none; transition:opacity .35s,transform .35s; z-index:200; white-space:nowrap; }
+    #toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+    .site-footer { flex-shrink:0; }
+  </style>
+<script src="einwilligung.js" defer></script>
+</head>
+<body>
+
+<div id="header-row">
+  <h1>🌳 Baumdiagramm-Trainer</h1>
+</div>
+
+<details id="settings">
+  <summary>Einstellungen</summary>
+  <div>
+    <div class="srow">
+      <label>Modus:</label>
+      <div class="seg" id="s-modus">
+        <button data-v="aufgabe" class="on">📋 Aufgabe lösen</button>
+        <button data-v="ausfuellen">✏️ Felder ausfüllen</button>
+        <button data-v="entwerfen">🔧 Baum entwerfen</button>
+      </div>
+    </div>
+    <div class="srow">
+      <label>Stufen:</label>
+      <div class="seg" id="s-stufen">
+        <button data-v="2" class="on">2</button>
+        <button data-v="3">3</button>
+        <button data-v="4">4</button>
+        <button data-v="n">n (Kopfrechnen)</button>
+      </div>
+    </div>
+    <div class="srow" id="row-aeste">
+      <label>Äste pro Knoten:</label>
+      <div class="seg" id="s-aeste">
+        <button data-v="2" class="on">2</button>
+        <button data-v="3">3</button>
+        <button data-v="4">4</button>
+      </div>
+    </div>
+    <div class="srow" id="row-szenario">
+      <label>Szenario:</label>
+      <div class="seg" id="s-szenario">
+        <button data-v="urne-o" class="on">Urne (o.Z.)</button>
+        <button data-v="urne-m">Urne (m.Z.)</button>
+        <button data-v="muenze">Münze</button>
+        <button data-v="wuerfel">Würfel</button>
+        <button data-v="test">Diagnose-Test</button>
+      </div>
+    </div>
+    <div class="srow" id="row-notation">
+      <label>Notation bed. W'keit:</label>
+      <div class="seg" id="s-notation">
+        <button data-v="bar" class="on">P(A|B)</button>
+        <button data-v="sub">P<sub>B</sub>(A)</button>
+      </div>
+    </div>
+  </div>
+</details>
+
+<div id="task-area">
+  <div id="task-header">
+    <div id="task-q">Aufgabe wird geladen…</div>
+    <span id="progress"></span>
+  </div>
+  <div id="task-hint"></div>
+  <div id="task-btns">
+    <button id="btn-hint-btn" disabled>? Hinweis</button>
+    <button id="btn-show"     disabled>→ Lösung anzeigen</button>
+  </div>
+</div>
+
+<div id="neu-row">
+  <button id="btn-neu">▶ Neue Aufgabe</button>
+</div>
+
+<!-- Drawn tree -->
+<div id="tree-wrap">
+  <svg id="baum" xmlns="http://www.w3.org/2000/svg"></svg>
+</div>
+
+<!-- Mental / n-stage mode -->
+<div id="mental-wrap">
+  <div id="mental-desc"></div>
+  <div id="mental-row">
+    <span>Antwort:</span>
+    <input type="text" id="mental-ans" placeholder="z.B. 3/10 oder 0,3" autocomplete="off">
+    <button id="mental-btn-ok">✓ Prüfen</button>
+    <button id="mental-btn-hint">? Hinweis</button>
+  </div>
+  <div id="mental-hint-box"></div>
+</div>
+
+<div id="btn-row">
+  <button id="btn-ok" disabled>✓ Bestätigen</button>
+  <div id="ergebnis"></div>
+</div>
+
+<!-- Follow-up quiz questions -->
+<div id="quiz-area">
+  <div id="quiz-prog"></div>
+  <div id="quiz-q"></div>
+  <div id="quiz-row">
+    <input type="text" id="quiz-ans" placeholder="Bruch oder Dezimalzahl" autocomplete="off">
+    <button id="quiz-btn-ok">✓ Prüfen</button>
+    <button id="quiz-btn-hint">? Hinweis</button>
+    <button id="quiz-btn-show">→ Lösung</button>
+    <button id="quiz-btn-next">▶ Weiter</button>
+  </div>
+  <div id="quiz-hint-box"></div>
+</div>
+
+<div id="toast"></div>
+
+<footer class="site-footer">
+  <div class="footer-content">
+    M.&nbsp;Koch
+    <span class="footer-topic"><a href="./index.html">Mathe-Tools</a></span>
+    <span class="footer-update"><span class="fu-wort" data-de="Zuletzt aktualisiert:" data-en="Last updated:">Zuletzt aktualisiert:</span><span id="last-update">…</span></span>
+  </div>
+</footer>
+<script src="last-update.js" defer></script>
+
+<script>
+'use strict';
+
+// ═══════════════════════════════════════════════════════
+// §1  EINSTELLUNGS-STATE
+// ═══════════════════════════════════════════════════════
+const S = { modus:'aufgabe', stufen:2, aeste:2, szenario:'urne-o', notation:'bar' };
+let treeNodes = [], exercise = null, phase = 'idle';
+const inpSaved = {};   // inputId → { val, cls }
+
+function saveSettings() {
+  const p = new URLSearchParams();
+  for (const [k,v] of Object.entries(S)) p.set(k, v);
+  history.replaceState(null,'','#'+p);
+}
+function loadSettings() {
+  if (!location.hash) return;
+  try {
+    const p = new URLSearchParams(location.hash.slice(1));
+    for (const k of Object.keys(S)) if (p.has(k)) {
+      if (k === 'stufen')  S.stufen = p.get(k)==='n' ? 'n' : +p.get(k);
+      else if (k === 'aeste') S.aeste = +p.get(k);
+      else S[k] = p.get(k);
+    }
+  } catch(e) {}
+}
+function syncControls() {
+  [['s-modus','modus'],['s-stufen','stufen'],['s-aeste','aeste'],
+   ['s-szenario','szenario'],['s-notation','notation']].forEach(([id, key]) => {
+    document.getElementById(id).querySelectorAll('button').forEach(b =>
+      b.classList.toggle('on', b.dataset.v === String(S[key])));
+  });
+}
+function updateUI() {
+  const isAuf = S.modus === 'aufgabe';
+  const isMen = S.stufen === 'n';
+  document.getElementById('row-szenario').classList.toggle('dimmed', !isAuf);
+  document.getElementById('row-aeste').classList.toggle('dimmed', isAuf);
+  // Limit aeste×stufen to avoid absurd tree sizes
+  const ae4 = document.querySelector('#s-aeste [data-v="4"]');
+  const st4 = document.querySelector('#s-stufen [data-v="4"]');
+  ae4.disabled = S.stufen === 4;
+  st4.disabled = S.aeste  === 4;
+  if (S.stufen === 4 && S.aeste === 4) { S.aeste = 3; syncControls(); }
+  document.getElementById('tree-wrap').style.display  = isMen ? 'none' : '';
+  document.getElementById('mental-wrap').classList.toggle('vis', isMen);
+  document.getElementById('btn-row').style.display     = isMen ? 'none' : '';
+  document.getElementById('quiz-area').classList.remove('vis');
+}
+
+// ═══════════════════════════════════════════════════════
+// §2  MATH-UTILITIES
+// ═══════════════════════════════════════════════════════
+function gcd(a, b) { a=Math.abs(a); b=Math.abs(b); while(b){[a,b]=[b,a%b];} return a||1; }
+
+function frac(n, d=1) {
+  if (d===0) return {n:0,d:1,v:0};
+  if (d<0) {n=-n; d=-d;}
+  const g=gcd(Math.abs(n),d);
+  return {n:n/g, d:d/g, v:n/d};
+}
+const F0=frac(0), F1=frac(1);
+function fadd(a,b){return frac(a.n*b.d+b.n*a.d, a.d*b.d);}
+function fmul(a,b){return frac(a.n*b.n, a.d*b.d);}
+function fsub(a,b){return frac(a.n*b.d-b.n*a.d, a.d*b.d);}
+function fdiv(a,b){return b.n ? frac(a.n*b.d, a.d*b.n) : F0;}
+function feq(a,b) {return a.n*b.d===b.n*a.d;}
+
+function flatex(f) { return f.d===1 ? `${f.n}` : `\\dfrac{${f.n}}{${f.d}}`; }
+function fdisp(f)  { return f.d===1 ? `${f.n}` : `${f.n}/${f.d}`; }
+function fdec(f,digits=4) { return +f.v.toFixed(digits); }
+
+function parseP(s) {
+  s=String(s).trim().replace(',','.');
+  if (!s) return NaN;
+  if (s.includes(':')) { const [a,b]=s.split(':').map(Number); return b?a/b:NaN; }
+  if (s.includes('/')) { const [a,b]=s.split('/').map(Number); return b?a/b:NaN; }
+  if (s.endsWith('%'))  return parseFloat(s)/100;
+  return parseFloat(s);
+}
+function chkP(s, f, eps=5e-4) { const v=parseP(s); return !isNaN(v) && Math.abs(v-f.v)<eps; }
+
+function rnd(a,b)  { return a+Math.floor(Math.random()*(b-a+1)); }
+function pick(a)   { return a[Math.floor(Math.random()*a.length)]; }
+function shuffle(a){ const r=[...a]; for(let i=r.length-1;i>0;i--){const j=0|Math.random()*(i+1);[r[i],r[j]]=[r[j],r[i]];} return r; }
+function binom(n,k){ if(k<0||k>n) return 0; let r=1; for(let i=0;i<k;i++) r=r*(n-i)/(i+1); return Math.round(r); }
+
+// ═══════════════════════════════════════════════════════
+// §3  BAUMMODELL
+// ═══════════════════════════════════════════════════════
+// node = { id, level, parentId, branchIdx, path[], xRel,
+//          label, labelFixed, prob:{n,d,v}|null, probFixed }
+
+function buildNodes(stufen, aeste, labelFn, probFn, lFixed, pFixed) {
+  const nL=Math.pow(aeste,stufen), nodes=[];
+  function add(lv, ls, lc, pid, bi, path) {
+    const id=`n${nodes.length}`;
+    nodes.push({ id, level:lv, parentId:pid, branchIdx:bi, path:[...path], xRel:ls+lc/2,
+      label:      lv>0 ? (labelFn ? labelFn(lv,bi,path) : null) : null,
+      labelFixed: lFixed!==false,
+      prob:       lv>0 ? (probFn  ? probFn(lv,bi,path)  : null) : null,
+      probFixed:  pFixed===true });
+    if (lv<stufen)
+      for (let i=0;i<aeste;i++) add(lv+1, ls+i*lc/aeste, lc/aeste, id, i, [...path,i]);
+  }
+  add(0, 0, nL, null, -1, []);
+  return nodes;
+}
+
+function getLeaves(nodes) { const mx=Math.max(...nodes.map(n=>n.level)); return nodes.filter(n=>n.level===mx); }
+function byId(id, nodes)  { return nodes.find(n=>n.id===id); }
+function branchChain(nd, nodes) {
+  const a=[]; let c=nd;
+  while(c.parentId){a.unshift(c); c=byId(c.parentId,nodes);}
+  return a;
+}
+function pathProb(nd, nodes) { return branchChain(nd,nodes).reduce((p,n)=>n.prob?fmul(p,n.prob):p, F1); }
+function totalProb(label, level, nodes) {
+  return nodes.filter(n=>n.level===level&&n.label===label).reduce((s,n)=>fadd(s,pathProb(n,nodes)), F0);
+}
+function condLabel(ev, giv) {
+  return S.notation==='sub' ? `P_{${giv}}\\!\\left(${ev}\\right)` : `P\\!\\left(${ev}\\mid ${giv}\\right)`;
+}
+function intersectLabel(labels) {
+  // labels = ["R","B"] → "R_1 \\cap B_2"
+  return labels.map((l,i)=>`${l}_{${i+1}}`).join('\\cap ');
+}
+
+// ═══════════════════════════════════════════════════════
+// §4  SZENARIO-GENERATOREN
+// ═══════════════════════════════════════════════════════
+
+/* ── Urne OHNE Zurücklegen ─────────────────────── */
+function genUrneO() {
+  const r=rnd(2,4), b=rnd(2,4), n=r+b;
+  const lFn=(lv,bi)=>bi===0?'R':'B';
+  const pFn=(lv,bi,path)=>{
+    if(lv===1) return bi===0 ? frac(r,n) : frac(b,n);
+    const drewR=path[0]===0;
+    return bi===0 ? frac(drewR?r-1:r, n-1) : frac(drewR?b:b-1, n-1);
+  };
+  const nodes=buildNodes(2,2,lFn,pFn,true,false);
+  const lv=getLeaves(nodes);
+  const pRR=pathProb(lv[0],nodes), pRB=pathProb(lv[1],nodes);
+  const pBR=pathProb(lv[2],nodes), pBB=pathProb(lv[3],nodes);
+  const pR2=fadd(pRR,pBR);
+  const hint='Die bedingten Wahrscheinlichkeiten der 2. Stufe hängen vom Ergebnis der 1. Ziehung ab (die Zusammensetzung ändert sich!).';
+  const qs=[
+    { q:`\\( P(R_1 \\cap R_2) = \\;? \\)`,
+      hint:`Multipliziere die Äste des Pfades \\(R_1\\!\\to R_2\\):\\; \\(${flatex(frac(r,n))}\\cdot${flatex(frac(r-1,n-1))}\\)`,
+      ans:pRR, sol:`\\(${flatex(frac(r,n))}\\cdot${flatex(frac(r-1,n-1))} = ${flatex(pRR)}\\)` },
+    { q:`\\( P(R_2) = \\;? \\) <span style="font-weight:normal;font-size:.9em">(Satz der totalen W'keit)</span>`,
+      hint:`Addiere alle Pfade, die auf \\(R_2\\) enden: \\(P(R_1\\cap R_2)+P(B_1\\cap R_2)\\)`,
+      ans:pR2, sol:`\\(${flatex(pRR)}+${flatex(pBR)} = ${flatex(pR2)}\\)` },
+    { q:`\\( P(\\text{mind. einmal Rot}) = \\;? \\)`,
+      hint:`Gegenereignis: \\(1 - P(B_1\\cap B_2) = 1 - ${flatex(pBB)}\\)`,
+      ans:fsub(F1,pBB), sol:`\\(1 - ${flatex(pBB)} = ${flatex(fsub(F1,pBB))}\\)` },
+    { q:`\\( ${condLabel('R_1','R_2')} = \\;? \\) <span style="font-weight:normal;font-size:.9em">(Satz von Bayes)</span>`,
+      hint:`\\(\\dfrac{P(R_1\\cap R_2)}{P(R_2)} = \\dfrac{${flatex(pRR)}}{${flatex(pR2)}}\\)`,
+      ans:fdiv(pRR,pR2), sol:`\\(\\dfrac{${flatex(pRR)}}{${flatex(pR2)}} = ${flatex(fdiv(pRR,pR2))}\\)` }
+  ];
+  return { title:'Urne ohne Zurücklegen', aeste:2,
+    taskHtml:`<b>Eine Urne</b> enthält <b>${r} rote</b> und <b>${b} blaue</b> Kugeln.<br>Es wird <b>zweimal OHNE Zurücklegen</b> gezogen.<br><small style="color:#555">Trage alle bedingten Wahrscheinlichkeiten und Pfadwahrscheinlichkeiten ein.</small>`,
+    hint, nodes, qs:shuffle(qs).slice(0,3) };
+}
+
+/* ── Urne MIT Zurücklegen ──────────────────────── */
+function genUrneM(stufen) {
+  const r=rnd(2,4), b=rnd(2,4), n=r+b;
+  // Always 2-stage: quiz questions only cover 4 leaves
+  const pR=frac(r,n), pB=frac(b,n);
+  const nodes=buildNodes(2,2,(lv,bi)=>bi===0?'R':'B',(lv,bi)=>bi===0?pR:pB,true,false);
+  const lv=getLeaves(nodes);
+  const pRR=pathProb(lv[0],nodes), pRB=pathProb(lv[1],nodes);
+  const pBR=pathProb(lv[2],nodes), pBB=pathProb(lv[3],nodes);
+  const pGen=fadd(pRB,pBR);
+  const qs=[
+    { q:`\\( P(R_1\\cap R_2) = \\;? \\)`,
+      hint:`Unabhängig: \\(P(R)^2 = \\left(${flatex(pR)}\\right)^2\\)`,
+      ans:pRR, sol:`\\(${flatex(pR)}\\cdot${flatex(pR)} = ${flatex(pRR)}\\)` },
+    { q:`\\( P(\\text{genau einmal Rot}) = \\;? \\)`,
+      hint:`Pfade \\(R_1B_2\\) und \\(B_1R_2\\) addieren.`,
+      ans:pGen, sol:`\\(${flatex(pRB)}+${flatex(pBR)} = ${flatex(pGen)}\\)` },
+    { q:`\\( P(\\text{mind. einmal Rot}) = \\;? \\)`,
+      hint:`\\(1 - P(\\text{keinmal Rot}) = 1 - ${flatex(pBB)}\\)`,
+      ans:fsub(F1,pBB), sol:`\\(1-${flatex(pBB)}=${flatex(fsub(F1,pBB))}\\)` }
+  ];
+  return { title:'Urne mit Zurücklegen', aeste:2,
+    taskHtml:`<b>Eine Urne</b> enthält <b>${r} rote</b> und <b>${b} blaue</b> Kugeln.<br>Es wird <b>zweimal MIT Zurücklegen</b> gezogen.<br><small style="color:#555">Da jede Ziehung unabhängig ist, bleiben die Wahrscheinlichkeiten gleich.</small>`,
+    hint:'Mit Zurücklegen: An jeder Stufe dieselben Wahrscheinlichkeiten — die Ziehungen sind unabhängig.',
+    nodes, qs };
+}
+
+/* ── Münzwurf ──────────────────────────────────── */
+function genMuenze(stufen) {
+  const st=Math.min(stufen,4);
+  const half=frac(1,2);
+  const nodes=buildNodes(st,2,(lv,bi)=>bi===0?'K':'Z',(lv,bi)=>half,true,false);
+  const lv=getLeaves(nodes);
+  const pAll=pathProb(lv[0],nodes);          // P(K∩K∩…)
+  const pNone=pathProb(lv[lv.length-1],nodes); // P(Z∩Z∩…)
+  const k=rnd(1,st-1);
+  const nk=binom(st,k);
+  const pExact=frac(nk,Math.pow(2,st));
+  const qs=[
+    { q:`\\(P(K_1\\cap K_2${st>2?'\\cap\\cdots':''}\\cap K_{${st}}) = \\;?\\)`,
+      hint:`Alle ${st} Äste multiplizieren: \\(\\left(\\tfrac{1}{2}\\right)^{${st}}\\)`,
+      ans:pAll, sol:`\\(\\left(\\tfrac{1}{2}\\right)^{${st}} = ${flatex(pAll)}\\)` },
+    { q:`\\(P(\\text{genau } ${k}\\text{-mal Kopf}) = \\;?\\)`,
+      hint:`\\(\\binom{${st}}{${k}}=${nk}\\) Pfade, jeder mit \\(\\left(\\tfrac{1}{2}\\right)^{${st}}\\).`,
+      ans:pExact, sol:`\\(\\binom{${st}}{${k}}\\!\\cdot\\!\\left(\\tfrac{1}{2}\\right)^{${st}} = ${nk}\\cdot${flatex(frac(1,Math.pow(2,st)))} = ${flatex(pExact)}\\)` },
+    { q:`\\(P(\\text{mindestens einmal Kopf}) = \\;?\\)`,
+      hint:`Gegenereignis: \\(1-P(\\text{keinmal Kopf}) = 1-\\left(\\tfrac{1}{2}\\right)^{${st}}\\)`,
+      ans:fsub(F1,pNone), sol:`\\(1-\\left(\\tfrac{1}{2}\\right)^{${st}} = ${flatex(fsub(F1,pNone))}\\)` }
+  ];
+  return { title:'Münzwurf', aeste:2,
+    taskHtml:`Eine faire Münze wird <b>${st}-mal</b> geworfen (K = Kopf, Z = Zahl).<br><small style="color:#555">Alle Würfe sind unabhängig: \\(P(K)=P(Z)=\\tfrac{1}{2}\\)</small>`,
+    hint:'Alle Äste an jeder Stufe haben P = 1/2.',
+    nodes, qs };
+}
+
+/* ── Würfelwurf ─────────────────────────────────── */
+function genWuerfel(stufen) {
+  const st=Math.min(stufen,3);
+  const parts=[
+    { ae:2, lFn:(lv,bi)=>bi===0?'G':'U', pFn:()=>frac(1,2),
+      desc:'G = gerade (2,4,6), U = ungerade (1,3,5)', eachP:'P(G)=P(U)=\\tfrac{1}{2}' },
+    { ae:2, lFn:(lv,bi)=>bi===0?'≤3':'>3', pFn:()=>frac(1,2),
+      desc:'≤3 = Augenzahl höchstens 3, >3 = Augenzahl größer als 3', eachP:'P(\\!\\leq\\!3)=P(\\!>\\!3)=\\tfrac{1}{2}' },
+    { ae:2, lFn:(lv,bi)=>bi===0?'≤2':'>2', pFn:(lv,bi)=>bi===0?frac(1,3):frac(2,3),
+      desc:'≤2 = Augenzahl 1 oder 2, >2 = Augenzahl 3–6', eachP:'P(\\!\\leq\\!2)=\\tfrac{1}{3},\\;P(\\!>\\!2)=\\tfrac{2}{3}' },
+    { ae:3, lFn:(lv,bi)=>['1','2–5','6'][bi], pFn:(lv,bi)=>bi===1?frac(2,3):frac(1,6),
+      desc:'1 (P=1/6), 2–5 (P=4/6=2/3), 6 (P=1/6)', eachP:'P(1)=P(6)=\\tfrac{1}{6},\\;P(2\\text{–}5)=\\tfrac{2}{3}' },
+    { ae:3, lFn:(lv,bi)=>['1–2','3–4','5–6'][bi], pFn:()=>frac(1,3),
+      desc:'1–2 (P=2/6=1/3), 3–4 (P=1/3), 5–6 (P=1/3)', eachP:'je P=\\tfrac{1}{3}' },
+  ];
+  const p=pick(parts);
+  const nodes=buildNodes(st, p.ae, p.lFn, p.pFn, true, false);
+  const lv=getLeaves(nodes);
+  const leafQ=pick(lv);
+  const chain=branchChain(leafQ,nodes);
+  const pLeaf=pathProb(leafQ,nodes);
+  const labStr=chain.map((n,i)=>`${n.label}_{${n.level}}`).join('\\cap ');
+  const lastLabels=[...new Set(lv.map(n=>n.label))];
+  const tgt=pick(lastLabels);
+  const tgtLv=lv.filter(n=>n.label===tgt);
+  const pTot=tgtLv.reduce((s,n)=>fadd(s,pathProb(n,nodes)),F0);
+  // P(mindestens einmal tgt) = 1 - P(tgt appears in NO stage along path)
+  const pNeverTgt=lv.filter(leaf=>branchChain(leaf,nodes).every(n=>n.label!==tgt))
+                    .reduce((s,n)=>fadd(s,pathProb(n,nodes)),F0);
+  const pMind=fsub(F1,pNeverTgt);
+  const qs=[
+    { q:`\\(P(${labStr}) = \\;?\\)`,
+      hint:'Multipliziere die Wahrscheinlichkeiten entlang des Pfades.',
+      ans:pLeaf, sol:`\\(${chain.map(n=>flatex(n.prob)).join('\\cdot')} = ${flatex(pLeaf)}\\)` },
+    { q:`\\(P(${tgt}_{${st}}) = \\;?\\) <span style="font-weight:normal;font-size:.9em">(${st}. Wurf)</span>`,
+      hint:`Addiere alle ${tgtLv.length} Pfade, die in „${tgt}" enden.`,
+      ans:pTot, sol:`Summe der ${tgtLv.length} Pfade = \\(${flatex(pTot)}\\)` },
+    { q:`\\(P(\\text{mind. einmal }${tgt}) = \\;?\\)`,
+      hint:`Gegenereignis: \\(1 - P(\\text{keinmal }${tgt})\\)`,
+      ans:pMind, sol:`\\(1 - ${flatex(fsub(F1,pMind))} = ${flatex(pMind)}\\)` }
+  ];
+  return { title:'Würfelwurf', aeste:p.ae,
+    taskHtml:`Ein fairer Würfel wird <b>${st}-mal</b> geworfen.<br><small style="color:#555">${p.desc} — also \\(${p.eachP}\\)</small>`,
+    hint:'Bei jedem Wurf: dieselben Wahrscheinlichkeiten (unabhängige Versuche).',
+    nodes, qs };
+}
+
+/* ── Diagnose-Test ──────────────────────────────── */
+function genTest() {
+  const cfgs=[
+    {pk:frac(1,100),sens:frac(19,20),spec:frac(19,20)},
+    {pk:frac(1,50), sens:frac(9,10), spec:frac(9,10)},
+    {pk:frac(1,10), sens:frac(9,10), spec:frac(4,5)},
+    {pk:frac(1,5),  sens:frac(4,5),  spec:frac(4,5)},
+  ];
+  const c=pick(cfgs);
+  const pK=c.pk, pG=fsub(F1,pK);
+  const pTpK=c.sens,  pTmK=fsub(F1,c.sens);
+  const pTmG=c.spec,  pTpG=fsub(F1,c.spec);
+  const lFn=(lv,bi,path)=>lv===1?(bi===0?'K':'G'):(bi===0?'T⁺':'T⁻');
+  const pFn=(lv,bi,path)=>{
+    if(lv===1) return bi===0?pK:pG;
+    return path[0]===0 ? (bi===0?pTpK:pTmK) : (bi===0?pTpG:pTmG);
+  };
+  const nodes=buildNodes(2,2,lFn,pFn,true,false);
+  const lv=getLeaves(nodes);
+  const pKTp=pathProb(lv[0],nodes), pGTp=pathProb(lv[2],nodes);
+  const pTp=fadd(pKTp,pGTp);
+  const pKgTp=fdiv(pKTp,pTp);
+  const sensP=Math.round(c.sens.v*100), specP=Math.round(c.spec.v*100);
+  const qs=[
+    { q:`\\(P(K\\cap T^+) = \\;?\\)`,
+      hint:`Pfad K → T⁺: \\(P(K)\\cdot P(T^+|K) = ${flatex(pK)}\\cdot${flatex(pTpK)}\\)`,
+      ans:pKTp, sol:`\\(${flatex(pK)}\\cdot${flatex(pTpK)} = ${flatex(pKTp)}\\)` },
+    { q:`\\(P(T^+) = \\;?\\) <span style="font-weight:normal;font-size:.9em">(Gesamtwahrscheinlichkeit)</span>`,
+      hint:`\\(P(K\\cap T^+)+P(G\\cap T^+) = ${flatex(pKTp)}+${flatex(pGTp)}\\)`,
+      ans:pTp, sol:`\\(${flatex(pKTp)}+${flatex(pGTp)} = ${flatex(pTp)}\\)` },
+    { q:`\\(${condLabel('K','T^+')} = \\;?\\) <span style="font-weight:normal;font-size:.9em">(positiver Test → tatsächlich krank?)</span>`,
+      hint:`Satz von Bayes: \\(\\dfrac{P(K\\cap T^+)}{P(T^+)} = \\dfrac{${flatex(pKTp)}}{${flatex(pTp)}}\\)`,
+      ans:pKgTp,
+      sol:`\\(\\dfrac{${flatex(pKTp)}}{${flatex(pTp)}} = ${flatex(pKgTp)} \\approx ${(pKgTp.v*100).toFixed(1)}\\%\\)` }
+  ];
+  const pkDisp=c.pk.d===100?`${c.pk.n}\\%`:flatex(pK);
+  return { title:'Diagnose-Test', aeste:2,
+    taskHtml:`Ein Diagnose-Test auf Krankheit K:<ul style="margin:4px 0 0 18px;font-size:.92em">
+      <li>Prävalenz: \\(P(K)=${pkDisp}\\)</li>
+      <li>Sensitivität: \\(P(T^+\\mid K)=${flatex(pTpK)}=${sensP}\\%\\)</li>
+      <li>Spezifität: \\(P(T^-\\mid G)=${flatex(pTmG)}=${specP}\\%\\)</li></ul>
+      <small style="color:#555">Fülle alle bedingten W-keiten und Pfadwahrsch. ein.</small>`,
+    hint:'Stufe 1: Krankheitsstatus. Stufe 2: Testergebnis, bedingt auf Krankheitsstatus.',
+    nodes, qs };
+}
+
+/* ── Abstrakter Baum (Ausfüllen) ────────────────── */
+function genAusfuellen(stufen, aeste) {
+  const L2=[['A','\\overline{A}'],['B','\\overline{B}'],['C','\\overline{C}']];
+  const LN=lv=>Array.from({length:aeste},(_,i)=>`${['A','B','C'][lv-1]}_{${i+1}}`);
+  const lFn=(lv,bi)=>aeste===2 ? L2[lv-1][bi] : LN(lv)[bi];
+  const probGroups={};
+  const pFn=(lv,bi,path)=>{
+    const key=path.slice(0,-1).join(',');
+    if (!probGroups[key]) probGroups[key]=randSibProbs(aeste);
+    return probGroups[key][bi];
+  };
+  const nodes=buildNodes(stufen,aeste,lFn,pFn,true,false);
+  // Build task description from level-1 and select level-2 probs
+  const l1=nodes.filter(n=>n.level===1);
+  let given=l1.map(n=>`\\(P(${n.label})=${flatex(n.prob)}\\)`).join(', ');
+  if (stufen>=2 && aeste===2) {
+    // Add one conditional per level-2 group
+    const l1IDs=[...new Set(nodes.filter(n=>n.level===2).map(n=>n.parentId))];
+    l1IDs.forEach(pid=>{
+      const par=nodes.find(n=>n.id===pid);
+      const ch=nodes.filter(n=>n.parentId===pid);
+      const cStr=S.notation==='sub'?`P_{${par.label}}\\!\\left(${ch[0].label}\\right)`:`P\\!\\left(${ch[0].label}\\mid ${par.label}\\right)`;
+      given+=`, ${cStr}=${flatex(ch[0].prob)}`;
+    });
+  }
+  const lv=getLeaves(nodes); const leafQ=pick(lv);
+  const chain=branchChain(leafQ,nodes);
+  const labStr=chain.map(n=>`${n.label}_{${n.level}}`).join('\\cap ');
+  const pp=pathProb(leafQ,nodes);
+  const qs=[
+    { q:`\\(P(${labStr}) = \\;?\\)`,
+      hint:'Multipliziere die Wahrscheinlichkeiten entlang des Pfades.',
+      ans:pp, sol:`\\(${chain.map(n=>flatex(n.prob)).join('\\cdot')} = ${flatex(pp)}\\)` }
+  ];
+  if (aeste===2 && stufen===2) {
+    const tgt=pick([...new Set(lv.map(n=>n.label))]);
+    const tgtLv=lv.filter(n=>n.label===tgt);
+    const pTot=tgtLv.reduce((s,n)=>fadd(s,pathProb(n,nodes)),F0);
+    qs.push({
+      q:`\\(P(${tgt}_2) = \\;?\\) <span style="font-weight:normal;font-size:.9em">(Gesamtw.)</span>`,
+      hint:'Addiere alle Pfade, die in diesem Ereignis enden.',
+      ans:pTot, sol:`\\(${tgtLv.map(n=>flatex(pathProb(n,nodes))).join('+')} = ${flatex(pTot)}\\)`
+    });
+    // Bayes
+    const bl=pick(lv); const blC=branchChain(bl,nodes);
+    const pBl=pathProb(bl,nodes);
+    const pBlTot=totalProb(bl.label,2,nodes);
+    const pCnd=fdiv(pBl,pBlTot);
+    if (feq(pBlTot,F0)) {} // skip degenerate
+    else qs.push({
+      q:`\\(${condLabel(blC[0].label+'_1',bl.label+'_2')} = \\;?\\)`,
+      hint:`Bayes: \\(\\dfrac{P(${blC[0].label}_1\\cap${bl.label}_2)}{P(${bl.label}_2)}\\)`,
+      ans:pCnd, sol:`\\(\\dfrac{${flatex(pBl)}}{${flatex(pBlTot)}} = ${flatex(pCnd)}\\)`
+    });
+  }
+  return { title:'Felder ausfüllen', aeste,
+    taskHtml:`Fülle das Baumdiagramm vollständig aus.<br>Gegeben: ${given}<br><small style="color:#555">Ergänze Gegenwahrscheinlichkeiten (Summe = 1) und Pfadwahrscheinlichkeiten.</small>`,
+    hint:'Komplementäre Äste: Alle Äste eines Knotens müssen zusammen 1 ergeben. Dann Pfadwahrscheinlichkeit = Produkt der Ästwahrscheinlichkeiten.',
+    nodes, qs:shuffle(qs).slice(0,3) };
+}
+
+function randSibProbs(ae) {
+  const nice2=[[frac(1,2),frac(1,2)],[frac(1,3),frac(2,3)],[frac(2,5),frac(3,5)],[frac(1,4),frac(3,4)],[frac(3,8),frac(5,8)]];
+  const nice3=[[frac(1,3),frac(1,3),frac(1,3)],[frac(1,2),frac(1,3),frac(1,6)],[frac(1,2),frac(1,4),frac(1,4)],[frac(2,5),frac(2,5),frac(1,5)]];
+  const nice4=[[frac(1,4),frac(1,4),frac(1,4),frac(1,4)],[frac(1,2),frac(1,4),frac(1,8),frac(1,8)]];
+  return shuffle(ae===2?pick(nice2):ae===3?pick(nice3):pick(nice4));
+}
+
+/* ── Baum entwerfen ─────────────────────────────── */
+function genEntwerfen(stufen, aeste) {
+  const scenarios=[
+    `Modelliere: Eine faire Münze wird <b>${stufen}-mal</b> geworfen.<br>Vergib sinnvolle Ereignisnamen (K/Z) und Wahrscheinlichkeiten.`,
+    `Modelliere: Ein Würfel wird <b>${stufen}-mal</b> geworfen.<br>Teile die Augenzahlen in je <b>${aeste} Gruppen</b> auf und vergib Wahrscheinlichkeiten.`,
+    `Entwirf ein Baumdiagramm für ein freies Zufallsexperiment mit <b>${stufen} Stufen</b> und <b>${aeste} Ästen</b> je Knoten.<br>Achte darauf, dass alle Äste eines Knotens zusammen 1 ergeben.`,
+  ];
+  const nodes=buildNodes(stufen,aeste,null,null,false,false);
+  return { title:'Baum entwerfen', aeste,
+    taskHtml:pick(scenarios)+'<br><small style="color:#555">Gib Ereignisnamen in die Knoten und Wahrscheinlichkeiten auf die Äste ein. Pfadwahrscheinlichkeiten berechne durch Multiplikation.</small>',
+    hint:'Prüfe: Addieren sich die Äste jedes Knotens zu 1? Sind alle Felder ausgefüllt?',
+    nodes, qs:[] };
+}
+
+/* ── Mental / n-Stufen ───────────────────────────── */
+const MENTAL_PROBS=[
+  { html:`Ein fairer Würfel wird <b>5-mal</b> geworfen. Berechne \\(P(\\text{genau 2-mal eine 6})\\).<br><small style="color:#555">Verwende die Binomialformel: \\(\\binom{n}{k}\\cdot p^k\\cdot(1-p)^{n-k}\\)</small>`,
+    hint:`\\(\\binom{5}{2}\\cdot\\left(\\tfrac{1}{6}\\right)^2\\cdot\\left(\\tfrac{5}{6}\\right)^3 = 10\\cdot\\tfrac{25}{1296}\\cdot\\tfrac{125}{216}\\)`,
+    ans:frac(10*25,1296*6), sol:`\\(10\\cdot\\tfrac{1}{36}\\cdot\\tfrac{125}{216} = ${flatex(frac(1250,7776))} \\approx ${(1250/7776*100).toFixed(2)}\\%\\)` },
+  { html:`Eine faire Münze wird <b>6-mal</b> geworfen. Berechne \\(P(\\text{mindestens 4-mal Kopf})\\).`,
+    hint:`\\(P(k{=}4)+P(k{=}5)+P(k{=}6)\\) mit \\(\\binom{6}{4}=15,\\binom{6}{5}=6,\\binom{6}{6}=1\\)`,
+    ans:frac(22,64), sol:`\\(\\tfrac{15+6+1}{64} = \\tfrac{22}{64} = ${flatex(frac(22,64))}\\)` },
+  { html:`Eine Urne: <b>3 rote, 7 blaue</b> Kugeln (mit Zurücklegen). Es wird <b>4-mal</b> gezogen.<br>Berechne \\(P(\\text{genau 1-mal Rot})\\).`,
+    hint:`Binomialformel mit \\(n=4,\\,k=1,\\,p=\\tfrac{3}{10}\\)`,
+    ans:frac(4*3*343,10000), sol:`\\(4\\cdot\\tfrac{3}{10}\\cdot\\left(\\tfrac{7}{10}\\right)^3 = \\tfrac{4116}{10000} = ${flatex(frac(4*3*343,10000))} \\approx ${(4*3*343/100).toFixed(2)}\\%\\)` },
+  { html:`Ein Zufallsexperiment mit \\(P(A)=\\tfrac{2}{5}\\) wird <b>8-mal</b> unabhängig durchgeführt.<br>Berechne \\(P(\\text{A tritt keinmal auf})\\).`,
+    hint:`\\(P(\\bar{A})^8 = \\left(\\tfrac{3}{5}\\right)^8\\)`,
+    ans:frac(Math.pow(3,8),Math.pow(5,8)), sol:`\\(\\left(\\tfrac{3}{5}\\right)^8 = \\tfrac{6561}{390625} \\approx ${(6561/390625*100).toFixed(3)}\\%\\)` },
+  { html:`\\(P(A)=\\tfrac{1}{4}\\), ein Versuch wird <b>10-mal</b> wiederholt.<br>Berechne \\(P(\\text{genau 3-mal A})\\).`,
+    hint:`\\(\\binom{10}{3}\\cdot\\left(\\tfrac{1}{4}\\right)^3\\cdot\\left(\\tfrac{3}{4}\\right)^7\\)`,
+    ans:frac(binom(10,3)*Math.pow(3,7),Math.pow(4,10)), sol:`\\(120\\cdot\\tfrac{1}{64}\\cdot\\tfrac{2187}{16384} = ${flatex(frac(binom(10,3)*Math.pow(3,7),Math.pow(4,10)))}\\)` },
+];
+let mentalProbs=[], mentalIdx=0;
+function initMentalQueue(){ mentalProbs=shuffle([...MENTAL_PROBS]); mentalIdx=0; }
+
+// ═══════════════════════════════════════════════════════
+// §5  EXERCISE-DISPATCH
+// ═══════════════════════════════════════════════════════
+function generateExercise() {
+  const m=S.modus;
+  const st = (S.stufen === 'n') ? 2 : S.stufen;
+  const ae=S.aeste;
+  let ex;
+  if (m==='aufgabe') {
+    switch(S.szenario) {
+      case 'urne-o':  ex=genUrneO();       break;
+      case 'urne-m':  ex=genUrneM(st);     break;
+      case 'muenze':  ex=genMuenze(st);    break;
+      case 'wuerfel': ex=genWuerfel(st);   break;
+      case 'test':    ex=genTest();        break;
+      default:        ex=genUrneO();
+    }
+  } else if (m==='ausfuellen') {
+    ex=genAusfuellen(st,ae);
+  } else {
+    ex=genEntwerfen(st,ae);
+  }
+  return ex;
+}
+
+// ═══════════════════════════════════════════════════════
+// §6  SVG-RENDERING
+// ═══════════════════════════════════════════════════════
+const NS='http://www.w3.org/2000/svg', NSH='http://www.w3.org/1999/xhtml';
+const mk=t=>document.createElementNS(NS,t);
+const sa=(e,o)=>{for(const[k,v]of Object.entries(o))e.setAttribute(k,v);};
+
+const NODE_R=28, MX=20, MT=52, LEVEL_H=168, JO=80, FH=32, FW=64, BOT=30;
+
+function computeLayout(availW, availH, stufen, nLeaves) {
+  const minSp=Math.max(2*NODE_R+38,86);
+  const minW=Math.max(360, nLeaves*minSp+2*MX);
+  const logW=Math.max(minW, availW);
+  const logH=MT+stufen*LEVEL_H+JO+FH/2+BOT;
+  const scale=Math.min(availW/logW, availH/logH);
+  return { logW, logH, scale, svgW:Math.round(logW*scale), svgH:Math.round(logH*scale), nLeaves };
+}
+
+function saveInputs() {
+  document.querySelectorAll('.t-inp').forEach(inp=>{
+    const st=inp.classList.contains('ok')?'ok':inp.classList.contains('nok')?'nok':inp.classList.contains('show')?'show':'';
+    inpSaved[inp.id]={ val:inp.value, cls:st };
+  });
+}
+function restoreInputs() {
+  document.querySelectorAll('.t-inp').forEach(inp=>{
+    if (!inpSaved[inp.id]) return;
+    if (!inp.classList.contains('fixed')) inp.value=inpSaved[inp.id].val||'';
+    const cls=inpSaved[inp.id].cls;
+    ['ok','nok','show'].forEach(c=>inp.classList.remove(c));
+    if (cls) inp.classList.add(cls);
+  });
+}
+function clearInputState() { for (const k of Object.keys(inpSaved)) delete inpSaved[k]; }
+
+function mkFO(parent, cx, cy, w, h, id, ph, extraCls) {
+  const fo=mk('foreignObject');
+  sa(fo,{x:cx-w/2, y:cy-h/2, width:w, height:h});
+  const inp=document.createElementNS(NSH,'input');
+  inp.setAttribute('type','text');
+  inp.setAttribute('class',`t-inp${extraCls?' '+extraCls:''}`);
+  inp.setAttribute('id', id);
+  inp.setAttribute('placeholder', ph||'?');
+  inp.setAttribute('autocomplete','off');
+  inp.setAttribute('spellcheck','false');
+  fo.appendChild(inp);
+  parent.appendChild(fo);
+  return inp;
+}
+
+function setFixed(inp, val) {
+  inp.value=val; inp.setAttribute('readonly','');
+  inp.classList.add('fixed');
+  inpSaved[inp.id]={ val, cls:'fixed' };
+}
+
+function drawNodeLbl(parent, cx, cy, lbl, fs) {
+  if (!lbl) return;
+  const isOver=lbl.startsWith('\\overline{');
+  const isSub =!isOver&&lbl.includes('_');
+  if (isOver) {
+    const letter=lbl.slice(10,-1);
+    const t=mk('text'); sa(t,{x:cx,y:cy,'text-anchor':'middle','dominant-baseline':'middle','font-family':'serif','font-size':fs,fill:'#111'}); t.textContent=letter; parent.appendChild(t);
+    const bw=fs*.62; const bar=mk('line'); sa(bar,{x1:cx-bw/2,y1:cy-fs*.60,x2:cx+bw/2,y2:cy-fs*.60,stroke:'#111','stroke-width':1.8}); parent.appendChild(bar);
+  } else if (isSub) {
+    const m=lbl.match(/^(.+?)_\{?(.+?)\}?$/)||lbl.match(/^(.+)_(.)$/);
+    if (m) {
+      const fsS=Math.round(fs*.68);
+      const tM=mk('text'); sa(tM,{x:cx-fsS*.35,y:cy+fs*.10,'text-anchor':'middle','dominant-baseline':'middle','font-family':'serif','font-size':fs,fill:'#111'}); tM.textContent=m[1]; parent.appendChild(tM);
+      const tS=mk('text'); sa(tS,{x:cx+fs*.34,y:cy+fs*.46,'text-anchor':'start','dominant-baseline':'middle','font-family':'serif','font-size':fsS,fill:'#111'}); tS.textContent=m[2]; parent.appendChild(tS);
+    } else drawSimple(parent,cx,cy,lbl,fs);
+  } else drawSimple(parent,cx,cy,lbl,fs);
+}
+function drawSimple(parent,cx,cy,lbl,fs){
+  const t=mk('text'); sa(t,{x:cx,y:cy,'text-anchor':'middle','dominant-baseline':'middle','font-family':'serif','font-size':fs,fill:'#111'}); t.textContent=lbl; parent.appendChild(t);
+}
+
+function renderSVG() {
+  if (S.stufen==='n'||!treeNodes.length) return;
+  const wrap=document.getElementById('tree-wrap');
+  const availW=Math.max(80,wrap.clientWidth);
+  const availH=Math.max(120,wrap.clientHeight);
+  const maxLv=Math.max(...treeNodes.map(n=>n.level));
+  const nLeaves=treeNodes.filter(n=>n.level===maxLv).length;
+  const L=computeLayout(availW,availH,maxLv,nLeaves);
+  saveInputs();
+  const svg=document.getElementById('baum');
+  sa(svg,{viewBox:`0 0 ${L.logW} ${L.logH}`,width:L.svgW,height:L.svgH});
+  svg.innerHTML='';
+
+  // Update input font size via JS (avoids CSS calc issues in foreignObject)
+  const fsPx=Math.max(8,Math.round(L.scale*12));
+  document.getElementById('baum').dataset.scale=L.scale;
+
+  const pos={};
+  treeNodes.forEach(nd=>{ pos[nd.id]={x:MX+nd.xRel*(L.logW-2*MX)/nLeaves, y:MT+nd.level*LEVEL_H}; });
+
+  // Edges + branch inputs
+  treeNodes.forEach(nd=>{
+    if (!nd.parentId) return;
+    const {x:px,y:py}=pos[nd.parentId], {x:cx,y:cy}=pos[nd.id];
+    const dx=cx-px, dy=cy-py, d=Math.hypot(dx,dy);
+    const r0=nd.level===1?13:NODE_R;
+    const ln=mk('line');
+    sa(ln,{x1:px+r0*dx/d,y1:py+r0*dy/d,x2:cx-NODE_R*dx/d,y2:cy-NODE_R*dy/d,stroke:'#555','stroke-width':2.2});
+    svg.appendChild(ln);
+    // Branch prob input
+    const mx=(px+cx)/2, my=(py+cy)/2;
+    const fw=Math.min(FW,Math.max(46,L.logW/(nLeaves*1.8)));
+    if (nd.probFixed && nd.prob) {
+      // Show as text box (read-only)
+      const r=mk('rect'); sa(r,{x:mx-fw/2,y:my-FH/2,width:fw,height:FH,fill:'#f4f4f4',stroke:'#999','stroke-width':1,rx:3}); svg.appendChild(r);
+      const t=mk('text'); sa(t,{x:mx,y:my,'text-anchor':'middle','dominant-baseline':'middle','font-family':'inherit','font-size':12,fill:'#333','font-weight':'bold'}); t.textContent=fdisp(nd.prob); svg.appendChild(t);
+    } else {
+      const inp=mkFO(svg,mx,my,fw,FH,`prob_${nd.id}`,'P?');
+      inp.style.fontSize=fsPx+'px';
+    }
+  });
+
+  // Path prob fields (dashed line + input) for leaves
+  getLeaves(treeNodes).forEach(nd=>{
+    const {x,y}=pos[nd.id];
+    const fy=y+JO;
+    const dash=mk('line'); sa(dash,{x1:x,y1:y+NODE_R+4,x2:x,y2:fy-FH/2-4,stroke:'#bbb','stroke-width':1.6,'stroke-dasharray':'5,3'}); svg.appendChild(dash);
+    const fw2=FW+10;
+    const inp=mkFO(svg,x,fy,fw2,FH,`path_${nd.id}`,'P(Pfad)?','path');
+    inp.style.fontSize=fsPx+'px';
+  });
+
+  // Node circles + labels
+  treeNodes.forEach(nd=>{
+    const {x,y}=pos[nd.id];
+    if (nd.level===0) {
+      const c=mk('circle'); sa(c,{cx:x,cy:y,r:13,fill:'#333'}); svg.appendChild(c);
+    } else {
+      const g=mk('g');
+      const circ=mk('circle'); sa(circ,{cx:x,cy:y,r:NODE_R,fill:'#fff',stroke:'#333','stroke-width':2.5}); g.appendChild(circ);
+      if (nd.labelFixed && nd.label) {
+        drawNodeLbl(g,x,y,nd.label,20);
+      } else {
+        // Editable label input
+        const fw=NODE_R*1.5; const fh=NODE_R*0.9;
+        const inp=mkFO(g,x,y,fw,fh,`lbl_${nd.id}`,'E?','lbl-inp');
+        inp.style.fontSize=fsPx+'px';
+      }
+      svg.appendChild(g);
+    }
+  });
+
+  restoreInputs();
+}
+
+function adjustAndRender() {
+  const wrap=document.getElementById('tree-wrap');
+  const footer=document.querySelector('.site-footer');
+  const btnRow=document.getElementById('btn-row');
+  const quizA=document.getElementById('quiz-area');
+  const footH=(footer?footer.offsetHeight:0)+(btnRow?btnRow.offsetHeight:0)+(quizA&&quizA.classList.contains('vis')?quizA.offsetHeight:0)+8;
+  const rect=wrap.getBoundingClientRect();
+  const vh=window.visualViewport?window.visualViewport.height:window.innerHeight;
+  const avail=vh-rect.top-footH-6;
+  wrap.style.height=Math.max(160,avail)+'px';
+  renderSVG();
+}
+
+// ═══════════════════════════════════════════════════════
+// §7  VALIDIERUNG
+// ═══════════════════════════════════════════════════════
+function validateTree() {
+  const isEntw=S.modus==='entwerfen';
+  let allOk=true;
+
+  // Label inputs (Entwerfen only)
+  if (isEntw) {
+    treeNodes.filter(n=>n.level>0&&!n.labelFixed).forEach(nd=>{
+      const inp=document.getElementById(`lbl_${nd.id}`);
+      if (!inp) return;
+      const ok=inp.value.trim().length>0;
+      inp.classList.remove('ok','nok'); inp.classList.add(ok?'ok':'nok');
+      inpSaved[inp.id]={val:inp.value,cls:ok?'ok':'nok'};
+      if (!ok) allOk=false;
+    });
+  }
+
+  // Branch prob inputs
+  treeNodes.filter(n=>n.level>0&&!n.probFixed).forEach(nd=>{
+    const inp=document.getElementById(`prob_${nd.id}`);
+    if (!inp) return;
+    const v=parseP(inp.value);
+    const valid=!isNaN(v)&&v>=0&&v<=1+1e-6;
+    if (!valid) { inp.classList.add('nok'); inpSaved[inp.id]={val:inp.value,cls:'nok'}; allOk=false; }
+  });
+
+  // Sibling sums
+  const parents=[...new Set(treeNodes.filter(n=>n.level>0&&!n.probFixed).map(n=>n.parentId))];
+  parents.forEach(pid=>{
+    const children=treeNodes.filter(n=>n.parentId===pid&&!n.probFixed);
+    const sum=children.reduce((s,nd)=>{
+      const inp=document.getElementById(`prob_${nd.id}`);
+      return s+(inp?parseP(inp.value)||0:0);
+    },0);
+    if (Math.abs(sum-1)>1.5e-3) {
+      children.forEach(nd=>{
+        const inp=document.getElementById(`prob_${nd.id}`);
+        if (inp&&!inp.classList.contains('nok')) { inp.classList.remove('ok'); inp.classList.add('nok'); inpSaved[inp.id]={val:inp.value,cls:'nok'}; }
+      });
+      allOk=false;
+    }
+  });
+
+  if (!isEntw) {
+    // Check correct values
+    treeNodes.filter(n=>n.level>0&&!n.probFixed&&n.prob).forEach(nd=>{
+      const inp=document.getElementById(`prob_${nd.id}`);
+      if (!inp) return;
+      const ok=chkP(inp.value,nd.prob);
+      inp.classList.remove('ok','nok'); inp.classList.add(ok?'ok':'nok');
+      inpSaved[inp.id]={val:inp.value,cls:ok?'ok':'nok'};
+      if (!ok) allOk=false;
+    });
+    // Check path probs
+    getLeaves(treeNodes).forEach(lf=>{
+      const inp=document.getElementById(`path_${lf.id}`);
+      if (!inp||!inp.value.trim()) return; // empty = skip
+      const correctP=pathProb(lf,treeNodes);
+      const ok=chkP(inp.value,correctP);
+      inp.classList.remove('ok','nok'); inp.classList.add(ok?'ok':'nok');
+      inpSaved[inp.id]={val:inp.value,cls:ok?'ok':'nok'};
+      if (!ok) allOk=false;
+    });
+    // Check ALL path probs filled
+    if (allOk) {
+      getLeaves(treeNodes).forEach(lf=>{
+        const inp=document.getElementById(`path_${lf.id}`);
+        if (!inp||!inp.value.trim()) allOk=false;
+      });
+    }
+  }
+  return allOk;
+}
+
+function showSolution() {
+  treeNodes.filter(n=>n.level>0&&!n.probFixed&&n.prob).forEach(nd=>{
+    const inp=document.getElementById(`prob_${nd.id}`);
+    if (!inp) return;
+    inp.value=fdisp(nd.prob);
+    inp.classList.remove('ok','nok'); inp.classList.add('show');
+    inpSaved[inp.id]={val:inp.value,cls:'show'};
+  });
+  getLeaves(treeNodes).forEach(lf=>{
+    const inp=document.getElementById(`path_${lf.id}`);
+    if (!inp) return;
+    const pp=pathProb(lf,treeNodes);
+    inp.value=fdisp(pp);
+    inp.classList.remove('ok','nok'); inp.classList.add('show');
+    inpSaved[inp.id]={val:inp.value,cls:'show'};
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+// §8  QUIZ-SYSTEM
+// ═══════════════════════════════════════════════════════
+let quizQs=[], quizIdx=0, quizPhase='idle';
+
+function startQuiz(qs) {
+  quizQs=qs; quizIdx=0; quizPhase='ask';
+  document.getElementById('quiz-area').classList.add('vis');
+  showQuizQ();
+  requestAnimationFrame(adjustAndRender);
+}
+
+function showQuizQ() {
+  if (quizIdx>=quizQs.length) { endQuiz(); return; }
+  const q=quizQs[quizIdx];
+  document.getElementById('quiz-prog').textContent=`Frage ${quizIdx+1} von ${quizQs.length}`;
+  document.getElementById('quiz-q').innerHTML=q.q;
+  document.getElementById('quiz-ans').value='';
+  document.getElementById('quiz-ans').className='';
+  document.getElementById('quiz-hint-box').style.display='none';
+  document.getElementById('quiz-btn-next').style.display='none';
+  document.getElementById('quiz-btn-ok').disabled=false;
+  document.getElementById('quiz-btn-hint').disabled=false;
+  document.getElementById('quiz-btn-show').disabled=false;
+  if (window.MathJax) MathJax.typesetPromise([document.getElementById('quiz-q')]);
+}
+
+function checkQuizAns() {
+  const q=quizQs[quizIdx];
+  const ok=chkP(document.getElementById('quiz-ans').value, q.ans);
+  document.getElementById('quiz-ans').className=ok?'ok':'nok';
+  if (ok) {
+    quizPhase='next'; advanceQuizControls();
+  } else {
+    document.getElementById('quiz-hint-box').innerHTML='Nicht ganz richtig. '+q.hint;
+    document.getElementById('quiz-hint-box').style.display='block';
+    if (window.MathJax) MathJax.typesetPromise([document.getElementById('quiz-hint-box')]);
+  }
+}
+function showQuizHint() {
+  const q=quizQs[quizIdx];
+  document.getElementById('quiz-hint-box').innerHTML=q.hint;
+  document.getElementById('quiz-hint-box').style.display='block';
+  if (window.MathJax) MathJax.typesetPromise([document.getElementById('quiz-hint-box')]);
+}
+function showQuizSol() {
+  const q=quizQs[quizIdx];
+  document.getElementById('quiz-hint-box').innerHTML=`<b>Lösung:</b> ${q.sol}`;
+  document.getElementById('quiz-hint-box').style.display='block';
+  document.getElementById('quiz-ans').value=fdisp(q.ans);
+  document.getElementById('quiz-ans').className='show';
+  quizPhase='next'; advanceQuizControls();
+  if (window.MathJax) MathJax.typesetPromise([document.getElementById('quiz-hint-box')]);
+}
+function advanceQuizControls() {
+  document.getElementById('quiz-btn-ok').disabled=true;
+  document.getElementById('quiz-btn-hint').disabled=true;
+  document.getElementById('quiz-btn-show').disabled=true;
+  document.getElementById('quiz-btn-next').style.display='';
+}
+function nextQuizQ() {
+  quizIdx++;
+  quizPhase='ask';
+  if (quizIdx>=quizQs.length) { endQuiz(); return; }
+  showQuizQ();
+}
+function endQuiz() {
+  document.getElementById('quiz-area').classList.remove('vis');
+  showToast('🎉 Alle Fragen gelöst! Neue Aufgabe gefällig?');
+  quizPhase='done';
+  requestAnimationFrame(adjustAndRender);
+}
+
+// ═══════════════════════════════════════════════════════
+// §9  AUFGABENFLUSS
+// ═══════════════════════════════════════════════════════
+function newTask() {
+  clearInputState();
+  document.getElementById('quiz-area').classList.remove('vis');
+  document.getElementById('task-hint').style.display='none';
+  setResult('','');
+
+  if (S.stufen==='n') {
+    // Mental mode
+    if (mentalProbs.length===0||mentalIdx>=mentalProbs.length) initMentalQueue();
+    const mp=mentalProbs[mentalIdx++];
+    document.getElementById('mental-desc').innerHTML=mp.html;
+    document.getElementById('mental-hint-box').style.display='none';
+    document.getElementById('mental-ans').value='';
+    document.getElementById('mental-ans').className='';
+    document.getElementById('mental-hint-box').innerHTML=mp.hint;
+    // Store current problem
+    exercise={ mental:mp };
+    document.getElementById('mental-btn-ok').onclick=()=>{
+      const ok=chkP(document.getElementById('mental-ans').value, mp.ans);
+      document.getElementById('mental-ans').className=ok?'ok':'nok';
+      if (!ok) {
+        document.getElementById('mental-hint-box').innerHTML=`<b>Nicht ganz.</b> Hinweis: ${mp.hint}`;
+        document.getElementById('mental-hint-box').style.display='block';
+      } else {
+        showToast('✓ Richtig!');
+      }
+      if (window.MathJax) MathJax.typesetPromise([document.getElementById('mental-hint-box')]);
+    };
+    document.getElementById('mental-btn-hint').onclick=()=>{
+      document.getElementById('mental-hint-box').innerHTML=mp.hint;
+      document.getElementById('mental-hint-box').style.display='block';
+      if (window.MathJax) MathJax.typesetPromise([document.getElementById('mental-hint-box')]);
+    };
+    document.getElementById('task-q').innerHTML=`<b>Kopfrechnen (n Stufen)</b> – kein Diagramm, direktes Rechnen`;
+    document.getElementById('btn-hint-btn').disabled=true;
+    document.getElementById('btn-show').disabled=true;
+    if (window.MathJax) MathJax.typesetPromise([document.getElementById('mental-desc')]);
+    return;
+  }
+
+  // Generate exercise
+  exercise=generateExercise();
+  treeNodes=exercise.nodes;
+  phase='fill';
+
+  // Task text
+  const qEl=document.getElementById('task-q');
+  qEl.innerHTML=`<span>${exercise.taskHtml}</span>`;
+  document.getElementById('task-hint').innerHTML=exercise.hint;
+
+  document.getElementById('btn-ok').disabled=false;
+  document.getElementById('btn-hint-btn').disabled=false;
+  document.getElementById('btn-show').disabled=S.modus==='entwerfen';
+
+  requestAnimationFrame(adjustAndRender);
+  if (window.MathJax) MathJax.typesetPromise([qEl]);
+}
+
+function onCheck() {
+  if (phase!=='fill') return;
+  const ok=validateTree();
+  renderSVG(); // re-render to apply styles
+  if (ok) {
+    if (S.modus==='entwerfen') {
+      showToast('✓ Baumdiagramm ist strukturell korrekt!');
+      // Auto-fill path probs as a bonus
+      getLeaves(treeNodes).forEach(lf=>{
+        const inp=document.getElementById(`path_${lf.id}`);
+        if (inp) { const pp=pathProb(lf,treeNodes); inp.value=fdisp(pp); inp.classList.add('ok'); }
+      });
+      setResult('✓ Struktur korrekt!','ok');
+    } else {
+      setResult('✓ Richtig!','ok');
+      phase='quiz';
+      document.getElementById('btn-ok').disabled=true;
+      document.getElementById('btn-hint-btn').disabled=true;
+      document.getElementById('btn-show').disabled=true;
+      if (exercise.qs&&exercise.qs.length>0) {
+        setTimeout(()=>startQuiz(exercise.qs),400);
+      } else {
+        showToast('✓ Vollständig gelöst!');
+      }
+    }
+  } else {
+    setResult('✗ Einige Felder sind falsch oder leer.','nok');
+  }
+}
+
+function onShowSol() {
+  if (S.modus==='entwerfen') return;
+  showSolution();
+  renderSVG();
+  setResult('→ Lösung angezeigt.','');
+  phase='done';
+  document.getElementById('btn-ok').disabled=true;
+  document.getElementById('btn-hint-btn').disabled=true;
+  document.getElementById('btn-show').disabled=true;
+}
+
+function setResult(text, cls) {
+  const el=document.getElementById('ergebnis');
+  el.textContent=text; el.className=cls;
+  el.style.visibility=text?'visible':'hidden';
+}
+
+// ═══════════════════════════════════════════════════════
+// §10  TOAST & PROGRESS
+// ═══════════════════════════════════════════════════════
+function showToast(msg) {
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+// ═══════════════════════════════════════════════════════
+// §11  EINSTELLUNGS-UI
+// ═══════════════════════════════════════════════════════
+function segCtrl(id, key, extra) {
+  document.getElementById(id).querySelectorAll('button').forEach(btn=>
+    btn.addEventListener('click',()=>{
+      if (btn.disabled) return;
+      document.getElementById(id).querySelectorAll('button').forEach(b=>b.classList.remove('on'));
+      btn.classList.add('on');
+      if (key==='stufen') S.stufen = btn.dataset.v==='n' ? 'n' : +btn.dataset.v;
+      else if (key==='aeste') S.aeste = +btn.dataset.v;
+      else S[key] = btn.dataset.v;
+      saveSettings(); updateUI(); if (extra) extra(btn.dataset.v);
+    })
+  );
+}
+
+// ═══════════════════════════════════════════════════════
+// §12  INITIALISIERUNG
+// ═══════════════════════════════════════════════════════
+loadSettings();
+syncControls();
+updateUI();
+initMentalQueue();
+
+segCtrl('s-modus',    'modus',    ()=>{saveSettings();updateUI();newTask();});
+segCtrl('s-stufen',   'stufen',   ()=>{saveSettings();updateUI();newTask();});
+segCtrl('s-aeste',    'aeste',    ()=>{saveSettings();updateUI();newTask();});
+segCtrl('s-szenario', 'szenario', ()=>{saveSettings();newTask();});
+segCtrl('s-notation', 'notation', ()=>{saveSettings();});
+
+document.getElementById('btn-neu').addEventListener('click', newTask);
+document.getElementById('btn-ok').addEventListener('click', onCheck);
+document.getElementById('btn-hint-btn').addEventListener('click', ()=>{
+  const h=document.getElementById('task-hint');
+  h.style.display=h.style.display==='none'?'block':'none';
+});
+document.getElementById('btn-show').addEventListener('click', onShowSol);
+
+document.getElementById('quiz-btn-ok')  .addEventListener('click', checkQuizAns);
+document.getElementById('quiz-btn-hint').addEventListener('click', showQuizHint);
+document.getElementById('quiz-btn-show').addEventListener('click', showQuizSol);
+document.getElementById('quiz-btn-next').addEventListener('click', nextQuizQ);
+
+let _rzTimer;
+window.addEventListener('resize',()=>{ clearTimeout(_rzTimer); _rzTimer=setTimeout(adjustAndRender,80); });
+document.getElementById('settings').addEventListener('toggle',()=>requestAnimationFrame(adjustAndRender));
+
+requestAnimationFrame(()=>{ newTask(); });
+</script>
+</body>
+</html>

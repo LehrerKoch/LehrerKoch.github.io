@@ -3,24 +3,29 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Grenzverhalten Polynome üben</title>
+<link rel="shortcut icon" type="image/x-icon" href="aleph_zero_logo.ico">
+<script>try{var t=localStorage.getItem('matheToolsTheme');if(t==='dark'||(!t&&window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.classList.add('dark');}catch(e){}</script>
+<title data-de="Grenzverhalten von Polynomen" data-en="End Behaviour of Polynomials">Grenzverhalten von Polynomen</title>
 <link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="aufgaben.css">
+<script src="aufgaben.js" defer></script>
 <link rel="stylesheet" href="scale.css">
 <script src="scale.js" defer></script>
+<script src="theme-language.js" defer></script>
 <script>
 MathJax = {
   tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] }
 };
 </script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-5K8WYYXDL2"></script>
+    <!-- Besuchszaehlung (Google Analytics). Geladen wird sie erst, wenn der
+         Besucher zustimmt - siehe einwilligung.js. -->
 <script>
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-5K8WYYXDL2');
+    window.TK_GA_ID = 'G-5K8WYYXDL2';   /* Google Analytics laedt erst nach Einwilligung, siehe einwilligung.js */
 </script>
+<script src="einwilligung.js" defer></script>
 <style>
 #task { font-size: 1.6em; }
 #task .MJX-TEX { font-size: 1.2em !important; }
@@ -49,7 +54,10 @@ MathJax = {
 }
 
 #leftContainer, #rightContainer {
-  flex: 0 0 clamp(80px, 28%, 28%);
+  /* duerfen schrumpfen: auf 320 Bildpunkten lief die Antwortspalte sonst
+     um ein paar Punkte aus dem Bild */
+  flex: 0 1 clamp(80px, 28%, 28%);
+  min-width: 0;
 }
 
 #checkButton {
@@ -138,6 +146,17 @@ MathJax = {
   border-color: #f44336 !important;
   color: #b71c1c;
 }
+
+/* Nichts angekreuzt: die richtige Antwort wird gelb gezeigt - das ist etwas
+   anderes als eine falsche Antwort. */
+.vergessen {
+  background-color: #fff3c4 !important;
+  border-color: #e0a800 !important;
+  color: #6a4b00;
+}
+html.dark .vergessen { background-color: #3f3410 !important; border-color: #e0a800 !important; color: #ffd97a; }
+/* Ist die Begruendung offen, laesst sich nichts mehr anklicken. */
+#mainContainer.fertig label { pointer-events: none; }
 
 .answer-block h3 {
   text-align: center;
@@ -252,33 +271,70 @@ MathJax = {
   margin-top: 1px;
   padding: 0 6px 0 8px;
 }
+
+/* ---- Dark Mode (Hellmodus oben bleibt unverändert) ---- */
+html.dark .answer-block {
+  border-color: #3a434b;
+  background: linear-gradient(135deg, #1b2126 0%, #232a31 100%);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.45);
+}
+html.dark .column label { border-color: #4a545c; background: #232a31; }
+html.dark .column label:hover { background: #2b343c; border-color: #6a747c; }
+html.dark .column label:has(input:checked) { background: #1b3448; border-color: #64b5f6; }
+html.dark .correct { background-color: #1e4620 !important; border-color: #4caf50 !important; color: #a5d6a7; }
+html.dark .wrong   { background-color: #4a2020 !important; border-color: #f44336 !important; color: #f0b0b0; }
+html.dark .radio-group label { background: #232a31; }
+html.dark .radio-group label:hover { background: #24382a; }
+html.dark .radio-group label:has(input:checked) { background: #4CAF50; color: #fff; }
+html.dark .switch { background: #3a434b; }
+html.dark .slider-tick-labels { color: #9aa5a0; }
+/* Die Skizzen sind Bilder mit weissem Grund und schwarzen Achsen. Umgedreht
+   wuerden sie im Dunkelmodus als harter schwarzer Kasten stehen und die rote
+   Kurve verwaschen - deshalb liegen sie dort auf einem hellen Blatt. */
+html.dark #sketchImg { filter: none; background: #fff; border-radius: 8px;
+  padding: 8px; box-shadow: 0 0 0 1px #3a434b; }
 </style>
+<script>
+/* MathJax ist nicht immer da (offline oder blockiert) - dann bleibt die Seite
+   trotzdem bedienbar. */
+function mjSetzen(ziele){
+  if (window.MathJax && MathJax.typesetPromise) return MathJax.typesetPromise(ziele);
+  return Promise.resolve();
+}
+function mjStart(fn){
+  if (window.MathJax && MathJax.startup && MathJax.startup.promise) MathJax.startup.promise.then(fn);
+  else fn();
+}
+</script>
 </head>
-<body>
+<body class="tk-seite">
 
-<h1>Grenzverhalten Polynome üben</h1>
+<header class="tool-kopf">
+  <div class="tk-text">
+    <h1 data-de="Grenzverhalten von Polynomen" data-en="End Behaviour of Polynomials">Grenzverhalten von Polynomen</h1>
+    <p class="tk-unter" data-de="Grenzverhalten von Polynomen und Potenzfunktionen bestimmen" data-en="Determine the end behaviour of polynomials and power functions">Grenzverhalten von Polynomen und Potenzfunktionen bestimmen</p>
+  </div>
+</header>
 
-<details>
-<summary>Einstellungen</summary>
+<details class="einst" id="settingsDetails">
+<summary data-de="Einstellungen" data-en="Settings">Einstellungen</summary>
+<div class="settings-grid">
 
 <div class="form-block">
-  <b>Funktionstyp</b><br>
+  <b data-de="Funktionstyp" data-en="Type of function">Funktionstyp</b><br>
   <div class="radio-group">
-    <label>
-      <input type="radio" name="funcType" value="power" oninput="updateParams()">
-      nur $~x^n~$
+    <label class="opt">
+      <input type="radio" name="funcType" value="power" oninput="updateParams()"><span data-de="nur $~x^n~$" data-en="$~x^n~$ only">nur $~x^n~$</span>
     </label>
-    <label>
-      <input type="radio" name="funcType" value="powerWithFactor" oninput="updateParams()">
-      $~a \cdot x^n~$ (Faktorregel)
+    <label class="opt">
+      <input type="radio" name="funcType" value="powerWithFactor" oninput="updateParams()"><span data-de="$~a \cdot x^n~$ (Faktorregel)" data-en="$~a \cdot x^n~$ (constant factor)">$~a \cdot x^n~$ (Faktorregel)</span>
     </label>
-    <label>
-      <input type="radio" name="funcType" value="polynomial" checked oninput="updateParams()">
-      Polynome
+    <label class="opt">
+      <input type="radio" name="funcType" value="polynomial" checked oninput="updateParams()"><span data-de="Polynome" data-en="Polynomials">Polynome</span>
     </label>
   </div>
   <div id="degreeBlock" style="margin-top:6px;">
-    <b>Maximaler Grad: <span id="degreeDisplay">4</span></b><br>
+    <b><span data-de="Maximaler Grad:" data-en="Maximum degree:">Maximaler Grad:</span> <span id="degreeDisplay">4</span></b><br>
     <div class="slider-wrap">
       <input type="range" id="maxDegree" min="1" max="6" value="4" step="1" oninput="updateParams()">
       <div class="slider-tick-labels" id="degTickLabels"></div>
@@ -287,53 +343,86 @@ MathJax = {
 </div>
 
 <div class="form-block">
-  <b>Vorzeichen Leitkoeffizient</b><br>
+  <b data-de="Vorzeichen Leitkoeffizient" data-en="Sign of the leading coefficient">Vorzeichen Leitkoeffizient</b><br>
   <div class="radio-group" id="leadSignGroup">
-    <label>
-      <input type="radio" name="leadSign" value="negative" oninput="updateParams()">
-      Immer Negativ (gespiegelt)
+    <label class="opt">
+      <input type="radio" name="leadSign" value="negative" oninput="updateParams()"><span data-de="Immer Negativ (gespiegelt)" data-en="Always negative (reflected)">Immer Negativ (gespiegelt)</span>
     </label>
-    <label>
-      <input type="radio" name="leadSign" value="random" checked oninput="updateParams()">
-      Zufällig
+    <label class="opt">
+      <input type="radio" name="leadSign" value="random" checked oninput="updateParams()"><span data-de="Zufällig" data-en="Random">Zufällig</span>
     </label>
-    <label>
-      <input type="radio" name="leadSign" value="positive" oninput="updateParams()">
-      Immer Positiv
+    <label class="opt">
+      <input type="radio" name="leadSign" value="positive" oninput="updateParams()"><span data-de="Immer Positiv" data-en="Always positive">Immer Positiv</span>
     </label>
   </div>
 </div>
 
 <div class="form-block">
-  <b>Koeffizienten</b><br>
-  <label><input type="checkbox" id="allowDecimals" onchange="updateParams()"> Dezimalzahlen erlauben</label><br>
-  <label><input type="checkbox" id="allowFractions" onchange="updateParams()"> Brüche erlauben</label>
+  <b data-de="Koeffizienten" data-en="Coefficients">Koeffizienten</b><br>
+  <label class="opt"><input type="checkbox" id="allowDecimals" onchange="updateParams()"><span data-de="Dezimalzahlen erlauben" data-en="Allow decimals">Dezimalzahlen erlauben</span></label>
+  <label class="opt"><input type="checkbox" id="allowFractions" onchange="updateParams()"><span data-de="Brüche erlauben" data-en="Allow fractions">Brüche erlauben</span></label>
 </div>
 
 <div class="form-block">
-  <label><input type="checkbox" id="allowFactor" onchange="updateParams()"> Extra Faktor vor der Funktion</label>
+  <label class="opt"><input type="checkbox" id="allowFactor" onchange="updateParams()"><span data-de="Extra Faktor vor der Funktion" data-en="Extra factor in front of the function">Extra Faktor vor der Funktion</span></label>
 </div>
 
+</div>
 </details>
 
-<button onclick="newTask()" style="align-self: flex-start;">Neue Aufgabe</button>
 
+<!-- ═══ Schalter über der Aufgabe ═══════════════════════════ -->
+<div id="topControls">
+  <div class="tc-row">
+    <div class="tc-item">
+      <span class="tc-label" data-de="Funktionstyp" data-en="Type of function">Funktionstyp</span>
+      <div class="seg" id="segTyp">
+        <label><input type="radio" name="funcTypeTop" value="power"><span data-de="nur $~x^n~$" data-en="$~x^n~$ only">nur $~x^n~$</span></label>
+        <label><input type="radio" name="funcTypeTop" value="powerWithFactor"><span data-de="$~a \cdot x^n~$" data-en="$~a \cdot x^n~$">$~a \cdot x^n~$</span></label>
+        <label><input type="radio" name="funcTypeTop" value="polynomial" checked><span data-de="Polynome" data-en="Polynomials">Polynome</span></label>
+      </div>
+    </div>
+  </div>
+  <div class="tc-item tc-diff">
+    <span class="tc-label" data-de="Schwierigkeit" data-en="Difficulty">Schwierigkeit</span>
+    <div class="seg-switch diff-switch" id="segDiff">
+      <input type="radio" name="diff" id="diffEinf" value="einf"><label for="diffEinf" data-de="Einführung" data-en="Introduction">Einführung</label>
+      <input type="radio" name="diff" id="diffLeicht" value="leicht"><label for="diffLeicht" data-de="Leicht" data-en="Easy">Leicht</label>
+      <input type="radio" name="diff" id="diffNormal" value="normal" checked><label for="diffNormal" data-de="Normal" data-en="Normal">Normal</label>
+      <input type="radio" name="diff" id="diffSchwer" value="schwer"><label for="diffSchwer" data-de="Herausfordernd" data-en="Challenging">Herausfordernd</label>
+      <input type="radio" name="diff" id="diffIndiv" value="indiv"><label for="diffIndiv" data-de="Individuell" data-en="Custom" data-de-title="öffnet die Einstellungen" data-en-title="opens the settings" title="öffnet die Einstellungen">Individuell</label>
+      <span class="seg-glider"></span>
+    </div>
+  </div>
+</div>
+
+<div id="genRow">
+  <button id="genBtn" onclick="newTask()" data-de='<span class="auto-kreis">&#x27F3;</span>&nbsp;Neue Aufgabe generieren' data-en='<span class="auto-kreis">&#x27F3;</span>&nbsp;Generate a new task'><span class="auto-kreis">&#x27F3;</span>&nbsp;Neue Aufgabe generieren</button>
+  <span class="punkte rechts">
+    <span id="counter">Richtig: 0 / 0</span>
+    <button id="btnPunkteReset" type="button" title="Punktzahl zurücksetzen" data-de-title="Punktzahl zurücksetzen" data-en-title="Reset the score">↺</button>
+  </span>
+</div>
+
+<div class="task">
+<div class="task-head"><h2 data-de="Aufgabe" data-en="Task">Aufgabe</h2></div>
 <div class="scale-wrapper">
   <div id="task" class="scale-el"></div>
+</div>
 </div>
 
 <div id="mainContainer">
   <div class="answer-block" id="leftContainer">
-    <h3>Für $x \to -\infty$</h3>
+    <h3 data-de="Für $x \to -\infty$" data-en="As $x \to -\infty$">Für $x \to -\infty$</h3>
     <div class="column" id="leftChoices"></div>
   </div>
 
   <div id="centerContainer">
-    <button id="checkButton" onclick="checkSolution()">Lösung überprüfen</button>
+    <button id="checkButton" onclick="checkSolution()" data-de="Lösung überprüfen" data-en="Check answer">Lösung überprüfen</button>
   </div>
 
   <div class="answer-block" id="rightContainer">
-    <h3>Für $x \to +\infty$</h3>
+    <h3 data-de="Für $x \to +\infty$" data-en="As $x \to +\infty$">Für $x \to +\infty$</h3>
     <div class="column" id="rightChoices"></div>
   </div>
 </div>
@@ -342,15 +431,15 @@ MathJax = {
 <br>
 
 <details id="explanationDetails">
-<summary>Begründung</summary>
+<summary data-de="Begründung" data-en="Reasoning">Begründung</summary>
 
 <div class="switch-container">
   <label class="switch">
     <input type="checkbox" id="explanationModeSwitch" onchange="updateExplanation()">
     <span class="slider"></span>
     <span class="labels">
-      <span>Argumentation</span>
-      <span>Testeinsetzungen</span>
+      <span data-de="Argumentation" data-en="Reasoning">Argumentation</span>
+      <span data-de="Testeinsetzungen" data-en="Test values">Testeinsetzungen</span>
     </span>
   </label>
 </div>
@@ -360,9 +449,9 @@ MathJax = {
 </div>
 
 <details id="sketchDetails" style="margin: 6px;">
-  <summary>Skizze</summary>
+  <summary data-de="Skizze" data-en="Sketch">Skizze</summary>
   <div style="text-align:center; padding:8px 0;">
-    <img id="sketchImg" src="" alt="Skizze des Grenzverhaltens"
+    <img id="sketchImg" src="" alt="Skizze des Grenzverhaltens" data-de-alt="Skizze des Grenzverhaltens" data-en-alt="Sketch of the end behaviour"
          style="max-width:min(100%, 400px); height:auto; display:block; margin:0 auto;">
   </div>
 </details>
@@ -370,6 +459,25 @@ MathJax = {
 </details>
 
 <script>
+/* Dezimaltrennzeichen: Komma im Deutschen ({,} in LaTeX), Punkt im Englischen.
+   Faellt ohne theme-language.js auf die deutsche Schreibweise zurueck. */
+function DZ(wert, tex) {
+  return (typeof tlDezimal === 'function')
+    ? tlDezimal(wert, tex)
+    : String(wert).replace('.', tex ? '{,}' : ',');
+}
+
+/* Stellt das Dezimaltrennzeichen eines fertigen TeX-Ausdrucks auf die
+   aktuelle Sprache um (Komma <-> Punkt). */
+function DZT(text) {
+  return (typeof tlDezimalText === 'function') ? tlDezimalText(text, true) : text;
+}
+
+// Übersetzungshilfe: nutzt theme-language.js, fällt ohne sie auf Deutsch zurück
+function T(de, en) { return (typeof tlText === 'function') ? tlText(de, en) : de; }
+/** Rahmenfarbe der Erklärungstabellen (hell: schwarz, dunkel: helles Grau). */
+function rahmenFarbe() { return (typeof tlDunkel === 'function' && tlDunkel()) ? '#c6ccc9' : 'black'; }
+
 // ---------------- Hilfsfunktionen ----------------
 const rand = (a, b) => Math.floor(Math.random() * (b - a + 1)) + a;
 const pick = a => a[Math.floor(Math.random() * a.length)];
@@ -438,7 +546,7 @@ function coeffToString(coeff, skipOne = false) {
     if(coeff.value === 0) return '0';
     if(skipOne && coeff.value ===  1) return '';
     if(skipOne && coeff.value === -1) return '-';
-    return coeff.value.toString().replace('.', '{,}');
+    return DZ(coeff.value.toString(), true);
   } else {
     if(coeff.value === 0) return '0';
     if(skipOne && coeff.value ===  1) return '';
@@ -504,6 +612,7 @@ function buildPolyString(coeffs, explicitDeg) {
 function newTask() {
   document.getElementById('explanation').innerHTML = '';
   document.getElementById('explanationDetails').open = false;
+  antwortenFreigeben();
 
   const funcType   = document.querySelector('input[name="funcType"]:checked').value;
   const maxDeg     = parseInt(document.getElementById('maxDegree').value);
@@ -577,14 +686,14 @@ function newTask() {
   // Skizze aktualisieren
   updateSketch();
 
-  document.getElementById('task').innerHTML = `$$f(x) = ${fLatex}$$`;
+  zeichneAufgabenformel();
   setupChoices();
 
   document.querySelectorAll('input[type="radio"][name="left"], input[type="radio"][name="right"]').forEach(r => {
     r.disabled = false;
   });
 
-  MathJax.typesetPromise().then(() => scaleAllElements());
+  mjSetzen().then(() => { if (typeof scaleAllElements === 'function') scaleAllElements(); });
 }
 
 // ---------------- Antwort-Radiogruppen ----------------
@@ -603,28 +712,110 @@ function setupChoices() {
   createRadioGroup('leftChoices',  'left',  values);
   createRadioGroup('rightChoices', 'right', values);
   saveSettingsToURL();
-  MathJax.typesetPromise().then(() => scaleAllElements());
+  mjSetzen().then(() => { if (typeof scaleAllElements === 'function') scaleAllElements(); });
 }
 
 // ---------------- Lösung überprüfen ----------------
-function checkSolution() {
+/* ── Punktestand ───────────────────────────────────────────────────────────
+   Jede Seite der Aufgabe bringt einen halben Punkt: beides richtig 1/1, eine
+   Seite daneben oder leer 0,5/1, beides daneben 0/1. Wer die Begründung
+   aufklappt, schließt die Aufgabe damit ebenfalls ab.                      */
+let punkteRichtig = 0, punkteGesamt = 0, aufgabeBewertet = false;
+function punkteText(n) {
+  return (n % 1) ? DZ(n.toFixed(1), false) : String(n);
+}
+function punkteZeigen() {
+  const c = document.getElementById('counter');
+  if (c) c.textContent = T('Richtig: ', 'Correct: ') + punkteText(punkteRichtig) + ' / ' + punkteGesamt;
+}
+function punkteZuruecksetzen() {
+  punkteRichtig = 0; punkteGesamt = 0;
+  punkteZeigen();
+}
+
+/* Markiert die Antworten und zählt die Punkte - einmal pro Aufgabe. */
+function aufgabeAbschliessen() {
+  if (aufgabeBewertet) return;
+  aufgabeBewertet = true;
+  let gut = 0;
   ['left', 'right'].forEach(side => {
     const correct = computeLimit(side);
     const radios  = document.querySelectorAll(`input[name="${side}"]`);
+    const nichts  = ![].slice.call(radios).some(r => r.checked);
     radios.forEach(r => {
-      r.parentElement.classList.remove('correct', 'wrong');
+      r.parentElement.classList.remove('correct', 'wrong', 'vergessen');
       r.disabled = true;
-      const isCorrect = r.value === correct;
-      if(r.checked) {
-        r.parentElement.classList.add(isCorrect ? 'correct' : 'wrong');
-      } else if(isCorrect) {
-        r.parentElement.classList.add('correct');
+      const istRichtig = r.value === correct;
+      if (r.checked) {
+        r.parentElement.classList.add(istRichtig ? 'correct' : 'wrong');
+        if (istRichtig) gut += 0.5;
+      } else if (istRichtig) {
+        /* nichts gewaehlt: gelb statt gruen - es war ja keine Antwort da */
+        r.parentElement.classList.add(nichts ? 'vergessen' : 'correct');
       }
     });
   });
+  punkteRichtig += gut;
+  punkteGesamt  += 1;
+  punkteZeigen();
+  antwortGemeldet(gut === 1);
+  antwortenSperren();
+}
+
+
+/* ── Automatische Aufgabe ────────────────────────────────────────────────
+   Langes Drücken auf „Neue Aufgabe generieren" schaltet sie um. Ist sie an,
+   leuchtet das Bild nach jeder Antwort kurz grün bzw. rot auf, und nach einer
+   richtigen Antwort kommt die nächste Aufgabe von selbst. Zu Beginn ist sie
+   aus - wer sie mag, schaltet sie ein. */
+function antwortGemeldet(richtig){
+  if (!(window.abAutoAn && abAutoAn())) return;
+  if (window.abBlitz) abBlitz(richtig);
+  if (richtig && window.abAutoBald) abAutoBald();
+}
+function autoBauen(){
+  if (!window.abAutoStart) return;
+  abAutoStart({ an:false, naechste:function(){ newTask(); } });
+}
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', autoBauen);
+else autoBauen();
+
+function checkSolution() {
+  aufgabeAbschliessen();
+  const be = document.getElementById('explanationDetails');
+  if (be) be.open = true;
+}
+
+/* Sobald die Begruendung offen ist, laesst sich nichts mehr ankreuzen. */
+function antwortenSperren() {
+  document.querySelectorAll('#mainContainer input[type="radio"]').forEach(r => { r.disabled = true; });
+  const m = document.getElementById('mainContainer');
+  if (m) m.classList.add('fertig');
+}
+function antwortenFreigeben() {
+  document.querySelectorAll('#mainContainer input[type="radio"]').forEach(r => { r.disabled = false; });
+  document.querySelectorAll('#mainContainer label').forEach(l => {
+    l.classList.remove('correct', 'wrong', 'vergessen');
+  });
+  const m = document.getElementById('mainContainer');
+  if (m) m.classList.remove('fertig');
+  aufgabeBewertet = false;
 }
 
 // ---------------- Begründung ----------------
+/* Wer die Begruendung selbst aufklappt, hat die Loesung gesehen - danach
+   laesst sich ebenfalls nichts mehr ankreuzen. */
+document.addEventListener('DOMContentLoaded', () => {
+  const r = document.getElementById('btnPunkteReset');
+  if (r) r.addEventListener('click', punkteZuruecksetzen);
+  punkteZeigen();
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+  const be = document.getElementById('explanationDetails');
+  if (be) be.addEventListener('toggle', () => { if (be.open) aufgabeAbschliessen(); });
+});
+
 function updateExplanation() {
   if(!currentTask) return;
   const isTestMode = document.getElementById('explanationModeSwitch').checked;
@@ -651,16 +842,16 @@ function formatSci(x) {
   if(x === 0) return '0';
   if(!isFinite(x)) return x > 0 ? '+\\infty' : '-\\infty';
   if(Math.abs(x) < 1e4 && Math.abs(x) >= 0.01) {
-    return x.toFixed(2).replace('.', '{,}');
+    return DZ(x.toFixed(2), true);
   }
   const exp  = Math.floor(Math.log10(Math.abs(x)));
   const mant = x / Math.pow(10, exp);
-  return mant.toFixed(2).replace('.', '{,}') + '\\cdot 10^{' + exp + '}';
+  return DZ(mant.toFixed(2), true) + '\\cdot 10^{' + exp + '}';
 }
 
 function getDirection(val) {
-  if(val > 0) return 'also positiv und sehr groß,';
-  if(val < 0) return 'also negativ und sehr groß (dem Betrag nach),';
+  if(val > 0) return T('also positiv und sehr groß,', 'so positive and very large,');
+  if(val < 0) return T('also negativ und sehr groß (dem Betrag nach),', 'so negative and very large in magnitude,');
   return '';
 }
 
@@ -683,7 +874,7 @@ function showTestValues() {
   function testRow(x, fval) {
     return `
       <div style="margin-bottom:8px;">
-        <div>Testeinsetzung mit \\(x = ${x}\\)</div>
+        <div>${T('Testeinsetzung mit', 'Test value')} \\(x = ${x}\\)</div>
         <div class="scale-wrapper" style="margin-top:2px;">
           <div class="scale-el">$$f(${x}) \\approx ${formatSci(fval)}$$</div>
         </div>
@@ -691,26 +882,28 @@ function showTestValues() {
       </div>`;
   }
 
+  const R = rahmenFarbe();
+  const vermutlich = T('d.h. vermutlich:', 'i.e. presumably:');
   const html = `
     <table style="width:100%; border-collapse:collapse; table-layout:fixed;">
       <thead>
-        <tr><td colspan="2" style="border-top:2px solid black;"></td></tr>
+        <tr><td colspan="2" style="border-top:2px solid ${R};"></td></tr>
         <tr>
-          <th style="text-align:center; border-bottom:2px solid black; border-right:2px solid black; padding:8px;">Für \\(x \\to -\\infty\\)</th>
-          <th style="text-align:center; border-bottom:2px solid black; padding:8px;">Für \\(x \\to +\\infty\\)</th>
+          <th style="text-align:center; border-bottom:2px solid ${R}; border-right:2px solid ${R}; padding:8px;">${T('Für', 'As')} \\(x \\to -\\infty\\)</th>
+          <th style="text-align:center; border-bottom:2px solid ${R}; padding:8px;">${T('Für', 'As')} \\(x \\to +\\infty\\)</th>
         </tr>
       </thead>
       <tbody>
         <tr>
-          <td style="padding:8px; vertical-align:top; border-right:2px solid black;">
+          <td style="padding:8px; vertical-align:top; border-right:2px solid ${R};">
             ${testRow(-100, fL1)}
             ${testRow(-500, fL2)}
-            <div style="margin-top:4px;">d.h. vermutlich: \\(f(x) \\to ${limL}\\)</div>
+            <div style="margin-top:4px;">${vermutlich} \\(f(x) \\to ${limL}\\)</div>
           </td>
           <td style="padding:8px; vertical-align:top;">
             ${testRow(100, fR1)}
             ${testRow(500, fR2)}
-            <div style="margin-top:4px;">d.h. vermutlich: \\(f(x) \\to ${limR}\\)</div>
+            <div style="margin-top:4px;">${vermutlich} \\(f(x) \\to ${limR}\\)</div>
           </td>
         </tr>
       </tbody>
@@ -718,7 +911,7 @@ function showTestValues() {
   `;
 
   document.getElementById('explanation').innerHTML = html;
-  MathJax.typesetPromise().then(() => scaleAllElements());
+  mjSetzen().then(() => { if (typeof scaleAllElements === 'function') scaleAllElements(); });
 }
 
 function showArgument() {
@@ -736,19 +929,25 @@ function showArgument() {
 
   // Satz 1: Grad
   const gradSatz = isEven
-    ? `Der Grad des Polynoms ist \\(${degree}\\) (gerade), daher ist das Grenzverhalten für \\(x\\to-\\infty\\) und \\(x\\to+\\infty\\) gleichartig.`
-    : `Der Grad des Polynoms ist \\(${degree}\\) (ungerade), daher ist das Grenzverhalten für \\(x\\to-\\infty\\) und \\(x\\to+\\infty\\) entgegengesetzt.`;
+    ? T(`Der Grad des Polynoms ist \\(${degree}\\) (gerade), daher ist das Grenzverhalten für \\(x\\to-\\infty\\) und \\(x\\to+\\infty\\) gleichartig.`,
+        `The degree of the polynomial is \\(${degree}\\) (even), so the end behaviour is the same for \\(x\\to-\\infty\\) and \\(x\\to+\\infty\\).`)
+    : T(`Der Grad des Polynoms ist \\(${degree}\\) (ungerade), daher ist das Grenzverhalten für \\(x\\to-\\infty\\) und \\(x\\to+\\infty\\) entgegengesetzt.`,
+        `The degree of the polynomial is \\(${degree}\\) (odd), so the end behaviour is opposite for \\(x\\to-\\infty\\) and \\(x\\to+\\infty\\).`);
 
   // Satz 2: Leitkoeffizient — nur Spiegelung, kein "daher gilt"-Teil
   let leitSatz;
   if(leadPositive) {
     leitSatz = isEven
-      ? `Der Leitkoeffizient \\(${leadStr}\\) ist positiv, daher wurde der Graph nicht gespiegelt. Das Grenzverhalten ist auf der rechten Seite (für \\(x\\to+\\infty\\)) positiv und auf der linken Seite (für \\(x\\to-\\infty\\)) ebenfalls positiv.`
-      : `Der Leitkoeffizient \\(${leadStr}\\) ist positiv, daher wurde der Graph nicht gespiegelt. Das Grenzverhalten ist auf der rechten Seite (für \\(x\\to+\\infty\\)) positiv und (wegen dem ungeraden Grad) auf der linken Seite (für \\(x\\to-\\infty\\)) negativ.`;
+      ? T(`Der Leitkoeffizient \\(${leadStr}\\) ist positiv, daher wurde der Graph nicht gespiegelt. Das Grenzverhalten ist auf der rechten Seite (für \\(x\\to+\\infty\\)) positiv und auf der linken Seite (für \\(x\\to-\\infty\\)) ebenfalls positiv.`,
+          `The leading coefficient \\(${leadStr}\\) is positive, so the graph is not reflected. The end behaviour is positive on the right (as \\(x\\to+\\infty\\)) and positive on the left as well (as \\(x\\to-\\infty\\)).`)
+      : T(`Der Leitkoeffizient \\(${leadStr}\\) ist positiv, daher wurde der Graph nicht gespiegelt. Das Grenzverhalten ist auf der rechten Seite (für \\(x\\to+\\infty\\)) positiv und (wegen dem ungeraden Grad) auf der linken Seite (für \\(x\\to-\\infty\\)) negativ.`,
+          `The leading coefficient \\(${leadStr}\\) is positive, so the graph is not reflected. The end behaviour is positive on the right (as \\(x\\to+\\infty\\)) and, because the degree is odd, negative on the left (as \\(x\\to-\\infty\\)).`);
   } else {
     leitSatz = isEven
-      ? `Der Leitkoeffizient \\(${leadStr}\\) ist negativ, d.h. der Graph ist vertikal an der \\(x\\)-Achse gespiegelt. Das Grenzverhalten ist auf der rechten Seite (für \\(x\\to+\\infty\\)) negativ und auf der linken Seite (für \\(x\\to-\\infty\\)) ebenfalls negativ.`
-      : `Der Leitkoeffizient \\(${leadStr}\\) ist negativ, d.h. der Graph ist vertikal an der \\(x\\)-Achse gespiegelt. Das Grenzverhalten ist auf der rechten Seite (für \\(x\\to+\\infty\\)) negativ und (wegen dem ungeraden Grad) auf der linken Seite (für \\(x\\to-\\infty\\)) positiv.`;
+      ? T(`Der Leitkoeffizient \\(${leadStr}\\) ist negativ, d.h. der Graph ist vertikal an der \\(x\\)-Achse gespiegelt. Das Grenzverhalten ist auf der rechten Seite (für \\(x\\to+\\infty\\)) negativ und auf der linken Seite (für \\(x\\to-\\infty\\)) ebenfalls negativ.`,
+          `The leading coefficient \\(${leadStr}\\) is negative, i.e. the graph is reflected in the \\(x\\)-axis. The end behaviour is negative on the right (as \\(x\\to+\\infty\\)) and negative on the left as well (as \\(x\\to-\\infty\\)).`)
+      : T(`Der Leitkoeffizient \\(${leadStr}\\) ist negativ, d.h. der Graph ist vertikal an der \\(x\\)-Achse gespiegelt. Das Grenzverhalten ist auf der rechten Seite (für \\(x\\to+\\infty\\)) negativ und (wegen dem ungeraden Grad) auf der linken Seite (für \\(x\\to-\\infty\\)) positiv.`,
+          `The leading coefficient \\(${leadStr}\\) is negative, i.e. the graph is reflected in the \\(x\\)-axis. The end behaviour is negative on the right (as \\(x\\to+\\infty\\)) and, because the degree is odd, positive on the left (as \\(x\\to-\\infty\\)).`);
   }
 
   // Satz 3: Extra-Faktor (nur wenn vorhanden)
@@ -756,9 +955,11 @@ function showArgument() {
   if(factor) {
     const factStr = coeffToString(factor, false);
     if(factorPositive) {
-      factorSatz = `<div style="margin-top:6px;">Hier gibt es sogar noch einen weiteren Faktor \\(${factStr}\\) vor der Funktion, dieser ist aber positiv und verändert nichts am Grenzverhalten.</div>`;
+      factorSatz = `<div style="margin-top:6px;">${T(`Hier gibt es sogar noch einen weiteren Faktor \\(${factStr}\\) vor der Funktion, dieser ist aber positiv und verändert nichts am Grenzverhalten.`,
+                                                    `There is even another factor \\(${factStr}\\) in front of the function, but it is positive and does not change the end behaviour.`)}</div>`;
     } else {
-      factorSatz = `<div style="margin-top:6px;">Hier gibt es sogar noch einen weiteren Faktor \\(${factStr}\\) vor der Funktion, dieser ist hier sogar negativ und dreht daher nochmal alle Vorzeichen um.</div>`;
+      factorSatz = `<div style="margin-top:6px;">${T(`Hier gibt es sogar noch einen weiteren Faktor \\(${factStr}\\) vor der Funktion, dieser ist hier sogar negativ und dreht daher nochmal alle Vorzeichen um.`,
+                                                    `There is even another factor \\(${factStr}\\) in front of the function, and it is negative, so it flips all the signs once more.`)}</div>`;
     }
   }
 
@@ -783,21 +984,26 @@ function showArgument() {
     }
   }
 
+  const R = rahmenFarbe();
   const html = `
     <table style="width:100%; border-collapse:collapse; table-layout:fixed;">
       <thead>
-        <tr><td colspan="2" style="border-top:2px solid black;"></td></tr>
+        <tr><td colspan="2" style="border-top:2px solid ${R};"></td></tr>
         <tr>
-          <th colspan="2" style="text-align:left; border-bottom:2px solid black; padding:8px; font-weight:normal;">
+          <th colspan="2" style="text-align:left; padding:8px; font-weight:normal;">
             <div style="margin-bottom:6px;">${gradSatz}</div>
             <div style="margin-bottom:${factor ? '0' : '0'}px;">${leitSatz}</div>
             ${factorSatz}
           </th>
         </tr>
+        <tr>
+          <th style="text-align:center; border-bottom:2px solid ${R}; border-right:2px solid ${R}; padding:8px;">${T('Für', 'As')} \\(x \\to -\\infty\\)</th>
+          <th style="text-align:center; border-bottom:2px solid ${R}; padding:8px;">${T('Für', 'As')} \\(x \\to +\\infty\\)</th>
+        </tr>
       </thead>
       <tbody>
         <tr>
-          <td style="padding:8px; vertical-align:top; border-right:2px solid black;">
+          <td style="padding:8px; vertical-align:top; border-right:2px solid ${R};">
             <div class="scale-wrapper">
               <div class="scale-el">$$${buildFormula(limL, leadTermStr)}$$</div>
             </div>
@@ -813,7 +1019,7 @@ function showArgument() {
   `;
 
   document.getElementById('explanation').innerHTML = html;
-  MathJax.typesetPromise().then(() => scaleAllElements());
+  mjSetzen().then(() => { if (typeof scaleAllElements === 'function') scaleAllElements(); });
 }
 
 // ---------------- Skizze ----------------
@@ -853,11 +1059,16 @@ function saveSettingsToURL() {
   url.searchParams.set('fractions', document.getElementById('allowFractions').checked ? '1' : '0');
   url.searchParams.set('factor',    document.getElementById('allowFactor').checked ? '1' : '0');
   url.searchParams.set('explanationMode', document.getElementById('explanationModeSwitch').checked ? 'test' : 'argument');
+  url.searchParams.set('diff', (document.querySelector('input[name="diff"]:checked') || {}).value || 'normal');
   window.history.replaceState({}, '', url);
 }
 
 function loadSettingsFromURL() {
   const url = new URL(window.location);
+  if(url.searchParams.has('diff')) {
+    const d = document.querySelector(`input[name="diff"][value="${url.searchParams.get('diff')}"]`);
+    if(d) d.checked = true;
+  }
   if(url.searchParams.has('funcType')) {
     const v = url.searchParams.get('funcType');
     const r = document.querySelector(`input[name="funcType"][value="${v}"]`);
@@ -929,10 +1140,37 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 });
 
+// Sprach-/Themewechsel: Begründung neu zeichnen, wenn sie geöffnet ist
+// Aufgabenformel neu zeichnen; das Dezimaltrennzeichen folgt der Sprache.
+function zeichneAufgabenformel() {
+  if (!currentTask) return;
+  document.getElementById('task').innerHTML = `$$f(x) = ${DZT(currentTask.fLatex)}$$`;
+}
+
+function begruendungNeu() {
+  const details = document.getElementById('explanationDetails');
+  if (currentTask && details && details.open) updateExplanation();
+}
+
+// Beim Sprachwechsel auch die Aufgabenformel neu setzen - ihr
+// Dezimaltrennzeichen haengt an der Sprache. Die Aufgabe selbst
+// bleibt dieselbe, es wird nichts neu gewuerfelt.
+function spracheNeu() {
+  zeichneAufgabenformel();
+  begruendungNeu();
+  if (window.MathJax && MathJax.typesetPromise) {
+    mjSetzen().then(() => {
+      if (typeof scaleAllElements === 'function') scaleAllElements();
+    }).catch(() => {});
+  }
+}
+window.addEventListener('tl-sprache', spracheNeu);
+window.addEventListener('tl-theme',   begruendungNeu);
+
 window.onload = () => {
   loadSettingsFromURL();
   updateDegTickLabels();
-  MathJax.startup.promise.then(() => newTask());
+  mjStart(() => newTask());
 };
 </script>
 <div id="lobby-spacer"></div>
@@ -940,9 +1178,86 @@ window.onload = () => {
     <div class="footer-content">
         M.&nbsp;Koch
         <span class="footer-topic"><a href="./index.html">Mathe-Tools</a></span>
-        <span class="footer-update">Last updated:&nbsp;<span id="last-update">...</span></span>
+        <span class="footer-update"><span class="fu-wort" data-de="Zuletzt aktualisiert:" data-en="Last updated:">Zuletzt aktualisiert:</span><span id="last-update">...</span></span>
     </div>
 </footer>
-<script src="last-update.js" defer></script>
+<script src="last-update.js" defer>
+</script>
+<script>
+/* Beim Klick auf "Fehler melden" wird die gerade angezeigte Aufgabe
+   mitgeschickt - direkt aus dem DOM, also immer der aktuelle Stand. */
+window.fehlerKontext = function () {
+  const el = document.getElementById('task');
+  if (!el) return '';
+  return (typeof tlFormelText === 'function') ? tlFormelText(el) : el.innerText;
+};
+
+/* ── Schwierigkeitsstufen ──────────────────────────────────────────────────
+   Die Stufe setzt den Umfang der Funktion. Der Funktionstyp bleibt die Wahl
+   der Nutzerin - er hat einen eigenen Schalter über der Aufgabe. Jede
+   Einstellung steht weiterhin einzeln im Einstellungsbereich.            */
+const STD = { funcType:'polynomial', degree:4, leadSign:'random',
+              decimals:false, fractions:false, factor:false, diff:'normal' };
+const STUFEN = {
+  einf:   { degree:2, leadSign:'positive', decimals:false, fractions:false, factor:false },
+  leicht: { degree:3, leadSign:'random',   decimals:false, fractions:false, factor:false },
+  normal: { degree:4, leadSign:'random',   decimals:false, fractions:false, factor:false },
+  schwer: { degree:6, leadSign:'random',   decimals:true,  fractions:true,  factor:true  }
+};
+function radioWert(name){
+  const e = document.querySelector('input[name="' + name + '"]:checked');
+  return e ? e.value : null;
+}
+function radioSetzen(name, wert){
+  const e = document.querySelector('input[name="' + name + '"][value="' + wert + '"]');
+  if (e) e.checked = true;
+}
+function einstellungen(){
+  return { funcType: radioWert('funcType') || STD.funcType,
+           degree:   parseInt(document.getElementById('maxDegree').value, 10),
+           leadSign: radioWert('leadSign') || STD.leadSign,
+           decimals: document.getElementById('allowDecimals').checked,
+           fractions:document.getElementById('allowFractions').checked,
+           factor:   document.getElementById('allowFactor').checked,
+           diff:     radioWert('diff') || STD.diff };
+}
+function stufeAnwenden(stufe){
+  const p = STUFEN[stufe];
+  if (!p) return;
+  const s = document.getElementById('maxDegree');
+  if (!s.disabled) s.value = p.degree;
+  radioSetzen('leadSign', p.leadSign);
+  document.getElementById('allowDecimals').checked  = p.decimals;
+  document.getElementById('allowFractions').checked = p.fractions;
+  document.getElementById('allowFactor').checked    = p.factor;
+  updateParams();
+}
+function aufIndividuell(){
+  if (radioWert('diff') !== 'indiv'){
+    radioSetzen('diff', 'indiv');
+    if (window.abGliderAlle) abGliderAlle();
+  }
+}
+document.addEventListener('DOMContentLoaded', () => {
+  /* Funktionstyp: oben und in den Einstellungen dasselbe */
+  document.querySelectorAll('input[name="funcType"], input[name="funcTypeTop"]').forEach(e =>
+    e.addEventListener('change', () => {
+      radioSetzen('funcType', e.value); radioSetzen('funcTypeTop', e.value);
+      updateParams(); newTask();
+    }));
+  /* von Hand geändert heißt „Individuell" */
+  document.querySelectorAll('#maxDegree, input[name="leadSign"], #allowDecimals, #allowFractions, #allowFactor')
+    .forEach(e => e.addEventListener('change', () => { aufIndividuell(); newTask(); }));
+  document.querySelectorAll('input[name="diff"]').forEach(e =>
+    e.addEventListener('change', () => {
+      if (e.value !== 'indiv') stufeAnwenden(e.value);
+      newTask();
+      if (e.value === 'indiv' && window.abEinstellungenOeffnen) abEinstellungenOeffnen('#settingsDetails');
+    }));
+  radioSetzen('funcTypeTop', radioWert('funcType') || STD.funcType);
+  if (window.abGliderAlle) abGliderAlle();
+});
+
+</script>
 </body>
 </html>

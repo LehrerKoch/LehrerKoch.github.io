@@ -3,26 +3,30 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="shortcut icon" type="image/x-icon" href="aleph_zero_logo.ico">
   <script>
     window.MathJax = { tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] } };
   </script>
   <script id="MathJax-script" async
     src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-5K8WYYXDL2"></script>
-  <script>
+<script>
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-5K8WYYXDL2');
+    window.TK_GA_ID = 'G-5K8WYYXDL2';   /* Google Analytics laedt erst nach Einwilligung, siehe einwilligung.js */
   </script>
-  <title>Wissenschaftliche Schreibweise üben</title>
+<script src="einwilligung.js" defer></script>
+  <script>try{var t=localStorage.getItem('matheToolsTheme');if(t==='dark'||(!t&&window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.classList.add('dark');}catch(e){}</script>
+  <title data-de="Wissenschaftliche Schreibweise" data-en="Scientific Notation">Wissenschaftliche Schreibweise</title>
+  <script src="theme-language.js" defer></script>
   <link rel="stylesheet" type="text/css" href="styles.css" />
+  <link rel="stylesheet" type="text/css" href="aufgaben.css" />
+  <script src="aufgaben.js" defer></script>
   <style>
     /* styles.css: button { bg:#4CAF50; color:white; border:none }
        Our <style> follows the <link>, so class/ID selectors here win by
        specificity (class > element) — no !important needed for most rules. */
 
-    body { -webkit-user-select: none; user-select: none; overflow-x: hidden; }
+    body { -webkit-user-select: none; user-select: none; }
     *:focus { outline: none; }
 
     /* ── Toast ─────────────────────────────────── */
@@ -35,14 +39,10 @@
     #toast.show { opacity: 1; }
 
     /* ── Task card ─────────────────────────────── */
-    #taskWrap {
-      position: relative; width: 100%; min-height: 130px; margin-top: 10px;
-      border: 1px solid #ddd; border-radius: 10px;
-      display: flex; align-items: center; justify-content: center;
-      background: white; box-sizing: border-box; padding: 18px 24px; z-index: 1;
-    }
+    /* Rahmen und Farbe des Aufgabenblocks kommen aus aufgaben.css (.task). */
+    #taskWrap { position: relative; width: 100%; box-sizing: border-box; z-index: 1; }
     #taskCard {
-      display: flex; flex-direction: column;
+      display: flex; flex-direction: column; min-height: 110px;
       align-items: center; justify-content: center; width: 100%;
     }
     .scale-wrapper {
@@ -58,47 +58,10 @@
       font-size: 0.72em; color: #888; margin-top: 6px; text-align: center; flex-shrink: 0;
     }
 
-    /* ── Controls row: direction + mode on same line, wrap on narrow ── */
-    .controls-row {
-      display: flex; align-items: flex-start;
-      justify-content: space-between;
-      gap: 10px; flex-wrap: wrap; margin: 8px 0 4px 0;
-    }
-    .seg-wrap { margin: 0; }
-    .seg-label {
-      font-size: 0.82em; font-weight: bold; color: #555;
-      display: block; margin-bottom: 3px;
-    }
-
-    /* ── Segmented toggles ─────────────────────── */
-    .seg-toggle {
-      display: inline-flex; border: 2px solid #bbb; border-radius: 9px; overflow: hidden;
-    }
-    /* Class selector (0,1,0) beats button element (0,0,1) from styles.css */
-    .seg-btn {
-      padding: 5px 13px; font-size: 0.84em;
-      background: #f0f0f0; color: #444;
-      border: none; border-right: 1px solid #ccc;
-      cursor: pointer; font-family: inherit; font-weight: normal;
-      transition: background 0.15s; line-height: 1.35; white-space: nowrap;
-      margin: 0;  /* override button margin from styles.css */
-    }
-    .seg-btn:last-child { border-right: none; }
-    .seg-btn.seg-active { background: #4CAF50; color: #fff; font-weight: bold; }
-    .seg-btn:hover:not(.seg-active) { background: #e0e0e0; }
-
-    /* ── Counter / score ─────────────────────────── */
-    #counter { text-align: center; font-weight: bold; margin: 10px 0 2px 0; }
-
-    /* ── Action buttons (override styles.css green) ── */
-    /* checkBtn keeps the green default; next/reveal get neutral styling */
-    #nextBtn, #revealBtn {
-      background: #efefef; color: #333; border: 1px solid #bbb;
-    }
-    #nextBtn:hover  { background: #e0e0e0; }
-    #revealBtn      { color: #555; }
-    #revealBtn:hover { background: #e5e5e5; }
-    #checkBtn       { border: 1px solid #3e9142; font-weight: bold; }
+    /* Die Schalter kommen aus aufgaben.css (.seg); hier bleibt nur das,
+       was diese Seite eigen hat. */
+    #counter { font-weight: bold; margin: 0 0 0 6px; font-size: .9em; color: var(--ab-leise, #777); }
+    #checkBtn { border: 1px solid #3e9142; font-weight: bold; }
 
     .btn-row {
       display: flex; justify-content: center; gap: 8px; margin-top: 6px; flex-wrap: wrap;
@@ -107,10 +70,13 @@
     /* ── Input fields ─────────────────────────────── */
     #inputArea {
       display: flex; flex-direction: column;
-      align-items: center; gap: 8px; margin: 12px 0 0 0; width: 100%;
+      align-items: center; gap: 8px; margin: 0; width: 100%;
     }
     .answer-field {
-      width: min(380px, 90vw); padding: 8px 12px; font-size: 1.1em;
+      /* box-sizing: sonst kaemen Rand und Polsterung zur Breite hinzu und das
+         Feld waere auf schmalen Schirmen breiter als die Seite. */
+      box-sizing: border-box;
+      width: 380px; max-width: 100%; padding: 8px 12px; font-size: 1.1em;
       border: 2px solid #ccc; border-radius: 8px; text-align: center;
       outline: none; transition: border-color 0.2s, background 0.2s;
       -webkit-user-select: text; user-select: text; font-family: inherit;
@@ -128,7 +94,8 @@
       white-space: nowrap; padding: 0 2px; color: #222; font-size: 0.9em; line-height: 1;
     }
     .field-mantissa {
-      width: min(120px, 30vw); padding: 7px 8px; font-size: 1em;
+      box-sizing: border-box;
+      width: min(120px, 32vw); padding: 7px 8px; font-size: 1em;
       border: 2px solid #ccc; border-radius: 8px; text-align: center;
       outline: none; transition: border-color 0.2s, background 0.2s;
       -webkit-user-select: text; user-select: text; font-family: inherit;
@@ -157,9 +124,11 @@
     #answerHint.visible { display: block; }
 
     /* ── Quiz ───────────────────────────────────── */
+    /* Gleich breite Felder: die Spalten teilen sich den Platz gleichmaessig,
+       der Kasten selbst ist nur so breit wie noetig. */
     .quiz-options {
       display: grid; grid-template-columns: 1fr 1fr;
-      gap: 8px; max-width: min(560px, 96vw); margin: 0 auto;
+      gap: 8px; width: fit-content; max-width: min(560px, 96vw); margin: 0 auto;
     }
     .quiz-btn {
       padding: 9px 10px; font-size: 0.88em; border-radius: 8px; font-family: inherit;
@@ -173,118 +142,152 @@
     .quiz-btn.reveal  { border-color: #17a2b8; background: #d1ecf1; color: #0c5460; }
     .quiz-btn:disabled { cursor: default; opacity: 0.9; }
     @media (max-width: 360px) { .quiz-options { grid-template-columns: 1fr; } }
+
+    /* ══ Dark Mode (Hellmodus bleibt unverändert) ══ */
+    html.dark #toast { background: #2e3840; color: #e7eae8; }
+
+    html.dark #taskWrap { border-color: #3a434b; background: #1e2429; }
+    html.dark .card-sub { color: #9aa5b1; }
+    html.dark #checkBtn { background: #3d7a48; border-color: #4caf50; }
+    html.dark .answer-field, html.dark .field-mantissa, html.dark .field-exp {
+      background: #232a32; color: #e7eae8; border-color: #4a545e;
+    }
+    html.dark .answer-field.correct, html.dark .field-mantissa.correct, html.dark .field-exp.correct
+      { border-color: #4caf50; background: #1e4a22; color: #d7f0d8; }
+    html.dark .answer-field.wrong, html.dark .field-mantissa.wrong, html.dark .field-exp.wrong
+      { border-color: #ef5350; background: #4a2020; color: #f3d5d5; }
+    html.dark .sci-connector { color: #e7eae8; }
+    html.dark #answerHint { color: #d7dee4; background: #3a3320; border-color: #b98c17; }
+    html.dark .quiz-btn { background: #232a32; color: #d7dee4; border-color: #4a545e; }
+    html.dark .quiz-btn:hover:not(:disabled) { background: #2e3840; border-color: #6b7883; }
+    html.dark .quiz-btn.correct { border-color: #4caf50; background: #1e4a22; color: #d7f0d8; }
+    html.dark .quiz-btn.wrong   { border-color: #ef5350; background: #4a2020; color: #f3d5d5; }
+    html.dark .quiz-btn.reveal  { border-color: #4fb3c8; background: #123c45; color: #cfeaf0; }
   </style>
 </head>
-<body>
+<body class="tk-seite">
 <div id="toast"></div>
 
-<h1>Wissenschaftliche Schreibweise üben</h1>
+<header class="tool-kopf">
+  <div class="tk-text">
+    <h1 data-de="Wissenschaftliche Schreibweise" data-en="Scientific Notation">Wissenschaftliche Schreibweise</h1>
+    <p class="tk-unter" data-de="Wissenschaftliche Schreibweise mit abgetrennter Zehnerpotenz üben" data-en="Practise scientific notation with a separate power of ten">Wissenschaftliche Schreibweise mit abgetrennter Zehnerpotenz üben</p>
+  </div>
+</header>
 
 <!-- ════════ Settings ════════ -->
-<details>
-  <summary>Einstellungen</summary>
-  <form id="settingsForm">
+<details class="einst" id="settingsDetails">
+  <summary data-de="Einstellungen" data-en="Settings">Einstellungen</summary>
+  <form id="settingsForm" class="settings-grid">
 
     <div class="form-block">
-      <b>Anzeigestil:</b>
-      <div class="radio-group">
-        <label style="font-size:0.82em"><input type="radio" name="style" value="klassisch" checked>
-          Klassisch &nbsp;<span style="font-family:monospace;color:#888">3,45 · 10<sup>5</sup></span></label>
-        <label style="font-size:0.82em"><input type="radio" name="style" value="rechner">
-          Taschenrechner &nbsp;<span style="font-family:monospace;color:#888">3,45 E 5</span></label>
-        <label style="font-size:0.82em"><input type="radio" name="style" value="prog">
-          Programmiersprache &nbsp;<span style="font-family:monospace;color:#888">3.45e5</span></label>
-      </div>
+      <b data-de="Anzeigestil" data-en="Notation">Anzeigestil</b>
+      <span class="d" data-de="Wie wird die Zehnerpotenz geschrieben?" data-en="How is the power of ten written?">Wie wird die Zehnerpotenz geschrieben?</span>
+      <label class="opt"><input type="radio" name="style" value="klassisch" checked><span><span data-de="Klassisch" data-en="Classic">Klassisch</span><span class="d" style="font-family:monospace" data-de="3,45 · 10<sup>5</sup>" data-en="3.45 · 10<sup>5</sup>">3,45 · 10<sup>5</sup></span></span></label>
+      <label class="opt"><input type="radio" name="style" value="rechner"><span><span data-de="Taschenrechner" data-en="Calculator">Taschenrechner</span><span class="d" style="font-family:monospace" data-de="3,45 E 5" data-en="3.45 E 5">3,45 E 5</span></span></label>
+      <label class="opt"><input type="radio" name="style" value="prog"><span><span data-de="Programmiersprache" data-en="Programming language">Programmiersprache</span><span class="d" style="font-family:monospace" data-de="3.45e5" data-en="3.45e5">3.45e5</span></span></label>
     </div>
 
     <div class="form-block">
-      <b>Vorzeichen des Exponenten:</b>
-      <div class="radio-group">
-        <label style="font-size:0.82em"><input type="radio" name="expSign" value="positive">
-          Nur positiv &nbsp;<span style="font-family:monospace;color:#888">große Zahlen</span></label>
-        <label style="font-size:0.82em"><input type="radio" name="expSign" value="random" checked>
-          Zufällig</label>
-        <label style="font-size:0.82em"><input type="radio" name="expSign" value="negative">
-          Nur negativ &nbsp;<span style="font-family:monospace;color:#888">sehr kleine Zahlen</span></label>
-      </div>
+      <b data-de="Vorzeichen des Exponenten" data-en="Sign of the exponent">Vorzeichen des Exponenten</b>
+      <span class="d" data-de="Derselbe Schalter steht auch über der Aufgabe." data-en="The same switch is also shown above the task.">Derselbe Schalter steht auch über der Aufgabe.</span>
+      <label class="opt"><input type="radio" name="expSign" value="positive"><span><span data-de="Nur positiv" data-en="Positive only">Nur positiv</span><span class="d" style="font-family:monospace" data-de="große Zahlen" data-en="large numbers">große Zahlen</span></span></label>
+      <label class="opt"><input type="radio" name="expSign" value="random" checked><span><span data-de="Zufällig" data-en="Random">Zufällig</span></span></label>
+      <label class="opt"><input type="radio" name="expSign" value="negative"><span><span data-de="Nur negativ" data-en="Negative only">Nur negativ</span><span class="d" style="font-family:monospace" data-de="sehr kleine Zahlen" data-en="very small numbers">sehr kleine Zahlen</span></span></label>
     </div>
 
     <div class="form-block">
-      <b>Exponentenbereich:</b>
-      <div class="radio-group">
-        <label style="font-size:0.82em"><input type="radio" name="expRange" value="simple" checked>
-          Einfach &nbsp;<span style="font-family:monospace;color:#888">|exp| ∈ {2, …, 6}</span></label>
-        <label style="font-size:0.82em"><input type="radio" name="expRange" value="arbitrary">
-          Beliebig &nbsp;<span style="font-family:monospace;color:#888">exp ∈ {−15, …, 15}</span></label>
-      </div>
+      <b data-de="Exponentenbereich" data-en="Range of the exponent">Exponentenbereich</b>
+      <span class="d" data-de="Diese Stufe setzt der Schwierigkeitsgrad über der Aufgabe." data-en="This level is set by the difficulty above the task.">Diese Stufe setzt der Schwierigkeitsgrad über der Aufgabe.</span>
+      <label class="opt"><input type="radio" name="expRange" value="simple" checked><span><span data-de="Einfach" data-en="Simple">Einfach</span><span class="d" style="font-family:monospace" data-de="|exp| ∈ {2, …, 6}" data-en="|exp| ∈ {2, …, 6}">|exp| ∈ {2, …, 6}</span></span></label>
+      <label class="opt"><input type="radio" name="expRange" value="arbitrary"><span><span data-de="Beliebig" data-en="Arbitrary">Beliebig</span><span class="d" style="font-family:monospace" data-de="exp ∈ {−15, …, 15}" data-en="exp ∈ {−15, …, 15}">exp ∈ {−15, …, 15}</span></span></label>
     </div>
 
     <div class="form-block">
-      <b>Mantissenlänge:</b>
-      <div class="radio-group">
-        <label style="font-size:0.82em"><input type="radio" name="mantLen" value="kurz" checked>
-          Kurz &nbsp;<span style="font-family:monospace;color:#888">1–2 Nachkommastellen</span></label>
-        <label style="font-size:0.82em"><input type="radio" name="mantLen" value="mittel">
-          Mittel &nbsp;<span style="font-family:monospace;color:#888">1–5 Nachkommastellen</span></label>
-        <label style="font-size:0.82em"><input type="radio" name="mantLen" value="lang">
-          Lang &nbsp;<span style="font-family:monospace;color:#888">2–7 NK · Ergebnis kann Dezimalstellen haben</span></label>
-      </div>
+      <b data-de="Mantissenlänge" data-en="Length of the mantissa">Mantissenlänge</b>
+      <span class="d" data-de="Diese Stufe setzt der Schwierigkeitsgrad über der Aufgabe." data-en="This level is set by the difficulty above the task.">Diese Stufe setzt der Schwierigkeitsgrad über der Aufgabe.</span>
+      <label class="opt"><input type="radio" name="mantLen" value="kurz" checked><span><span data-de="Kurz" data-en="Short">Kurz</span><span class="d" style="font-family:monospace" data-de="1–2 Nachkommastellen" data-en="1–2 decimal places">1–2 Nachkommastellen</span></span></label>
+      <label class="opt"><input type="radio" name="mantLen" value="mittel"><span><span data-de="Mittel" data-en="Medium">Mittel</span><span class="d" style="font-family:monospace" data-de="1–5 Nachkommastellen" data-en="1–5 decimal places">1–5 Nachkommastellen</span></span></label>
+      <label class="opt"><input type="radio" name="mantLen" value="lang"><span><span data-de="Lang" data-en="Long">Lang</span><span class="d" style="font-family:monospace" data-de="2–7 NK · Ergebnis kann Dezimalstellen haben" data-en="2–7 dp · the result may have decimals">2–7 NK · Ergebnis kann Dezimalstellen haben</span></span></label>
     </div>
 
     <div class="form-block">
-      <label style="font-size:0.82em;cursor:pointer;display:inline-block;margin:2px 0">
-        <input type="checkbox" id="cbNegative" checked>
-        Negative Zahlen erlaubt
-        &nbsp;<span style="font-family:monospace;color:#888">z.B. −3,45 · 10<sup>5</sup></span>
-      </label><br>
-      <label style="font-size:0.82em;cursor:pointer;display:inline-block;margin:4px 0 2px 0">
-        <input type="checkbox" id="cbGrouping" checked>
-        Zahlen gruppieren &nbsp;<span style="font-family:monospace;color:#888">12 345 678 · \, zwischen 3er-Blöcken</span>
-      </label>
+      <b data-de="Zahlen in der Aufgabe" data-en="Numbers in the task">Zahlen in der Aufgabe</b>
+      <label class="opt"><input type="checkbox" id="cbNegative" checked><span><span data-de="Negative Zahlen erlaubt" data-en="Negative numbers allowed">Negative Zahlen erlaubt</span><span class="d" style="font-family:monospace" data-de="z.B. −3,45 · 10<sup>5</sup>" data-en="e.g. −3.45 · 10<sup>5</sup>">z.B. −3,45 · 10<sup>5</sup></span></span></label>
+      <label class="opt"><input type="checkbox" id="cbGrouping" checked><span><span data-de="Zahlen gruppieren" data-en="Group the digits">Zahlen gruppieren</span><span class="d" style="font-family:monospace" data-de="12 345 678 – Abstand zwischen 3er-Blöcken" data-en="12 345 678 – a gap between blocks of three">12 345 678 – Abstand zwischen 3er-Blöcken</span></span></label>
     </div>
 
   </form>
+<div class="settings-foot">
+  <button class="btn-secondary" id="btnShare" type="button" data-de="🔗 Link mit allen Einstellungen kopieren" data-en="🔗 Copy link with all settings">🔗 Link mit allen Einstellungen kopieren</button>
+  <button class="btn-secondary" id="btnReset" type="button" data-de="↺ Standard wiederherstellen" data-en="↺ Restore defaults">↺ Standard wiederherstellen</button>
+</div>
 </details>
 
-<!-- ════════ Controls: direction + mode on same line ════════ -->
-<div class="controls-row">
-  <div class="seg-wrap">
-    <span class="seg-label">Richtung:</span>
-    <div class="seg-toggle" id="dirToggle">
-      <button class="seg-btn" data-value="in" type="button">Normal → Wiss.</button>
-      <button class="seg-btn seg-active" data-value="random" type="button">Zufällig</button>
-      <button class="seg-btn" data-value="out" type="button">Wiss. → Normal</button>
+<!-- ═══ Schalter über der Aufgabe ═════════════════════════ -->
+<div id="topControls">
+  <div class="tc-row">
+    <div class="tc-item">
+      <span class="tc-label" data-de="Richtung" data-en="Direction">Richtung</span>
+      <div class="seg" id="dirToggle">
+        <button class="seg-btn" data-value="in" type="button" data-de="Normal → Wiss." data-en="Plain → Sci.">Normal → Wiss.</button>
+        <button class="seg-btn active" data-value="random" type="button" data-de="Zufällig" data-en="Random">Zufällig</button>
+        <button class="seg-btn" data-value="out" type="button" data-de="Wiss. → Normal" data-en="Sci. → Plain">Wiss. → Normal</button>
+      </div>
+    </div>
+    <div class="tc-item">
+      <span class="tc-label" data-de="Vorzeichen des Exponenten" data-en="Sign of the exponent">Vorzeichen des Exponenten</span>
+      <div class="seg" id="segExpSign">
+        <label><input type="radio" name="expSignTop" value="positive"><span data-de="Nur positiv" data-en="Positive only">Nur positiv</span></label>
+        <label><input type="radio" name="expSignTop" value="random" checked><span data-de="Zufällig" data-en="Random">Zufällig</span></label>
+        <label><input type="radio" name="expSignTop" value="negative"><span data-de="Nur negativ" data-en="Negative only">Nur negativ</span></label>
+      </div>
     </div>
   </div>
-  <div class="seg-wrap">
-    <span class="seg-label">Eingabemodus:</span>
-    <div class="seg-toggle" id="modeToggle">
-      <button class="seg-btn seg-active" data-value="freitext" type="button">Freitext</button>
-      <button class="seg-btn" data-value="felder" type="button">Eingabefelder</button>
-      <button class="seg-btn" data-value="quiz" type="button">Quiz</button>
+  <div class="tc-item tc-diff">
+    <span class="tc-label" data-de="Schwierigkeit" data-en="Difficulty">Schwierigkeit</span>
+    <div class="seg-switch diff-switch" id="segDiff">
+      <input type="radio" name="diff" id="diffEinf" value="einf"><label for="diffEinf" data-de="Einführung" data-en="Introduction">Einführung</label>
+      <input type="radio" name="diff" id="diffLeicht" value="leicht"><label for="diffLeicht" data-de="Leicht" data-en="Easy">Leicht</label>
+      <input type="radio" name="diff" id="diffNormal" value="normal" checked><label for="diffNormal" data-de="Normal" data-en="Normal">Normal</label>
+      <input type="radio" name="diff" id="diffSchwer" value="schwer"><label for="diffSchwer" data-de="Herausfordernd" data-en="Challenging">Herausfordernd</label>
+      <input type="radio" name="diff" id="diffIndiv" value="indiv"><label for="diffIndiv" data-de="Individuell" data-en="Custom" data-de-title="öffnet die Einstellungen" data-en-title="opens the settings" title="öffnet die Einstellungen">Individuell</label>
+      <span class="seg-glider"></span>
     </div>
   </div>
 </div>
 
-<!-- Counter directly above Neue Aufgabe -->
-<p id="counter">Richtig: 0 / 0</p>
-<div class="btn-row" style="margin-bottom:6px;">
-  <button id="nextBtn" type="button">Neue Aufgabe</button>
+<div id="genRow">
+  <button id="genBtn" type="button" data-de='<span class="auto-kreis">&#x27F3;</span>&nbsp;Neue Aufgabe generieren' data-en='<span class="auto-kreis">&#x27F3;</span>&nbsp;Generate a new task'><span class="auto-kreis">&#x27F3;</span>&nbsp;Neue Aufgabe generieren</button>
+  <span class="punkte rechts"><button id="btnPunkteReset" type="button" title="Punktzahl zurücksetzen" data-de-title="Punktzahl zurücksetzen" data-en-title="Reset the score">↺</button><span id="counter">Richtig: 0 / 0</span></span>
 </div>
 
-<div id="taskWrap">
+<div class="task" id="taskWrap">
+  <div class="task-head">
+    <h2 data-de="Aufgabe" data-en="Task">Aufgabe</h2>
+    <button class="share-btn" id="btnTeilen" type="button" title="Diese Aufgabe teilen (Link kopieren)" data-de-title="Diese Aufgabe teilen (Link kopieren)" data-en-title="Share this task (copy link)" data-de="&#128279;&nbsp;Teilen" data-en="&#128279;&nbsp;Share">&#128279;&nbsp;Teilen</button>
+  </div>
   <div id="taskCard">
     <div class="scale-wrapper"><div id="taskText" class="scale-el"></div></div>
     <div class="card-sub" id="taskSub"></div>
   </div>
-</div>
 
-<div id="inputArea"></div>
-<div id="answerHint"></div>
+  <div class="antwort-zeile">
+    <span class="az-name" data-de="Antwort:" data-en="Answer:">Antwort:</span>
+    <div class="seg klein" id="modeToggle">
+      <button class="seg-btn active" data-value="freitext" type="button" data-de="Freitext" data-en="Free text">Freitext</button>
+      <button class="seg-btn" data-value="felder" type="button" data-de="Eingabefelder" data-en="Input fields">Eingabefelder</button>
+      <button class="seg-btn" data-value="quiz" type="button" data-de="Quiz" data-en="Quiz">Quiz</button>
+    </div>
+  </div>
 
-<div class="btn-row">
-  <button id="checkBtn" type="button">Lösung überprüfen</button>
-  <button id="revealBtn" type="button">Lösung anzeigen</button>
+  <div class="pruef-zeile">
+    <div id="inputArea"></div>
+    <button id="checkBtn" class="pruef-knopf" type="button" data-de="Prüfen" data-en="Check">Prüfen</button>
+  </div>
+  <div id="answerHint"></div>
+
+  <button class="btn-loesung" id="revealBtn" type="button" data-de="Lösung anzeigen" data-en="Show answer">Lösung anzeigen</button>
 </div>
 
 <div id="lobby-spacer"></div>
@@ -292,7 +295,7 @@
   <div class="footer-content">
     M.&nbsp;Koch
     <span class="footer-topic"><a href="./index.html">Mathe-Tools</a></span>
-    <span class="footer-update">Last updated:&nbsp;<span id="last-update">…</span></span>
+    <span class="footer-update"><span class="fu-wort" data-de="Zuletzt aktualisiert:" data-en="Last updated:">Zuletzt aktualisiert:</span><span id="last-update">…</span></span>
   </div>
 </footer>
 <script src="last-update.js" defer></script>
@@ -324,35 +327,56 @@ function scheduleScale() {
 }
 function scaleToFit(el) {
   if (!el) return;
-  el.style.transform = 'none';
   const wrapper = el.parentElement;
   if (!wrapper) return;
-  requestAnimationFrame(() => {
-    const avail = wrapper.clientWidth
-      - parseFloat(getComputedStyle(wrapper).paddingLeft  || 0)
-      - parseFloat(getComputedStyle(wrapper).paddingRight || 0);
+  el.style.transformOrigin = 'top left';
+  el.style.transform = 'none';
+  wrapper.style.height = 'auto';
+  // Zweimal warten: MathJax setzt die Formel erst nach und nach zusammen,
+  // sonst wird zu frueh gemessen und die fertige Formel laeuft ueber den Rand.
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    const ws = getComputedStyle(wrapper);
+    const avail = wrapper.clientWidth - parseFloat(ws.paddingLeft || 0) - parseFloat(ws.paddingRight || 0);
     const nat = el.scrollWidth;
+    el._skalaBreite = nat;
     if (nat > avail && avail > 0) {
       const sc = avail / nat;
       el.style.transform = `scale(${sc})`;
-      wrapper.style.height = (el.scrollHeight * sc) + 'px';
-    } else {
-      wrapper.style.height = '';
+      wrapper.style.height = (el.scrollHeight * sc
+        + parseFloat(ws.paddingTop || 0) + parseFloat(ws.paddingBottom || 0)) + 'px';
     }
-  });
+    skalaBeobachte(el);
+  }));
+}
+// Nachmessen, wenn sich der Inhalt spaeter noch aendert (transform aendert die
+// Layoutgroesse nicht, deshalb kann keine Schleife entstehen).
+let _skalaBeobachter = null;
+function skalaBeobachte(el) {
+  if (typeof ResizeObserver !== 'function') return;
+  if (!_skalaBeobachter) _skalaBeobachter = new ResizeObserver(es => es.forEach(e => {
+    if (e.target.scrollWidth !== e.target._skalaBreite) scaleToFit(e.target);
+  }));
+  if (!el._skalaBeobachtet) { el._skalaBeobachtet = true; _skalaBeobachter.observe(el); }
 }
 function scaleAllElements() { document.querySelectorAll('.scale-el').forEach(scaleToFit); }
 window.addEventListener('resize', scaleAllElements);
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => scaleAllElements()).catch(() => {});
 
 /* ════════════════════════════════════════════════
    Generic helpers
    ════════════════════════════════════════════════ */
-function randomInt(min, max) { return min + Math.floor(Math.random() * (max - min + 1)); }
-function randomChoice(arr)   { return arr[Math.floor(Math.random() * arr.length)]; }
+// Sprache: Text in der gerade eingestellten Sprache (ohne theme-language.js: Deutsch)
+function T(de, en) { return (typeof tlText === 'function') ? tlText(de, en) : de; }
+function ENGL()    { return (typeof tlSprache === 'function') && tlSprache() === 'en'; }
+// Dezimaltrennzeichen im TeX: {,} im Deutschen, Punkt im Englischen
+function TRENNTEX() { return ENGL() ? '.' : '{,}'; }
+
+function randomInt(min, max) { return min + Math.floor(zufall() * (max - min + 1)); }
+function randomChoice(arr)   { return arr[Math.floor(zufall() * arr.length)]; }
 function shuffle(arr) {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
+    const j = Math.floor(zufall() * (i + 1));
     [a[i], a[j]] = [a[j], a[i]];
   }
   return a;
@@ -368,11 +392,11 @@ function approxEqual(a, b) {
    Segmented toggle helpers
    ════════════════════════════════════════════════ */
 function getSegValue(id) {
-  return document.querySelector(`#${id} .seg-active`)?.dataset.value || null;
+  return document.querySelector(`#${id} .active`)?.dataset.value || null;
 }
 function setSegValue(id, value) {
   document.getElementById(id)?.querySelectorAll('.seg-btn').forEach(b =>
-    b.classList.toggle('seg-active', b.dataset.value === value)
+    b.classList.toggle('active', b.dataset.value === value)
   );
 }
 
@@ -387,39 +411,112 @@ function negAllowed()   { return document.getElementById('cbNegative').checked; 
 function isGrouping()   { return document.getElementById('cbGrouping').checked; }
 function getDirection() { return getSegValue('dirToggle')  || 'random'; }
 function getMode()      { return getSegValue('modeToggle') || 'freitext'; }
-function useComma()     { return getStyle() !== 'prog'; }
+function useComma()     { return getStyle() !== 'prog' && !ENGL(); }
+
+/* ════════════════════════════════════════════════
+   Schwierigkeitsstufen, Startwert und Adresszeile
+   ════════════════════════════════════════════════ */
+/* Jede Aufgabe entsteht aus einem Startwert. Steht er im Link, kommt dieselbe
+   Aufgabe wieder heraus - so lässt sich eine einzelne Aufgabe weitergeben. */
+let AUFGABENSTART = 1, _zz = 1;
+function neuerStartwert(){ return (Math.random() * 4294967296) >>> 0; }
+function setzeStartwert(s){ AUFGABENSTART = s >>> 0; _zz = AUFGABENSTART; }
+function zufall(){
+  _zz = (_zz + 0x6D2B79F5) >>> 0;
+  let t = Math.imul(_zz ^ (_zz >>> 15), 1 | _zz);
+  t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+  return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+}
+
+const STD = { style:'klassisch', expSign:'random', expRange:'simple', mantLen:'kurz',
+              cbNegative:true, cbGrouping:true, dir:'random', mode:'freitext', diff:'normal' };
+/* Eine Stufe setzt nur den Umfang der Zahlen. Richtung und Eingabemodus
+   bleiben die Wahl der Nutzerin - sie haben eigene Schalter. */
+const STUFEN = {
+  einf:   { expRange:'simple',    mantLen:'kurz',   cbNegative:false },
+  leicht: { expRange:'simple',    mantLen:'kurz',   cbNegative:false },
+  normal: { expRange:'simple',    mantLen:'mittel', cbNegative:true  },
+  schwer: { expRange:'arbitrary', mantLen:'lang',   cbNegative:true  }
+};
+/* Namen in der Adresszeile - die alten bleiben erhalten, damit früher
+   weitergegebene Links weiter funktionieren. */
+const KURZ = { style:'st', expSign:'es', expRange:'er', mantLen:'ml',
+               cbNegative:'neg', cbGrouping:'grp', dir:'dir', mode:'mode', diff:'diff' };
+
+function radioWert(name){
+  const e = document.querySelector('input[name="' + name + '"]:checked');
+  return e ? e.value : null;
+}
+function radioSetzen(name, wert){
+  const e = document.querySelector('input[name="' + name + '"][value="' + wert + '"]');
+  if (e) e.checked = true;
+  return !!e;
+}
+function haken(id){ const e = document.getElementById(id); return !!(e && e.checked); }
+function hakenSetzen(id, an){ const e = document.getElementById(id); if (e) e.checked = !!an; }
+function einstellungen(){
+  return { style: radioWert('style') || STD.style,
+           expSign: radioWert('expSign') || STD.expSign,
+           expRange: radioWert('expRange') || STD.expRange,
+           mantLen: radioWert('mantLen') || STD.mantLen,
+           cbNegative: haken('cbNegative'), cbGrouping: haken('cbGrouping'),
+           dir: getSegValue('dirToggle') || STD.dir,
+           mode: getSegValue('modeToggle') || STD.mode,
+           diff: radioWert('diff') || STD.diff };
+}
+function einstellungenSetzen(e){
+  radioSetzen('style', e.style); radioSetzen('expSign', e.expSign);
+  radioSetzen('expSignTop', e.expSign);
+  radioSetzen('expRange', e.expRange); radioSetzen('mantLen', e.mantLen);
+  hakenSetzen('cbNegative', e.cbNegative); hakenSetzen('cbGrouping', e.cbGrouping);
+  setSegValue('dirToggle', e.dir); setSegValue('modeToggle', e.mode);
+  radioSetzen('diff', e.diff);
+  if (window.abGliderAlle) abGliderAlle();
+}
+function aufIndividuell(){
+  if (radioWert('diff') !== 'indiv'){
+    radioSetzen('diff', 'indiv');
+    if (window.abGliderAlle) abGliderAlle();
+  }
+}
+function stufeAnwenden(stufe){
+  const p = STUFEN[stufe];
+  if (!p) return;
+  Object.keys(p).forEach(k => {
+    if (typeof p[k] === 'boolean') hakenSetzen(k, p[k]); else radioSetzen(k, p[k]);
+  });
+}
+function urlSchreiben(mitAufgabe){
+  const s = einstellungen(), p = new URLSearchParams();
+  Object.keys(KURZ).forEach(k => {
+    if (String(s[k]) === String(STD[k])) return;
+    p.set(KURZ[k], (typeof s[k] === 'boolean') ? (s[k] ? '1' : '0') : s[k]);
+  });
+  if (mitAufgabe) p.set('sd', AUFGABENSTART);   /* genau diese Aufgabe */
+  const qs = p.toString();
+  return location.origin + location.pathname + (qs ? '?' + qs : '');
+}
+function urlLesen(){
+  const p = new URLSearchParams(location.search), s = Object.assign({}, STD);
+  Object.keys(KURZ).forEach(k => {
+    const v = p.get(KURZ[k]);
+    if (v === null) return;
+    s[k] = (typeof STD[k] === 'boolean') ? (v === '1' || v === 'true') : v;
+  });
+  return s;
+}
+function linkKopieren(text, knopf){
+  if (window.abKopiere){ abKopiere(text, knopf, T('✓ Link kopiert', '✓ Link copied')); return; }
+  try { if (navigator.clipboard) navigator.clipboard.writeText(text); } catch (e) {}
+}
 
 /* ════════════════════════════════════════════════
    URL persistence
    ════════════════════════════════════════════════ */
 function saveSettings() {
-  const p = new URLSearchParams();
-  p.set('st',   getStyle());
-  p.set('es',   getExpSign());
-  p.set('er',   isSimple() ? 'simple' : 'arbitrary');
-  p.set('ml',   getMantLen());
-  p.set('neg',  negAllowed() ? '1' : '0');
-  p.set('grp',  isGrouping() ? '1' : '0');
-  p.set('dir',  getDirection());
-  p.set('mode', getMode());
-  history.replaceState(null, '', '?' + p.toString());
+  try { history.replaceState(null, '', urlSchreiben(false)); } catch (e) {}
 }
-function loadSettings() {
-  if (!location.search) return;
-  const p = new URLSearchParams(location.search);
-  const setR = (name, val) => {
-    const el = document.querySelector(`input[name="${name}"][value="${val}"]`);
-    if (el) el.checked = true;
-  };
-  if (p.has('st'))   setR('style',    p.get('st'));
-  if (p.has('es'))   setR('expSign',  p.get('es'));
-  if (p.has('er'))   setR('expRange', p.get('er'));
-  if (p.has('ml'))   setR('mantLen',  p.get('ml'));
-  if (p.has('neg'))  document.getElementById('cbNegative').checked = p.get('neg') === '1';
-  if (p.has('grp'))  document.getElementById('cbGrouping').checked = p.get('grp') === '1';
-  if (p.has('dir'))  setSegValue('dirToggle',  p.get('dir'));
-  if (p.has('mode')) setSegValue('modeToggle', p.get('mode'));
-}
+function loadSettings() { einstellungenSetzen(urlLesen()); }
 
 /* ════════════════════════════════════════════════
    Number formatting
@@ -434,7 +531,7 @@ function fmtMantissa(mi, dec, comma) {
 /** LaTeX mantissa using {,}: "3{,}45" */
 function fmtMantissaLatex(mi, dec) {
   const s = String(mi).padStart(dec + 1, '0');
-  return s.slice(0, s.length - dec) + '{,}' + s.slice(s.length - dec);
+  return s.slice(0, s.length - dec) + TRENNTEX() + s.slice(s.length - dec);
 }
 
 /** Normal (decimal) representation as plain string (uses '.' internally). */
@@ -491,7 +588,7 @@ function fmtNormalLatex(task) {
   const fStr = fracP
     ? ((grp && fracP.length >= 5) ? groupFracStr(fracP) : fracP)
     : null;
-  return (neg ? '{-}' : '') + iStr + (fStr != null ? '{,}' + fStr : '');
+  return (neg ? '{-}' : '') + iStr + (fStr != null ? TRENNTEX() + fStr : '');
 }
 
 /**
@@ -536,7 +633,8 @@ let answered   = false;
 let taskScored = false;
 
 function updateCounter() {
-  document.getElementById('counter').textContent = `Richtig: ${scoreOk} / ${scoreTotal}`;
+  document.getElementById('counter').textContent =
+    T(`Richtig: ${scoreOk} / ${scoreTotal}`, `Correct: ${scoreOk} / ${scoreTotal}`);
 }
 
 function pickExponent() {
@@ -546,24 +644,25 @@ function pickExponent() {
   const neg    = simple ? randomInt(2, 6) : randomInt(0, 15);
   if (sign === 'positive') return  pos;
   if (sign === 'negative') return -neg;
-  return Math.random() < 0.5 ? pos : -neg;
+  return zufall() < 0.5 ? pos : -neg;
 }
 
 function pickDecimals() {
   const ml = getMantLen();
-  if (ml === 'kurz')   return Math.random() < 0.5 ? 1 : 2;
+  if (ml === 'kurz')   return zufall() < 0.5 ? 1 : 2;
   if (ml === 'mittel') return randomInt(1, 5);
   return randomInt(2, 7);  // lang
 }
 
-function generateTask() {
+function generateTask(startwert) {
+  setzeStartwert(startwert == null ? neuerStartwert() : startwert);
   const decimals = pickDecimals();
   let mantissaInt;
   const lo = Math.pow(10, decimals), hi = Math.pow(10, decimals + 1) - 1;
   do { mantissaInt = randomInt(lo, hi); } while (mantissaInt % 10 === 0);
 
   const exponent  = pickExponent();
-  const negative  = negAllowed() && Math.random() < 0.3;
+  const negative  = negAllowed() && zufall() < 0.3;
   const dirSetting = getDirection();
   const direction  = dirSetting === 'random' ? randomChoice(['in', 'out']) : dirSetting;
 
@@ -574,9 +673,12 @@ function generateTask() {
   renderTaskText();
   updateInputArea();
   clearFeedback();
+  saveSettings();
   setTimeout(() => {
     const f = document.querySelector('.answer-field, .field-mantissa');
-    if (f) f.focus();
+    /* Ohne Scrollen - sonst rutscht das Kopfband auf schmalen Bildschirmen
+       beim ersten Aufruf gleich aus dem Bild. */
+    if (f) { try { f.focus({ preventScroll: true }); } catch (e) { f.focus(); } }
   }, 80);
 }
 
@@ -600,10 +702,10 @@ function renderTaskText() {
 
   if (current.direction === 'in') {
     taskEl.innerHTML = `\\(${fmtNormalLatex(current)}\\)`;
-    subEl.textContent = '→ Wissenschaftliche Schreibweise';
+    subEl.textContent = T('→ Wissenschaftliche Schreibweise', '→ Scientific notation');
   } else {
     taskEl.innerHTML = `\\(${sciToLatex(current)}\\)`;
-    subEl.textContent = '→ Gewöhnliche Dezimalzahl';
+    subEl.textContent = T('→ Gewöhnliche Dezimalzahl', '→ Ordinary decimal number');
   }
   if (window.MathJax && MathJax.typesetPromise) {
     if (MathJax.typesetClear) MathJax.typesetClear([taskEl]);
@@ -642,13 +744,13 @@ function buildFreitextInput() {
   input.style.cssText = '-webkit-user-select:text;user-select:text';
   if (current.direction === 'in') {
     const ph = {
-      klassisch: 'z.B.  3,45 * 10^5  oder  3.45e5',
-      rechner:   'z.B.  3,45 E 5  oder  3,45 E -3',
-      prog:      'z.B.  3.45e5  oder  3.45e-3',
+      klassisch: T('z.B.  3,45 * 10^5  oder  3.45e5', 'e.g.  3.45 * 10^5  or  3.45e5'),
+      rechner:   T('z.B.  3,45 E 5  oder  3,45 E -3', 'e.g.  3.45 E 5  or  3.45 E -3'),
+      prog:      T('z.B.  3.45e5  oder  3.45e-3',     'e.g.  3.45e5  or  3.45e-3'),
     };
-    input.placeholder = ph[getStyle()] || 'Antwort eingeben';
+    input.placeholder = ph[getStyle()] || T('Antwort eingeben', 'Type your answer');
   } else {
-    input.placeholder = 'z.B.  345 000  oder  0,00345';
+    input.placeholder = T('z.B.  345 000  oder  0,00345', 'e.g.  345 000  or  0.00345');
   }
   input.addEventListener('keydown', e => { if (e.key === 'Enter') checkAnswer(); });
   return input;
@@ -788,15 +890,19 @@ function diagnoseSciError(task, uMant, uExp) {
   //    Mantisse (inkl. Vorzeichen) stimmt
   if (mOk && sOk && cExp !== 0 && uExp === -cExp) {
     return cExp > 0
-      ? 'Vorzeichen des Exponenten falsch – das Komma wird nach rechts verschoben → Exponent positiv.'
-      : 'Vorzeichen des Exponenten falsch – das Komma wird nach links verschoben → Exponent negativ.';
+      ? T('Vorzeichen des Exponenten falsch – das Komma wird nach rechts verschoben → Exponent positiv.',
+           'Wrong sign for the exponent – the decimal point moves to the right → positive exponent.')
+      : T('Vorzeichen des Exponenten falsch – das Komma wird nach links verschoben → Exponent negativ.',
+           'Wrong sign for the exponent – the decimal point moves to the left → negative exponent.');
   }
 
   // 2. Minus an der falschen Stelle (Mantisse ↔ Exponent vertauscht)
   if (mOk && !sOk && cExp !== 0 && uExp === -cExp) {
     return cNeg
-      ? 'Das Minuszeichen gehört zur Mantisse (negative Zahl), nicht zum Exponenten. Beispiel: −3,45 · 10⁵ – das Minus steht vor der Mantisse.'
-      : 'Das Minuszeichen gehört zum Exponenten (kleine Zahl), nicht zur Mantisse. Beispiel: 0,00345 = 3,45 · 10⁻³ – nicht −3,45 · 10³.';
+      ? T('Das Minuszeichen gehört zur Mantisse (negative Zahl), nicht zum Exponenten. Beispiel: −3,45 · 10⁵ – das Minus steht vor der Mantisse.',
+           'The minus sign belongs to the mantissa (a negative number), not to the exponent. Example: −3.45 · 10⁵ – the minus goes in front of the mantissa.')
+      : T('Das Minuszeichen gehört zum Exponenten (kleine Zahl), nicht zur Mantisse. Beispiel: 0,00345 = 3,45 · 10⁻³ – nicht −3,45 · 10³.',
+           'The minus sign belongs to the exponent (a small number), not to the mantissa. Example: 0.00345 = 3.45 · 10⁻³ – not −3.45 · 10³.');
   }
 
   // 3. Nullen gezählt statt Kommastellen
@@ -805,38 +911,46 @@ function diagnoseSciError(task, uMant, uExp) {
     if (zExp !== null && uExp === zExp) {
       const isInt = fmtNormal(task, false).replace('-', '').indexOf('.') < 0;
       return isInt
-        ? 'Tipp: Nicht die Nullen am Ende zählen, sondern um wie viele Stellen das Komma wandert. Die Nullen und die Kommaverschiebung stimmen meistens nicht überein!'
-        : 'Tipp: Nicht die führenden Nullen nach dem Komma zählen, sondern Kommastellen – das ist eine Stelle mehr, weil das Komma hinter die erste Ziffer muss.';
+        ? T('Tipp: Nicht die Nullen am Ende zählen, sondern um wie viele Stellen das Komma wandert. Die Nullen und die Kommaverschiebung stimmen meistens nicht überein!',
+             'Tip: do not count the zeros at the end, count how many places the decimal point moves. The two usually do not match!')
+        : T('Tipp: Nicht die führenden Nullen nach dem Komma zählen, sondern Kommastellen – das ist eine Stelle mehr, weil das Komma hinter die erste Ziffer muss.',
+             'Tip: do not count the leading zeros after the decimal point, count the places it moves – that is one more, because the point ends up behind the first digit.');
     }
   }
 
   // 4. Exponent um genau 1 daneben (Mantisse stimmt)
   if (mOk && sOk && !eOk && Math.abs(uExp - cExp) === 1) {
-    return `Exponent um 1 ${uExp > cExp ? 'zu groß' : 'zu klein'}. Prüfe genau, um wie viele Stellen das Komma wandert.`;
+    return T(`Exponent um 1 ${uExp > cExp ? 'zu groß' : 'zu klein'}. Prüfe genau, um wie viele Stellen das Komma wandert.`,
+             `Exponent is 1 too ${uExp > cExp ? 'large' : 'small'}. Check carefully how many places the decimal point moves.`);
   }
 
   // 5. Nur Vorzeichen der Mantisse falsch (Betrag + Exponent stimmen)
   if (eOk && mOk && !sOk) {
     return cNeg
-      ? 'Vorzeichen vergessen: Die Ausgangszahl ist negativ → Mantisse muss negativ sein.'
-      : 'Vorzeichen falsch: Die Ausgangszahl ist positiv → Mantisse ohne Minuszeichen.';
+      ? T('Vorzeichen vergessen: Die Ausgangszahl ist negativ → Mantisse muss negativ sein.',
+           'Sign missing: the original number is negative → the mantissa has to be negative.')
+      : T('Vorzeichen falsch: Die Ausgangszahl ist positiv → Mantisse ohne Minuszeichen.',
+           'Wrong sign: the original number is positive → the mantissa has no minus sign.');
   }
 
   // 6. Exponent stimmt, Mantissenbetrag falsch
   if (eOk && sOk && !mOk) {
-    return 'Exponent stimmt, aber die Mantisse ist falsch. Achte auf die genaue Lage des Kommas (1 ≤ |m| < 10).';
+    return T('Exponent stimmt, aber die Mantisse ist falsch. Achte auf die genaue Lage des Kommas (1 ≤ |m| < 10).',
+             'The exponent is right, but the mantissa is wrong. Watch where exactly the decimal point goes (1 ≤ |m| < 10).');
   }
 
   // 7. Mantisse stimmt, Exponent falsch
   if (mOk && sOk && !eOk) {
-    return 'Mantisse stimmt, aber der Exponent ist falsch. Zähle genau, um wie viele Stellen das Komma verschoben wird.';
+    return T('Mantisse stimmt, aber der Exponent ist falsch. Zähle genau, um wie viele Stellen das Komma verschoben wird.',
+             'The mantissa is right, but the exponent is wrong. Count carefully how many places the decimal point moves.');
   }
 
   // 8. Zahlenwert rechnerisch richtig, aber Schreibweise nicht normiert
   const computedVal = uMant * Math.pow(10, uExp);
   const correctVal  = (cNeg ? -1 : 1) * cMantAbs * Math.pow(10, cExp);
   if (approxEqual(computedVal, correctVal)) {
-    return 'Der Zahlenwert stimmt, aber die Darstellung ist nicht normiert. Vor dem Komma, darf nur eine einstellige Zahl stehen – schiebe das Komma und passe den Exponenten entsprechend an.';
+    return T('Der Zahlenwert stimmt, aber die Darstellung ist nicht normiert. Vor dem Komma, darf nur eine einstellige Zahl stehen – schiebe das Komma und passe den Exponenten entsprechend an.',
+             'The value is right, but the notation is not normalised. Only a single digit may stand in front of the decimal point – move the point and adjust the exponent.');
   }
 
   return '';
@@ -857,8 +971,10 @@ function diagnoseNormalError(task, uVal) {
   // 1. Betrag stimmt, aber Vorzeichen falsch
   if (approxEqual(Math.abs(uVal), Math.abs(cVal)) && (uVal < 0) !== (cVal < 0)) {
     return cVal < 0
-      ? 'Vorzeichen vergessen: Die Mantisse ist negativ → die Dezimalzahl ist ebenfalls negativ.'
-      : 'Vorzeichen falsch: Die Mantisse ist positiv → kein Minuszeichen nötig.';
+      ? T('Vorzeichen vergessen: Die Mantisse ist negativ → die Dezimalzahl ist ebenfalls negativ.',
+           'Sign missing: the mantissa is negative → the decimal number is negative too.')
+      : T('Vorzeichen falsch: Die Mantisse ist positiv → kein Minuszeichen nötig.',
+           'Wrong sign: the mantissa is positive → no minus sign needed.');
   }
 
   // 2. Komma in die falsche Richtung verschoben
@@ -866,8 +982,10 @@ function diagnoseNormalError(task, uVal) {
     const flippedVal = cMant * Math.pow(10, -cExp);
     if (approxEqual(Math.abs(uVal), Math.abs(flippedVal)) && (uVal < 0) === (cVal < 0)) {
       return cExp > 0
-        ? `Komma in die falsche Richtung verschoben. Positiver Exponent 10^${cExp} → Komma nach rechts → größere Zahl.`
-        : `Komma in die falsche Richtung verschoben. Negativer Exponent 10^${cExp} → Komma nach links → kleinere Zahl.`;
+        ? T(`Komma in die falsche Richtung verschoben. Positiver Exponent 10^${cExp} → Komma nach rechts → größere Zahl.`,
+             `Decimal point moved the wrong way. Positive exponent 10^${cExp} → point to the right → larger number.`)
+        : T(`Komma in die falsche Richtung verschoben. Negativer Exponent 10^${cExp} → Komma nach links → kleinere Zahl.`,
+             `Decimal point moved the wrong way. Negative exponent 10^${cExp} → point to the left → smaller number.`);
     }
   }
 
@@ -876,7 +994,8 @@ function diagnoseNormalError(task, uVal) {
   if (zExp !== null && zExp !== cExp) {
     const zVal = cMant * Math.pow(10, zExp);
     if (approxEqual(Math.abs(uVal), Math.abs(zVal)) && (uVal < 0) === (cVal < 0)) {
-      return `Tipp: Nicht Nullen zählen, sondern Kommastellen. Das Komma muss genau ${Math.abs(cExp)} Stelle(n) nach ${cExp > 0 ? 'rechts' : 'links'} verschoben werden.`;
+      return T(`Tipp: Nicht Nullen zählen, sondern Kommastellen. Das Komma muss genau ${Math.abs(cExp)} Stelle(n) nach ${cExp > 0 ? 'rechts' : 'links'} verschoben werden.`,
+               `Tip: do not count zeros, count places. The decimal point has to move exactly ${Math.abs(cExp)} place(s) to the ${cExp > 0 ? 'right' : 'left'}.`);
     }
   }
 
@@ -884,7 +1003,8 @@ function diagnoseNormalError(task, uVal) {
   for (const d of [-1, 1]) {
     const offVal = cMant * Math.pow(10, cExp + d);
     if (approxEqual(Math.abs(uVal), Math.abs(offVal)) && (uVal < 0) === (cVal < 0)) {
-      return `Komma um eine Stelle zu ${d > 0 ? 'weit' : 'wenig'} verschoben. Das Komma muss genau ${Math.abs(cExp)} Stelle(n) nach ${cExp > 0 ? 'rechts' : 'links'}.`;
+      return T(`Komma um eine Stelle zu ${d > 0 ? 'weit' : 'wenig'} verschoben. Das Komma muss genau ${Math.abs(cExp)} Stelle(n) nach ${cExp > 0 ? 'rechts' : 'links'}.`,
+               `Decimal point moved one place too ${d > 0 ? 'far' : 'few'}. It has to move exactly ${Math.abs(cExp)} place(s) to the ${cExp > 0 ? 'right' : 'left'}.`);
     }
   }
 
@@ -989,6 +1109,20 @@ function buildQuizArea(container) {
   typesetMath(div);
 }
 
+// Zuletzt gezeigte Rückmeldung merken (Sprachwechsel schreibt sie neu)
+let letzteRueckmeldung = null;
+// Erzeuger des letzten Fehlertextes (wird bei Sprachwechsel erneut ausgewertet)
+let fehlerBauer = null;
+function setzeFehler(bauer) { fehlerBauer = bauer; return bauer(); }
+
+function zeigeRueckmeldung(bauer) {
+  letzteRueckmeldung = bauer;
+  const hint = document.getElementById('answerHint');
+  hint.innerHTML = bauer();
+  hint.className = 'visible';
+  typesetMath(hint);
+}
+
 function handleQuizClick(btn) {
   if (answered) return;
   const ok = btn.dataset.correct === '1';
@@ -997,6 +1131,7 @@ function handleQuizClick(btn) {
     updateCounter(); taskScored = true;
   }
   answered = true;
+  antwortGemeldet(ok);
   document.querySelectorAll('.quiz-btn').forEach(b => {
     b.disabled = true;
     if (b.dataset.correct === '1')    b.classList.add('correct');
@@ -1006,21 +1141,32 @@ function handleQuizClick(btn) {
   if (!ok) {
     const uExp  = parseInt(btn.dataset.exponent);
     const uNeg  = btn.dataset.negative === '1';
-    const hint  = document.getElementById('answerHint');
-    let errMsg  = '';
-    if (current.direction === 'in') {
-      const uMant = (uNeg ? -1 : 1) * getMantissaValue(current);
-      errMsg = diagnoseSciError(current, uMant, uExp);
-    } else {
-      const uVal = (uNeg ? -1 : 1) * getMantissaValue(current) * Math.pow(10, uExp);
-      errMsg = diagnoseNormalError(current, uVal);
-    }
-    hint.innerHTML = (errMsg ? `<em>${errMsg}</em><br>` : 'Falsch!');
-                  //  + `Richtige Antwort: ${correctAnswerHTML(current)}`;
-    hint.className = 'visible';
-    typesetMath(hint);
+    zeigeRueckmeldung(() => {
+      const m = current.direction === 'in'
+        ? diagnoseSciError(current, (uNeg ? -1 : 1) * getMantissaValue(current), uExp)
+        : diagnoseNormalError(current, (uNeg ? -1 : 1) * getMantissaValue(current) * Math.pow(10, uExp));
+      return m ? `<em>${m}</em><br>` : T('Falsch!', 'Wrong!');
+    });
   }
 }
+
+
+/* ── Automatische Aufgabe ────────────────────────────────────────────────
+   Langes Drücken auf „Neue Aufgabe generieren" schaltet sie um. Ist sie an,
+   leuchtet das Bild nach jeder Antwort kurz grün bzw. rot auf, und nach einer
+   richtigen Antwort kommt die nächste Aufgabe von selbst. Zu Beginn ist sie
+   aus - wer sie mag, schaltet sie ein. */
+function antwortGemeldet(richtig){
+  if (!(window.abAutoAn && abAutoAn())) return;
+  if (window.abBlitz) abBlitz(richtig);
+  if (richtig && window.abAutoBald) abAutoBald();
+}
+function autoBauen(){
+  if (!window.abAutoStart) return;
+  abAutoStart({ an:false, naechste:function(){ generateTask(); } });
+}
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', autoBauen);
+else autoBauen();
 
 /* ════════════════════════════════════════════════
    Input parsing
@@ -1050,6 +1196,7 @@ function checkAnswer() {
   if (!current || getMode() === 'quiz') return;
   const hint = document.getElementById('answerHint');
   let correct = false, errorMsg = '';
+  fehlerBauer = null;
 
   const trueVal = (current.negative ? -1 : 1)
     * getMantissaValue(current)
@@ -1063,25 +1210,27 @@ function checkAnswer() {
     if (current.direction === 'in') {
       const p = parseScientific(val);
       if (!p) {
-        errorMsg = 'Format nicht erkannt – z.B. 3,45 * 10^5 oder 3.45e5';
+        errorMsg = setzeFehler(() => T('Format nicht erkannt – z.B. 3,45 * 10^5 oder 3.45e5',
+                     'Format not recognised – e.g. 3.45 * 10^5 or 3.45e5'));
       } else if (Math.abs(p.mantissa) < 1 || Math.abs(p.mantissa) >= 10) {
-        errorMsg = `Nicht normiert: Vor dem Komma darf nur einstellig sein (zwischen 1 und 9) (eingegeben: ${p.mantissa})`;
+        errorMsg = setzeFehler(() => T(`Nicht normiert: Vor dem Komma darf nur einstellig sein (zwischen 1 und 9) (eingegeben: ${p.mantissa})`,
+                     `Not normalised: only a single digit (1 to 9) may stand in front of the decimal point (you entered: ${p.mantissa})`));
       } else {
         const mOk = approxEqual(Math.abs(p.mantissa), getMantissaValue(current));
         const sOk = (p.mantissa < 0) === current.negative;
         const eOk = p.exponent === current.exponent;
         correct = mOk && sOk && eOk;
-        if (!correct) errorMsg = diagnoseSciError(current, p.mantissa, p.exponent);
+        if (!correct) errorMsg = setzeFehler(() => diagnoseSciError(current, p.mantissa, p.exponent));
       }
     } else {
       if (/[eE\^]/.test(val)) {
-        errorMsg = 'Bitte als gewöhnliche Dezimalzahl eingeben.';
+        errorMsg = setzeFehler(() => T('Bitte als gewöhnliche Dezimalzahl eingeben.', 'Please enter an ordinary decimal number.'));
       } else {
         const v = parseFloat(val.replace(/,/g, '.').replace(/[\s\u00a0]/g, ''));
-        if (isNaN(v)) errorMsg = 'Ungültige Zahl.';
+        if (isNaN(v)) errorMsg = setzeFehler(() => T('Ungültige Zahl.', 'Not a valid number.'));
         else {
           correct = approxEqual(v, trueVal);
-          if (!correct) errorMsg = diagnoseNormalError(current, v);
+          if (!correct) errorMsg = setzeFehler(() => diagnoseNormalError(current, v));
         }
       }
     }
@@ -1095,18 +1244,18 @@ function checkAnswer() {
       const man = parseFloat(mInp.value.trim().replace(',', '.'));
       const exp = parseInt(eInp.value.trim());
       if (isNaN(man) || isNaN(exp)) {
-        errorMsg = 'Bitte beide Felder ausfüllen.';
+        errorMsg = setzeFehler(() => T('Bitte beide Felder ausfüllen.', 'Please fill in both fields.'));
         if (isNaN(man)) mInp.className = 'field-mantissa wrong';
         if (isNaN(exp)) eInp.className = 'field-exp wrong';
       } else if (Math.abs(man) < 1 || Math.abs(man) >= 10) {
-        errorMsg = 'Mantisse muss 1 ≤ |m| < 10 sein.';
+        errorMsg = setzeFehler(() => T('Mantisse muss 1 ≤ |m| < 10 sein.', 'The mantissa has to satisfy 1 ≤ |m| < 10.'));
         mInp.className = 'field-mantissa wrong'; eInp.className = 'field-exp';
       } else {
         const mOk = approxEqual(Math.abs(man), getMantissaValue(current))
                  && (man < 0) === current.negative;
         const eOk = exp === current.exponent;
         correct = mOk && eOk;
-        if (!correct) errorMsg = diagnoseSciError(current, man, exp);
+        if (!correct) errorMsg = setzeFehler(() => diagnoseSciError(current, man, exp));
         mInp.className = 'field-mantissa ' + (mOk ? 'correct' : 'wrong');
         eInp.className = 'field-exp '       + (eOk ? 'correct' : 'wrong');
       }
@@ -1117,7 +1266,7 @@ function checkAnswer() {
       if (!val) { inp.focus(); return; }
       const v = parseFloat(val.replace(/,/g, '.').replace(/[\s\u00a0]/g, ''));
       correct = !isNaN(v) && approxEqual(v, trueVal);
-      if (!correct && !isNaN(v)) errorMsg = diagnoseNormalError(current, v);
+      if (!correct && !isNaN(v)) errorMsg = setzeFehler(() => diagnoseNormalError(current, v));
       inp.className = 'answer-field ' + (correct ? 'correct' : 'wrong');
     }
   }
@@ -1128,14 +1277,19 @@ function checkAnswer() {
   }
   answered = true;
 
+  antwortGemeldet(correct);
   if (correct) {
     hint.className = '';
-    setTimeout(generateTask, 1200);
+    letzteRueckmeldung = null;
+    /* Die nächste Aufgabe kommt nur, wenn die Automatik an ist. */
+    if (!window.abAutoAn) setTimeout(generateTask, 1200);
   } else {
-    hint.innerHTML = (errorMsg ? `<em>${errorMsg}</em><br>` : 'Falsch!');
-                  //  + `Richtige Antwort: ${correctAnswerHTML(current)}`;
-    hint.className = 'visible';
-    typesetMath(hint);
+    // Die Diagnose wird bei Bedarf neu erzeugt (z.B. nach einem Sprachwechsel)
+    const bauer = fehlerBauer;
+    zeigeRueckmeldung(() => {
+      const m = bauer ? bauer() : '';
+      return m ? `<em>${m}</em><br>` : T('Falsch!', 'Wrong!');
+    });
   }
 }
 
@@ -1156,25 +1310,33 @@ function revealAnswer() {
     const mi = document.getElementById('mantissaInput');
     const ei = document.getElementById('expInput');
     if (mi) { mi.className = 'field-mantissa'; ei.className = 'field-exp'; }
-    hint.innerHTML = `Lösung: ${correctAnswerHTML(current)}`;
-    hint.className = 'visible';
-    typesetMath(hint);
+    zeigeRueckmeldung(() => T(`Lösung: ${correctAnswerHTML(current)}`,
+                              `Solution: ${correctAnswerHTML(current)}`));
   }
 }
 
 function clearFeedback() {
   const h = document.getElementById('answerHint');
   h.className = ''; h.innerHTML = '';
+  letzteRueckmeldung = null;
 }
 
 /* ════════════════════════════════════════════════
    Event listeners
    ════════════════════════════════════════════════ */
-document.getElementById('nextBtn')  .addEventListener('click', generateTask);
+document.getElementById('genBtn')   .addEventListener('click', () => generateTask());
 document.getElementById('checkBtn') .addEventListener('click', checkAnswer);
 document.getElementById('revealBtn').addEventListener('click', revealAnswer);
 
 // Direction → always new task
+document.getElementById('btnShare').addEventListener('click', function(){ linkKopieren(urlSchreiben(false), this); });
+document.getElementById('btnTeilen').addEventListener('click', function(){ linkKopieren(urlSchreiben(true), this); });
+document.getElementById('btnReset').addEventListener('click', () => { einstellungenSetzen(STD); generateTask(); });
+document.querySelectorAll('input[name="diff"]').forEach(e => e.addEventListener('change', () => {
+  if (e.value !== 'indiv') stufeAnwenden(e.value);
+  generateTask();
+  if (e.value === 'indiv' && window.abEinstellungenOeffnen) abEinstellungenOeffnen('#settingsDetails');
+}));
 document.querySelectorAll('#dirToggle .seg-btn').forEach(btn =>
   btn.addEventListener('click', () => {
     setSegValue('dirToggle', btn.dataset.value);
@@ -1194,7 +1356,9 @@ document.querySelectorAll('#modeToggle .seg-btn').forEach(btn =>
     clearFeedback();
     setTimeout(() => {
       const f = document.querySelector('.answer-field, .field-mantissa');
-      if (f) f.focus();
+      /* Ohne Scrollen - sonst rutscht das Kopfband auf schmalen Bildschirmen
+         beim ersten Aufruf gleich aus dem Bild. */
+      if (f) { try { f.focus({ preventScroll: true }); } catch (e) { f.focus(); } }
     }, 80);
   })
 );
@@ -1205,9 +1369,15 @@ document.querySelectorAll('input[name="style"]').forEach(el =>
 );
 
 // Settings that only affect next task generation
-document.querySelectorAll('input[name="expSign"], input[name="expRange"], input[name="mantLen"]')
-  .forEach(el => el.addEventListener('change', saveSettings));
-document.getElementById('cbNegative').addEventListener('change', saveSettings);
+document.querySelectorAll('input[name="expRange"], input[name="mantLen"], #cbNegative')
+  .forEach(el => el.addEventListener('change', () => { aufIndividuell(); generateTask(); }));
+/* Das Vorzeichen des Exponenten hat einen eigenen Schalter über der Aufgabe;
+   beide Stellen zeigen dasselbe an. */
+document.querySelectorAll('input[name="expSign"], input[name="expSignTop"]').forEach(e =>
+  e.addEventListener('change', () => {
+    radioSetzen('expSign', e.value); radioSetzen('expSignTop', e.value);
+    generateTask();
+  }));
 
 // Zahlen gruppieren → re-render immediately
 document.getElementById('cbGrouping').addEventListener('change', () => {
@@ -1227,8 +1397,42 @@ document.addEventListener('keydown', e => {
 document.addEventListener('DOMContentLoaded', () => {
   loadSettings();
   updateCounter();
-  generateTask();
+  const sd = new URLSearchParams(location.search).get('sd');
+  generateTask(sd == null ? null : (parseInt(sd, 10) >>> 0));
 });
+
+/* ════════════════════════════════════════════════
+   Sprache / Theme / Fehler melden
+   ════════════════════════════════════════════════ */
+window.addEventListener('tl-sprache', () => {
+  updateCounter();
+  regenerateCurrentDisplay();
+  if (letzteRueckmeldung) zeigeRueckmeldung(letzteRueckmeldung);
+});
+
+window.fehlerKontext = function () {
+  if (!current) return '';
+  const richtung = current.direction === 'in'
+    ? T('normal → wissenschaftlich', 'plain → scientific')
+    : T('wissenschaftlich → normal', 'scientific → plain');
+  const modus = { freitext: T('Freitext', 'free text'),
+                  felder:   T('Eingabefelder', 'input fields'),
+                  quiz:     'Quiz' }[getMode()] || '';
+  const aufgabe = current.direction === 'in' ? fmtNormal(current, useComma())
+                                             : fmtMantissa(current.mantissaInt, current.decimals, useComma())
+                                               + ' E ' + current.exponent;
+  return [richtung, modus, aufgabe].filter(Boolean).join(' · ');
+};
+
+/* ── Punktestand zurücksetzen ───────────────────────────────────────────── */
+function punkteZuruecksetzen(){
+  scoreOk = 0; scoreTotal = 0; updateCounter();
+}
+document.addEventListener('DOMContentLoaded', () => {
+  const k = document.getElementById('btnPunkteReset');
+  if (k) k.addEventListener('click', punkteZuruecksetzen);
+});
+
 </script>
 </body>
 </html>
