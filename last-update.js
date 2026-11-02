@@ -5,10 +5,11 @@
 //
 //   var LAST_UPDATE_FIXED = '20.07.2026';   // Festes Datum, kein API-Call
 //   var LAST_UPDATE_MODE  = 'repo';         // Letzter Commit im GESAMTEN Repo
-//   var LAST_UPDATE_FILES = ['index.html', 'index/cards.js'];  // Maximum der Liste
+//   var LAST_UPDATE_FILES = ['index.html', 'index'];  // Maximum der Liste;
+//                          ein Ordnername steht fuer alles darin (1 Abfrage)
 //   (nichts davon gesetzt)                  // Wie bisher: nur die aktuelle Datei
 //
-//   var LAST_UPDATE_CACHE       = true;     // sessionStorage nutzen (Standard: true)
+//   var LAST_UPDATE_CACHE       = true;     // Zwischenspeicher nutzen (Standard: true)
 //   var LAST_UPDATE_CACHE_HOURS = 24;       // Gueltigkeitsdauer in Stunden (Standard: 24)
 //   var LAST_UPDATE_DEBUG       = true;     // console.log: woher kam das Datum?
 //
@@ -16,6 +17,12 @@
 //   setLastUpdateFromRepo();
 //   setLastUpdateFromFiles(['a.html','b.js']);
 //   clearLastUpdateCache();                 // Cache verwerfen (Testen)
+//
+// Jede Seite fragt nur ihre eigene Datei ab (bzw. die in LAST_UPDATE_FILES
+// aufgezaehlten Dateien/Ordner). Das Ergebnis liegt danach im Browser des
+// Besuchers (localStorage, ersatzweise sessionStorage) und wird 24 Stunden
+// lang wiederverwendet - ohne das waere das GitHub-Kontingent von 60
+// Abfragen je Stunde und IP in einem Klassenraum schnell aufgebraucht.
 // ══════════════════════════════════════════════════════════════
 
 const LU_USER = 'LehrerKoch';
@@ -47,19 +54,35 @@ function luFormat(date) {
 
 function luWrite(date) {
   const element = document.getElementById('last-update');
-  if (element && date) element.textContent = luFormat(date);
+  if (!element) return;
+  if (date) { element.textContent = luFormat(date); return; }
+  /* Kein Datum zu bekommen (offline, Kontingent aufgebraucht, unbekannter
+     Pfad): Dann lieber gar nichts zeigen als dauerhaft drei Punkte. */
+  element.textContent = '';
+  const wort = document.querySelector('.fu-wort');
+  if (wort) wort.style.display = 'none';
 }
 
-// ── sessionStorage-Cache ─────────────────────────────────────
+// ── Zwischenspeicher im Browser ──────────────────────────────
+// Bevorzugt localStorage (bleibt beim naechsten Besuch erhalten), sonst
+// sessionStorage. Ist beides gesperrt, wird eben jedes Mal neu gefragt.
+
+function luStore() {
+  try { if (typeof localStorage !== 'undefined') return localStorage; } catch (e) {}
+  try { if (typeof sessionStorage !== 'undefined') return sessionStorage; } catch (e) {}
+  return null;
+}
 
 function luCacheRead(key) {
   if (!luCacheEnabled()) return undefined;
+  const store = luStore();
+  if (!store) return undefined;
   try {
-    const raw = sessionStorage.getItem(LU_CACHE_PREFIX + key);
+    const raw = store.getItem(LU_CACHE_PREFIX + key);
     if (!raw) return undefined;
     const entry = JSON.parse(raw);
     if (Date.now() - entry.ts > luCacheMs()) {
-      sessionStorage.removeItem(LU_CACHE_PREFIX + key);
+      store.removeItem(LU_CACHE_PREFIX + key);
       luDebug('Cache abgelaufen fuer', key);
       return undefined;
     }
@@ -72,24 +95,29 @@ function luCacheRead(key) {
 
 function luCacheWrite(key, date) {
   if (!luCacheEnabled()) return;
+  const store = luStore();
+  if (!store) return;
   try {
-    sessionStorage.setItem(LU_CACHE_PREFIX + key, JSON.stringify({
+    store.setItem(LU_CACHE_PREFIX + key, JSON.stringify({
       ts: Date.now(),
       date: date ? date.toISOString() : null
     }));
   } catch (e) {
-    // sessionStorage voll oder deaktiviert – kein Problem
+    // Speicher voll oder gesperrt – kein Problem
   }
 }
 
 /** Alle gecachten Datums-Eintraege loeschen (nuetzlich zum Testen). */
 function clearLastUpdateCache() {
-  try {
-    Object.keys(sessionStorage)
-      .filter(k => k.startsWith(LU_CACHE_PREFIX))
-      .forEach(k => sessionStorage.removeItem(k));
-    luDebug('Cache geleert');
-  } catch (e) {}
+  for (const store of [luStore(), (function () { try { return sessionStorage; } catch (e) { return null; } })()]) {
+    if (!store) continue;
+    try {
+      Object.keys(store)
+        .filter(k => k.startsWith(LU_CACHE_PREFIX))
+        .forEach(k => store.removeItem(k));
+    } catch (e) {}
+  }
+  luDebug('Cache geleert');
 }
 
 // ── GitHub-Abfrage ───────────────────────────────────────────
@@ -148,17 +176,37 @@ async function setLastUpdateFromFiles(files) {
   if (!Array.isArray(files) || files.length === 0) return;
   const dates = (await Promise.all(files.map(f => fetchLastCommitDate(f))))
                   .filter(d => d instanceof Date && !isNaN(d));
-  if (!dates.length) return;
+  if (!dates.length) { luWrite(null); return; }
   const max = new Date(Math.max(...dates.map(d => d.getTime())));
   luDebug('Maximum aus', files.length, 'Datei(en) →', luFormat(max));
   luWrite(max);
 }
 
+/* Unterordner des Projekts. Nur diese duerfen im Pfad stehen bleiben - alles
+   davor gehoert zum Rechner des Besuchers und nicht ins Repo. */
+const LU_ORDNER = ['Geographie', 'Anno', 'Abitur', 'index', 'woerter', 'static', 'Bilder'];
+
+/**
+ * Pfad der aktuellen Seite, so wie er im Repo steht.
+ * Liegt die Seite in einem Projektordner, gehoert der davor
+ * ("Geographie/geographie.html") - sonst faende die API nichts.
+ * Alles andere vor dem Dateinamen wird weggelassen: Oeffnet man die Datei
+ * direkt vom Rechner (file://), stuende dort sonst der komplette Pfad des
+ * Ordners, und die Abfrage liefe ins Leere - in der Fusszeile blieb dann
+ * dauerhaft "..." stehen.
+ */
+function luCurrentPath() {
+  let p = decodeURIComponent(window.location.pathname || '');
+  if (p.endsWith('/') || !p) p += 'index.html';
+  const teile = p.split('/').filter(Boolean);
+  const datei = teile[teile.length - 1] || 'index.html';
+  const ordner = teile.length > 1 ? teile[teile.length - 2] : '';
+  return (ordner && LU_ORDNER.indexOf(ordner) >= 0) ? ordner + '/' + datei : datei;
+}
+
 /** Bisheriges Verhalten: Datum der aktuellen Datei. */
 async function initLastUpdate() {
-  let currentFile = window.location.pathname.split('/').pop();
-  if (!currentFile) currentFile = 'index.html';
-  luWrite(await fetchLastCommitDate(currentFile));
+  luWrite(await fetchLastCommitDate(luCurrentPath()));
 }
 
 // ── Auto-Start ───────────────────────────────────────────────

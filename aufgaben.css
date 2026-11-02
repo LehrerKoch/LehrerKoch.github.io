@@ -1,0 +1,1154 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   aufgaben.css – gemeinsames Aussehen der Aufgabengeneratoren
+   ───────────────────────────────────────────────────────────────────────────
+   Vorbild sind lgs.html und die Reihe zur Analytischen Geometrie
+   (lage_ebene_ebene.html). Die Datei wird NACH styles.css eingebunden:
+
+       <link rel="stylesheet" href="styles.css">
+       <link rel="stylesheet" href="aufgaben.css">
+
+   Sie ist eine Zugabe, keine Voraussetzung: Fehlt sie, bleiben alle Schalter
+   bedienbar (es sind gewöhnliche Radio- und Kontrollkästchen), die Seite sieht
+   dann nur schlichter aus. Genauso ist aufgaben.js nur eine Zugabe - der
+   gleitende Hintergrund des Schalters wird dann durch eine eingefärbte Stufe
+   ersetzt (siehe .seg-switch weiter unten).
+
+   Inhalt
+     1. Farben
+     2. Grundgerüst der Seite
+     3. Einstellungsbereich (details.einst)
+     4. Obere Steuerung (#topControls)
+     5. Schalter – Stil A (seg-switch), B (seg), C (mini-seg)
+     6. Chips (pills) und Kacheln (tiles)
+     7. Aufgabenbereich und Rahmen der aktuellen Aufgabe
+     8. Lösung und Lösungsweg
+     9. Knöpfe
+    10. Kleine Bildschirme, Promethean, Zeigegeräte
+    11. Dunkelmodus
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── 1. Farben ─────────────────────────────────────────────────────────────
+   Alle Bausteine holen sich ihre Farben hier. Der Dunkelmodus ganz unten
+   ändert nur diese Werte und braucht deshalb kaum eigene Regeln.           */
+:root{
+  --ab-gr:        #4a9a4a;   /* Grün: Auswahl, Rahmen der Aufgabe */
+  --ab-gr-dunkel: #1a4a1a;   /* Grün für Schrift */
+  --ab-gr-hell:   #eef4ee;   /* Grün als Fläche */
+  --ab-gr-rand:   #b8d8b8;
+  --ab-gr-an:     #c8f0c8;   /* eingeschalteter Chip */
+  --ab-bl:        #3a7ac0;   /* Blau: Lösung, Schwierigkeit */
+  --ab-bl-dunkel: #0d47a1;
+  --ab-bl-knopf:  #1f6bb8;   /* gefüllter Knopf „Lösung anzeigen“ */
+  --ab-ge-knopf:  #E0A800;   /* Gelb: Hilfestellungen, Quiz */
+  --ab-ge-schrift:#3a2c00;
+  --ab-bl-hell:   #f0f7ff;
+  --ab-bl-rand:   #b6d4f0;
+  --ab-flaeche:   #f8fff8;   /* Fläche der Aufgabe */
+  --ab-weiss:     #fff;
+  --ab-text:      #222;
+  --ab-leise:     #777;      /* Erklärtexte */
+  --ab-neutral:   #f7f7f7;   /* ausgeschalteter Chip */
+  --ab-knopf-flaeche: #f1f5f1; /* Antwortknöpfe im Quiz, auf weißem Kasten */
+  --ab-neutral-r: #aaa;
+  --ab-schatten:  rgba(0,0,0,.2);
+}
+
+/* ── 2. Grundgerüst ───────────────────────────────────────────────────── */
+.ab-lead{ margin:0 0 10px; color:var(--ab-leise); font-size:.95em; }
+
+/* ── 3. Einstellungsbereich ────────────────────────────────────────────────
+   Ein neutraler Kasten (kein Blau - Blau ist für die Lösung reserviert).  */
+details.einst{ margin:8px 0 6px; }
+details.einst > summary{ cursor:pointer; font-weight:bold; }
+.einst .settings-grid{ display:flex; flex-direction:column; }
+.einst .form-block{ border:1px solid #000; padding:5px 9px; margin:8px; }
+.einst .form-block > b{ display:block; margin-bottom:2px; }
+.einst .form-block .d{ font-size:.78em; color:var(--ab-leise); display:block; margin:1px 0 5px; }
+.einst .row{ display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin:4px 0; font-size:.9em; }
+.einst .row .sp{ color:var(--ab-leise); }
+
+/* Kontrollkästchen und Auswahlpunkte einheitlich: Text bündig, Kästchen grün.
+   Der linke Abstand aus styles.css wird hier zurückgenommen.              */
+label.opt{ display:flex; align-items:flex-start; gap:7px; font-size:.9em; margin:3px 0;
+  cursor:pointer; padding-left:0; text-indent:0; line-height:1.35; }
+label.opt > span{ flex:1 1 auto; min-width:0; }
+label.opt .d{ display:block; font-size:.8em; color:var(--ab-leise); }
+label.opt input[type=checkbox], label.opt input[type=radio]{
+  appearance:none; -webkit-appearance:none; width:17px; height:17px; flex:0 0 17px;
+  border:1.5px solid #9c9; background:var(--ab-weiss); cursor:pointer;
+  margin:1px 0 0 !important; position:relative; }
+label.opt input[type=checkbox]{ border-radius:4px; }
+label.opt input[type=radio]{ border-radius:50%; }
+label.opt input[type=checkbox]:checked,
+label.opt input[type=radio]:checked{ background:var(--ab-gr); border-color:var(--ab-gr); }
+label.opt input[type=checkbox]:checked::after{ content:''; position:absolute; left:4.5px; top:.5px;
+  width:4px; height:9px; border:solid #fff; border-width:0 2.5px 2.5px 0; transform:rotate(43deg); }
+label.opt input[type=radio]:checked::after{ content:''; position:absolute; left:4px; top:4px;
+  width:7px; height:7px; border-radius:50%; background:#fff; }
+label.opt input:disabled{ opacity:.45; cursor:default; }
+.opt-extra{ margin-left:24px; }
+
+.einst input[type=number].sm, .einst input[type=text].sm{ width:62px; font-size:.95em; padding:4px 5px;
+  border:1.5px solid #cbdccb; border-radius:5px; background:var(--ab-weiss); color:var(--ab-text); }
+.einst select.sm{ font-size:.95em; padding:4px 6px; border:1.5px solid #cbdccb; border-radius:5px;
+  background:var(--ab-flaeche); color:var(--ab-gr-dunkel); }
+/* Regler und Beschriftung stehen auf einer Höhe - ein Schieberegler bringt
+   sonst seine eigene Grundlinie mit und sitzt zu hoch. Die Zeile bringt ihr
+   Flex-Layout selbst mit, denn über der Aufgabe steht sie außerhalb von
+   .einst. */
+.slider-row{ display:flex; flex-wrap:wrap; align-items:center; gap:7px; }
+.slider-row .sl-name{ flex:0 0 150px; }
+.slider-row .sl-end{ font-size:.78em; color:#888; }
+.slider-row .sl{ flex:1 1 90px; min-width:80px; accent-color:var(--ab-gr); cursor:pointer; height:24px; }
+.slider-row.aus{ opacity:.45; }
+.slider-row.aus .sl{ cursor:default; }
+.settings-foot{ text-align:center; margin:6px 0 8px; display:flex; flex-wrap:wrap; gap:6px;
+  justify-content:center; }
+
+/* kurzes Hervorheben, wenn „Individuell“ gewählt wurde */
+@keyframes abBlink{ 0%,100%{ background:transparent; } 25%,75%{ background:#fff6cc; } }
+.form-block.hint{ animation:abBlink 1s ease-in-out 2; border-color:#e0a800; }
+
+/* ── 4. Obere Steuerung ───────────────────────────────────────────────── */
+#topControls{ margin:8px 0 10px; display:flex; flex-direction:column; gap:10px; align-items:stretch; }
+#topControls .tc-row{ display:flex; flex-wrap:wrap; gap:14px; align-items:flex-start; }
+.tc-item{ display:flex; flex-direction:column; align-items:flex-start; gap:4px; max-width:100%; }
+#topControls > .tc-item{ width:100%; }
+/* Zwei Schalter teilen sich eine Zeile nur, wenn beide wirklich Platz haben -
+   sonst wird jedes Feld so schmal, dass die Beschriftung umbricht. */
+.tc-row > .tc-item{ flex:1 1 300px; min-width:0; }
+/* Ein Schalter, der mittig stehen soll (Beschriftung und Felder). */
+.tc-item.tc-mitte{ align-items:center; }
+.tc-item.tc-mitte > .tc-label, .tc-item.tc-mitte > .tc-sub{ text-align:center; width:100%; }
+/* Ein Schieberegler zieht sich sonst ueber die ganze Breite - mittig
+   gestellt bekommt er ein ruhiges Mass; die Beschriftung rueckt an ihn
+   heran, statt eine feste Spalte zu belegen. */
+.tc-item.tc-mitte > .slider-row{ width:min(360px, 100%); justify-content:center; }
+.tc-item.tc-mitte > .slider-row .sl-name{ flex:0 0 auto; }
+.tc-label{ font-size:1em; font-weight:bold; color:var(--ab-gr-dunkel); letter-spacing:.02em; }
+.tc-sub{ font-size:.75em; color:var(--ab-leise); margin-top:-2px; line-height:1.25; }
+
+/* ── 5a. Schalter Stil A: seg-switch (rund, mit gleitendem Hintergrund) ────
+   Vorbild: „Anzahl Gleichungen“ in lgs.html, Schwierigkeit in
+   lage_ebene_ebene.html. Für kurze Beschriftungen und für die Schwierigkeit.
+   Ohne aufgaben.js bleibt der Gleiter stehen; dann färbt die Klasse
+   .no-glider (bzw. das Fehlen von .has-glider) die gewählte Stufe ein.    */
+.seg-switch{ position:relative; display:inline-flex; background:var(--ab-gr-hell);
+  border:1.5px solid var(--ab-gr-rand); border-radius:22px; padding:3px; box-sizing:border-box;
+  max-width:100%; }
+.seg-switch input{ position:absolute; opacity:0; width:0; height:0; pointer-events:none; }
+.seg-switch label{ position:relative; z-index:2; margin:0; padding:8px 15px; font-size:.9em;
+  font-weight:bold; color:#4a6a4a; cursor:pointer; border-radius:19px; white-space:nowrap;
+  transition:color .25s, background .25s; user-select:none; text-align:center; }
+.seg-switch input:checked + label{ color:#fff; }
+/* Rückfallebene ohne JavaScript: die gewählte Stufe bekommt selbst Farbe. */
+.seg-switch:not(.has-glider) input:checked + label{ background:var(--ab-gr); }
+.seg-switch.no-glider input:checked + label{ background:var(--ab-gr); }
+.diff-switch:not(.has-glider) input:checked + label,
+.diff-switch.no-glider input:checked + label{ background:var(--ab-bl); }
+.seg-glider{ pointer-events:none; position:absolute; z-index:1; top:3px; bottom:3px; border-radius:19px;
+  background:var(--ab-gr); box-shadow:0 1px 3px var(--ab-schatten);
+  transition:left .28s cubic-bezier(.4,1.3,.6,1), width .28s cubic-bezier(.4,1.3,.6,1);
+  left:3px; width:0; }
+.seg-switch:not(.has-glider) .seg-glider{ display:none; }
+
+/* Schwierigkeit: blau, schmaler, passt sich der Fensterbreite an */
+.diff-switch{ flex-wrap:nowrap; padding:clamp(2px,.5vw,3px); }
+.diff-switch label{ font-size:clamp(9px,2.6vw,12px); padding:clamp(4px,.9vw,7px) clamp(4px,1.4vw,11px);
+  border-radius:16px; }
+.diff-switch .seg-glider{ background:var(--ab-bl); border-radius:16px; }
+/* Der Schwierigkeitsregler darf seitlich rollen, wenn er nicht hinpasst.
+   Mittig steht er nur dort, wo die Seite es mit .tc-mitte verlangt. */
+.tc-diff{ overflow-x:auto; overflow-y:hidden; scrollbar-width:none; width:100%; }
+.tc-diff::-webkit-scrollbar{ display:none; }
+
+/* Ein Schalter mit Überschrift, mittig über der Seite - z. B. die Leiste
+   „Erkundung | Training" ganz oben. */
+.seg-block{ text-align:center; margin:11px 0; }
+.seg-block .seg-label{ display:block; font-weight:bold; font-size:.84rem;
+  color:var(--ab-leise); margin-bottom:4px; }
+
+/* .seg.stufen: eine Leiste aus Knöpfen im Gewand des Schwierigkeitsschalters.
+   Für Seiten, die ihre Stufen als Knöpfe bauen - gleiche Form und Farbe,
+   nur ohne gleitenden Hintergrund. Die Maße sind dieselben wie bei
+   .diff-switch, sonst wirkt der Schalter dort größer als überall sonst. */
+.seg.stufen{ border:1.5px solid var(--ab-gr-rand); border-radius:22px;
+  padding:clamp(2px,.5vw,3px); background:var(--ab-gr-hell); overflow:hidden;
+  flex-wrap:nowrap; }
+.seg.stufen button{ border:none; border-radius:16px; background:transparent; box-shadow:none;
+  color:#4a6a4a; font-weight:bold; font-size:clamp(9px,2.6vw,12px); white-space:nowrap;
+  padding:clamp(4px,.9vw,7px) clamp(4px,1.4vw,11px); }
+.seg.stufen button.on{ background:var(--ab-bl); color:#fff; box-shadow:0 1px 3px var(--ab-schatten); }
+html.dark .seg.stufen{ background:#1b2026; border-color:#3d5a3d; }
+html.dark .seg.stufen button{ background:transparent; color:#b5c9b5; box-shadow:none; }
+html.dark .seg.stufen button.on{ background:#2f6bb5; color:#fff; }
+
+/* ── 5b. Schalter Stil B: seg (eckig) ──────────────────────────────────────
+   Vorbild: waage.html. Für drei bis vier längere Beschriftungen.          */
+.seg{ display:inline-flex; flex-wrap:wrap; border:1.5px solid var(--ab-gr); border-radius:7px;
+  overflow:hidden; max-width:100%; }
+.seg label{ margin:0; padding:0; display:flex; }
+.seg input{ display:none !important; }
+/* Die Trennlinien zeichnet ein Schlagschatten nach links und nach oben: So
+   stehen sie auch dann richtig, wenn der Schalter auf einem schmalen Schirm in
+   mehrere Zeilen umbricht. Die äußeren schneidet der Kasten selbst weg. */
+.seg label > span, .seg button{ display:inline-block; padding:8px 13px; background:var(--ab-weiss);
+  color:#2e7d32; font-size:.86em; line-height:1.25; cursor:pointer; border:none; border-radius:0;
+  margin:0; font-family:inherit; text-align:center; box-sizing:border-box;
+  /* position:relative - sonst hebt ein Hover-Effekt mit „filter" das Feld im
+     Stapel an und verdeckt die Trennlinie seines rechten Nachbarn. So werden
+     alle Felder in derselben Lage gezeichnet: das rechte liegt oben. */
+  position:relative;
+  box-shadow:-1.5px 0 0 var(--ab-gr), 0 -1.5px 0 var(--ab-gr); }
+/* Beim Etikett fuellt der Text das Etikett aus; ein Knopf ist selbst das
+   Element im Schalter und behaelt seine natuerliche Breite - sonst stuenden
+   die Felder auch auf breiten Schirmen untereinander. */
+.seg label > span{ width:100%; }
+.seg > button{ width:auto; }
+/* kleinere Spielart, z. B. der Antwortmodus unter der Aufgabe */
+.seg.klein label > span, .seg.klein button{ padding:5px 10px; font-size:.8em; }
+.seg input:checked + span, .seg button.on, .seg button.active{ background:var(--ab-gr); color:#fff;
+  font-weight:bold; }
+/* Die Trennlinie zeichnet immer das rechte der beiden Felder - nach links,
+   also auf den Nachbarn. Sie muss sich von DESSEN Hintergrund abheben:
+   neben einem nicht gewählten Feld tut das das Grün von oben. Nur wenn der
+   Nachbar selbst gewählt ist (Mehrfachauswahl), braucht es eine andere Farbe -
+   dann sind beide Felder gleich gefärbt, und die eigene Schriftfarbe hebt
+   sich dort sicher ab, auch bei blassem Grün. */
+.seg button.on + button.on,
+.seg label:has(input:checked) + label:has(input:checked) > span{
+  box-shadow:-1.5px 0 0 currentColor, 0 -1.5px 0 currentColor; }
+/* Die Sterne stehen dort auf Grün - hell statt dunkelgelb. */
+.seg button.on .sterne, .seg input:checked + span .sterne{ color:#ffe08a; }
+
+/* ── 5c. Schalter Stil C: mini-seg (klein, zurückhaltend) ──────────────────
+   Vorbild: Antwort-Modus in zahlbereiche.html. Für Nebeneinstellungen.    */
+/* Die Felder duerfen schrumpfen und ihr Text darin umbrechen - sonst wird der
+   Schalter auf dem Handy breiter als der Schirm und bricht mitten im Wort um. */
+.mini-seg{ display:inline-flex; flex-wrap:nowrap; border:1.5px solid #888; border-radius:6px;
+  overflow:hidden; max-width:100%; }
+.mini-seg label{ padding:5px 10px; cursor:pointer; margin:0; font-size:.82em; line-height:1.3;
+  border-right:1px solid #bbb; background:var(--ab-weiss); color:var(--ab-text);
+  flex:0 1 auto; min-width:0; text-align:center; overflow-wrap:break-word; hyphens:auto;
+  display:flex; align-items:center; justify-content:center; }
+.mini-seg label:last-child{ border-right:none; }
+.mini-seg input[type=radio]{ display:none !important; }
+.mini-seg input:checked + span, .mini-seg label.on{ font-weight:bold; }
+.mini-seg label:has(input:checked){ background:#d6ecd7; font-weight:bold; color:var(--ab-gr-dunkel); }
+
+/* ── 5d. Schalter Stil D: Kippknopf (nur an und aus) ───────────────────────
+   Für Schalter, die wirklich nur zwei Zustände kennen, z. B. „Quiz als
+   Hilfestellung“. Gefüllt heißt an, leer heißt aus; ein Druck irgendwo auf
+   den Knopf legt ihn um. Gelb wie die übrigen Hilfestellungen.
+   Ohne aufgaben.css bleibt ein gewöhnliches Kontrollkästchen übrig.       */
+label.kippknopf{ display:inline-flex; align-items:center; gap:9px; cursor:pointer;
+  font-family:inherit; font-size:.95em; font-weight:bold; line-height:1.3;
+  padding:9px 16px; border-radius:22px; max-width:100%; text-align:left;
+  border:2px solid var(--ab-ge-knopf); background:var(--ab-weiss);
+  color:var(--ab-ge-schrift); transition:background .15s, color .15s; }
+label.kippknopf input{ position:absolute; opacity:0; width:0; height:0; pointer-events:none; }
+label.kippknopf .lampe{ width:13px; height:13px; flex:0 0 13px; border-radius:50%;
+  border:2px solid var(--ab-ge-knopf); background:transparent; transition:background .15s; }
+label.kippknopf:has(input:checked){ background:var(--ab-ge-knopf); color:var(--ab-ge-schrift); }
+label.kippknopf:has(input:checked) .lampe{ background:#fff; border-color:#fff; }
+label.kippknopf:has(input:focus-visible){ outline:2px solid var(--ab-bl); outline-offset:2px; }
+
+/* ── 5e. Antwortzeile: kleiner Schalter direkt beim Eingabefeld ───────────
+   Vorbild: der Antwortmodus in flaechen_erkennen.html.                   */
+.antwort-zeile{ display:flex; align-items:center; justify-content:center; gap:8px;
+  flex-wrap:wrap; margin:10px 0 4px; }
+.antwort-zeile .az-name{ font-size:.85em; font-weight:bold; color:var(--ab-leise); }
+
+/* ── 5f. Prüfen am Eingabefeld, Lösung als blauer Knopf ───────────────────
+   „Prüfen" gehört zur Antwort und steht deshalb direkt beim Feld; die Lösung
+   klappt mit demselben blauen Knopf auf wie auf den Seiten ohne Eingabe.
+   Auf schmalen Schirmen schrumpft das Feld, der Knopf bleibt daneben.     */
+.pruef-zeile{ display:flex; gap:8px; align-items:center; justify-content:center;
+  flex-wrap:wrap; width:100%; margin:10px 0 2px; }
+.pruef-zeile > *{ box-sizing:border-box; }
+.pruef-zeile > *:first-child{ flex:1 1 120px; min-width:0; max-width:420px; }
+.pruef-zeile > .pruef-knopf{ flex:0 0 auto; margin:0; font-size:.95em; padding:9px 16px; }
+.btn-loesung{ display:block; width:100%; text-align:center; font-weight:bold;
+  font-size:1.02em; line-height:1.35; padding:12px 18px; border:none; border-radius:24px;
+  background:var(--ab-bl-knopf); color:#fff; cursor:pointer; margin:10px 0 2px;
+  box-shadow:0 2px 5px var(--ab-schatten); font-family:inherit; }
+@media(max-width:400px){
+  .pruef-zeile > .pruef-knopf{ padding:9px 12px; font-size:.9em; }
+}
+
+/* ── 6a. Chips: mehrere unabhängige Schalter ──────────────────────────────
+   Vorbild: „Mögliche Fälle“ in lage_ebene_ebene.html.                     */
+.pills{ display:flex; flex-wrap:wrap; gap:6px; width:100%; }
+.pill{ padding:7px 12px; border:1.5px solid var(--ab-neutral-r); border-radius:18px;
+  background:var(--ab-neutral); color:var(--ab-text) !important; font-size:.84em; margin:0;
+  line-height:1.25; cursor:pointer; font-family:inherit;
+  transition:background .15s, border-color .15s; }
+.pill.on, .pill:has(input:checked){ background:var(--ab-gr-an) !important;
+  border-color:var(--ab-gr) !important; color:var(--ab-gr-dunkel) !important; font-weight:bold; }
+.pill:disabled{ opacity:.5; cursor:default; }
+/* Ein Chip kann auch ein Kontrollkästchen umschließen - dann wirkt er ohne
+   eigenes Skript. Fehlt diese Datei, sieht man schlicht das Kästchen. */
+label.pill{ display:inline-flex; align-items:center; user-select:none; }
+label.pill input{ position:absolute; opacity:0; width:0; height:0; pointer-events:none; }
+/* Von abPillen() gebaute Chips: nur der Name, dazu bei Gruppen die Zahl der
+   aktiven Unterpunkte und ein Pfeil, der das Untermenue oeffnet. */
+.pills{ justify-content:center; align-items:center; }
+button.pill{ display:inline-flex; align-items:center; gap:5px; position:relative; }
+/* Trägt ein Oval Schwierigkeitssterne, stehen sie über dem Namen und alles
+   ist zentriert - nebeneinander stünde die Beschriftung je nach Sternzahl
+   unterschiedlich weit rechts. */
+.pill .pname:has(.sterne){ display:inline-flex; flex-direction:column; align-items:center;
+  line-height:1.2; }
+.pill .pname .sterne{ display:block; margin-left:0; vertical-align:baseline; }
+.pill .pzahl{ font-size:.82em; opacity:.65; font-weight:normal; }
+.pill .pzahl:empty{ display:none; }
+.pill > .arr{ font-size:.62em; opacity:.55; line-height:1; }
+.pill.empty{ border-style:dashed; }
+/* Ein eingeschaltetes Oval mit Unterformen: grün wie die anderen, aber
+   gestrichelt - dahinter steckt noch eine Auswahl. */
+.pill.on.hatunter{ border-style:dashed; }
+.pill.aktuell{ box-shadow:0 0 0 2px var(--ab-bl-rand) inset; }
+.pill.aktuell-gruppe{ box-shadow:0 0 0 2px var(--ab-bl-rand) inset; }
+html.dark .pill .pzahl{ opacity:.7; }
+@media (max-width:520px){ button.pill{ gap:4px; } }
+
+/* ── 6b. Kacheln: viele oder gruppierte Aufgabentypen ─────────────────────
+   Vorbild: ebenen_grundlagen.html. Ein Tippen schaltet die Kachel um, ein
+   langes Drücken (bzw. der Pfeil) öffnet die Unterpunkte.                 */
+.tiles{ display:flex; flex-wrap:wrap; gap:7px; margin:2px 0 0; width:100%;
+  align-items:stretch; }
+/* .reihe: immer nebeneinander, die Kacheln teilen sich die Breite.
+   .raster2: immer zwei Spalten. Beides auch auf dem Handy.                */
+.tiles.reihe{ flex-wrap:nowrap; }
+.tiles.reihe > .tile{ flex:1 1 0; min-width:0; }
+.tiles.raster2{ display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); }
+.tiles.raster2 > .tile{ flex:none; width:auto; min-width:0; }
+/* Bleibt bei ungerader Anzahl eine Kachel übrig, nimmt sie die ganze Breite. */
+.tiles.raster2 > .tile:last-child:nth-child(odd){ grid-column:1 / -1; }
+/* .vier: vier Kacheln in einer Zeile, auf schmalen Schirmen 2x2 */
+.tiles.vier{ display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); }
+.tiles.vier > .tile{ flex:none; width:auto; min-width:0; }
+.tiles.vier > .tile:last-child:nth-child(odd){ grid-column:auto; }
+@media(max-width:760px){ .tiles.vier{ grid-template-columns:repeat(2, minmax(0,1fr)); } }
+/* Eine Kachel ist ein großes Kontrollkästchen: Haken links, Name und
+   Kurzfassung daneben. Dasselbe Bild wie bei den Aufgabentypen auf den
+   Erkennen-Seiten. */
+.tile{ position:relative; display:flex; align-items:flex-start; gap:10px;
+  flex:1 1 215px; min-width:0; text-align:left; background:var(--ab-neutral);
+  color:var(--ab-text) !important; border:1.5px solid var(--ab-neutral-r); border-radius:11px;
+  padding:9px 11px; margin:0; font-size:.88em; line-height:1.25; cursor:pointer;
+  font-family:inherit;
+  /* Kacheln einer Zeile sind gleich hoch. Das steht hier ausdrücklich, weil
+     manche Seite ihren Knöpfen sonst „align-self" mitgibt - eine Kachel ist
+     ein <button>. */
+  align-self:stretch; }
+/* Nur eine Kachel mit Pfeil braucht rechts Platz für ihn. */
+.tile:has(.arr){ padding-right:24px; }
+.tile .tk{ flex:0 0 auto; width:20px; height:20px; border-radius:6px; border:2px solid #c3d2c5;
+  background:var(--ab-weiss); display:flex; align-items:center; justify-content:center;
+  font-size:13px; line-height:1; color:transparent; margin-top:1px; }
+.tile.on .tk{ background:var(--ab-gr); border-color:var(--ab-gr-dunkel); color:#fff; }
+.tile.empty .tk{ color:var(--ab-gr-dunkel); background:var(--ab-weiss); }
+.tile .ttext{ display:flex; flex-direction:column; gap:2px; min-width:0; flex:1 1 auto; }
+.tile .tname{ font-weight:bold; display:block; }
+/* Eigener Richtig-Zähler der Kachel: er schwimmt oben rechts mit, der Name
+   fließt darum herum. So drängt er nie Text aus der Kachel - und solange es
+   zu dieser Art keine Aufgabe gab, ist er leer und nimmt keinen Platz ein. */
+.tile .ttext, .typ .tt{ display:block; }
+.tile .tzaehler, .typ .tzaehler{ float:right; margin:0 0 2px 8px; font-size:.8em;
+  font-weight:bold; color:var(--ab-leise); white-space:nowrap; font-variant-numeric:tabular-nums; }
+.tile.on .tzaehler, .typ.on .tzaehler{ color:var(--ab-gr-dunkel); }
+html.dark .tile .tzaehler, html.dark .typ .tzaehler{ color:#9aa5b1; }
+html.dark .tile.on .tzaehler, html.dark .typ.on .tzaehler{ color:#a5d6a7; }
+.tile .tsub{ display:block; font-size:.76em; color:#666; margin-top:1px; line-height:1.2; }
+.tile.on{ background:var(--ab-gr-an) !important; border-color:var(--ab-gr) !important; }
+.tile.on .tname{ color:var(--ab-gr-dunkel); }
+.tile.on .tsub{ color:#3a6a3a; }
+.tile.empty{ border-style:dashed; }
+/* Kompakte Spielart: weniger Luft und kleinere Schrift - für Seiten mit
+   vielen Kacheln oder Schaltern, wo die Aufgabe den Platz braucht.
+   Anwendung: class="tiles vier eng" bzw. id="topControls" class="eng".    */
+.tiles.eng{ gap:6px; }
+.tiles.eng > .tile{ padding:5px 8px; font-size:.8em; gap:6px; border-radius:9px; line-height:1.18; }
+.tiles.eng > .tile:has(.arr){ padding-right:18px; }
+.tiles.eng .tk{ width:16px; height:16px; font-size:10px; border-radius:5px; margin-top:0; }
+.tiles.eng .tsub{ font-size:.74em; line-height:1.15; margin-top:0; }
+.tiles.eng .tzaehler{ font-size:.74em; }
+.tiles.eng .arr{ right:5px; }
+/* .drei: drei Kacheln je Zeile, auf schmalen Schirmen zwei. */
+.tiles.drei{ display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); }
+.tiles.drei > .tile{ flex:none; width:auto; min-width:0; }
+#topControls.eng{ gap:6px; margin:6px 0 8px; }
+#topControls.eng .tc-label{ font-size:.92em; }
+#topControls.eng .tc-sub{ font-size:.7em; }
+#topControls.eng .tc-row{ gap:10px; }
+/* .knapp: zusaetzlich wenig Hoehe. Fuer Seiten, deren Auswahlbereiche
+   offen stehen - dort summiert sich sonst viel Luft oberhalb der Aufgabe. */
+#topControls.knapp{ gap:4px; margin:4px 0 6px; }
+#topControls.knapp > .tc-item{ margin:0; }
+#topControls.knapp details.auswahl{ margin:0; padding:1px 8px 5px; }
+#topControls.knapp details.auswahl > summary{ padding-top:2px; padding-bottom:2px; }
+#topControls.knapp details.auswahl .ausw-alle{ top:3px; }
+#topControls.knapp .tc-row{ gap:8px; }
+.seg-switch.eng label{ padding:5px 11px; font-size:.82em; }
+
+/* Die Kachel, aus der die gerade gestellte Aufgabe stammt: ein kräftiger
+   Rahmen. Steckt die Aufgabe in einem Unterpunkt, ist dieser Rahmen ganz
+   gestrichelt - der Unterpunkt im Menü bekommt dann den durchgezogenen. */
+.tile.aktuell{ outline:3px solid var(--ab-gr); outline-offset:1px; }
+.tile.aktuell-gruppe{ outline:3px dashed var(--ab-gr); outline-offset:1px; }
+/* Bei den schmalen Kacheln ist auch die Lücke schmal - ein dicker Rahmen
+   würde sie ganz ausfüllen und die Kacheln zusammenkleben. */
+.tiles.eng > .tile.aktuell, .tiles.eng > .tile.aktuell-gruppe{ outline-width:2px; }
+.pop label.aktuell{ box-shadow:0 0 0 2px var(--ab-gr); border-radius:6px;
+  background:var(--ab-gr-hell); }
+/* Schwierigkeit eines (Unter-)Aufgabentyps: kleine Sterne, die nie umbrechen */
+.sterne{ font-size:.72em; color:#c98a00; letter-spacing:.04em; margin-left:.4ch;
+  white-space:nowrap; vertical-align:.12em; }
+html.dark .sterne{ color:#e8b84b; }
+.tile .arr{ position:absolute; right:8px; top:50%; transform:translateY(-50%); color:#888; font-size:.7em; }
+.tilehint{ font-size:.75em; color:var(--ab-leise); margin:2px 0 0; line-height:1.25; }
+
+.pop{ position:absolute; z-index:60; background:var(--ab-weiss); border:1.5px solid var(--ab-gr);
+  border-radius:10px; padding:8px 10px 10px; box-shadow:0 6px 22px rgba(0,0,0,.18);
+  min-width:230px; max-width:min(330px,92vw); }
+.pop h4{ margin:0 0 6px; font-size:.9em; color:var(--ab-gr-dunkel); display:flex; align-items:center;
+  justify-content:space-between; gap:10px; }
+.pop .allbtn{ font-size:.72em; padding:4px 10px; margin:0; flex:0 0 auto; }
+.pop label{ display:flex; align-items:flex-start; gap:7px; font-size:.88em; padding:4px 0; cursor:pointer; }
+.pop label span.d{ display:block; font-size:.8em; color:#888; }
+.popzusatz{ width:100%; border-top:1px dashed var(--ab-gr-rand); margin-top:6px;
+  padding-top:6px; }
+.poptitel{ margin:0 0 4px; font-size:.78em; color:var(--ab-leise); font-weight:bold; }
+/* Viele kurze Einträge (z. B. einzelne Potenzen) stehen in Spalten. */
+.pop.kurz{ display:block; }
+.pop.kurz label{ display:inline-flex; width:auto; min-width:66px; margin:1px 2px; }
+.pop.kurz h4, .pop.kurz .poptitel, .pop.kurz .pophint{ display:flex; width:100%; }
+.pop.kurz .poptitel, .pop.kurz .pophint{ display:block; }
+.pophint{ margin:6px 0 0; font-size:.72em; color:#888; border-top:1px dashed var(--ab-gr-rand);
+  padding-top:5px; }
+/* Zwei Spalten im Menü - z. B. Standardfunktionen links, Kehrwerte rechts.
+   Die beiden kleinen Knöpfe stehen als Überschrift über ihrer Spalte. */
+.pop.sp2{ max-width:min(420px,94vw); }
+.pop.sp2 .popliste{ display:grid; grid-template-columns:1fr 1fr; gap:0 12px; }
+.pop .popgruppen{ display:grid; grid-template-columns:1fr 1fr; gap:0 12px; margin:0 0 4px; }
+.pop .popgruppe{ font-size:.72em; padding:3px 6px; margin:0; width:100%; }
+
+/* ── 6c. Aufklappbarer Auswahlbereich ──────────────────────────────────────
+   Vorbild: die Körperauswahl in volumen.html. Bei vielen Aufgabentypen
+   stecken die Kacheln darin, damit es über der Aufgabe ruhig bleibt.      */
+details.auswahl{ position:relative; border:2px solid var(--ab-gr); border-radius:8px;
+  background:var(--ab-gr-hell); margin:2px 0; padding:3px 10px 8px; width:100%; box-sizing:border-box; }
+details.auswahl > summary{ cursor:pointer; font-weight:bold; color:var(--ab-gr-dunkel);
+  padding:4px 62px 4px 0; margin:0; font-size:1em; }
+/* „alle"/„keine" steht rechts in der Überschrift - wie im Kachelmenü. Es
+   liegt darüber, damit das Dreieck zum Aufklappen bleibt, wo es ist. */
+details.auswahl .ausw-alle{ position:absolute; right:9px; top:5px; z-index:2;
+  font-size:.72em; padding:3px 9px; margin:0; }
+details.auswahl .ausw-zahl{ font-weight:normal; font-size:.85em; color:var(--ab-leise); }
+/* Auf schmalen Schirmen wird die Aufzählung kleiner - sie bleibt aber in der
+   Überschriftszeile und bricht dort um, statt eine eigene Zeile zu belegen. */
+@media(max-width:620px){
+  details.auswahl > summary{ padding-right:56px; }
+  details.auswahl .ausw-zahl{ font-size:.7em; line-height:1.25; }
+}
+details.auswahl .tc-sub{ margin:0 0 4px; }
+html.dark details.auswahl{ border-color:#4a8a4a; }
+
+/* ── 7. Aufgabe ───────────────────────────────────────────────────────────
+   Die aktuelle Aufgabe ist immer umrandet. Besteht sie aus mehreren
+   Unteraufgaben, ist der Bereich gestrichelt umrandet; die gerade offene
+   Unteraufgabe darin bekommt einen durchgezogenen Rahmen.                 */
+.task{ border:1.5px solid var(--ab-gr); border-radius:7px; padding:10px 14px;
+  background:var(--ab-flaeche); }
+.task .qbody{ line-height:1.7; }
+.task-head{ display:flex; align-items:center; justify-content:space-between; gap:10px;
+  flex-wrap:wrap; }
+.task-head h2{ margin:4px 0 2px; }
+.ask{ margin-top:8px; font-weight:bold; }
+
+.task-bereich{ border:1.5px dashed var(--ab-gr); border-radius:7px; padding:8px 12px;
+  background:var(--ab-flaeche); margin:6px 0; }
+.task-teil{ border:1.5px solid transparent; border-radius:6px; padding:6px 10px; margin:5px 0; }
+.task-teil.aktiv{ border-color:var(--ab-gr); background:var(--ab-weiss); }
+.task-teil.fertig{ opacity:.75; }
+
+.share-btn{ background:none !important; color:#8aa2bd !important; border:none; font-size:.82em;
+  padding:6px 11px; font-weight:bold; opacity:.6; transition:opacity .15s, color .15s, background .15s; }
+.share-btn.copied{ color:#2a7a2a !important; background:#eefaee !important; opacity:1; }
+
+#genRow, #genRow2{ margin:8px 0; display:flex; flex-wrap:wrap; gap:6px; align-items:center; }
+
+/* ── Automatische Aufgabe ─────────────────────────────────────────────────
+   Ist sie an, dreht sich der Kreis vorn im Knopf, und ein Lichtbogen läuft
+   um den Rand. Nichts davon verändert die Größe des Knopfes.             */
+@keyframes abDreh{ to{ transform:rotate(360deg); } }
+@keyframes abUmlauf{ to{ --ab-winkel:360deg; } }
+@property --ab-winkel{ syntax:'<angle>'; initial-value:0deg; inherits:false; }
+button.auto-an{ position:relative; }
+/* Der Kreis vorn im Knopf dreht sich. Gezeichnet wird er dafür selbst: eine
+   Schriftzeichen-Glyphe sitzt nicht genau in der Mitte ihres Kastens und
+   würde beim Drehen eiern. Die Glyphe rückt solange aus dem Bild. */
+button.auto-an .auto-kreis{
+  position:relative; display:inline-block; width:1em; height:1em;
+  vertical-align:-.13em; overflow:hidden; text-indent:-9em;
+  animation:abDreh 1.6s linear infinite; }
+button.auto-an .auto-kreis::before{
+  content:''; position:absolute; inset:0; text-indent:0;
+  border:.15em solid currentColor; border-radius:50%;
+  /* eine offene Viertelrunde - erst dadurch sieht man die Drehung */
+  border-top-color:transparent; }
+/* ein ruhiger Ring - er zeigt den Zustand auch ohne laufende Farbe */
+button.auto-an::before{
+  content:''; position:absolute; inset:3px; border-radius:6px;
+  border:1.5px solid currentColor; opacity:.3; pointer-events:none; }
+/* und darauf der helle Bogen, der einmal um den Rand wandert */
+button.auto-an::after{
+  content:''; position:absolute; inset:3px; border-radius:6px;
+  padding:1.5px; pointer-events:none;
+  background:conic-gradient(from var(--ab-winkel), transparent 0 62%,
+             currentColor 80%, transparent 94% 100%);
+  -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor;
+  mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite:exclude;
+  animation:abUmlauf 2.2s linear infinite; }
+@media (prefers-reduced-motion: reduce){
+  button.auto-an .auto-kreis, button.auto-an::after{ animation:none; }
+}
+
+/* Der Verweis auf den Ableitungs- bzw. Integralrechner steht rechts - er ist
+   ein Zusatz und soll den Lesefluss der Lösung nicht unterbrechen. */
+#stepBtn{ display:block; margin-left:auto; }
+.extlink{ display:flex; justify-content:flex-end; }
+
+/* Kurzes Aufleuchten des Bildes nach einer Antwort. */
+#abBlitz{ position:fixed; inset:0; pointer-events:none; z-index:9000;
+  opacity:0; transition:opacity .9s; }
+/* z. B. der Punktestand: steht am rechten Rand derselben Zeile */
+#genRow .rechts, #genRow2 .rechts{ margin-left:auto; }
+/* „Eigene Gleichung" ist der Nebenweg: schmaler als „Neue Aufgabe generieren",
+   damit auf schmalen Seiten beide Knöpfe und der Zähler in eine Zeile passen. */
+#genRow > button#manualBtn, #genRow2 > button#manualBtn{ padding:10px 11px; font-size:.9em; }
+/* Wird es eng, bleibt vom Nebenweg nur der Stift stehen - sonst rutscht der
+   Richtig-Zähler in eine zweite Zeile. */
+@media(max-width:470px){
+  #manualBtn .mb-text{ display:none; }
+  #genRow > button#manualBtn, #genRow2 > button#manualBtn{ padding:8px 11px; font-size:1.05em; }
+}
+/* Eigene Aufgabe: der Knopf neben „Neue Aufgabe generieren" klappt ein Feld
+   auf, in das man seine eigene Gleichung tippt. */
+#manualPanel{ border:1.5px solid var(--ab-gr-rand); border-radius:10px; background:var(--ab-gr-hell);
+  padding:12px 14px; margin:4px auto 8px; max-width:min(660px, 96vw); text-align:left; }
+#manualPanel[hidden]{ display:none; }
+#manualPanel .mp-kopf{ font-weight:bold; margin-bottom:3px; }
+#manualPanel .mp-hinweis{ font-size:.85em; color:var(--ab-leise); margin-bottom:8px; line-height:1.35; }
+#manualPanel .mp-zeile{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+#manualPanel input[type=text]{ flex:1 1 220px; min-width:0; font-size:1em; padding:7px 9px;
+  border:1.5px solid var(--ab-neutral-r); border-radius:6px; background:var(--ab-weiss);
+  color:var(--ab-text); font-family:inherit; }
+#manualPanel .meld{ font-size:.86em; margin-top:7px; line-height:1.4; }
+#manualPanel .meld.err{ color:#c0392b; }
+#manualPanel .meld.ok{ color:#2e7d32; }
+#manualPanel .meld a{ color:inherit; }
+html.dark #manualPanel{ background:#172019; border-color:#3d5a3d; }
+html.dark #manualPanel input[type=text]{ background:#1b2026; color:#e7eae8; border-color:#4a5a4a; }
+html.dark #manualPanel .meld.err{ color:#ef9a9a; }
+html.dark #manualPanel .meld.ok{ color:#81c784; }
+
+/* ── Fester Zufalls-Seed (vor allem fuer Lehrkraefte) ─────────────────────
+   Klein und unauffaellig ganz unten in den Einstellungen.                 */
+.seed-zeile{ display:flex; flex-wrap:wrap; align-items:center; gap:6px;
+  margin:10px 2px 0; padding-top:8px; border-top:1px solid var(--ab-neutral-r);
+  font-size:.8em; color:var(--ab-leise); }
+.seed-zeile label.opt{ margin:0; font-size:1em; gap:5px; align-items:center; }
+.seed-zeile input[type=text]{ width:92px; font-size:.95em; padding:3px 6px;
+  border:1px solid var(--ab-neutral-r); border-radius:5px; background:var(--ab-weiss);
+  color:var(--ab-text); font-family:inherit; }
+.seed-zeile button{ font-size:.95em; padding:3px 8px; margin:0; }
+.seed-zeile .d{ flex:1 1 100%; font-size:.95em; margin:2px 0 0; line-height:1.3; }
+html.dark .seed-zeile input[type=text]{ background:#1b2026; color:#e7eae8; border-color:#4a5a4a; }
+/* Punktestand mit Zurücksetzen (und, bei Karteikarten, Rückgängig) */
+.punkte{ display:inline-flex; align-items:center; gap:7px; font-weight:bold; font-size:.92em;
+  white-space:nowrap; }
+.punkte button{ background:none; border:1.5px solid var(--ab-neutral-r); border-radius:7px;
+  color:var(--ab-leise); font-size:.95em; line-height:1.3; padding:2px 8px; margin:0;
+  cursor:pointer; font-family:inherit;
+  transition:color .15s, border-color .15s, background .15s; }
+.punkte button:hover{ color:var(--ab-gr-dunkel); border-color:var(--ab-gr); background:var(--ab-gr-hell); }
+.punkte button:disabled{ opacity:.35; cursor:default; }
+.punkte button:disabled:hover{ color:var(--ab-leise); border-color:var(--ab-neutral-r); background:none; }
+#genBtn, #genBtn2, #genRow > button, #genRow2 > button{ font-size:1em; padding:10px 20px; }
+
+/* Hinweis in der Aufgabe (z. B. "kein Aufgabentyp gewaehlt") - gewoehnlicher
+   Text, keine Formel: eine Formelschrift irritiert hier nur. */
+.task-hinweis{ font-size:1.05em; color:#8a4a00; margin:8px 0; line-height:1.5; }
+html.dark .task-hinweis{ color:#ffd54f; }
+
+/* ── 7b. Hilfestellungen (Skizze, Angaben in Textform …) ───────────────────
+   Gelb wie die Tipps in der Reihe zur Analytischen Geometrie - so sind die
+   drei Bereiche auf einen Blick auseinanderzuhalten: Einstellungen neutral,
+   Hilfe gelb, Lösung blau. Die Hilfen bleiben bewusst zurückhaltend; auffällig
+   ist nur die Lösung.                                                      */
+details.hilfe{ margin:8px 0; background:#fffbe8; border:1.5px solid #e8d48a;
+  border-radius:7px; padding:2px 8px; }
+details.hilfe > summary{ color:#7a5b00; }
+
+/* Das Quiz ist eine Hilfestellung und deshalb ebenfalls gelb. Seine
+   Beschriftung sitzt als Reiter mittig auf dem oberen Rand des Bereichs:
+   zugeklappt bleibt davon ein gelber Knopf in der Mitte übrig.
+   Rahmen und Farbe liegen am Inhalt, nicht am ganzen Aufklappbereich -
+   sonst liefe der Rand auch neben dem Reiter entlang.                     */
+details.quizklapp{ margin:14px 0 6px; padding:0; background:none; border:none; }
+details.quizklapp > summary{ display:flex; align-items:flex-end; list-style:none;
+  cursor:pointer; margin:0; padding:0; justify-content:center; }
+details.quizklapp > summary::before{ content:none; }          /* Dreieck aus styles.css */
+details.quizklapp > summary::-webkit-details-marker{ display:none; }
+details.quizklapp > summary .reiter{ background:var(--ab-ge-knopf); color:var(--ab-ge-schrift);
+  font-weight:bold; font-size:.95em; line-height:1.3; padding:9px 18px;
+  border-radius:20px; white-space:nowrap; transition:border-radius .15s; }
+details.quizklapp > summary .reiter::after{ content:' ▾'; font-size:.85em; }
+/* die Linien links und rechts des Reiters setzen den Rahmen fort */
+details.quizklapp > summary .linie{ display:none; }
+details[open].quizklapp > summary{ justify-content:flex-start; }
+details[open].quizklapp > summary .linie{ display:block; flex:1 1 auto; height:0;
+  border-top:1.5px solid #e8d48a; }
+/* oben bleibt die Rundung gleich, nur unten setzt sich der Reiter auf den Kasten */
+details[open].quizklapp > summary .reiter{ border-radius:20px 20px 0 0; }
+details[open].quizklapp > summary .reiter::after{ content:' ▴'; }
+details[open].quizklapp > :not(summary){ border:1.5px solid #e8d48a; border-top:none;
+  border-radius:0 0 8px 8px; background:#fffbe8; padding:8px 10px; margin:0; }
+html.dark details[open].quizklapp > :not(summary){ background:#2a2718; border-color:#5a5024; }
+html.dark details[open].quizklapp > summary .linie{ border-top-color:#5a5024; }
+
+/* ── 7c. Bedienelemente lassen sich nicht wie Text markieren ───────────────
+   Markierbar bleibt, was man wirklich kopieren will: Überschrift, Aufgabe,
+   Lösung und Lösungsweg.                                                  */
+#topControls, details.einst, .seg-switch, .seg, .mini-seg, .pills, .tiles, .pop,
+label.kippknopf, .tc-label, .tc-sub, #genRow, #genRow2,
+details.hilfe > summary, details.loesung > summary, details.weg > summary,
+details.quizklapp > summary, .res .mini-seg, .task-head button{
+  -webkit-user-select:none; -moz-user-select:none; user-select:none; }
+/* Beim langen Drücken auf eine Kachel soll das System keine Lupe anbieten. */
+.tile, .pill, .seg-switch label, .seg label, .mini-seg label{
+  -webkit-touch-callout:none; }
+
+/* ── 8. Lösung und Lösungsweg ──────────────────────────────────────────────
+   Zugeklappt ist die Zeile ein voller Knopf - genauso deutlich wie „Neue
+   Aufgabe generieren“ und auch am Promethean aus einigen Metern zu sehen.
+   Aufgeklappt wird derselbe Knopf zur Kopfzeile des Bereichs darunter.
+   Der Lösungsweg steckt in der Lösung und tritt als hellblaue
+   Unterabteilung etwas zurück.                                            */
+details.loesung, details.weg{
+  margin:10px 0 6px; padding:0; background:none;
+  border:2px solid transparent; border-radius:24px; }
+details.loesung > summary, details.weg > summary{
+  display:block; list-style:none; cursor:pointer; text-align:center; font-weight:bold;
+  font-size:1.02em; line-height:1.35; padding:12px 18px; margin:-2px;
+  border-radius:22px; color:#fff; background:var(--ab-bl-knopf);
+  box-shadow:0 2px 5px var(--ab-schatten);
+  transition:background .15s, border-radius .15s, box-shadow .15s; }
+/* die Dreiecke von styles.css passen hier nicht - der Pfeil steht hinten */
+details.loesung > summary::before, details.weg > summary::before{ content:none; }
+details.loesung > summary::-webkit-details-marker,
+details.weg > summary::-webkit-details-marker{ display:none; }
+details.loesung > summary::after, details.weg > summary::after{
+  content:' ▾'; font-size:.85em; }
+details[open].loesung > summary::after, details[open].weg > summary::after{ content:' ▴'; }
+/* „einblenden“ / „ausblenden“: der Knopf sagt, was ein Druck bewirkt. */
+details.loesung > summary .wenn-auf, details.weg > summary .wenn-auf{ display:none; }
+details[open].loesung > summary .wenn-zu, details[open].weg > summary .wenn-zu{ display:none; }
+details[open].loesung > summary .wenn-auf, details[open].weg > summary .wenn-auf{ display:inline; }
+
+details[open].loesung, details[open].weg{
+  border-color:var(--ab-bl); background:var(--ab-bl-hell);
+  border-radius:24px 24px 10px 10px; padding-bottom:9px; }
+details[open].loesung > summary, details[open].weg > summary{
+  border-radius:20px 20px 0 0; box-shadow:none; margin:-2px -2px 8px; }
+/* Der Knopf liegt auf dem Rand, der Inhalt braucht seinen eigenen Abstand. */
+details.loesung > :not(summary), details.weg > :not(summary){
+  margin-left:10px; margin-right:10px; }
+
+details.weg{ margin:8px 0 4px; }
+details.weg > summary{ background:var(--ab-bl-rand); color:#0d3a68; box-shadow:none;
+  padding:10px 16px; font-size:.95em; }
+details[open].weg{ border-color:var(--ab-bl-rand); background:var(--ab-weiss); }
+
+.res{ background:var(--ab-weiss); border:1px solid var(--ab-bl-rand); border-radius:6px;
+  padding:7px 11px; margin:5px 0; }
+.note{ font-size:.82em; color:#555; margin:4px 0 2px; }
+.wegbox{ margin-top:4px; }
+.step{ margin:8px 0; }
+.step .sh{ font-weight:bold; font-size:.88em; color:#1a3a5a; }
+.step .sx{ font-size:.88em; color:#555; margin:2px 0; }
+.step .note-line{ color:#333; margin-top:2px; }
+.step-link{ display:inline-block; margin:5px 0 2px; background:#E07B00; color:#fff;
+  text-decoration:none; font-size:.8em; padding:6px 12px; border-radius:5px; }
+
+/* ── 9. Knöpfe ────────────────────────────────────────────────────────── */
+.einst button, #topControls button, #genRow button, #genRow2 button, .task button{
+  font-family:inherit; line-height:1.4; }
+.btn-secondary{ background:var(--ab-gr-hell); color:#2a5a2a; border:1.5px solid var(--ab-gr-rand); }
+.btn-solution{ background:var(--ab-weiss) !important; color:#2e7d32 !important;
+  border:1.5px solid var(--ab-gr) !important; font-weight:bold; }
+.btn-orange{ background:#E07B00; }
+input:focus-visible, button:focus-visible, select:focus-visible, textarea:focus-visible,
+.seg-switch input:focus-visible + label{ outline:2px solid var(--ab-bl); outline-offset:1px; }
+button:focus:not(:focus-visible), a:focus:not(:focus-visible),
+label:focus:not(:focus-visible){ outline:none; }
+
+/* ── 10. Kleine Bildschirme, Promethean, Zeigegeräte ──────────────────────
+   Auf dem Handy nutzt die Schwierigkeitsleiste die volle Breite und die
+   Stufen verteilen sich gleichmäßig; Schalter bleiben mindestens so groß,
+   dass sie sich mit Finger und Stift sicher treffen lassen.               */
+/* Unter 760px steht jeder Schalter in einer eigenen Zeile - nebeneinander
+   bliebe fuer die Beschriftungen zu wenig Breite. */
+@media(max-width:760px){
+  #topControls .tc-row{ flex-direction:column; gap:8px; }
+  /* Untereinander ist flex-basis die HÖHE - ohne dieses Zuruecksetzen bekaeme
+     jedes Feld 300px Hoehe, und zwischen den Schaltern klaffte eine Luecke. */
+  #topControls .tc-row > .tc-item{ width:100%; flex:0 0 auto; }
+}
+
+@media(max-width:620px){
+  .diff-switch{ width:100%; }
+  /* Die Stufen brechen nur an sinnvollen Stellen um (mit Trennstrich) -
+     „Einführ/ung" sah zerrissen aus. */
+  .diff-switch label{ flex:1 1 0; min-width:0; padding-left:1px; padding-right:1px;
+    white-space:normal; font-size:clamp(8px,2.2vw,12px); letter-spacing:-.01em;
+    overflow-wrap:break-word; hyphens:auto; }
+  .tiles:not(.reihe):not(.raster2):not(.vier):not(.zwei-schmal) > .tile{ flex:1 1 100%; }
+  /* .zwei-schmal: auch auf schmalen Schirmen zwei Kacheln je Zeile. */
+  .tiles.zwei-schmal > .tile{ flex:1 1 calc(50% - 4px); min-width:0; }
+  /* Auf schmalen Schirmen nutzt der Schalter die volle Breite. Jedes Feld
+     bekommt gleich viel Platz - unabhängig davon, wie lang seine Beschriftung
+     ist. So stehen mehrere Schalter mit gleich vielen Feldern genau
+     untereinander, und bei zwei Feldern sitzt der Trennstrich in der Mitte.
+     Was gar nicht mehr passt, rutscht in die nächste Zeile. */
+  /* Die kleinen Schalter (.klein, .small, .tiny) bleiben außen vor: sie
+     stehen neben einer Beschriftung und tragen lange Wörter - gleich breite
+     Felder würden dort jedes Wort zerreißen. */
+  .seg:not(.klein):not(.small):not(.tiny){ display:flex; width:100%; }
+  .seg:not(.klein):not(.small):not(.tiny) label{ flex:1 1 0; min-width:0; }
+  .seg:not(.klein):not(.small):not(.tiny) > button{ flex:1 1 0; min-width:0; width:auto; }
+  /* Die Stufenleiste bleibt aussen vor: sie traegt dieselben Masse wie der
+     Schwierigkeitsschalter, sonst wirkt sie groesser als ueberall sonst. */
+  .seg:not(.klein):not(.small):not(.tiny):not(.stufen) label > span,
+  .seg:not(.klein):not(.small):not(.tiny):not(.stufen) button{ padding:8px 6px; font-size:.8em;
+    overflow-wrap:anywhere; hyphens:auto; }
+  .seg.stufen button{ padding-left:1px; padding-right:1px; white-space:normal;
+    font-size:clamp(8px,2.2vw,12px); letter-spacing:-.01em;
+    overflow-wrap:break-word; hyphens:auto; }
+  .pill{ padding:6px 10px; font-size:.78em; }
+  .tc-row{ gap:8px; }
+  .tc-row > .tc-item{ flex:0 0 auto; width:100%; }
+  /* Drei Kacheln je Zeile werden auf dem Handy zwei. */
+  .tiles.drei{ grid-template-columns:repeat(2, minmax(0,1fr)); }
+  /* „Neue Aufgabe generieren" neben dem Punktestand: schmaler, sonst
+     drängeln sich beide. */
+  #genBtn, #genBtn2, #genRow > button, #genRow2 > button{ padding:9px 13px; font-size:.94em; }
+  #genRow > button#manualBtn, #genRow2 > button#manualBtn{ padding:9px 9px; font-size:.86em; }
+}
+
+/* Sehr schmale Schirme: die Einstellungen treten zurück, damit die Aufgabe
+   den Platz bekommt. Alles bleibt bedienbar, nur kleiner und enger.        */
+@media(max-width:430px){
+  #topControls{ gap:6px; margin:5px 0 7px; }
+  .tc-item{ gap:2px; }
+  .tc-label{ font-size:.88em; }
+  .tc-sub{ font-size:.68em; line-height:1.2; }
+  .tiles{ gap:5px; }
+  .tile{ padding:6px 8px; font-size:.82em; gap:7px; border-radius:9px; }
+  .tile:has(.arr){ padding-right:18px; }
+  .tile .tk{ width:17px; height:17px; font-size:11px; border-radius:5px; }
+  .tile .tsub{ font-size:.76em; }
+  /* Auf dem Handy zaehlt jeder Punkt Breite: wenig Rand und etwas kleinere
+     Schrift, damit auch lange Beschriftungen in eine Zeile passen. */
+  .seg:not(.klein):not(.small):not(.tiny):not(.stufen) label > span,
+  .seg:not(.klein):not(.small):not(.tiny):not(.stufen) button{ padding:7px 2px; font-size:.72em;
+    overflow-wrap:break-word; hyphens:auto; }
+  .seg-switch label{ padding:6px 10px; font-size:.82em; }
+  /* Die Stufen bleiben einzeilig: lieber etwas kleiner als mitten im Wort
+     umgebrochen. */
+  .diff-switch label,
+  .seg.stufen button{ font-size:clamp(7px,1.95vw,11px); padding:5px 1px; }
+  .pill{ padding:5px 8px; font-size:.74em; }
+  .einst .form-block{ padding:7px 9px; }
+  .einst .form-block > b{ font-size:.92em; }
+  #genBtn, #genBtn2, #genRow > button, #genRow2 > button{ padding:8px 10px; font-size:.88em; }
+  #genRow > button#manualBtn, #genRow2 > button#manualBtn{ padding:8px 7px; font-size:.8em; }
+  #genRow, #genRow2{ gap:5px; margin:6px 0; }
+  .punkte{ font-size:.82em; gap:5px; }
+  .punkte button{ padding:1px 6px; }
+}
+/* Stift und Finger: keine Hervorhebung, die nach dem Tippen stehen bleibt */
+@media (hover:hover) and (pointer:fine){
+  button:hover{ filter:brightness(.9); }
+  .btn-secondary:hover{ filter:none; background:#e2eee2; }
+  .btn-solution:hover{ filter:none; background:#eaf2ea !important; }
+  .pill:hover:not(.on), .tile:hover:not(.on){ filter:none; background:#e8f0e8; border-color:#888; }
+  .share-btn:hover{ opacity:1; background:#eef4fb !important; color:var(--ab-bl) !important; }
+  /* Nur die NICHT gewaehlten Felder hellen auf - das gewaehlte wird dunkler,
+     sonst verschwindet die weisse Schrift darauf. */
+  .seg label:not(:has(input:checked)) > span:hover{ background:#eaf2ea; }
+  .seg label:has(input:checked) > span:hover{ background:#3d8a3d; }
+  .mini-seg label:not(:has(input:checked)):hover{ background:#eaf2ea; }
+  .mini-seg label:has(input:checked):hover{ background:#c3e3c4; }
+  /* Zeigt die Maus auf eine andere Stufe, hebt sie sich leicht ab - so sieht
+     man vorher, was man trifft. */
+  .seg-switch input:not(:checked) + label:hover{ background:rgba(74,154,74,.16); color:#2a5a2a; }
+  .diff-switch input:not(:checked) + label:hover{ background:rgba(58,122,192,.18); color:var(--ab-bl-dunkel); }
+  html.dark .seg-switch input:not(:checked) + label:hover{ background:rgba(165,214,167,.18); color:#d3e8d4; }
+  html.dark .diff-switch input:not(:checked) + label:hover{ background:rgba(144,202,249,.22); color:#dbeaf8; }
+  /* Quiz-Knöpfe: im Dunkelmodus reicht „etwas dunkler" nicht, man säh es nicht. */
+  /* Die Knopffläche ist schon leicht abgesetzt - beim Zeigen muss es darum
+     deutlicher grün werden, sonst sieht man den Unterschied nicht. */
+  .pg-wahl-knopf:not(:disabled):hover{ filter:none; background:#dcecdc; border-color:var(--ab-gr); }
+  html.dark .pg-wahl-knopf:not(:disabled):hover{ background:#2c3d30; border-color:#6aa06e; color:#eef6ef; }
+  .pg-wahl-knopf.ok:hover, .pg-wahl-knopf.err:hover{ filter:none; }
+}
+@media (hover:none){
+  button:hover, a:hover{ filter:none; }
+  /* etwas größere Trefferflächen für Finger und Stift */
+  .seg-switch label{ padding-top:10px; padding-bottom:10px; }
+  .pill{ padding:9px 13px; }
+  .seg label > span, .seg button{ padding:10px 13px; }
+}
+/* Formeln dürfen die Seite nicht breiter machen (scale.js verkleinert sie) */
+.task .scale-wrapper, .res .scale-wrapper, .step .scale-wrapper{ overflow-x:clip; }
+
+/* ── 11. Dunkelmodus ──────────────────────────────────────────────────────
+   Fast alles steckt in den Farbwerten; nur wenige Regeln kommen dazu.    */
+html.dark{
+  --ab-gr-hell:   #1b2026;
+  --ab-gr-rand:   #3d5a3d;
+  --ab-gr-dunkel: #a5d6a7;
+  --ab-gr-an:     #24462a;
+  --ab-bl-hell:   #16202b;
+  --ab-bl-dunkel: #90caf9;
+  --ab-bl-rand:   #2f4f6f;
+  --ab-flaeche:   #161d18;
+  --ab-weiss:     #1b2026;
+  --ab-text:      #dde3df;
+  --ab-leise:     #9aa5b1;
+  --ab-neutral:   #1b2026;
+  --ab-knopf-flaeche: #242c33;
+  --ab-neutral-r: #56606a;
+  --ab-schatten:  rgba(0,0,0,.55);
+}
+html.dark .einst .form-block{ border-color:#4a545e; }
+html.dark label.opt input[type=checkbox], html.dark label.opt input[type=radio]{ border-color:#5a8a5a; }
+html.dark label.opt input:checked{ background:var(--ab-gr); border-color:var(--ab-gr); }
+html.dark .einst input[type=number].sm, html.dark .einst input[type=text].sm,
+html.dark .einst select.sm{ background:#1b2026; color:#e7eae8; border-color:#3d5a3d; }
+html.dark .seg-switch label{ color:#b5c9b5; }
+html.dark .seg-switch input:checked + label{ color:#fff; }
+html.dark .seg{ border-color:#4caf50; }
+html.dark .seg label > span, html.dark .seg button{ background:#232a32; color:#81c784; }
+html.dark .seg label > span, html.dark .seg button{ box-shadow:-1.5px 0 0 #4caf50, 0 -1.5px 0 #4caf50; }
+html.dark .seg input:checked + span, html.dark .seg button.on,
+html.dark .seg button.active{ background:#3d7a48; color:#fff; }
+html.dark .mini-seg{ border-color:#5c666e; }
+html.dark .mini-seg label{ background:#232a31; border-right-color:#4a545c; color:#d6d9dc; }
+html.dark .mini-seg label:has(input:checked){ background:#1e4620; color:#a5d6a7; }
+html.dark .tile .tsub, html.dark .tile .arr{ color:#9aa5b1; }
+html.dark .tile.on .tsub{ color:#a5d6a7; }
+/* Das Kästchen in der Kachel - dunkel abgestimmt wie auf den Erkennen-Seiten. */
+html.dark .tile .tk{ background:#242b33; border-color:#4a545e; }
+html.dark .tile.on .tk{ background:var(--ab-gr); border-color:var(--ab-gr-dunkel); color:#14181c; }
+html.dark .tile.empty .tk{ background:#242b33; color:#a5d6a7; }
+html.dark .pop{ box-shadow:0 6px 22px rgba(0,0,0,.55); }
+html.dark .pop label span.d, html.dark .pophint{ color:#9aa5b1; }
+html.dark .pophint{ border-top-color:#2f4a31; }
+html.dark label.kippknopf{ color:#ffd666; }
+html.dark label.kippknopf:has(input:checked){ color:var(--ab-ge-schrift); }
+html.dark details.weg > summary{ background:#2f4f6f; color:#d6e7f7; }
+html.dark details.hilfe{ background:#2a2718; border-color:#5a5024; }
+html.dark details.hilfe > summary{ color:#ffd666; }
+html.dark .quizbox{ background:#2a2718; border-color:#5a5024; }
+html.dark details[open].weg{ border-color:#2f4f6f; }
+html.dark .note{ color:#a9b4ae; }
+html.dark .step .sh{ color:#9fc5e8; }
+html.dark .step .sx{ color:#b0bac2; }
+html.dark .step .note-line{ color:#d0d6da; }
+html.dark .step-link, html.dark .btn-orange{ background:#b35f00; }
+html.dark .btn-secondary{ background:#1f2a20; color:#a5d6a7; border-color:#3d5a3d; }
+html.dark .btn-solution{ background:#1b2126 !important; color:#81c784 !important;
+  border-color:#4a9a4a !important; }
+html.dark .share-btn{ color:#8aa2bd !important; }
+html.dark .share-btn.copied{ color:#81c784 !important; background:#1a2a1c !important; }
+html.dark .task-teil.aktiv{ background:#1b2026; }
+@keyframes abBlinkDunkel{ 0%,100%{ background:transparent; } 25%,75%{ background:#3a3418; } }
+html.dark .form-block.hint{ animation-name:abBlinkDunkel; }
+@media (hover:hover) and (pointer:fine){
+  html.dark .btn-secondary:hover{ background:#26352a; }
+  html.dark .btn-solution:hover{ background:#24382a !important; }
+  html.dark .pill:hover:not(.on), html.dark .tile:hover:not(.on){ background:#242d27; border-color:#7a8a80; }
+  html.dark .share-btn:hover{ background:#1c2733 !important; color:#9fc5e8 !important; }
+  html.dark .seg label:not(:has(input:checked)) > span:hover{ background:#2b3a2c; }
+  html.dark .seg label:has(input:checked) > span:hover{ background:#4a8f57; }
+  html.dark .mini-seg label:not(:has(input:checked)):hover{ background:#2b3a2c; }
+  html.dark .mini-seg label:has(input:checked):hover{ background:#285c2b; }
+}
+
+/* ── 12. Gleichungs-Seiten (polynome.js) ──────────────────────────────────
+   Skizze, „eigene Lösungen eingeben" und das Quiz der Seiten zu Polynom-
+   gleichungen. Ohne polynome.js entsteht keines dieser Elemente - die
+   Regeln laufen dann einfach ins Leere.                                   */
+
+/* Skizze des Graphen */
+.pg-skizze{ margin:10px 0 2px; text-align:center; }
+.pg-plot{ width:100%; max-width:520px; height:auto; display:inline-block; }
+.pg-gitter line{ stroke:#e3ece3; stroke-width:1; }
+.pg-achse  line{ stroke:#7a8a7a; stroke-width:1.4; }
+.pg-beschriftung text{ fill:var(--ab-leise); font-size:10px; text-anchor:middle; }
+.pg-kurve { fill:none; stroke:var(--ab-gr); stroke-width:2.4; stroke-linejoin:round; }
+.pg-kurve2{ fill:none; stroke:var(--ab-bl); stroke-width:2.2; stroke-dasharray:6 4; }
+.pg-lot   { stroke:var(--ab-bl); stroke-width:1.2; stroke-dasharray:3 3; }
+.pg-stelle{ fill:#e07b39; stroke:#fff; stroke-width:1.5; }
+/* Die bewegliche Marke im Erkundungsmodus */
+.pg-marke{ stroke:var(--ab-bl); stroke-width:1.6; opacity:.75; }
+/* ── Nullprodukt: aus dem Produkt werden einzelne Gleichungen ───────────── */
+.np-baum{ margin:10px auto; max-width:min(640px,98%); text-align:center; }
+/* Der Wurzelkasten nimmt die ganze Zeile ein. Nur so hat die Formel darin eine
+   feste Kastenbreite - sonst wüchse der Kasten einfach mit und ragte auf
+   schmalen Bildschirmen heraus. */
+.np-wurzel{ display:block; padding:6px 14px; border:1.5px solid var(--ab-gr);
+  border-radius:10px; background:var(--ab-gr-an); font-weight:bold; }
+/* Die Gleichungen im Baum stehen für sich - ohne den üblichen Abstand davor. */
+.np-baum mjx-container[display="true"]{ margin:0; padding:0; }
+.np-regel{ font-size:.8em; color:var(--ab-leise); margin:3px 0 0; }
+.np-regel::before{ content:'↓'; display:block; font-size:1.3em; line-height:1.1; color:var(--ab-gr); }
+.np-aeste{ display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-top:6px; }
+.np-ast{ flex:0 1 auto; min-width:120px; padding:7px 10px; border:1.5px solid var(--ab-gr-rand);
+  border-radius:10px; background:var(--ab-weiss); }
+.np-glg{ font-weight:bold; }
+.np-pfeil{ color:var(--ab-gr); line-height:1.2; }
+.np-loes{ color:var(--ab-gr-dunkel); }
+html.dark .np-wurzel{ background:#24462a; border-color:#5cb860; }
+html.dark .np-ast{ background:#1b2026; border-color:#3d5a3d; }
+html.dark .np-loes{ color:#a5d6a7; }
+@media (max-width:520px){ .np-ast{ min-width:0; flex:1 1 44%; padding:5px 7px; font-size:.95em; } }
+
+/* ── Ablaufplan („Welche Art ist das?") ──────────────────────────────────── */
+.plan{ max-width:min(560px,96%); margin:10px auto; display:flex; flex-direction:column; gap:3px; }
+.plan-frage{ text-align:center; padding:6px 10px; border:1.5px solid var(--ab-neutral-r);
+  border-radius:9px; background:var(--ab-neutral); font-size:.92em; }
+.plan-frage.an{ border-color:var(--ab-gr); background:var(--ab-gr-an); font-weight:bold; }
+.plan-aeste{ display:flex; flex-wrap:wrap; gap:4px; justify-content:center; margin-bottom:4px; }
+.plan-ast{ display:flex; align-items:center; gap:6px; padding:3px 9px; border-radius:14px;
+  border:1px dashed var(--ab-neutral-r); font-size:.84em; color:var(--ab-leise); }
+.plan-ast.an{ border-style:solid; border-color:var(--ab-gr); background:var(--ab-gr-hell);
+  color:var(--ab-gr-dunkel); font-weight:bold; }
+.plan-wenn{ font-weight:bold; }
+.plan-ast.an .plan-weg{ text-decoration:none; }
+.plan-weiter{ opacity:.7; }
+html.dark .plan-frage{ background:#1b2026; border-color:#56606a; }
+html.dark .plan-frage.an{ background:#24462a; border-color:#5cb860; }
+html.dark .plan-ast.an{ background:#1f2a20; border-color:#5cb860; color:#a5d6a7; }
+@media (max-width:520px){ .plan-ast{ font-size:.78em; padding:2px 7px; } }
+.pg-markepunkt{ fill:var(--ab-bl); stroke:#fff; stroke-width:1.2; }
+html.dark .pg-marke{ stroke:#7fb2e8; }
+html.dark .pg-markepunkt{ fill:#7fb2e8; stroke:#161d18; }
+html.dark .pg-gitter line{ stroke:#263228; }
+html.dark .pg-achse line{ stroke:#8c9a8c; }
+html.dark .pg-stelle{ stroke:#161d18; }
+
+/* Eigene Lösungen eingeben */
+.pg-antwort{ margin:12px 0 4px; text-align:center; }
+.pg-frage{ font-weight:bold; font-size:.95em; color:var(--ab-gr-dunkel); margin-bottom:5px; }
+.pg-anzahl{ display:inline-flex; margin-bottom:6px; }
+.pg-anzahl button{ min-width:44px; }
+.pg-rund{ font-size:.86em; color:var(--ab-leise); white-space:nowrap; }
+.pg-anzahl-feld{ display:inline-flex; gap:8px; align-items:center; margin-bottom:6px; }
+.pg-anzahl-feld input{ width:70px; text-align:center; font-size:1em; padding:6px 8px; border:1.5px solid var(--ab-neutral-r);
+  border-radius:6px; background:var(--ab-weiss); color:var(--ab-text); font-family:inherit; }
+.pg-felder{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; justify-content:center; margin:6px 0 2px; }
+.pg-feld{ display:inline-flex; align-items:center; gap:5px; }
+.pg-feld-name{ font-weight:bold; color:var(--ab-text); }
+.pg-felder input{ width:92px; font-size:1em; padding:6px 8px; border:1.5px solid var(--ab-neutral-r);
+  border-radius:6px; background:var(--ab-weiss); color:var(--ab-text); font-family:inherit; }
+.pg-felder input.ok { border-color:var(--ab-gr); background:var(--ab-gr-an); }
+.pg-felder input.err{ border-color:#c0392b; background:#fdeaea; }
+html.dark .pg-felder input.err{ background:#3a2224; }
+.pg-fb{ margin:6px auto 0; max-width:min(520px,94vw); font-size:.92em; line-height:1.4; }
+.pg-fb.ok  { color:#2e7d32; font-weight:bold; }
+.pg-fb.err { color:#c0392b; }
+.pg-fb.warn{ color:#8a6500; }
+html.dark .pg-fb.ok{ color:#81c784; } html.dark .pg-fb.err{ color:#ef9a9a; }
+html.dark .pg-fb.warn{ color:#ffd54f; }
+.pg-fb-sub{ color:var(--ab-leise); font-size:.92em; margin-top:3px; }
+
+/* ── Lösungen Zeile für Zeile eintragen (Ausklammern, Nullprodukt) ── */
+.pg-liste{ display:flex; flex-direction:column; align-items:center; gap:4px;
+  margin:6px 0 4px; }
+.pg-liste .pg-feld input{ width:92px; font-size:1em; padding:6px 8px;
+  border:1.5px solid var(--ab-neutral-r); border-radius:6px;
+  background:var(--ab-weiss); color:var(--ab-text); font-family:inherit; }
+.pg-liste .pg-feld input.ok { border-color:var(--ab-gr); background:var(--ab-gr-an); }
+.pg-liste .pg-feld input.err{ border-color:#c0392b; background:#fdeaea; }
+html.dark .pg-liste .pg-feld input.err{ background:#3a2224; }
+.pg-weg{ background:none; border:1.5px solid var(--ab-neutral-r); color:var(--ab-leise);
+  border-radius:6px; font-size:.9em; line-height:1; padding:4px 7px; margin:0; cursor:pointer; }
+.pg-weg:hover{ background:#f6e8e8; border-color:#c08080; color:#9a1010; }
+.pg-steuer{ display:flex; gap:7px; justify-content:center; flex-wrap:wrap; margin:4px 0 2px; }
+.pg-mehr, .pg-keine{ background:none; border:1.5px dashed var(--ab-gr); color:var(--ab-gr-dunkel);
+  border-radius:8px; font-size:.86em; padding:5px 11px; margin:0; cursor:pointer; }
+.pg-keine{ border-style:solid; border-color:var(--ab-neutral-r); color:var(--ab-leise); }
+.pg-mehr:hover, .pg-keine:hover{ background:var(--ab-gr-an); }
+.pg-mehr:disabled{ opacity:.45; cursor:default; }
+.pg-keine.on{ background:var(--ab-gr); border-color:var(--ab-gr); color:#fff; }
+html.dark .pg-weg{ border-color:#3d5a3d; color:#9aa5b1; }
+html.dark .pg-weg:hover{ background:#3a2626; border-color:#8a5050; color:#ef9a9a; }
+html.dark .pg-mehr{ border-color:#5a8a5a; color:#81c784; }
+html.dark .pg-keine{ border-color:#3d5a3d; color:#9aa5b1; }
+html.dark .pg-keine.on{ background:#4a9a4a; border-color:#4a9a4a; color:#fff; }
+
+
+.form-block input.kurzfeld{ width:60px; font-size:.95em; padding:4px 7px; border:1.5px solid var(--ab-neutral-r);
+  border-radius:6px; background:var(--ab-weiss); color:var(--ab-text); font-family:inherit; }
+/* Unterpunkte eines Kästchens rücken ein. */
+.form-block label.opt.unter{ margin-left:18px; }
+.form-block label.opt.unter > span > span:first-child{ font-size:.95em; }
+
+/* Häufigkeits-Schieberegler in den Einstellungen (Vorbild: Lage Gerade/Ebene).
+   Jede Zeile gehört über data-fuer zu einem Kästchen; ist das aus, ist auch
+   der Regler aus. */
+.slider-row{ display:flex; align-items:center; gap:7px; margin:3px 0; flex-wrap:nowrap; }
+.slider-row .sl-name{ flex:0 0 clamp(80px,34%,150px); font-size:.9em; }
+/* Kaestchen, Name, Regler und Erklaerung in EINER Zeile: so steht alles
+   beieinander, was zu einem Fall gehoert. */
+.slider-row.opt-regler{ display:grid; flex-wrap:wrap;
+  grid-template-columns:clamp(110px,36%,210px) auto minmax(60px,1fr) auto;
+  align-items:center; gap:3px 7px; margin:7px 0; }
+.slider-row.opt-regler > label.opt{ grid-column:1; margin:0; font-size:.9em; align-items:center; }
+.slider-row.opt-regler > label.opt > span{ font-weight:500; }
+.slider-row.opt-regler > .d{ grid-column:1 / -1; display:block; font-size:.78em;
+  color:var(--ab-leise); margin:0 0 0 25px; line-height:1.25; }
+.slider-row.opt-regler.unter{ margin-left:20px; }
+.slider-row.opt-regler.unter > label.opt > span{ font-weight:normal; font-size:.95em; }
+.slider-row.opt-regler.aus{ opacity:1; }
+.slider-row.opt-regler.aus > .sl-end,
+.slider-row.opt-regler.aus > .sl,
+.slider-row.opt-regler.aus > .d{ opacity:.45; }
+@media (max-width:560px){
+  .slider-row.opt-regler{ grid-template-columns:1fr auto; }
+  .slider-row.opt-regler > label.opt{ grid-column:1 / -1; }
+  .slider-row.opt-regler > .sl{ grid-column:1; }
+  .slider-row.opt-regler > .sl-end{ display:none; }
+}
+.slider-row .sl-end{ font-size:.78em; color:var(--ab-leise); white-space:nowrap; }
+.slider-row .sl{ flex:1 1 70px; min-width:60px; accent-color:var(--ab-gr); cursor:pointer; margin:0; }
+.slider-row.aus{ opacity:.45; }
+.slider-row.aus .sl{ cursor:default; }
+@media(max-width:430px){
+  .slider-row .sl-end{ display:none; }
+  .slider-row .sl-name{ flex:0 0 42%; }
+}
+
+/* Hilfe im Quiz ist gelb - wie die Quiz-Klappe selbst. */
+.act-btn.hint, button.hilfe-knopf{ background:var(--ab-ge-knopf); color:var(--ab-ge-schrift);
+  border:1.5px solid #c99400; font-weight:bold; }
+@media (hover:hover) and (pointer:fine){
+  .act-btn.hint:hover, button.hilfe-knopf:hover{ filter:none; background:#f0bb20; }
+}
+html.dark .act-btn.hint, html.dark button.hilfe-knopf{ background:#c99400; color:#1d1700; border-color:#e0a800; }
+
+/* Verweis auf eine verwandte Seite: steht rechts, damit er den Lösungsweg
+   nicht unterbricht. */
+.verwandt{ display:flex; justify-content:flex-end; margin:.5em 0 .2em; }
+.verwandt a{ display:inline-block; text-decoration:none; padding:7px 13px; border-radius:8px;
+  font-size:.9em; font-weight:bold; background:var(--ab-gr-hell); color:#2a5a2a;
+  border:1.5px solid var(--ab-gr-rand); }
+.verwandt a.blanko{ background:none; border:none; border-bottom:1px dashed var(--ab-neutral-r);
+  border-radius:0; padding:2px 0; color:var(--ab-leise); font-weight:normal; cursor:not-allowed; }
+html.dark .verwandt a{ background:#1f2a20; color:#a5d6a7; border-color:#3d5a3d; }
+html.dark .verwandt a.blanko{ background:none; border:none; border-bottom:1px dashed var(--ab-neutral-r);
+  color:var(--ab-leise); }
+@media (hover:hover) and (pointer:fine){
+  .verwandt a:not(.blanko):hover{ background:#e2eee2; }
+  html.dark .verwandt a:not(.blanko):hover{ background:#26352a; }
+}
+
+/* Auswahlliste mit Fragezeichen-Knopf (z. B. die Lösungsformel) */
+.formel-wahl{ position:relative; display:inline-flex; align-items:center; gap:6px; }
+.formel-wahl select.sm{ font-size:.95em; padding:5px 7px; border:1.5px solid var(--ab-gr-rand);
+  border-radius:6px; background:var(--ab-weiss); color:var(--ab-text); font-family:inherit; }
+html.dark .formel-wahl select.sm{ background:#1b2026; color:#e7eae8; border-color:#3d5a3d; }
+.formel-frage{ width:26px; height:26px; padding:0; border-radius:50%; font-weight:bold;
+  background:var(--ab-gr-hell); color:#2a5a2a; border:1.5px solid var(--ab-gr-rand); line-height:1; }
+html.dark .formel-frage{ background:#1f2a20; color:#a5d6a7; border-color:#3d5a3d; }
+.formel-pop{ position:absolute; z-index:60; top:calc(100% + 6px); left:50%; transform:translateX(-50%);
+  display:block; text-align:center; min-width:min(300px,86vw); }
+.formel-pop[hidden]{ display:none; }
+
+/* Zeile mit einem kleinen Umschalter über dem Quiz bzw. im Lösungsweg */
+.sofort-zeile{ display:flex; align-items:center; justify-content:center; gap:8px;
+  flex-wrap:wrap; margin:2px 0 8px; }
+.sofort-zeile .tc-label{ margin:0; }
+.seg.klein label > span{ padding:5px 10px; font-size:.85em; }
+
+/* Quiz als Hilfestellung */
+.pg-quiz{ font-size:.97em; }
+.pg-kette{ display:flex; flex-wrap:wrap; gap:5px; margin-bottom:8px; }
+.pg-kette-teil{ font-size:.8em; color:var(--ab-gr-dunkel); background:var(--ab-gr-an);
+  border-radius:12px; padding:2px 9px; }
+.pg-schritt{ border:1.5px solid var(--ab-gr-rand); border-radius:10px; padding:9px 12px;
+  background:var(--ab-weiss); }
+.pg-schritt-kopf{ font-weight:bold; color:var(--ab-gr-dunkel); margin-bottom:4px; }
+.pg-schritt-frage{ margin:2px 0 7px; }
+.pg-wahl{ display:flex; flex-wrap:wrap; gap:7px; justify-content:center; }
+/* Die Antwortknöpfe sitzen auf dem weißen Kasten des Schrittes - mit reinem
+   Weiß wären sie nur am Rand zu erkennen. Darum eine Spur abgesetzt. */
+.pg-wahl-knopf{ background:var(--ab-knopf-flaeche); color:var(--ab-text); border:1.5px solid var(--ab-neutral-r);
+  border-radius:9px; padding:8px 14px; font-family:inherit; font-size:.95em; cursor:pointer; margin:0; }
+.pg-wahl-knopf.ok { border-color:var(--ab-gr); background:var(--ab-gr-an); font-weight:bold; }
+.pg-wahl-knopf.err{ border-color:#c0392b; background:#fdeaea; }
+/* „geht, ist aber nicht der kuerzeste Weg" */
+.pg-wahl-knopf.warn{ border-color:#c8a200; background:#fdf6e0; color:#6b5500; font-weight:bold; }
+html.dark .pg-wahl-knopf.warn{ background:#3a3524; border-color:#b89b2e; color:#f3e6b8; }
+html.dark .pg-wahl-knopf.err{ background:#3a2224; }
+.pg-eingabe{ display:flex; gap:8px; justify-content:center; flex-wrap:wrap; align-items:center; }
+/* „x =" und das Feld gehören zusammen und brechen nie voneinander ab. */
+.pg-feldpaar{ display:inline-flex; align-items:center; gap:6px; flex-wrap:nowrap;
+  flex:1 1 180px; max-width:300px; }
+.pg-vor{ white-space:nowrap; font-weight:bold; }
+/* Mehrere kleine Felder nebeneinander (p und q, x₁ und x₂ …) */
+.pg-eingabe.mehr{ gap:10px; }
+.pg-eingabe.mehr .pg-feldpaar{ flex:0 0 auto; max-width:none; }
+.pg-eingabe.mehr input{ flex:0 0 86px; width:86px; min-width:0; }
+.pg-eingabe input{ flex:1 1 90px; min-width:70px; max-width:170px; font-size:1em; padding:7px 9px;
+  border:1.5px solid var(--ab-neutral-r); border-radius:6px; background:var(--ab-weiss);
+  color:var(--ab-text); font-family:inherit; }
+/* Der hervorgehobene Teil einer Formel im Quiz (\boxed) */
+.pg-schritt mjx-menclose{ color:#b06c00; }
+html.dark .pg-schritt mjx-menclose{ color:#ffc266; }
+/* Die Gleichung, an der gerade gearbeitet wird */
+.pg-schritt-gl{ text-align:center; margin:2px 0 6px; font-size:1.05em; padding:.25em 0; }
+/* Abgesetzte Formeln brauchen oben und unten etwas Luft: MathJax rechnet die
+   Kastenhöhe knapp, Exponenten und Bruchstriche ragen ein paar Pixel darüber
+   hinaus und würden sonst angeschnitten. */
+#weg mjx-container[display="true"], #quizArea mjx-container[display="true"]{
+  max-width:100%; padding:.3em 0; }
+/* Aufgabe und Lösung stecken schon in einem .scale-wrapper - dort darf die
+   Breite nicht zusätzlich begrenzt werden, sonst schneidet der Wrapper ab. */
+#loesung mjx-container[display="true"], #task mjx-container[display="true"]{ padding:.2em 0; }
+.pg-schritt-gl mjx-container[display="true"]{ margin:.2em 0; }
+/* Vorschläge in der zweiten Hilfestufe */
+.pg-hilfe-wahl{ display:flex; flex-wrap:wrap; gap:6px; justify-content:center; margin-top:6px; }
+.pg-wahl-knopf.klein{ padding:5px 11px; font-size:.9em; }
+/* ausgewaehlt (keine Wertung, nur Markierung - z. B. die geratene Nullstelle) */
+.pg-wahl-knopf.on{ border-color:var(--ab-bl); background:var(--ab-bl-hell); font-weight:bold; }
+html.dark .pg-wahl-knopf.on{ background:#24364a; border-color:#6a90c0; color:#eaf1f8; }
+.pg-eingabe input.ok { border-color:var(--ab-gr); background:var(--ab-gr-an); }
+.pg-eingabe input.err{ border-color:#c0392b; }
+.pg-fuss{ display:flex; gap:7px; justify-content:center; flex-wrap:wrap; margin-top:9px; }
+.pg-fuss button{ margin:0; }
+.pg-hilfe{ margin-top:8px; border-left:4px solid var(--ab-ge-knopf); background:#fffdf5;
+  border-radius:8px; padding:8px 11px; font-size:.93em; }
+html.dark .pg-hilfe{ background:#221d12; }
+.pg-quiz-fertig{ text-align:center; font-weight:bold; color:var(--ab-gr-dunkel); padding:8px; }
+@media(max-width:430px){
+  .pg-wahl-knopf{ padding:7px 10px; font-size:.88em; }
+  .pg-felder input{ width:78px; }
+}

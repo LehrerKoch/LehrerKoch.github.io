@@ -1,0 +1,105 @@
+/* ══════════════════════════════════════════════════════════════
+   Gemeinsame Darstellungsregeln für alle Seiten
+   (1) Vergrößerung auf sehr großen Bildschirmen
+   (2) Platz für die Scrollleiste
+   Fehlt diese Datei, sieht alles aus wie früher – kaputt geht nichts.
+   ══════════════════════════════════════════════════════════════ */
+
+
+/* ── (1) Sehr große Bildschirme (Promethean-Panel, 4K-Monitor) ──
+   Der Browser vergrößert dort von allein nichts: 16px Schrift bleibt
+   16px, und der Inhalt stünde auf einem 3840px-Panel als schmaler
+   Streifen in der Mitte.
+
+   Deshalb wird oberhalb von Full HD stufenlos vergrößert:
+   Zoom = Fensterbreite / 1920. Die Seite sieht damit immer so aus
+   wie auf einem Full-HD-Bildschirm, nur eben größer – die
+   Inhaltsspalte nimmt also immer denselben Anteil der Breite ein
+   (bei 960px Spalte etwa die Hälfte). Weil die Rechnung in CSS
+   steht, passt sie sich beim Ziehen des Fensters sofort an.
+
+   Anpassen:
+     1920px = die Breite, die als „normal“ gilt. Kleinere Zahl =
+     alles größer und die Spalte schmaler, größere Zahl = umgekehrt.
+     800px  = Notbremse für sehr breite, flache Bildschirme (21:9):
+     mehr als Fensterhöhe/800 wird nie vergrößert, damit senkrecht
+     nichts abgeschnitten wird. Bei üblichen 16:9-Bildschirmen
+     greift sie nie.
+   Abschalten: die Zeile html{zoom:…} auskommentieren.
+
+   Hochkant (Handy, Tablet) bleibt außen vor: dort greift die Regel
+   wegen orientation: landscape nie. Ältere Browser, die die
+   Rechnung nicht können, lassen die Zeile einfach weg – dann bleibt
+   die Seite unvergrößert.
+   ────────────────────────────────────────────────────────────── */
+
+@media (min-width: 1921px) and (orientation: landscape) {
+
+    :root { --tk-zoom: min(calc(100vw / 1920px), calc(100vh / 800px)); }
+
+    html { zoom: var(--tk-zoom, 1); }
+
+    /* vw und vh rechnen weiterhin mit dem unvergrößerten Bildschirm.
+       „100vh“ wäre dadurch zu hoch und würde unten leeren Raum
+       erzeugen – deshalb wird die übliche Mindesthöhe zurückgerechnet. */
+    body { min-height: calc(100vh / var(--tk-zoom, 1)) !important; }
+}
+
+
+/* ── (2) Platz für die Scrollleiste ────────────────────────────
+   Ohne das springt die Seite: sobald der Inhalt länger wird, erscheint
+   die Scrollleiste, der Platz wird schmaler und Elemente brechen um.
+
+   Deshalb ist der Platz bei Mausbedienung immer belegt (overflow-y:
+   scroll) – die Leiste wird dabei aber selbst gestaltet: Der Hintergrund
+   (Track) ist durchsichtig, oben in Höhe des Kopfbands grün. So läuft
+   das grüne Band optisch bis zum Fensterrand, und wo nichts zu rollen
+   ist, sieht man auch keine graue Leiste. Der Griff (Thumb) erscheint
+   nur, wenn es wirklich etwas zu rollen gibt.
+
+   Farbe und Höhe des grünen Teils trägt theme-language.js als
+   --tk-bandfarbe und --tk-bandunten ein (beim Rollen wandert es mit).
+   Ohne das Skript bleibt der Track einfach ganz durchsichtig.
+
+   Touch-Geräte (Handy, Tablet, Promethean) bleiben außen vor: dort legt
+   sich die Leiste ohnehin über den Inhalt, verbraucht keinen Platz und
+   soll auch nicht umgestaltet werden – deshalb die Bedingung
+   pointer: fine.
+   ────────────────────────────────────────────────────────────── */
+
+@media (pointer: fine) {
+
+    html { overflow-y: scroll; scrollbar-gutter: stable; }
+
+    ::-webkit-scrollbar { width: 15px; background: transparent; }
+
+    ::-webkit-scrollbar-track {
+        background: linear-gradient(
+            var(--tk-bandfarbe, transparent) 0 var(--tk-bandunten, 0px),
+            transparent var(--tk-bandunten, 0px));
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: rgba(0, 0, 0, .28);
+        border: 4px solid transparent;
+        border-radius: 8px;
+        background-clip: content-box;
+    }
+
+    ::-webkit-scrollbar-thumb:hover { background: rgba(0, 0, 0, .45); background-clip: content-box; }
+
+    html.dark ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, .26); background-clip: content-box; }
+    html.dark ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, .42); background-clip: content-box; }
+}
+
+
+/* ── (3) Fußleiste: „Zuletzt aktualisiert" nur auf breiten Bildschirmen ──
+   Auf dem Handy ist in der Fußzeile kaum Platz; dort steht deshalb nur noch
+   das Datum. Fehlt diese Datei, steht die Zeile überall wie früher da.
+   ────────────────────────────────────────────────────────────── */
+
+.fu-wort { margin-right: 0.35em; }
+
+@media (max-width: 620px) {
+    .fu-wort { display: none; }
+}
