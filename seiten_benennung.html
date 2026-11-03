@@ -209,7 +209,7 @@ html.dark .pruef-btn:hover:not(:disabled) { background:#28382b; }
      einmal als Schalter erscheinen, und auch die, die der Schwierigkeitsgrad
      von selbst setzt.                                                      -->
 <details class="einst" id="settingsDetails">
-<summary data-de="Einstellungen" data-en="Settings">Einstellungen</summary>
+<summary><span data-de="Einstellungen" data-en="Settings">Einstellungen</span><button type="button" class="einst-share" tabindex="-1" title="Diese Einstellungen als Link kopieren" data-de-title="Diese Einstellungen als Link kopieren" data-en-title="Copy these settings as a link" aria-label="Einstellungen als Link kopieren"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></button></summary>
 <div class="settings-grid">
 
 <div class="form-block">
@@ -284,13 +284,16 @@ html.dark .pruef-btn:hover:not(:disabled) { background:#28382b; }
       <label><input type="radio" name="taskFormatTop" value="text"><span data-de="Textform" data-en="Text">Textform</span></label>
     </div>
   </div>
-  <div class="tc-item tc-mitte">
-    <span class="tc-label" data-de="Aufgabentyp" data-en="Type of task">Aufgabentyp</span>
-    <span class="tc-sub" data-de="Tippen schaltet eine Art ein oder aus – langes Drücken wählt nur diese eine Art." data-en="Tap to switch a type on or off – a long press selects only that one type.">Tippen schaltet eine Art ein oder aus – langes Drücken wählt nur diese eine Art.</span>
-    <div class="tiles raster2 eng" id="segTypen"></div>
+  <div class="tc-item">
+    <details class="auswahl" id="typBox" open>
+      <summary><span data-de="Aufgabentyp" data-en="Type of task">Aufgabentyp</span><span class="ausw-zahl" id="typZahl"></span></summary>
+      <button type="button" class="btn-secondary ausw-alle" id="typAlle"></button>
+      <span class="tc-sub" data-de="Tippen schaltet eine Art ein oder aus – langes Drücken wählt nur diese eine Art." data-en="Tap to switch a type on or off – a long press selects only that one type.">Tippen schaltet eine Art ein oder aus – langes Drücken wählt nur diese eine Art.</span>
+      <div class="tiles raster2 eng" id="segTypen"></div>
+    </details>
   </div>
   <div class="tc-item tc-diff tc-mitte">
-    <span class="tc-label" data-de="Schwierigkeit" data-en="Difficulty">Schwierigkeit</span>
+    <span class="tc-kopf"><span class="tc-label" data-de="Schwierigkeit" data-en="Difficulty">Schwierigkeit</span><button type="button" class="tc-reset" id="diffReset" title="Von Hand gesetzte Einstellungen lösen – wieder der Schwierigkeit überlassen" data-de-title="Von Hand gesetzte Einstellungen lösen – wieder der Schwierigkeit überlassen" data-en-title="Release settings you fixed yourself – let the difficulty decide again" aria-label="Von Hand gesetzte Einstellungen lösen">&#x21BA;</button></span>
     <div class="seg-switch diff-switch" id="segDiff">
       <input type="radio" name="diff" id="diffEinf" value="einf"><label for="diffEinf" data-de="Einführung" data-en="Introduction">Einführung</label>
       <input type="radio" name="diff" id="diffLeicht" value="leicht"><label for="diffLeicht" data-de="Leicht" data-en="Easy">Leicht</label>
@@ -309,7 +312,7 @@ html.dark .pruef-btn:hover:not(:disabled) { background:#28382b; }
 <div class="task" id="taskBox">
   <div class="task-head">
     <h2 data-de="Aufgabe" data-en="Task">Aufgabe</h2>
-    <button class="share-btn" id="btnTeilen" title="Diese Aufgabe teilen (Link kopieren)" data-de-title="Diese Aufgabe teilen (Link kopieren)" data-en-title="Share this task (copy link)" data-de="&#128279;&nbsp;Teilen" data-en="&#128279;&nbsp;Share">&#128279;&nbsp;Teilen</button>
+    <button class="share-btn" id="btnTeilen" title="Diese Aufgabe teilen (Link kopieren)" data-de-title="Diese Aufgabe teilen (Link kopieren)" data-en-title="Share this task (copy link)" data-de='&#128279;<span class="sh-text">&nbsp;Teilen</span>' data-en='&#128279;<span class="sh-text">&nbsp;Share</span>'>&#128279;<span class="sh-text">&nbsp;Teilen</span></button>
   </div>
 
   <div id="sketch-direct-wrap" style="display:none">
@@ -1326,8 +1329,40 @@ const KACHELN = [
 ];
 function kachelnMalen(){
   funkKnoepfeMalen();
+  typKopfMalen();
   if (!window.abKachelnMalen) return;
   abKachelnMalen(document.getElementById('segTypen'));
+}
+/** Kopfzeile der Aufgabentypen: Zähler und der Knopf alle/keine. */
+function typIds(){
+  /* KACHELN steht weiter unten im Skript - vor dieser Zeile gibt es die
+     Liste noch nicht, und ein Zugriff wirft. */
+  try { return KACHELN.map(function(k){ return k.haupt; }).filter(Boolean); }
+  catch (e) { return []; }
+}
+function typKopfMalen(){
+  var ids = typIds(), n = ids.filter(haken).length;
+  var z = document.getElementById('typZahl');
+  if (z) z.textContent = ' (' + n + '/' + ids.length + ')';
+  var a = document.getElementById('typAlle');
+  if (a){
+    a.hidden = ids.length < 4;
+    a.textContent = (n >= ids.length) ? T('keine', 'none') : T('alle', 'all');
+  }
+}
+function typAlleVerdrahten(){
+  var a = document.getElementById('typAlle');
+  if (!a || a._ab) return;
+  a._ab = true;
+  a.addEventListener('click', function(ev){
+    ev.preventDefault(); ev.stopPropagation();
+    var ids = typIds(), an = ids.filter(haken).length < ids.length;
+    ids.forEach(function(id){ hakenSetzen(id, an); });
+    /* Ganz leer wäre keine gültige Auswahl - dann bleibt die erste Art. */
+    if (!ids.filter(haken).length && ids.length) hakenSetzen(ids[0], true);
+    typenVonHand = true;
+    kachelnMalen(); neueAufgabe();
+  });
 }
 
 /* ── Winkelfunktionen im Einstellungsbereich ──────────────────────────
@@ -1390,6 +1425,8 @@ function kachelnBauen(){
   abKacheln(document.getElementById('segTypen'), KACHELN, () => {
     typenVonHand = true; neueAufgabe();
   });
+  /* Erst hier: vorher gibt es KACHELN noch gar nicht. */
+  typAlleVerdrahten(); typKopfMalen();
   kachelAktuell(_kachelAktuellId);
 }
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', kachelnBauen);
@@ -1401,6 +1438,16 @@ document.querySelectorAll('#useType1, #useType2, #useType3, #useType4, #useType5
 /* Was die Schwierigkeit sonst setzt: von Hand geändert heißt "Individuell" */
 document.querySelectorAll('input[name="labeling"], input[name="raPos"], #useF_sin, #useF_cos, #useF_tan, #useF_cot, #useF_sec, #useF_csc')
   .forEach(e => e.addEventListener('change', () => { aufIndividuell(); kachelnMalen(); neueAufgabe(); }));
+/* Der kleine Knopf neben „Schwierigkeit" löst alles, was von Hand
+   festgelegt wurde - ab dann bestimmt wieder die Stufe. */
+const diffReset = document.getElementById('diffReset');
+if (diffReset) diffReset.addEventListener('click', () => {
+  typenVonHand = false; formatVonHand = false;
+  const st = radioWert('diff');
+  if (st && st !== 'indiv') stufeAnwenden(st);
+  kachelnMalen();
+  neueAufgabe();
+});
 document.querySelectorAll('input[name="diff"]').forEach(e => e.addEventListener('change', () => {
   if (e.value !== 'indiv') stufeAnwenden(e.value);
   neueAufgabe();

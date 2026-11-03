@@ -622,6 +622,16 @@
    * pruefe() liefert true (richtig), false (falsch) oder einen Text als
    * Rückmeldung bei einem typischen Fehler.
    */
+  /** Oeffnet dieses Feld am Handy die Zifferntastatur? Nur dann, wenn
+      wirklich eine einzelne Zahl gefragt ist - sonst fehlen dort die
+      Buchstaben und die Satzzeichen. */
+  function zahlTastatur(s){
+    if (!s) return true;
+    if (s.tastatur) return s.tastatur === 'zahl';
+    var ph = String(s.platzhalter == null ? '' : s.platzhalter).trim();
+    return ph === '' || /^(zahl|number)$/i.test(ph);
+  }
+
   function pgQuiz(host, schritte, opt){
     if (!host) return null;
     opt = opt || {};
@@ -634,6 +644,13 @@
            Bildschirmen heraus. */
         if (window.abFormelnPassen) abFormelnPassen(node);
       }).catch(function(){});
+    }
+    /* Rueckmeldungen enthalten Formeln - ohne diesen Satz bliebe im Kasten
+       der rohe LaTeX-Quelltext stehen (\(x^{0}\) statt x hoch 0). */
+    function melde(kasten, art, text){
+      kasten.className = 'pg-fb ' + (art || '');
+      kasten.innerHTML = text || '';
+      mj(kasten);
     }
 
     function male(){
@@ -702,8 +719,7 @@
               setTimeout(weiter, 420);
             } else {
               b.classList.add('err');
-              fb.className = 'pg-fb err';
-              fb.innerHTML = s.falschText || T('Das passt noch nicht.', 'That does not fit yet.');
+              melde(fb, 'err', s.falschText || T('Das passt noch nicht.', 'That does not fit yet.'));
             }
           });
           btns.appendChild(b);
@@ -723,6 +739,10 @@
         }
         var inp = document.createElement('input');
         inp.type = 'text'; inp.autocomplete = 'off';
+        /* Am Handy soll die Zifferntastatur aufgehen, wenn wirklich nur eine
+           Zahl gefragt ist. Steht im Platzhalter ein Term (x^2-5x+6=0) oder
+           eine Liste (1; -2), braucht es die gewoehnliche Tastatur. */
+        inp.inputMode = zahlTastatur(s) ? 'decimal' : 'text';
         if (s.platzhalter) inp.placeholder = s.platzhalter;
         inp.addEventListener('keydown', function(ev){ if (ev.key === 'Enter') pruefe(); });
         paar.appendChild(inp);
@@ -748,8 +768,7 @@
             setTimeout(weiter, 420);
           } else {
             inp.classList.add('err');
-            fb.className = 'pg-fb err';
-            fb.innerHTML = (typeof r === 'string' && r) ? r : T('Das stimmt noch nicht.', 'That is not right yet.');
+            melde(fb, 'err', (typeof r === 'string' && r) ? r : T('Das stimmt noch nicht.', 'That is not right yet.'));
           }
         }
         setTimeout(function(){ inp.focus(); }, 30);
@@ -766,6 +785,7 @@
           lab.innerHTML = '\\(' + f.name + ' =\\)';
           var inp2 = document.createElement('input');
           inp2.type = 'text'; inp2.autocomplete = 'off';
+          inp2.inputMode = zahlTastatur(f) ? 'decimal' : 'text';
           inp2.placeholder = f.platzhalter || T('Zahl', 'number');
           inp2.addEventListener('keydown', function(ev){ if (ev.key === 'Enter') pruefeAlle(); });
           paar2.appendChild(lab); paar2.appendChild(inp2);
@@ -799,8 +819,7 @@
             merke('…');
             setTimeout(weiter, 420);
           } else {
-            fb.className = 'pg-fb err';
-            fb.innerHTML = meldung || s.falschText || T('Das stimmt noch nicht.', 'That is not right yet.');
+            melde(fb, 'err', meldung || s.falschText || T('Das stimmt noch nicht.', 'That is not right yet.'));
           }
         }
         setTimeout(function(){ if (felder[0]) felder[0].el.focus(); }, 30);

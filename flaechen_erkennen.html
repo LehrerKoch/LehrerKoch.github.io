@@ -317,8 +317,16 @@ svg.stage{display:block;width:100%;height:400px;touch-action:none;cursor:crossha
 /* Dasselbe Grün wie bei den Kacheln der anderen Seiten. */
 .typ.on{border-color:var(--accent);background:#c8f0c8;}
 /* Die Kachel, aus der die laufende Aufgabe stammt. */
-.typ.aktuell{outline:3px solid var(--accent);outline-offset:1px;box-shadow:none;}
-html.dark .typ.aktuell{outline-color:#7dd287;box-shadow:none;}
+/* Farblich statt umrandet - wie die Kacheln auf den uebrigen Seiten. */
+.typ.aktuell, .typ.on.aktuell{outline:none;box-shadow:none;
+  background:var(--ab-gr-aktuell,#9cdd9c);border-color:var(--ab-gr-dunkel,#1a4a1a);}
+.typ.aktuell .tn, .typ.on.aktuell .tn{color:var(--ab-gr-dunkel,#1a4a1a);}
+html.dark .typ.aktuell, html.dark .typ.on.aktuell{
+  background:var(--ab-gr-aktuell,#376940);border-color:#7dd287;}
+html.dark .typ.aktuell .tn, html.dark .typ.on.aktuell .tn{color:#d6f2d8;}
+/* Der Beschreibungstext stand auf dem dunkleren Gruen zu blass da. */
+.typ.aktuell .td, .typ.on.aktuell .td{color:#2d5a2f;}
+html.dark .typ.aktuell .td, html.dark .typ.on.aktuell .td{color:#cfe8d1;}
 .typ .tk{flex:0 0 auto;width:20px;height:20px;border-radius:6px;border:2px solid #c3d2c5;background:#fff;
   display:flex;align-items:center;justify-content:center;font-size:13px;line-height:1;color:transparent;margin-top:1px;}
 .typ.on .tk{background:var(--accent);border-color:var(--accent-d);color:#fff;}
@@ -535,6 +543,15 @@ html.dark button:disabled{background:#3a434b;color:#8b949c;}
 /* Grautoene, die direkt im style-Attribut stehen */
 html.dark [style*="color:#888"],html.dark [style*="color:#777"],html.dark [style*="color:#666"],
 html.dark [style*="color:#555"],html.dark [style*="color:#3a4a3c"]{color:#b6c0c9 !important}
+
+/* Die Hilfe als Klappbereich: derselbe gelbe Reiter wie beim Quiz auf den
+   anderen Seiten (details.quizklapp in aufgaben.css). Der Kasten darunter
+   hat seinen Rahmen schon selbst. */
+details.hilfe-klapp{margin:14px 0 6px;}
+details.hilfe-klapp > .help-box{margin-top:0;border-top-left-radius:0;}
+details[open].hilfe-klapp > :not(summary){border:1.5px solid #e8d48a;border-top:none;
+  border-radius:0 0 8px 8px;background:#fffbe8;padding:10px 13px;margin:0;}
+html.dark details[open].hilfe-klapp > :not(summary){background:#2a2718;border-color:#5a5024;}
 </style>
 </head>
 <body class="tk-seite">
@@ -552,7 +569,7 @@ html.dark [style*="color:#555"],html.dark [style*="color:#3a4a3c"]{color:#b6c0c9
   </div></div>
 
 
-  <details class="einst" id="teacherSettings"><summary data-de="Einstellungen" data-en="Settings">Einstellungen</summary><div id="teacherBody" style="margin-top:8px;"></div></details>
+  <details class="einst" id="teacherSettings"><summary><span data-de="Einstellungen" data-en="Settings">Einstellungen</span><button type="button" class="einst-share" tabindex="-1" title="Diese Einstellungen als Link kopieren" data-de-title="Diese Einstellungen als Link kopieren" data-en-title="Copy these settings as a link" aria-label="Einstellungen als Link kopieren"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></button></summary><div id="teacherBody" style="margin-top:8px;"></div></details>
 
   <div id="mode-uebung">
     <div id="shapePick" class="pick-wrap"></div>
@@ -560,7 +577,7 @@ html.dark [style*="color:#555"],html.dark [style*="color:#3a4a3c"]{color:#b6c0c9
   <!-- ═══ Schwierigkeit über der Aufgabe ═══════════════════════════ -->
     <div id="topControls" class="nur-uebung">
       <div class="tc-item tc-diff">
-        <span class="tc-label" data-de="Schwierigkeit" data-en="Difficulty">Schwierigkeit</span>
+        <span class="tc-kopf"><span class="tc-label" data-de="Schwierigkeit" data-en="Difficulty">Schwierigkeit</span><button type="button" class="tc-reset" id="diffReset" title="Von Hand gesetzte Einstellungen lösen – wieder der Schwierigkeit überlassen" data-de-title="Von Hand gesetzte Einstellungen lösen – wieder der Schwierigkeit überlassen" data-en-title="Release settings you fixed yourself – let the difficulty decide again" aria-label="Von Hand gesetzte Einstellungen lösen">&#x21BA;</button></span>
         <div class="seg-switch diff-switch" id="segDiff">
           <input type="radio" name="diff" id="diffEinf" value="einf"><label for="diffEinf" data-de="Einführung" data-en="Introduction">Einführung</label>
           <input type="radio" name="diff" id="diffLeicht" value="leicht"><label for="diffLeicht" data-de="Leicht" data-en="Easy">Leicht</label>
@@ -2525,15 +2542,33 @@ function buildPropsBlock(){
 /* --- Schüler-Steuerleiste ----------------------------------------------- */
 function buildStudentPanel(){
   const p=$('#studentPanel'); p.innerHTML='';
-  const c1=el('div','ctl'); c1.appendChild(el('span','lbl',T('Aufgabentyp','Question type')));
+  /* Derselbe Rahmen wie die Aufgabenstile der Gleichungsseiten: aufklappbar,
+     mit Zaehler und einem Knopf alle/keine oben rechts. */
+  const c1=el('details','auswahl ctl'); c1.open=true;
+  const sm=document.createElement('summary');
+  sm.innerHTML='<span>'+T('Aufgabentyp','Question type')+'</span><span class="ausw-zahl" id="typZahl"></span>';
+  c1.appendChild(sm);
+  const alleKn=el('button','btn-secondary ausw-alle'); alleKn.type='button'; alleKn.id='typAlle';
+  on(alleKn,'click',ev=>{
+    ev.preventDefault(); ev.stopPropagation();
+    const ids=TYPESL().map(x=>x.id);
+    const an=state.types.length<ids.length;
+    /* Ganz leer waere keine gueltige Auswahl - dann bleibt die erste Art. */
+    state.types = an ? ids.slice() : ids.slice(0,1);
+    state.typenVonHand=true;
+    afterSettings();
+  });
+  c1.appendChild(alleKn);
   const liste=el('div','typ-list');
   TYPESL().forEach(t=>{
     const an_=state.types.indexOf(t.id)>=0;
     const c=el('button','typ'+(an_?' on':''));
     c.dataset.typ=t.id;
     c.innerHTML='<span class="tk">\u2713</span><span class="tt">'
-      +'<span class="tzaehler"></span><span class="tn"></span>'
-      +'<span class="td"></span></span>';
+      +'<span class="tn"></span>'
+      +'<span class="td"></span></span>'
+      /* Der Stand steht rechts am Rand, nicht im Namen. */
+      +'<span class="tpunkte"></span>';
     c.querySelector('.tn').innerHTML=t.short+sterneHTML(TYP_STERNE[t.id]||0);
     c.querySelector('.td').textContent=t.desc;
     on(c,'click',()=>{
@@ -2545,6 +2580,7 @@ function buildStudentPanel(){
   });
   c1.appendChild(liste);
   p.appendChild(c1);
+  typKopfMalen();
   markiereAktuell();
   if(!IS_F){
     const c2=el('div','ctl'); c2.appendChild(el('span','lbl',T('Erlaubte Ansichten','Views allowed')));
@@ -2555,6 +2591,17 @@ function buildStudentPanel(){
       afterSettings();
     }));
     p.appendChild(c2);
+  }
+}
+/** Zaehler und Beschriftung des Knopfs ueber den Aufgabentypen. */
+function typKopfMalen(){
+  const ids=TYPESL().map(x=>x.id);
+  const z=document.getElementById('typZahl');
+  if(z) z.textContent=' ('+state.types.length+'/'+ids.length+')';
+  const a=document.getElementById('typAlle');
+  if(a){
+    a.hidden = ids.length < 4;
+    a.textContent = (state.types.length>=ids.length) ? T('keine','none') : T('alle','all');
   }
 }
 /* Der gerade verwendete Aufgabentyp bekommt einen Rahmen - so ist erkennbar,
@@ -3441,8 +3488,9 @@ function updateStat(){
 /* Die Zähler an den Kacheln nachtragen. */
 function zaehlerMalen(){
   $$('#studentPanel .typ').forEach(b=>{
-    const e=$('.tzaehler',b); if(!e) return;
+    const e=$('.tpunkte',b); if(!e) return;
     const w=scoreTyp[b.dataset.typ||b.dataset.v];
+    /* Genau wie auf den uebrigen Aufgabenseiten. */
     e.textContent=(w&&w.n>0)?(w.ok+'/'+w.n):'';
   });
 }
@@ -3536,9 +3584,10 @@ function renderTask(){
     else answerPics(card,t);
   }
   const mini=answerMini(t); if(mini) card.appendChild(mini);
-  const act=el('div','act-row main-act center');
-  const hb=el('button','btn-hint',T('Hilfe','Help')); hb.dataset.merk='hilfe'; on(hb,'click',()=>toggleHelp(card,t)); act.appendChild(hb);
-  card.appendChild(act);
+  /* Die Hilfe ist ein Klappbereich wie das Quiz auf den anderen Seiten:
+     ein gelber Reiter mit Pfeil, der Inhalt haengt darunter. Vorher war es
+     ein Knopf, den man zum Schliessen noch einmal druecken musste. */
+  card.appendChild(hilfeKlapp(t));
   host.appendChild(card);
   outerButtons();
   updateStat();
@@ -3716,7 +3765,8 @@ function answerPics(card,t){
   card.appendChild(grid);
   card.appendChild(presentMini());
   if(state.quizMode==='alle'){
-    const act=el('div','act-row'); const pb=el('button','btn-sol',T('Prüfen','Check')); pb.dataset.merk='pruefen';
+    /* Pruefen steht mittig - wie in den uebrigen Antwortarten. */
+    const act=el('div','act-row center pruef'); const pb=el('button','btn-sol',T('Prüfen','Check')); pb.dataset.merk='pruefen';
     on(pb,'click',()=>{ if(t.done)return; t.done=true; pb.disabled=true;
       let miss=0,wrong=0;
       $$('.pick',grid).forEach((d,i)=>{ const should=t.pics[i].tags.has(t.askId), has=sel.has(i);
@@ -3746,7 +3796,7 @@ function answerBuild(card,t){
   const kind=(t.fam==='kreis')?'kreis':t.fam;
   const b=makeBuilder(wrap,{compact:true,kind:kind,quiet:true,onChange:null,memo:(t.bauMemo||(t.bauMemo={}))});
   const why=el('div','why');
-  const act=el('div','act-row');
+  const act=el('div','act-row center pruef');
   const pb=el('button','btn-sol',T('Prüfen','Check')); pb.dataset.merk='pruefen';
   on(pb,'click',()=>{
     const fig=b.getFig();
@@ -3815,8 +3865,22 @@ function showSolution(card,t,selfCheck,extra){
   card.insertBefore(box, anchor&&anchor.parentNode===card?anchor:null);
 }
 /* Hilfe: erst das Haus der Vierecke, dann die Merkmale */
-function toggleHelp(card,t){
-  const old=card.querySelector('.help-box'); if(old){old.remove();return;}
+/** Der Klappbereich mit der Hilfe. Der Inhalt entsteht erst beim ersten
+    Aufklappen - er ist bei vielen Unterarten nicht ganz billig. */
+function hilfeKlapp(t){
+  const d=el('details','quizklapp hilfe-klapp main-act');
+  const s=document.createElement('summary');
+  s.dataset.merk='hilfe';
+  s.innerHTML='<span class="linie" aria-hidden="true"></span><span class="reiter">'
+    +T('Hilfe','Help')+'</span><span class="linie" aria-hidden="true"></span>';
+  d.appendChild(s);
+  d.addEventListener('toggle',()=>{
+    if(!d.open || d.querySelector('.help-box')) return;
+    d.appendChild(hilfeInhalt(t));
+  });
+  return d;
+}
+function hilfeInhalt(t){
   const box=el('div','help-box'); box.appendChild(el('h4',null,T('Woran erkennt man das?','How can you tell?')));
   if(IS_F&&t.fam==='viereck'&&state.hausShow){
     const d=el('div'); d.innerHTML=hausSVG(new Set(),null);
@@ -3829,8 +3893,7 @@ function toggleHelp(card,t){
     dl.appendChild(el('dd',null,(PROPSL()[id]||['—'])[0]));
   });
   box.appendChild(dl);
-  const anchor=card.querySelector('.main-act');
-  card.insertBefore(box, anchor&&anchor.parentNode===card?anchor:null);
+  return box;
 }
 /* =======================================================================
    8. Baubereich — Erkundungsmodus und „selbst bauen"
@@ -4662,6 +4725,16 @@ document.addEventListener('DOMContentLoaded',boot);
 /* ── Schwierigkeitsschalter über der Aufgabe ─────────────────────────────── */
 document.addEventListener('DOMContentLoaded', () => {
   stufeSetzen(state.diff || 'normal');
+  /* Der kleine Knopf daneben löst alles, was von Hand festgelegt wurde -
+     ab dann bestimmt wieder die Stufe. */
+  const diffReset = document.getElementById('diffReset');
+  if (diffReset) diffReset.addEventListener('click', () => {
+    state.typenVonHand = false; state.darstVonHand = false; state.lageVonHand = false;
+    const st = stufe();
+    if (st !== 'indiv') stufeAnwenden(st);
+    buildSettings(); buildStudentPanel(); serialize();
+    newTask(); renderTask();
+  });
   document.querySelectorAll('input[name="diff"]').forEach(e =>
     e.addEventListener('change', () => {
       if (!e.checked) return;

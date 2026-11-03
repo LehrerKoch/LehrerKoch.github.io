@@ -299,6 +299,10 @@ details[open] > summary::before {
   transition: color 0.15s; margin-left: 2px;
 }
 #shareBtn:hover { color: #333; }
+/* Im Dunkelmodus wurde das Zeichen beim Daraufzeigen fast schwarz - also
+   genau andersherum als gewollt. Dort wird es jetzt heller. */
+html.dark #shareBtn { color: #9aa5b1; }
+html.dark #shareBtn:hover { color: #cfe3f5; }
 
 /* ─── Hebräisch Normalschrift: Noto Sans Hebrew (deckt auch Nikud-Kreise ab) ─── */
 body.lang-hebrew .big-char,
@@ -434,6 +438,16 @@ html.dark #helpSummary span { border-bottom-color:#4a545e !important; }
 html.dark #toast { background:#2e3840; color:#e7eae8; }
 html.dark #resetScoreBtn, html.dark #undoBtn { border-color:#4a545e !important; color:#b6c0c9 !important; }
 html.dark .site-footer { border-top-color:#3a434b; color:#9aa5b1; }
+
+/* Waehrend die Karte gezogen wird, ragt sie ueber den Rand hinaus. Ohne
+   diese Zeile blendet der Browser dafuer unten eine waagerechte
+   Scrollleiste ein - und die springt bei jedem Zug ins Bild. */
+html.karte-zieht, html.karte-zieht body{ overflow-x:hidden; }
+
+/* Toene fuer das Einfaerben beim Ziehen - dieselben wie auf der Seite
+   "Ableitungen". Im Dunkelmodus gedeckt, sonst leuchtet die halbe Karte. */
+:root{ --tint-richtig:212,237,218; --tint-falsch:248,215,218; }
+html.dark{ --tint-richtig:30,70,32; --tint-falsch:74,32,32; }
 </style>
 </head>
 <body class="tk-seite">
@@ -1316,7 +1330,8 @@ document.getElementById('correctBtn').onclick = () => markAnswer(true);
 document.getElementById('undoBtn').onclick = undoLastAction;
 document.getElementById('languageSelect').onchange = (e) => { currentLanguage = e.target.value; updateBodyClass(); renderLetterSettings(); updateURL(); resetAndNewTask(); };
 
-const handleStart = (e) => { startX = e.clientX || (e.touches && e.touches[0].clientX); card.style.transition = 'none'; };
+const handleStart = (e) => {
+  document.documentElement.classList.add('karte-zieht'); startX = e.clientX || (e.touches && e.touches[0].clientX); card.style.transition = 'none'; };
 const handleMove = (e) => {
   if (startX === null || document.getElementById('helpDetails').open) return;
   if (e.cancelable) e.preventDefault(); // iOS: verhindert "scroll-recovery"-Zustand nach Swipe
@@ -1324,9 +1339,15 @@ const handleMove = (e) => {
   const rot = card.classList.contains('flipped') ? 180 : 0;
   card.style.transform = `translate(calc(-50% + ${currentX}px), -50%) rotateY(${rot}deg)`;
   const intensity = Math.min(Math.abs(currentX)/(card.parentElement.offsetWidth * 0.25), 0.8);
-  faces.forEach(f => f.style.backgroundColor = currentX > 0 ? `rgba(212,237,218,${intensity})` : `rgba(248,215,218,${intensity})`);
+  /* Dieselben Toene wie auf der Seite "Ableitungen" - im Dunkelmodus
+     schalten die Variablen auf gedeckte Werte um. */
+  const tint = getComputedStyle(document.documentElement)
+    .getPropertyValue(currentX > 0 ? '--tint-richtig' : '--tint-falsch').trim()
+    || (currentX > 0 ? '212,237,218' : '248,215,218');
+  faces.forEach(f => f.style.backgroundColor = `rgba(${tint},${intensity})`);
 };
 const handleEnd = () => {
+  document.documentElement.classList.remove('karte-zieht');
   if (startX === null) return;
   const threshold = card.parentElement.offsetWidth * 0.25;
   const triggered = currentX > threshold || currentX < -threshold;

@@ -187,7 +187,8 @@ const cardsData = [
     "fach": "Mathematik",
     "stufe": [9, 10],
     "wichtig": true,
-    "added": "2026-10-14",
+    "added": "2025-09-14",
+    "major": "2026-10-14",
     "extra": false
   },
   {
@@ -230,7 +231,7 @@ const cardsData = [
     "mobilefriendly": true,
     "link": "nullprodukt.html",
     "fach": "Mathematik",
-    "stufe": [9, 10],
+    "stufe": [9, 10, "Abi"],
     "wichtig": false,
     "added": "2026-10-14",
     "extra": false
@@ -245,7 +246,7 @@ const cardsData = [
     "mobilefriendly": true,
     "link": "nullstelle_raten.html",
     "fach": "Mathematik",
-    "stufe": [10, 11, "Abi"],
+    "stufe": [10, "Abi"],
     "wichtig": false,
     "added": "2026-10-15",
     "extra": false
@@ -418,8 +419,8 @@ const cardsData = [
   },
   {
     "id": "wendestellen",
-    "title": "Wendestellen und Wendepunkte",
-    "title_en": "Points of Inflection",
+    "title": "Wendestellen und Krümmung",
+    "title_en": "Points of Inflection and Curvature",
     "desc": "Übe Krümmung, Wendestellen, Wendetangente und Sattelpunkte von Polynomfunktionen",
     "desc_en": "Practise curvature, points of inflection, inflectional tangents and saddle points of polynomial functions",
     "types": ["learn"],
@@ -427,7 +428,7 @@ const cardsData = [
     "link": "wendestellen.html",
     "fach": "Mathematik",
     "stufe": ["Abi"],
-    "wichtig": true,
+    "wichtig": false,
     "added": "2026-10-25",
     "extra": false
   },
@@ -605,20 +606,20 @@ const cardsData = [
     // "major": "2026-04-14",
     "extra": false
   },
-  {
-    "id": "geo-3DKoord",
-    "title": "OLD: Geogebra 3D-Koordinatensystem einzeichnen",
-    "title_en": "OLD: GeoGebra 3D Coordinate System",
-    "desc": "Visualisierung des 3-dimensionalen Koordinatensystems",
-    "desc_en": "Visualisation of the three-dimensional coordinate system",
-    "types": ["learn"],
-    "mobilefriendly": true,
-    "link": "koordinatensystem3d.html",
-    "fach": "Mathematik",
-    "stufe": [10, "Abi"],
-    "wichtig": false,
-    "extra": false
-  },
+  // {
+  //   "id": "geo-3DKoord",
+  //   "title": "OLD: Geogebra 3D-Koordinatensystem einzeichnen",
+  //   "title_en": "OLD: GeoGebra 3D Coordinate System",
+  //   "desc": "Visualisierung des 3-dimensionalen Koordinatensystems",
+  //   "desc_en": "Visualisation of the three-dimensional coordinate system",
+  //   "types": ["learn"],
+  //   "mobilefriendly": true,
+  //   "link": "koordinatensystem3d.html",
+  //   "fach": "Mathematik",
+  //   "stufe": [10, "Abi"],
+  //   "wichtig": false,
+  //   "extra": false
+  // },
   {
     "id": "koordinatensystem3d",
     "title": "3D-Koordinatensystem einzeichnen",
@@ -630,7 +631,7 @@ const cardsData = [
     "link": "koordinatensystem3d.html",
     "fach": "Mathematik",
     "stufe": ["Abi"],
-    "wichtig": true,
+    "wichtig": false,
     "added": "2026-09-11",
     // "major": "2026-04-14",
     "extra": false

@@ -357,7 +357,8 @@
       'html.dark .tl-knopf{background:var(--tl-knopf-bg-dunkel,#1e2429)!important;color:var(--tl-knopf-text-dunkel,#e7eae8)!important;' +
         'border-color:var(--tl-knopf-rand-dunkel,#3a434b)!important;box-shadow:0 1px 4px rgba(0,0,0,0.55);}' +
       '@media (hover:hover) and (pointer:fine){.tl-knopf:hover{filter:brightness(0.95);}}' +
-      '@media (max-width:500px){.tl-knopf{width:34px!important;height:34px!important;font-size:1.05em!important;}' +
+      /* Derselbe Umbruchpunkt wie Kopfzeile und Aufgabentypen (860px). */
+      '@media (max-width:860px){.tl-knopf{width:34px!important;height:34px!important;font-size:1.05em!important;}' +
         '.tl-knopf.tl-sprachknopf{font-size:0.75em!important;}' +
         '.tl-knopf.tl-meldenknopf{font-size:0.9em!important;}' +
         '.tl-schalter{gap:6px;}}';
@@ -471,4 +472,53 @@
   } else {
     start();
   }
+})();
+
+/* ═══ Ersatz für :has() auf älteren Browsern ═════════════════════════════
+   Manche Geräte im Klassenraum (etwa ein Promethean-Board) bringen einen
+   älteren Chromium mit, der den Selektor :has() noch nicht kennt. Eine Regel
+   mit einem unbekannten Selektor wirft der Browser komplett weg - angekreuzte
+   Kästchen blieben dann farblos. Hier werden stattdessen Klassen gesetzt, für
+   die die Stylesheets eigene Regeln mitbringen.                           */
+(function(){
+  var kann = false;
+  try { kann = !!(window.CSS && CSS.supports && CSS.supports('selector(:has(*))')); }
+  catch (e) { kann = false; }
+  if (kann) return;
+  document.documentElement.classList.add('kein-has');
+
+  function malen(){
+    try {
+      document.querySelectorAll('label.pill, .mini-seg label, label.kippknopf, .seg label')
+        .forEach(function(l){
+          var i = l.querySelector('input');
+          if (i) l.classList.toggle('on', !!i.checked);
+        });
+      document.querySelectorAll('.tile').forEach(function(t){
+        t.classList.toggle('mit-arr', !!t.querySelector('.arr'));
+      });
+      document.querySelectorAll('.pill .pname').forEach(function(n){
+        n.classList.toggle('mit-sterne', !!n.querySelector('.sterne'));
+      });
+      document.querySelectorAll('.einst .row').forEach(function(r){
+        var i = r.querySelector('input');
+        r.classList.toggle('aus', !!(i && i.disabled));
+      });
+      document.querySelectorAll('.qz-inp-row').forEach(function(r){
+        r.classList.toggle('mit-fterm', !!r.querySelector('.fterm'));
+      });
+      if (document.body) document.body.classList.toggle('hat-fuss', !!document.querySelector('.site-footer'));
+    } catch (e) {}
+  }
+  var bald = null;
+  function baldMalen(){ clearTimeout(bald); bald = setTimeout(malen, 0); }
+  document.addEventListener('change', baldMalen, true);
+  document.addEventListener('click', baldMalen, true);
+  document.addEventListener('input', baldMalen, true);
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', malen);
+  else malen();
+  window.addEventListener('load', malen);
+  /* Die Seiten bauen ihre Kacheln und Chips neu - danach noch einmal. */
+  window.tlHasMalen = malen;
+  window.addEventListener('tl-sprache', baldMalen);
 })();

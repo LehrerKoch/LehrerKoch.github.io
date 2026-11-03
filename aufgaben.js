@@ -315,9 +315,11 @@
         ? '<span class="pname"></span><span class="pzahl"></span>' + pfeil
         : ('<span class="tk">\u2713</span>'
           + '<span class="ttext">'
-          +   '<span class="tname"></span><span class="tzaehler"></span>'
+          +   '<span class="tname"></span>'
           +   '<span class="tsub"></span>'
-          + '</span>' + pfeil);
+          + '</span>'
+          /* Der Stand steht rechts am Rand, nicht im Namen. */
+          + '<span class="tpunkte"></span>' + pfeil);
       host.appendChild(b);
 
       var timer = null, langGedrueckt = false;
@@ -477,10 +479,10 @@
     host._arten.forEach(function(art, nr){
       var b = host.querySelector('.tile[data-t="' + (art.haupt || ('gruppe' + nr)) + '"]');
       if (!b) return;
-      var e = b.querySelector('.tzaehler');
+      var e = b.querySelector('.tpunkte');
       if (!e) return;
       var w = art.haupt ? z[art.haupt] : null;
-      e.textContent = (w && w.n > 0) ? ('(' + w.ok + '/' + w.n + ')') : '';
+      e.textContent = (w && w.n > 0) ? (w.ok + '/' + w.n) : '';
     });
   }
   function abKachelZaehler(host, werte){
@@ -703,9 +705,12 @@
   function autoKnoepfe(){
     return [].slice.call(document.querySelectorAll(AUTO.wahl))
       .filter(function(b){
-        /* Nebenknöpfe (Punktestand, Zurücksetzen, Teilen) gehören nicht dazu. */
+        /* Nebenknöpfe (Punktestand, Zurücksetzen, Teilen, „Eigene Aufgabe")
+           gehören nicht dazu: der Lichtbogen sagt „hier kommt die nächste
+           Aufgabe her" - das stimmt nur für den Generieren-Knopf. */
         return !b.closest('.punkte') && !b.classList.contains('share-btn')
-            && !b.classList.contains('zb-reset') && !b.classList.contains('sb-reset');
+            && !b.classList.contains('zb-reset') && !b.classList.contains('sb-reset')
+            && !b.classList.contains('btn-secondary') && b.id !== 'manualBtn';
       });
   }
   function abAutoAn(){ return !!(AUTO.an && AUTO.moeglich()); }
@@ -800,6 +805,36 @@
     ov.style.opacity = dunkel ? '.6' : '.42';
     setTimeout(function(){ ov.style.transition = 'opacity .9s'; ov.style.opacity = '0'; }, 60);
   }
+
+  /* ── Teilen-Zeichen im Summary des Einstellungsbereichs ──────────────
+     Jede Seite hat unten im Bereich schon einen Knopf, der einen Link auf
+     genau diese Einstellungen kopiert. Das Zeichen oben drueckt ihn - so
+     bleibt ueberall dasselbe im Link, und keine Seite braucht dafuer
+     eigenen Code. */
+  function einstShareKnopf(wo){
+    return document.getElementById('btnShare')
+        || (wo && wo.querySelector('.share-line .share-btn'))
+        || document.querySelector('.einst .share-line .share-btn');
+  }
+  function abEinstShare(){
+    document.querySelectorAll('.einst > summary .einst-share').forEach(function(k){
+      if (k._abShare) return;
+      k._abShare = true;
+      k.addEventListener('click', function(ev){
+        /* Sonst klappt der ganze Bereich beim Druck auf das Zeichen um. */
+        ev.preventDefault(); ev.stopPropagation();
+        var ziel = einstShareKnopf(k.closest('.einst'));
+        if (!ziel) return;
+        ziel.click();
+        k.classList.add('copied');
+        setTimeout(function(){ k.classList.remove('copied'); }, 1400);
+      });
+    });
+  }
+  if (document.readyState === 'loading')
+    document.addEventListener('DOMContentLoaded', abEinstShare);
+  else abEinstShare();
+  window.abEinstShare = abEinstShare;
 
   window.abAutoStart = abAutoStart;
   window.abAutoNeu = abAutoNeu;

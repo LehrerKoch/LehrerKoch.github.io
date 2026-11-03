@@ -38,6 +38,19 @@ const typesData = [
     "linkLabel": "Zum Tool",
     "linkLabel_en": "Open the tool"
   },
+  // {
+  //   "id": "visuals",
+  //   "label": "Visualisierungen",
+  //   "label_en": "Visualisations",
+  //   "icon": "🎨",
+  //   "iconType": "emoji",
+  //   "color": "#8b5cf6",
+  //   "colorBg": "rgba(139,92,246,0.08)",
+  //   "tooltip": "Dynamische Visualisierungen zur Veranschaulichung mathematischer Konzepte",
+  //   "tooltip_en": "Dynamic visualisations to illustrate mathematical concepts",
+  //   "linkLabel": "Zu den Visualisierungen",
+  //   "linkLabel_en": "View the visualisations"
+  // },
   {
     "id": "flash",
     "label": "Flashcards",

@@ -39,7 +39,7 @@ window.TK_GA_ID = 'G-5K8WYYXDL2';
 </header>
 
 <details class="einst" id="dSettings">
-<summary data-de="Einstellungen" data-en="Settings">Einstellungen</summary>
+<summary><span data-de="Einstellungen" data-en="Settings">Einstellungen</span><button type="button" class="einst-share" tabindex="-1" title="Diese Einstellungen als Link kopieren" data-de-title="Diese Einstellungen als Link kopieren" data-en-title="Copy these settings as a link" aria-label="Einstellungen als Link kopieren"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></button></summary>
 <div class="settings-grid">
 
   <div class="form-block">
@@ -123,7 +123,7 @@ window.TK_GA_ID = 'G-5K8WYYXDL2';
     <div class="pills" id="segKlam"></div>
   </div>
   <div class="tc-item tc-diff tc-mitte">
-    <span class="tc-label" data-de="Schwierigkeit" data-en="Difficulty">Schwierigkeit</span>
+    <span class="tc-kopf"><span class="tc-label" data-de="Schwierigkeit" data-en="Difficulty">Schwierigkeit</span><button type="button" class="tc-reset" id="diffReset" title="Von Hand gesetzte Einstellungen lösen – wieder der Schwierigkeit überlassen" data-de-title="Von Hand gesetzte Einstellungen lösen – wieder der Schwierigkeit überlassen" data-en-title="Release settings you fixed yourself – let the difficulty decide again" aria-label="Von Hand gesetzte Einstellungen lösen">&#x21BA;</button></span>
     <div class="seg-switch diff-switch" id="segDiff">
       <input type="radio" name="diff" id="diffEinf" value="einf"><label for="diffEinf" data-de="Einführung" data-en="Introduction">Einführung</label>
       <input type="radio" name="diff" id="diffLeicht" value="leicht"><label for="diffLeicht" data-de="Leicht" data-en="Easy">Leicht</label>
@@ -156,7 +156,7 @@ window.TK_GA_ID = 'G-5K8WYYXDL2';
 <div class="task" id="taskBox">
   <div class="task-head">
     <h2 data-de="Aufgabe" data-en="Task">Aufgabe</h2>
-    <button class="share-btn" id="btnTeilen" title="Diese Aufgabe teilen (Link kopieren)" data-de-title="Diese Aufgabe teilen (Link kopieren)" data-en-title="Share this task (copy link)" data-de="🔗&nbsp;Teilen" data-en="🔗&nbsp;Share">🔗&nbsp;Teilen</button>
+    <button class="share-btn" id="btnTeilen" title="Diese Aufgabe teilen (Link kopieren)" data-de-title="Diese Aufgabe teilen (Link kopieren)" data-en-title="Share this task (copy link)" data-de='🔗<span class="sh-text">&nbsp;Teilen</span>' data-en='🔗<span class="sh-text">&nbsp;Share</span>'>🔗<span class="sh-text">&nbsp;Teilen</span></button>
   </div>
 
   <p id="taskText" class="task-hinweis"></p>
@@ -523,6 +523,8 @@ function zeichne(){
   loesungZeichnen(); antwortZeichnen(); quizBauen();
   var d = document.getElementById('dLoesung'); if (d) d.open = false;
   var w = document.getElementById('dWeg'); if (w) w.open = false;
+  /* Auch das Quiz faellt zu: seine Schritte gehoerten zur alten Aufgabe. */
+  var q = document.getElementById('quizDetails'); if (q) q.open = false;
   mj(document.getElementById('taskBox'));
 }
 /* Formeln setzen. Zwei Dinge sind dabei wichtig:
@@ -1083,6 +1085,16 @@ window.addEventListener('load', function(){
   });
   document.querySelectorAll('#faktorisieren, #mitSkizze').forEach(function(e){
     e.addEventListener('change', function(){ aufIndividuell(); if (A) loesungZeichnen(); });
+  });
+  var diffReset = document.getElementById('diffReset');
+  if (diffReset) diffReset.addEventListener('click', function(){
+    /* Alles, was von Hand steht, wird wieder freigegeben; danach setzt die
+       Stufe ihre Werte erneut. */
+    VON_HAND = {};
+    var st = radioWert('diff');
+    if (st && st !== 'indiv') stufeAnwenden(st);
+    obenAbgleichen();
+    neueAufgabe();
   });
   document.querySelectorAll('input[name="diff"]').forEach(function(e){
     e.addEventListener('change', function(){

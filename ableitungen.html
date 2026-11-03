@@ -119,7 +119,12 @@
       white-space: nowrap;
     }
     html.dark #toast { background:#e7eae8; color:#14181c; }
-  </style>
+  
+/* Waehrend die Karte gezogen wird, ragt sie ueber den Rand hinaus. Ohne
+   diese Zeile blendet der Browser dafuer unten eine waagerechte
+   Scrollleiste ein - und die springt bei jedem Zug ins Bild. */
+html.karte-zieht, html.karte-zieht body{ overflow-x:hidden; }
+</style>
 </head>
 <body class="tk-seite">
   <div id="flashOverlay"></div>
@@ -342,7 +347,8 @@ card.ontouchend   = (e) => {
   handleEnd();
 };
 
-const handleStart = (e) => { startX = e.clientX || (e.touches && e.touches[0].clientX); card.style.transition = 'none'; };
+const handleStart = (e) => {
+  document.documentElement.classList.add('karte-zieht'); startX = e.clientX || (e.touches && e.touches[0].clientX); card.style.transition = 'none'; };
 const handleMove  = (e) => {
   if (startX === null) return;
   currentX = (e.clientX || (e.touches && e.touches[0].clientX)) - startX;
@@ -353,6 +359,7 @@ const handleMove  = (e) => {
   faces.forEach(f => f.style.backgroundColor = `rgba(${tint},${intensity})`);
 };
 const handleEnd = () => {
+  document.documentElement.classList.remove('karte-zieht');
   if (startX === null) return;
   const threshold = card.parentElement.offsetWidth * 0.25;
   const triggered = currentX > threshold || currentX < -threshold;

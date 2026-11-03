@@ -7,7 +7,7 @@ const categoriesData = [
     "iconType": "text",
     "tooltip": "Grundlegende Algebra, Gleichungen und Gleichungssysteme",
     "tooltip_en": "Basic algebra, equations and systems of linear equations",
-    "cards": ["potenzen", "sciNot", "potenzgesetze", "waage", "zahlbereiche", "graphen", "gleichungart", "lgs"]
+    "cards": ["zahlbereiche", "graphen"]
   },
   {
     "id": "raumUndForm",
@@ -20,6 +20,16 @@ const categoriesData = [
     "cards": ["flaechen_erkennen", "flaecheninhalte", "koerper_erkennen","volumen", "groessen_umrechnen"]
   },
   {
+    "id": "linear",
+    "title": "Lineare Funktionen & Gleichungen",
+    "title_en": "Linear Functions & Equations",
+    "icon": "=",
+    "iconType": "text",
+    "tooltip": "Lineare Funktionen, Gleichungen und Gleichungssysteme",
+    "tooltip_en": "Linear functions, equations and systems of linear equations",
+    "cards": ["waage", "lgs"]
+  },
+  {
     "id": "quadratisch",
     "title": "Quadratische Funktionen",
     "title_en": "Quadratic Functions",
@@ -27,17 +37,20 @@ const categoriesData = [
     "iconType": "svg",
     "tooltip": "Quadratische Funktionen, Scheitelpunktform und p-q-Formel",
     "tooltip_en": "Quadratic functions, vertex form and the p-q formula",
-    "cards": ["scheitelpunktform", "geo-scheitelpunkt", "pq"]
+    "cards": ["scheitelpunktform", "geo-scheitelpunkt", 
+      "quadratische-gleichungen"
+      // "pq"
+    ]
   },
   {
-    "id": "gleichungen",
-    "title": "Polynomgleichungen lösen",
-    "title_en": "Solving Polynomial Equations",
-    "icon": "svg:wurzel",
-    "iconType": "svg",
-    "tooltip": "Potenz-, quadratische und höhere Gleichungen Schritt für Schritt lösen",
-    "tooltip_en": "Solving power, quadratic and higher-degree equations step by step",
-    "cards": ["quadratische-gleichungen", "potenzgleichungen", "nullprodukt", "ausklammern", "biquadratische-gleichungen", "nullstelle-raten"]
+    "id": "potenzen",
+    "title": "Potenzen, Potenzgesetze &amp; Wurzeln",
+    "title_en": "Powers, Power Rules &amp; Roots",
+    "icon": "ⁿ√",
+    "iconType": "text",
+    "tooltip": "Potenzgesetze, Wurzelgesetze und ihre Anwendungen",
+    "tooltip_en": "Power rules, root rules and their applications",
+    "cards": ["potenzen", "sciNot", "potenzgesetze"]
   },
   {
     "id": "polynome",
@@ -50,6 +63,16 @@ const categoriesData = [
     "cards": ["geo-potparam", "geo-koSymm", "grenzverhalten-poly", "polynom-reko"]
   },
   {
+    "id": "gleichungen",
+    "title": "Polynomgleichungen lösen",
+    "title_en": "Solving Polynomial Equations",
+    "icon": "svg:wurzel",
+    "iconType": "svg",
+    "tooltip": "Potenz-, quadratische und höhere Gleichungen Schritt für Schritt lösen",
+    "tooltip_en": "Solving power, quadratic and higher-degree equations step by step",
+    "cards": ["gleichungart", "quadratische-gleichungen", "potenzgleichungen", "nullprodukt", "ausklammern", "biquadratische-gleichungen", "nullstelle-raten"]
+  },
+  {
     "id": "ableitungen",
     "title": "Differentialrechnung &amp; Ableitungen",
     "title_en": "Differential Calculus &amp; Derivatives",
@@ -57,7 +80,7 @@ const categoriesData = [
     "iconType": "text",
     "tooltip": "Ableitungsregeln von der Potenzregel bis zur Ketten- und Produktregel",
     "tooltip_en": "Differentiation rules from the power rule to the chain and product rules",
-    "cards": ["polynom-ableitung", "ableitungen", "kettenregel", "produktregel", "steigung_tangenten", "extremstellen", "wendestellen"]
+    "cards": ["polynom-ableitung", "steigung_tangenten", "extremstellen", "wendestellen", "ableitungen", "kettenregel", "produktregel", ]
   },
   {
     "id": "efkt",
@@ -87,7 +110,9 @@ const categoriesData = [
     "iconType": "text",
     "tooltip": "Vektoren im 2D- und 3D-Koordinatensystem, Basistransformation",
     "tooltip_en": "Vectors in 2D and 3D coordinate systems, change of basis",
-    "cards": ["koordinatensystem3d", "vektoren_grundlagen", "skalar_kreuzprodukt", "geraden_grundlagen", "lage_gerade_gerade", "ebenen_grundlagen", "lage_gerade_ebene", "lage_ebene_ebene", "abstaende", "analytische_geometrie", "geo-3DKoord", "geo-koBasis"]
+    "cards": ["koordinatensystem3d", "vektoren_grundlagen", "skalar_kreuzprodukt", "geraden_grundlagen", "lage_gerade_gerade", "ebenen_grundlagen", "lage_gerade_ebene", "lage_ebene_ebene", "abstaende", "analytische_geometrie", 
+      // "geo-3DKoord", 
+      "geo-koBasis"]
   },
   {
     "id": "trig",

@@ -243,7 +243,17 @@
     html.dark #nextTaskBtn { background: #23372a !important; color: #b6e3bd !important; }
     html.dark #nextTaskBtn:hover { background: #2c4633 !important; }
     html.dark #toast { background: #2e3840; color: #e7eae8; }
-  </style>
+  
+/* Waehrend die Karte gezogen wird, ragt sie ueber den Rand hinaus. Ohne
+   diese Zeile blendet der Browser dafuer unten eine waagerechte
+   Scrollleiste ein - und die springt bei jedem Zug ins Bild. */
+html.karte-zieht, html.karte-zieht body{ overflow-x:hidden; }
+
+/* Toene fuer das Einfaerben beim Ziehen - dieselben wie auf der Seite
+   "Ableitungen". Im Dunkelmodus gedeckt, sonst leuchtet die halbe Karte. */
+:root{ --tint-richtig:212,237,218; --tint-falsch:248,215,218; }
+html.dark{ --tint-richtig:30,70,32; --tint-falsch:74,32,32; }
+</style>
 <script src="einwilligung.js" defer></script>
 </head>
 <body class="tk-seite">
@@ -2155,6 +2165,7 @@ card.ontouchend   = (e) => {
 };
 
 const handleStart = (e) => {
+  document.documentElement.classList.add('karte-zieht');
   if (isEingabeModus()) return;
   startX = e.clientX || (e.touches && e.touches[0].clientX);
   card.style.transition = 'none';
@@ -2166,9 +2177,15 @@ const handleMove = (e) => {
   const rot = card.classList.contains('flipped') ? 180 : 0;
   card.style.transform = `translate(calc(-50% + ${currentX}px), -50%) rotateY(${rot}deg)`;
   const intensity = Math.min(Math.abs(currentX) / (card.parentElement.offsetWidth * 0.25), 0.8);
-  faces.forEach(f => f.style.backgroundColor = currentX > 0 ? `rgba(212,237,218,${intensity})` : `rgba(248,215,218,${intensity})`);
+  /* Dieselben Toene wie auf der Seite "Ableitungen" - im Dunkelmodus
+     schalten die Variablen auf gedeckte Werte um. */
+  const tint = getComputedStyle(document.documentElement)
+    .getPropertyValue(currentX > 0 ? '--tint-richtig' : '--tint-falsch').trim()
+    || (currentX > 0 ? '212,237,218' : '248,215,218');
+  faces.forEach(f => f.style.backgroundColor = `rgba(${tint},${intensity})`);
 };
 const handleEnd = () => {
+  document.documentElement.classList.remove('karte-zieht');
   if (startX === null) return;
   const threshold = card.parentElement.offsetWidth * 0.25;
   const triggered = currentX > threshold || currentX < -threshold;

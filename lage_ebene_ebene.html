@@ -261,10 +261,16 @@ mjx-container{ margin:2px 0 !important; }
 .qh-box .qz-kette{ border-bottom-color:#e8d48a; }
 .qh-box .qz-kette-teil{ background:#f7e6b0; color:#4a3a00; }/* ===== Quiz als Hilfe ===== */
 /* Auftritt wie auf den Gleichungsseiten: gelber Reiter über gelbem Kasten */
-.qh-wrap{ margin:10px 0 2px; }
-.hilfe-btn{ display:block; margin:0 auto; background:#f6c445; color:#4a3a00 !important;
+.qh-wrap{ margin:14px 0 6px; }
+/* Derselbe Reiter wie auf den Gleichungsseiten (details.quizklapp in
+   aufgaben.css): gleiche Farbe, gleiche Groesse, gleiche Rundung. Die
+   Lage-Seiten laden aufgaben.css nicht, darum steht der Wert hinter dem
+   Komma noch einmal als Rueckfall. */
+.hilfe-btn{ display:block; margin:0 auto; background:var(--ab-ge-knopf, #E0A800);
+  color:var(--ab-ge-schrift, #3a2c00) !important;
   border:none; font-weight:bold; font-size:.95em; line-height:1.3;
-  padding:9px 18px; border-radius:20px; white-space:nowrap; }
+  padding:9px 18px; border-radius:20px; white-space:nowrap;
+  transition:border-radius .15s; }
 .hilfe-btn:hover{ filter:brightness(1.05); }
 .qh-wrap.auf .hilfe-btn{ border-radius:20px 20px 0 0; }
 .qh-kopfzeile{ display:flex; align-items:flex-end; justify-content:center; }
@@ -290,7 +296,8 @@ html.dark .qh-linie{ border-top-color:#5a5024; }
 .qh-step{ border-top:1px solid #efe2b8; }
 .qh-nr{ background:#d9ab32; }
 .qh-sub{ color:#8a7330; }
-html.dark .hilfe-btn{ background:#6d5a24; color:#ffe9a8 !important; }
+html.dark .hilfe-btn{ background:var(--ab-ge-knopf, #E0A800);
+  color:var(--ab-ge-schrift, #3a2c00) !important; }
 html.dark .qh-box{ background:#2a2718; border-color:#5a5024; }
 html.dark .qh-kopf, html.dark .qh-sub{ color:#d6c98a; }
 html.dark .qh-step{ border-top-color:#4a431f; }
@@ -343,6 +350,12 @@ details.loesung>summary::-webkit-details-marker,
 details.weg>summary::-webkit-details-marker{ display:none; }
 details.loesung>summary::after, details.weg>summary::after{ content:' ▾'; font-size:.85em; }
 details[open].loesung>summary::after, details[open].weg>summary::after{ content:' ▴'; }
+/* Der Knopf sagt, was ein Druck bewirkt: zugeklappt "einblenden",
+   aufgeklappt "ausblenden". Ohne diese drei Regeln stehen beide
+   Beschriftungen gleichzeitig da. */
+details.loesung>summary .wenn-auf, details.weg>summary .wenn-auf{ display:none; }
+details[open].loesung>summary .wenn-zu, details[open].weg>summary .wenn-zu{ display:none; }
+details[open].loesung>summary .wenn-auf, details[open].weg>summary .wenn-auf{ display:inline; }
 details[open].loesung, details[open].weg{
   border-color:#3a7ac0; background:#f0f7ff;
   border-radius:24px 24px 10px 10px; padding-bottom:9px; }
@@ -532,6 +545,33 @@ html.dark .form-block.hint{ animation-name:blinkHintDunkel; }
   html.dark .extlink a.alt:hover{ background:#8f4c00; }
 }
 
+
+/* ── Der kleine Knopf neben "Schwierigkeit" ───────────────────────────────
+   Er loest alles wieder, was von Hand festgelegt wurde. Klein und
+   zurueckhaltend: er soll die Ueberschrift nicht ueberstrahlen. */
+.tc-kopf{ display:inline-flex; align-items:center; gap:7px; }
+.tc-item.tc-mitte > .tc-kopf{ justify-content:center; width:100%; }
+.tc-reset{ flex:0 0 auto; width:22px; height:22px; padding:0; line-height:1;
+  display:inline-flex; align-items:center; justify-content:center;
+  font-size:.92em; font-family:inherit; cursor:pointer;
+  border:1.5px solid var(--ab-rand, #9fb3a2); border-radius:50%;
+  background:var(--ab-knopf-flaeche, #f2f4f6); color:var(--ab-leise, #6b757f);
+  transition:background .15s, color .15s, border-color .15s; }
+.tc-reset:hover{ background:var(--ab-gr-an, #c8f0c8); color:var(--ab-gr-dunkel, #1a4a1a);
+  border-color:var(--ab-gr, #2e7d32); }
+.tc-reset:active{ transform:translateY(1px); }
+
+html.dark .tc-reset{ border-color:#55616d; background:#242c33; color:#9aa5b1; }
+html.dark .tc-reset:hover{ background:#24462a; color:#a5d6a7; border-color:#4a9a4a; }
+
+/* Teilen-Zeichen im Summary des Einstellungsbereichs */
+.einst > summary .einst-share{ background:none; border:none; padding:0 5px; margin-left:5px;
+  color:inherit; opacity:.5; cursor:pointer; display:inline-flex; align-items:center;
+  vertical-align:middle; line-height:1; transition:opacity .15s, color .15s; }
+.einst > summary .einst-share:hover{ opacity:1; color:#3a7ac0; }
+.einst > summary .einst-share.copied{ opacity:1; color:#2a7a2a; }
+html.dark .einst > summary .einst-share:hover{ color:#9fc5e8; }
+html.dark .einst > summary .einst-share.copied{ color:#81c784; }
 </style>
 <script src="einwilligung.js" defer></script>
 </head>
@@ -544,7 +584,7 @@ html.dark .form-block.hint{ animation-name:blinkHintDunkel; }
 </header>
 
 <details class="einst" id="dSettings">
-  <summary data-de="Einstellungen" data-en="Settings">Einstellungen</summary>
+  <summary><span data-de="Einstellungen" data-en="Settings">Einstellungen</span><button type="button" class="einst-share" tabindex="-1" title="Diese Einstellungen als Link kopieren" data-de-title="Diese Einstellungen als Link kopieren" data-en-title="Copy these settings as a link" aria-label="Einstellungen als Link kopieren"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></button></summary>
   <div class="settings-grid" id="settingsGrid"></div>
   <div class="seed-zeile">
     <label class="opt"><input type="checkbox" id="seedAn"><span data-de="fester Zufalls-Seed" data-en="fixed random seed">fester Zufalls-Seed</span></label>
@@ -574,7 +614,7 @@ html.dark .form-block.hint{ animation-name:blinkHintDunkel; }
   </div>
 
   <div class="tc-item tc-diff">
-    <span class="tc-label" data-de="Schwierigkeit" data-en="Difficulty">Schwierigkeit</span>
+    <span class="tc-kopf"><span class="tc-label" data-de="Schwierigkeit" data-en="Difficulty">Schwierigkeit</span><button type="button" class="tc-reset" id="diffReset" title="Von Hand gesetzte Einstellungen lösen – wieder der Schwierigkeit überlassen" data-de-title="Von Hand gesetzte Einstellungen lösen – wieder der Schwierigkeit überlassen" data-en-title="Release settings you fixed yourself – let the difficulty decide again" aria-label="Von Hand gesetzte Einstellungen lösen">&#x21BA;</button></span>
     <div class="seg-switch diff-switch" id="segDiff"></div>
   </div>
 </div>
@@ -2626,7 +2666,10 @@ function render(z){
       'aria-label': T('Zettel und Stift', 'Paper and pencil') }, '✏️'));
   head.appendChild(el('b', null, esc(W(TASK.kap))));
   const sh = el('button', { class: 'share-btn', type: 'button', 'aria-label': T('Aufgabe teilen', 'Share task'),
-    title: T('Link zu genau dieser Aufgabe kopieren', 'Copy a link to exactly this task') }, '🔗');
+    title: T('Link zu genau dieser Aufgabe kopieren', 'Copy a link to exactly this task') });
+  /* Mit Wort - wie auf den Gleichungsseiten. Wird es eng, bleibt das Zeichen
+     allein stehen (siehe .sh-text in aufgaben.css). */
+  sh.innerHTML = '🔗<span class="sh-text">&nbsp;' + T('Teilen', 'Share') + '</span>';
   sh.addEventListener('click', () => copyText(shareURL(true), sh, '✓'));
   head.appendChild(sh);
   host.appendChild(head);
@@ -3259,6 +3302,28 @@ function makeTaskChecked(){
   }
   return t;
 }
+/** Aufgabe erzeugen und dabei mehrere Startwerte zulassen.
+
+    Einige Aufgabenarten brauchen eine Eigenschaft, die sich nicht erzwingen
+    laesst: einen ablesbaren Extrempunkt, ganzzahlige Koordinaten, eine
+    Nullstelle im gezeichneten Bereich. Der Erzeuger prueft das und bricht
+    ab, wenn es nicht passt. Dass ein einzelner Wurf daneben geht, heisst
+    aber nicht, dass die Einstellungen keine Aufgabe zulassen - deshalb
+    werden hier mehrere Startwerte durchprobiert. Die Meldung erscheint erst,
+    wenn wirklich keiner davon trug. */
+function makeTaskVersuche(){
+  let letzter = null;
+  for (let i = 0; i <= 9; i++){
+    if (i) setSeed(snap(TASKSEED + i * 104729) >>> 0);
+    try {
+      const t = makeTaskChecked();
+      if (t) return t;
+      return null;            /* kein Aufgabentyp gewaehlt - Wuerfeln hilft nicht */
+    } catch (e){ letzter = e; }
+  }
+  throw (letzter || new Error('?'));
+}
+
 /* ---------- Fester Zufalls-Seed ----------
    Ohne ihn bekommt jede Aufgabe einen eigenen Zufallsstartwert. Mit ihm wird
    der Startwert aus dem eingetippten Seed und der Nummer der Aufgabe
@@ -3315,7 +3380,7 @@ function nextTask(seed){
   setSeed(TASKSEED);
   merkeEinstellungen(); wegwahlNeu(); TASKFEHLER = null;
   try {
-    TASK = makeTaskChecked();
+    TASK = makeTaskVersuche();
   } catch (e){
     if (window.console) console.error('Aufgabe konnte nicht erzeugt werden:', e);
     TASK = null;
@@ -3331,6 +3396,11 @@ function zeigeTaskFehler(grund){
   const host = $('#task');
   if (host) host.innerHTML = '<p class="task-err">' + T('Mit diesen Einstellungen ließ sich keine Aufgabe erzeugen (',
     'No task could be generated with these settings (') + grund() + T('). Bitte die Einstellungen prüfen.', '). Please check the settings.') + '</p>';
+  /* Ohne diese Zeile stuende der Loesungsbereich der vorigen Aufgabe noch da -
+     "Loesung einblenden" zeigte dann eine Loesung, zu der die Aufgabe fehlt. */
+  const nach = $('#taskNach');
+  if (nach) nach.innerHTML = '';
+  LOCKED = false; QUIZ = null;
 }
 /* Aufgabenarten mit längerer Rechnung - sie bekommen den Stift. */
 const ZETTEL = {
@@ -3372,6 +3442,15 @@ function initPage(hookExtra){
     nextTask();                    /* zuerst die Aufgabe – sie ist das Wichtigste */
     safe(buildSettings);
     if (v === 'indiv') safe(showSettings);
+  });
+  const diffReset = $('#diffReset');
+  if (diffReset) diffReset.addEventListener('click', () => {
+    /* Alles, was von Hand steht, wird wieder freigegeben; danach setzt die
+       Stufe ihre Werte erneut. */
+    typenVonHand = false;
+    if (S.diff !== 'indiv') safe(() => applyPreset(S.diff));
+    safe(resetControls); safe(buildSettings); save();
+    nextTask();
   });
   buildSettings();
   if (hookExtra) hookExtra();
@@ -4302,6 +4381,26 @@ const MANUAL = [
 ];
 function makeManual(id, v){ return genEE(null, v.fA || 'koo', v.fB || 'koo', v); }
 
+
+/* Das Teilen-Zeichen oben im Summary drueckt den Knopf unten im Bereich. */
+(function(){
+  function verdrahten(){
+    document.querySelectorAll('.einst > summary .einst-share').forEach(function(k){
+      if (k._abShare) return;
+      k._abShare = true;
+      k.addEventListener('click', function(ev){
+        ev.preventDefault(); ev.stopPropagation();
+        var ziel = document.getElementById('btnShare');
+        if (!ziel) return;
+        ziel.click();
+        k.classList.add('copied');
+        setTimeout(function(){ k.classList.remove('copied'); }, 1400);
+      });
+    });
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', verdrahten);
+  else verdrahten();
+})();
 </script>
 </body>
 </html>
