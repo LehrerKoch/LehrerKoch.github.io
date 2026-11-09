@@ -34,6 +34,47 @@ window.TK_GA_ID = 'G-5K8WYYXDL2';   /* Google Analytics laedt erst nach Einwilli
   line-height: 1.25; padding: 8px 10px; }
 .wege button .unter { display: block; font-size: .82em; opacity: .8; font-weight: normal; }
 /* Kurzfassung des Lösungswegs */
+/* ── Entscheidungsbaum ──────────────────────────────────────
+   Wurzel oben, darunter die Fragen als Rauten und die Folgerungen als
+   Rechtecke. Der Zweig, der für diese Gleichung gilt, ist durchgezogen und
+   grün, die übrigen bleiben gestrichelt und leise. Es gibt zwei Zuschnitte:
+   den breiten und, unter 760 px, einen schmalen, bei dem die Fragen
+   untereinander stehen und die Folgerungen seitlich abgehen. Geschoben
+   werden muss nirgends. */
+.bm-wrap { margin: 14px auto 16px; max-width: 100%; }
+.bm-svg { display: block; margin: 0 auto; width: 100%; height: auto; }
+.bm-breit { max-width: 1090px; }
+.bm-schmal { display: none; max-width: 470px; }
+@media (max-width: 760px){
+  .bm-breit { display: none; }
+  .bm-schmal { display: block; }
+}
+.bm-raute, .bm-blatt { fill: var(--ab-neutral); stroke: var(--ab-neutral-r);
+  stroke-width: 1.5; stroke-dasharray: 5 4; }
+.bm-raute.an { fill: var(--ab-gr-an); stroke: var(--ab-gr); stroke-width: 2.5; stroke-dasharray: none; }
+.bm-blatt.an { fill: var(--ab-gr-hell); stroke: var(--ab-gr); stroke-width: 2.5; stroke-dasharray: none; }
+.bm-wurzel { fill: var(--ab-bl-hell); stroke: var(--ab-bl); stroke-width: 2.5; }
+.bm-kante { fill: none; stroke: var(--ab-neutral-r); stroke-width: 2; stroke-dasharray: 5 4; }
+.bm-kante.an { stroke: var(--ab-gr); stroke-width: 2.5; stroke-dasharray: none; }
+.bm-svg text { font-family: inherit; dominant-baseline: middle; fill: var(--ab-leise); }
+/* „.bm-svg text“ wiegt schwerer als eine Klasse allein - die Regeln hier
+   brauchen deshalb denselben Vorsatz, sonst greifen sie nicht. */
+.bm-svg .bm-fragetext { font-size: 15px; }
+.bm-svg .bm-fragetext.an { fill: var(--ab-text); font-weight: bold; }
+.bm-svg .bm-blatttext { font-size: 13px; }
+.bm-svg .bm-blatttext.an { fill: var(--ab-gr-dunkel); font-weight: bold; }
+.bm-svg .bm-wurzeltext { font-size: 15px; font-weight: bold; fill: var(--ab-bl-dunkel); }
+.bm-svg .bm-kantentext { font-size: 12.5px; }
+.bm-svg .bm-kantentext.an { fill: var(--ab-gr-dunkel); font-weight: bold; }
+html.dark .bm-raute, html.dark .bm-blatt { fill: #1b2026; stroke: #56606a; }
+html.dark .bm-raute.an { fill: #24462a; stroke: #5cb860; }
+html.dark .bm-blatt.an { fill: #1f2a20; stroke: #5cb860; }
+html.dark .bm-wurzel { fill: #22333f; stroke: #7fb3e0; }
+html.dark .bm-svg text { fill: #9aa5ae; }
+html.dark .bm-svg .bm-wurzeltext { fill: #d6e7f7; }
+html.dark .bm-svg .bm-fragetext.an,
+html.dark .bm-svg .bm-blatttext.an,
+html.dark .bm-svg .bm-kantentext.an { fill: #a5d6a7; }
 .kurzweg { margin: .2em auto .6em; max-width: min(620px, 94vw); text-align: left; }
 .kurzweg li { margin: .25em 0; }
 /* Der Rechenweg: links das Stichwort, rechts die Formel. Weil die zweite
@@ -53,6 +94,13 @@ html.dark .wegliste .wt { color: #a5c3a5; }
   .wegliste .wf { margin: 0 0 7px 12px; }
 }
 .art-name { font-weight: bold; color: var(--ab-gr-dunkel); }
+/* Gleichungsart und ausgerechnete Loesungen gehoeren zur Loesung - sie
+   stehen deshalb in derselben Farbe wie die Zeile darueber, nur kleiner. */
+.gl-art { text-align: center; margin: .05em 0 .1em; font-size: 1.05em;
+  font-weight: bold; color: #ff0000; }
+.gl-loes { text-align: center; margin: 0 0 .4em; font-size: .95em; color: #ff0000; }
+html.dark .gl-art, html.dark .gl-loes { color: #ef5350; }
+.weg-merke { text-align: center; margin: 0 0 .5em; }
 /* Der Link auf die Übungsseite soll aussehen wie ein Knopf - ein <a> erbt
    die Knopfform nicht von selbst. */
 a.art-link { display: inline-block; margin-top: .5em; text-decoration: none;
@@ -1017,33 +1065,195 @@ function planPfad(a){
   if (besetzt.every(function(e){ return e % 2 === 0; })) return pfad.concat(['nurGerade']);
   return pfad.concat(['gemischt']);
 }
-/** Der Ablaufplan als HTML; der Zweig dieser Gleichung ist hervorgehoben. */
+/* \u2500\u2500 Der Entscheidungsbaum \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+   Oben die Wurzel, darunter Ebene f\u00fcr Ebene die Fragen (Rauten) und die
+   Folgerungen (Rechtecke). Jede Abfrage und jede Folgerung steht f\u00fcr sich;
+   die Kanten tragen die Antwort, die zu ihnen f\u00fchrt.
+   Die Pl\u00e4tze rechnet die Seite selbst aus und zeichnet ein SVG: mit
+   Textfluss k\u00e4men die Linien nie dort an, wo die K\u00e4sten stehen, und es
+   entst\u00fcnde wieder eine Tabelle statt eines Baums. */
+var BM = { rand: 20, slot: 150, reihe: 132,
+           blattB: 132, blattH: 64, rauteB: 228, rauteH: 96,
+           wurzelB: 150, wurzelH: 44 };
+
+function bmEsc(s){
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+/** Text in Zeilen brechen - SVG kann das nicht von selbst. */
+function bmZeilen(text, breite){
+  var worte = String(text).split(/\s+/), zeilen = [], z = '';
+  worte.forEach(function(w){
+    if (!z){ z = w; return; }
+    if ((z + ' ' + w).length <= breite) z += ' ' + w; else { zeilen.push(z); z = w; }
+  });
+  if (z) zeilen.push(z);
+  return zeilen;
+}
+/** Mehrzeiliger, mittig gesetzter Text. */
+function bmText(x, y, zeilen, klasse, zh){
+  var oben = y - (zeilen.length - 1) * zh / 2;
+  var h = '<text class="' + klasse + '" x="' + x + '" y="' + oben + '" text-anchor="middle">';
+  zeilen.forEach(function(z, i){
+    h += '<tspan x="' + x + '" dy="' + (i ? zh : 0) + '">' + bmEsc(z) + '</tspan>';
+  });
+  return h + '</text>';
+}
+/** Die Baumstruktur aus PLAN: ein Ast mit \u201eweg\u201c endet, ein Ast ohne f\u00fchrt
+    zur n\u00e4chsten Frage. */
+function bmBaum(){
+  function frage(i){
+    var st = PLAN[i];
+    return { art: 'frage', id: st.id, text: T(st.frage[0], st.frage[1]),
+      kinder: st.aeste.map(function(ast){
+        return { id: ast.id, kante: T(ast.wenn[0], ast.wenn[1]),
+          ziel: ast.weg
+            ? { art: 'blatt', id: ast.id, kinder: [],
+                text: T(INFO[ast.weg].weg[0], INFO[ast.weg].weg[1]) }
+            : frage(i + 1) };
+      }) };
+  }
+  /* Die Kante von der Wurzel zur ersten Frage gilt immer - sie bekommt
+     deshalb die Kennung der ersten Frage. */
+  return { art: 'wurzel', id: 'wurzel', text: T('Die Gleichung', 'The equation'),
+           kinder: [{ id: PLAN[0].id, kante: '', ziel: frage(0) }] };
+}
+/** Jedem Knoten seinen Platz geben: die Bl\u00e4tter von links nach rechts, jede
+    Frage genau \u00fcber die Mitte ihrer Kinder. */
+function bmLegen(n, tiefe, stand){
+  n.tiefe = tiefe;
+  if (n.kinder.length){
+    n.kinder.forEach(function(k){ bmLegen(k.ziel, tiefe + 1, stand); });
+    n.x = (n.kinder[0].ziel.x + n.kinder[n.kinder.length - 1].ziel.x) / 2;
+  } else {
+    n.x = BM.rand + (stand.n + 0.5) * BM.slot;
+    stand.n++;
+  }
+  n.y = BM.rand + tiefe * BM.reihe + BM.rauteH / 2;
+  stand.tiefe = Math.max(stand.tiefe, tiefe);
+  return n;
+}
+/* F\u00fcr schmale Schirme ein zweiter Zuschnitt: die Fragen stehen genau
+   untereinander auf einer Mittellinie, die Folgerungen gehen links und
+   rechts davon ab. So passt der Baum ohne seitliches Schieben auf ein
+   Handy \u2013 nur kleiner rechnen hie\u00dfe, ihn unlesbar zu machen. */
+var BMS = { rand: 14, mitte: 215, breite: 430, luft: 52, versatz: 44,
+            blattB: 150, blattH: 58, rauteB: 230, rauteH: 86,
+            wurzelB: 140, wurzelH: 40 };
+
+/** halbe H\u00f6he eines Knotens - danach richten sich die Kanten */
+function bmHalb(n, G){
+  return (n.art === 'frage') ? G.rauteH / 2
+       : (n.art === 'wurzel') ? G.wurzelH / 2 : G.blattH / 2;
+}
+/** Die Pl\u00e4tze f\u00fcr den schmalen Zuschnitt. Gibt die Gesamth\u00f6he zur\u00fcck. */
+function bmLegenSchmal(baum){
+  var G = BMS, unten = G.rand;
+  baum.x = G.mitte; baum.y = unten + G.wurzelH / 2;
+  unten = baum.y + G.wurzelH / 2;
+  var knoten = baum.kinder[0] ? baum.kinder[0].ziel : null;
+  while (knoten){
+    knoten.y = unten + G.luft + G.rauteH / 2;
+    knoten.x = G.mitte;
+    unten = knoten.y + G.rauteH / 2;
+    var blaetter = [], weiter = null;
+    knoten.kinder.forEach(function(k){
+      if (k.ziel.art === 'blatt') blaetter.push(k.ziel); else weiter = k.ziel;
+    });
+    /* Je Reihe eines links und eines rechts der Mittellinie. Bleibt am Ende
+       eines \u00fcbrig und l\u00e4uft keine Linie mehr weiter, steht es in der Mitte. */
+    for (var i = 0; i < blaetter.length; i += 2){
+      var y = unten + G.luft + G.blattH / 2;
+      var a = blaetter[i], b = blaetter[i + 1] || null;
+      if (!b && !weiter){ a.x = G.mitte; }
+      else {
+        a.x = G.mitte - G.versatz - G.blattB / 2;
+        if (b) b.x = G.mitte + G.versatz + G.blattB / 2;
+      }
+      a.y = y; if (b) b.y = y;
+      unten = y + G.blattH / 2;
+    }
+    knoten = weiter;
+  }
+  return unten + G.rand;
+}
+/** Kanten zuerst, damit die K\u00e4sten darauf liegen. */
+function bmKanten(n, an, G){
+  var h = '';
+  if (!n.kinder.length) return h;
+  var y1 = n.y + bmHalb(n, G);
+  /* Alle Kinder einer Frage h\u00e4ngen an EINER waagerechten Linie. Mit einer
+     eigenen H\u00f6he je Kind l\u00e4gen die Arme nach links und rechts
+     unterschiedlich hoch, sobald die Kinder verschieden hoch sind \u2013 eine
+     Raute ist h\u00f6her als ein Rechteck. Die Linie liegt mittig \u00fcber dem
+     h\u00f6chstgelegenen Kind. */
+  var luft = Math.min.apply(null, n.kinder.map(function(k){
+    return (k.ziel.y - bmHalb(k.ziel, G)) - y1;
+  }));
+  var bus = y1 + luft / 2;
+  n.kinder.forEach(function(k){
+    var c = k.ziel, hell = an.indexOf(k.id) >= 0;
+    var y2 = c.y - bmHalb(c, G);
+    h += '<path class="bm-kante' + (hell ? ' an' : '') + '" d="M' + n.x + ' ' + y1
+       + ' V' + bus + ' H' + c.x + ' V' + y2 + '"/>';
+    if (k.kante){
+      /* Die Antwort steht neben dem senkrechten St\u00fcck, das in das Kind
+         f\u00fchrt - also in dessen eigener Spalte. St\u00fcnde sie mittig \u00fcber dem
+         waagerechten St\u00fcck, l\u00e4gen die Antworten benachbarter \u00c4ste
+         \u00fcbereinander (\u201enur gerade\u201c auf \u201egemischte\u201c). */
+      h += '<text class="bm-kantentext' + (hell ? ' an' : '') + '" x="' + (c.x + 7)
+         + '" y="' + (bus + 12) + '" text-anchor="start">' + bmEsc(k.kante) + '</text>';
+    }
+    h += bmKanten(c, an, G);
+  });
+  return h;
+}
+/** Die K\u00e4sten selbst. */
+function bmKaesten(n, an, G){
+  var hell = (n.art === 'wurzel') || an.indexOf(n.id) >= 0;
+  var k = hell ? ' an' : '';
+  var h = '';
+  if (n.art === 'frage'){
+    var bw = G.rauteB / 2, bh = G.rauteH / 2;
+    h += '<polygon class="bm-raute' + k + '" points="'
+       + n.x + ',' + (n.y - bh) + ' ' + (n.x + bw) + ',' + n.y + ' '
+       + n.x + ',' + (n.y + bh) + ' ' + (n.x - bw) + ',' + n.y + '"/>'
+       + bmText(n.x, n.y, bmZeilen(n.text, 17), 'bm-fragetext' + k, 17);
+  } else if (n.art === 'wurzel'){
+    h += '<rect class="bm-wurzel" x="' + (n.x - G.wurzelB / 2) + '" y="' + (n.y - G.wurzelH / 2)
+       + '" width="' + G.wurzelB + '" height="' + G.wurzelH + '" rx="' + (G.wurzelH / 2) + '"/>'
+       + bmText(n.x, n.y, [n.text], 'bm-wurzeltext', 17);
+  } else {
+    h += '<rect class="bm-blatt' + k + '" x="' + (n.x - G.blattB / 2) + '" y="' + (n.y - G.blattH / 2)
+       + '" width="' + G.blattB + '" height="' + G.blattH + '" rx="10"/>'
+       + bmText(n.x, n.y, bmZeilen(n.text, 17), 'bm-blatttext' + k, 15);
+  }
+  n.kinder.forEach(function(c){ h += bmKaesten(c.ziel, an, G); });
+  return h;
+}
+/** Ein fertiges SVG aus einem gelegten Baum. */
+function bmSVG(baum, an, G, schmal, breite, hoehe){
+  return '<svg class="bm-svg ' + (schmal ? 'bm-schmal' : 'bm-breit') + '" viewBox="0 0 '
+       + breite + ' ' + hoehe + '" role="img" aria-label="'
+       + bmEsc(T('Entscheidungsbaum: welcher Weg passt zu dieser Gleichung?',
+                 'Decision tree: which method fits this equation?')) + '">'
+       + bmKanten(baum, an, G) + bmKaesten(baum, an, G) + '</svg>';
+}
+/** Der Entscheidungsbaum; der Zweig dieser Gleichung ist hervorgehoben.
+    Es entstehen beide Zuschnitte - welcher zu sehen ist, entscheidet das
+    Stylesheet nach der Breite des Schirms. So muss nirgends geschoben
+    werden, und beim Drehen des Ger\u00e4ts stimmt es sofort. */
 function planHTML(a){
   var an = a ? planPfad(a) : [];
-  var h = '<div class="plan">';
-  PLAN.forEach(function(st, i){
-    var aktiv = an.indexOf(st.id) >= 0;
-    h += '<div class="plan-stufe' + (aktiv ? ' an' : '') + '">';
-    h += '<div class="plan-frage' + (aktiv ? ' an' : '') + '">' + T(st.frage[0], st.frage[1]) + '</div>';
-    /* Von der Frage gehen Linien zu den Aesten - erst dadurch sieht man den
-       Baum. Der Ast, der hier gilt, ist durchgezogen und gr\u00fcn. */
-    h += '<div class="plan-gabel"><span class="plan-stiel"></span></div>';
-    h += '<div class="plan-aeste">';
-    st.aeste.forEach(function(ast){
-      var aa = an.indexOf(ast.id) >= 0;
-      h += '<div class="plan-zweig' + (aa ? ' an' : '') + '">'
-         + '<span class="plan-arm"></span>'
-         + '<div class="plan-ast' + (aa ? ' an' : '') + '">'
-         +   '<span class="plan-wenn">' + T(ast.wenn[0], ast.wenn[1]) + '</span>'
-         +   (ast.weg
-              ? ('<span class="plan-weg">' + T(INFO[ast.weg].weg[0], INFO[ast.weg].weg[1]) + '</span>')
-              : ('<span class="plan-weiter">' + T('weiterfragen', 'ask on') + ' \u2193</span>'))
-         + '</div></div>';
-    });
-    h += '</div></div>';
-  });
-  h += '</div>';
-  return h;
+  var breit = bmBaum(), stand = { n: 0, tiefe: 0 };
+  bmLegen(breit, 0, stand);
+  var bB = 2 * BM.rand + stand.n * BM.slot;
+  var bH = 2 * BM.rand + stand.tiefe * BM.reihe + BM.rauteH;
+  var schmal = bmBaum();
+  var sH = bmLegenSchmal(schmal);
+  return '<div class="bm-wrap">'
+       + bmSVG(breit, an, BM, false, bB, bH)
+       + bmSVG(schmal, an, BMS, true, BMS.breite, sH)
+       + '</div>';
 }
 
 /** Der Weg, den die Lösung als „den" Weg nennt. */
@@ -1155,23 +1365,25 @@ var WEG_AUF = false;
 function loesungZeichnen(){
   var box = document.getElementById('loesung');
   var weg = hauptWeg(A);
-  box.innerHTML = '\\[\\text{' + T(INFO[weg].name[0], INFO[weg].name[1]) + '}\\]';
+  /* Oben steht der Weg - danach wird oben auch gefragt -, darunter die
+     Gleichungsart. Beides gehoert zur Loesung und steht deshalb in deren
+     Farbe; die ausgerechneten Loesungen folgen gleich darunter in
+     Klammern, nicht erst hinter dem Baum. */
+  box.innerHTML = '\\[\\text{' + T(INFO[weg].weg[0], INFO[weg].weg[1]) + '}\\]';
 
   var z = [];
-  z.push('<p style="text-align:center;margin:.1em 0 .5em;">'
-       + T('Weg: ', 'Method: ') + '<span class="art-name">'
-       + T(INFO[weg].weg[0], INFO[weg].weg[1]) + '</span>'
-       + (A.wege.length > 1
-          ? '<br><span class="weg-merke">' + T('Es geht auch mit: ', 'It also works with: ')
-            + A.wege.filter(function(w){ return w !== weg; })
-                    .map(function(w){ return T(INFO[w].weg[0], INFO[w].weg[1]); }).join(', ')
-            + '</span>'
-          : '') + '</p>');
+  z.push('<p class="gl-art">\\(\\text{' + T(INFO[weg].name[0], INFO[weg].name[1]) + '}\\)</p>');
+  if (haken('zeigeMenge')){
+    z.push('<p class="gl-loes">\\(\\left(' + loesungsMengeTeX() + '\\right)\\)</p>');
+  }
+  if (A.wege.length > 1){
+    z.push('<p class="weg-merke">' + T('Es geht auch mit: ', 'It also works with: ')
+         + A.wege.filter(function(w){ return w !== weg; })
+                 .map(function(w){ return T(INFO[w].weg[0], INFO[w].weg[1]); }).join(', ')
+         + '</p>');
+  }
 
   z.push(planHTML(A));
-  if (haken('zeigeMenge')){
-    z.push('<div style="text-align:center;">\\[' + loesungsMengeTeX() + '\\]</div>');
-  }
   /* Der Rechenweg steht - wie auf den anderen Seiten - in einem eigenen
      aufklappbaren Bereich. Ob er offen ist, bleibt beim Neuzeichnen
      (Sprach- oder Farbwechsel) erhalten. */
@@ -1186,7 +1398,7 @@ function loesungZeichnen(){
   if (haken('zeigeLink')){
     var seite = INFO[weg].seite;
     z.push('<p style="text-align:center;">' + (seite
-      ? '<a class="step-link" href="' + uebungsLink(weg) + '">'
+      ? '<a class="step-link" href="' + uebungsLink(weg) + '" target="_blank" rel="noopener">'
         + T('Diese Gleichung dort üben: ', 'Practise this equation there: ')
         + T(INFO[weg].name[0], INFO[weg].name[1]) + ' →</a>'
       : '<a class="art-link blanko" href="#" onclick="return false;">'
@@ -1326,7 +1538,7 @@ function quizBauen(){
   schritte.push({ titel: T('Erster Schritt', 'First step'), art: 'info',
     frage: wegHTML(kurzSchritte(A, weg))
          + (INFO[weg].seite
-            ? '<a class="step-link" href="' + uebungsLink(weg) + '">'
+            ? '<a class="step-link" href="' + uebungsLink(weg) + '" target="_blank" rel="noopener">'
               + T('Diese Gleichung dort üben: ', 'Practise this equation there: ')
               + T(INFO[weg].name[0], INFO[weg].name[1]) + ' →</a>'
             : ''),

@@ -60,7 +60,7 @@ const categoriesData = [
     "iconType": "svg",
     "tooltip": "Polynome, Potenzfunktionen und ihr Grenzverhalten",
     "tooltip_en": "Polynomials, power functions and their end behaviour",
-    "cards": ["geo-potparam", "geo-koSymm", "grenzverhalten-poly", "polynom-reko"]
+    "cards": ["geo-potparam", "symmetrie", "grenzverhalten-poly", "polynom-reko"]
   },
   {
     "id": "gleichungen",

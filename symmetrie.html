@@ -41,6 +41,11 @@ window.TK_GA_ID = 'G-5K8WYYXDL2';   /* Google Analytics laedt erst nach Einwilli
 #graphBox { max-width: 540px; margin: 0 auto; }
 #graphBox svg { width: 100%; height: auto; }
 .sym-frage { font-size: .78em; line-height: 1.5; }
+/* Die Zahl rechts neben dem Grad-Regler soll mitlaufen, ohne dass die
+   Zeile dabei springt - deshalb eine feste Breite. */
+.slider-row .gradwert{ min-width:1.6em; text-align:right; font-weight:bold;
+  color:var(--ab-gr-dunkel); font-variant-numeric:tabular-nums; }
+html.dark .slider-row .gradwert{ color:#a5d6a7; }
 </style>
 </head>
 <body class="tk-seite">
@@ -71,9 +76,10 @@ window.TK_GA_ID = 'G-5K8WYYXDL2';   /* Google Analytics laedt erst nach Einwilli
   <div class="form-block">
     <b data-de="Grad der Funktion" data-en="Degree of the function">Grad der Funktion</b>
     <span class="d" data-de="Bis zu welchem Grad darf die Funktion gehen?" data-en="Up to which degree may the function go?">Bis zu welchem Grad darf die Funktion gehen?</span>
-    <label class="opt"><input type="radio" name="gradBis" value="3" checked><span><span data-de="höchstens 3" data-en="at most 3">höchstens 3</span><span class="d" data-de="x³, x², x und Zahlen" data-en="x³, x², x and numbers">x³, x², x und Zahlen</span></span></label>
-    <label class="opt"><input type="radio" name="gradBis" value="5"><span><span data-de="höchstens 5" data-en="at most 5">höchstens 5</span></span></label>
-    <label class="opt"><input type="radio" name="gradBis" value="7"><span><span data-de="höchstens 7" data-en="at most 7">höchstens 7</span></span></label>
+    <div class="slider-row"><span class="sl-name" data-de="höchstens" data-en="at most">höchstens</span>
+      <span class="sl-end">2</span>
+      <input type="range" class="sl" id="gradBis" min="2" max="9" step="1" value="5">
+      <span class="sl-end gradwert" id="gradWert">5</span></div>
   </div>
 
   <div class="form-block">
@@ -234,12 +240,12 @@ var STUFEN = {
   /* Die Einführung zeigt an der Gleichung nur Potenzfunktionen: dort sieht man
      die gerade oder ungerade Hochzahl unmittelbar. Ab "Leicht" sind es
      Polynome aus mehreren Summanden. */
-  einf:   { gradBis: '3', zahlArt: 'ganz',  mitFaktor: false, mitFaktorisiert: false,
+  einf:   { gradBis: '4', zahlArt: 'ganz',  mitFaktor: false, mitFaktorisiert: false,
             nurPotenz: true,
             fallAchse: true, fallPunkt: true, fallKeine: false,
             regler: { fallAchse: 10, fallPunkt: 10, fallKeine: 1,
                       stilGleichung: 9, stilGraph: 9, stilVerst: 2 } },
-  leicht: { gradBis: '3', zahlArt: 'ganz',  mitFaktor: false, mitFaktorisiert: false,
+  leicht: { gradBis: '4', zahlArt: 'ganz',  mitFaktor: false, mitFaktorisiert: false,
             nurPotenz: false,
             fallAchse: true, fallPunkt: true, fallKeine: true,
             regler: { fallAchse: 9, fallPunkt: 9, fallKeine: 4,
@@ -279,10 +285,32 @@ function radioSetzen(name, wert){
   if (e) e.checked = true;
   return !!e;
 }
+/* Einstellungen, die an einem Schieberegler haengen statt an Knoepfen. */
+var ZAHLFELD = { gradBis: {min:2, max:9} };
+function zahlWert(id){
+  var g = ZAHLFELD[id], e = document.getElementById(id);
+  var v = e ? parseInt(e.value, 10) : NaN;
+  if (!isFinite(v)) return String(STD[id]);
+  return String(Math.max(g.min, Math.min(g.max, v)));
+}
+function zahlSetzen(id, wert){
+  var g = ZAHLFELD[id], e = document.getElementById(id);
+  if (!e) return;
+  var v = parseInt(wert, 10);
+  if (!isFinite(v)) v = parseInt(STD[id], 10);
+  e.value = String(Math.max(g.min, Math.min(g.max, v)));
+  zahlAnzeigen(id);
+}
+/** Die Zahl neben dem Regler nachziehen. */
+function zahlAnzeigen(id){
+  var e = document.getElementById(id), a = document.getElementById(id === 'gradBis' ? 'gradWert' : (id + 'Wert'));
+  if (e && a) a.textContent = e.value;
+}
 function einstellungen(){
   var s = {};
   Object.keys(STD).forEach(function(k){
     if (typeof STD[k] === 'boolean') s[k] = haken(k);
+    else if (ZAHLFELD[k]) s[k] = zahlWert(k);
     else s[k] = radioWert(k) || STD[k];
   });
   return s;
@@ -290,6 +318,7 @@ function einstellungen(){
 function einstellungenSetzen(s){
   Object.keys(STD).forEach(function(k){
     if (typeof STD[k] === 'boolean') setzeHaken(k, s[k]);
+    else if (ZAHLFELD[k]) zahlSetzen(k, s[k]);
     else radioSetzen(k, s[k]);
   });
   obenAbgleichen();
@@ -326,6 +355,7 @@ function stufeAnwenden(stufe){
   Object.keys(p).forEach(function(k){
     if (k === 'regler' || VON_HAND[k]) return;
     if (typeof p[k] === 'boolean') setzeHaken(k, p[k]);
+    else if (ZAHLFELD[k]) zahlSetzen(k, p[k]);
     else radioSetzen(k, p[k]);
   });
   if (p.regler && window.abReglerSetzen) abReglerSetzen(reglerOhneHand(p.regler));
@@ -378,7 +408,7 @@ function coin(p){ return Math.random() < (p === undefined ? 0.5 : p); }
 function ri(a, b){ return a + Math.floor(Math.random() * (b - a + 1)); }
 function rund(x){ return Math.round(x * 1e9) / 1e9; }
 
-function gradMax(){ var v = parseInt(radioWert('gradBis') || STD.gradBis, 10); return (v >= 1 && v <= 9) ? v : 5; }
+function gradMax(){ var v = parseInt(zahlWert('gradBis'), 10); return (v >= 1 && v <= 9) ? v : 5; }
 function zahlArt(){ return radioWert('zahlArt') || STD.zahlArt; }
 function wegArt(){ return radioWert('wegArt') || STD.wegArt; }
 
@@ -471,7 +501,11 @@ function wuerfelFaktorisiert(fall){
   var a = haken('mitFaktor') && coin(0.6) ? pick([2, 3, -1, -2]) : 1;
   var P = [a], teile = [];
   if (a !== 1) teile.push({ art: 'zahl', k: a });
-  var rest = gmax;
+  /* Beim Fall "punkt" kommt spaeter noch mindestens ein x dazu, beim Fall
+     "keine" ein einzelner Linearfaktor. Dieser Grad wird vorab abgezogen -
+     sonst ueberschritte das fertige Produkt den eingestellten Hoechstgrad
+     (gemessen: bei "hoechstens 4" kam jede zehnte Aufgabe mit Grad 5). */
+  var rest = gmax - ((fall === 'punkt' || fall === 'keine') ? 1 : 0);
   /* Ein Paar (x − r)(x + r) ist achsensymmetrisch, ein einzelnes x ist
      punktsymmetrisch - daraus lässt sich jeder Fall zusammensetzen. */
   var paare = [];
@@ -485,11 +519,12 @@ function wuerfelFaktorisiert(fall){
     teile.push({ art: 'paar', r: r });
   }
   var xPot = 0;
-  if (fall === 'punkt'){ xPot = pick(rest >= 3 ? [1, 3] : [1]); }
+  if (fall === 'punkt'){ xPot = (rest >= 2 && coin(0.5)) ? 3 : 1; rest -= (xPot - 1); }
   else if (fall === 'achse'){ xPot = (rest >= 2 && coin(0.5)) ? 2 : 0; }
   else { xPot = 0; }
   if (xPot){ var xp = []; for (var m = 0; m < xPot; m++) xp = xp.length ? pMal(xp, [0, 1]) : [0, 1];
-             P = pMal(P, xp); teile.push({ art: 'x', n: xPot }); rest -= xPot; }
+             P = pMal(P, xp); teile.push({ art: 'x', n: xPot });
+             if (fall === 'achse') rest -= xPot; }
   if (fall === 'keine'){
     /* ein einzelner Linearfaktor bricht die Symmetrie */
     var s = pick([1, 2, 3]);
@@ -1208,8 +1243,16 @@ window.addEventListener('load', function(){
     var e = document.getElementById(id);
     if (e) e.addEventListener('change', function(){ kachelnMalen(); neueAufgabe(); });
   });
-  document.querySelectorAll('input[name="gradBis"], input[name="zahlArt"], #mitFaktor, #mitFaktorisiert')
+  document.querySelectorAll('input[name="zahlArt"], #mitFaktor, #mitFaktorisiert')
     .forEach(function(e){ e.addEventListener('change', function(){ aufIndividuell(); neueAufgabe(); }); });
+  /* Der Grad-Regler: die Zahl daneben laeuft beim Schieben mit, die neue
+     Aufgabe kommt erst beim Loslassen (das uebernimmt die allgemeine
+     Regler-Zeile weiter oben). */
+  var gr = document.getElementById('gradBis');
+  if (gr){
+    gr.addEventListener('input', function(){ zahlAnzeigen('gradBis'); });
+    zahlAnzeigen('gradBis');
+  }
   document.querySelectorAll('input[name="wegArt"], #mitSkizze').forEach(function(e){
     e.addEventListener('change', function(){ if (A){ loesungZeichnen(); quizBauen(); } });
   });

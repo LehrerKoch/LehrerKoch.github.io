@@ -247,24 +247,14 @@ input[type=color].rcol::-moz-color-swatch{border:none;border-radius:50%}
 .pop .slot .nm:hover{background:#eef4fb}
 
 /* Rechnung: mit den vorhandenen Vektoren rechnen */
-.rechnen{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:0 0 8px;padding:7px 8px;
-  border:1px solid #dbe2e8;border-radius:7px;background:#f7fafc}
-.rechnen > label{font-weight:bold;font-size:12.5px;color:#3b464e}
-#rechnenIn{flex:1 1 220px;min-width:150px;box-sizing:border-box;font-family:Consolas,"Courier New",monospace;
-  font-size:13.5px;padding:5px 8px;border:1px solid #bfc7ce;border-radius:6px;background:#fff;color:#26343d}
-#rechnenIn:focus{outline:none;border-color:#1565c0}
-.rechnen .erg{flex:1 1 100%;font-size:13px;color:#1b5e20;min-height:1.3em;overflow-wrap:anywhere}
-.rechnen .erg.err{color:#a02222}
-.rechnen .erg .lab{color:#5a6670}
-.rechnen .hintline{flex:1 1 100%;margin:0}
-.rechnen .rech-zu{font-size:15px;line-height:1;padding:3px 8px;color:#8a949c}
-.rechnen .rech-zu:hover{color:#a02222}
-html.dark .rechnen{background:#1b2227;border-color:#36424b}
-html.dark .rechnen > label{color:#c6d2da}
-html.dark #rechnenIn{background:#121a1f;border-color:#44525c;color:#e7eef3}
-html.dark .rechnen .erg{color:#9ad79d}
-html.dark .rechnen .erg.err{color:#ef9a9a}
-html.dark .rechnen .erg .lab{color:#9aa8b2}
+/* Die Rechnung in der Objektzeile: Gleichheitszeichen, Eingabefeld und die
+   beiden Zeichenknoepfe nebeneinander. */
+.rechrow{display:flex;align-items:center;gap:5px;margin:4px 0 0}
+.rechrow .rechgl{font-weight:bold;opacity:.65;flex:0 0 auto}
+.rechrow .rechin{flex:1 1 auto;min-width:0;font-family:inherit}
+/* Die Monospace-Schrift der alten Rechenzeile passt auch zum Feld in der
+   Objektzeile: eine Rechnung liest sich so besser als in Fließtext. */
+.rechrow .rechin{font-family:Consolas,"Courier New",monospace;font-size:13.5px}
 /* Textmodus */
 #txtArea{width:100%;box-sizing:border-box;min-height:230px;font-family:Consolas,"Courier New",monospace;
   font-size:13.5px;line-height:1.45;padding:7px 8px;border:1px solid #bfc7ce;border-radius:6px;resize:vertical}
@@ -319,7 +309,16 @@ input:disabled,select:disabled{background:#e4e9ed;color:#78868f;border-color:#c3
 label.chk{display:inline-flex;align-items:flex-start;gap:6px;font-size:14px;cursor:pointer;line-height:1.3}
 .mini{width:4.2em}.tiny{width:3.6em}
 
-/* Einstellungen */
+/* Einstellungen - so breit und so schlicht wie auf den anderen Seiten.
+   Die Zeichenflaeche darf die ganze Fensterbreite nutzen, der
+   Einstellungsbereich nicht. */
+/* 928 px - genau so breit wie der Kasten auf den uebrigen Seiten (dort
+   960 px Seitenbreite abzueglich 2x16 px Rand). Diese Seite selbst darf
+   breiter sein (--tk-breite ist hier 1700 px), weil die Zeichenflaeche den
+   Platz braucht; die Einstellungen brauchen ihn nicht. align-self und width
+   muessen dabei stehen: <body> ist eine Flex-Spalte, und mit "margin:auto"
+   allein schrumpfte der Kasten auf die Breite seiner Beschriftung. */
+#settings{width:100%;box-sizing:border-box;align-self:center;margin:10px auto}
 .settings-grid{display:flex;flex-direction:column;margin-top:8px}
 .form-block>b{display:block;margin-bottom:4px}
 .set-line{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;margin:6px 0;font-size:14px}
@@ -680,16 +679,9 @@ html.dark .flash{animation-name:k3flashDunkel}
       <input type="file" id="fileIn" accept=".txt,.json,text/plain" class="hidden">
     </div>
 
-    <div class="rechnen hidden" id="rechnenBar">
-      <label for="rechnenIn" data-de="Rechnung" data-en="Calculation">Rechnung</label>
-      <input type="text" id="rechnenIn" spellcheck="false" autocomplete="off" placeholder="2*a - 3*(b+c)">
-      <button class="btn-lite" id="btnKreuz" title="Kreuzprodukt einfügen" data-de-title="Kreuzprodukt einfügen" data-en-title="Insert the cross product">×</button>
-      <button class="btn-lite" id="btnBetrag" title="Betragsstriche einfügen" data-de-title="Betragsstriche einfügen" data-en-title="Insert absolute value bars">|…|</button>
-      <button class="btn-add" id="btnRechAdd" data-de="+ als Vektor" data-en="+ as a vector">+ als Vektor</button>
-      <button class="btn-lite rech-zu" id="btnRechZu" title="Rechnung schließen" data-de-title="Rechnung schließen" data-en-title="Close the calculation">×</button>
-      <span class="erg" id="rechnenErg"></span>
-      <p class="hintline" data-de="Erlaubt sind <code>+ − * /</code>, Betrag <code>|a|</code>, Kreuzprodukt <code>×</code> und Klammern. <code>*</code> ist je nach Zusammenhang Vervielfachen oder Skalarprodukt. Namen aus der Liste, dazu <code>OA</code> oder <code>AB</code> für Verbindungsvektoren." data-en="Allowed are <code>+ − * /</code>, the magnitude <code>|a|</code>, the cross product <code>×</code> and brackets. <code>*</code> means scaling or the dot product, depending on the context. Names from the list, plus <code>OA</code> or <code>AB</code> for connecting vectors.">Erlaubt sind <code>+ − * /</code>, Betrag <code>|a|</code>, Kreuzprodukt <code>×</code> und Klammern. <code>*</code> ist je nach Zusammenhang Vervielfachen oder Skalarprodukt. Namen aus der Liste, dazu <code>OA</code> oder <code>AB</code> für Verbindungsvektoren.</p>
-    </div>
+    <!-- Die Rechenzeile stand hier frueher oben. Eine Rechnung ist jetzt
+         ein Objekt wie jedes andere: sie wird ueber "+ Objekt" angelegt
+         und unten in ihrer eigenen Zeile eingegeben. -->
 
     <div id="listView">
       <div class="objlist" id="objList"></div>
@@ -1082,12 +1074,20 @@ function hiddenSide(i){
 }
 
 /* ------ dargestellter Achsenbereich ------ */
+/** Abstand zwischen zwei beschrifteten Stellen der Achse. Passen mehr als
+    200 Schritte in den sichtbaren Bereich, wird er vergroebert - so kann die
+    Achse beim Herauszoomen weiter wachsen, ohne dass das Bild zuwaechst. */
+function numStep(spanne){
+  var ev = Math.max(0.05, S.numEvery || 1);
+  for(var i = 0; i < 12 && spanne / ev > 200; i++) ev *= 10;
+  return ev;
+}
 function dynRangeFor(i){
   const o=projPx([0,0,0]), q=projPx(unit(i));
   const v=[q[0]-o[0], q[1]-o[1]];
   const len=Math.hypot(v[0],v[1]);
   if(len<1e-6) return {lab:[0,1], ax:[0,1]};
-  const ev=Math.max(0.05,S.numEvery), cell=gStep(i);
+  const cell=gStep(i);
   const full=S.axFull;
   const m = full ? 1 : 16;
   let t0=-1e7, t1=1e7, empty=false;
@@ -1100,13 +1100,17 @@ function dynRangeFor(i){
   if(empty || !(t1>t0)) return {lab:[0,0], ax:[0,0]};
   const back = (full ? 1 : 8)/len;
   const ahi = t1 - back, alo = t0 + back;
+  /* Der Zahlenabstand richtet sich nach dem sichtbaren Bereich - fruehre
+     stand hier eine feste Grenze von 40 Einheiten, und die Achse hoerte
+     beim Herauszoomen einfach auf. */
+  const ev = numStep(t1 - t0);
   let hi = Math.floor((t1 - cell)/ev + 1e-9)*ev;
   let lo = Math.ceil((t0 + 14/len)/ev - 1e-9)*ev;
-  const LIM=40*Math.max(1,ev);
+  const LIM=1e6;
   hi=clamp(hi,-LIM,LIM); lo=clamp(lo,-LIM,LIM);
   if(hi<lo) hi=lo;
-  if((hi-lo)/ev > 200) hi=lo+200*ev;
-  return {lab:[lo,hi], ax:[clamp(alo,-LIM-2*ev,LIM+2*ev), clamp(ahi,-LIM-2*ev,LIM+2*ev)]};
+  if((hi-lo)/ev > 400) hi=lo+400*ev;      /* letzte Notbremse */
+  return {lab:[lo,hi], ax:[clamp(alo,-LIM,LIM), clamp(ahi,-LIM,LIM)]};
 }
 function updateRanges(){
   if(S.dynRange){
@@ -1301,7 +1305,14 @@ const TYPES = {
   schnitt: {name:'Schnitt', lbl:'Schnitt', s:'Schnitt', grp:'so', col:'#ef6c00', forms:{
     oo:{lbl:'zweier Objekte', s:'2 Objekte', args:[{k:'o',l:'Objekt 1',s:'1.'},{k:'o',l:'Objekt 2',s:'2.'}]} }},
   text:    {name:'Text', lbl:'Text', s:'Text', grp:'so', col:'#37474f', forms:{
-    pt:{lbl:'Text an einer Stelle', s:'Ort, Text', args:[{k:'p',l:'Position',s:'bei'},{k:'s',l:'Text',s:''}]} }}
+    pt:{lbl:'Text an einer Stelle', s:'Ort, Text', args:[{k:'p',l:'Position',s:'bei'},{k:'s',l:'Text',s:''}]} }},
+  /* Die Rechnung: ein Ausdruck aus Punkten, Vektoren und Zahlen, der sich
+     mitrechnet, sobald sich eines der genannten Objekte aendert. */
+  rechnung:{name:'Rechnung', lbl:'Rechnung', s:'Rechn.', grp:'so', col:'#6a1b9a', forms:{
+    e: {lbl:'Ergebnis zeichnen', s:'autom.', args:[{k:'r',l:'Rechnung',s:'='}]},
+    eo:{lbl:'Vektor ab Ursprung', s:'ab 0', args:[{k:'r',l:'Rechnung',s:'='}]},
+    ep:{lbl:'Vektor ab einem Punkt', s:'ab Pkt.',
+        args:[{k:'r',l:'Rechnung',s:'='},{k:'p',l:'Startpunkt',s:'ab'}]} }}
 };
 /* Englisch: Schreibweise (name), Menü (lbl), Kurzform (s), Formen und Felder [l, s] */
 const TYPES_EN = {
@@ -1338,6 +1349,10 @@ const TYPES_EN = {
   kegel:   {name:'Cone', lbl:'Cone', s:'Cone', forms:{mrh:{lbl:'Base circle + height vector', s:'M, r, h',
     args:[['Centre of the base circle','M'],['Radius','r'],['Height vector','h']]}}},
   schnitt: {name:'Intersection', lbl:'Intersection', s:'Intersect.', forms:{oo:{lbl:'of two objects', s:'2 objects', args:[['Object 1','1st'],['Object 2','2nd']]}}},
+  rechnung:{name:'Calculation', lbl:'Calculation', s:'Calc.', forms:{
+    e: {lbl:'Draw the result', s:'auto', args:[['Calculation','=']]},
+    eo:{lbl:'Vector from the origin', s:'from 0', args:[['Calculation','=']]},
+    ep:{lbl:'Vector from a point', s:'from pt.', args:[['Calculation','='],['Starting point','from']]} }},
   text:    {name:'Text', lbl:'Text', s:'Text', forms:{pt:{lbl:'Text at a position', s:'Pos., text', args:[['Position','at'],['Text','']]}}}
 };
 /* Die Textfelder von TYPES liefern je nach Sprache den deutschen oder englischen Wert */
@@ -1593,6 +1608,7 @@ function argToText(a){
   if(a.k === 'lit') return a.e.join('|');
   if(a.k === 'ref') return a.n;
   if(a.k === 'num') return String(a.e);
+  if(a.k === 'rech') return String(a.e);
   if(a.k === 'str') return '"'+a.s+'"';
   if(a.k === 'ko')  return koText(a.e);
   return '?';
@@ -1619,6 +1635,9 @@ function koText(e){
 }
 function parseArg(raw, kind){
   const s = String(raw).trim();
+  /* Eine Rechnung darf auch leer sein - dann steht die Zeile eben da und
+     wartet darauf, dass man sie ausfuellt. */
+  if(kind === 'r') return {k:'rech', e:s};
   if(!s) return null;
   if(kind === 's'){
     const m = s.match(/^"(.*)"$/) || s.match(/^'(.*)'$/);
@@ -1692,8 +1711,17 @@ function parseLine(line){
   if(nmm && nmm[2].indexOf('(') >= 0){ name = nmm[1]; body = nmm[2].trim(); }
 
   const fm = body.match(/^([A-Za-zÄÖÜäöüß][A-Za-z0-9_'ÄÖÜäöüß]*)?\s*\(([\s\S]*)\)$/);
-  if(!fm) return err(raw, TL('Das ist keine gültige Zeile. Erwartet wird z. B. A = Punkt(1|2|3).',
-                             'This is not a valid line. Expected is e.g. A = Point(1|2|3).'));
+  if(!fm){
+    /* „D = A + v" - eine Rechnung, so hingeschrieben, wie man sie auch auf
+       dem Papier notieren wuerde. Das greift nur, wenn die Zeile zu keiner
+       anderen Form passt; Tippfehler bleiben also weiterhin Tippfehler. */
+    const rm = body.match(NAMED);
+    if(rm && rechTokens(rm[2]).tok)
+      return {id:newId(), type:'rechnung', form:'e', name:rm[1],
+              args:[{k:'rech', e:rm[2].trim()}], opt:opts, raw:raw.trim(), lang:null};
+    return err(raw, TL('Das ist keine gültige Zeile. Erwartet wird z. B. A = Punkt(1|2|3).',
+                       'This is not a valid line. Expected is e.g. A = Point(1|2|3).'));
+  }
   const inner = fm[2];
   let tk = fm[1] ? typeKey(fm[1]) : 'punkt';
   if(!tk && fm[1]){
@@ -1754,6 +1782,13 @@ function parseAll(txt){
 function objToText(o){
   if(o.type === 'note' || o.type === 'fehler') return o.raw;
   if(o.type === 'leer') return '';
+  /* Eine Rechnung steht einfach als Gleichung da: „r = B - A". Gelesen wird
+     diese Form ohnehin; nur die Form mit eigenem Startpunkt braucht den
+     Typnamen, weil dort ein zweiter Wert dazugehoert. */
+  if(o.type === 'rechnung' && o.form === 'e'){
+    const op0 = optsToText(o.opt || {});
+    return (o.name ? o.name+' = ' : '') + argToText(o.args[0]) + (op0 ? ' {'+op0+'}' : '');
+  }
   const T = TYPES[o.type], f = T.forms[o.form];
   const parts = o.args.map(argToText);
   let inner;
@@ -1831,6 +1866,23 @@ function geomOf(o, ctx){
     return out;
   };
   switch(o.type){
+    case 'rechnung': {
+      const txt = (o.args[0] && o.args[0].e != null) ? String(o.args[0].e) : '';
+      if(!txt.trim()) return {kind:'LEER'};
+      const r = rechAuswerten(txt, ctx.names);
+      if(!r) return {kind:'LEER'};
+      if(r.err) return bad(r.err);
+      if(r.t === 'n') return {kind:'Z', n:r.n};
+      /* Gewicht 1 heisst Punkt, alles andere Vektor (siehe rechName). */
+      if(Math.abs((r.w || 0) - 1) < 1e-9 && o.form !== 'ep' && o.form !== 'eo')
+        return {kind:'P', p:r.v.slice(), rech:true};
+      /* Wo faengt der Vektor an? „automatisch" nimmt den Vorschlag aus der
+         Rechnung (bei B - A also A), sonst entscheidet die gewaehlte Form. */
+      let ab = [0,0,0];
+      if(o.form === 'ep'){ const st = A(1); if(!st) return bad(); ab = st; }
+      else if(o.form !== 'eo' && r.ab) ab = r.ab.slice();
+      return {kind:'V', a:ab, v:r.v.slice(), rech:true};
+    }
     case 'punkt': { const p = A(0); return p ? {kind:'P', p:p} : bad(); }
     case 'vektor': {
       if(o.form === 'o'){ const v = Vc(0); return v ? {kind:'V', a:[0,0,0], v:v} : bad(); }
@@ -2039,6 +2091,14 @@ function infoOf(g, o){
   if(!g) return '';
   const f = n => fmt(n);
   const v3 = p => '('+coordStr(p, numMode(o), numDig(o))+')';
+  /* Bei einer Rechnung steht die Art des Ergebnisses dabei - sonst sieht
+     man den Klammern nicht an, ob ein Punkt oder ein Vektor herauskam. */
+  if(o && o.type === 'rechnung'){
+    if(g.kind === 'LEER') return TL('Trage hier eine Rechnung ein, z. B. A + v.', 'Enter a calculation here, e.g. A + v.');
+    if(g.kind === 'Z') return '= '+f(g.n)+'  '+TL('(eine Zahl)', '(a number)');
+    if(g.kind === 'P') return '= '+v3(g.p)+'  '+TL('(ein Punkt)', '(a point)');
+    if(g.kind === 'V') return '= '+v3(g.v)+'  '+TL('(ein Vektor, Länge ', '(a vector, length ')+f(vLen(g.v))+')';
+  }
   switch(g.kind){
     case 'P': return (g.note ? g.note+': ' : '') + v3(g.p);
     case 'V':
@@ -2202,13 +2262,28 @@ function gridItems(out){
       const av=[A[0]-o[0], A[1]-o[1]], bv=[B[0]-o[0], B[1]-o[1]];
       const bl=Math.hypot(bv[0],bv[1]) || 1;
       const dPerp=Math.abs(av[0]*bv[1]-av[1]*bv[0])/bl;
-      if(dPerp < 2.2) continue;
-      const fade=clamp((dPerp-2.2)/5, 0, 1);
-      if(fade < 0.1) continue;
+      /* Steht die Ebene fast auf der Kante, ruecken die Linien auf dem
+         Schirm zusammen. Statt sie alle zu zeichnen (gemessen bis zu 560
+         Stueck, die zusammen nur ein graues Band ergeben) wird jede
+         zweite, dritte ... genommen, bis wieder genug Abstand da ist.
+         Das Gitter bleibt sichtbar, nur grober - und das Bild baut sich
+         auch auf schwachen Geraeten fluessig auf. */
+      if(dPerp < 0.25) continue;
       const n0=Math.ceil((Ea[0]-1e-9)/st), n1=Math.floor((Ea[1]+1e-9)/st);
-      if(n1-n0 > 500) continue;
+      /* Mindestens 9 Pixel Abstand auf dem Schirm, und nie mehr als 160
+         Linien je Richtung - beides bremst genau dort, wo es sonst teuer
+         wird: bei fast auf der Kante stehender Ebene und bei weit
+         aufgezogenem Ausschnitt. */
+      let grob=Math.max(1, Math.ceil(9/dPerp));
+      if((n1-n0)/grob > 160) grob=Math.ceil((n1-n0)/160);
+      const dAbst=dPerp*grob;
+      const fade=clamp((dAbst-2.2)/5, 0, 1);
+      if(fade < 0.1) continue;
       const bn=Math.max(2, Math.round(S.gridBoldN)||2);
       for(let n=n0;n<=n1;n++){
+        /* Die vergroeberte Schrittweite bleibt ein Vielfaches der alten,
+           damit die betonten Linien an ihren Stellen bleiben. */
+        if(grob > 1 && ((n % grob) + grob) % grob !== 0) continue;
         const t=n*st;
         const bold = S.gridBold && Math.abs(t/(bn*st)-Math.round(t/(bn*st)))<1e-6;
         out.push({k:'l', a:pt3(a,t,b,Eb[0]), b:pt3(a,t,b,Eb[1]),
@@ -2241,7 +2316,7 @@ function axisItems(out){
     if(ahi > 1e-9)
       out.push({k:'ar', a:unitP(i, Math.max(0,alo)), b:unitP(i, ahi), c:c, w:2, axs:true,
                 d: hid===1 ? hd : null, ly:LY.ax});
-    const ev=Math.max(0.05, S.numEvery||1);
+    const ev=numStep(hi - lo);
     const q=projPx(unitP(i,ev));
     const stepPx=Math.hypot(q[0]-o[0], q[1]-o[1]);
     let mult=0;
@@ -3532,6 +3607,16 @@ function svgPath(P, closed, stroke, w, fill, d, op){
   if(op!=null) s+=' opacity="'+op+'"';
   return s+'/>';
 }
+/* Beim Drehen und Schieben kommen viel mehr Zeigerereignisse herein, als
+   das Geraet Bilder zeichnen kann. renderBald() sammelt sie ein und
+   zeichnet hoechstens einmal je Bildschirmbild - auf einer Promethean-Tafel
+   ist das der Unterschied zwischen ruckeln und fliessen. */
+let RENDER_WARTET = false;
+function renderBald(){
+  if(RENDER_WARTET) return;
+  RENDER_WARTET = true;
+  requestAnimationFrame(function(){ RENDER_WARTET = false; render(); });
+}
 function render(){
   const box=$('#stageBox');
   W=box.clientWidth||900; H=box.clientHeight||560;
@@ -3762,15 +3847,15 @@ function initPointer(){
     const dx=e.clientX-p.x, dy=e.clientY-p.y;
     p.moved+=Math.abs(dx)+Math.abs(dy); p.x=e.clientX; p.y=e.clientY;
     if(ptrs.size===1){
-      if(p.pan){ vw.cx-=dx/vw.k; vw.cy+=dy/vw.k; render(); }
-      else if(S.view==='3d'){ cam.az-=dx*0.008; cam.el=clamp(cam.el+dy*0.008,-1.52,1.52); render(); }
-      else { vw.cx-=dx/vw.k; vw.cy+=dy/vw.k; render(); }
+      if(p.pan){ vw.cx-=dx/vw.k; vw.cy+=dy/vw.k; renderBald(); }
+      else if(S.view==='3d'){ cam.az-=dx*0.008; cam.el=clamp(cam.el+dy*0.008,-1.52,1.52); renderBald(); }
+      else { vw.cx-=dx/vw.k; vw.cy+=dy/vw.k; renderBald(); }
     } else if(ptrs.size===2 && pinch0){
       const m=mid(), f=clamp(m.d/Math.max(8,pinch0.d),0.2,5);
-      vw.k=clamp(pinch0.k*f,6,900);
+      vw.k=clamp(pinch0.k*f,1.5,900);
       vw.cx=pinch0.cx-(m.x-pinch0.x)/vw.k;
       vw.cy=pinch0.cy+(m.y-pinch0.y)/vw.k;
-      render();
+      renderBald();
     }
   });
   const end=e=>{ ptrs.delete(e.pointerId); if(ptrs.size<2) pinch0=null; };
@@ -3780,10 +3865,10 @@ function initPointer(){
     e.preventDefault();
     const r=box.getBoundingClientRect(), sx=e.clientX-r.left, sy=e.clientY-r.top;
     const b=unpx(sx,sy);
-    vw.k=clamp(vw.k*(e.deltaY<0?1.12:1/1.12),6,900);
+    vw.k=clamp(vw.k*(e.deltaY<0?1.12:1/1.12),1.5,900);
     const a=unpx(sx,sy);
     vw.cx+=b[0]-a[0]; vw.cy+=b[1]-a[1];
-    render();
+    renderBald();
   },{passive:false});
 }
 function initResize(){
@@ -3930,10 +4015,11 @@ function pushFromList(){
   if(ta && document.activeElement !== ta) ta.value = S.txt;
 }
 function refresh(){ serialize(); render(); }
-function refreshAll(){ paintList(); syncParBar(); refresh(); if(typeof rechZeigen === 'function') rechZeigen(); }
+function refreshAll(){ paintList(); syncParBar(); refresh(); }
 
 /* Vorgabewerte für neue Objekte */
 function defArg(kind, i){
+  if(kind === 'r') return {k:'rech', e:''};
   if(kind === 'p') return {k:'lit', e:['1','1','1']};
   if(kind === 'v') return {k:'lit', e:['1','0','0']};
   if(kind === 'n') return {k:'num', e:'2'};
@@ -3997,6 +4083,7 @@ function autoName(type){
   const base = {punkt:['A','B','C','D','P','Q','R','M','N'], schnitt:['S','T'],
                 vektor:['u','v','w','a','b','c'], gerade:['g','h','k'], ebene:['E','F','G'],
                 strecke:['s'], winkel:['α','β','γ'], dreieck:['D'], viereck:['V'], vieleck:['F'],
+                rechnung:['r','s','w','n','q','m'],
                 kreis:['k'], kugel:['K'], wuerfel:['W'], quader:['Q'], prisma:['P'], pyramide:['Py'],
                 zylinder:['Z'], kegel:['Ke'], text:['']}[type] || [''];
   for(const b of base){ if(b && !used[b]) return b; }
@@ -4041,6 +4128,13 @@ function subsOf(o, i){
   return out;
 }
 function optListFor(o){
+  if(o.type === 'rechnung'){
+    /* Was herauskommt, bestimmt die Einstellungen: bei einem Punkt die
+       eines Punktes, bei einem Vektor die eines Vektors. */
+    if(o.reskind === 'P') return ['lbl','num','pst'];
+    if(o.reskind === 'V') return ['lbl','num','w','dash'];
+    return ['lbl','num'];
+  }
   if(o.type === 'schnitt'){
     const k = o.reskind;
     if(k === 'G')  return ['w','dash','gm','hv','spur','num'];
@@ -4149,6 +4243,24 @@ function rowHTML(o, i, depth){
   h += '<button class="ibtn" data-act="menu" title="'+TL('Einstellungen','Settings')+'">'+SYM_MENU+'</button>'
      + '<button class="ibtn del" data-act="del" title="'+TL('löschen','delete')+'">✕</button>'
      + '</div>';
+
+  if(o.type === 'rechnung'){
+    /* Die Rechnung steht als Eingabezeile mitten in der Zeile des Objekts -
+       man schreibt sie dort hin und kann sie spaeter wieder aendern. */
+    const txt = (o.args[0] && o.args[0].e != null) ? String(o.args[0].e) : '';
+    h += '<div class="rechrow">'
+       + '<span class="rechgl">=</span>'
+       + '<input type="text" class="rechin" data-act="rech" spellcheck="false" autocomplete="off"'
+       + ' value="'+esc(txt).replace(/"/g,'&quot;')+'" placeholder="'+TL('z.\u2009B. A + v','e.g. A + v')+'"'
+       + ' title="'+TL('Punkte, Vektoren und Zahlen verrechnen','Combine points, vectors and numbers')+'">'
+       + '<button class="ibtn" data-act="rechzeichen" data-z="\u00d7" title="'+TL('Kreuzprodukt','Cross product')+'">\u00d7</button>'
+       + '<button class="ibtn" data-act="rechbetrag" title="'+TL('Betrag','Absolute value')+'">|a|</button>'
+       + '</div>'
+       + '<div class="rinfo'+(o.info?'':' hidden')+'" data-info="'+o.id+'">'+esc(o.info||'')+'</div>'
+       + '<div class="rerr'+(o.rerr?'':' hidden')+'" data-err="'+o.id+'">'+esc(o.rerr||'')+'</div>'
+       + '</div>';
+    return h;
+  }
 
   const spec = specFor(o);
   h += '<div class="chips">';
@@ -4503,6 +4615,24 @@ function initList(){
     if(act === 'delno'){ closePop(); return; }
     if(act === 'delyes'){ closePop(); OBJ.splice(r.i,1); openRow = null; pushFromList(); refreshAll(); return; }
     if(act === 'exp'){ if(EXPAND[o.id]) delete EXPAND[o.id]; else EXPAND[o.id] = 1; paintList(); return; }
+    /* Die beiden Zeichenknoepfe der Rechnung schreiben an der Schreibmarke
+       mit - das Feld behaelt dabei den Schreibfleck. */
+    if(act === 'rechzeichen' || act === 'rechbetrag'){
+      const f = b.closest('.rechrow') ? b.closest('.rechrow').querySelector('.rechin') : null;
+      if(!f) return;
+      const a0 = f.selectionStart == null ? f.value.length : f.selectionStart;
+      const b0 = f.selectionEnd == null ? a0 : f.selectionEnd;
+      const mitte = f.value.slice(a0, b0);
+      let ein, cur;
+      if(act === 'rechbetrag'){ ein = '|' + mitte + '|'; cur = mitte ? a0 + ein.length : a0 + 1; }
+      else { ein = (a0 > 0 && f.value[a0-1] !== ' ' ? ' ' : '') + (b.dataset.z || '\u00d7') + ' '; cur = a0 + ein.length; }
+      f.value = f.value.slice(0, a0) + ein + f.value.slice(b0);
+      o.args[0] = {k:'rech', e:f.value};
+      pushFromList(); refresh();
+      f.focus();
+      try{ f.setSelectionRange(cur, cur); }catch(err){}
+      return;
+    }
     if(act === 'eye'){
       if(Date.now() - eyeBlocked < 500) return;      /* kam von langem Drücken */
       const t = optTarget(r); if(t.off) delete t.off; else t.off = true;
@@ -4561,6 +4691,9 @@ function initList(){
       pushFromList(); refresh(); return;
     }
     if(act === 'name'){ o.name = el.value.trim(); el.style.width = nameW(o.name); pushFromList(); refresh(); return; }
+    /* Die Rechnung wird beim Tippen uebernommen. Die Liste wird dabei nicht
+       neu gebaut - sonst verloere das Feld bei jedem Zeichen den Schreibfleck. */
+    if(act === 'rech'){ o.args[0] = {k:'rech', e:el.value}; pushFromList(); refresh(); return; }
     if(act === 'lit'){ o.args[openArg].e[+el.dataset.j] = el.value.trim() || '0'; chipRefresh(r.row, openArg, o); pushFromList(); syncParBar(); refresh(); return; }
     if(act === 'ko'){ o.args[openArg].e[+el.dataset.j] = el.value.trim() || '0'; chipRefresh(r.row, openArg, o); pushFromList(); refresh(); return; }
     if(act === 'num'){ o.args[openArg] = {k:'num', e:el.value.trim() || '1'}; chipRefresh(r.row, openArg, o); pushFromList(); syncParBar(); refresh(); return; }
@@ -4834,18 +4967,15 @@ function addMenu(anchor){
     const list = Object.keys(TYPES).filter(k=>TYPES[k].grp===gr[0]);
     return '<h4>'+grLbl(gr)+'</h4><div class="tgrid">'
       + list.map(k=>'<button data-t="'+k+'">'+esc(TYPES[k].lbl)+'</button>').join('')+'</div>';
-  }).join('')
-  /* Die Rechenzeile ist kein Objekt, gehört aber hierher: man sucht sie
-     genau dann, wenn man etwas hinzufügen will. */
-  + '<h4>'+TL('Werkzeuge','Tools')+'</h4><div class="tgrid"><button data-tool="rechnen">'
-  + TL('Rechnung','Calculation')+'</button></div>';
+  }).join('');
   const p = openPop(anchor, html);
   p.addEventListener('click', e=>{
-    const w = e.target.closest('button[data-tool]');
-    if(w){ rechnenZeigen(true); closePop(); return; }
     const b = e.target.closest('button[data-t]');
     if(!b) return;
     const t = b.dataset.t, forms = Object.keys(TYPES[t].forms);
+    /* Eine Rechnung wird gleich angelegt - wie das Ergebnis gezeichnet wird,
+       steht danach im Auswahlfeld der Zeile. */
+    if(t === 'rechnung'){ addObject('rechnung', 'e'); closePop(); return; }
     if(forms.length === 1){ addObject(t, forms[0]); closePop(); return; }
     formMenu(anchor, t);
   });
@@ -4868,10 +4998,17 @@ function formMenu(anchor, t){
 function addObject(type, form){
   const o = makeObj(type, form);
   OBJ.push(o);
-  openRow = o.id; openArg = 0;
+  /* Die Rechnung bringt ihr Eingabefeld selbst mit - ein zusaetzlicher
+     Bearbeiten-Bereich darunter waere doppelt. */
+  if(type === 'rechnung'){ openRow = null; openArg = null; }
+  else { openRow = o.id; openArg = 0; }
   pushFromList(); refreshAll();
   const row = document.querySelector('.row[data-i="'+(OBJ.length-1)+'"]');
   if(row) try{ row.scrollIntoView({behavior:'smooth', block:'nearest'}); }catch(e){}
+  if(type === 'rechnung' && row){
+    const f = row.querySelector('.rechin');
+    if(f) try{ f.focus(); }catch(e){}
+  }
 }
 const EXAMPLES = [
   {t:'Gerade durch zwei Punkte', e:'Line through two points', x:['A = Punkt(1|2|1)','B = Punkt(5|6|4)','g = Gerade(A -> B) {farbe:#1565c0; hilfsvektoren:an}'].join('\n')},
@@ -5621,8 +5758,8 @@ function initUI(){
     render();
   });
   initResize();
-  $('#btnZoomIn').addEventListener('click',()=>{ vw.k=clamp(vw.k*1.2,6,900); render(); });
-  $('#btnZoomOut').addEventListener('click',()=>{ vw.k=clamp(vw.k/1.2,6,900); render(); });
+  $('#btnZoomIn').addEventListener('click',()=>{ vw.k=clamp(vw.k*1.2,1.5,900); render(); });
+  $('#btnZoomOut').addEventListener('click',()=>{ vw.k=clamp(vw.k/1.2,1.5,900); render(); });
   $('#btnFit').addEventListener('click',()=>{ if(S.view==='3d') fitCam(); vw.set=false; render(); });
   $('#btnView').addEventListener('click',()=>{
     S.view = S.view==='2d' ? '3d' : '2d';
@@ -5750,22 +5887,28 @@ window.fehlerKontext = function(){
 let RNAMEN = {};                       /* Name -> Geometrie, von buildObjects gefüllt */
 
 /** Wert eines Namens: Vektor, Zahl - oder null */
-function rechName(tok){
-  const g = RNAMEN[tok];
+/* Jeder Wert traegt ein Gewicht: ein Punkt zaehlt 1, ein Vektor 0. Summen
+   addieren die Gewichte, Vielfache vervielfachen sie. Kommt am Ende 1
+   heraus, ist das Ergebnis ein Punkt, sonst ein Vektor - damit stimmt
+   Punkt + Vektor = Punkt, Punkt - Punkt = Vektor und (A+B)/2 =
+   Mittelpunkt, ohne dass man die Faelle einzeln aufzaehlen muss. */
+function rechName(tok, namen){
+  const N = namen || RNAMEN;
+  const g = N[tok];
   if(g){
-    if(g.kind === 'V') return {t:'v', v:g.v.slice()};
-    if(g.kind === 'P') return {t:'v', v:g.p.slice(), pkt:true};
+    if(g.kind === 'V') return {t:'v', v:g.v.slice(), w:0};
+    if(g.kind === 'P') return {t:'v', v:g.p.slice(), w:1};
     return {t:'err', msg:TL('„'+tok+'“ ist kein Punkt und kein Vektor.', '“'+tok+'” is neither a point nor a vector.')};
   }
   /* Verbindungsvektoren wie OA, AB, P1P2 - O ist der Ursprung */
   const pktVon = n => {
     if(n === 'O') return [0,0,0];
-    const h = RNAMEN[n];
+    const h = N[n];
     return (h && h.kind === 'P') ? h.p.slice() : null;
   };
   for(let i = 1; i < tok.length; i++){
     const a = pktVon(tok.slice(0, i)), b = pktVon(tok.slice(i));
-    if(a && b) return {t:'v', v:vSub(b, a)};
+    if(a && b) return {t:'v', v:vSub(b, a), w:0};
   }
   return null;
 }
@@ -5797,7 +5940,7 @@ function rechTokens(text){
   return {tok:out};
 }
 /** Rechnung auswerten: {t:'v'|'n', …} oder {err:…} */
-function rechAuswerten(text){
+function rechAuswerten(text, namen){
   const z = rechTokens(text);
   if(z.err) return {err:z.err};
   const tok = z.tok;
@@ -5827,7 +5970,7 @@ function rechAuswerten(text){
     }
     if(t.t === 'name'){
       pos++;
-      const w = rechName(t.v);
+      const w = rechName(t.v, namen);
       if(!w) fehler(TL('Unbekannter Name: „'+t.v+'“. Er muss weiter oben als Punkt oder Vektor stehen.',
                        'Unknown name: “'+t.v+'”. It has to appear above as a point or a vector.'));
       if(w.t === 'err') fehler(w.msg);
@@ -5865,7 +6008,13 @@ function rechAuswerten(text){
       const r = produkt();
       if(w.t !== r.t) fehler(TL('Eine Zahl und ein Vektor lassen sich nicht addieren.', 'A number and a vector cannot be added.'));
       const vorz = (t.t === '+') ? 1 : -1;
-      w = (w.t === 'v') ? {t:'v', v:vAdd(w.v, vMul(r.v, vorz))} : {t:'n', n:w.n + vorz*r.n};
+      if (w.t === 'v'){
+        /* B - A ist der Vektor von A nach B. Dann liegt es nahe, ihn auch ab
+           A zu zeichnen - die Zeile merkt sich A als Vorschlag. */
+        const ab = (vorz === -1 && Math.abs((w.w || 0) - 1) < 1e-9
+                                && Math.abs((r.w || 0) - 1) < 1e-9) ? r.v.slice() : null;
+        w = {t:'v', v:vAdd(w.v, vMul(r.v, vorz)), w:(w.w||0) + vorz*(r.w||0), ab:ab};
+      } else w = {t:'n', n:w.n + vorz*r.n};
     }
     return w;
   }
@@ -5881,103 +6030,29 @@ function rechAuswerten(text){
   }
 }
 function rechNeg(w, fehler){
-  if(w.t === 'v') return {t:'v', v:vMul(w.v, -1)};
+  if(w.t === 'v') return {t:'v', v:vMul(w.v, -1), w:-(w.w||0)};
   if(w.t === 'n') return {t:'n', n:-w.n};
   fehler(TL('Hier fehlt ein Wert.', 'A value is missing here.'));
 }
 function rechMal(a, b, op, fehler){
   if(op === '×'){
     if(a.t !== 'v' || b.t !== 'v') fehler(TL('Das Kreuzprodukt gibt es nur zwischen zwei Vektoren.', 'The cross product only exists between two vectors.'));
-    return {t:'v', v:vCross(a.v, b.v)};
+    return {t:'v', v:vCross(a.v, b.v), w:0};
   }
   if(op === '/'){
     if(b.t !== 'n') fehler(TL('Durch einen Vektor kann man nicht teilen.', 'You cannot divide by a vector.'));
     if(Math.abs(b.n) < 1e-12) fehler(TL('Durch null lässt sich nicht teilen.', 'You cannot divide by zero.'));
-    return a.t === 'v' ? {t:'v', v:vMul(a.v, 1/b.n)} : {t:'n', n:a.n/b.n};
+    return a.t === 'v' ? {t:'v', v:vMul(a.v, 1/b.n), w:(a.w||0)/b.n} : {t:'n', n:a.n/b.n};
   }
   if(a.t === 'n' && b.t === 'n') return {t:'n', n:a.n*b.n};
-  if(a.t === 'n' && b.t === 'v') return {t:'v', v:vMul(b.v, a.n)};
-  if(a.t === 'v' && b.t === 'n') return {t:'v', v:vMul(a.v, b.n)};
+  if(a.t === 'n' && b.t === 'v') return {t:'v', v:vMul(b.v, a.n), w:(b.w||0)*a.n};
+  if(a.t === 'v' && b.t === 'n') return {t:'v', v:vMul(a.v, b.n), w:(a.w||0)*b.n};
   return {t:'n', n:vDot(a.v, b.v)};                 /* Vektor mal Vektor: Skalarprodukt */
 }
-/** letztes Ergebnis - für „+ als Vektor" */
-let RECHERG = null;
-function rechZeigen(){
-  const feld = $('#rechnenIn'), aus = $('#rechnenErg'), knopf = $('#btnRechAdd');
-  if(!feld || !aus) return;
-  const text = feld.value;
-  const w = rechAuswerten(text);
-  RECHERG = null;
-  if(!w){ aus.className = 'erg'; aus.innerHTML = ''; if(knopf) knopf.disabled = true; return; }
-  if(w.err){ aus.className = 'erg err'; aus.textContent = w.err; if(knopf) knopf.disabled = true; return; }
-  aus.className = 'erg';
-  if(w.t === 'v'){
-    RECHERG = w.v.slice();
-    aus.innerHTML = '= (' + esc2(coordStr(w.v)) + ')  <span class="lab">'
-      + TL('Länge ', 'length ') + esc2(fmtC(vLen(w.v))) + '</span>';
-    if(knopf) knopf.disabled = false;
-  } else {
-    aus.innerHTML = '= ' + esc2(fmtC(w.n)) + '  <span class="lab">' + TL('(eine Zahl)', '(a number)') + '</span>';
-    if(knopf) knopf.disabled = true;
-  }
-}
-function esc2(s){ return String(s).replace(/[&<>]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
-/** freien kleinen Buchstaben für das neue Objekt finden */
-function rechFreierName(){
-  const belegt = {};
-  OBJ.forEach(o=>{ if(o.name) belegt[o.name] = 1; });
-  const kand = 'rswmnkqabcdefhijlop'.split('');
-  for(const c of kand) if(!belegt[c]) return c;
-  for(let i = 1; i < 99; i++) if(!belegt['v'+i]) return 'v'+i;
-  return 'v';
-}
-function rechEinfuegen(){
-  if(!RECHERG) return;
-  const name = rechFreierName();
-  const zeile = name + ' = ' + (EN() ? 'Vector' : 'Vektor') + '(' + RECHERG.map(x=>fmtC(x, 'dez', 6)).join('|') + ')';
-  const neu = parseLine(zeile);
-  OBJ.push(neu);
-  pushFromList(); refreshAll();
-  const feld = $('#rechnenIn');
-  if(feld) feld.focus();
-}
-function rechEinfuegenZeichen(zeichen, umschliessen){
-  const f = $('#rechnenIn');
-  if(!f) return;
-  const a = f.selectionStart == null ? f.value.length : f.selectionStart;
-  const b = f.selectionEnd == null ? a : f.selectionEnd;
-  const mitte = f.value.slice(a, b);
-  let ein, cur;
-  if(umschliessen){ ein = '|' + mitte + '|'; cur = mitte ? a + ein.length : a + 1; }
-  else { ein = (a > 0 && f.value[a-1] !== ' ' ? ' ' : '') + zeichen + ' '; cur = a + ein.length; }
-  f.value = f.value.slice(0, a) + ein + f.value.slice(b);
-  f.focus();
-  try{ f.setSelectionRange(cur, cur); }catch(e){}
-  rechZeigen();
-}
-/** Die Rechenzeile ein- oder ausklappen. */
-function rechnenZeigen(an){
-  const bar = $('#rechnenBar');
-  if(!bar) return;
-  bar.classList.toggle('hidden', !an);
-  if(an){
-    const f = $('#rechnenIn');
-    if(f){ f.focus(); try{ f.setSelectionRange(f.value.length, f.value.length); }catch(e){} }
-  }
-}
-function rechStart(){
-  const f = $('#rechnenIn');
-  if(!f) return;
-  f.addEventListener('input', rechZeigen);
-  f.addEventListener('keydown', e=>{ if(e.key === 'Enter'){ e.preventDefault(); if(RECHERG) rechEinfuegen(); } });
-  const k = $('#btnKreuz'); if(k) k.addEventListener('click', ()=>rechEinfuegenZeichen('×', false));
-  const bt = $('#btnBetrag'); if(bt) bt.addEventListener('click', ()=>rechEinfuegenZeichen('|', true));
-  const ad = $('#btnRechAdd'); if(ad){ ad.disabled = true; ad.addEventListener('click', rechEinfuegen); }
-  const zu = $('#btnRechZu'); if(zu) zu.addEventListener('click', ()=>rechnenZeigen(false));
-  rechZeigen();
-}
-if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', rechStart);
-else rechStart();
+/* Die Bedienung der alten Rechenzeile stand hier. Sie ist weggefallen:
+   eine Rechnung wird jetzt als Objekt angelegt und in ihrer eigenen
+   Zeile eingegeben. Das Auswerten selbst (rechAuswerten und Co.)
+   bleibt natuerlich - es wird von geomOf gebraucht. */
 
 </script>
 </body>
