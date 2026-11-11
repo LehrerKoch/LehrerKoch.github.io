@@ -104,6 +104,50 @@
     return '\\sqrt{' + pgZahl(r) + '}';
   }
 
+  /** √r, ohne teilweises Wurzelziehen: aus 12 wird \sqrt{12}, nicht
+      2\sqrt{3}. So steht die Lösung genau so da, wie sie aus der Formel
+      fällt - das ist beim Nachrechnen leichter wiederzuerkennen. */
+  function pgWurzelRoh(r){
+    if (r < 0) return '\\sqrt{' + pgZahl(r) + '}';
+    var w = Math.sqrt(r);
+    if (ganz(w)) return pgZahl(w);
+    return '\\sqrt{' + pgZahl(r) + '}';
+  }
+
+  /** Krumm heisst: keine Bruchzahl mit erträglichem Nenner - also eine
+      Zahl, die man nur genau ODER gerundet hinschreiben kann. */
+  function pgKrumm(x){
+    if (typeof x !== 'number' || !isFinite(x)) return false;
+    if (ganz(x)) return false;
+    var b = bruchVon(x);
+    return !(b && b.d <= 100);
+  }
+  /** Gerundet, mit Komma: -1,33 */
+  function pgGerundet(x, stellen){
+    var n = (stellen == null) ? 2 : stellen;
+    /* Die Nullen am Ende bleiben stehen: „≈ 10,00" zeigt, dass gerundet wurde -
+       „≈ 10" sähe aus wie ein genauer Wert. */
+    return (Math.round(x * Math.pow(10, n)) / Math.pow(10, n)).toFixed(n).replace('.', '{,}');
+  }
+  /** Die genaue Schreibweise, und dahinter der Näherungswert - aber nur,
+      wenn der Wert wirklich krumm ist. */
+  function pgGenau(tex, x, stellen){
+    return pgKrumm(x) ? (tex + ' \\approx ' + pgGerundet(x, stellen)) : tex;
+  }
+  /** Wie genau muss eine eingetippte Loesung stimmen? Eine irrationale Loesung
+      darf man genau (mit sqrt) oder auf zwei Stellen gerundet eingeben -
+      deshalb ist die Schranke dort groesser als eine halbe Hundertstelle. */
+  function pgLoesTol(x){ return pgKrumm(x) ? 6e-3 : 1e-6; }
+  /** Zwei eingetippte Werte gelten als derselbe, wenn schon die groessere der
+      beiden Schranken passt - sonst waeren sqrt(11) und 3,32 zwei Loesungen. */
+  function gleichTol(a, b){ return Math.max(pgLoesTol(a), pgLoesTol(b)); }
+  /** Dasselbe fuer die Schrittfolgen, die schon eine eigene Schranke hatten:
+      eine krumme Zahl darf auch auf zwei Stellen gerundet dastehen. */
+  function schrittTol(a, b){
+    var t = Math.max(1e-3, pgLoesTol(a));
+    return (b == null) ? t : Math.max(t, pgLoesTol(b));
+  }
+
   /** Ist die Wurzel aus r eine „glatte" Zahl? */
   function pgWurzelGlatt(r){
     if (r < 0) return false;
@@ -210,9 +254,14 @@
     /* nur erlaubte Zeichen */
     if (!/^[-+*/().0-9sqrt]+$/.test(s)) return null;
     /* sqrt ohne Klammer: sqrt2 → sqrt(2) */
-    s = s.replace(/sqrt(\d+(\.\d+)?)/g, 'Math.sqrt($1)');
+    /* Erst die Klammern ergaenzen, dann Math davorsetzen - andersherum
+       fand die zweite Regel das „sqrt(" in „Math.sqrt(" noch einmal und
+       machte „MathMath.sqrt(" daraus. Deshalb ging „√5" nicht. */
+    s = s.replace(/sqrt(\d+(\.\d+)?)/g, 'sqrt($1)');
     s = s.replace(/sqrt\(/g, 'Math.sqrt(');
-    if (/[a-z]/.test(s.replace(/math\.sqrt/g, ''))) return null;
+    /* Ohne i wird „Math.sqrt" hier nicht erkannt (grosses M) - und dann
+       galt jede Eingabe mit einer Wurzel als unleserlich. */
+    if (/[a-z]/i.test(s.replace(/Math\.sqrt/gi, ''))) return null;
     var wert;
     try { wert = Function('"use strict";return (' + s + ');')(); } catch (e){ return null; }
     return (typeof wert === 'number' && isFinite(wert)) ? wert : null;
@@ -583,7 +632,7 @@
         return;
       }
       var sortiert = zahlen.slice().sort(function(a, b){ return a - b; });
-      var allesGut = sortiert.every(function(z, i){ return pgGleich(z, loes[i]); });
+      var allesGut = sortiert.every(function(z, i){ return pgGleich(z, loes[i], pgLoesTol(loes[i])); });
       if (allesGut){
         fertig = true;
         melde('ok', T('✓ Richtig!', '✓ Correct!'));
@@ -597,7 +646,7 @@
       var offen = loes.slice();
       [].forEach.call(felder.querySelectorAll('input'), function(e, i){
         var z = zahlen[i], tref = -1;
-        offen.forEach(function(l, k){ if (tref < 0 && pgGleich(z, l)) tref = k; });
+        offen.forEach(function(l, k){ if (tref < 0 && pgGleich(z, l, pgLoesTol(l))) tref = k; });
         if (tref >= 0){ offen.splice(tref, 1); e.classList.add('ok'); e.classList.remove('err'); }
         else { e.classList.add('err'); e.classList.remove('ok'); }
       });
@@ -886,7 +935,14 @@
     function weiter(){ idx++; hilfe = 0; male(); }
 
     male();
-    return { neu: function(neue){ schritte = neue; idx = 0; hilfe = 0; erledigt = []; male(); } };
+    return {
+      neu: function(neue){ schritte = neue; idx = 0; hilfe = 0; erledigt = []; male(); },
+      /* Die noch nicht bearbeiteten Schritte austauschen. Gebraucht, wenn der
+         weitere Weg von der Antwort abhaengt - etwa davon, welche Nullstelle
+         geraten wurde. Aus pruefe() heraus aufrufen: der laufende Schritt
+         bleibt stehen, alles danach wird ersetzt. */
+      rest: function(neue){ schritte = schritte.slice(0, idx + 1).concat(neue || []); }
+    };
   }
 
   /* ── 6b. Fertige Schrittfolgen für das Quiz ───────────────────────────────
@@ -926,6 +982,10 @@
         + T('(auf 3 Nachkommastellen gerundet)', '(rounded to 3 decimals)') + '</span>' : ''),
       platzhalter: opt.platzhalter || T('Zahl', 'number'),
       vorFeld: opt.vorFeld,
+      /* Steht im Schritt selbst, mit welcher Gleichung gerade gerechnet wird,
+         so gilt die - sonst setzte das Quiz die Gleichung der ganzen Reihe
+         darueber, beim Durchteilen also schon die geteilte. */
+      gleichung: opt.gleichung,
       kurz: opt.kurz || (pgZahl(soll)),
       hilfe: hs,
       pruefe: function(txt){
@@ -1023,10 +1083,10 @@
           if (!zahlen.length || zahlen.some(function(z){ return z === null; }))
             return T('Bitte Zahlen eingeben, mehrere mit Semikolon.', 'Please enter numbers, several separated by a semicolon.');
           var eigen = [];
-          zahlen.forEach(function(z){ if (!eigen.some(function(w){ return pgGleich(w, z, 1e-3); })) eigen.push(z); });
+          zahlen.forEach(function(z){ if (!eigen.some(function(w){ return pgGleich(w, z, schrittTol(w, z)); })) eigen.push(z); });
           eigen.sort(function(x, y){ return x - y; });
           var soll2 = loesListe.slice().sort(function(x, y){ return x - y; });
-          if (eigen.length === soll2.length && eigen.every(function(z, i){ return pgGleich(z, soll2[i], 1e-3); })) return true;
+          if (eigen.length === soll2.length && eigen.every(function(z, i){ return pgGleich(z, soll2[i], schrittTol(soll2[i])); })) return true;
           if (eigen.length !== soll2.length)
             return T('Die Anzahl passt noch nicht – schau auf das Vorzeichen unter der Wurzel.',
                      'The number of values does not fit yet – look at the sign under the root.');
@@ -1083,7 +1143,7 @@
     if (W !== null && D > 1e-9){
       S.push(zahlSchritt(T('Wurzel ziehen', 'Take the root'),
         T('Berechne \\(\\sqrt{' + pgZahl(D) + '}\\).', 'Work out \\(\\sqrt{' + pgZahl(D) + '}\\).'), W,
-        { vorFeld: '\\sqrt{D}', kurz: wurzelKurz(D), tol: 1e-3,
+        { vorFeld: '\\sqrt{D}', kurz: wurzelKurz(D), tol: schrittTol(W),
           fehler: [[D / 2, T('Wurzelziehen ist nicht Halbieren.', 'Taking a root is not halving.')]],
           hilfe: [T('Welche Zahl mit sich selbst malgenommen ergibt ' + pgZahlText(D) + '?',
                     'Which number multiplied by itself gives ' + pgZahlText(D) + '?')] }));
@@ -1092,7 +1152,7 @@
       S.push(zahlSchritt(v + '₁',
         T('Jetzt der Fall mit <b>minus</b>: \\(' + v + '_1 = ' + pgZahl(-m) + ' - ' + pgWurzel(D) + '\\). Wie viel ist das?',
           'Now the case with <b>minus</b>: \\(' + v + '_1 = ' + pgZahl(-m) + ' - ' + pgWurzel(D) + '\\). What is that?'), x1,
-        { vorFeld: v + '_1', kurz: v + '_1 = ' + pgZahl(x1), tol: 1e-3,
+        { vorFeld: v + '_1', kurz: v + '_1 = ' + pgZahl(x1), tol: schrittTol(x1),
           fehler: [[x2, T('Das ist der Fall mit plus – hier ist der mit minus gefragt.',
                           'That is the case with plus – here the one with minus is wanted.')],
                    [-x1, T('Achte auf die Vorzeichen.', 'Mind the signs.')]],
@@ -1101,7 +1161,7 @@
         S.push(zahlSchritt(v + '₂',
           T('Und der Fall mit <b>plus</b>: \\(' + v + '_2 = ' + pgZahl(-m) + ' + ' + pgWurzel(D) + '\\).',
             'And the case with <b>plus</b>: \\(' + v + '_2 = ' + pgZahl(-m) + ' + ' + pgWurzel(D) + '\\).'), x2,
-          { vorFeld: v + '_2', kurz: v + '_2 = ' + pgZahl(x2), tol: 1e-3,
+          { vorFeld: v + '_2', kurz: v + '_2 = ' + pgZahl(x2), tol: schrittTol(x2),
             fehler: [[x1, T('Das war schon der Fall mit minus.', 'That was the case with minus already.')]],
             hilfe: [T('Zum ersten Wert die Wurzel addieren.', 'Add the root to the first value.')] }));
       }
@@ -1153,7 +1213,7 @@
     if (W !== null && D > 1e-9){
       S.push(zahlSchritt(T('Wurzel ziehen', 'Take the root'),
         T('Berechne \\(\\sqrt{' + pgZahl(D) + '}\\).', 'Work out \\(\\sqrt{' + pgZahl(D) + '}\\).'), W,
-        { vorFeld: '\\sqrt{D}', tol: 1e-3,
+        { vorFeld: '\\sqrt{D}', tol: schrittTol(W),
           kurz: wurzelKurz(D) }));
     }
     if (W !== null){
@@ -1163,13 +1223,13 @@
       S.push(zahlSchritt(v + '₁',
         T('Jetzt der Fall mit <b>minus</b>: \\(' + v + '_1 = \\frac{' + pgZahl(-b) + ' - ' + pgWurzel(D) + '}{' + pgZahl(2 * a) + '}\\).',
           'Now the case with <b>minus</b>: \\(' + v + '_1 = \\frac{' + pgZahl(-b) + ' - ' + pgWurzel(D) + '}{' + pgZahl(2 * a) + '}\\).'), x1,
-        { vorFeld: v + '_1', kurz: v + '_1 = ' + pgZahl(x1), tol: 1e-3,
+        { vorFeld: v + '_1', kurz: v + '_1 = ' + pgZahl(x1), tol: schrittTol(x1),
           fehler: [[x2, T('Das ist der Fall mit plus.', 'That is the case with plus.')]] }));
       if (D > 1e-9){
         S.push(zahlSchritt(v + '₂',
           T('Und der Fall mit <b>plus</b>: \\(' + v + '_2 = \\frac{' + pgZahl(-b) + ' + ' + pgWurzel(D) + '}{' + pgZahl(2 * a) + '}\\).',
             'And the case with <b>plus</b>: \\(' + v + '_2 = \\frac{' + pgZahl(-b) + ' + ' + pgWurzel(D) + '}{' + pgZahl(2 * a) + '}\\).'), x2,
-          { vorFeld: v + '_2', kurz: v + '_2 = ' + pgZahl(x2), tol: 1e-3,
+          { vorFeld: v + '_2', kurz: v + '_2 = ' + pgZahl(x2), tol: schrittTol(x2),
             fehler: [[x1, T('Das war schon der Fall mit minus.', 'That was the case with minus already.')]] }));
       }
     }
@@ -1236,7 +1296,7 @@
       S.push(zahlSchritt(T('Wurzel ziehen', 'Take the root'),
         T('Ziehe die ' + n + '-te Wurzel: ' + (loes.length > 1 ? 'Wie lautet die positive Lösung?' : 'Wie lautet die Lösung?'),
           'Take the ' + n + 'th root: ' + (loes.length > 1 ? 'what is the positive solution?' : 'what is the solution?')), gross,
-        { kurz: v + ' = ' + pgZahl(gross), tol: 1e-3,
+        { kurz: v + ' = ' + pgZahl(gross), tol: schrittTol(gross),
           fehler: [[w, T('Das ist noch \\(' + v + '^{' + n + '}\\) – jetzt fehlt die Wurzel.',
                          'That is still \\(' + v + '^{' + n + '}\\) – the root is still missing.')],
                    [w / n, T('Wurzelziehen ist nicht Teilen.', 'Taking a root is not dividing.')]],
@@ -1470,6 +1530,11 @@
   window.pgKlammer     = pgKlammer;
   window.pgWurzel      = pgWurzel;
   window.pgWurzelGlatt = pgWurzelGlatt;
+  window.pgWurzelRoh   = pgWurzelRoh;
+  window.pgKrumm       = pgKrumm;
+  window.pgGerundet    = pgGerundet;
+  window.pgGenau       = pgGenau;
+  window.pgLoesTol     = pgLoesTol;
   window.pgTerm        = pgTerm;
   window.pgPoly        = pgPoly;
   window.pgPolyText    = pgPolyText;
@@ -1530,6 +1595,7 @@
         if (weg) weg.style.visibility = (zeilen().length > 1) ? '' : 'hidden';
       });
       mehr.disabled = zeilen().length >= maxZeilen;
+      keinKnopfZeigen();
     }
     function zeileDazu(wert){
       if (zeilen().length >= maxZeilen) return null;
@@ -1543,7 +1609,20 @@
       if (wert != null) inp.value = wert;
       inp.addEventListener('keydown', function(ev){
         if (ev.key === 'Enter'){ ev.preventDefault(); pruefe(); }
+        /* Tab im letzten Feld legt das naechste an - so kommt man durch die
+           ganze Liste, ohne zwischendurch zur Maus zu greifen. */
+        if (ev.key === 'Tab' && !ev.shiftKey && !fertig
+            && String(inp.value).trim() !== ''){
+          var alle = zeilen();
+          if (alle.length && alle[alle.length - 1].contains(inp)
+              && alle.length < maxZeilen){
+            ev.preventDefault();
+            var f = zeileDazu('');
+            if (f) f.focus();
+          }
+        }
       });
+      inp.addEventListener('input', keinKnopfZeigen);
       var weg = document.createElement('button');
       weg.type = 'button'; weg.className = 'pg-weg';
       weg.title = T('Diese Zeile entfernen', 'Remove this row');
@@ -1585,7 +1664,17 @@
       keine = an;
       kein.classList.toggle('on', an);
       liste.style.display = an ? 'none' : '';
+      mehr.style.display = an ? 'none' : '';
       melde('', '');
+    }
+    /* „keine Loesung" steht nur da, solange noch nichts eingetragen ist -
+       sonst sieht es aus, als liesse sich beides zugleich sagen. */
+    function keinKnopfZeigen(){
+      if (fertig) return;
+      var wasDrin = zeilen().some(function(z){
+        return String(z.querySelector('input').value).trim() !== '';
+      });
+      kein.style.display = (wasDrin && !keine) ? 'none' : '';
     }
 
     /* ── prüfen ── */
@@ -1607,7 +1696,7 @@
       /* doppelt eingetragene Werte zählen als eine Lösung */
       var eigen = [];
       zahlen.forEach(function(z){
-        if (!eigen.some(function(y){ return pgGleich(y, z); })) eigen.push(z);
+        if (!eigen.some(function(y){ return pgGleich(y, z, gleichTol(y, z)); })) eigen.push(z);
       });
       var doppelt = zahlen.length - eigen.length;
 
@@ -1617,19 +1706,34 @@
       felder.forEach(function(e){
         var z = pgLese(e.value);
         if (String(e.value).trim() === ''){ e.classList.remove('ok', 'err'); return; }
-        var ist = loes.some(function(l){ return pgGleich(z, l); });
+        var ist = loes.some(function(l){ return pgGleich(z, l, pgLoesTol(l)); });
         e.classList.toggle('ok', ist);
         e.classList.toggle('err', !ist);
-        if (ist && !gefunden.some(function(y){ return pgGleich(y, z); })) gefunden.push(z);
+        if (ist && !gefunden.some(function(y){ return pgGleich(y, z, gleichTol(y, z)); })) gefunden.push(z);
       });
       var falsch = eigen.filter(function(z){
-        return !loes.some(function(l){ return pgGleich(z, l); });
+        return !loes.some(function(l){ return pgGleich(z, l, pgLoesTol(l)); });
       });
       var fehlt = loes.filter(function(l){
-        return !eigen.some(function(z){ return pgGleich(z, l); });
+        return !eigen.some(function(z){ return pgGleich(z, l, pgLoesTol(l)); });
       });
 
-      if (!falsch.length && !fehlt.length){
+      /* Wer einen Wert mehrfach eintraegt, meint die Vielfachheit - dann
+         muss die Anzahl auch stimmen. Einmal eintragen bleibt richtig: die
+         Vielfachheit ist eine Zusatzinformation, kein Pflichtteil. */
+      var vielfachVon = function(z){
+        var n = 1;
+        Object.keys(vielfach || {}).forEach(function(k){
+          if (pgGleich(parseFloat(k), z, pgLoesTol(parseFloat(k)))) n = vielfach[k] || 1;
+        });
+        return n;
+      };
+      var zuOft = eigen.filter(function(z){
+        var n = zahlen.filter(function(y){ return pgGleich(y, z, gleichTol(y, z)); }).length;
+        return n > 1 && n !== vielfachVon(z);
+      });
+
+      if (!falsch.length && !fehlt.length && !zuOft.length){
         fertig = true;
         var zusatz = pgVielfachText(loes, vielfach, v);
         if (doppelt && !zusatz)
@@ -1639,13 +1743,28 @@
           + (zusatz ? '<div class="pg-fb-sub">' + zusatz + '</div>' : ''));
         felder.forEach(function(e){ e.disabled = true; });
         [mehr, kein, pruefKnopf].forEach(function(b){ b.disabled = true; });
+        /* Nach „Richtig" gibt es nichts mehr zu bedienen - auch nicht die
+           Knoepfe, die die Seite selbst in den Steuerbereich gelegt hat. */
+        [].forEach.call(steuer.querySelectorAll('button'), function(b){ b.disabled = true; });
         [].forEach.call(liste.querySelectorAll('.pg-weg'), function(b){ b.style.display = 'none'; });
         if (opt.onFertig) opt.onFertig(true);
         return;
       }
       /* Rückmeldung, ohne die Anzahl zu verraten */
       var text;
-      if (keine && loes.length)
+      if (zuOft.length){
+        var z0 = zuOft[0], n0 = zahlen.filter(function(y){ return pgGleich(y, z0, gleichTol(y, z0)); }).length;
+        var soll0 = vielfachVon(z0);
+        text = (soll0 > 1)
+          ? T('\\(' + v + ' = ' + pgZahl(z0) + '\\) steht ' + n0 + '-mal da, ist aber eine '
+              + (soll0 === 2 ? 'doppelte' : soll0 === 3 ? 'dreifache' : (soll0 + '-fache'))
+              + ' Nullstelle.',
+              '\\(' + v + ' = ' + pgZahl(z0) + '\\) appears ' + n0 + ' times, but it is a '
+              + (soll0 === 2 ? 'double' : soll0 === 3 ? 'triple' : (soll0 + '-fold')) + ' root.')
+          : T('\\(' + v + ' = ' + pgZahl(z0) + '\\) steht mehrfach da, kommt hier aber nur einmal vor.',
+              '\\(' + v + ' = ' + pgZahl(z0) + '\\) appears more than once, but here it occurs only once.');
+      }
+      else if (keine && loes.length)
         text = T('Es gibt mindestens eine Lösung – suche sie.',
                  'There is at least one solution – look for it.');
       else if (falsch.length)

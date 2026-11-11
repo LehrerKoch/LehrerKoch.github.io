@@ -7,7 +7,9 @@
 //   var LAST_UPDATE_MODE  = 'repo';         // Letzter Commit im GESAMTEN Repo
 //   var LAST_UPDATE_FILES = ['index.html', 'index'];  // Maximum der Liste;
 //                          ein Ordnername steht fuer alles darin (1 Abfrage)
-//   (nichts davon gesetzt)                  // Wie bisher: nur die aktuelle Datei
+//   var LAST_UPDATE_AUTO  = false;          // die Zusatzdateien NICHT selbst suchen
+//   (nichts davon gesetzt)                  // Die Seite und die Dateien, die
+//                                           // sie laedt (siehe luSeitenDateien)
 //
 //   var LAST_UPDATE_CACHE       = true;     // Zwischenspeicher nutzen (Standard: true)
 //   var LAST_UPDATE_CACHE_HOURS = 24;       // Gueltigkeitsdauer in Stunden (Standard: 24)
@@ -204,9 +206,67 @@ function luCurrentPath() {
   return (ordner && LU_ORDNER.indexOf(ordner) >= 0) ? ordner + '/' + datei : datei;
 }
 
-/** Bisheriges Verhalten: Datum der aktuellen Datei. */
+/* ── Welche Dateien gehoeren zu dieser Seite? ──────────────────────────
+   Viele Seiten holen ihr Verhalten aus gemeinsamen Dateien (aufgaben.js,
+   polynome.js, aufgaben.css) oder aus einem Ordner voller Daten (woerter,
+   index). Aendert sich dort etwas, hat sich auch die Seite geaendert -
+   also zaehlt das spaeteste Datum von allem, was sie laedt.
+
+   Diese Dateien liegen auf jeder Seite und sagen nichts darueber, wann
+   die Seite inhaltlich zuletzt angefasst wurde: */
+const LU_EGAL = ['last-update.js', 'theme-language.js', 'einwilligung.js',
+                 'styles.css', 'styles2.css', 'scale.css', 'scale.js'];
+/* Mehr Pfade kosten mehr Abfragen. Sechs reichen fuer jede Seite hier,
+   und die gemeinsamen Dateien liegen nach dem ersten Besuch ohnehin im
+   Zwischenspeicher des Browsers - jeder Pfad wird je Browser und Tag
+   genau einmal abgefragt, egal von wie vielen Seiten aus. */
+const LU_MAX_DATEIEN = 6;
+
+/** Eine Adresse aus der Seite auf ihren Pfad im Repo bringen. */
+function luNormPfad(roh) {
+  let p;
+  try { p = new URL(roh, window.location.href).pathname; }
+  catch (e) { return ''; }
+  p = decodeURIComponent(p || '');
+  const teile = p.split('/').filter(Boolean);
+  if (!teile.length) return '';
+  const datei = teile[teile.length - 1];
+  const ordner = teile.length > 1 ? teile[teile.length - 2] : '';
+  return (ordner && LU_ORDNER.indexOf(ordner) >= 0) ? ordner + '/' + datei : datei;
+}
+
+/** Die Seite selbst und alles, was sie an eigenen Dateien laedt. */
+function luSeitenDateien() {
+  const raus = [luCurrentPath()];
+  const kandidaten = [];
+  const imOrdner = {};
+  document.querySelectorAll('script[src], link[rel="stylesheet"][href], img[src]')
+    .forEach(el => {
+      const roh = el.getAttribute('src') || el.getAttribute('href') || '';
+      if (!roh || /^(https?:)?\/\//i.test(roh) || /^data:/i.test(roh)) return;
+      const p = luNormPfad(roh);
+      if (!p || LU_EGAL.indexOf(p) >= 0 || p === raus[0]) return;
+      const i = p.indexOf('/');
+      if (i > 0) imOrdner[p.slice(0, i)] = (imOrdner[p.slice(0, i)] || 0) + 1;
+      kandidaten.push(p);
+    });
+  kandidaten.forEach(p => {
+    const i = p.indexOf('/');
+    /* Liegen mehrere Dateien im selben Projektordner, fragen wir lieber
+       den Ordner ab: eine Abfrage statt sechs. */
+    const eintrag = (i > 0 && imOrdner[p.slice(0, i)] > 1) ? p.slice(0, i) : p;
+    if (raus.indexOf(eintrag) < 0) raus.push(eintrag);
+  });
+  return raus.slice(0, LU_MAX_DATEIEN);
+}
+
+/** Datum der aktuellen Datei - und der Dateien, die sie mitbringt. */
 async function initLastUpdate() {
-  luWrite(await fetchLastCommitDate(luCurrentPath()));
+  const auto = (typeof LAST_UPDATE_AUTO === 'undefined') ? true : !!LAST_UPDATE_AUTO;
+  if (!auto) { luWrite(await fetchLastCommitDate(luCurrentPath())); return; }
+  const dateien = luSeitenDateien();
+  luDebug('eigene Dateien dieser Seite:', dateien.join(', '));
+  await setLastUpdateFromFiles(dateien);
 }
 
 // ── Auto-Start ───────────────────────────────────────────────

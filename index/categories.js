@@ -1,13 +1,13 @@
 const categoriesData = [
   {
     "id": "grundlagen",
-    "title": "Grundlagen &amp; Algebra",
-    "title_en": "Basics &amp; Algebra",
+    "title": "Grundlagen",
+    "title_en": "Basics",
     "icon": "±",
     "iconType": "text",
-    "tooltip": "Grundlegende Algebra, Gleichungen und Gleichungssysteme",
-    "tooltip_en": "Basic algebra, equations and systems of linear equations",
-    "cards": ["zahlbereiche", "graphen"]
+    "tooltip": "Zahlbereiche, Graphen und die Ansätze rund um Funktionen",
+    "tooltip_en": "Number sets, graphs and the standard approaches around functions",
+    "cards": ["zahlbereiche", "graphen", "funktionen-ansaetze"]
   },
   {
     "id": "raumUndForm",
@@ -60,7 +60,7 @@ const categoriesData = [
     "iconType": "svg",
     "tooltip": "Polynome, Potenzfunktionen und ihr Grenzverhalten",
     "tooltip_en": "Polynomials, power functions and their end behaviour",
-    "cards": ["geo-potparam", "symmetrie", "grenzverhalten-poly", "polynom-reko"]
+    "cards": ["polynomgrad", "geo-potparam", "symmetrie", "grenzverhalten-poly", "polynom-reko"]
   },
   {
     "id": "gleichungen",

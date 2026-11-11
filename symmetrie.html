@@ -46,6 +46,14 @@ window.TK_GA_ID = 'G-5K8WYYXDL2';   /* Google Analytics laedt erst nach Einwilli
 .slider-row .gradwert{ min-width:1.6em; text-align:right; font-weight:bold;
   color:var(--ab-gr-dunkel); font-variant-numeric:tabular-nums; }
 html.dark .slider-row .gradwert{ color:#a5d6a7; }
+/* Die drei Aufgabenarten sollen auch auf dem Handy nebeneinander passen. */
+#segStile > .tile { padding: 6px 7px; gap: 6px; flex-wrap: nowrap; align-items: center; }
+#segStile > .tile > .ttext { flex: 1 1 auto; min-width: 0; }
+#segStile .tname { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#segStile .tsub { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+@media (max-width: 560px) {
+  #segStile > .tile { padding: 5px 5px; gap: 4px; font-size: .74em; }
+}
 </style>
 </head>
 <body class="tk-seite">
@@ -132,7 +140,7 @@ html.dark .slider-row .gradwert{ color:#a5d6a7; }
     <details class="auswahl" id="stilBox" open>
       <summary><span data-de="Aufgabenstile" data-en="Kinds of task">Aufgabenstile</span><span class="ausw-zahl" id="stilZahl"></span></summary>
       <button type="button" class="btn-secondary ausw-alle" id="stilAlle"></button>
-      <div class="tiles eng drei" id="segStile"></div>
+      <div class="tiles eng reihe" id="segStile"></div>
     </details>
   </div>
   <div class="tc-item tc-mitte">
@@ -321,6 +329,13 @@ function einstellungenSetzen(s){
     else if (ZAHLFELD[k]) zahlSetzen(k, s[k]);
     else radioSetzen(k, s[k]);
   });
+  /* Zu den Kaestchen gehoeren die Haeufigkeiten derselben Stufe. Ohne das
+     stuende der Regler beim Laden auf seinem HTML-Wert und zeigte etwas
+     anderes an, als die Schwierigkeit vorsieht. Ein Fall, den die Stufe
+     ausschaltet, behaelt dabei seinen Standardwert (siehe abReglerSetzen). */
+  var stufe = STUFEN[s.diff || STD.diff];
+  if (stufe && stufe.regler && window.abReglerSetzen)
+    abReglerSetzen(reglerOhneHand(stufe.regler));
   obenAbgleichen();
   if (window.abGliderAlle) abGliderAlle();
   kachelnMalen();
@@ -329,6 +344,9 @@ function einstellungenSetzen(s){
    sie sagt weiterhin, wie schwer die Zahlen sein sollen –, überschreibt aber
    nichts mehr, was man selbst eingestellt hat. */
 var VON_HAND = {};
+/** Von Hand umgestellt? Entweder hier gemerkt (change-Ereignis) oder von
+    aufgaben.js (Kachel oder Oval, die das Kästchen unmittelbar setzen). */
+function vonHand(k){ return !!VON_HAND[k] || !!(window.abVonHand && abVonHand(k)); }
 function aufIndividuell(){ /* die Stufe bleibt, wie sie ist */ }
 function vonHandMerken(ziel){
   if (!ziel) return;
@@ -343,9 +361,17 @@ document.addEventListener('change', function(ev){
 /** Die Häufigkeiten einer Stufe, ohne die Regler, die von Hand stehen. */
 function reglerOhneHand(regler){
   var raus = {};
-  Object.keys(regler || {}).forEach(function(k){
-    if (VON_HAND[k] || VON_HAND['w' + k]) return;
-    raus[k] = regler[k];
+  /* Erst alle Regler auf den Standardwert der Seite - eine Stufe bestimmt
+     die Haeufigkeiten vollstaendig, und was sie nicht nennt, soll nicht vom
+     vorherigen Zustand uebrig bleiben. */
+  document.querySelectorAll('.slider-row input[type="range"]').forEach(function(e){
+    var std = parseInt(e.getAttribute('value'), 10);
+    if (e.id && isFinite(std)) raus[e.id.slice(1)] = std;
+  });
+  Object.keys(regler || {}).forEach(function(k){ raus[k] = regler[k]; });
+  /* Von Hand gestellte Regler bleiben, wie sie stehen. */
+  Object.keys(raus).forEach(function(k){
+    if (vonHand(k) || vonHand('w' + k)) delete raus[k];
   });
   return raus;
 }
@@ -353,7 +379,7 @@ function stufeAnwenden(stufe){
   var p = STUFEN[stufe];
   if (!p) return;
   Object.keys(p).forEach(function(k){
-    if (k === 'regler' || VON_HAND[k]) return;
+    if (k === 'regler' || vonHand(k)) return;
     if (typeof p[k] === 'boolean') setzeHaken(k, p[k]);
     else if (ZAHLFELD[k]) zahlSetzen(k, p[k]);
     else radioSetzen(k, p[k]);
@@ -1142,7 +1168,19 @@ function wuerfelFrage(nr){
 }
 
 /* ── 7. Verdrahtung ─────────────────────────────────────────────────────── */
-var KACHELN = STILE.map(function(id){ return { haupt: id, nurDieser: true }; });
+/* Auf der Kachel ist nur Platz fuer ein paar Worte - die ausfuehrliche
+   Beschriftung steht im Einstellungsbereich. Alle drei sollen auch auf dem
+   Handy nebeneinander passen. */
+var KACHEL_KURZ = {
+  stilGleichung: ['an der Gleichung', 'from the equation', 'Term', 'term'],
+  stilGraph:     ['am Graphen', 'from the graph', 'Zeichnung', 'drawing'],
+  stilVerst:     ['Verst\u00e4ndnis', 'understanding', 'Fragen', 'questions']
+};
+var KACHELN = STILE.map(function(id){
+  var k = KACHEL_KURZ[id] || [];
+  return { haupt: id, nurDieser: true,
+           name: k[0], nameEn: k[1], hinweis: k[2], hinweisEn: k[3] };
+});
 function kachelnMalen(){
   if (window.abKachelnMalen){
     abKachelnMalen(document.getElementById('segStile'));
@@ -1261,6 +1299,7 @@ window.addEventListener('load', function(){
     /* Alles, was von Hand steht, wird wieder freigegeben; danach setzt die
        Stufe ihre Werte erneut. */
     VON_HAND = {};
+    if (window.abVonHandLoeschen) abVonHandLoeschen();
     var st = radioWert('diff');
     if (st && st !== 'indiv') stufeAnwenden(st);
     obenAbgleichen();
@@ -1285,6 +1324,7 @@ window.addEventListener('load', function(){
   document.getElementById('btnTeilen').addEventListener('click', function(){ linkKopieren(urlSchreiben(true), this); });
   document.getElementById('btnReset').addEventListener('click', function(){
     VON_HAND = {};
+    if (window.abVonHandLoeschen) abVonHandLoeschen();
     var s = {}; Object.keys(STD).forEach(function(k){ s[k] = STD[k]; });
     einstellungenSetzen(s); neueAufgabe();
   });

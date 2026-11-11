@@ -326,6 +326,13 @@ function einstellungenSetzen(s){
   radioSetzen('wurzelForm', s.wurzelForm);
   radioSetzen('loesForm', s.loesForm);
   radioSetzen('diff', s.diff);
+  /* Zu den Kaestchen gehoeren die Haeufigkeiten derselben Stufe. Ohne das
+     stuende der Regler beim Laden auf seinem HTML-Wert und zeigte etwas
+     anderes an, als die Schwierigkeit vorsieht. Ein Fall, den die Stufe
+     ausschaltet, behaelt dabei seinen Standardwert (siehe abReglerSetzen). */
+  var stufe = STUFEN[s.diff || STD.diff];
+  if (stufe && stufe.regler && window.abReglerSetzen)
+    abReglerSetzen(reglerOhneHand(stufe.regler));
   obenAbgleichen();
   if (window.abGliderAlle) abGliderAlle();
   kachelnMalen();
@@ -336,6 +343,9 @@ function einstellungenSetzen(s){
    sie sagt weiterhin, wie schwer die Zahlen sein sollen –, überschreibt aber
    nichts mehr, was man selbst eingestellt hat. */
 var VON_HAND = {};
+/** Von Hand umgestellt? Entweder hier gemerkt (change-Ereignis) oder von
+    aufgaben.js (Kachel oder Oval, die das Kästchen unmittelbar setzen). */
+function vonHand(k){ return !!VON_HAND[k] || !!(window.abVonHand && abVonHand(k)); }
 function aufIndividuell(){ /* die Stufe bleibt, wie sie ist */ }
 function vonHandMerken(ziel){
   if (!ziel) return;
@@ -352,9 +362,17 @@ document.addEventListener('change', function(ev){
     beide Namen gelten als ‚von Hand‘. */
 function reglerOhneHand(regler){
   var raus = {};
-  Object.keys(regler || {}).forEach(function(k){
-    if (VON_HAND[k] || VON_HAND['w' + k]) return;
-    raus[k] = regler[k];
+  /* Erst alle Regler auf den Standardwert der Seite - eine Stufe bestimmt
+     die Haeufigkeiten vollstaendig, und was sie nicht nennt, soll nicht vom
+     vorherigen Zustand uebrig bleiben. */
+  document.querySelectorAll('.slider-row input[type="range"]').forEach(function(e){
+    var std = parseInt(e.getAttribute('value'), 10);
+    if (e.id && isFinite(std)) raus[e.id.slice(1)] = std;
+  });
+  Object.keys(regler || {}).forEach(function(k){ raus[k] = regler[k]; });
+  /* Von Hand gestellte Regler bleiben, wie sie stehen. */
+  Object.keys(raus).forEach(function(k){
+    if (vonHand(k) || vonHand('w' + k)) delete raus[k];
   });
   return raus;
 }
@@ -362,7 +380,7 @@ function stufeAnwenden(stufe){
   var p = STUFEN[stufe];
   if (!p) return;
   Object.keys(p).forEach(function(k){
-    if (k === 'regler' || VON_HAND[k]) return;      /* von Hand gewählt bleibt */
+    if (k === 'regler' || vonHand(k)) return;      /* von Hand gewählt bleibt */
     if (typeof p[k] === 'boolean') setzeHaken(k, p[k]);
     else radioSetzen(k, p[k]);
   });
@@ -592,7 +610,10 @@ function neueAufgabe(){
   if (stil === 'erkennen'){
     var falsch = s.erkFalsch && Math.random() < 0.5;
     A.erkLoesbar = !falsch;
-    A.erkGrund = falsch ? waehle(['zweiterTerm', 'nenner', 'wurzel']) : 'ok';
+    /* Was hier als Gegenbeispiel steht, ist immer ein Polynom: Wurzel-
+       und Bruchgleichungen wären nach dem Umformen oft doch
+       Potenzgleichungen, und die Frage wäre nicht eindeutig. */
+    A.erkGrund = falsch ? waehle(['zweiterTerm', 'zweiPotenzen']) : 'ok';
   }
   zeichne();
 }
@@ -631,9 +652,10 @@ function erkennenTeX(){
     var b = waehleFest(A, 3);
     return pgPoly((function(){ var o = {}; o[n] = a; o[1] = b; o[0] = d; return o; })()) + ' = 0';
   }
-  if (A.erkGrund === 'nenner')
-    return '\\frac{' + pgZahl(a) + '}{x^{' + n + '}} ' + (d < 0 ? '-' : '+') + ' ' + pgZahl(Math.abs(d)) + ' = 0';
-  return '\\sqrt{' + pgZahl(Math.abs(a)) + 'x^{' + n + '}} ' + (d < 0 ? '-' : '+') + ' ' + pgZahl(Math.abs(d)) + ' = 0';
+  /* zwei verschiedene Potenzen - auch das ist keine reine Potenzgleichung */
+  var m = (n >= 4) ? 2 : (n >= 3 ? 2 : 1);
+  var b2 = waehleFest(A, 3);
+  return pgPoly((function(){ var o = {}; o[n] = a; o[m] = b2; o[0] = d; return o; })()) + ' = 0';
 }
 /* kleiner, aber fester „Zufall" aus den Aufgabendaten - damit ein geteilter
    Link dieselbe Gleichung zeigt */
@@ -723,7 +745,7 @@ function loesungsTeX(){
                                                            : T(' ist keine Lösung', ' is not a solution')) + '}';
   /* Bei xⁿ = 0 ist die Null eine n-fache Lösung - das zeigt die Nummerierung. */
   return loesAusgabe(A.loes.map(function(x){
-    return { tex: loesWert(x), n: (A.fall === 'null') ? A.n : 1 };
+    return { tex: loesGenau(x), n: (A.fall === 'null') ? A.n : 1 };
   }));
 }
 /** Eine Lösung - als Wurzel, wenn sie nicht glatt aufgeht. */
@@ -733,8 +755,22 @@ function loesWert(x){
   if (b && b.d <= 100) return pgZahl(x);
   /* irrational: als n-te Wurzel schreiben */
   var betrag = Math.abs(A.w);
-  var wurzel = (A.n === 2) ? pgWurzel(betrag) : '\\sqrt[' + A.n + ']{' + pgZahl(betrag) + '}';
+  /* Ohne teilweises Wurzelziehen: \sqrt{12} bleibt \sqrt{12}. So steht die
+     Loesung so da, wie sie aus der Rechnung faellt. */
+  var wurzel = (A.n === 2) ? pgWurzelRoh(betrag) : '\\sqrt[' + A.n + ']{' + pgZahl(betrag) + '}';
   return (x < 0 ? '-' : '') + wurzel;
+}
+/** Dieselbe Loesung, bei einem krummen Wert mit dem Naeherungswert dahinter. */
+function loesGenau(x){
+  return window.pgGenau ? pgGenau(loesWert(x), x) : loesWert(x);
+}
+/** Was hinter der Wurzel steht: der glatte Wert - oder, wenn dort dieselbe
+    Wurzel noch einmal stuende, der Naeherungswert. */
+function hinterWurzel(x, wTeX, vorn){
+  var t = loesWert(x), v = vorn || '';
+  if (t === wTeX && window.pgGerundet)
+    return ' \\approx ' + v + pgGerundet(Math.abs(x), 2);
+  return ' = ' + v + t;
 }
 
 function loesungZeichnen(){
@@ -794,11 +830,8 @@ function wegZeichnen(){
       : (A.erkGrund === 'zweiterTerm'
         ? T('Hier steht <b>noch ein x-Term</b> mit einer anderen Potenz. Man kann die Gleichung nicht einfach nach x<sup>' + n + '</sup> auflösen – hier hilft Ausklammern oder Substituieren.',
             'There is <b>another x term</b> with a different power. You cannot simply solve for x<sup>' + n + '</sup> – factoring out or substituting helps here.')
-        : (A.erkGrund === 'nenner'
-          ? T('Das x steht <b>im Nenner</b>. Das ist keine Potenzgleichung in dieser Form; man müsste zuerst mit dem Nenner multiplizieren.',
-              'The x is <b>in the denominator</b>. In this form it is not a power equation; you would first have to multiply by the denominator.')
-          : T('Die Potenz steckt <b>unter einer Wurzel</b>. Erst nach dem Quadrieren entsteht eine Potenzgleichung.',
-              'The power is <b>under a root</b>. Only after squaring does a power equation appear.')))) + '</p>');
+        : T('Es kommen <b>zwei verschiedene Potenzen</b> von x vor. Nach x<sup>' + n + '</sup> auflösen geht damit nicht – hier hilft Ausklammern oder Substituieren.',
+            'There are <b>two different powers</b> of x. Solving for x<sup>' + n + '</sup> is not possible – factoring out or substituting helps here.'))) + '</p>');
     document.getElementById('weg').innerHTML = z.join('');
     return;
   }
@@ -856,25 +889,26 @@ function wegZeichnen(){
     z.push('\\[x = 0\\]');
   } else if (A.gerade){
     var wTeX = (n === 2) ? '\\sqrt{' + pgZahl(A.w) + '}' : '\\sqrt[' + n + ']{' + pgZahl(A.w) + '}';
-    var gross = loesWert(Math.abs(A.loes[A.loes.length - 1]));
+    var grossW = Math.abs(A.loes[A.loes.length - 1]);
     if ((radioWert('wurzelForm') || 'betrag') === 'betrag'){
       /* Sauberer Weg: erst der Betrag, dann die beiden Fälle. */
       z.push('<p>' + T('Der Exponent ist <b>gerade</b>. Beim Wurzelziehen erhält man zunächst den <b>Betrag</b> von x:',
                        'The exponent is <b>even</b>. Taking the root first gives the <b>absolute value</b> of x:') + '</p>');
-      z.push('\\[\\left|x\\right| = ' + wTeX + ' = ' + gross + '\\]');
+      z.push('\\[\\left|x\\right| = ' + wTeX + hinterWurzel(grossW, wTeX) + '\\]');
       z.push('<p>' + T('Zum Betrag gehören zwei Zahlen – die positive und die negative:',
                        'An absolute value belongs to two numbers – the positive and the negative one:') + '</p>');
-      z.push('\\[x_{1} = -' + gross + ' \\qquad x_{2} = ' + gross + '\\]');
+      z.push('\\[x_{1} = ' + loesGenau(-grossW) + ' \\qquad x_{2} = ' + loesGenau(grossW) + '\\]');
     } else {
       z.push('<p>' + T('Der Exponent ist <b>gerade</b> – beim Wurzelziehen gibt es deshalb zwei Lösungen (± nicht vergessen!).',
                        'The exponent is <b>even</b> – so taking the root gives two solutions (do not forget the ±!).') + '</p>');
-      z.push('\\[x = \\pm' + wTeX + ' = \\pm' + gross + '\\]');
+      z.push('\\[x = \\pm' + wTeX + hinterWurzel(grossW, wTeX, '\\pm') + '\\]');
     }
   } else {
     z.push('<p>' + T('Der Exponent ist <b>ungerade</b> – die Wurzel ist eindeutig, auch bei negativer Zahl.',
                      'The exponent is <b>odd</b> – the root is unique, even for a negative number.') + '</p>');
     var vz = (A.w < 0) ? '-' : '';
-    z.push('\\[x = ' + vz + '\\sqrt[' + n + ']{' + pgZahl(Math.abs(A.w)) + '} = ' + loesWert(A.loes[0]) + '\\]');
+    var wuTeX = vz + '\\sqrt[' + n + ']{' + pgZahl(Math.abs(A.w)) + '}';
+    z.push('\\[x = ' + wuTeX + hinterWurzel(A.loes[0], wuTeX) + '\\]');
   }
   if (haken('mitProbe')) probeAnhaengen(z);
   if (haken('faktorisieren')){
@@ -889,9 +923,11 @@ function probeAnhaengen(z){
   var n = A.n;
   /* Der Faktor 1 wird nicht mitgeschrieben. */
   var vorn = (Math.abs(A.a - 1) < 1e-12) ? '' : (Math.abs(A.a + 1) < 1e-12 ? '-' : pgZahl(A.a) + '\\cdot ');
-  var zeile = function(x){
+  /* exakt: Bei einer irrationalen Lösung wird die Wurzel eingesetzt - mit dem
+     gerundeten Wert stimmte die Zeile nicht („(-3,4641)² = 12" ist falsch). */
+  var zeile = function(x, exakt){
     var p1 = Math.pow(x, n);
-    return vorn + '\\left(' + pgZahl(x) + '\\right)^{' + n + '}'
+    return vorn + '\\left(' + ((exakt && window.pgKrumm && pgKrumm(x)) ? loesWert(x) : pgZahl(x)) + '\\right)^{' + n + '}'
          + (A.d < 0 ? '-' : '+') + pgZahl(Math.abs(A.d))
          + ' &= ' + pgZahl(A.a * p1) + (A.d < 0 ? '-' : '+') + pgZahl(Math.abs(A.d))
          + ' = ' + pgZahl(A.a * p1 + A.d);
@@ -911,7 +947,8 @@ function probeAnhaengen(z){
         '<b>Check:</b> Substituting shows that both numbers satisfy the equation:')
     : T('<b>Probe:</b> Einsetzen zeigt, dass die Zahl die Gleichung erfüllt:',
         '<b>Check:</b> Substituting shows that the number satisfies the equation:')) + '</p>');
-  z.push('\\[\\begin{aligned}' + A.loes.map(zeile).join(' \\\\ ') + '\\end{aligned}\\]');
+  z.push('\\[\\begin{aligned}' + A.loes.map(function(x){ return zeile(x, true); }).join(' \\\\ ')
+       + '\\end{aligned}\\]');
   if (A.gerade && A.loes.length === 2)
     z.push('<p class="weg-merke">' + T('Beide Vorzeichen führen zum Ziel – weil der Exponent gerade ist.',
                                        'Both signs work – because the exponent is even.') + '</p>');
@@ -1263,6 +1300,7 @@ window.addEventListener('load', function(){
     /* Alles, was von Hand steht, wird wieder freigegeben; danach setzt die
        Stufe ihre Werte erneut. */
     VON_HAND = {};
+    if (window.abVonHandLoeschen) abVonHandLoeschen();
     var st = radioWert('diff');
     if (st && st !== 'indiv') stufeAnwenden(st);
     obenAbgleichen();
@@ -1297,6 +1335,7 @@ window.addEventListener('load', function(){
   document.getElementById('btnTeilen').addEventListener('click', function(){ linkKopieren(urlSchreiben(true), this); });
   document.getElementById('btnReset').addEventListener('click', function(){
     VON_HAND = {};
+    if (window.abVonHandLoeschen) abVonHandLoeschen();
     var s = {}; Object.keys(STD).forEach(function(k){ s[k] = STD[k]; });
     einstellungenSetzen(s); neueAufgabe();
   });

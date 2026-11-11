@@ -1,0 +1,2070 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="shortcut icon" type="image/x-icon" href="aleph_zero_logo.ico">
+<script>try{var t=localStorage.getItem('matheToolsTheme');if(t==='dark'||(!t&&window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.classList.add('dark');}catch(e){}</script>
+<title data-de="Polynomgrad erkennen" data-en="Recognising the degree of a polynomial">Polynomgrad erkennen</title>
+<script src="theme-language.js" defer></script>
+<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="aufgaben.css">
+<link rel="stylesheet" href="scale.css">
+<script src="scale.js" defer></script>
+<script src="aufgaben.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<script>
+function T(de, en){ return (typeof tlText === 'function') ? tlText(de, en) : de; }
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+window.TK_GA_ID = 'G-5K8WYYXDL2';
+</script>
+<script src="einwilligung.js" defer></script>
+<style>
+/* Nur, was diese Seite zusätzlich braucht. */
+#task { font-size: 1.3em; }
+#loesung { font-size: 1.15em; }
+
+/* ── Die Zeichnung ──────────────────────────────────────────────────── */
+.plotbox { max-width: 560px; margin: 0 auto; }
+.plotbox svg { width: 100%; height: auto; display: block; }
+@media (max-width: 560px) { .plotbox { max-width: 100%; margin: 0 -4px; } }
+
+/* ── Erkundung ──────────────────────────────────────────────────────── */
+.erk-zeile { display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+  justify-content: center; margin: 8px 0; }
+.erk-zeile .erk-name { font-weight: 600; color: var(--ab-leise, #5d6b74);
+  font-size: .9em; min-width: 5.5em; text-align: right; }
+.gradwahl { display: inline-flex; flex-wrap: wrap; gap: 4px; }
+.gradwahl button { min-width: 2.3em; padding: 5px 9px; border-radius: 9px; font-weight: 700; }
+.gradwahl button.on { background: var(--ab-gr, #2e7d32); color: #fff; border-color: var(--ab-gr, #2e7d32); }
+.erk-formel { text-align: center; font-size: 1.22em; margin: 10px 0 4px;
+  min-height: 2.1em; display: flex; align-items: center; justify-content: center; }
+.erk-daten { text-align: center; font-size: .92em; color: var(--ab-leise, #5d6b74);
+  line-height: 1.6; margin-bottom: 6px; }
+.regler-gitter { display: grid; grid-template-columns: auto 1fr auto; gap: 5px 9px;
+  max-width: 420px; margin: 6px auto 0; align-items: center; }
+.regler-gitter label { font-weight: 600; font-size: .92em; }
+.regler-gitter input[type="range"] { width: 100%; }
+.regler-gitter .rwert { font-variant-numeric: tabular-nums; min-width: 3em; text-align: right; }
+
+/* Die drei Aufgabenarten sollen auch auf dem Handy nebeneinander passen. */
+#segStile > .tile { padding: 6px 7px; gap: 6px; flex-wrap: nowrap; align-items: center; }
+#segStile > .tile > .ttext { flex: 1 1 auto; min-width: 0; }
+#segStile .tname { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+@media (max-width: 560px) {
+  #segStile > .tile { padding: 5px 5px; gap: 4px; font-size: .74em; }
+}
+
+/* ── Antworten ──────────────────────────────────────────────────────── */
+.grad-knoepfe { display: flex; flex-wrap: wrap; gap: 7px; justify-content: center; }
+.grad-knoepfe button { min-width: 2.6em; font-size: 1.05em; padding: 8px 12px; font-weight: 700; }
+.mc-liste { display: flex; flex-direction: column; gap: 7px; max-width: 620px; margin: 0 auto; }
+.mc-knopf { text-align: left; padding: 9px 12px; border-radius: 11px; font-size: 1.01em;
+  border: 1.6px solid var(--ab-rand, #cfd8dc); background: var(--ab-karte, #fff);
+  color: inherit; cursor: pointer; line-height: 1.45; }
+html.dark .mc-knopf { border-color: #3d4752; background: #1d242b; }
+.mc-knopf.ok  { border-color: #2e7d32; background: rgba(46,125,50,.10); }
+.mc-knopf.err { border-color: #c62828; background: rgba(198,40,40,.09); }
+.mc-grund { display: block; font-size: .86em; color: var(--ab-leise, #5d6b74); margin-top: 3px; }
+
+/* ── Lösungsweg ─────────────────────────────────────────────────────── */
+.weg-schritt { margin: .4em 0; }
+.weg-merke { color: var(--ab-leise, #5d6b74); font-size: .92em; }
+.legende { display: flex; gap: 13px; flex-wrap: wrap; justify-content: center;
+  font-size: .86em; margin: 4px 0 8px; }
+.legende span { display: inline-flex; align-items: center; gap: 5px; }
+.lpunkt { width: .8em; height: .8em; border-radius: 50%; display: inline-block; }
+.legende .lknopf { display: inline-flex; align-items: center; gap: 5px; font: inherit;
+  color: inherit; background: none; border: 1.4px solid transparent; border-radius: 999px;
+  padding: 2px 9px; cursor: pointer; -webkit-user-select: none; user-select: none;
+  -webkit-touch-callout: none; }
+.legende .lknopf:hover { border-color: var(--ab-rand, #cfd8dc); }
+.legende .lknopf.aus { opacity: .5; }
+.legende .lknopf.aus .lpunkt { background: transparent !important;
+  box-shadow: inset 0 0 0 2px currentColor; }
+
+@media (max-width: 560px) {
+  #task { font-size: 1.14em; }
+  .task { padding: 8px 10px 10px; }
+  .grad-knoepfe button { padding: 7px 10px; }
+  .mc-knopf { padding: 7px 10px; font-size: .96em; }
+  .erk-zeile .erk-name { min-width: 0; text-align: left; }
+}
+</style>
+</head>
+<body class="tk-seite">
+
+<header class="tool-kopf">
+  <div class="tk-text">
+    <h1 data-de="Polynomgrad erkennen" data-en="Recognising the degree of a polynomial">Polynomgrad erkennen</h1>
+    <p class="tk-unter" data-de="Am Graphen und am Term sehen, welchen Grad ein Polynom hat" data-en="Seeing the degree of a polynomial from its graph and from its term">Am Graphen und am Term sehen, welchen Grad ein Polynom hat</p>
+  </div>
+</header>
+
+<div class="seg-block"><div id="mode-switch" class="seg" role="tablist">
+  <button data-mode="erkundung" data-de="Erkundung" data-en="Exploration">Erkundung</button>
+  <button data-mode="training" class="on" data-de="Training" data-en="Practice">Training</button>
+</div></div>
+
+<!-- ═══ Einstellungen ═══════════════════════════════════════════════════ -->
+<details class="einst" id="dSettings">
+<summary><span data-de="Einstellungen" data-en="Settings">Einstellungen</span><button type="button" class="einst-share" tabindex="-1" title="Diese Einstellungen als Link kopieren" data-de-title="Diese Einstellungen als Link kopieren" data-en-title="Copy these settings as a link" aria-label="Einstellungen als Link kopieren"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></button></summary>
+<div class="settings-grid">
+
+  <div class="form-block">
+    <b data-de="Aufgabenarten" data-en="Kinds of task">Aufgabenarten</b>
+    <span class="d" data-de="Woran soll der Grad abgelesen werden? Die Regler bestimmen, wie oft." data-en="Where should the degree be read off? The sliders set how often.">Woran soll der Grad abgelesen werden? Die Regler bestimmen, wie oft.</span>
+    <div class="slider-row opt-regler" data-fuer="stilGraph"><label class="opt"><input type="checkbox" id="stilGraph" checked data-stufe="1" data-kurz="Graph" data-kurz-en="graph"><span data-de="am Graphen" data-en="from the graph">am Graphen</span></label><span class="sl-end" data-de="seltener" data-en="less often">seltener</span><input type="range" class="sl" id="wstilGraph" min="1" max="10" value="9"><span class="sl-end" data-de="häufiger" data-en="more often">häufiger</span><span class="d" data-de="nur die Zeichnung ist gegeben" data-en="only the drawing is given">nur die Zeichnung ist gegeben</span></div>
+    <div class="slider-row opt-regler" data-fuer="stilTerm"><label class="opt"><input type="checkbox" id="stilTerm" checked data-stufe="1" data-kurz="Term" data-kurz-en="term"><span data-de="am Term" data-en="from the term">am Term</span></label><span class="sl-end" data-de="seltener" data-en="less often">seltener</span><input type="range" class="sl" id="wstilTerm" min="1" max="10" value="7"><span class="sl-end" data-de="häufiger" data-en="more often">häufiger</span><span class="d" data-de="die Funktionsgleichung steht da" data-en="the function is given as an equation">die Funktionsgleichung steht da</span></div>
+    <div class="slider-row opt-regler" data-fuer="stilVerst"><label class="opt"><input type="checkbox" id="stilVerst" data-stufe="3" data-kurz="Verständnis" data-kurz-en="understanding"><span data-de="Verständnisfragen" data-en="Understanding questions">Verständnisfragen</span></label><span class="sl-end" data-de="seltener" data-en="less often">seltener</span><input type="range" class="sl" id="wstilVerst" min="1" max="10" value="4"><span class="sl-end" data-de="häufiger" data-en="more often">häufiger</span><span class="d" data-de="Wie viele verschiedene Nullstellen sind höchstens möglich?" data-en="At most how many different zeros are possible?">Wie viele verschiedene Nullstellen sind höchstens möglich?</span></div>
+  </div>
+
+  <div class="form-block">
+    <b data-de="Welche Grade?" data-en="Which degrees?">Welche Grade?</b>
+    <span class="d" data-de="Welche Polynomgrade sollen vorkommen? Die Kacheln über der Aufgabe zeigen dieselbe Auswahl." data-en="Which degrees should appear? The tiles above the task show the same choice.">Welche Polynomgrade sollen vorkommen? Die Kacheln über der Aufgabe zeigen dieselbe Auswahl.</span>
+    <div class="slider-row opt-regler" data-fuer="grad0"><label class="opt"><input type="checkbox" id="grad0" checked data-kurz="0" data-kurz-en="0"><span data-de="Grad 0" data-en="degree 0">Grad 0</span></label><span class="sl-end" data-de="seltener" data-en="less often">seltener</span><input type="range" class="sl" id="wgrad0" min="1" max="10" value="3"><span class="sl-end" data-de="häufiger" data-en="more often">häufiger</span><span class="d" data-de="eine waagerechte Gerade" data-en="a horizontal line">eine waagerechte Gerade</span></div>
+    <div class="slider-row opt-regler" data-fuer="grad1"><label class="opt"><input type="checkbox" id="grad1" checked data-kurz="1" data-kurz-en="1"><span data-de="Grad 1" data-en="degree 1">Grad 1</span></label><span class="sl-end" data-de="seltener" data-en="less often">seltener</span><input type="range" class="sl" id="wgrad1" min="1" max="10" value="3"><span class="sl-end" data-de="häufiger" data-en="more often">häufiger</span><span class="d" data-de="eine Gerade" data-en="a straight line">eine Gerade</span></div>
+    <div class="slider-row opt-regler" data-fuer="grad2"><label class="opt"><input type="checkbox" id="grad2" checked data-kurz="2" data-kurz-en="2"><span data-de="Grad 2" data-en="degree 2">Grad 2</span></label><span class="sl-end" data-de="seltener" data-en="less often">seltener</span><input type="range" class="sl" id="wgrad2" min="1" max="10" value="7"><span class="sl-end" data-de="häufiger" data-en="more often">häufiger</span><span class="d" data-de="eine Parabel" data-en="a parabola">eine Parabel</span></div>
+    <div class="slider-row opt-regler" data-fuer="grad3"><label class="opt"><input type="checkbox" id="grad3" checked data-kurz="3" data-kurz-en="3"><span data-de="Grad 3" data-en="degree 3">Grad 3</span></label><span class="sl-end" data-de="seltener" data-en="less often">seltener</span><input type="range" class="sl" id="wgrad3" min="1" max="10" value="9"><span class="sl-end" data-de="häufiger" data-en="more often">häufiger</span></div>
+    <div class="slider-row opt-regler" data-fuer="grad4"><label class="opt"><input type="checkbox" id="grad4" checked data-kurz="4" data-kurz-en="4"><span data-de="Grad 4" data-en="degree 4">Grad 4</span></label><span class="sl-end" data-de="seltener" data-en="less often">seltener</span><input type="range" class="sl" id="wgrad4" min="1" max="10" value="9"><span class="sl-end" data-de="häufiger" data-en="more often">häufiger</span></div>
+    <div class="slider-row opt-regler" data-fuer="grad5"><label class="opt"><input type="checkbox" id="grad5" data-kurz="5" data-kurz-en="5"><span data-de="Grad 5" data-en="degree 5">Grad 5</span></label><span class="sl-end" data-de="seltener" data-en="less often">seltener</span><input type="range" class="sl" id="wgrad5" min="1" max="10" value="6"><span class="sl-end" data-de="häufiger" data-en="more often">häufiger</span></div>
+    <div class="slider-row opt-regler" data-fuer="grad6"><label class="opt"><input type="checkbox" id="grad6" data-kurz="6" data-kurz-en="6"><span data-de="Grad 6" data-en="degree 6">Grad 6</span></label><span class="sl-end" data-de="seltener" data-en="less often">seltener</span><input type="range" class="sl" id="wgrad6" min="1" max="10" value="4"><span class="sl-end" data-de="häufiger" data-en="more often">häufiger</span></div>
+  </div>
+
+  <div class="form-block">
+    <b data-de="Wie viel ist am Graphen zu sehen?" data-en="How much does the graph show?">Wie viel ist am Graphen zu sehen?</b>
+    <span class="d" data-de="Je weniger Nullstellen und Extrempunkte zu sehen sind, desto mehr muss man schließen. Die Regler bestimmen, wie oft." data-en="The fewer zeros and turning points you can see, the more you have to reason. The sliders set how often.">Je weniger Nullstellen und Extrempunkte zu sehen sind, desto mehr muss man schließen. Die Regler bestimmen, wie oft.</span>
+    <div class="slider-row opt-regler" data-fuer="sichtAlle"><label class="opt"><input type="checkbox" id="sichtAlle" checked><span data-de="alle Nullstellen" data-en="all zeros">alle Nullstellen</span></label><span class="sl-end" data-de="seltener" data-en="less often">seltener</span><input type="range" class="sl" id="wsichtAlle" min="1" max="10" value="9"><span class="sl-end" data-de="häufiger" data-en="more often">häufiger</span><span class="d" data-de="so viele verschiedene Nullstellen wie der Grad" data-en="as many different zeros as the degree">so viele verschiedene Nullstellen wie der Grad</span></div>
+    <div class="slider-row opt-regler" data-fuer="sichtVielfach"><label class="opt"><input type="checkbox" id="sichtVielfach"><span data-de="auch mehrfache Nullstellen" data-en="multiple zeros too">auch mehrfache Nullstellen</span></label><span class="sl-end" data-de="seltener" data-en="less often">seltener</span><input type="range" class="sl" id="wsichtVielfach" min="1" max="10" value="6"><span class="sl-end" data-de="häufiger" data-en="more often">häufiger</span><span class="d" data-de="der Graph berührt die Achse, statt sie zu schneiden" data-en="the graph touches the axis instead of crossing it">der Graph berührt die Achse, statt sie zu schneiden</span></div>
+    <div class="slider-row opt-regler" data-fuer="sichtVerschoben"><label class="opt"><input type="checkbox" id="sichtVerschoben" checked><span data-de="verschoben" data-en="shifted">verschoben</span></label><span class="sl-end" data-de="seltener" data-en="less often">seltener</span><input type="range" class="sl" id="wsichtVerschoben" min="1" max="10" value="7"><span class="sl-end" data-de="häufiger" data-en="more often">häufiger</span><span class="d" data-de="nicht mehr alle Nullstellen, aber alle Extrempunkte" data-en="not all zeros any more, but all turning points">nicht mehr alle Nullstellen, aber alle Extrempunkte</span></div>
+    <div class="slider-row opt-regler" data-fuer="sichtWenig"><label class="opt"><input type="checkbox" id="sichtWenig"><span data-de="wenige Nullstellen" data-en="few zeros">wenige Nullstellen</span></label><span class="sl-end" data-de="seltener" data-en="less often">seltener</span><input type="range" class="sl" id="wsichtWenig" min="1" max="10" value="5"><span class="sl-end" data-de="häufiger" data-en="more often">häufiger</span><span class="d" data-de="manchmal gar keine – die Extrempunkte verraten den Grad" data-en="sometimes none at all – the turning points give the degree away">manchmal gar keine – die Extrempunkte verraten den Grad</span></div>
+    <div class="slider-row opt-regler" data-fuer="sichtSonder"><label class="opt"><input type="checkbox" id="sichtSonder"><span data-de="Sonderfälle" data-en="special cases">Sonderfälle</span></label><span class="sl-end" data-de="seltener" data-en="less often">seltener</span><input type="range" class="sl" id="wsichtSonder" min="1" max="10" value="4"><span class="sl-end" data-de="häufiger" data-en="more often">häufiger</span><span class="d" data-de="(x+d)⁴+e, oder ein Polynom 3. Grades ganz ohne Extrempunkte" data-en="(x+d)⁴+e, or a cubic with no turning points at all">(x+d)⁴+e, oder ein Polynom 3. Grades ganz ohne Extrempunkte</span></div>
+  </div>
+
+  <div class="form-block">
+    <b data-de="Wie steht der Term da?" data-en="How is the term written?">Wie steht der Term da?</b>
+    <span class="d" data-de="Nur für Aufgaben am Term. Die Regler bestimmen, wie oft." data-en="Only for tasks on the term. The sliders set how often.">Nur für Aufgaben am Term. Die Regler bestimmen, wie oft.</span>
+    <div class="slider-row opt-regler" data-fuer="termNormal"><label class="opt"><input type="checkbox" id="termNormal" checked><span data-de="ausmultipliziert" data-en="expanded">ausmultipliziert</span></label><span class="sl-end" data-de="seltener" data-en="less often">seltener</span><input type="range" class="sl" id="wtermNormal" min="1" max="10" value="9"><span class="sl-end" data-de="häufiger" data-en="more often">häufiger</span><span class="d">3x⁴ − 2x² + 7</span></div>
+    <div class="slider-row opt-regler" data-fuer="termUnsortiert"><label class="opt"><input type="checkbox" id="termUnsortiert"><span data-de="unsortiert" data-en="unordered">unsortiert</span></label><span class="sl-end" data-de="seltener" data-en="less often">seltener</span><input type="range" class="sl" id="wtermUnsortiert" min="1" max="10" value="4"><span class="sl-end" data-de="häufiger" data-en="more often">häufiger</span><span class="d">7 − 2x² + 3x⁴</span></div>
+    <div class="slider-row opt-regler" data-fuer="termFaktor"><label class="opt"><input type="checkbox" id="termFaktor"><span data-de="faktorisiert" data-en="factored">faktorisiert</span></label><span class="sl-end" data-de="seltener" data-en="less often">seltener</span><input type="range" class="sl" id="wtermFaktor" min="1" max="10" value="6"><span class="sl-end" data-de="häufiger" data-en="more often">häufiger</span><span class="d">2(x − 1)(x + 3)²</span></div>
+    <div class="slider-row opt-regler" data-fuer="termRest"><label class="opt"><input type="checkbox" id="termRest"><span data-de="faktorisiert mit Restglied" data-en="factored with a remaining term">faktorisiert mit Restglied</span></label><span class="sl-end" data-de="seltener" data-en="less often">seltener</span><input type="range" class="sl" id="wtermRest" min="1" max="10" value="4"><span class="sl-end" data-de="häufiger" data-en="more often">häufiger</span><span class="d">2x(x − 3)² − 4</span></div>
+  </div>
+
+  <div class="form-block">
+    <b data-de="Hilfen" data-en="Hints">Hilfen</b>
+    <label class="opt"><input type="checkbox" id="mitGitter" checked><span data-de="Gitternetz zeichnen" data-en="draw a grid">Gitternetz zeichnen</span></label>
+    <label class="opt"><input type="checkbox" id="mitPunkte" checked><span><span data-de="Punkte in der Lösung zeigen" data-en="mark the points in the solution">Punkte in der Lösung zeigen</span><span class="d" data-de="Welche, lässt sich auch unter der Zeichnung anklicken – lange drücken zeigt nur eine Sorte." data-en="Which ones can also be clicked below the drawing – a long press shows just one kind.">Welche, lässt sich auch unter der Zeichnung anklicken – lange drücken zeigt nur eine Sorte.</span></span></label>
+    <label class="opt unter"><input type="checkbox" id="zeigNull" checked><span data-de="Nullstellen" data-en="zeros">Nullstellen</span></label>
+    <label class="opt unter"><input type="checkbox" id="zeigExtrem" checked><span data-de="Extrempunkte" data-en="turning points">Extrempunkte</span></label>
+    <label class="opt unter"><input type="checkbox" id="zeigWende" checked><span data-de="Wendepunkte" data-en="inflection points">Wendepunkte</span></label>
+    <label class="opt"><input type="checkbox" id="mitGrenze" checked><span><span data-de="Höchstgrad verraten" data-en="say the highest degree">Höchstgrad verraten</span><span class="d" data-de="„höchstens Grad 6“ steht in der Aufgabe" data-en="“degree 6 at most” is part of the question">„höchstens Grad 6“ steht in der Aufgabe</span></span></label>
+  </div>
+
+  </div>
+  <div class="seed-zeile">
+    <label class="opt"><input type="checkbox" id="seedAn"><span data-de="fester Zufalls-Seed" data-en="fixed random seed">fester Zufalls-Seed</span></label>
+    <input type="text" id="seedWert" autocomplete="off" inputmode="numeric" aria-label="Seed" data-de-aria-label="Seed" data-en-aria-label="Seed">
+    <button type="button" class="btn-secondary" id="seedNeu" title="neuen Seed würfeln" data-de-title="neuen Seed würfeln" data-en-title="roll a new seed">⟳</button>
+    <span class="d" data-de="Mit demselben Seed bekommen alle dieselbe Folge von Aufgaben." data-en="With the same seed everyone gets the same sequence of tasks.">Mit demselben Seed bekommen alle dieselbe Folge von Aufgaben.</span>
+  </div>
+<div class="settings-foot">
+  <button class="btn-secondary" id="btnShare" data-de="🔗 Link mit allen Einstellungen kopieren" data-en="🔗 Copy link with all settings">🔗 Link mit allen Einstellungen kopieren</button>
+  <button class="btn-secondary" id="btnReset" data-de="↺ Standard wiederherstellen" data-en="↺ Restore defaults">↺ Standard wiederherstellen</button>
+  </div>
+</details>
+
+<!-- ═══ ERKUNDUNG ═══════════════════════════════════════════════════════ -->
+<div id="mode-erkundung" hidden>
+  <div class="task" id="erkBox">
+    <div class="erk-zeile">
+      <span class="erk-name" data-de="Grad" data-en="Degree">Grad</span>
+      <span class="gradwahl" id="erkGrad"></span>
+    </div>
+    <div class="erk-zeile">
+      <span class="erk-name" data-de="Beispiel" data-en="Example">Beispiel</span>
+      <span class="gradwahl" id="erkBsp"></span>
+      <button type="button" class="btn-secondary" id="erkZufall" data-de="⟳ Zufall" data-en="⟳ Random">⟳ Zufall</button>
+    </div>
+    <div class="regler-gitter" id="erkRegler" hidden></div>
+    <div class="scale-wrapper"><div class="erk-formel scale-el" id="erkFormel"></div></div>
+    <div class="plotbox" id="erkPlot"></div>
+    <div class="erk-daten" id="erkDaten"></div>
+    <div class="legende" id="erkLegende"></div>
+  </div>
+</div>
+
+<!-- ═══ TRAINING ════════════════════════════════════════════════════════ -->
+<div id="mode-training">
+  <div id="topControls">
+    <div class="tc-item">
+      <details class="auswahl" id="stilBox" open>
+        <summary><span data-de="Aufgabenarten" data-en="Kinds of task">Aufgabenarten</span><span class="ausw-zahl" id="stilZahl"></span></summary>
+        <button type="button" class="btn-secondary ausw-alle" id="stilAlle"></button>
+        <div class="tiles eng reihe" id="segStile"></div>
+      </details>
+    </div>
+    <div class="tc-item tc-mitte">
+      <span class="tc-label"><span data-de="Grade" data-en="Degrees">Grade</span></span>
+      <div class="pills" id="segGrade"></div>
+    </div>
+    <div class="tc-item tc-diff tc-mitte">
+      <span class="tc-kopf"><span class="tc-label" data-de="Schwierigkeit" data-en="Difficulty">Schwierigkeit</span><button type="button" class="tc-reset" id="diffReset" title="Von Hand gesetzte Einstellungen lösen" data-de-title="Von Hand gesetzte Einstellungen lösen" data-en-title="Release settings you fixed yourself" aria-label="Von Hand gesetzte Einstellungen lösen">&#x21BA;</button></span>
+      <div class="seg-switch diff-switch" id="segDiff">
+        <input type="radio" name="diff" id="diffEinf" value="einf"><label for="diffEinf" data-de="Einführung" data-en="Introduction">Einführung</label>
+        <input type="radio" name="diff" id="diffLeicht" value="leicht"><label for="diffLeicht" data-de="Leicht" data-en="Easy">Leicht</label>
+        <input type="radio" name="diff" id="diffNormal" value="normal" checked><label for="diffNormal" data-de="Normal" data-en="Normal">Normal</label>
+        <input type="radio" name="diff" id="diffSchwer" value="schwer"><label for="diffSchwer" data-de="Herausfordernd" data-en="Challenging">Herausfordernd</label>
+        <input type="radio" name="diff" id="diffIndiv" value="indiv"><label for="diffIndiv" data-de="Individuell" data-en="Custom" title="öffnet die Einstellungen" data-de-title="öffnet die Einstellungen" data-en-title="opens the settings">Individuell</label>
+        <span class="seg-glider"></span>
+      </div>
+    </div>
+  </div>
+
+  <div id="genRow">
+    <button id="genBtn" data-de='<span class="auto-kreis">&#x27F3;</span>&nbsp;Neue Aufgabe generieren' data-en='<span class="auto-kreis">&#x27F3;</span>&nbsp;Generate a new task'><span class="auto-kreis">&#x27F3;</span>&nbsp;Neue Aufgabe generieren</button>
+    <span class="punkte rechts"><button id="btnPunkteReset" type="button" title="Punktzahl zurücksetzen" data-de-title="Punktzahl zurücksetzen" data-en-title="Reset the score">↺</button><span id="counter">Richtig: 0 / 0</span></span>
+  </div>
+
+  <div class="task" id="taskBox">
+    <div class="task-head">
+      <h2 data-de="Aufgabe" data-en="Task">Aufgabe</h2>
+      <button class="share-btn" id="btnTeilen" title="Diese Aufgabe teilen (Link kopieren)" data-de-title="Diese Aufgabe teilen (Link kopieren)" data-en-title="Share this task (copy link)" data-de='🔗<span class="sh-text">&nbsp;Teilen</span>' data-en='🔗<span class="sh-text">&nbsp;Share</span>'>🔗<span class="sh-text">&nbsp;Teilen</span></button>
+    </div>
+    <p id="taskText" class="task-hinweis"></p>
+    <div class="scale-wrapper"><div id="task" class="scale-el"></div></div>
+    <div class="plotbox" id="plot"></div>
+  </div>
+
+  <div id="antwortBereich"></div>
+
+  <details class="loesung" id="dLoesung" style="margin-top:12px;">
+    <summary><span class="wenn-zu" data-de="Lösung einblenden" data-en="Show answer">Lösung einblenden</span><span class="wenn-auf" data-de="Lösung ausblenden" data-en="Hide answer">Lösung ausblenden</span></summary>
+    <div class="scale-wrapper"><div id="loesung" class="scale-el"></div></div>
+    <div class="plotbox" id="plotLoes"></div>
+    <div class="legende" id="legende"></div>
+    <details class="weg" id="dWeg">
+      <summary data-de="Woran man das sieht" data-en="How you can tell">Woran man das sieht</summary>
+      <div id="weg"></div>
+    </details>
+  </details>
+</div>
+
+<div id="lobby-spacer"></div>
+
+<footer class="site-footer">
+  <div class="footer-content">
+      M.&nbsp;Koch
+      <span class="footer-topic"><a href="./index.html">Mathe-Tools</a></span>
+      <span class="footer-update"><span class="fu-wort" data-de="Zuletzt aktualisiert:" data-en="Last updated:">Zuletzt aktualisiert:</span><span id="last-update">...</span></span>
+  </div>
+</footer>
+
+<script src="last-update.js" defer></script>
+
+<script>
+"use strict";
+/* ══════════════════════════════════════════════════════════════════════════
+   Polynomgrad erkennen
+
+   Zwei Betriebsarten:
+     Erkundung  Beispiele und Zufallspolynome zu jedem Grad ansehen,
+                mit Reglern an den Vorfaktoren drehen.
+     Training   Den Grad raten - am Graphen, am Term, oder als
+                Verständnisfrage.
+
+   Aufbau:
+     1. Rechnen mit Polynomen
+     2. Zeichnen
+     3. Einstellungen
+     4. Polynome würfeln
+     5. Erkundung
+     6. Aufgaben
+     7. Antworten und Lösungsweg
+     8. Verdrahtung
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* ── 1. Rechnen mit Polynomen ───────────────────────────────────────────
+   Ein Polynom ist eine Liste seiner Koeffizienten, der Reihe nach:
+   P[0] + P[1]x + P[2]x² + …                                              */
+
+function pGrad(P){ for (var i = P.length - 1; i >= 0; i--) if (Math.abs(P[i]) > 1e-9) return i; return 0; }
+function pWert(P, x){ var y = 0; for (var i = P.length - 1; i >= 0; i--) y = y * x + (P[i] || 0); return y; }
+function pAbl(P){ var A = []; for (var i = 1; i < P.length; i++) A[i-1] = i * P[i]; return A.length ? A : [0]; }
+function pMal(A, B){
+  var C = new Array(A.length + B.length - 1).fill(0);
+  for (var i = 0; i < A.length; i++) for (var j = 0; j < B.length; j++) C[i+j] += A[i] * B[j];
+  return C.map(rund);
+}
+function pPlus(A, B){
+  var C = [], n = Math.max(A.length, B.length);
+  for (var i = 0; i < n; i++) C[i] = rund((A[i] || 0) + (B[i] || 0));
+  return C;
+}
+function pSkal(P, k){ return P.map(function(z){ return rund(z * k); }); }
+function rund(x){ return Math.round(x * 1e9) / 1e9; }
+function pKuerzen(P){ var Q = P.slice(); while (Q.length > 1 && Math.abs(Q[Q.length-1]) < 1e-9) Q.pop(); return Q; }
+
+/** Alle reellen Nullstellen im Bereich - gesucht wird durch Abtasten und
+    Halbieren. Für Schulpolynome bis Grad 6 ist das reichlich genau. */
+function pNullstellen(P, von, bis){
+  von = (von === undefined) ? -40 : von;
+  bis = (bis === undefined) ? 40 : bis;
+  var g = pGrad(P);
+  if (g === 0) return [];
+  var raus = [], schritte = 4000, h = (bis - von) / schritte;
+  var xa = von, ya = pWert(P, xa);
+  for (var i = 1; i <= schritte; i++){
+    var xb = von + i * h, yb = pWert(P, xb);
+    if (Math.abs(ya) < 1e-12){ raus.push(xa); }
+    else if (ya * yb < 0){
+      var a = xa, b = xb;
+      for (var k = 0; k < 80; k++){
+        var m = (a + b) / 2;
+        if (pWert(P, a) * pWert(P, m) <= 0) b = m; else a = m;
+      }
+      raus.push((a + b) / 2);
+    } else if (ya * yb > 0 && Math.abs(yb) < 1e-12 && i === schritte){ raus.push(xb); }
+    xa = xb; ya = yb;
+  }
+  /* Doppelte Nullstellen beruehren die Achse, ohne das Vorzeichen zu
+     wechseln - die findet das Abtasten nur als Minimum von |f|. */
+  var A = pAbl(P);
+  tasteMinima(P, A, von, bis).forEach(function(x){
+    if (Math.abs(pWert(P, x)) < 1e-6) raus.push(x);
+  });
+  return entdoppeln(raus);
+}
+function tasteMinima(P, A, von, bis){
+  var raus = [], schritte = 2000, h = (bis - von) / schritte;
+  var xa = von, ya = pWert(A, xa);
+  for (var i = 1; i <= schritte; i++){
+    var xb = von + i * h, yb = pWert(A, xb);
+    if (ya * yb <= 0 && !(ya === 0 && yb === 0)){
+      var a = xa, b = xb;
+      for (var k = 0; k < 70; k++){
+        var m = (a + b) / 2;
+        if (pWert(A, a) * pWert(A, m) <= 0) b = m; else a = m;
+      }
+      raus.push((a + b) / 2);
+    }
+    xa = xb; ya = yb;
+  }
+  return raus;
+}
+function entdoppeln(liste){
+  var s = liste.slice().sort(function(a, b){ return a - b; }), raus = [];
+  s.forEach(function(x){
+    if (!raus.length || Math.abs(x - raus[raus.length-1]) > 1e-4) raus.push(rund(x));
+  });
+  return raus;
+}
+/** Extremstellen mit ihrer Art. */
+function pExtrema(P, von, bis){
+  var A = pAbl(P), B = pAbl(A);
+  if (pGrad(P) < 1) return [];
+  return tasteMinima(P, A, von, bis).map(function(x){
+    var z = pWert(B, x);
+    return { x: rund(x), y: rund(pWert(P, x)),
+             art: (Math.abs(z) < 1e-7) ? 'sattel' : (z < 0 ? 'hoch' : 'tief') };
+  }).filter(function(e, i, a){ return i === 0 || Math.abs(e.x - a[i-1].x) > 1e-4; });
+}
+/** Wendestellen: dort wechselt die zweite Ableitung das Vorzeichen. */
+/** Nur die echten Hoch- und Tiefpunkte: an einem Sattelpunkt ist die
+    Tangente zwar waagerecht, ein Extrempunkt ist er aber nicht. */
+function echteExtrema(P, von, bis){
+  return pExtrema(P, von, bis).filter(function(e){ return e.art !== 'sattel'; });
+}
+/** Wie man die Stellen mit waagerechter Tangente nennen darf: gibt es
+    Sattelpunkte darunter, ist „Extrempunkt" das falsche Wort. */
+function tangentenWort(P, von, bis){
+  var alle = pExtrema(P, von, bis), echt = alle.filter(function(e){ return e.art !== 'sattel'; });
+  if (alle.length === echt.length)
+    return { n: echt.length, wort: echt.length === 1 ? T('Extrempunkt', 'turning point')
+                                                     : T('Extrempunkte', 'turning points') };
+  return { n: alle.length, wort: alle.length === 1
+    ? T('Stelle mit waagerechter Tangente', 'point with a horizontal tangent')
+    : T('Stellen mit waagerechter Tangente', 'points with a horizontal tangent') };
+}
+/** Wie viele der Nullstellen sind mehrfach? Dort ist auch die Ableitung
+    null - der Graph berührt die Achse oder legt sich flach an sie an. */
+function mehrfachZahl(P){
+  var Ab = pAbl(P), skala = 1;
+  for (var i = 0; i < P.length; i++) skala = Math.max(skala, Math.abs(P[i]));
+  return pNullstellen(P, -30, 30).filter(function(x){
+    return Math.abs(pWert(Ab, x)) < 1e-4 * skala;
+  }).length;
+}
+/** „3 verschiedene Nullstellen (eine davon mehrfach)" */
+function nullstellenWort(P){
+  var k = pNullstellen(P, -30, 30).length, m = mehrfachZahl(P);
+  /* Bei null oder einer Nullstelle sagt „verschiedene" nichts - das Wort
+     steht nur da, wo es wirklich etwas unterscheidet. */
+  var de = (k === 0) ? 'keine Nullstelle' : (k === 1) ? '1 Nullstelle'
+                     : (k + ' verschiedene Nullstellen');
+  var en = (k === 0) ? 'no zeros' : (k === 1) ? '1 zero'
+                     : (k + ' different zeros');
+  if (m === 1){ de += ' (eine davon mehrfach)'; en += ' (one of them repeated)'; }
+  else if (m > 1){ de += ' (' + m + ' davon mehrfach)'; en += ' (' + m + ' of them repeated)'; }
+  return T(de, en);
+}
+function pWendestellen(P, von, bis){
+  if (pGrad(P) < 3) return [];
+  var B = pAbl(pAbl(P));
+  var roh = [];
+  var schritte = 2000, h = (bis - von) / schritte;
+  var xa = von, ya = pWert(B, xa);
+  for (var i = 1; i <= schritte; i++){
+    var xb = von + i * h, yb = pWert(B, xb);
+    /* Liegt die Stelle genau auf einem Rasterpunkt, ist das Produkt 0 und
+       nicht negativ - sonst ginge zum Beispiel die Wendestelle bei x = 0
+       verloren. */
+    if (Math.abs(ya) < 1e-12) roh.push(xa);
+    else if (ya * yb < 0){
+      var a = xa, b = xb;
+      for (var k = 0; k < 70; k++){
+        var m = (a + b) / 2;
+        if (pWert(B, a) * pWert(B, m) <= 0) b = m; else a = m;
+      }
+      roh.push((a + b) / 2);
+    }
+    xa = xb; ya = yb;
+  }
+  return entdoppeln(roh).map(function(x){ return { x: rund(x), y: rund(pWert(P, x)) }; });
+}
+
+/* ── Zahlen und TeX ──────────────────────────────────────────────────── */
+/** Einen Bruch zu einer Dezimalzahl finden (Nenner bis 100). */
+function bruch(x){
+  if (Math.abs(x - Math.round(x)) < 1e-9) return { z: Math.round(x), n: 1 };
+  for (var n = 2; n <= 100; n++){
+    var z = x * n;
+    if (Math.abs(z - Math.round(z)) < 1e-7) return { z: Math.round(z), n: n };
+  }
+  return null;
+}
+/* Ein Bruch ist höher als eine Kommazahl. Im Reglermodus der Erkundung
+   würde die Formel darum bei jedem Reglerschritt in die Höhe springen - dort
+   schreibt die Seite deshalb Kommazahlen. */
+var ZAHL_KOMMA = false;
+function zahlTeX(x, opt){
+  opt = opt || {};
+  var b = bruch(x);
+  if (b && b.n === 1) return String(b.z);
+  if (b && !ZAHL_KOMMA) return (b.z < 0 ? '-' : '') + '\\tfrac{' + Math.abs(b.z) + '}{' + b.n + '}';
+  return String(Math.round(x * 1000) / 1000).replace('.', '{,}');
+}
+/** Ein Summand a·xᵏ in TeX - ohne führendes Vorzeichen. */
+function termTeX(a, k){
+  var t = zahlTeX(Math.abs(a));
+  if (k === 0) return t;
+  var x = (k === 1) ? 'x' : ('x^{' + k + '}');
+  if (Math.abs(Math.abs(a) - 1) < 1e-9) return x;
+  return t + x;
+}
+/** Das ganze Polynom. reihenfolge: 'ab' (fallend) oder eine Liste von Graden. */
+function polyTeX(P, reihe){
+  var grade = reihe || null;
+  if (!grade){ grade = []; for (var i = pGrad(P); i >= 0; i--) grade.push(i); }
+  var teile = [];
+  grade.forEach(function(k){
+    var a = P[k] || 0;
+    if (Math.abs(a) < 1e-9) return;
+    teile.push({ vz: a < 0 ? '-' : '+', t: termTeX(a, k) });
+  });
+  if (!teile.length) return '0';
+  var s = (teile[0].vz === '-' ? '-' : '') + teile[0].t;
+  for (var j = 1; j < teile.length; j++) s += ' ' + teile[j].vz + ' ' + teile[j].t;
+  return s;
+}
+
+/* ── 2. Zeichnen ─────────────────────────────────────────────────────── */
+function DUNKEL(){ return document.documentElement.classList.contains('dark'); }
+var FARBE = {
+  kurve:  function(){ return DUNKEL() ? '#ef5350' : '#c62828'; },
+  achse:  function(){ return DUNKEL() ? '#9aa6b1' : '#37474f'; },
+  gitter: function(){ return DUNKEL() ? '#2b333c' : '#e3e9ee'; },
+  null:   function(){ return DUNKEL() ? '#64b5f6' : '#1565c0'; },
+  extrem: function(){ return DUNKEL() ? '#81c784' : '#2e7d32'; },
+  wende:  function(){ return DUNKEL() ? '#ffb74d' : '#ef6c00'; }
+};
+
+/** Weitet eine Spanne: erst ein Rand in Prozent, dann - falls sie dann immer
+    noch zu schmal ist - gleitend bis zur Mindestbreite. Entscheidend ist das
+    „gleitend": ein Schwellwert („schmaler als 2 → auf 5 aufblasen") ließe das
+    Bild an einer bestimmten Stelle springen, und beim Ziehen am Regler sieht
+    man dann nicht mehr, was die Zahl eigentlich bewirkt. */
+function weiten(a, b, mindest, rand){
+  var h = (b - a) * rand;
+  a -= h; b += h;
+  if (b - a < mindest){ var m = (a + b) / 2; a = m - mindest / 2; b = m + mindest / 2; }
+  return [a, b];
+}
+/** Ein Ausschnitt, in dem alles Wichtige zu sehen ist. */
+function fenster(P){
+  var g = pGrad(P);
+  var wichtig = [];
+  var ns = pNullstellen(P, -30, 30);
+  var ex = pExtrema(P, -30, 30);
+  var we = pWendestellen(P, -30, 30);
+  ns.forEach(function(x){ wichtig.push(x); });
+  ex.forEach(function(e){ wichtig.push(e.x); });
+  we.forEach(function(w){ wichtig.push(w.x); });
+  wichtig.push(0);
+  var x0 = Math.min.apply(null, wichtig), x1 = Math.max.apply(null, wichtig);
+  var sx = weiten(x0, x1, 6, 0.35); x0 = sx[0]; x1 = sx[1];
+  /* y: so, dass alle wichtigen Punkte drin sind - und die Kurve nicht
+     senkrecht aus dem Bild schießt. */
+  var ys = [pWert(P, 0)];
+  ex.forEach(function(e){ ys.push(e.y); });
+  we.forEach(function(w){ ys.push(w.y); });
+  ns.forEach(function(){ ys.push(0); });
+  ys.push(0);
+  var y0 = Math.min.apply(null, ys), y1 = Math.max.apply(null, ys);
+  var sy = weiten(y0, y1, 5, 0.45); y0 = sy[0]; y1 = sy[1];
+  /* Eine Gerade oder eine Waagerechte hat keine inneren Punkte, an denen
+     sich der Ausschnitt festmachen könnte. Ihre Nullstelle taugt dafür
+     nicht: sie wandert ins Unendliche, sobald die Steigung gegen null geht,
+     und das Bild würde beim Schieben eines Reglers wild hin und her
+     springen. Darum ein fester Ausschnitt um den Ursprung - breit genug,
+     dass die Nullstelle darin liegt - und die Höhe nach den Randwerten. */
+  if (g <= 1){
+    x0 = -7; x1 = 7;
+    var ra = pWert(P, x0), rb = pWert(P, x1);
+    y0 = Math.min(y0, ra, rb); y1 = Math.max(y1, ra, rb);
+    var h2 = (y1 - y0) * 0.2; y0 -= h2; y1 += h2;
+  }
+  return { x0: x0, x1: x1, y0: y0, y1: y1 };
+}
+function schrittWeite(spanne, ziel){
+  var roh = spanne / (ziel || 8);
+  var p = Math.pow(10, Math.floor(Math.log(roh) / Math.LN10));
+  var r = roh / p;
+  return (r < 1.5 ? 1 : r < 3.5 ? 2 : r < 7.5 ? 5 : 10) * p;
+}
+function zahlKurz(x){
+  var r = Math.round(x * 100) / 100;
+  return String(r).replace('.', ',');
+}
+
+/**
+ * Zeichnet das Polynom.
+ * opt.punkte  true: Nullstellen, Extrem- und Wendepunkte farbig markieren
+ * opt.gitter  Gitternetz
+ */
+function plotte(host, P, opt){
+  if (!host) return;
+  opt = opt || {};
+  var B = 620, H = 380, R = { l: 38, r: 20, o: 18, u: 30 };
+  /* Die Zeichnung wird auf die Breite des Kastens skaliert. Damit Schrift
+     und Punkte auf dem Handy nicht mitschrumpfen, werden sie im Bild um
+     denselben Faktor größer angelegt. */
+  var k = Math.max(1, Math.min(2.2, 620 / (host.clientWidth || 560)));
+  var FS = Math.round(13.5 * k), LW = (2.6 * Math.min(k, 1.6)).toFixed(1),
+      RP = (4.2 * Math.min(k, 1.5)).toFixed(1);
+  var f = fenster(P);
+  var bx = function(x){ return R.l + (x - f.x0) / (f.x1 - f.x0) * (B - R.l - R.r); };
+  var by = function(y){ return R.o + (f.y1 - y) / (f.y1 - f.y0) * (H - R.o - R.u); };
+  var s = '<svg viewBox="0 0 ' + B + ' ' + H + '" role="img" aria-label="'
+        + T('Graph der Funktion', 'graph of the function') + '">';
+  /* Gitternetz */
+  /* Je schmaler die Zeichnung, desto weniger Striche - sonst stehen die
+     Zahlen auf dem Handy dicht an dicht. */
+  var sx = schrittWeite(f.x1 - f.x0, Math.max(4, Math.round(8 / k)));
+  var sy = schrittWeite(f.y1 - f.y0, Math.max(4, Math.round(7 / k)));
+  var i;
+  if (opt.gitter !== false){
+    for (i = Math.ceil(f.x0 / sx) * sx; i <= f.x1; i += sx)
+      s += '<line x1="' + bx(i).toFixed(1) + '" y1="' + R.o + '" x2="' + bx(i).toFixed(1)
+         + '" y2="' + (H - R.u) + '" stroke="' + FARBE.gitter() + '" stroke-width="1"/>';
+    for (i = Math.ceil(f.y0 / sy) * sy; i <= f.y1; i += sy)
+      s += '<line x1="' + R.l + '" y1="' + by(i).toFixed(1) + '" x2="' + (B - R.r)
+         + '" y2="' + by(i).toFixed(1) + '" stroke="' + FARBE.gitter() + '" stroke-width="1"/>';
+  }
+  /* Achsen */
+  var yA = Math.max(R.o, Math.min(H - R.u, by(0)));
+  var xA = Math.max(R.l, Math.min(B - R.r, bx(0)));
+  s += '<line x1="' + R.l + '" y1="' + yA.toFixed(1) + '" x2="' + (B - R.r) + '" y2="' + yA.toFixed(1)
+     + '" stroke="' + FARBE.achse() + '" stroke-width="1.6"/>'
+     + '<line x1="' + xA.toFixed(1) + '" y1="' + R.o + '" x2="' + xA.toFixed(1) + '" y2="' + (H - R.u)
+     + '" stroke="' + FARBE.achse() + '" stroke-width="1.6"/>';
+  /* Beschriftung der Achsen */
+  /* Die Zahlen bekommen einen hellen Saum, damit sie auch dort lesbar
+     bleiben, wo die Kurve hinter ihnen durchläuft. */
+  var saum = DUNKEL() ? '#141820' : '#ffffff';
+  var txt = function(x, y, anker, wort){
+    return '<text x="' + x.toFixed(1) + '" y="' + y.toFixed(1) + '" font-size="' + FS
+         + '" text-anchor="' + anker + '" fill="' + FARBE.achse() + '" stroke="' + saum
+         + '" stroke-width="' + (FS / 4).toFixed(1) + '" paint-order="stroke"'
+         + ' stroke-linejoin="round">' + wort + '</text>';
+  };
+  for (i = Math.ceil(f.x0 / sx) * sx; i <= f.x1; i += sx){
+    if (Math.abs(i) < 1e-9) continue;
+    /* Etwas tiefer, als die Schrift allein bräuchte: sonst verdeckt eine
+       Markierung auf der Achse die Zahl darunter. */
+    s += txt(bx(i), Math.min(H - 5, yA + FS + 8), 'middle', zahlKurz(i));
+  }
+  for (i = Math.ceil(f.y0 / sy) * sy; i <= f.y1; i += sy){
+    if (Math.abs(i) < 1e-9) continue;
+    s += txt(Math.max(FS + 4, xA - 6), by(i) + FS / 3, 'end', zahlKurz(i));
+  }
+  /* Die Achsen bekommen ihren Namen: x rechts am Ende, y oben. */
+  var achsName = function(x, y, anker, wort){
+    return '<text x="' + x.toFixed(1) + '" y="' + y.toFixed(1) + '" font-size="' + Math.round(FS * 1.1)
+         + '" text-anchor="' + anker + '" fill="' + FARBE.achse() + '" stroke="' + saum
+         + '" stroke-width="' + (FS / 4).toFixed(1) + '" paint-order="stroke"'
+         + ' font-style="italic" font-family="Georgia, \'Times New Roman\', serif"'
+         + ' stroke-linejoin="round">' + wort + '</text>';
+  };
+  s += achsName(B - 3, Math.max(R.o + FS, Math.min(H - R.u - 4, yA - 7)), 'end', 'x');
+  var yRechts = (xA > B - R.r - 24);
+  s += achsName(yRechts ? xA - 7 : xA + 7, R.o + FS * 0.95, yRechts ? 'end' : 'start', 'y');
+  /* Die Kurve - abgeschnitten, wo sie oben oder unten hinausläuft */
+  var stuecke = [], akt = [];
+  var N = 900;
+  for (i = 0; i <= N; i++){
+    var x = f.x0 + (f.x1 - f.x0) * i / N, y = pWert(P, x);
+    if (y >= f.y0 - (f.y1 - f.y0) && y <= f.y1 + (f.y1 - f.y0)){
+      akt.push(bx(x).toFixed(1) + ',' + by(Math.max(f.y0 - 1, Math.min(f.y1 + 1, y))).toFixed(1));
+    } else if (akt.length){ stuecke.push(akt); akt = []; }
+  }
+  if (akt.length) stuecke.push(akt);
+  s += '<clipPath id="clip-' + (plotte._nr = (plotte._nr || 0) + 1) + '"><rect x="' + R.l + '" y="' + R.o
+     + '" width="' + (B - R.l - R.r) + '" height="' + (H - R.o - R.u) + '"/></clipPath>';
+  s += '<g clip-path="url(#clip-' + plotte._nr + ')">';
+  stuecke.forEach(function(st){
+    if (st.length > 1) s += '<polyline points="' + st.join(' ') + '" fill="none" stroke="'
+      + FARBE.kurve() + '" stroke-width="' + LW + '" stroke-linejoin="round" stroke-linecap="round"/>';
+  });
+  /* Markierungen - die Nullstellen zuerst und am größten: liegt dort
+     zugleich ein Extrem- oder Wendepunkt, sieht man beide übereinander. */
+  if (opt.punkte){
+    var welche = opt.marken || ['null', 'extrem', 'wende'];
+    if (welche.indexOf('null') >= 0) pNullstellen(P, f.x0, f.x1).forEach(function(x){
+      s += kreis(bx(x), by(0), FARBE.null(), RP * 1.95);
+    });
+    if (welche.indexOf('extrem') >= 0) echteExtrema(P, f.x0, f.x1).forEach(function(e){
+      s += kreis(bx(e.x), by(e.y), FARBE.extrem(), RP);
+    });
+    if (welche.indexOf('wende') >= 0) pWendestellen(P, f.x0, f.x1).forEach(function(w){
+      s += kreis(bx(w.x), by(w.y), FARBE.wende(), RP);
+    });
+  }
+  s += '</g></svg>';
+  host.innerHTML = s;
+}
+function kreis(x, y, c, r){
+  r = r || 5.2;
+  return '<circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="' + Number(r).toFixed(1)
+       + '" fill="' + c + '" stroke="' + (DUNKEL() ? '#141820' : '#fff')
+       + '" stroke-width="' + (Number(r) / 3.2).toFixed(1) + '"/>';
+}
+/* Zu welchem Kästchen die drei Sorten gehören. */
+var MARKE = { 'null': 'zeigNull', extrem: 'zeigExtrem', wende: 'zeigWende' };
+var MARKEN = ['null', 'extrem', 'wende'];
+/** Die Sorten, die gerade gezeichnet werden sollen. */
+function markenAn(){
+  return MARKEN.filter(function(k){
+    var e = document.getElementById(MARKE[k]);
+    return !e || e.checked;
+  });
+}
+/** Die Legende ist zugleich der Schalter: anklicken schaltet eine Sorte
+    ein oder aus, langes Drücken zeigt nur diese eine. */
+function legendeHTML(welche){
+  var name = { 'null': T('Nullstelle', 'zero'), extrem: T('Extrempunkt', 'turning point'),
+               wende: T('Wendepunkt', 'inflection point') };
+  var tipDe = 'anklicken: ein/aus · lange drücken: nur diese';
+  var tipEn = 'click: on/off · long press: only this one';
+  var tip = T(tipDe, tipEn);
+  var an = markenAn();
+  return (welche || MARKEN).map(function(k){
+    var ein = an.indexOf(k) >= 0;
+    return '<button type="button" class="lknopf' + (ein ? '' : ' aus') + '" data-marke="' + k
+      + '" aria-pressed="' + (ein ? 'true' : 'false') + '" title="' + tip + '"'
+      + ' data-de-title="' + tipDe + '" data-en-title="' + tipEn + '">'
+      + '<i class="lpunkt" style="background:' + FARBE[k]() + '"></i>' + name[k] + '</button>';
+  }).join('');
+}
+</script>
+<script>
+"use strict";
+/* ── 3. Einstellungen ───────────────────────────────────────────────────── */
+var STILE = ['stilGraph', 'stilTerm', 'stilVerst'];
+var GRADE = ['grad0', 'grad1', 'grad2', 'grad3', 'grad4', 'grad5', 'grad6'];
+var TERMFORM = ['termNormal', 'termUnsortiert', 'termFaktor', 'termRest'];
+var SICHT = ['sichtAlle', 'sichtVielfach', 'sichtVerschoben', 'sichtWenig', 'sichtSonder'];
+/* Welcher Generator zu welchem Kästchen gehört. */
+var SICHT_ART = { sichtAlle: 'alle', sichtVielfach: 'vielfach',
+                  sichtVerschoben: 'verschoben', sichtWenig: 'wenig', sichtSonder: 'sonder' };
+
+var STD = {
+  stilGraph: true, stilTerm: true, stilVerst: false,
+  grad0: false, grad1: true, grad2: true, grad3: true, grad4: true, grad5: false, grad6: false,
+  sichtAlle: true, sichtVielfach: false, sichtVerschoben: true,
+  sichtWenig: false, sichtSonder: false,
+  termNormal: true, termUnsortiert: false, termFaktor: false, termRest: false,
+  mitGitter: true, mitPunkte: true, mitGrenze: true,
+  zeigNull: true, zeigExtrem: true, zeigWende: true,
+  diff: 'normal'
+};
+/* Was eine Schwierigkeitsstufe setzt. */
+var STUFEN = {
+  einf:   { nr: 1, grade: [2, 3],
+            sichtAlle: true, sichtVielfach: false, sichtVerschoben: false,
+            sichtWenig: false, sichtSonder: false,
+            termNormal: true, termUnsortiert: false, termFaktor: false, termRest: false,
+            stilVerst: false, mitGrenze: true,
+            regler: { stilGraph: 10, stilTerm: 6, stilVerst: 2,
+                      grad0: 2, grad1: 3, grad2: 10, grad3: 9, grad4: 5, grad5: 3, grad6: 2,
+                      sichtAlle: 10, sichtVielfach: 3, sichtVerschoben: 3, sichtWenig: 2, sichtSonder: 1,
+                      termNormal: 10, termUnsortiert: 2, termFaktor: 3, termRest: 2 } },
+  leicht: { nr: 2, grade: [1, 2, 3, 4],
+            sichtAlle: true, sichtVielfach: true, sichtVerschoben: false,
+            sichtWenig: false, sichtSonder: false,
+            termNormal: true, termUnsortiert: false, termFaktor: false, termRest: false,
+            stilVerst: false, mitGrenze: true,
+            regler: { stilGraph: 10, stilTerm: 7, stilVerst: 3,
+                      grad0: 2, grad1: 4, grad2: 9, grad3: 9, grad4: 7, grad5: 3, grad6: 2,
+                      sichtAlle: 9, sichtVielfach: 6, sichtVerschoben: 4, sichtWenig: 3, sichtSonder: 2,
+                      termNormal: 10, termUnsortiert: 3, termFaktor: 4, termRest: 2 } },
+  normal: { nr: 3, grade: [0, 1, 2, 3, 4, 5],
+            sichtAlle: true, sichtVielfach: true, sichtVerschoben: true,
+            sichtWenig: false, sichtSonder: false,
+            termNormal: true, termUnsortiert: false, termFaktor: true, termRest: false,
+            stilVerst: true, mitGrenze: true,
+            regler: { stilGraph: 9, stilTerm: 7, stilVerst: 4,
+                      grad0: 2, grad1: 3, grad2: 7, grad3: 9, grad4: 9, grad5: 6, grad6: 4,
+                      sichtAlle: 9, sichtVielfach: 6, sichtVerschoben: 7, sichtWenig: 5, sichtSonder: 4,
+                      termNormal: 9, termUnsortiert: 4, termFaktor: 6, termRest: 4 } },
+  schwer: { nr: 4, grade: [0, 1, 2, 3, 4, 5, 6],
+            sichtAlle: true, sichtVielfach: true, sichtVerschoben: true,
+            sichtWenig: true, sichtSonder: true,
+            termNormal: true, termUnsortiert: true, termFaktor: true, termRest: true,
+            stilVerst: true, mitGrenze: false,
+            regler: { stilGraph: 9, stilTerm: 8, stilVerst: 6,
+                      grad0: 1, grad1: 2, grad2: 5, grad3: 8, grad4: 9, grad5: 8, grad6: 7,
+                      sichtAlle: 5, sichtVielfach: 6, sichtVerschoben: 8, sichtWenig: 7, sichtSonder: 6,
+                      termNormal: 7, termUnsortiert: 6, termFaktor: 8, termRest: 6 } }
+};
+(function(){
+  var p = STUFEN[STD.diff] || {};
+  Object.keys(p).forEach(function(k){
+    if (k === 'nr' || k === 'grade' || k === 'regler') return;
+    STD[k] = p[k];
+  });
+  GRADE.forEach(function(id, g){ STD[id] = (p.grade || []).indexOf(g) >= 0; });
+})();
+
+var KURZ = { stilGraph: 'sg', stilTerm: 'st', stilVerst: 'sv',
+  sichtAlle: 'sa', sichtVielfach: 'sm', sichtVerschoben: 'sb', sichtWenig: 'sw', sichtSonder: 'ss',
+  termNormal: 'tn', termUnsortiert: 'tu', termFaktor: 'tf', termRest: 'tr',
+  mitGitter: 'gi', mitPunkte: 'pu', mitGrenze: 'gr',
+  zeigNull: 'zn', zeigExtrem: 'ze', zeigWende: 'zw', diff: 'd' };
+GRADE.forEach(function(id, g){ KURZ[id] = 'g' + g; });
+
+function haken(id){ var e = document.getElementById(id); return !!(e && e.checked); }
+function setzeHaken(id, v){ var e = document.getElementById(id); if (e) e.checked = !!v; }
+function radioWert(name){ var e = document.querySelector('input[name="' + name + '"]:checked'); return e ? e.value : null; }
+function radioSetzen(name, wert){
+  var e = document.querySelector('input[name="' + name + '"][value="' + wert + '"]');
+  if (e) e.checked = true;
+  return !!e;
+}
+function einstellungen(){
+  var s = {};
+  Object.keys(STD).forEach(function(k){
+    s[k] = (typeof STD[k] === 'boolean') ? haken(k) : (radioWert(k) || STD[k]);
+  });
+  return s;
+}
+function einstellungenSetzen(s){
+  Object.keys(STD).forEach(function(k){
+    if (typeof STD[k] === 'boolean') setzeHaken(k, s[k]);
+    else radioSetzen(k, s[k]);
+  });
+  /* Zu den Kaestchen gehoeren die Haeufigkeiten derselben Stufe. Ohne das
+     stuende der Regler beim Laden auf seinem HTML-Wert und zeigte etwas
+     anderes an, als die Schwierigkeit vorsieht. Ein Fall, den die Stufe
+     ausschaltet, behaelt dabei seinen Standardwert (siehe abReglerSetzen). */
+  var stufe = STUFEN[s.diff || STD.diff];
+  if (stufe && stufe.regler && window.abReglerSetzen)
+    abReglerSetzen(reglerOhneHand(stufe.regler));
+  obenAbgleichen();
+  kachelnMalen();
+}
+var VON_HAND = {};
+/** Von Hand umgestellt? Entweder hier gemerkt (change-Ereignis) oder von
+    aufgaben.js (Kachel oder Oval, die das Kästchen unmittelbar setzen). */
+function vonHand(k){ return !!VON_HAND[k] || !!(window.abVonHand && abVonHand(k)); }
+document.addEventListener('change', function(ev){
+  var t = ev.target;
+  if (!t || t.name === 'diff') return;
+  var k = t.id || t.name;
+  if (k && k !== 'diff') VON_HAND[k] = true;
+}, true);
+/** Die Häufigkeiten einer Stufe, ohne die Regler, die von Hand stehen. */
+function reglerOhneHand(regler){
+  var raus = {};
+  /* Erst alle Regler auf den Standardwert der Seite - eine Stufe bestimmt
+     die Haeufigkeiten vollstaendig, und was sie nicht nennt, soll nicht vom
+     vorherigen Zustand uebrig bleiben. */
+  document.querySelectorAll('.slider-row input[type="range"]').forEach(function(e){
+    var std = parseInt(e.getAttribute('value'), 10);
+    if (e.id && isFinite(std)) raus[e.id.slice(1)] = std;
+  });
+  Object.keys(regler || {}).forEach(function(k){ raus[k] = regler[k]; });
+  /* Von Hand gestellte Regler bleiben, wie sie stehen. */
+  Object.keys(raus).forEach(function(k){
+    if (vonHand(k) || vonHand('w' + k)) delete raus[k];
+  });
+  return raus;
+}
+function stufeAnwenden(stufe){
+  var p = STUFEN[stufe];
+  if (!p) return;
+  Object.keys(p).forEach(function(k){
+    if (k === 'nr' || k === 'grade' || k === 'regler' || vonHand(k)) return;
+    if (typeof p[k] === 'boolean') setzeHaken(k, p[k]);
+    else radioSetzen(k, p[k]);
+  });
+  if (!vonHand('grade')) GRADE.forEach(function(id, g){
+    if (!vonHand(id)) setzeHaken(id, (p.grade || []).indexOf(g) >= 0);
+  });
+  if (p.regler && window.abReglerSetzen) abReglerSetzen(reglerOhneHand(p.regler));
+  obenAbgleichen();
+  kachelnMalen();
+}
+function obenAbgleichen(){
+  if (window.abReglerAbgleichen) abReglerAbgleichen();
+  if (window.abGliderAlle) abGliderAlle();
+}
+function gewaehlteGrade(){
+  var raus = [];
+  GRADE.forEach(function(id, g){ if (haken(id)) raus.push(g); });
+  return raus.length ? raus : [3];
+}
+function termFormen(){
+  var raus = TERMFORM.filter(haken);
+  return raus.length ? raus : ['termNormal'];
+}
+function sichtFaelle(){
+  var raus = SICHT.filter(haken);
+  return raus.length ? raus : ['sichtAlle'];
+}
+/** Zieht einen angekreuzten Fall - mit den eingestellten Häufigkeiten. */
+function zieh(ids, ersatz){
+  var id = window.abZiehe ? abZiehe(ids) : null;
+  if (id) return id;
+  var an = ids.filter(haken);
+  return an.length ? pick(an) : ersatz;
+}
+function gradZiehen(){
+  var id = zieh(GRADE, null);
+  var g = id ? GRADE.indexOf(id) : -1;
+  return (g >= 0) ? g : pick(gewaehlteGrade());
+}
+
+function urlSchreiben(mitAufgabe){
+  var s = einstellungen(), p = new URLSearchParams();
+  Object.keys(KURZ).forEach(function(k){
+    if (String(s[k]) === String(STD[k])) return;
+    p.set(KURZ[k], (typeof s[k] === 'boolean') ? (s[k] ? '1' : '0') : s[k]);
+  });
+  if (mitAufgabe && A) p.set('t', A.stil + '_' + (A.stil === 'verst' ? A.nr : A.P.join(',')));
+  if (MODUS === 'erkundung') p.set('m', 'e');
+  if (!autoAn) p.set('auto', '0');
+  var qs = p.toString();
+  var url = location.origin + location.pathname + (qs ? '?' + qs : '');
+  if (window.abSeedFuerLink){ var ss = abSeedFuerLink(); if (ss) url += (qs ? '&' : '?') + 'seed=' + ss; }
+  return url;
+}
+function urlLesen(){
+  var p = new URLSearchParams(location.search), s = {};
+  Object.keys(STD).forEach(function(k){ s[k] = STD[k]; });
+  Object.keys(KURZ).forEach(function(k){
+    var v = p.get(KURZ[k]);
+    if (v === null) v = p.get(k);
+    if (v === null) return;
+    s[k] = (typeof STD[k] === 'boolean') ? (v === '1' || v === 'true') : v;
+  });
+  autoAn = p.get('auto') !== '0';
+  return s;
+}
+function linkKopieren(text, knopf){
+  if (window.abKopiere){ abKopiere(text, knopf, T('✓ Link kopiert', '✓ Link copied')); return; }
+  try { if (navigator.clipboard) navigator.clipboard.writeText(text); } catch (e) {}
+}
+
+/* ── 4. Polynome würfeln ────────────────────────────────────────────────── */
+var A = null, richtig = 0, gesamt = 0, autoAn = true, MODUS = 'training';
+
+function pick(a){ return a[Math.floor(Math.random() * a.length)]; }
+function ri(a, b){ return a + Math.floor(Math.random() * (b - a + 1)); }
+function coin(p){ return Math.random() < (p === undefined ? 0.5 : p); }
+function mischen(a){
+  var r = a.slice();
+  for (var i = r.length - 1; i > 0; i--){ var j = Math.floor(Math.random() * (i + 1)); var h = r[i]; r[i] = r[j]; r[j] = h; }
+  return r;
+}
+/** Ein Vorfaktor, der die Zeichnung nicht zu steil macht. */
+function leitfaktor(g){
+  var kandidaten = (g >= 4) ? [1, -1, 0.5, -0.5, 0.25, -0.25] : (g === 3 ? [1, -1, 0.5, -0.5, 2, -2] : [1, -1, 2, -2, 0.5, -0.5]);
+  return pick(kandidaten);
+}
+/** Verschiedene ganzzahlige Nullstellen. */
+function nullstellenZiehen(anzahl){
+  var vorrat = mischen([-4, -3, -3, -2, -2, -1, -1, 0, 1, 1, 2, 2, 3, 3, 4]);
+  var raus = [];
+  vorrat.forEach(function(z){
+    if (raus.length >= anzahl) return;
+    if (raus.indexOf(z) < 0) raus.push(z);
+  });
+  return raus.sort(function(a, b){ return a - b; });
+}
+function ausNullstellen(ns, k){
+  var P = [k];
+  ns.forEach(function(z){ P = pMal(P, [-z, 1]); });
+  return P;
+}
+
+/** Grad g: alle Nullstellen vorhanden und verschieden. */
+function genAlle(g){
+  if (g === 0) return { P: [ri(-5, 5) || 3], art: 'alle' };
+  return { P: ausNullstellen(nullstellenZiehen(g), leitfaktor(g)), art: 'alle' };
+}
+/** Grad g: eine Nullstelle doppelt (oder dreifach). */
+function genVielfach(g){
+  if (g <= 1) return genAlle(g);
+  var ns = nullstellenZiehen(Math.max(1, g - 1));
+  var doppelt = pick(ns);
+  var liste = ns.concat([doppelt]);
+  while (liste.length < g) liste.push(doppelt);
+  liste = liste.slice(0, g);
+  return { P: ausNullstellen(liste, leitfaktor(g)), art: 'vielfach' };
+}
+/** Grad g: senkrecht verschoben - nicht mehr alle Nullstellen, aber alle
+    Extrempunkte bleiben stehen. */
+function genVerschoben(g){
+  if (g <= 1) return genAlle(g);
+  var b = genAlle(g);
+  var ex = pExtrema(b.P, -12, 12);
+  if (!ex.length) return b;
+  var ns0 = pNullstellen(b.P, -30, 30).length;
+  /* Senkrecht verschieben lässt alle Extrempunkte stehen und nimmt dem
+     Graphen Nullstellen. Verschoben wird um eine glatte Zahl - sonst
+     stünden im Lösungsweg Koeffizienten wie 32,489. */
+  var stufen = glatteSchritte(ex.map(function(e){ return e.y; }));
+  for (var i = 0; i < stufen.length; i++){
+    var P = b.P.slice(); P[0] = rund((P[0] || 0) + stufen[i]);
+    if (pNullstellen(P, -30, 30).length < ns0 && brauchbar(P))
+      return { P: P, art: 'verschoben' };
+  }
+  return b;
+}
+/** Glatte Verschiebungen, der Größe nach gemischt: halbe und ganze Zahlen,
+    die zur Höhe der Extrempunkte passen. */
+function glatteSchritte(ys){
+  var hoch = Math.max.apply(null, ys), tief = Math.min.apply(null, ys);
+  /* Gibt es nur einen Extrempunkt (Parabel), ist die Spanne 0 - dann
+     braucht es trotzdem einen Schritt, der über den Scheitel hinausreicht. */
+  var spanne = Math.max(2, hoch - tief, Math.abs(hoch) * 0.6);
+  var raus = [];
+  [0.25, 0.4, 0.55, 0.7, 0.9, 1.2, 1.6].forEach(function(f){
+    var d = spanne * f;
+    var s = (d > 6) ? 1 : 0.5;
+    var g1 = Math.round(d / s) * s;
+    if (g1 > 0){ raus.push(rund(g1)); raus.push(rund(-g1)); }
+  });
+  return mischen(raus);
+}
+/** Grad g: aus den Extremstellen aufgebaut - so sind alle Extrempunkte da,
+    Nullstellen aber oft keine. */
+function genWenig(g){
+  if (g <= 1) return genAlle(g);
+  if (g === 2){
+    var P2 = ausNullstellen(nullstellenZiehen(2), leitfaktor(2));
+    var e2 = pExtrema(P2, -12, 12);
+    var hub = ri(2, 6);
+    P2[0] = rund(P2[0] + (e2.length && e2[0].art === 'tief' ? hub : -hub));
+    return { P: P2, art: 'wenig' };
+  }
+  /* f' mit g−1 verschiedenen Nullstellen, dann aufleiten. */
+  var es = nullstellenZiehen(g - 1);
+  var k = leitfaktor(g) * g;
+  var Abl = ausNullstellen(es, k);
+  var P = [0];
+  for (var i = 0; i < Abl.length; i++) P[i + 1] = rund(Abl[i] / (i + 1));
+  P[0] = 0;
+  /* So verschieben, dass möglichst wenige Nullstellen übrig bleiben - und
+     zwar um eine glatte Zahl, damit die Koeffizienten lesbar bleiben. */
+  var ex = pExtrema(P, -12, 12);
+  if (ex.length){
+    var ys = ex.map(function(e){ return e.y; });
+    var hoch = Math.max.apply(null, ys), tief = Math.min.apply(null, ys);
+    var s = ((hoch - tief) > 12) ? 1 : 0.5;
+    var bestes = null, wenigste = 99;
+    /* oberhalb des höchsten oder unterhalb des tiefsten Extrempunkts liegt
+       der Graph ganz auf einer Seite der Achse */
+    [hoch, tief].forEach(function(ziel, oben){
+      for (var k = 1; k <= 8; k++){
+        var d = Math.round((-ziel + (oben === 0 ? -k * s * 2 : k * s * 2)) / s) * s;
+        var Q = P.slice(); Q[0] = rund(P[0] + d);
+        if (!brauchbar(Q)) continue;
+        var n = pNullstellen(Q, -30, 30).length;
+        if (n < wenigste){ wenigste = n; bestes = Q; }
+        if (n === 0) break;
+      }
+    });
+    if (bestes) P = bestes;
+  }
+  return { P: P, art: 'wenig' };
+}
+/** Sonderfälle: (x+d)ⁿ+e, oder ein Polynom ohne jede Extremstelle. */
+function genSonder(g){
+  if (g <= 1) return genAlle(g);
+  var wahl = (g % 2 === 0) ? pick(['potenz', 'potenz', 'flach']) : pick(['potenz', 'monoton', 'monoton']);
+  var d = ri(-3, 3), e = ri(-4, 4);
+  if (wahl === 'potenz' || wahl === 'flach'){
+    /* (x+d)^g + e - sieht aus wie eine Parabel, ist aber flacher am Grund */
+    var P = [1];
+    for (var i = 0; i < g; i++) P = pMal(P, [d, 1]);
+    var k = (g >= 5) ? pick([1, -1, 0.5, -0.5]) : pick([1, -1, 0.5, -0.5, 2]);
+    P = pSkal(P, k);
+    P[0] = rund(P[0] + e);
+    return { P: P, art: 'potenz', d: d, e: e, k: k };
+  }
+  /* streng monoton: f' hat keine Nullstelle, z. B. f' = k(x²+c) mit c>0 */
+  var kk = pick([1, -1, 0.5, -0.5]);
+  var c = 1 + ri(0, 3);
+  var Abl = pSkal(ausNullstellen([], 1), 1);
+  /* f'(x) = kk·g·(x² + c)^((g-1)/2) für ungerades g */
+  var fa = [c, 0, 1];               /* x² + c */
+  var Ab = [1];
+  for (var j = 0; j < (g - 1) / 2; j++) Ab = pMal(Ab, fa);
+  Ab = pSkal(Ab, kk * g);
+  var Q = [0];
+  for (var m = 0; m < Ab.length; m++) Q[m + 1] = rund(Ab[m] / (m + 1));
+  Q[0] = ri(-3, 3);
+  return { P: Q, art: 'monoton' };
+}
+var GENERATOR = { alle: genAlle, vielfach: genVielfach, verschoben: genVerschoben,
+                  wenig: genWenig, sonder: genSonder };
+/** Erzeugt ein Polynom zum gewünschten Grad und zur gewünschten Sichtbarkeit. */
+function polynomZu(g, sicht){
+  var gen = GENERATOR[sicht] || genAlle;
+  for (var versuch = 0; versuch < 25; versuch++){
+    var r = gen(g);
+    if (pGrad(r.P) === g && brauchbar(r.P)) return r;
+  }
+  return genAlle(g);
+}
+/** Nicht zu steil, nicht zu flach, im Bild muss etwas zu sehen sein - und
+    die Koeffizienten sollen sich hinschreiben lassen. */
+function brauchbar(P){
+  var f = fenster(P);
+  if (!isFinite(f.x0) || !isFinite(f.y0)) return false;
+  if (f.x1 - f.x0 > 40 || f.y1 - f.y0 > 400) return false;
+  for (var i = 0; i < P.length; i++){
+    if (Math.abs(P[i]) > 400) return false;
+    if (!bruch(P[i])) return false;        /* keine krummen Dezimalzahlen */
+  }
+  return true;
+}
+</script>
+<script>
+"use strict";
+/* ── 5. Erkundung ───────────────────────────────────────────────────────── */
+/* Die Beispiele sind dieselben wie in der GeoGebra-Datei: zu jedem Grad
+   drei sprechende Fälle, dazu die reine Potenzfunktion. */
+var BEISPIELE = {
+  0: [[1], [2], [-Math.PI], [0]],
+  1: [[1, 2], [-2, -0.5], [-16/3, 52/7], [0, 1]],
+  2: [[8, -6, 1], [5, 1, -4], [2, 0, 0.02], [0, 0, 1]],
+  3: [[-6, 11, -6, 1], [0, -10, 9, -2], [-1, -10, 9, -2], [0, 0, 0, 1]],
+  4: [[12, -25, 17.5, -5, 0.5], [1.5, -2.35, 0.45, 0.6, -0.2], [8, -12, 2, 3, -1], [0, 0, 0, 0, 1]],
+  5: [[0, 4, 0, -5, 0, 1], [1, 1, -2, -2, 1, 1], [0, 1, -0.5, 0.5, -0.25, 0.05], [0, 0, 0, 0, 0, 1]],
+  6: [[-8, 0, 14, 0, -7, 0, 1], [0, 0, -4, 0, 5, 0, -1], [1, 0, -3, 0, 3, 0, -1], [0, 0, 0, 0, 0, 0, 1]]
+};
+var ERK = { grad: 3, bsp: 0, P: null, regler: null };
+
+function erkMalen(){
+  var gradHost = document.getElementById('erkGrad');
+  var bspHost  = document.getElementById('erkBsp');
+  if (!gradHost || !bspHost) return;
+  gradHost.innerHTML = '';
+  for (var g = 0; g <= 6; g++){
+    (function(g){
+      var b = document.createElement('button');
+      b.type = 'button'; b.className = 'btn-secondary' + (ERK.grad === g ? ' on' : '');
+      b.textContent = String(g);
+      b.title = T('Polynome vom Grad ' + g, 'polynomials of degree ' + g);
+      b.addEventListener('click', function(){ ERK.grad = g; ERK.bsp = 0; erkNeu(); });
+      gradHost.appendChild(b);
+    })(g);
+  }
+  bspHost.innerHTML = '';
+  var namen = [T('Beispiel 1', 'Example 1'), T('Beispiel 2', 'Example 2'),
+               T('Beispiel 3', 'Example 3'), T('nur xⁿ', 'just xⁿ'), T('Regler', 'Sliders')];
+  namen.forEach(function(nam, i){
+    var b = document.createElement('button');
+    b.type = 'button'; b.className = 'btn-secondary' + (ERK.bsp === i ? ' on' : '');
+    b.textContent = nam;
+    b.addEventListener('click', function(){ ERK.bsp = i; erkNeu(); });
+    bspHost.appendChild(b);
+  });
+}
+function erkNeu(){
+  var g = ERK.grad;
+  if (ERK.bsp === 4){
+    if (!ERK.regler || ERK.regler.length !== g + 1){
+      ERK.regler = [];
+      for (var i = 0; i <= g; i++) ERK.regler[i] = (i === g) ? 1 : 0;
+    }
+    ERK.P = ERK.regler.slice();
+  } else {
+    var liste = BEISPIELE[g] || BEISPIELE[3];
+    ERK.P = (liste[Math.min(ERK.bsp, liste.length - 1)] || liste[0]).slice();
+  }
+  erkZeichnen();
+}
+function erkZufall(){
+  ERK.bsp = -1;
+  var sicht = pick(['alle', 'vielfach', 'verschoben', 'wenig']);
+  ERK.P = polynomZu(ERK.grad, sicht).P;
+  erkZeichnen();
+}
+function erkReglerMalen(){
+  var host = document.getElementById('erkRegler');
+  if (!host) return;
+  if (ERK.bsp !== 4){ host.hidden = true; host.innerHTML = ''; return; }
+  host.hidden = false;
+  host.innerHTML = '';
+  for (var i = ERK.grad; i >= 0; i--){
+    (function(i){
+      var lab = document.createElement('label');
+      lab.innerHTML = '\\(a_{' + i + '}\\)';
+      var inp = document.createElement('input');
+      inp.type = 'range'; inp.min = '-5'; inp.max = '5'; inp.step = '0.1';
+      inp.value = String(ERK.regler[i] || 0);
+      inp.setAttribute('aria-label', 'a' + i);
+      var wert = document.createElement('span');
+      wert.className = 'rwert';
+      wert.textContent = zahlKurz(ERK.regler[i] || 0);
+      inp.addEventListener('input', function(){
+        ERK.regler[i] = parseFloat(inp.value);
+        wert.textContent = zahlKurz(ERK.regler[i]);
+        ERK.P = ERK.regler.slice();
+        erkZeichnen(true);
+      });
+      host.appendChild(lab); host.appendChild(inp); host.appendChild(wert);
+    })(i);
+  }
+  mj(host);
+}
+function erkZeichnen(nurBild){
+  if (!ERK.P) erkNeu();
+  var P = pKuerzen(ERK.P.slice());
+  while (P.length <= ERK.grad) P.push(0);
+  var echterGrad = pGrad(P);
+  plotte(document.getElementById('erkPlot'), P,
+    { punkte: haken('mitPunkte'), gitter: haken('mitGitter'), marken: markenAn() });
+  var formel = document.getElementById('erkFormel');
+  ZAHL_KOMMA = (ERK.bsp === 4);
+  formel.innerHTML = '\\(f(x) = ' + polyTeX(P) + '\\)';
+  ZAHL_KOMMA = false;
+  var ns = pNullstellen(P, -30, 30), ex = echteExtrema(P, -30, 30), we = pWendestellen(P, -30, 30);
+  var sattel = pExtrema(P, -30, 30).length - ex.length;
+  var d = document.getElementById('erkDaten');
+  d.innerHTML = T('Grad ', 'Degree ') + '<b>' + echterGrad + '</b>'
+    + (echterGrad !== ERK.grad ? ' <span style="opacity:.8">(' + T('die oberen Koeffizienten sind 0',
+        'the leading coefficients are 0') + ')</span>' : '')
+    + ' · ' + ns.length + ' ' + (ns.length === 1 ? T('Nullstelle', 'zero') : T('Nullstellen', 'zeros'))
+    + ' · ' + ex.length + ' ' + (ex.length === 1 ? T('Extrempunkt', 'turning point') : T('Extrempunkte', 'turning points'))
+    + ' · ' + we.length + ' ' + (we.length === 1 ? T('Wendepunkt', 'inflection point') : T('Wendepunkte', 'inflection points'))
+    + (sattel ? ' · ' + sattel + ' ' + (sattel === 1 ? T('Sattelpunkt', 'saddle point')
+                                                     : T('Sattelpunkte', 'saddle points')) : '');
+  document.getElementById('erkLegende').innerHTML =
+    haken('mitPunkte') ? legendeHTML(MARKEN) : '';
+  markenLeiste(document.getElementById('erkLegende'));
+  if (!nurBild){ erkMalen(); erkReglerMalen(); }
+  mj(document.getElementById('erkBox'));
+}
+
+/* ── 6. Aufgaben ────────────────────────────────────────────────────────── */
+var VERLAUF = [];
+function merkeAufgabe(schluessel){
+  VERLAUF.unshift(schluessel);
+  if (VERLAUF.length > 8) VERLAUF.length = 8;
+}
+function stileAktiv(){ return STILE.filter(haken); }
+
+function neueAufgabe(){
+  var stile = stileAktiv();
+  if (!stile.length){ setzeHaken('stilGraph', true); stile = ['stilGraph']; kachelnMalen(); }
+  var art = null;
+  for (var v = 0; v < 30; v++){
+    var stil = zieh(STILE, stile[0]);
+    art = (stil === 'stilVerst') ? wuerfelVerstaendnis()
+        : (stil === 'stilTerm')  ? wuerfelTerm() : wuerfelGraph();
+    if (!art) continue;
+    var tiefe = Math.min(3, Math.max(0, moeglicheAnzahl() - 1));
+    if (VERLAUF.slice(0, tiefe).indexOf(art.schluessel) < 0) break;
+  }
+  if (!art) art = wuerfelGraph();
+  merkeAufgabe(art.schluessel);
+  A = art;
+  zeichne();
+}
+/** Grob, wie viele verschiedene Aufgaben gerade möglich sind. */
+function moeglicheAnzahl(){
+  var n = 0;
+  if (haken('stilGraph')) n += gewaehlteGrade().length * sichtFaelle().length;
+  if (haken('stilTerm'))  n += gewaehlteGrade().length * termFormen().length;
+  if (haken('stilVerst')) n += fragenZurStufe().length;
+  return Math.max(1, n);
+}
+
+function wuerfelGraph(){
+  var g = gradZiehen();
+  var sicht = SICHT_ART[zieh(SICHT, 'sichtAlle')] || 'alle';
+  var r = polynomZu(g, sicht);
+  return { stil: 'graph', P: r.P, grad: pGrad(r.P), art: r.art,
+           schluessel: 'g' + g + ':' + r.art };
+}
+function wuerfelTerm(){
+  var g = gradZiehen();
+  var form = zieh(TERMFORM, 'termNormal');
+  var r = polynomZu(g, 'alle');
+  var P = r.P;
+  var tex, hinweis;
+  if (form === 'termFaktor' || form === 'termRest'){
+    var ns = nullstellenZiehen(Math.max(1, g));
+    var k = pick([1, -1, 2, -2, 3]);
+    var teile = [], rest = 0;
+    /* Manche Nullstellen doppelt: dann steht ein Exponent am Faktor. */
+    var vielfach = (g >= 3 && coin(0.5));
+    var liste = ns.slice(0, g);
+    var faktoren = {};
+    liste.forEach(function(z){ faktoren[z] = (faktoren[z] || 0) + 1; });
+    if (vielfach && liste.length >= 2){
+      faktoren = {};
+      faktoren[liste[0]] = 2;
+      for (var i = 2; i < liste.length; i++) faktoren[liste[i]] = 1;
+      if (Object.keys(faktoren).reduce(function(s, z){ return s + faktoren[z]; }, 0) < g)
+        faktoren[liste[1]] = (faktoren[liste[1]] || 0) + (g - Object.keys(faktoren).reduce(function(s, z){ return s + faktoren[z]; }, 0));
+    }
+    P = [k];
+    Object.keys(faktoren).forEach(function(z){
+      for (var j = 0; j < faktoren[z]; j++) P = pMal(P, [-parseFloat(z), 1]);
+    });
+    tex = (Math.abs(k) === 1 ? (k < 0 ? '-' : '') : zahlTeX(k));
+    Object.keys(faktoren).sort(function(a, b){ return a - b; }).forEach(function(z){
+      var zz = parseFloat(z);
+      var inner = (zz === 0) ? 'x' : ('x ' + (zz < 0 ? '+' : '-') + ' ' + Math.abs(zz));
+      var klam = (zz === 0 && faktoren[z] === 1) ? 'x' : ('(' + inner + ')');
+      tex += klam + (faktoren[z] > 1 ? '^{' + faktoren[z] + '}' : '');
+    });
+    if (form === 'termRest'){
+      rest = ri(-6, 6) || 4;
+      P = P.slice(); P[0] = rund(P[0] + rest);
+      tex += ' ' + (rest < 0 ? '-' : '+') + ' ' + Math.abs(rest);
+    }
+    hinweis = (form === 'termRest') ? 'rest' : 'faktor';
+  } else if (form === 'termUnsortiert'){
+    var grade = mischen(P.map(function(a, i){ return i; }).filter(function(i){ return Math.abs(P[i]) > 1e-9; }));
+    tex = polyTeX(P, grade);
+    hinweis = 'unsortiert';
+  } else {
+    tex = polyTeX(P);
+    hinweis = 'normal';
+  }
+  return { stil: 'term', P: P, grad: pGrad(P), tex: tex, form: hinweis,
+           schluessel: 't' + hinweis + ':' + pGrad(P) + ':' + tex.slice(0, 20) };
+}
+
+/* ── Verständnisfragen ─────────────────────────────────────────────────── */
+var VFRAGEN = [
+  { stufe: 1, f: function(){ var n = pick([2, 3, 4, 5, 6]);
+      return { frage: T('Ein Polynom vom Grad ' + n + ' hat höchstens wie viele verschiedene Nullstellen?',
+                        'At most how many different zeros can a polynomial of degree ' + n + ' have?'),
+               opt: [String(n), String(n - 1), String(n + 1), T('beliebig viele', 'any number')],
+               r: 0,
+               grund: T('Ein Polynom vom Grad ' + n + ' lässt sich in höchstens ' + n
+                        + ' Linearfaktoren zerlegen – mehr verschiedene Nullstellen sind nicht möglich. '
+                        + 'Mit Vielfachheit gezählt können es genau ' + n + ' sein.',
+                        'A polynomial of degree ' + n + ' splits into at most ' + n
+                        + ' linear factors – more different zeros are impossible. '
+                        + 'Counted with multiplicity there can be exactly ' + n + '.') }; } },
+  { stufe: 1, f: function(){ var n = pick([2, 3, 4, 5, 6]);
+      return { frage: T('Wie viele Extremstellen kann ein Polynom vom Grad ' + n + ' höchstens haben?',
+                        'At most how many turning points can a polynomial of degree ' + n + ' have?'),
+               /* n−1, n und n−2 sind immer verschieden - sonst stünde bei
+                  kleinem Grad zweimal dieselbe Zahl da. */
+               opt: [String(n - 1), String(n), String(n - 2), T('beliebig viele', 'any number')],
+               r: 0,
+               grund: T('Die Ableitung hat den Grad ' + (n - 1) + ' und damit höchstens ' + (n - 1)
+                        + ' Nullstellen.',
+                        'The derivative has degree ' + (n - 1) + ' and so at most ' + (n - 1) + ' zeros.') }; } },
+  { stufe: 1, f: function(){
+      return { frage: T('Beide Enden des Graphen zeigen nach oben. Was folgt daraus für den Grad?',
+                        'Both ends of the graph point upwards. What does that say about the degree?'),
+               opt: [T('der Grad ist gerade', 'the degree is even'),
+                     T('der Grad ist ungerade', 'the degree is odd'),
+                     T('der Grad ist genau 2', 'the degree is exactly 2'),
+                     T('daraus folgt nichts', 'nothing follows')],
+               r: 0,
+               grund: T('Bei geradem Grad verhalten sich beide Enden gleich, bei ungeradem entgegengesetzt.',
+                        'With an even degree both ends behave the same way, with an odd degree they are opposite.') }; } },
+  { stufe: 2, f: function(){
+      return { frage: T('Ein Polynom vom Grad 3 hat mindestens wie viele verschiedene Nullstellen?',
+                        'At least how many different zeros does a polynomial of degree 3 have?'),
+               opt: ['1', '0', '2', '3'], r: 0,
+               grund: T('Bei ungeradem Grad laufen die Enden in entgegengesetzte Richtungen – der Graph muss die \\(x\\)-Achse mindestens einmal kreuzen.',
+                        'With an odd degree the ends run in opposite directions – the graph has to cross the \\(x\\)-axis at least once.') }; } },
+  { stufe: 2, f: function(){
+      return { frage: T('Kann ein Polynom vom Grad 3 gar keine Extremstelle haben?',
+                        'Can a polynomial of degree 3 have no turning point at all?'),
+               opt: [T('ja, wenn die Ableitung keine Nullstelle hat', 'yes, if the derivative has no zero'),
+                     T('nein, es hat immer zwei', 'no, it always has two'),
+                     T('nein, es hat immer mindestens eine', 'no, it always has at least one'),
+                     T('nur wenn der Vorfaktor negativ ist', 'only if the leading coefficient is negative')],
+               r: 0,
+               grund: T('Die Ableitung ist quadratisch und kann ohne Nullstelle sein – dann steigt oder fällt der Graph durchweg, wie bei \\(f(x) = x^3 + x\\).',
+                        'The derivative is quadratic and may have no zero – then the graph rises or falls throughout, as with \\(f(x) = x^3 + x\\).') }; } },
+  { stufe: 2, f: function(){ var n = pick([3, 5]);
+      return { frage: T('Der Graph eines Polynoms vom Grad ' + n + ' kommt links von unten. Wohin läuft er rechts?',
+                        'The graph of a polynomial of degree ' + n + ' comes up from below on the left. Where does it go on the right?'),
+               opt: [T('nach oben', 'upwards'), T('nach unten', 'downwards'),
+                     T('waagerecht', 'horizontally'), T('das hängt vom Absolutglied ab', 'that depends on the constant term')],
+               r: 0,
+               grund: T('Bei ungeradem Grad sind die beiden Enden entgegengesetzt: links unten, rechts oben.',
+                        'With an odd degree the two ends are opposite: bottom left, top right.') }; } },
+  /* a und b so, dass die vier Möglichkeiten verschieden bleiben. */
+  { stufe: 3, f: function(){ var paar = pick([[2, 3], [2, 4], [3, 4], [3, 2], [4, 3]]);
+      var a = paar[0], b = paar[1];
+      return { frage: T('Welchen Grad hat \\(f(x) = (x - 1)^{' + a + '} \\cdot (x + 2)^{' + b + '}\\)?',
+                        'What is the degree of \\(f(x) = (x - 1)^{' + a + '} \\cdot (x + 2)^{' + b + '}\\)?'),
+               opt: [String(a + b), String(Math.max(a, b)), String(a * b), '2'], r: 0,
+               grund: T('Beim Ausmultiplizieren addieren sich die Exponenten: \\(' + a + ' + ' + b + ' = ' + (a + b) + '\\).',
+                        'When you expand, the exponents add up: \\(' + a + ' + ' + b + ' = ' + (a + b) + '\\).') }; } },
+  { stufe: 3, f: function(){
+      return { frage: T('Ein Graph hat zwei Extrempunkte. Welchen Grad hat die Funktion mindestens?',
+                        'A graph has two turning points. What is the least possible degree?'),
+               opt: ['3', '2', '4', '5'], r: 0,
+               grund: T('Zwei Extremstellen heißen: die Ableitung hat zwei Nullstellen, hat also mindestens Grad 2 – und \\(f\\) damit mindestens Grad 3.',
+                        'Two turning points mean the derivative has two zeros, so it has degree at least 2 – and \\(f\\) at least 3.') }; } },
+  { stufe: 3, f: function(){
+      return { frage: T('Wie viele Wendestellen hat ein Polynom vom Grad 3 höchstens?',
+                        'At most how many points of inflection does a polynomial of degree 3 have?'),
+               opt: ['1', '2', '0', '3'], r: 0,
+               grund: T('Die zweite Ableitung ist linear und hat höchstens eine Nullstelle.',
+                        'The second derivative is linear and has at most one zero.') }; } },
+  { stufe: 3, f: function(){
+      return { frage: T('Kann ein Polynom vom Grad 4 genau drei Extremstellen haben?',
+                        'Can a polynomial of degree 4 have exactly three turning points?'),
+               opt: [T('ja, das ist das Höchstmögliche', 'yes, that is the maximum'),
+                     T('nein, höchstens zwei', 'no, at most two'),
+                     T('nein, immer genau zwei', 'no, always exactly two'),
+                     T('nur mit negativem Vorfaktor', 'only with a negative leading coefficient')],
+               r: 0,
+               grund: T('Die Ableitung hat Grad 3 und kann drei verschiedene Nullstellen haben.',
+                        'The derivative has degree 3 and can have three different zeros.') }; } },
+  { stufe: 4, f: function(){
+      return { frage: T('Der Graph berührt die \\(x\\)-Achse an einer Stelle, ohne sie zu kreuzen. Was bedeutet das?',
+                        'The graph touches the \\(x\\)-axis at one point without crossing it. What does that mean?'),
+               opt: [T('dort liegt eine Nullstelle mit gerader Vielfachheit', 'there is a zero of even multiplicity there'),
+                     T('dort liegt keine Nullstelle', 'there is no zero there'),
+                     T('der Grad ist gerade', 'the degree is even'),
+                     T('dort liegt eine Wendestelle', 'there is a point of inflection there')],
+               r: 0,
+               grund: T('Eine doppelte (oder vierfache …) Nullstelle lässt den Graphen abprallen. An einer einfachen – allgemein: ungerade vielfachen – Nullstelle kreuzt er die Achse.',
+                        'A double (or fourfold …) zero makes the graph bounce off. At a simple zero – generally: one of odd multiplicity – it crosses the axis.') }; } },
+  { stufe: 4, f: function(){ var d = ri(1, 3), e = ri(1, 4);
+      return { frage: T('Der Graph von \\(f(x) = (x + ' + d + ')^4 + ' + e + '\\) sieht fast aus wie eine Parabel. Woran erkennt man den Unterschied?',
+                        'The graph of \\(f(x) = (x + ' + d + ')^4 + ' + e + '\\) looks almost like a parabola. How can you tell the difference?'),
+               opt: [T('er verläuft am Tiefpunkt flacher und steigt außen steiler', 'it is flatter at the minimum and rises more steeply further out'),
+                     T('er ist nach unten geöffnet', 'it opens downwards'),
+                     T('er hat zwei Tiefpunkte', 'it has two minima'),
+                     T('er hat eine Nullstelle mehr', 'it has one more zero')],
+               r: 0,
+               grund: T('Hohe gerade Potenzen drücken den Graphen in der Nähe des Extremums an die Waagerechte und lassen ihn außen umso steiler steigen.',
+                        'High even powers flatten the graph near the extremum and make it rise all the more steeply further out.') }; } },
+  { stufe: 4, f: function(){
+      return { frage: T('Ein Graph trifft die \\(x\\)-Achse an genau einer Stelle und hat keinen Extrempunkt. Welchen Grad kann \\(f\\) haben?',
+                        'A graph meets the \\(x\\)-axis at exactly one place and has no turning point. What degree can \\(f\\) have?'),
+               opt: [T('1, 3, 5 … – jeden ungeraden Grad', '1, 3, 5 … – any odd degree'),
+                     T('nur 1', 'only 1'),
+                     T('jeden geraden Grad', 'any even degree'),
+                     T('nur 2', 'only 2')],
+               r: 0,
+               grund: T('Ohne Extrempunkt steigt oder fällt der Graph durchweg; das geht bei jedem ungeraden Grad, etwa bei \\(x^3\\) oder \\(x^5\\).',
+                        'Without a turning point the graph rises or falls throughout; that is possible for any odd degree, e.g. \\(x^3\\) or \\(x^5\\).') }; } },
+  { stufe: 4, f: function(){
+      return { frage: T('Was kann man am Graphen über den Grad sicher sagen?',
+                        'What can you say for certain about the degree from the graph?'),
+               opt: [T('man erkennt den kleinstmöglichen Grad', 'you can see the smallest possible degree'),
+                     T('man erkennt den Grad immer genau', 'you can always see the degree exactly'),
+                     T('man erkennt nur, ob er gerade ist', 'you can only see whether it is even'),
+                     T('gar nichts', 'nothing at all')],
+               r: 0,
+               grund: T('Nullstellen, Extrempunkte und das Verhalten an den Rändern liefern eine Untergrenze. Höhere Grade können genauso aussehen – \\(x^4\\) und \\(x^6\\) etwa sind kaum zu unterscheiden.',
+                        'Zeros, turning points and the end behaviour give a lower bound. Higher degrees can look the same – \\(x^4\\) and \\(x^6\\) are hard to tell apart.') }; } },
+  { stufe: 3, f: function(){
+      return { frage: T('Ein Polynom vom Grad 4 hat eine doppelte und zwei einfache Nullstellen. Wie viele verschiedene Nullstellen sind das?',
+                        'A polynomial of degree 4 has one double and two simple zeros. How many different zeros is that?'),
+               opt: ['3', '4', '2', '1'], r: 0,
+               grund: T('Die doppelte Nullstelle liegt an einer einzigen Stelle. Mit Vielfachheit gezählt sind es \\(2 + 1 + 1 = 4\\), verschiedene Stellen aber nur drei.',
+                        'The double zero sits at a single place. Counted with multiplicity there are \\(2 + 1 + 1 = 4\\), but only three different places.') }; } },
+  { stufe: 4, f: function(){
+      return { frage: T('Der Graph eines Polynoms vom Grad 4 kreuzt die \\(x\\)-Achse zweimal und berührt sie einmal. Was folgt für die Nullstellen?',
+                        'The graph of a degree-4 polynomial crosses the \\(x\\)-axis twice and touches it once. What follows for the zeros?'),
+               opt: [T('zwei einfache und eine doppelte Nullstelle', 'two simple zeros and one double zero'),
+                     T('eine einfache und eine dreifache Nullstelle', 'one simple zero and one triple zero'),
+                     T('drei einfache Nullstellen', 'three simple zeros'),
+                     T('zwei doppelte Nullstellen', 'two double zeros')],
+               r: 0,
+               grund: T('Beim Kreuzen ist die Vielfachheit ungerade, beim Berühren gerade. Zusammen müssen sie den Grad ergeben: \\(1 + 1 + 2 = 4\\).',
+                        'At a crossing the multiplicity is odd, at a touch it is even. Together they have to add up to the degree: \\(1 + 1 + 2 = 4\\).') }; } },
+  { stufe: 1, f: function(){ var c = pick([3, 5, 7, 12]);
+      return { frage: T('Welchen Grad hat \\(f(x) = ' + c + '\\)?',
+                        'What is the degree of \\(f(x) = ' + c + '\\)?'),
+               opt: ['0', '1', String(c), T('gar keinen', 'none at all')], r: 0,
+               grund: T('Eine Zahl allein ist ein Polynom vom Grad 0 – ihr Graph ist eine waagerechte Gerade.',
+                        'A number on its own is a polynomial of degree 0 – its graph is a horizontal line.') }; } },
+  { stufe: 1, f: function(){
+      return { frage: T('Wie viele Extremstellen hat eine Parabel?',
+                        'How many turning points does a parabola have?'),
+               opt: ['1', '2', '0', T('das hängt vom Vorfaktor ab', 'that depends on the leading coefficient')],
+               r: 0,
+               grund: T('Die Ableitung einer quadratischen Funktion ist linear und hat genau eine Nullstelle – den Scheitelpunkt.',
+                        'The derivative of a quadratic is linear and has exactly one zero – the vertex.') }; } },
+  { stufe: 2, f: function(){
+      return { frage: T('Welche Polynome haben mit Sicherheit mindestens eine Nullstelle?',
+                        'Which polynomials are certain to have at least one zero?'),
+               opt: [T('die von ungeradem Grad', 'those of odd degree'),
+                     T('die von geradem Grad', 'those of even degree'),
+                     T('alle', 'all of them'),
+                     T('nur die vom Grad 1', 'only those of degree 1')],
+               r: 0,
+               grund: T('Bei ungeradem Grad laufen die Enden in entgegengesetzte Richtungen – dazwischen muss der Graph die \\(x\\)-Achse kreuzen. Bei geradem Grad kann er ganz oberhalb bleiben, etwa \\(x^2 + 1\\).',
+                        'With an odd degree the ends run in opposite directions – in between the graph has to cross the \\(x\\)-axis. With an even degree it can stay above it entirely, e.g. \\(x^2 + 1\\).') }; } },
+  { stufe: 2, f: function(){
+      return { frage: T('Kann ein Polynom vom Grad 4 gar keine Nullstelle haben?',
+                        'Can a polynomial of degree 4 have no zero at all?'),
+               opt: [T('ja, zum Beispiel \\(x^4 + 1\\)', 'yes, for instance \\(x^4 + 1\\)'),
+                     T('nein, jedes Polynom hat eine', 'no, every polynomial has one'),
+                     T('nein, es hat immer mindestens zwei', 'no, it always has at least two'),
+                     T('nur mit negativem Vorfaktor', 'only with a negative leading coefficient')],
+               r: 0,
+               grund: T('Bei geradem Grad zeigen beide Enden in dieselbe Richtung – der Graph kann vollständig über der \\(x\\)-Achse bleiben.',
+                        'With an even degree both ends point the same way – the graph can stay entirely above the \\(x\\)-axis.') }; } },
+  { stufe: 2, f: function(){
+      return { frage: T('Ein Polynom vom Grad 3 hat zwei Extrempunkte. Wie viele verschiedene Nullstellen kann es haben?',
+                        'A polynomial of degree 3 has two turning points. How many different zeros can it have?'),
+               opt: [T('1, 2 oder 3', '1, 2 or 3'), T('immer 3', 'always 3'),
+                     T('immer 1', 'always 1'), T('0, 1, 2 oder 3', '0, 1, 2 or 3')],
+               r: 0,
+               grund: T('Keine Nullstelle geht bei ungeradem Grad nicht. Je nachdem, wie hoch die beiden Extrempunkte liegen, sind es eine, zwei oder drei.',
+                        'No zero at all is impossible for an odd degree. Depending on where the two turning points lie there are one, two or three.') }; } },
+  { stufe: 3, f: function(){ var n = pick([4, 5, 6]);
+      return { frage: T('Wie viele Wendestellen kann ein Polynom vom Grad ' + n + ' höchstens haben?',
+                        'At most how many points of inflection can a polynomial of degree ' + n + ' have?'),
+               opt: [String(n - 2), String(n - 1), String(n), '1'], r: 0,
+               grund: T('Die zweite Ableitung hat den Grad ' + (n - 2) + ' und damit höchstens ' + (n - 2) + ' Nullstellen.',
+                        'The second derivative has degree ' + (n - 2) + ' and so at most ' + (n - 2) + ' zeros.') }; } },
+  { stufe: 3, f: function(){
+      return { frage: T('Der Graph eines Polynoms vom Grad 4 berührt die \\(x\\)-Achse an zwei Stellen, ohne sie zu kreuzen. Wie viele verschiedene Nullstellen hat \\(f\\)?',
+                        'The graph of a degree-4 polynomial touches the \\(x\\)-axis at two places without crossing it. How many different zeros does \\(f\\) have?'),
+               opt: ['2', '4', '1', '0'], r: 0,
+               grund: T('Zwei Berührstellen sind zwei doppelte Nullstellen: mit Vielfachheit gezählt \\(2 + 2 = 4\\), verschiedene Stellen aber nur zwei.',
+                        'Two touching points are two double zeros: counted with multiplicity \\(2 + 2 = 4\\), but only two different places.') }; } },
+  { stufe: 4, f: function(){
+      return { frage: T('Woran sieht man am Term, wohin der Graph für große \\(x\\) läuft?',
+                        'What in the term tells you where the graph goes for large \\(x\\)?'),
+               opt: [T('am Vorzeichen des Summanden mit dem größten Exponenten',
+                       'the sign of the term with the largest exponent'),
+                     T('am Vorzeichen des Summanden ohne \\(x\\)', 'the sign of the term without \\(x\\)'),
+                     T('an der Anzahl der Summanden insgesamt', 'the total number of terms'),
+                     T('am Vorzeichen des mittleren Summanden', 'the sign of the middle term')],
+               r: 0,
+               grund: T('Für große \\(x\\) wächst die höchste Potenz am schnellsten – sie bestimmt allein, wohin die Kurve läuft.',
+                        'For large \\(x\\) the highest power grows fastest – it alone decides where the curve goes.') }; } }
+];
+var STUFEN_NR = { einf: 1, leicht: 2, normal: 3, schwer: 4, indiv: 4 };
+function fragenZurStufe(){
+  var nr = STUFEN_NR[radioWert('diff') || 'normal'] || 3;
+  var raus = VFRAGEN.filter(function(f){ return f.stufe <= nr; });
+  return raus.length ? raus : VFRAGEN;
+}
+function wuerfelVerstaendnis(){
+  var moeglich = fragenZurStufe();
+  var nr = VFRAGEN.indexOf(pick(moeglich));
+  var q = VFRAGEN[nr].f();
+  var paare = q.opt.map(function(t, i){ return { t: t, gut: i === q.r }; });
+  return { stil: 'verst', nr: nr, frage: q.frage, opt: mischen(paare), grund: q.grund,
+           schluessel: 'v' + nr };
+}
+</script>
+<script>
+"use strict";
+/* ── 7. Antworten und Lösungsweg ────────────────────────────────────────── */
+var mjKette = null;
+function mj(node){
+  if (!node) return;
+  var nachmessen = function(){
+    if (window.scaleToFit) node.querySelectorAll('.scale-el').forEach(function(e){ scaleToFit(e); });
+  };
+  if (!(window.MathJax && MathJax.typesetPromise)){ nachmessen(); return; }
+  mjKette = (mjKette || Promise.resolve()).then(function(){
+    var t = node.textContent || '';
+    if (t.indexOf('\\(') < 0 && t.indexOf('\\[') < 0) return null;
+    return MathJax.typesetPromise([node]);
+  }).then(function(){
+    nachmessen();
+    if (window.abFormelnPassen) abFormelnPassen(node);
+  }).catch(function(){});
+}
+
+function zeichne(){
+  if (!A) return;
+  var text = document.getElementById('taskText');
+  var task = document.getElementById('task');
+  var plot = document.getElementById('plot');
+  plot.innerHTML = '';
+  if (A.stil === 'graph'){
+    text.innerHTML = T('Welchen Grad hat die Funktion, deren Graph hier zu sehen ist?',
+                       'What is the degree of the function whose graph is shown here?')
+      + (haken('mitGrenze') ? ' ' + T('(höchstens Grad 6)', '(degree 6 at most)') : '');
+    task.innerHTML = '';
+    plotte(plot, A.P, { punkte: false, gitter: haken('mitGitter') });
+  } else if (A.stil === 'term'){
+    text.innerHTML = T('Welchen Grad hat diese Funktion?', 'What is the degree of this function?');
+    task.innerHTML = '\\(f(x) = ' + A.tex + '\\)';
+  } else {
+    text.innerHTML = '';
+    task.innerHTML = A.frage;
+  }
+  loesungZeichnen();
+  antwortZeichnen();
+  var d = document.getElementById('dLoesung'); if (d) d.open = false;
+  if (window.abKachelAktuell) abKachelAktuell(document.getElementById('segStile'), stilId(A.stil));
+  mj(document.getElementById('taskBox'));
+  punkteMalen();
+}
+function stilId(stil){
+  return stil === 'graph' ? 'stilGraph' : (stil === 'term' ? 'stilTerm' : 'stilVerst');
+}
+
+/* ── Zählen ─────────────────────────────────────────────────────────────── */
+var punkteTyp = {};
+function punkteMalen(){
+  var c = document.getElementById('counter');
+  if (c) c.textContent = T('Richtig: ', 'Correct: ') + richtig + ' / ' + gesamt;
+  if (window.abKachelZaehler) abKachelZaehler(document.getElementById('segStile'), punkteTyp);
+}
+function antwortGemeldet(ok){
+  if (!(window.abAutoAn && abAutoAn())) return;
+  if (window.abBlitz) abBlitz(ok);
+  if (ok && window.abAutoBald) abAutoBald();
+}
+function zaehle(ok){
+  gesamt++; if (ok) richtig++;
+  var id = stilId(A && A.stil);
+  if (id){
+    if (!punkteTyp[id]) punkteTyp[id] = { ok: 0, n: 0 };
+    punkteTyp[id].n++; if (ok) punkteTyp[id].ok++;
+  }
+  punkteMalen();
+  antwortGemeldet(ok);
+}
+
+/* ── Antwortfeld ────────────────────────────────────────────────────────── */
+function antwortZeichnen(){
+  var host = document.getElementById('antwortBereich');
+  host.innerHTML = ''; host.className = '';
+  if (!A) return;
+  host.className = 'pg-antwort';
+  var frage = document.createElement('div');
+  frage.className = 'pg-frage';
+  var fb = document.createElement('div');
+  fb.className = 'pg-fb';
+
+  if (A.stil === 'verst'){
+    frage.innerHTML = T('Welche Antwort stimmt?', 'Which answer is correct?');
+    var liste = document.createElement('div');
+    liste.className = 'mc-liste';
+    var fertig = false;
+    A.opt.forEach(function(o){
+      var b = document.createElement('button');
+      b.type = 'button'; b.className = 'mc-knopf';
+      b.innerHTML = o.t;
+      b.addEventListener('click', function(){
+        if (fertig || b.disabled) return;
+        if (o.gut){
+          fertig = true;
+          b.classList.add('ok');
+          fb.className = 'pg-fb ok';
+          fb.innerHTML = T('✓ Richtig! ', '✓ Correct! ') + A.grund;
+          [].forEach.call(liste.children, function(x){ x.disabled = true; });
+          zaehle(true);
+        } else {
+          b.classList.add('err'); b.disabled = true;
+          fb.className = 'pg-fb err';
+          fb.innerHTML = T('Das stimmt nicht – versuch es noch einmal.',
+                           'That is not right – have another go.');
+          zaehle(false);
+        }
+        mj(fb);
+      });
+      liste.appendChild(b);
+    });
+    host.appendChild(frage); host.appendChild(liste); host.appendChild(fb);
+    mj(host);
+    return;
+  }
+
+  /* Grad raten: Knöpfe von 0 bis 6 */
+  frage.innerHTML = T('Welchen Grad hat \\(f\\)?', 'What is the degree of \\(f\\)?');
+  var kn = document.createElement('div');
+  kn.className = 'grad-knoepfe';
+  var erledigt = false;
+  for (var g = 0; g <= 6; g++){
+    (function(g){
+      var b = document.createElement('button');
+      b.type = 'button'; b.className = 'pg-wahl-knopf';
+      b.textContent = String(g);
+      b.addEventListener('click', function(){
+        if (erledigt || b.disabled) return;
+        if (g === A.grad){
+          erledigt = true;
+          b.classList.add('ok');
+          fb.className = 'pg-fb ok';
+          fb.innerHTML = T('✓ Richtig!', '✓ Correct!');
+          [].forEach.call(kn.children, function(x){ x.disabled = true; });
+          zaehle(true);
+        } else {
+          b.classList.add('err'); b.disabled = true;
+          fb.className = 'pg-fb err';
+          fb.innerHTML = rueckmeldung(g);
+          zaehle(false);
+        }
+        mj(fb);
+      });
+      kn.appendChild(b);
+    })(g);
+  }
+  host.appendChild(frage); host.appendChild(kn); host.appendChild(fb);
+  mj(host);
+}
+
+/** Rückmeldung, die zur falschen Antwort passt. */
+function rueckmeldung(geraten){
+  var n = A.grad;
+  if (A.stil === 'term'){
+    if (A.form === 'faktor' || A.form === 'rest'){
+      if (geraten < n) return T('Schau auf die Exponenten an den Klammern: sie zählen alle zusammen. Dein Grad ist zu klein.',
+                                'Look at the exponents on the brackets: they all add up. Your degree is too small.');
+      return T('Beim Ausmultiplizieren addieren sich die Exponenten der Klammern – mehr wird es nicht.',
+               'When you expand, the exponents of the brackets add up – it does not get larger than that.');
+    }
+    if (A.form === 'unsortiert') return T('Die Summanden stehen durcheinander. Such den mit dem größten Exponenten – nicht den ersten.',
+                                          'The terms are out of order. Look for the one with the highest power – not the first one.');
+    return geraten < n ? T('Es gibt einen Summanden mit einem höheren Exponenten.',
+                           'There is a term with a higher power.')
+                       : T('So hoch wird kein Exponent.', 'No power goes that high.');
+  }
+  /* Graph. Die Reihenfolge der Argumente ist Absicht: zuerst das, was man
+     unmittelbar sieht (die Form der Kurve, die Zahl der Extrempunkte und
+     Nullstellen), und erst zuletzt das Verhalten an den Rändern - das kommt
+     im Unterricht später und taugt nicht als erste Erklärung. */
+  var tw = tangentenWort(A.P, -30, 30), exN = tw.n, ns = pNullstellen(A.P, -30, 30);
+  var nsWort = nullstellenWort(A.P);
+  var geradeN = (n % 2 === 0), geradeG = (geraten % 2 === 0);
+
+  /* 1. Geraten wurde Grad 0, 1 oder 2: dann sagen, warum der Graph keine
+        Konstante, keine Gerade und keine Parabel ist. */
+  if (geraten < n && geraten <= 2){
+    if (geraten === 0)
+      return T('Grad 0 hieße: \\(f(x)\\) ist überall dieselbe Zahl und der Graph eine waagerechte Gerade. Hier ändert sich der Funktionswert aber.',
+               'Degree 0 would mean \\(f(x)\\) is the same number everywhere and the graph a horizontal line. Here the value does change.');
+    if (geraten === 1)
+      return exN > 0
+        ? T('Eine Gerade hat keinen Extrempunkt – hier gibt es ' + exN + ' ' + tw.wort + '.',
+            'A straight line has no turning point – here there are ' + exN + ' ' + tw.wort + '.')
+        : T('Eine Gerade ist überall gleich steil. Sieh dir an, wie sich die Steigung hier ändert: der Graph ist gekrümmt.',
+            'A straight line has the same slope everywhere. Look at how the slope changes here: this graph is curved.');
+    if (exN === 0)
+      return T('Eine Parabel hat genau einen Extrempunkt – dieser Graph hat gar keinen, er steigt oder fällt durchweg.',
+               'A parabola has exactly one turning point – this graph has none at all, it rises or falls throughout.');
+    if (exN > 1)
+      return T('Eine Parabel hat genau einen Extrempunkt – hier sind es ' + exN + '.',
+               'A parabola has exactly one turning point – here there are ' + exN + '.');
+    if (ns.length > 2)
+      return T('Eine Parabel hat höchstens 2 verschiedene Nullstellen – hier sind es ' + ns.length + '.',
+               'A parabola has at most 2 different zeros – here there are ' + ns.length + '.');
+    return T('Eine Parabel ist das nicht: am Extrempunkt legt sich dieser Graph viel flacher an die Waagerechte, und außen steigt er viel steiler.',
+             'This is not a parabola: at its turning point this graph hugs the horizontal far more closely, and further out it rises far more steeply.');
+  }
+
+  /* 2. Umgekehrt: es IST eine Gerade oder eine Parabel. Dann wird sie beim
+        Namen genannt - den Grad soll man selbst daraus schließen. */
+  if (geraten > n && n <= 2){
+    if (n === 0)
+      return T('Sieh genauer hin: der Funktionswert ändert sich überhaupt nicht – der Graph ist eine waagerechte Gerade.',
+               'Look again: the value does not change at all – the graph is a horizontal line.');
+    if (n === 1)
+      return T('Sieh genauer hin: der Graph ist eine Gerade – schnurgerade, ohne jede Krümmung.',
+               'Look again: the graph is a straight line – perfectly straight, with no curvature at all.');
+    return T('Sieh genauer hin: der Graph ist eine Parabel. Sie hat einen Extrempunkt, höchstens 2 verschiedene Nullstellen und keine Wendestelle.',
+             'Look again: the graph is a parabola. It has one turning point, at most 2 different zeros and no point of inflection.');
+  }
+
+  /* 3. Zu klein geraten: die Zahl der Extrempunkte gibt die Untergrenze. */
+  if (geraten < n && exN >= geraten)
+    return T('Zähl nach: ' + exN + ' ' + tw.wort + ' und ' + nsWort
+             + '. Der Grad ist mindestens um eins größer als die Zahl der Extrempunkte.',
+             'Count them: ' + exN + ' ' + tw.wort + ' and ' + nsWort
+             + '. The degree is at least one more than the number of turning points.');
+
+  /* 4. Der Sonderfall (x+d)ⁿ+e: hier hilft nur die Gestalt der Kurve. */
+  if (A.art === 'potenz')
+    return T('Die Zahl der Extrempunkte allein genügt hier nicht. Achte darauf, wie flach der Graph am Extremum liegt und wie steil er außen wird – das verrät eine hohe Potenz.',
+             'The number of turning points alone is not enough here. Look at how flat the graph is at the extremum and how steeply it rises further out – that is the sign of a high power.');
+
+  /* 5. Zu hoch gegriffen. */
+  if (geraten > n)
+    return T('Das ist zu hoch gegriffen: ' + exN + ' ' + tw.wort + ' und ' + nsWort
+             + ' – damit kommt man kleiner aus.',
+             'That is too high: ' + exN + ' ' + tw.wort + ' and ' + nsWort
+             + ' – a smaller degree is enough for that.');
+
+  /* 6. Erst jetzt die Enden - wenn sonst nichts mehr greift. */
+  if (geradeN !== geradeG)
+    return T('Zähl die Extrempunkte, dann sieh dir die Enden an: hier laufen sie '
+             + (geradeN ? 'in dieselbe Richtung – das spricht für einen geraden Grad.'
+                        : 'in entgegengesetzte Richtungen – das spricht für einen ungeraden Grad.'),
+             'Count the turning points, then look at the ends: here they run '
+             + (geradeN ? 'in the same direction – that points to an even degree.'
+                        : 'in opposite directions – that points to an odd degree.'));
+  /* 7. Ein Graph ganz ohne Extrempunkt: dann hilft nur die Gestalt. */
+  if (A.art === 'monoton' || exN === 0)
+    return T('Dieser Graph hat keinen einzigen Extrempunkt und steigt (oder fällt) durchweg. Sieh dir an, wie flach er in der Mitte liegt und wie steil er außen wird – je höher der Grad, desto deutlicher.',
+             'This graph has no turning point at all and rises (or falls) throughout. Look at how flat it lies in the middle and how steeply it runs further out – the higher the degree, the clearer that is.');
+  return T('Noch nicht. Zähl die Stellen mit waagerechter Tangente und die verschiedenen Nullstellen.',
+           'Not yet. Count the points with a horizontal tangent and the different zeros.');
+}
+
+/* ── Lösung und Weg ─────────────────────────────────────────────────────── */
+function loesungZeichnen(){
+  var l = document.getElementById('loesung'), w = document.getElementById('weg');
+  var pl = document.getElementById('plotLoes'), leg = document.getElementById('legende');
+  if (!l || !A) return;
+  pl.innerHTML = ''; leg.innerHTML = '';
+  if (A.stil === 'verst'){
+    var gut = A.opt.filter(function(o){ return o.gut; })[0];
+    l.innerHTML = (gut ? gut.t : '');
+    w.innerHTML = '<p class="weg-merke">' + A.grund + '</p>';
+    mj(document.getElementById('dLoesung'));
+    return;
+  }
+  l.innerHTML = T('Grad ', 'Degree ') + '\\(' + A.grad + '\\)';
+  if (A.stil === 'graph'){
+    if (haken('mitPunkte')){
+      plotte(pl, A.P, { punkte: true, gitter: haken('mitGitter'), marken: markenAn() });
+      leg.innerHTML = legendeHTML(MARKEN);
+      markenLeiste(leg);
+    }
+    w.innerHTML = wegGraph();
+  } else {
+    w.innerHTML = wegTerm();
+  }
+  mj(document.getElementById('dLoesung'));
+}
+function wegGraph(){
+  var P = A.P, n = A.grad;
+  var tw = tangentenWort(P, -30, 30);
+  var ex = { length: tw.n }, ns = pNullstellen(P, -30, 30), we = pWendestellen(P, -30, 30);
+  var s = [];
+  s.push('<p class="weg-schritt"><b>' + T('1. Die Enden', '1. The ends') + '</b> – '
+    + (n % 2 === 0
+        ? T('beide laufen in dieselbe Richtung, also ist der Grad gerade.',
+            'both run in the same direction, so the degree is even.')
+        : T('sie laufen in entgegengesetzte Richtungen, also ist der Grad ungerade.',
+            'they run in opposite directions, so the degree is odd.')) + '</p>');
+  s.push('<p class="weg-schritt"><b>' + T('2. Waagerechte Tangenten', '2. Horizontal tangents') + '</b> – '
+    + T('es sind ' + tw.n + ' (' + tw.wort + '). Die Ableitung hat dort je eine Nullstelle, hat also mindestens den Grad '
+        + tw.n + '; damit hat \\(f\\) mindestens den Grad ' + (tw.n + 1) + '.',
+        'there are ' + tw.n + ' (' + tw.wort + '). The derivative has a zero at each of them, so it has degree at least '
+        + tw.n + '; hence \\(f\\) has degree at least ' + (tw.n + 1) + '.') + '</p>');
+  s.push('<p class="weg-schritt"><b>' + T('3. Die Nullstellen', '3. The zeros') + '</b> – '
+    + T('es sind ' + nullstellenWort(P)
+        + '. Mehr verschiedene als der Grad können es nie sein.',
+        'there are ' + nullstellenWort(P)
+        + '. There can never be more different ones than the degree.') + '</p>');
+  if (A.art === 'potenz'){
+    s.push('<p class="weg-schritt"><b>' + T('4. Die Form', '4. The shape') + '</b> – '
+      + T('Extrempunkte und Enden allein ließen auch einen kleineren Grad zu. Entscheidend ist hier die Gestalt: Der Graph legt sich am Extremum flach an die Waagerechte und steigt außen umso steiler – so verhält sich \\(x^{' + n + '}\\), nicht \\(x^2\\).',
+          'The turning points and the ends alone would also allow a smaller degree. What settles it is the shape: the graph lies flat at the extremum and rises all the more steeply further out – that is how \\(x^{' + n + '}\\) behaves, not \\(x^2\\).') + '</p>');
+  } else if (A.art === 'monoton'){
+    s.push('<p class="weg-schritt"><b>' + T('4. Ohne Extrempunkt', '4. No turning point') + '</b> – '
+      + T('der Graph steigt (oder fällt) durchweg. Das ist bei ungeradem Grad möglich, wenn die Ableitung keine Nullstelle hat.',
+          'the graph rises (or falls) throughout. With an odd degree that is possible when the derivative has no zero.') + '</p>');
+  }
+  s.push('<p class="weg-merke">' + T('Ergebnis: ', 'Result: ')
+    + T('kleinster Grad, der zu allem passt – und hier auch der tatsächliche: ',
+        'the smallest degree that fits everything – and here also the actual one: ')
+    + '\\(' + n + '\\).</p>');
+  if (we.length) s.push('<p class="weg-merke">' + T('Übrigens: ' + we.length + ' Wendepunkt'
+    + (we.length === 1 ? '' : 'e') + '. Bei Grad ' + n + ' sind höchstens ' + Math.max(0, n - 2) + ' möglich.',
+    'By the way: ' + we.length + ' inflection point' + (we.length === 1 ? '' : 's')
+    + '. With degree ' + n + ', at most ' + Math.max(0, n - 2) + ' are possible.') + '</p>');
+  s.push('<p class="weg-merke">' + T('Ausmultipliziert: ', 'Expanded: ')
+    + '\\(f(x) = ' + polyTeX(P) + '\\)</p>');
+  return s.join('');
+}
+function wegTerm(){
+  var n = A.grad, s = [];
+  if (A.form === 'faktor' || A.form === 'rest'){
+    s.push('<p class="weg-schritt">' + T('Beim Ausmultiplizieren addieren sich die Exponenten der Klammern. Man muss also gar nicht ausmultiplizieren – Zählen genügt.',
+      'When you expand, the exponents of the brackets add up. So you do not have to expand at all – counting is enough.') + '</p>');
+    if (A.form === 'rest') s.push('<p class="weg-schritt">' + T('Das Restglied am Ende ändert daran nichts: eine Zahl hat den Grad 0.',
+      'The term at the end changes nothing: a number has degree 0.') + '</p>');
+  } else if (A.form === 'unsortiert'){
+    s.push('<p class="weg-schritt">' + T('Die Summanden stehen nicht der Größe nach. Entscheidend ist der größte Exponent, ganz gleich, wo er steht.',
+      'The terms are not in order. What matters is the highest power, no matter where it stands.') + '</p>');
+  } else {
+    s.push('<p class="weg-schritt">' + T('Der Grad ist der größte Exponent, der vorkommt.',
+      'The degree is the highest power that occurs.') + '</p>');
+  }
+  s.push('<p class="weg-merke">' + T('Ausmultipliziert: ', 'Expanded: ')
+    + '\\(f(x) = ' + polyTeX(A.P) + '\\)' + T(' – höchster Exponent ', ' – highest power ')
+    + '\\(' + n + '\\).</p>');
+  return s.join('');
+}
+
+/* ── 8. Verdrahtung ─────────────────────────────────────────────────────── */
+/* Die Kacheln stehen zu dritt nebeneinander - unter dem Namen ist nur Platz
+   für ein Wort, nicht für den ganzen Satz aus den Einstellungen. */
+var KACHEL_KURZ = { stilGraph: ['Zeichnung', 'drawing'], stilTerm: ['Gleichung', 'equation'],
+                    stilVerst: ['Fragen', 'questions'] };
+var KACHELN = STILE.map(function(id){
+  return { haupt: id, nurDieser: true,
+           hinweis: KACHEL_KURZ[id][0], hinweisEn: KACHEL_KURZ[id][1] };
+});
+function kachelnMalen(){
+  if (window.abKachelnMalen){
+    abKachelnMalen(document.getElementById('segStile'));
+    abKachelnMalen(document.getElementById('segGrade'));
+  }
+  var n = STILE.filter(haken).length;
+  var z = document.getElementById('stilZahl');
+  if (z) z.textContent = ' (' + n + '/' + STILE.length + ')';
+  var alle = document.getElementById('stilAlle');
+  if (alle) alle.textContent = (n === STILE.length) ? T('keine', 'none') : T('alle', 'all');
+}
+/** Macht aus einer Legende eine Schalterreihe. Wird nur einmal pro Kasten
+    eingerichtet, der Inhalt darf danach beliebig neu geschrieben werden. */
+function markenLeiste(host){
+  if (!host || host._marken) return;
+  host._marken = true;
+  var timer = null, lang = false;
+  function knopf(ev){ return ev.target && ev.target.closest ? ev.target.closest('.lknopf') : null; }
+  function nurDiese(k){
+    MARKEN.forEach(function(kk){ setzeHaken(MARKE[kk], kk === k); });
+    markenNeu();
+  }
+  host.addEventListener('pointerdown', function(ev){
+    var b = knopf(ev);
+    if (!b || (ev.button != null && ev.button !== 0)) return;
+    lang = false;
+    timer = setTimeout(function(){ lang = true; nurDiese(b.dataset.marke); }, 450);
+  });
+  ['pointerup', 'pointerleave', 'pointercancel'].forEach(function(e){
+    host.addEventListener(e, function(){ clearTimeout(timer); });
+  });
+  host.addEventListener('contextmenu', function(ev){
+    var b = knopf(ev);
+    if (!b) return;
+    ev.preventDefault(); clearTimeout(timer); lang = true; nurDiese(b.dataset.marke);
+  });
+  host.addEventListener('click', function(ev){
+    var b = knopf(ev);
+    if (!b) return;
+    if (lang){ lang = false; return; }
+    var id = MARKE[b.dataset.marke];
+    /* Auch die letzte Sorte darf aus: die Legende bleibt ja stehen und zeigt
+       als ausgegraute Knöpfe, was sich wieder einschalten lässt. */
+    setzeHaken(id, !haken(id));
+    markenNeu();
+  });
+}
+/** Nach dem Umschalten: Bild und Legende neu, und der Link merkt es sich. */
+function markenNeu(){
+  if (MODUS === 'erkundung') erkZeichnen(true);
+  else if (A) loesungZeichnen();
+  try { history.replaceState({}, '', urlSchreiben(false)); } catch (e) {}
+}
+function modusSetzen(m){
+  MODUS = (m === 'erkundung') ? 'erkundung' : 'training';
+  document.getElementById('mode-erkundung').hidden = (MODUS !== 'erkundung');
+  document.getElementById('mode-training').hidden  = (MODUS !== 'training');
+  document.querySelectorAll('#mode-switch button').forEach(function(b){
+    b.classList.toggle('on', b.dataset.mode === MODUS);
+  });
+  if (MODUS === 'erkundung'){ erkMalen(); erkNeu(); }
+  else if (!A) neueAufgabe();
+  try { history.replaceState({}, '', urlSchreiben(false)); } catch (e) {}
+}
+/** Eine Aufgabe aus der Adresszeile. */
+function aufgabeAusURL(){
+  var t = new URLSearchParams(location.search).get('t');
+  if (!t) return false;
+  var i = t.indexOf('_');
+  var stil = (i < 0) ? t : t.slice(0, i), rest = (i < 0) ? '' : t.slice(i + 1);
+  if (stil === 'verst'){
+    var nr = parseInt(rest, 10);
+    if (!VFRAGEN[nr]) return false;
+    var q = VFRAGEN[nr].f();
+    A = { stil: 'verst', nr: nr, frage: q.frage, grund: q.grund, schluessel: 'v' + nr,
+          opt: mischen(q.opt.map(function(x, j){ return { t: x, gut: j === q.r }; })) };
+    zeichne();
+    return true;
+  }
+  var P = rest.split(',').map(Number);
+  if (!P.length || P.some(function(z){ return !isFinite(z); })) return false;
+  A = { stil: (stil === 'term') ? 'term' : 'graph', P: P, grad: pGrad(P), art: 'alle',
+        tex: polyTeX(P), form: 'normal', schluessel: 'url' };
+  zeichne();
+  return true;
+}
+
+window.addEventListener('load', function(){
+  einstellungenSetzen(urlLesen());
+  if (window.abSeedAusURL) abSeedAusURL();
+  if (window.abKacheln) abKacheln(document.getElementById('segStile'), KACHELN, function(){
+    kachelnMalen(); neueAufgabe();
+  });
+  if (window.abPillen) abPillen(document.getElementById('segGrade'),
+    GRADE.map(function(id){ return { haupt: id }; }), function(){
+      if (!gewaehlteGrade().length) setzeHaken('grad3', true);
+      obenAbgleichen(); kachelnMalen(); neueAufgabe();
+    });
+  kachelnMalen();
+
+  STILE.forEach(function(id){
+    var e = document.getElementById(id);
+    if (e) e.addEventListener('change', function(){ obenAbgleichen(); kachelnMalen(); neueAufgabe(); });
+  });
+  GRADE.forEach(function(id){
+    var e = document.getElementById(id);
+    if (e) e.addEventListener('change', function(){
+      if (!gewaehlteGrade().length) setzeHaken('grad3', true);
+      obenAbgleichen(); kachelnMalen();
+      if (MODUS === 'erkundung') erkZeichnen(); else neueAufgabe();
+    });
+  });
+  SICHT.forEach(function(id){
+    var e = document.getElementById(id);
+    if (e) e.addEventListener('change', function(){
+      if (!SICHT.filter(haken).length) setzeHaken('sichtAlle', true);
+      obenAbgleichen();
+      if (MODUS === 'training') neueAufgabe();
+    });
+  });
+  TERMFORM.forEach(function(id){
+    var e = document.getElementById(id);
+    if (e) e.addEventListener('change', function(){
+      if (!TERMFORM.filter(haken).length) setzeHaken('termNormal', true);
+      obenAbgleichen();
+      if (MODUS === 'training') neueAufgabe();
+    });
+  });
+  /* Ein verschobener Regler soll sofort zu sehen sein. */
+  document.querySelectorAll('.slider-row input[type="range"]').forEach(function(e){
+    e.addEventListener('change', function(){ if (MODUS === 'training') neueAufgabe(); });
+  });
+  ['zeigNull', 'zeigExtrem', 'zeigWende'].forEach(function(id){
+    var e = document.getElementById(id);
+    if (e) e.addEventListener('change', function(){
+      if (MODUS === 'erkundung') erkZeichnen(true); else if (A) loesungZeichnen();
+    });
+  });
+  ['mitGitter', 'mitPunkte', 'mitGrenze'].forEach(function(id){
+    var e = document.getElementById(id);
+    if (e) e.addEventListener('change', function(){
+      if (MODUS === 'erkundung') erkZeichnen(); else if (A) zeichne();
+    });
+  });
+  document.querySelectorAll('#mode-switch button').forEach(function(b){
+    b.addEventListener('click', function(){ modusSetzen(b.dataset.mode); });
+  });
+  document.getElementById('erkZufall').addEventListener('click', erkZufall);
+
+  var diffReset = document.getElementById('diffReset');
+  if (diffReset) diffReset.addEventListener('click', function(){
+    VON_HAND = {};
+    if (window.abVonHandLoeschen) abVonHandLoeschen();
+    var st = radioWert('diff');
+    if (st && st !== 'indiv') stufeAnwenden(st);
+    obenAbgleichen(); neueAufgabe();
+  });
+  document.querySelectorAll('input[name="diff"]').forEach(function(e){
+    e.addEventListener('change', function(){
+      if (e.value !== 'indiv') stufeAnwenden(e.value);
+      neueAufgabe();
+      if (e.value === 'indiv' && window.abEinstellungenOeffnen) abEinstellungenOeffnen('#dSettings');
+    });
+  });
+  var alle = document.getElementById('stilAlle');
+  if (alle) alle.addEventListener('click', function(){
+    var an = STILE.filter(haken).length < STILE.length;
+    STILE.forEach(function(id){ setzeHaken(id, an); });
+    if (!STILE.filter(haken).length) setzeHaken('stilGraph', true);
+    kachelnMalen(); neueAufgabe();
+  });
+  document.getElementById('genBtn').addEventListener('click', function(){ neueAufgabe(); });
+  document.getElementById('btnShare').addEventListener('click', function(){ linkKopieren(urlSchreiben(false), this); });
+  document.getElementById('btnTeilen').addEventListener('click', function(){ linkKopieren(urlSchreiben(true), this); });
+  document.getElementById('btnReset').addEventListener('click', function(){
+    VON_HAND = {};
+    if (window.abVonHandLoeschen) abVonHandLoeschen();
+    var s = {}; Object.keys(STD).forEach(function(k){ s[k] = STD[k]; });
+    einstellungenSetzen(s);
+    /* Die Häufigkeiten gehören zum Standard dazu. */
+    var p = STUFEN[STD.diff];
+    if (p && p.regler && window.abReglerSetzen) abReglerSetzen(p.regler);
+    obenAbgleichen();
+    neueAufgabe();
+  });
+  document.getElementById('btnPunkteReset').addEventListener('click', function(){
+    richtig = 0; gesamt = 0; punkteTyp = {}; punkteMalen();
+  });
+  if (window.abAutoStart) abAutoStart({
+    an: autoAn,
+    naechste: function(){ neueAufgabe(); },
+    gemerkt: function(an){ autoAn = an; try { history.replaceState({}, '', urlSchreiben(false)); } catch (e) {} }
+  });
+  document.getElementById('dLoesung').addEventListener('toggle', function(){
+    if (this.open) mj(this);
+  });
+
+  if (!aufgabeAusURL()) neueAufgabe();
+  if (new URLSearchParams(location.search).get('m') === 'e') modusSetzen('erkundung');
+});
+
+/* Sprach- und Themewechsel */
+window.addEventListener('tl-sprache', function(){
+  if (MODUS === 'erkundung') erkZeichnen(); else if (A) zeichne();
+  kachelnMalen();
+});
+window.addEventListener('tl-theme', function(){
+  if (MODUS === 'erkundung') erkZeichnen(true); else if (A) zeichne();
+});
+
+window.fehlerKontext = function(){
+  return A ? (A.stil + ' · ' + (A.stil === 'verst' ? ('Frage ' + A.nr) : polyTeX(A.P))) : '';
+};
+</script>
+</body>
+</html>

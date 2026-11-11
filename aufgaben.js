@@ -267,10 +267,22 @@
   }
   /* Setzt ein Kaestchen, OHNE ein change-Ereignis auszuloesen: die Seite
      erfaehrt vom Umschalten einmal ueber danach() - sonst liefe alles doppelt. */
+  /* Was von Hand umgestellt wurde. Kacheln und Ovale setzen die Kästchen
+     unmittelbar - dabei entsteht kein change-Ereignis, an dem eine Seite
+     sonst erkennt, dass diese Wahl nicht mehr von der Schwierigkeit kommt.
+     Darum wird es hier mitgeschrieben; die Seiten fragen es ab. */
+  var VONHAND = {};
   function setze(id, wert){
     var c = kasten(id);
     if (c) c.checked = !!wert;
+    if (id) VONHAND[id] = true;
   }
+  /** true, wenn dieses Kästchen von Hand umgestellt wurde. */
+  function abVonHand(id){ return !!VONHAND[id]; }
+  /** Vergisst alles von Hand Gesetzte - die Schwierigkeit darf wieder. */
+  function abVonHandLoeschen(){ VONHAND = {}; }
+  window.abVonHand = abVonHand;
+  window.abVonHandLoeschen = abVonHandLoeschen;
 
   var POPBESITZER = null, POPGRADZU = false;
 
@@ -333,12 +345,28 @@
         abKachelnMalen(host);
         host._danach();
       };
+      /* Ein Knopf, der einfach nur ein Kaestchen ist, bietet beim langen
+         Druck „nur dieser" an - ueberall, nicht nur dort, wo die Seite es
+         ausdruecklich anfordert. Wer Unterpunkte oder ein eigenes Menue
+         hat, bekommt weiterhin das Menue.
+         Nur in einer Leiste, die durchweg aus einfachen Kaestchen besteht:
+         mischen sich Gruppen mit Unterpunkten darunter, liesse sich die
+         Leiste mit „nur dieser" gar nicht vollstaendig umschalten - es
+         blieben die Gruppen stehen, und das sieht nach einem Fehler aus. */
+      var leisteEinfach = arten.every(function(a){
+        return a.haupt && !(a.subs && a.subs.length) && !a.zusatzId && !a.menue;
+      });
+      var nurDieserMoeglich = function(){
+        return art.nurDieser !== false && leisteEinfach && !!art.haupt
+            && !(art.subs && art.subs.length) && !art.zusatzId && !art.menue;
+      };
       var menuAuf = function(){
-        if (art.nurDieser && !(art.subs && art.subs.length)){ nurDieser(); return; }
+        if (nurDieserMoeglich()){ nurDieser(); return; }
         langGedrueckt = true; kachelMenu(b, art, host);
       };
       var langMoeglich = function(){
-        return (art.subs && art.subs.length) || art.zusatzId || art.nurDieser;
+        return (art.subs && art.subs.length) || art.zusatzId || art.menue
+            || nurDieserMoeglich();
       };
       b.addEventListener('pointerdown', function(ev){
         if (ev.button != null && ev.button !== 0) return;
@@ -450,8 +478,12 @@
         if (pz) pz.textContent = subs.length ? ('(' + (ein ? aktiv.length : 0) + '/' + subs.length + ')') : '';
         return;
       }
-      b.querySelector('.tname').innerHTML = (art.haupt ? beschriftung(art.haupt)
-        : TX(art.name || '', art.nameEn || art.name || ''))
+      /* Steht an der Kachel ein eigener Name, gilt der: im Einstellungs-
+         bereich darf die Beschriftung ein ganzer Satz sein, auf einer
+         Kachel ist dafuer kein Platz. */
+      b.querySelector('.tname').innerHTML = (art.name
+        ? TX(art.name, art.nameEn || art.name)
+        : (art.haupt ? beschriftung(art.haupt) : ''))
         + (art.haupt ? sterne(art.haupt) : '');
       var u = b.querySelector('.tsub');
       if (!subs.length){

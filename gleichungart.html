@@ -423,6 +423,13 @@ function einstellungenSetzen(s){
   });
   radioSetzen('loesForm', s.loesForm);
   radioSetzen('diff', s.diff);
+  /* Zu den Kaestchen gehoeren die Haeufigkeiten derselben Stufe. Ohne das
+     stuende der Regler beim Laden auf seinem HTML-Wert und zeigte etwas
+     anderes an, als die Schwierigkeit vorsieht. Ein Fall, den die Stufe
+     ausschaltet, behaelt dabei seinen Standardwert (siehe abReglerSetzen). */
+  var stufe = STUFEN[s.diff || STD.diff];
+  if (stufe && stufe.regler && window.abReglerSetzen)
+    abReglerSetzen(reglerOhneHand(stufe.regler));
   obenAbgleichen();
   if (window.abGliderAlle) abGliderAlle();
   kachelnMalen();
@@ -431,6 +438,9 @@ function einstellungenSetzen(s){
    sie sagt weiterhin, wie schwer die Zahlen sein sollen –, überschreibt aber
    nichts mehr, was man selbst eingestellt hat. */
 var VON_HAND = {};
+/** Von Hand umgestellt? Entweder hier gemerkt (change-Ereignis) oder von
+    aufgaben.js (Kachel oder Oval, die das Kästchen unmittelbar setzen). */
+function vonHand(k){ return !!VON_HAND[k] || !!(window.abVonHand && abVonHand(k)); }
 function aufIndividuell(){ /* die Stufe bleibt, wie sie ist */ }
 function vonHandMerken(ziel){
   if (!ziel) return;
@@ -447,9 +457,17 @@ document.addEventListener('change', function(ev){
     beide Namen gelten als ‚von Hand‘. */
 function reglerOhneHand(regler){
   var raus = {};
-  Object.keys(regler || {}).forEach(function(k){
-    if (VON_HAND[k] || VON_HAND['w' + k]) return;
-    raus[k] = regler[k];
+  /* Erst alle Regler auf den Standardwert der Seite - eine Stufe bestimmt
+     die Haeufigkeiten vollstaendig, und was sie nicht nennt, soll nicht vom
+     vorherigen Zustand uebrig bleiben. */
+  document.querySelectorAll('.slider-row input[type="range"]').forEach(function(e){
+    var std = parseInt(e.getAttribute('value'), 10);
+    if (e.id && isFinite(std)) raus[e.id.slice(1)] = std;
+  });
+  Object.keys(regler || {}).forEach(function(k){ raus[k] = regler[k]; });
+  /* Von Hand gestellte Regler bleiben, wie sie stehen. */
+  Object.keys(raus).forEach(function(k){
+    if (vonHand(k) || vonHand('w' + k)) delete raus[k];
   });
   return raus;
 }
@@ -457,7 +475,7 @@ function stufeAnwenden(stufe){
   var p = STUFEN[stufe];
   if (!p) return;
   Object.keys(p).forEach(function(k){
-    if (k === 'regler' || VON_HAND[k]) return;      /* von Hand gewählt bleibt */
+    if (k === 'regler' || vonHand(k)) return;      /* von Hand gewählt bleibt */
     if (typeof p[k] === 'boolean') setzeHaken(k, p[k]);
     else radioSetzen(k, p[k]);
   });
@@ -1729,6 +1747,7 @@ window.addEventListener('load', function(){
     /* Alles, was von Hand steht, wird wieder freigegeben; danach setzt die
        Stufe ihre Werte erneut. */
     VON_HAND = {};
+    if (window.abVonHandLoeschen) abVonHandLoeschen();
     var st = radioWert('diff');
     if (st && st !== 'indiv') stufeAnwenden(st);
     obenAbgleichen();
@@ -1763,6 +1782,7 @@ window.addEventListener('load', function(){
   document.getElementById('btnTeilen').addEventListener('click', function(){ linkKopieren(urlSchreiben(true), this); });
   document.getElementById('btnReset').addEventListener('click', function(){
     VON_HAND = {};
+    if (window.abVonHandLoeschen) abVonHandLoeschen();
     var s = {}; Object.keys(STD).forEach(function(k){ s[k] = STD[k]; });
     einstellungenSetzen(s); neueAufgabe();
   });

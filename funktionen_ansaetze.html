@@ -1,0 +1,1953 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="shortcut icon" type="image/x-icon" href="aleph_zero_logo.ico">
+<script>try{var t=localStorage.getItem('matheToolsTheme');if(t==='dark'||(!t&&window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.classList.add('dark');}catch(e){}</script>
+<title data-de="Ansätze bei Funktionen" data-en="Approaches for functions">Ansätze bei Funktionen</title>
+<script src="theme-language.js" defer></script>
+<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="aufgaben.css">
+<link rel="stylesheet" href="scale.css">
+<script src="scale.js" defer></script>
+<script src="aufgaben.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<script>
+/* Faellt ohne theme-language.js auf Deutsch zurueck. */
+function T(de, en){ return (typeof tlText === 'function') ? tlText(de, en) : de; }
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+window.TK_GA_ID = 'G-5K8WYYXDL2';   /* Google Analytics laedt erst nach Einwilligung, siehe einwilligung.js */
+</script>
+<script src="einwilligung.js" defer></script>
+<style>
+/* Nur, was diese Seite zusätzlich braucht - alles Übrige kommt aus
+   aufgaben.css, damit die Seite aussieht wie die anderen. */
+#task { font-size: 1.28em; line-height: 1.5; }
+#loesung { font-size: 1.18em; }
+
+/* ── Der Umschalter zwischen den drei Antwortarten ─────────────────────
+   Er steht unter den Antworten und soll dort nicht lauter sein als sie:
+   kleiner, schmaler, zurückhaltend. */
+.modus-zeile { display: flex; justify-content: center; margin: 12px 0 0; }
+#segModus { font-size: .78em; opacity: .82; }
+#segModus label { padding: 3px 9px; font-weight: 600; }
+#segModus:hover { opacity: 1; }
+
+/* ── Enger auf dem Handy ──────────────────────────────────────────────
+   Damit Aufgabe und Antwortmöglichkeiten zusammen auf den Schirm passen. */
+@media (max-width: 560px) {
+  #task { font-size: 1.12em; }
+  .task { padding: 8px 10px 10px; }
+  #taskText { margin: 2px 0 6px; }
+  .mc-liste { gap: 5px; }
+  .mc-knopf { padding: 7px 10px; font-size: .96em; line-height: 1.35; }
+  .ft-zeile { margin: 5px 0; }
+  .ft-feld { padding: 5px 8px; }
+  .ft-zeichen { margin: 6px 0 0; }
+  .ft-knoepfe { margin-top: 7px; }
+  .ka-karte { padding: 12px 11px; min-height: 70px; gap: 7px; }
+  .spick { margin-top: 7px; }
+  .modus-zeile { margin: 8px 0 0; }
+  .hilfe-zeile { margin: 8px 0 0; }
+  #genRow { margin-bottom: 6px; }
+  #antwortBereich.pg-antwort { margin-top: 6px; }
+  .pg-frage { margin-bottom: 5px; }
+  .pg-fb { margin-top: 6px; }
+}
+
+/* ── Karteikarte ─────────────────────────────────────────────────────── */
+.ka-karte {
+  max-width: 560px; margin: 0 auto; border: 2px solid var(--ab-rand, #cfd8dc);
+  border-radius: 14px; background: var(--ab-karte, #fff);
+  padding: 18px 16px; text-align: center; min-height: 92px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 10px;
+}
+html.dark .ka-karte { border-color: #3d4752; background: #1d242b; }
+.ka-rueck { font-size: 1.15em; }
+/* Die Bedingungen stehen immer untereinander – auch wenn MathJax sie als
+   Zeilenstücke setzt. Darum ein eigener Kasten als Spalte. */
+.bed-liste { display: flex; flex-direction: column; align-items: center; gap: .18em; }
+.bed-liste .ka-bed { display: block; width: 100%; text-align: center; margin: 0; }
+.bed-nr { color: var(--ab-leise, #5d6b74); font-size: .82em; }
+.verb { font-size: .8em; color: var(--ab-leise, #5d6b74); margin-left: .35em; white-space: nowrap; }
+.mc-knopf .verb { font-size: .86em; }
+.ka-warum { font-size: .9em; color: var(--ab-leise, #5d6b74); margin-top: 4px; }
+.ka-hinweis { font-size: .92em; color: var(--ab-leise, #5d6b74); }
+
+/* ── Freitext ────────────────────────────────────────────────────────── */
+.ft-zeile { display: flex; align-items: center; gap: 8px; margin: 7px 0; flex-wrap: wrap; }
+.ft-nr { font-weight: bold; color: var(--ab-leise, #5d6b74); min-width: 1.4em; }
+.ft-feld {
+  flex: 1 1 14em; min-width: 0; font-family: Consolas, "Courier New", monospace;
+  font-size: 1.02em; padding: 7px 9px; border-radius: 9px;
+  border: 1.6px solid var(--ab-rand, #cfd8dc); background: var(--ab-karte, #fff);
+  color: inherit;
+}
+html.dark .ft-feld { border-color: #3d4752; background: #161c22; }
+.ft-feld.ok  { border-color: #2e7d32; background: rgba(46,125,50,.08); }
+.ft-feld.err { border-color: #c62828; background: rgba(198,40,40,.07); }
+.ft-mark { font-size: 1.1em; min-width: 1.2em; }
+.ft-tipp { font-size: .86em; color: var(--ab-leise, #5d6b74); margin: 6px 0 2px; }
+.ft-knoepfe { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 10px; }
+.ft-zeichen { display: flex; gap: 5px; flex-wrap: wrap; justify-content: center; margin: 8px 0 2px; }
+.ft-zeichen button {
+  font-family: Consolas, "Courier New", monospace; font-size: .95em;
+  padding: 3px 9px; border-radius: 8px; min-width: 2.2em;
+}
+
+/* ── Antwortmöglichkeiten ────────────────────────────────────────────── */
+.mc-liste { display: flex; flex-direction: column; gap: 8px; max-width: 620px; margin: 0 auto; }
+.mc-knopf {
+  text-align: left; padding: 10px 13px; border-radius: 11px; font-size: 1.02em;
+  border: 1.6px solid var(--ab-rand, #cfd8dc); background: var(--ab-karte, #fff);
+  color: inherit; cursor: pointer; line-height: 1.45;
+}
+html.dark .mc-knopf { border-color: #3d4752; background: #1d242b; }
+.mc-knopf:hover:not(:disabled) { border-color: var(--ab-gr-dunkel, #2e7d32); }
+.mc-knopf.ok  { border-color: #2e7d32; background: rgba(46,125,50,.10); }
+.mc-knopf.err { border-color: #c62828; background: rgba(198,40,40,.09); }
+.mc-grund { display: block; font-size: .86em; color: var(--ab-leise, #5d6b74); margin-top: 3px; }
+
+/* ── Spickzettel: winzig, aufklappbar, direkt unter der Aufgabe ─────── */
+/* Der Spickzettel ist derselbe gelbe Aufklapper wie das Hilfe-Quiz der
+   uebrigen Seiten (details.quizklapp aus aufgaben.css): Reiter oben auf dem
+   Rand, gleich breit auf und zu, rahmenlos. Hier nur etwas kleiner gesetzt. */
+.spick { max-width: 620px; margin: 12px auto 0; font-size: .86em; }
+.spick > summary .reiter { padding: 6px 16px; font-size: .95em; }
+/* Zwei Spalten: der Begriff links, die Erklärung rechts. Eine lange
+   Erklärung bricht nur innerhalb ihrer Spalte um, nicht unter den
+   Begriff - deshalb nowrap an der Zeile und min-width:0 an der Spalte. */
+.spick-zeile { display: flex; gap: 9px; align-items: baseline; margin: 3px 0; flex-wrap: nowrap; }
+.spick-wort { font-weight: 600; flex: 0 0 8.2em; max-width: 45%; }
+.spick-was { color: var(--ab-leise, #5d6b74); flex: 1 1 auto; min-width: 0; }
+@media (max-width: 480px) {
+  .spick-wort { flex-basis: 6.6em; }
+  .spick { font-size: .8em; }
+}
+
+/* ── Hilfe: der kleinschrittige Satz unter der Aufgabe ──────────────── */
+#hilfeText:empty { display: none; }
+#hilfeText {
+  margin: 10px auto 0; max-width: 620px; font-size: .93em; line-height: 1.5;
+  border-left: 3px solid var(--ab-gr-dunkel, #2e7d32);
+  padding: 5px 0 5px 10px; color: var(--ab-leise, #46545d);
+}
+html.dark #hilfeText { color: #b7c3cb; border-left-color: #7cc47f; }
+
+/* ── Der Hilfe-Knopf unter dem Antwortteil ──────────────────────────── */
+.hilfe-zeile { display: flex; justify-content: center; margin: 12px 0 0; }
+.hilfe-knopf:disabled { opacity: .5; }
+
+/* ── Der unscheinbare Block ganz unten in den Einstellungen ──────────── */
+.form-block.leise { opacity: .85; }
+.form-block.leise > b { font-weight: 600; font-size: .95em; }
+
+/* Die Unterpunkte der drei Ableitungs-Kacheln stehen in den Einstellungen
+   eingerückt unter ihrer Überschrift. */
+.unter { margin-left: 1.1em; }
+
+/* Die drei Kacheln stehen immer nebeneinander – auch auf dem Handy, und
+   sie bleiben flach: Häkchen und Buchstabe in einer Zeile, darunter genau
+   eine Zeile mit den aktiven Unterpunkten. */
+#segStufen > .tile { padding: 6px 8px; gap: 7px; flex-wrap: nowrap; align-items: center; }
+#segStufen > .tile > .ttext { flex: 1 1 auto; min-width: 0; }
+#segStufen .tname { font-size: 1.02em; }
+#segStufen .tsub {
+  display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+/* Ohne Pfeil: er saß genau auf dem Richtig-Zähler der Kachel. Das Menü mit
+   den Unterarten öffnet weiterhin langes Drücken oder die rechte Maustaste. */
+#segStufen .arr { display: none; }
+#segStufen > .tile:has(.arr),
+html.kein-has #segStufen > .tile.mit-arr { padding-right: 8px; }
+@media (max-width: 560px) {
+  #segStufen > .tile { padding: 5px 6px; gap: 5px; }
+  #segStufen .tsub { font-size: .72em; }
+}
+</style>
+</head>
+<body class="tk-seite">
+
+<header class="tool-kopf">
+  <div class="tk-text">
+    <h1 data-de="Ansätze bei Funktionen" data-en="Approaches for functions">Ansätze bei Funktionen</h1>
+    <p class="tk-unter" data-de="Womit fängt man an? Nicht rechnen – nur den Ansatz hinschreiben." data-en="Where do you start? Don’t calculate – just write down the approach.">Womit fängt man an? Nicht rechnen – nur den Ansatz hinschreiben.</p>
+  </div>
+</header>
+
+<!-- ═══ Einstellungen ═══════════════════════════════════════════════════════
+     Hier stehen ALLE Einstellungen - auch die, die oben über der Aufgabe noch
+     einmal als Kacheln erscheinen, und die, die der Schwierigkeitsgrad von
+     selbst setzt.                                                          -->
+<details class="einst" id="dSettings">
+<summary><span data-de="Einstellungen" data-en="Settings">Einstellungen</span><button type="button" class="einst-share" tabindex="-1" title="Diese Einstellungen als Link kopieren" data-de-title="Diese Einstellungen als Link kopieren" data-en-title="Copy these settings as a link" aria-label="Einstellungen als Link kopieren"><svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></button></summary>
+<div class="settings-grid">
+
+  <div class="form-block">
+    <b data-de="Nur die Funktion f" data-en="The function f only">Nur die Funktion f</b>
+    <span class="d" data-de="Ansätze, für die man nur f braucht. Die Kachel oben schaltet die ganze Gruppe; die Unterpunkte öffnen sich dort mit dem Pfeil, einem Rechtsklick oder langem Drücken." data-en="Approaches that only need f. The tile above switches the whole group; its sub-items open there with the arrow, a right-click or a long press.">Ansätze, für die man nur f braucht. Die Kachel oben schaltet die ganze Gruppe; die Unterpunkte öffnen sich dort mit dem Pfeil, einem Rechtsklick oder langem Drücken.</span>
+    <label class="opt"><input type="checkbox" id="stufeF" checked><span><span data-de="f" data-en="f">f</span><span class="d" data-de="die Funktion selbst" data-en="the function itself">die Funktion selbst</span></span></label>
+    <div class="unter">
+      <label class="opt"><input type="checkbox" id="aYAchse" data-kurz="y-Achse" data-kurz-en="y-axis" checked data-stufe="1"><span><span data-de="Schnittpunkt mit der y-Achse" data-en="Intercept with the y-axis">Schnittpunkt mit der y-Achse</span></span></label>
+      <label class="opt"><input type="checkbox" id="aFunktionswert" data-kurz="Funktionswert" data-kurz-en="value" checked data-stufe="1"><span><span data-de="Funktionswert an einer Stelle" data-en="Function value at a point">Funktionswert an einer Stelle</span></span></label>
+      <label class="opt"><input type="checkbox" id="aNullstellen" data-kurz="Nullstellen" data-kurz-en="zeros" checked data-stufe="1"><span><span data-de="Nullstellen bestimmen" data-en="Finding the zeros">Nullstellen bestimmen</span></span></label>
+      <label class="opt"><input type="checkbox" id="aNullstellePruefen" data-kurz="NST prüfen" data-kurz-en="check a zero" checked data-stufe="2"><span><span data-de="eine Nullstelle überprüfen" data-en="Checking a given zero">eine Nullstelle überprüfen</span><span class="d" data-de="einsetzen statt lösen" data-en="substitute instead of solve">einsetzen statt lösen</span></span></label>
+      <label class="opt"><input type="checkbox" id="aHoehe" data-kurz="Höhe" data-kurz-en="height" checked data-stufe="2"><span><span data-de="Stellen zu einer gegebenen Höhe" data-en="Points at a given height">Stellen zu einer gegebenen Höhe</span></span></label>
+      <label class="opt"><input type="checkbox" id="aPunktprobe" data-kurz="Punktprobe" data-kurz-en="point check" checked data-stufe="2"><span><span data-de="Punktprobe" data-en="Checking whether a point lies on the graph">Punktprobe</span></span></label>
+      <label class="opt"><input type="checkbox" id="aSchnittGraphen" data-kurz="Schnitt f/g" data-kurz-en="f meets g" data-stufe="3"><span><span data-de="Schnittstellen zweier Graphen" data-en="Where two graphs meet">Schnittstellen zweier Graphen</span></span></label>
+    </div>
+  </div>
+
+  <div class="form-block">
+    <b data-de="Mit der ersten Ableitung f′" data-en="With the first derivative f′">Mit der ersten Ableitung f′</b>
+    <span class="d" data-de="Alles rund um Steigung, Monotonie und Extremstellen." data-en="Everything about slope, monotonicity and stationary points.">Alles rund um Steigung, Monotonie und Extremstellen.</span>
+    <label class="opt"><input type="checkbox" id="stufeF1" checked><span><span data-de="f′" data-en="f′">f′</span><span class="d" data-de="Steigung und Extremstellen" data-en="slope and stationary points">Steigung und Extremstellen</span></span></label>
+    <div class="unter">
+      <label class="opt"><input type="checkbox" id="aSteigung" data-kurz="Steigung" data-kurz-en="slope" checked data-stufe="1"><span><span data-de="Steigung an einer Stelle" data-en="Slope at a point">Steigung an einer Stelle</span></span></label>
+      <label class="opt"><input type="checkbox" id="aExtremKand" data-kurz="Extremstellen" data-kurz-en="stationary" checked data-stufe="1"><span><span data-de="Kandidaten für Extremstellen" data-en="Candidates for stationary points">Kandidaten für Extremstellen</span></span></label>
+      <label class="opt"><input type="checkbox" id="aWaagerecht" data-kurz="waagerecht" data-kurz-en="horizontal" checked data-stufe="2"><span><span data-de="waagerechte Tangente" data-en="Horizontal tangent">waagerechte Tangente</span></span></label>
+      <label class="opt"><input type="checkbox" id="aSteigungStellen" data-kurz="Steigung m" data-kurz-en="slope m" checked data-stufe="2"><span><span data-de="Stellen mit gegebener Steigung" data-en="Points with a given slope">Stellen mit gegebener Steigung</span></span></label>
+      <label class="opt"><input type="checkbox" id="aMonotonieStelle" data-kurz="Monotonie" data-kurz-en="monotonicity" checked data-stufe="2"><span><span data-de="Monotonie an einer Stelle" data-en="Monotonicity at a point">Monotonie an einer Stelle</span></span></label>
+      <label class="opt"><input type="checkbox" id="aTangente" data-kurz="Tangente" data-kurz-en="tangent" data-stufe="3"><span><span data-de="Tangente aufstellen" data-en="Setting up a tangent">Tangente aufstellen</span></span></label>
+      <label class="opt"><input type="checkbox" id="aExtremNachweis" data-kurz="Nachweis Extr." data-kurz-en="proof: stat." checked data-stufe="3"><span><span data-de="Nachweis einer Extremstelle" data-en="Proving a point is a stationary point">Nachweis einer Extremstelle</span><span class="d" data-de="mehrere Bedingungen" data-en="several conditions">mehrere Bedingungen</span></span></label>
+      <label class="opt"><input type="checkbox" id="aHochpunktNachweis" data-kurz="Nachweis HP/TP" data-kurz-en="proof: max/min" data-stufe="4"><span><span data-de="Nachweis eines Hoch- oder Tiefpunkts" data-en="Proving a maximum or minimum point">Nachweis eines Hoch- oder Tiefpunkts</span><span class="d" data-de="mit Punkt, also drei Bedingungen" data-en="with a given point, so three conditions">mit Punkt, also drei Bedingungen</span></span></label>
+    </div>
+  </div>
+
+  <div class="form-block">
+    <b data-de="Mit der zweiten Ableitung f″" data-en="With the second derivative f″">Mit der zweiten Ableitung f″</b>
+    <span class="d" data-de="Krümmung, Wendestellen und Wendepunkte." data-en="Curvature, points of inflection and inflection points.">Krümmung, Wendestellen und Wendepunkte.</span>
+    <label class="opt"><input type="checkbox" id="stufeF2" checked><span><span data-de="f″" data-en="f″">f″</span><span class="d" data-de="Krümmung und Wendestellen" data-en="curvature and inflection">Krümmung und Wendestellen</span></span></label>
+    <div class="unter">
+      <label class="opt"><input type="checkbox" id="aKruemmungStelle" data-kurz="Krümmung" data-kurz-en="curvature" checked data-stufe="2"><span><span data-de="Krümmung an einer Stelle" data-en="Curvature at a point">Krümmung an einer Stelle</span></span></label>
+      <label class="opt"><input type="checkbox" id="aWendeKand" data-kurz="Wendestellen" data-kurz-en="inflection" checked data-stufe="1"><span><span data-de="Kandidaten für Wendestellen" data-en="Candidates for points of inflection">Kandidaten für Wendestellen</span></span></label>
+      <label class="opt"><input type="checkbox" id="aKruemmungBereich" data-kurz="Krümmungsber." data-kurz-en="curvature int." data-stufe="3"><span><span data-de="Krümmungsbereiche" data-en="Intervals of curvature">Krümmungsbereiche</span></span></label>
+      <label class="opt"><input type="checkbox" id="aWendeNachweis" data-kurz="Nachweis WS" data-kurz-en="proof: infl." checked data-stufe="3"><span><span data-de="Nachweis einer Wendestelle" data-en="Proving a point of inflection">Nachweis einer Wendestelle</span><span class="d" data-de="mehrere Bedingungen" data-en="several conditions">mehrere Bedingungen</span></span></label>
+      <label class="opt"><input type="checkbox" id="aWendepunktNachweis" data-kurz="Nachweis WP" data-kurz-en="proof: infl. pt" data-stufe="4"><span><span data-de="Nachweis eines Wendepunkts" data-en="Proving an inflection point">Nachweis eines Wendepunkts</span><span class="d" data-de="mit Punkt, also drei Bedingungen" data-en="with a given point, so three conditions">mit Punkt, also drei Bedingungen</span></span></label>
+    </div>
+  </div>
+
+  <div class="form-block">
+    <b data-de="Zahlen in der Aufgabe" data-en="Numbers in the question">Zahlen in der Aufgabe</b>
+    <span class="d" data-de="Die Funktion selbst steht nie da – nur die Werte, die man in den Ansatz einsetzt." data-en="The function itself is never given – only the values you put into the approach.">Die Funktion selbst steht nie da – nur die Werte, die man in den Ansatz einsetzt.</span>
+    <label class="opt"><input type="radio" name="zahlArt" value="klein" checked><span><span data-de="kleine ganze Zahlen" data-en="small whole numbers">kleine ganze Zahlen</span><span class="d">1 … 8</span></span></label>
+    <label class="opt"><input type="radio" name="zahlArt" value="ganz"><span><span data-de="auch negative" data-en="negative ones too">auch negative</span><span class="d">−9 … 9</span></span></label>
+    <label class="opt"><input type="radio" name="zahlArt" value="bruch"><span><span data-de="auch Brüche" data-en="fractions too">auch Brüche</span><span class="d">−9 … 9, ½, ⅔, …</span></span></label>
+    <label class="opt"><input type="radio" name="zahlArt" value="komma"><span><span data-de="auch Kommazahlen" data-en="decimals too">auch Kommazahlen</span><span class="d">−9 … 9, 1,5, 2,25, …</span></span></label>
+  </div>
+
+  <div class="form-block">
+    <b data-de="Antwortart" data-en="How you answer">Antwortart</b>
+    <span class="d" data-de="Unter der Aufgabe lässt sich jederzeit umschalten." data-en="You can switch at any time below the question.">Unter der Aufgabe lässt sich jederzeit umschalten.</span>
+    <label class="opt"><input type="radio" name="modus" value="wahl" checked><span><span data-de="Antwortmöglichkeiten" data-en="Multiple choice">Antwortmöglichkeiten</span><span class="d" data-de="vier Ansätze, einer stimmt" data-en="four approaches, one is right">vier Ansätze, einer stimmt</span></span></label>
+    <label class="opt"><input type="radio" name="modus" value="frei"><span><span data-de="Freitext" data-en="Free text">Freitext</span><span class="d" data-de="den Ansatz selbst eintippen" data-en="type the approach yourself">den Ansatz selbst eintippen</span></span></label>
+    <label class="opt"><input type="radio" name="modus" value="karte"><span><span data-de="Karteikarten" data-en="Flashcards">Karteikarten</span><span class="d" data-de="umdrehen und selbst einschätzen" data-en="flip it over and judge yourself">umdrehen und selbst einschätzen</span></span></label>
+  </div>
+
+  <div class="form-block leise">
+    <b data-de="Sprache der Aufgaben" data-en="Wording of the questions">Sprache der Aufgaben</b>
+    <span class="d" data-de="Wie die Aufgaben formuliert sind – reine Geschmackssache, an der Mathematik ändert sich nichts." data-en="How the questions are phrased – purely a matter of taste, the maths stays the same.">Wie die Aufgaben formuliert sind – reine Geschmackssache, an der Mathematik ändert sich nichts.</span>
+    <label class="opt"><input type="radio" name="anrede" value="sie" checked><span><span data-de="siezen" data-en="formal">siezen</span><span class="d" data-de="„Bestimmen Sie …“" data-en="“Determine …”">„Bestimmen Sie …“</span></span></label>
+    <label class="opt"><input type="radio" name="anrede" value="du"><span><span data-de="duzen" data-en="informal">duzen</span><span class="d" data-de="„Bestimme …“" data-en="“Find …”">„Bestimme …“</span></span></label>
+    <label class="opt"><input type="checkbox" id="ausfuehrlich" checked><span><span data-de="ausführlich formulieren" data-en="spell things out">ausführlich formulieren</span><span class="d" data-de="„an der Stelle x = 3“ statt „an der Stelle 3“" data-en="“at x = 3” instead of “at 3”">„an der Stelle x = 3“ statt „an der Stelle 3“</span></span></label>
+    <label class="opt"><input type="checkbox" id="mitHinweis" checked><span><span data-de="Hinweis zur Schreibweise zeigen" data-en="show a note on how to type it">Hinweis zur Schreibweise zeigen</span><span class="d" data-de="im Freitext-Modus unter den Feldern" data-en="below the fields in free-text mode">im Freitext-Modus unter den Feldern</span></span></label>
+    <label class="opt"><input type="checkbox" id="mitVerb"><span><span data-de="Tätigkeit dazuschreiben" data-en="add what to do with it">Tätigkeit dazuschreiben</span><span class="d" data-de="„f(x) = 0 lösen" statt nur „f(x) = 0" – der Hilfe-Knopf schaltet das für eine Aufgabe ohnehin ein" data-en="“solve f(x) = 0” instead of just “f(x) = 0” – the help button turns it on for a single task anyway">„f(x) = 0 lösen" statt nur „f(x) = 0" – der Hilfe-Knopf schaltet das für eine Aufgabe ohnehin ein</span></span></label>
+    <label class="opt"><input type="checkbox" id="mitSpick" checked><span><span data-de="Spickzettel anbieten" data-en="offer the cheat sheet">Spickzettel anbieten</span><span class="d" data-de="die wichtigsten Begriffe, aufklappbar unter der Aufgabe" data-en="the key terms, collapsible below the task">die wichtigsten Begriffe, aufklappbar unter der Aufgabe</span></span></label>
+  </div>
+
+  </div>
+  <div class="seed-zeile">
+    <label class="opt"><input type="checkbox" id="seedAn"><span data-de="fester Zufalls-Seed" data-en="fixed random seed">fester Zufalls-Seed</span></label>
+    <input type="text" id="seedWert" autocomplete="off" inputmode="numeric" aria-label="Seed" data-de-aria-label="Seed" data-en-aria-label="Seed">
+    <button type="button" class="btn-secondary" id="seedNeu" title="neuen Seed würfeln" data-de-title="neuen Seed würfeln" data-en-title="roll a new seed">⟳</button>
+    <span class="d" data-de="Mit demselben Seed bekommen alle dieselbe Folge von Aufgaben – der Seed steht dann im geteilten Link." data-en="With the same seed everyone gets the same sequence of tasks – the seed is then part of the shared link.">Mit demselben Seed bekommen alle dieselbe Folge von Aufgaben – der Seed steht dann im geteilten Link.</span>
+  </div>
+<div class="settings-foot">
+  <button class="btn-secondary" id="btnShare" data-de="🔗 Link mit allen Einstellungen kopieren" data-en="🔗 Copy link with all settings">🔗 Link mit allen Einstellungen kopieren</button>
+  <button class="btn-secondary" id="btnReset" data-de="↺ Standard wiederherstellen" data-en="↺ Restore defaults">↺ Standard wiederherstellen</button>
+  </div>
+</details>
+
+<!-- ═══ Schalter über der Aufgabe ═══════════════════════════════════════ -->
+<div id="topControls">
+  <div class="tc-item">
+    <details class="auswahl" id="stufenBox" open>
+      <summary><span data-de="Was darf vorkommen?" data-en="What may appear?">Was darf vorkommen?</span><span class="ausw-zahl" id="stufenZahl"></span></summary>
+      <button type="button" class="btn-secondary ausw-alle" id="stufenAlle"></button>
+      <div class="tiles eng reihe" id="segStufen"></div>
+    </details>
+  </div>
+  <div class="tc-item tc-diff tc-mitte">
+    <span class="tc-kopf"><span class="tc-label" data-de="Schwierigkeit" data-en="Difficulty">Schwierigkeit</span><button type="button" class="tc-reset" id="diffReset" title="Von Hand gesetzte Einstellungen lösen – wieder der Schwierigkeit überlassen" data-de-title="Von Hand gesetzte Einstellungen lösen – wieder der Schwierigkeit überlassen" data-en-title="Release settings you fixed yourself – let the difficulty decide again" aria-label="Von Hand gesetzte Einstellungen lösen">&#x21BA;</button></span>
+    <div class="seg-switch diff-switch" id="segDiff">
+      <input type="radio" name="diff" id="diffEinf" value="einf"><label for="diffEinf" data-de="Einführung" data-en="Introduction">Einführung</label>
+      <input type="radio" name="diff" id="diffLeicht" value="leicht"><label for="diffLeicht" data-de="Leicht" data-en="Easy">Leicht</label>
+      <input type="radio" name="diff" id="diffNormal" value="normal" checked><label for="diffNormal" data-de="Normal" data-en="Normal">Normal</label>
+      <input type="radio" name="diff" id="diffSchwer" value="schwer"><label for="diffSchwer" data-de="Herausfordernd" data-en="Challenging">Herausfordernd</label>
+      <input type="radio" name="diff" id="diffIndiv" value="indiv"><label for="diffIndiv" data-de="Individuell" data-en="Custom" data-de-title="öffnet die Einstellungen" data-en-title="opens the settings" title="öffnet die Einstellungen">Individuell</label>
+      <span class="seg-glider"></span>
+    </div>
+  </div>
+  </div>
+
+<div id="genRow">
+  <button id="genBtn" data-de='<span class="auto-kreis">&#x27F3;</span>&nbsp;Neue Aufgabe generieren' data-en='<span class="auto-kreis">&#x27F3;</span>&nbsp;Generate a new task'><span class="auto-kreis">&#x27F3;</span>&nbsp;Neue Aufgabe generieren</button>
+  <span class="punkte rechts"><button id="btnPunkteReset" type="button" title="Punktzahl zurücksetzen" data-de-title="Punktzahl zurücksetzen" data-en-title="Reset the score">↺</button><span id="counter">Richtig: 0 / 0</span></span>
+  </div>
+
+<div class="task" id="taskBox">
+  <div class="task-head">
+    <h2 data-de="Aufgabe" data-en="Task">Aufgabe</h2>
+    <button class="share-btn" id="btnTeilen" title="Diese Aufgabe teilen (Link kopieren)" data-de-title="Diese Aufgabe teilen (Link kopieren)" data-en-title="Share this task (copy link)" data-de='🔗<span class="sh-text">&nbsp;Teilen</span>' data-en='🔗<span class="sh-text">&nbsp;Share</span>'>🔗<span class="sh-text">&nbsp;Teilen</span></button>
+  </div>
+
+  <p id="taskText" class="task-hinweis" data-de="Gesucht ist nur der Ansatz – was schreibt man als Erstes hin?" data-en="Only the approach is wanted – what do you write down first?">Gesucht ist nur der Ansatz – was schreibt man als Erstes hin?</p>
+  <div class="scale-wrapper">
+    <div id="task" class="scale-el"></div>
+  </div>
+  <div id="hilfeText"></div>
+  </div>
+
+<details class="spick quizklapp" id="dSpick">
+  <summary><span class="linie" aria-hidden="true"></span><span class="reiter" data-de="Spickzettel" data-en="Cheat sheet">Spickzettel</span><span class="linie" aria-hidden="true"></span></summary>
+  <div id="spickListe"></div>
+</details>
+
+<div id="antwortBereich"></div>
+
+<!-- Der Umschalter steht unter den Antworten: zuerst die Aufgabe und die
+     Möglichkeiten, dann erst, womit man antworten möchte. -->
+<div class="modus-zeile">
+  <div class="seg-switch" id="segModus">
+    <input type="radio" name="modusOben" id="modWahl" value="wahl" checked><label for="modWahl" data-de="Antwortmöglichkeiten" data-en="Multiple choice">Antwortmöglichkeiten</label>
+    <input type="radio" name="modusOben" id="modFrei" value="frei"><label for="modFrei" data-de="Freitext" data-en="Free text">Freitext</label>
+    <input type="radio" name="modusOben" id="modKarte" value="karte"><label for="modKarte" data-de="Karteikarten" data-en="Flashcards">Karteikarten</label>
+    <span class="seg-glider"></span>
+  </div>
+</div>
+
+<details class="loesung" id="dLoesung" style="margin-top:10px;">
+  <summary><span class="wenn-zu" data-de="Ansatz einblenden" data-en="Show the approach">Ansatz einblenden</span><span class="wenn-auf" data-de="Ansatz ausblenden" data-en="Hide the approach">Ansatz ausblenden</span></summary>
+  <div class="scale-wrapper"><div id="loesung" class="scale-el"></div></div>
+  <div id="weg"></div>
+</details>
+
+<div id="lobby-spacer"></div>
+
+<footer class="site-footer">
+  <div class="footer-content">
+      M.&nbsp;Koch
+      <span class="footer-topic"><a href="./index.html">Mathe-Tools</a></span>
+      <span class="footer-update"><span class="fu-wort" data-de="Zuletzt aktualisiert:" data-en="Last updated:">Zuletzt aktualisiert:</span><span id="last-update">...</span></span>
+  </div>
+</footer>
+
+<script src="last-update.js" defer></script>
+
+<script>
+"use strict";
+/* ══════════════════════════════════════════════════════════════════════════
+   Ansätze bei Funktionen
+
+   Die Funktion selbst steht nie da. Gefragt ist immer nur: Womit fängt man
+   an? Also die Gleichung oder Bedingung, die man als Erstes hinschreibt.
+
+   Aufbau:
+     1. Einstellungen        wie auf den übrigen Seiten
+     2. Zahlen               Brüche und Kommazahlen als eigener kleiner Typ
+     3. Die Ansätze          eine Liste von Aufgabenarten
+     4. Aufgabe würfeln
+     5. Zeichnen
+     6. Die drei Antwortarten
+     7. Verdrahtung
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* ── 1. Einstellungen ───────────────────────────────────────────────────── */
+var ARTEN_F  = ['aYAchse', 'aFunktionswert', 'aNullstellen', 'aNullstellePruefen',
+                'aHoehe', 'aPunktprobe', 'aSchnittGraphen'];
+var ARTEN_F1 = ['aSteigung', 'aExtremKand', 'aWaagerecht', 'aSteigungStellen',
+                'aMonotonieStelle', 'aTangente',
+                'aExtremNachweis', 'aHochpunktNachweis'];
+var ARTEN_F2 = ['aKruemmungStelle', 'aWendeKand', 'aKruemmungBereich',
+                'aWendeNachweis', 'aWendepunktNachweis'];
+var STUFEN_IDS = ['stufeF', 'stufeF1', 'stufeF2'];
+var ALLE_ARTEN = ARTEN_F.concat(ARTEN_F1, ARTEN_F2);
+
+var STD = {
+  stufeF: true, stufeF1: true, stufeF2: true,
+  aYAchse: true, aFunktionswert: true, aNullstellen: true, aNullstellePruefen: true,
+  aHoehe: true, aPunktprobe: true, aSchnittGraphen: false,
+  aSteigung: true, aExtremKand: true, aWaagerecht: true, aSteigungStellen: true,
+  aMonotonieStelle: true, aTangente: false,
+  aExtremNachweis: true, aHochpunktNachweis: false,
+  aKruemmungStelle: true, aWendeKand: true, aKruemmungBereich: false,
+  aWendeNachweis: true, aWendepunktNachweis: false,
+  zahlArt: 'klein', modus: 'wahl', anrede: 'sie',
+  ausfuehrlich: true, mitHinweis: true, mitVerb: false, mitSpick: true,
+  diff: 'normal'
+};
+
+/* Was eine Schwierigkeitsstufe setzt. Welche Ansätze dran sind, steht nicht
+   hier, sondern an den Sternen der Aufgabenarten: eine Art mit n Sternen
+   kommt ab der n-ten Stufe vor. So sagen die Sterne wirklich, wie schwer
+   etwas ist, statt neben der Auswahl herzulaufen.
+   Die drei Ableitungs-Kacheln bleiben die Wahl der Nutzerin - sie sagen,
+   was geübt wird, nicht wie schwer es ist. */
+var STUFEN = {
+  einf:   { nr: 1, zahlArt: 'klein', ausfuehrlich: true },
+  leicht: { nr: 2, zahlArt: 'klein', ausfuehrlich: true },
+  normal: { nr: 3, zahlArt: 'ganz',  ausfuehrlich: false },
+  schwer: { nr: 4, zahlArt: 'bruch', ausfuehrlich: false }
+};
+/** Wie viele Sterne hat eine Aufgabenart? (steht am Kästchen) */
+function sterne(id){
+  var e = document.getElementById(id);
+  var n = e && e.dataset ? parseInt(e.dataset.stufe || '0', 10) : 0;
+  return (n > 0) ? n : 1;
+}
+/** Die Arten, die zu einer Stufe gehören. Ohne DOM (beim Aufbau) über STERNE. */
+var STERNE = { aYAchse:1, aFunktionswert:1, aNullstellen:1, aNullstellePruefen:2,
+  aHoehe:2, aPunktprobe:2, aSchnittGraphen:3,
+  /* „Kandidaten für Extremstellen" und „für Wendestellen" sind der erste
+     Schritt jeder solchen Aufgabe - f'(x) = 0 bzw. f''(x) = 0. Das gehört
+     von Anfang an dazu, darum ein Stern. */
+  aSteigung:1, aExtremKand:1, aWaagerecht:2, aSteigungStellen:2,
+  aMonotonieStelle:2, aTangente:3, aExtremNachweis:3, aHochpunktNachweis:4,
+  aKruemmungStelle:2, aWendeKand:1, aKruemmungBereich:3,
+  aWendeNachweis:3, aWendepunktNachweis:4 };
+function artenZurStufe(stufe){
+  var nr = (STUFEN[stufe] || {}).nr || 3;
+  return ALLE_ARTEN.filter(function(id){ return (STERNE[id] || 1) <= nr; });
+}
+/* Der Standard ist genau die Standard-Schwierigkeit. */
+(function(){
+  var p = STUFEN[STD.diff] || {};
+  Object.keys(p).forEach(function(k){ if (k !== 'nr') STD[k] = p[k]; });
+  var an = artenZurStufe(STD.diff);
+  ALLE_ARTEN.forEach(function(id){ STD[id] = an.indexOf(id) >= 0; });
+})();
+
+var KURZ = { stufeF: 'sf', stufeF1: 's1', stufeF2: 's2',
+  zahlArt: 'za', modus: 'mo', anrede: 'an', ausfuehrlich: 'af', mitHinweis: 'mh', diff: 'd' };
+ALLE_ARTEN.forEach(function(id, i){ KURZ[id] = 'a' + i; });
+
+function haken(id){ var e = document.getElementById(id); return !!(e && e.checked); }
+function setzeHaken(id, v){ var e = document.getElementById(id); if (e) e.checked = !!v; }
+function radioWert(name){ var e = document.querySelector('input[name="' + name + '"]:checked'); return e ? e.value : null; }
+function radioSetzen(name, wert){
+  var e = document.querySelector('input[name="' + name + '"][value="' + wert + '"]');
+  if (e) e.checked = true;
+  return !!e;
+}
+function einstellungen(){
+  var s = {};
+  Object.keys(STD).forEach(function(k){
+    if (typeof STD[k] === 'boolean') s[k] = haken(k);
+    else s[k] = radioWert(k) || STD[k];
+  });
+  return s;
+}
+function einstellungenSetzen(s){
+  Object.keys(STD).forEach(function(k){
+    if (typeof STD[k] === 'boolean') setzeHaken(k, s[k]);
+    else radioSetzen(k, s[k]);
+  });
+  modusObenAbgleichen();
+  obenAbgleichen();
+  kachelnMalen();
+}
+var VON_HAND = {};
+/** Von Hand umgestellt? Entweder hier gemerkt (change-Ereignis) oder von
+    aufgaben.js (Kachel oder Oval, die das Kästchen unmittelbar setzen). */
+function vonHand(k){ return !!VON_HAND[k] || !!(window.abVonHand && abVonHand(k)); }
+function vonHandMerken(ziel){
+  if (!ziel) return;
+  var k = ziel.id || ziel.name;
+  if (k && k !== 'diff' && k !== 'modusOben') VON_HAND[k] = true;
+}
+document.addEventListener('change', function(ev){
+  var t = ev.target;
+  if (!t || t.name === 'diff') return;
+  vonHandMerken(t);
+}, true);
+function stufeAnwenden(stufe){
+  var p = STUFEN[stufe];
+  if (!p) return;
+  Object.keys(p).forEach(function(k){
+    if (k === 'nr' || vonHand(k)) return;
+    if (typeof p[k] === 'boolean') setzeHaken(k, p[k]);
+    else radioSetzen(k, p[k]);
+  });
+  /* Die Sterne entscheiden: alles bis zur Sternzahl der Stufe ist an. */
+  ALLE_ARTEN.forEach(function(id){
+    if (vonHand(id)) return;
+    setzeHaken(id, sterne(id) <= p.nr);
+  });
+  obenAbgleichen();
+  kachelnMalen();
+}
+function obenAbgleichen(){
+  if (window.abReglerAbgleichen) abReglerAbgleichen();
+  if (window.abGliderAlle) abGliderAlle();
+}
+/* Der Umschalter unter der Aufgabe und das Feld in den Einstellungen zeigen
+   dasselbe an - beide Richtungen werden abgeglichen. */
+function modusObenAbgleichen(){
+  var m = radioWert('modus') || STD.modus;
+  var e = document.querySelector('input[name="modusOben"][value="' + m + '"]');
+  if (e) e.checked = true;
+  if (window.abGliderAlle) abGliderAlle();
+}
+
+function urlSchreiben(mitAufgabe){
+  var s = einstellungen(), p = new URLSearchParams();
+  Object.keys(KURZ).forEach(function(k){
+    if (String(s[k]) === String(STD[k])) return;
+    p.set(KURZ[k], (typeof s[k] === 'boolean') ? (s[k] ? '1' : '0') : s[k]);
+  });
+  if (mitAufgabe && A) p.set('t', A.art.id + '_' + A.code);
+  if (!autoAn) p.set('auto', '0');
+  var qs = p.toString();
+  var url = location.origin + location.pathname + (qs ? '?' + qs : '');
+  if (window.abSeedFuerLink){ var ss = abSeedFuerLink(); if (ss) url += (qs ? '&' : '?') + 'seed=' + ss; }
+  return url;
+}
+function urlLesen(){
+  var p = new URLSearchParams(location.search), s = {};
+  Object.keys(STD).forEach(function(k){ s[k] = STD[k]; });
+  Object.keys(KURZ).forEach(function(k){
+    var v = p.get(KURZ[k]);
+    if (v === null) v = p.get(k);
+    if (v === null) return;
+    s[k] = (typeof STD[k] === 'boolean') ? (v === '1' || v === 'true') : v;
+  });
+  autoAn = p.get('auto') !== '0';
+  return s;
+}
+function linkKopieren(text, knopf){
+  if (window.abKopiere){ abKopiere(text, knopf, T('✓ Link kopiert', '✓ Link copied')); return; }
+  try { if (navigator.clipboard) navigator.clipboard.writeText(text); } catch (e) {}
+}
+
+/* ── 2. Zahlen ──────────────────────────────────────────────────────────── */
+var A = null, richtig = 0, gesamt = 0, autoAn = true;
+/* Hilfestufe der laufenden Aufgabe: 0 nichts, 1 Tätigkeit + ausführlich,
+   2 zusätzlich der kleinschrittige Satz. */
+var HILFE = 0;
+
+function pick(a){ return a[Math.floor(Math.random() * a.length)]; }
+function ri(a, b){ return a + Math.floor(Math.random() * (b - a + 1)); }
+function coin(p){ return Math.random() < (p === undefined ? 0.5 : p); }
+function ggT(a, b){ a = Math.abs(a); b = Math.abs(b); while (b){ var h = a % b; a = b; b = h; } return a || 1; }
+
+/** Eine Zahl, die in den Ansatz eingesetzt wird.
+    tex   - wie sie in der Formel steht
+    txt   - alle Schreibweisen, die beim Eintippen gelten sollen          */
+function Zahl(n, d){
+  d = d || 1;
+  var g = ggT(n, d); n = n / g; d = d / g;
+  if (d < 0){ n = -n; d = -d; }
+  var dez = n / d;
+  var dezTxt = null;
+  if (d !== 1){
+    var r = Math.round(dez * 1e6) / 1e6;
+    if (Math.abs(r * d - n) < 1e-9 && String(r).replace('-', '').replace('.', '').length <= 6)
+      dezTxt = String(r);
+  }
+  var kommaStil = (zahlArt() === 'komma' && dezTxt);
+  var tex;
+  if (d === 1) tex = String(n);
+  else if (kommaStil) tex = dezTxt.replace('.', '{,}');
+  else tex = (n < 0 ? '-' : '') + '\\tfrac{' + Math.abs(n) + '}{' + d + '}';
+  var txt = [];
+  if (d === 1) txt.push(String(n));
+  else {
+    txt.push(n + '/' + d);
+    txt.push('(' + n + '/' + d + ')');
+    if (dezTxt){ txt.push(dezTxt); txt.push(dezTxt.replace('.', ',')); }
+  }
+  return { n: n, d: d, wert: dez, tex: tex, txt: txt };
+}
+function zahlArt(){ return radioWert('zahlArt') || STD.zahlArt; }
+function anredeDu(){ return (radioWert('anrede') || STD.anrede) === 'du'; }
+/* Die erste Hilfestufe formuliert die laufende Aufgabe ausführlich,
+   auch wenn das sonst aus ist. */
+function ausf(){ return haken('ausfuehrlich') || HILFE >= 1; }
+
+/** Eine Zahl würfeln - je nach Einstellung ganz, als Bruch oder mit Komma. */
+function wuerfelZahl(opt){
+  opt = opt || {};
+  var art = zahlArt();
+  var ohneNull = opt.ohneNull !== false;
+  if (art === 'klein'){
+    return Zahl(ri(1, 8));
+  }
+  if (art === 'ganz' || coin(0.45)){
+    var n = ri(-9, 9);
+    while (ohneNull && n === 0) n = ri(-9, 9);
+    return Zahl(n);
+  }
+  /* Bruch oder Kommazahl */
+  var nenner = (art === 'komma') ? pick([2, 4, 5, 2, 4]) : pick([2, 3, 4, 2, 3]);
+  var zaehler = ri(-5 * nenner, 5 * nenner);
+  while (zaehler === 0 || zaehler % nenner === 0) zaehler = ri(-5 * nenner, 5 * nenner);
+  return Zahl(zaehler, nenner);
+}
+
+/* ── 3. Die Ansätze ─────────────────────────────────────────────────────── */
+/* Jede Art beschreibt: die Frage, die Bedingung(en) des Ansatzes, eine kurze
+   Begründung und die üblichen Verwechslungen als falsche Antworten.      */
+
+/** alle Schreibweisen eines Musters, in das Zahlen eingesetzt werden */
+function kombi(muster, ersatz){
+  var raus = [muster];
+  Object.keys(ersatz || {}).forEach(function(k){
+    var neu = [];
+    raus.forEach(function(s){
+      ersatz[k].forEach(function(w){ neu.push(s.split('#' + k).join(w)); });
+    });
+    raus = neu;
+  });
+  return raus;
+}
+/** Zu jeder Gleichung auch die umgedrehte Seite gelten lassen. */
+function beidseitig(liste){
+  var raus = liste.slice();
+  liste.forEach(function(s){
+    var t = s.split('=');
+    if (t.length === 2 && t[0] && t[1]) raus.push(t[1] + '=' + t[0]);
+  });
+  return raus;
+}
+/** Bedingung: TeX zum Anzeigen, Liste der gültigen Eingaben. */
+function Bed(tex, ok, hinweis){ return { tex: tex, ok: ok, hinweis: hinweis || null }; }
+
+/* ── Aus einer Formel ableiten, was mit ihr zu tun ist ─────────────────
+   Dieselbe Regel gilt für die richtige Antwort wie für die Irrwege -
+   sonst verriete das Tätigkeitswort schon, welche Antwort stimmt.     */
+function texRoh(tex){
+  return String(tex || '')
+    .replace(/\\[()[\]]/g, '')
+    .replace(/\\tfrac\{(-?\d+)\}\{(\d+)\}/g, '$1/$2')
+    .replace(/\\frac\{(-?\d+)\}\{(\d+)\}/g, '$1/$2')
+    .replace(/\{,\}/g, '.')
+    .replace(/\\neq/g, '!=')
+    .replace(/\\cdot/g, '*')
+    .replace(/\\,/g, '')
+    .replace(/[{}]/g, '')
+    .replace(/\s+/g, '');
+}
+function verbFuer(tex){
+  var s = texRoh(tex);
+  if (/^t\(x\)=/.test(s)) return T('aufstellen', 'set it up');
+  if (/^(Vorzeichen|sign)/i.test(tex)) return T('bestimmen', 'determine it');
+  if (/^(Vorzeichenwechsel|signchange)/i.test(s)) return T('nachweisen', 'show it');
+  var rel = /(!=|<=|>=|=|<|>)/.test(s);
+  if (!rel) return T('berechnen', 'work it out');
+  var links = s.split(/(!=|<=|>=|=|<|>)/)[0];
+  if (/\(x\)/.test(links) || /\(x\)/.test(s.split(/(!=|<=|>=|=|<|>)/).pop())){
+    return /[<>]/.test(s) ? T('Ungleichung lösen', 'solve the inequality')
+                          : T('Gleichung lösen', 'solve the equation');
+  }
+  return T('überprüfen', 'check it');
+}
+/** Zeigt die Formel - auf Wunsch mit der Tätigkeit dahinter. */
+function mitVerbAn(){ return haken('mitVerb') || HILFE >= 1; }
+function formelText(tex){
+  return mitVerbAn() ? (tex + ' <span class="verb">' + verbFuer(tex) + '</span>') : tex;
+}
+
+/** „an der Stelle x = 3" oder knapp „an der Stelle 3" */
+function stelleT(z){
+  return ausf() ? T('an der Stelle \\(x = ' + z.tex + '\\)', 'at \\(x = ' + z.tex + '\\)')
+                : T('an der Stelle \\(' + z.tex + '\\)', 'at \\(' + z.tex + '\\)');
+}
+/** Dieselbe Idee für andere Größen: ausführlich „y = 9", knapp „9". */
+function mitVar(name, z){
+  return ausf() ? ('\\(' + name + ' = ' + z.tex + '\\)') : ('\\(' + z.tex + '\\)');
+}
+function bestimme(de, en){
+  return anredeDu() ? T('Bestimme ' + de, 'Find ' + en)
+                    : T('Bestimmen Sie ' + de, 'Determine ' + en);
+}
+function weise(de, en){
+  return anredeDu() ? T('Weise nach, dass ' + de, 'Show that ' + en)
+                    : T('Weisen Sie nach, dass ' + de, 'Show that ' + en);
+}
+function pruefe(de, en){
+  return anredeDu() ? T('Prüfe, ob ' + de, 'Check whether ' + en)
+                    : T('Prüfen Sie, ob ' + de, 'Check whether ' + en);
+}
+function untersuche(de, en){
+  return anredeDu() ? T('Untersuche ' + de, 'Investigate ' + en)
+                    : T('Untersuchen Sie ' + de, 'Investigate ' + en);
+}
+/** Auch die Hinweise und Knopftexte folgen der Anrede. */
+function anr(duDe, sieDe, en){ return T(anredeDu() ? duDe : sieDe, en); }
+function punktT(nameTex, a, b){
+  return '\\(' + nameTex + '(' + a.tex + '\\,|\\,' + b.tex + ')\\)';
+}
+
+/* Zwei Bausteine, die mehrfach gebraucht werden. */
+function bedNullF(){
+  return Bed('\\(f(x) = 0\\)', beidseitig(['f(x)=0']));
+}
+function vzwHinweis(){
+  return anr('Vorzeichenwechsel darfst du als „VZW" schreiben.',
+             'Vorzeichenwechsel dürfen Sie als „VZW" schreiben.',
+             'You may write “sign change” as “VZW”.');
+}
+
+var ANSAETZE = [
+
+/* ═══ nur f ════════════════════════════════════════════════════════════ */
+{ id: 'aYAchse', stufe: 'f',
+  frage: function(){ return bestimme(T('den Schnittpunkt des Graphen von \\(f\\) mit der \\(y\\)-Achse.',
+                                       'the point where the graph of \\(f\\) meets the \\(y\\)-axis.'),
+                                     'the point where the graph of \\(f\\) meets the \\(y\\)-axis.'); },
+  bed: function(){ return [Bed('\\(f(0)\\)', ['f(0)'].concat(beidseitig(['y=f(0)']))) ]; },
+  warum: function(){ return T('Auf der \\(y\\)-Achse ist \\(x = 0\\) – man setzt also \\(0\\) ein und rechnet den Funktionswert aus.',
+                              'On the \\(y\\)-axis \\(x = 0\\), so you substitute \\(0\\) and work out the function value.'); },
+  falsch: function(){ return [
+    { tex: '\\(f(x) = 0\\)', grund: T('Das sind die Nullstellen – der Schnittpunkt mit der \\(x\\)-Achse.',
+                                      'That gives the zeros – where the graph meets the \\(x\\)-axis.') },
+    { tex: '\\(f(y) = 0\\)', grund: T('In \\(f\\) wird immer \\(x\\) eingesetzt, nie \\(y\\).',
+                                      'You always substitute for \\(x\\) in \\(f\\), never for \\(y\\).') },
+    { tex: '\\(f\'(0)\\)',   grund: T('Das ist die Steigung an der Stelle \\(0\\), nicht die Höhe.',
+                                      'That is the slope at \\(0\\), not the height.') }
+  ]; } },
+
+{ id: 'aFunktionswert', stufe: 'f', werte: ['x'],
+  frage: function(v){ return bestimme(T('den Funktionswert von \\(f\\) ', 'the value of \\(f\\) ') + stelleT(v.x) + '.',
+                                      'the value of \\(f\\) ' + stelleT(v.x) + '.'); },
+  bed: function(v){ return [Bed('\\(f(' + v.x.tex + ')\\)',
+                                kombi('f(#x)', { x: v.x.txt })
+                                  .concat(kombi('y=f(#x)', { x: v.x.txt }))) ]; },
+  warum: function(v){ return T('Der Funktionswert ist einfach \\(f\\) an dieser Stelle – die Stelle wird eingesetzt.',
+                               'The function value is simply \\(f\\) at that point – you substitute the point.'); },
+  falsch: function(v){ return [
+    { tex: '\\(f(x) = ' + v.x.tex + '\\)', grund: T('So sucht man die Stellen zu einer gegebenen Höhe – hier ist es umgekehrt.',
+                                                    'That looks for the points at a given height – here it is the other way round.') },
+    { tex: '\\(f\'(' + v.x.tex + ')\\)',   grund: T('Das ist die Steigung dort, nicht der Funktionswert.',
+                                                    'That is the slope there, not the function value.') },
+    { tex: '\\(f(' + v.x.tex + ') = 0\\)', grund: T('Eine Gleichung braucht man hier nicht – es ist nichts zu lösen.',
+                                                    'No equation is needed here – there is nothing to solve.') }
+  ]; } },
+
+{ id: 'aNullstellen', stufe: 'f',
+  frage: function(){ return bestimme(T('die Nullstellen von \\(f\\).', 'the zeros of \\(f\\).'),
+                                     'the zeros of \\(f\\).'); },
+  bed: function(){ return [bedNullF()]; },
+  warum: function(){ return T('Eine Nullstelle ist eine Stelle mit dem Funktionswert \\(0\\) – also die Lösung von \\(f(x) = 0\\).',
+                              'A zero is a point where the function value is \\(0\\) – so you solve \\(f(x) = 0\\).'); },
+  falsch: function(){ return [
+    { tex: '\\(f(0)\\)',      grund: T('Das ist der Schnittpunkt mit der \\(y\\)-Achse.',
+                                       'That is the intercept with the \\(y\\)-axis.') },
+    { tex: '\\(f\'(x) = 0\\)', grund: T('Damit findet man Kandidaten für Extremstellen.',
+                                        'That finds candidates for stationary points.') },
+    { tex: '\\(x = 0\\)',     grund: T('Das ist keine Bedingung an \\(f\\), sondern nur eine einzelne Stelle.',
+                                       'That is not a condition on \\(f\\), just one single point.') }
+  ]; } },
+
+{ id: 'aNullstellePruefen', stufe: 'f', werte: ['x'],
+  frage: function(v){ var s = mitVar('x', v.x);
+                      return pruefe(T(s + ' eine Nullstelle von \\(f\\) ist.', s + ' is a zero of \\(f\\).'),
+                                    s + ' is a zero of \\(f\\).'); },
+  /* Ohne Fragezeichen: sonst wäre die richtige Antwort unter den vier
+     Möglichkeiten schon an der Form zu erkennen. */
+  bed: function(v){ return [Bed('\\(f(' + v.x.tex + ') = 0\\)',
+                                beidseitig(kombi('f(#x)=0', { x: v.x.txt }))
+                                  .concat(kombi('f(#x)', { x: v.x.txt }))) ]; },
+  warum: function(v){ return T('Die Stelle ist schon gegeben – man setzt sie ein und sieht nach, ob \\(0\\) herauskommt. Lösen muss man nichts.',
+                               'The point is already given – substitute it and see whether you get \\(0\\). There is nothing to solve.'); },
+  falsch: function(v){ return [
+    { tex: '\\(f(x) = 0\\)', grund: T('Das wäre viel mehr Arbeit: die Nullstellen sind gar nicht gesucht, die Stelle steht ja schon da.',
+                                      'That is far more work: you are not asked for the zeros, the point is already given.') },
+    { tex: '\\(f\'(' + v.x.tex + ') = 0\\)', grund: T('Das prüft eine waagerechte Tangente, nicht eine Nullstelle.',
+                                                      'That checks for a horizontal tangent, not for a zero.') },
+    { tex: '\\(' + v.x.tex + ' = 0\\)', grund: T('Das ist eine Aussage über die Zahl selbst, nicht über \\(f\\).',
+                                                 'That says something about the number itself, not about \\(f\\).') }
+  ]; } },
+
+{ id: 'aHoehe', stufe: 'f', werte: ['c'],
+  frage: function(v){ var s = mitVar('y', v.c);
+                      return bestimme(T('die Stellen, an denen der Graph von \\(f\\) die Höhe ' + s + ' hat.',
+                                        'the points where the graph of \\(f\\) has height ' + s + '.'),
+                                      'the points where the graph of \\(f\\) has height ' + s + '.'); },
+  bed: function(v){ return [Bed('\\(f(x) = ' + v.c.tex + '\\)',
+                                beidseitig(kombi('f(x)=#c', { c: v.c.txt }))) ]; },
+  warum: function(v){ return T('Die Höhe ist der Funktionswert. Gesucht sind die \\(x\\), für die er \\(' + v.c.tex + '\\) beträgt – also eine Gleichung.',
+                               'The height is the function value. You want the \\(x\\) for which it equals \\(' + v.c.tex + '\\) – so an equation.'); },
+  falsch: function(v){ return [
+    { tex: '\\(f(' + v.c.tex + ')\\)', grund: T('So setzt man \\(' + v.c.tex + '\\) als Stelle ein – gegeben ist aber die Höhe.',
+                                                'That substitutes \\(' + v.c.tex + '\\) as the point – but the height is what is given.') },
+    { tex: '\\(f(x) = 0\\)',  grund: T('Das wären die Nullstellen, also die Höhe \\(0\\).',
+                                       'Those would be the zeros, i.e. height \\(0\\).') },
+    { tex: '\\(f\'(x) = ' + v.c.tex + '\\)', grund: T('Damit sucht man Stellen mit der Steigung \\(' + v.c.tex + '\\).',
+                                                      'That looks for points with slope \\(' + v.c.tex + '\\).') }
+  ]; } },
+
+{ id: 'aPunktprobe', stufe: 'f', werte: ['a', 'b'],
+  /* Stelle und Höhe müssen verschieden sein - sonst ist der Irrweg mit den
+     vertauschten Koordinaten dieselbe Gleichung wie die richtige Antwort. */
+  passt: function(v){ return v.a.tex !== v.b.tex; },
+  frage: function(v){ return pruefe(T('der Punkt ' + punktT('P', v.a, v.b) + ' auf dem Graphen von \\(f\\) liegt.',
+                                      'the point ' + punktT('P', v.a, v.b) + ' lies on the graph of \\(f\\).'),
+                                    'the point ' + punktT('P', v.a, v.b) + ' lies on the graph of \\(f\\).'); },
+  bed: function(v){ return [Bed('\\(f(' + v.a.tex + ') = ' + v.b.tex + '\\)',
+                                beidseitig(kombi('f(#a)=#b', { a: v.a.txt, b: v.b.txt }))) ]; },
+  warum: function(v){ return T('Die erste Koordinate ist die Stelle, die zweite die Höhe: einsetzen und vergleichen.',
+                               'The first coordinate is the point, the second the height: substitute and compare.'); },
+  falsch: function(v){ return [
+    { tex: '\\(f(' + v.b.tex + ') = ' + v.a.tex + '\\)', grund: T('Die Koordinaten sind vertauscht – zuerst kommt die Stelle.',
+                                                                  'The coordinates are swapped – the point comes first.') },
+    { tex: '\\(f(x) = ' + v.b.tex + '\\)', grund: T('Lösen muss man nichts: die Stelle \\(' + v.a.tex + '\\) steht schon da.',
+                                                    'Nothing needs solving: the point \\(' + v.a.tex + '\\) is already given.') },
+    { tex: '\\(f(' + v.a.tex + ') = 0\\)', grund: T('Das prüft eine Nullstelle, nicht den gegebenen Punkt.',
+                                                    'That checks for a zero, not for the given point.') }
+  ]; } },
+
+{ id: 'aSchnittGraphen', stufe: 'f',
+  frage: function(){ return bestimme(T('die Stellen, an denen sich die Graphen von \\(f\\) und \\(g\\) schneiden.',
+                                       'the points where the graphs of \\(f\\) and \\(g\\) meet.'),
+                                     'the points where the graphs of \\(f\\) and \\(g\\) meet.'); },
+  bed: function(){ return [Bed('\\(f(x) = g(x)\\)',
+                               beidseitig(['f(x)=g(x)', 'f(x)-g(x)=0'])) ]; },
+  warum: function(){ return T('Im Schnittpunkt haben beide dieselbe Höhe – also setzt man die Funktionswerte gleich.',
+                              'At an intersection both have the same height – so you set the function values equal.'); },
+  falsch: function(){ return [
+    { tex: '\\(f(x) = 0\\)',        grund: T('Das sind die Nullstellen von \\(f\\) allein.',
+                                             'Those are the zeros of \\(f\\) alone.') },
+    { tex: '\\(f\'(x) = g\'(x)\\)', grund: T('Damit findet man Stellen gleicher Steigung, nicht gleicher Höhe.',
+                                             'That finds points of equal slope, not of equal height.') },
+    { tex: '\\(f(x) \\cdot g(x) = 0\\)', grund: T('Das wären die Nullstellen beider Funktionen zusammen.',
+                                                  'Those would be the zeros of both functions together.') }
+  ]; } },
+
+/* ═══ mit f′ ═══════════════════════════════════════════════════════════ */
+{ id: 'aSteigung', stufe: 'f1', werte: ['x'],
+  frage: function(v){ return bestimme(T('die Steigung des Graphen von \\(f\\) ', 'the slope of the graph of \\(f\\) ') + stelleT(v.x) + '.',
+                                      'the slope of the graph of \\(f\\) ' + stelleT(v.x) + '.'); },
+  bed: function(v){ return [Bed('\\(f\'(' + v.x.tex + ')\\)',
+                                kombi("f'(#x)", { x: v.x.txt })
+                                  .concat(kombi("m=f'(#x)", { x: v.x.txt }))) ]; },
+  warum: function(v){ return T('Die Ableitung gibt die Steigung an – gefragt ist ihr Wert an dieser Stelle.',
+                               'The derivative gives the slope – you want its value at that point.'); },
+  falsch: function(v){ return [
+    { tex: '\\(f(' + v.x.tex + ')\\)',     grund: T('Das ist die Höhe dort, nicht die Steigung.',
+                                                    'That is the height there, not the slope.') },
+    { tex: '\\(f\'(x) = ' + v.x.tex + '\\)', grund: T('So sucht man Stellen mit der Steigung \\(' + v.x.tex + '\\) – hier ist die Stelle gegeben.',
+                                                      'That looks for points with slope \\(' + v.x.tex + '\\) – here the point is given.') },
+    { tex: '\\(f\'(' + v.x.tex + ') = 0\\)', grund: T('Das prüft nur, ob die Tangente waagerecht ist.',
+                                                      'That only checks whether the tangent is horizontal.') }
+  ]; } },
+
+{ id: 'aExtremKand', stufe: 'f1',
+  frage: function(){ return bestimme(T('die Kandidaten für die Extremstellen von \\(f\\).',
+                                       'the candidates for the stationary points of \\(f\\).'),
+                                     'the candidates for the stationary points of \\(f\\).'); },
+  bed: function(){ return [Bed('\\(f\'(x) = 0\\)', beidseitig(["f'(x)=0"])) ]; },
+  warum: function(){ return T('An einem Hoch- oder Tiefpunkt verläuft die Tangente waagerecht, die Steigung ist also \\(0\\).',
+                              'At a maximum or minimum the tangent is horizontal, so the slope is \\(0\\).'); },
+  falsch: function(){ return [
+    { tex: '\\(f(x) = 0\\)',   grund: T('Das sind die Nullstellen – die haben mit Extremstellen nichts zu tun.',
+                                        'Those are the zeros – they have nothing to do with stationary points.') },
+    { tex: '\\(f\'\'(x) = 0\\)', grund: T('Damit findet man Kandidaten für Wendestellen.',
+                                          'That finds candidates for points of inflection.') },
+    { tex: '\\(f\'(x) > 0\\)', grund: T('Das beschreibt Monotonie, nicht einzelne Stellen.',
+                                        'That describes monotonicity, not single points.') }
+  ]; } },
+
+{ id: 'aWaagerecht', stufe: 'f1',
+  frage: function(){ return bestimme(T('die Stellen, an denen der Graph von \\(f\\) eine waagerechte Tangente hat.',
+                                       'the points where the graph of \\(f\\) has a horizontal tangent.'),
+                                     'the points where the graph of \\(f\\) has a horizontal tangent.'); },
+  bed: function(){ return [Bed('\\(f\'(x) = 0\\)', beidseitig(["f'(x)=0"])) ]; },
+  warum: function(){ return T('Waagerecht heißt Steigung \\(0\\) – und die Steigung steht in \\(f\'\\).',
+                              'Horizontal means slope \\(0\\) – and the slope is what \\(f\'\\) gives.'); },
+  falsch: function(){ return [
+    { tex: '\\(f(x) = 0\\)',    grund: T('Das sind die Nullstellen, also Schnittpunkte mit der \\(x\\)-Achse.',
+                                         'Those are the zeros, i.e. where the graph meets the \\(x\\)-axis.') },
+    { tex: '\\(f\'(x) = 1\\)',  grund: T('Steigung \\(1\\) heißt \\(45°\\), nicht waagerecht.',
+                                         'Slope \\(1\\) means \\(45°\\), not horizontal.') },
+    { tex: '\\(f\'\'(x) = 0\\)', grund: T('Das gehört zu den Wendestellen.',
+                                          'That belongs to points of inflection.') }
+  ]; } },
+
+{ id: 'aSteigungStellen', stufe: 'f1', werte: ['m'],
+  frage: function(v){ var s = mitVar('m', v.m);
+                      return bestimme(T('die Stellen, an denen der Graph von \\(f\\) die Steigung ' + s + ' hat.',
+                                        'the points where the graph of \\(f\\) has slope ' + s + '.'),
+                                      'the points where the graph of \\(f\\) has slope ' + s + '.'); },
+  bed: function(v){ return [Bed('\\(f\'(x) = ' + v.m.tex + '\\)',
+                                beidseitig(kombi("f'(x)=#m", { m: v.m.txt }))) ]; },
+  warum: function(v){ return T('Gesucht sind die \\(x\\), für die die Ableitung den Wert \\(' + v.m.tex + '\\) annimmt – also eine Gleichung.',
+                               'You want the \\(x\\) for which the derivative takes the value \\(' + v.m.tex + '\\) – so an equation.'); },
+  falsch: function(v){ return [
+    { tex: '\\(f\'(' + v.m.tex + ')\\)', grund: T('So setzt man \\(' + v.m.tex + '\\) als Stelle ein – gegeben ist aber die Steigung.',
+                                                  'That substitutes \\(' + v.m.tex + '\\) as the point – but the slope is what is given.') },
+    { tex: '\\(f(x) = ' + v.m.tex + '\\)', grund: T('Damit sucht man Stellen mit der Höhe \\(' + v.m.tex + '\\).',
+                                                    'That looks for points at height \\(' + v.m.tex + '\\).') },
+    { tex: '\\(f\'(x) = 0\\)', grund: T('Das wäre nur der Sonderfall der waagerechten Tangente.',
+                                        'That would only be the special case of a horizontal tangent.') }
+  ]; } },
+
+{ id: 'aMonotonieStelle', stufe: 'f1', werte: ['x'],
+  frage: function(v){ return untersuche(T('das Monotonieverhalten von \\(f\\) ', 'the monotonicity of \\(f\\) ') + stelleT(v.x) + '.',
+                                        'the monotonicity of \\(f\\) ' + stelleT(v.x) + '.'); },
+  bed: function(v){ return [Bed(T('Vorzeichen von \\(f\'(' + v.x.tex + ')\\)',
+                                  'sign of \\(f\'(' + v.x.tex + ')\\)'),
+                                kombi("f'(#x)", { x: v.x.txt })
+                                  .concat(kombi("vorzeichenvonf'(#x)", { x: v.x.txt }))
+                                  .concat(kombi("vzvonf'(#x)", { x: v.x.txt }))
+                                  .concat(kombi("f'(#x)>0", { x: v.x.txt }))
+                                  .concat(kombi("f'(#x)<0", { x: v.x.txt })),
+                                T('Es genügt \\(f\'(' + v.x.tex + ')\\) – entscheidend ist das Vorzeichen.',
+                                  'Just \\(f\'(' + v.x.tex + ')\\) is enough – the sign is what matters.')) ]; },
+  warum: function(v){ return T('Ist \\(f\'(' + v.x.tex + ') > 0\\), steigt der Graph dort; ist er negativ, fällt er. Man braucht also nur das Vorzeichen der Ableitung an dieser Stelle.',
+                               'If \\(f\'(' + v.x.tex + ') > 0\\) the graph is rising there; if it is negative, it is falling. So you only need the sign of the derivative at that point.'); },
+  /* Alle Möglichkeiten sind gleich formuliert - sonst fiele die richtige
+     schon dadurch auf, dass nur sie mit Worten anfängt. */
+  falsch: function(v){ var x = v.x.tex; return [
+    { tex: T('Vorzeichen von \\(f(' + x + ')\\)', 'sign of \\(f(' + x + ')\\)'),
+      grund: T('Das sagt, ob der Graph oberhalb der \\(x\\)-Achse liegt – nicht, ob er steigt.',
+               'That says whether the graph is above the \\(x\\)-axis – not whether it is rising.') },
+    { tex: T('Vorzeichen von \\(f\'\'(' + x + ')\\)', 'sign of \\(f\'\'(' + x + ')\\)'),
+      grund: T('Das Vorzeichen der zweiten Ableitung beschreibt die Krümmung.',
+               'The sign of the second derivative describes the curvature.') },
+    { tex: T('Vorzeichenwechsel von \\(f\'\\) bei \\(' + x + '\\)', 'sign change of \\(f\'\\) at \\(' + x + '\\)'),
+      grund: T('Damit prüft man, ob dort eine Extremstelle liegt – gefragt ist nur, ob der Graph steigt oder fällt.',
+               'That checks whether there is a stationary point – you are only asked whether the graph rises or falls.') }
+  ]; } },
+
+{ id: 'aTangente', stufe: 'f1', werte: ['x'],
+  frage: function(v){ return bestimme(T('die Gleichung der Tangente an den Graphen von \\(f\\) ', 'the equation of the tangent to the graph of \\(f\\) ') + stelleT(v.x) + '.',
+                                      'the equation of the tangent to the graph of \\(f\\) ' + stelleT(v.x) + '.'); },
+  bed: function(v){ var x = v.x.tex; return [
+    Bed('\\(t(x) = f\'(' + x + ') \\cdot (x - ' + x + ') + f(' + x + ')\\)',
+        kombi("t(x)=f'(#x)*(x-#x)+f(#x)", { x: v.x.txt })
+          .concat(kombi("t(x)=f'(#x)(x-#x)+f(#x)", { x: v.x.txt }))
+          .concat(kombi("y=f'(#x)*(x-#x)+f(#x)", { x: v.x.txt }))
+          .concat(kombi("f'(#x)*(x-#x)+f(#x)", { x: v.x.txt })),
+        anr('Punkt-Steigungs-Form; \\(\\cdot\\) darfst du weglassen.',
+            'Punkt-Steigungs-Form; \\(\\cdot\\) dürfen Sie weglassen.',
+            'Point-slope form; you may leave out the \\(\\cdot\\).')) ]; },
+  warum: function(v){ return T('Die Tangente geht durch den Punkt \\((' + v.x.tex + '\\,|\\,f(' + v.x.tex + '))\\) und hat dort die Steigung \\(f\'(' + v.x.tex + ')\\) – das ist genau die Punkt-Steigungs-Form.',
+                               'The tangent passes through \\((' + v.x.tex + '\\,|\\,f(' + v.x.tex + '))\\) and has slope \\(f\'(' + v.x.tex + ')\\) there – exactly the point-slope form.'); },
+  /* Alle Irrwege sind genauso lang wie die richtige Antwort - sonst wäre
+     sie schon daran zu erkennen, dass nur eine Zeile lang ist. */
+  falsch: function(v){ var x = v.x.tex; return [
+    { tex: '\\(t(x) = f(' + x + ') \\cdot (x - ' + x + ') + f\'(' + x + ')\\)',
+      grund: T('Steigung und Höhe sind vertauscht: die Steigung gehört vor die Klammer.',
+               'Slope and height are swapped: the slope belongs in front of the bracket.') },
+    { tex: '\\(t(x) = f\'(' + x + ') \\cdot x + f(' + x + ')\\)',
+      grund: T('Hier fehlt das Verschieben: ohne \\((x - ' + x + ')\\) geht die Gerade nicht durch den richtigen Punkt.',
+               'The shift is missing: without \\((x - ' + x + ')\\) the line does not pass through the right point.') },
+    { tex: '\\(t(x) = f\'(x) \\cdot (x - ' + x + ') + f(' + x + ')\\)',
+      grund: T('Die Steigung muss die Zahl \\(f\'(' + x + ')\\) sein – mit \\(f\'(x)\\) wäre die Tangente keine Gerade.',
+               'The slope has to be the number \\(f\'(' + x + ')\\) – with \\(f\'(x)\\) the tangent would not be a straight line.') }
+  ]; } },
+
+{ id: 'aExtremNachweis', stufe: 'f1', werte: ['x'],
+  frage: function(v){ return weise(T('\\(f\\) ' + stelleT(v.x) + ' eine Extremstelle hat.',
+                                     '\\(f\\) has a stationary point ' + stelleT(v.x) + '.'),
+                                   '\\(f\\) has a stationary point ' + stelleT(v.x) + '.'); },
+  bed: function(v){
+    var x = v.x.tex;
+    var erst = Bed('\\(f\'(' + x + ') = 0\\)', beidseitig(kombi("f'(#x)=0", { x: v.x.txt })));
+    if (haken('stufeF2'))
+      return [erst, Bed('\\(f\'\'(' + x + ') \\neq 0\\)',
+                        beidseitig(kombi("f''(#x)!=0", { x: v.x.txt })))];
+    return [erst, Bed(T('Vorzeichenwechsel von \\(f\'\\) bei \\(' + x + '\\)',
+                        'sign change of \\(f\'\\) at \\(' + x + '\\)'),
+                      kombi("vzwvonf'bei#x", { x: v.x.txt })
+                        .concat(kombi("vzwf'(#x)", { x: v.x.txt }))
+                        .concat(['vzw', "vorzeichenwechselvonf'"])
+                        .concat(kombi("vorzeichenwechselvonf'bei#x", { x: v.x.txt })),
+                      vzwHinweis())];
+  },
+  warum: function(v){
+    var x = v.x.tex;
+    return haken('stufeF2')
+      ? T('Waagerechte Tangente allein genügt nicht – erst das notwendige \\(f\'(' + x + ') = 0\\) zusammen mit dem hinreichenden \\(f\'\'(' + x + ') \\neq 0\\) macht aus dem Kandidaten eine Extremstelle.',
+          'A horizontal tangent alone is not enough – only the necessary \\(f\'(' + x + ') = 0\\) together with the sufficient \\(f\'\'(' + x + ') \\neq 0\\) turns the candidate into a stationary point.')
+      : T('Ohne zweite Ableitung argumentiert man über das Vorzeichen: \\(f\'(' + x + ') = 0\\), und \\(f\'\\) wechselt dort das Vorzeichen.',
+          'Without the second derivative you argue via the sign: \\(f\'(' + x + ') = 0\\), and \\(f\'\\) changes sign there.');
+  },
+  /* Zwei Bedingungen – also sind auch alle Irrwege zweiteilig. */
+  falsch: function(v){
+    var x = v.x.tex, u = T(' und ', ' and ');
+    if (haken('stufeF2')) return [
+      { tex: '\\(f(' + x + ') = 0\\)' + u + '\\(f\'(' + x + ') \\neq 0\\)',
+        grund: T('Das prüft eine Nullstelle, keine Extremstelle.',
+                 'That checks for a zero, not for a stationary point.') },
+      { tex: '\\(f\'(' + x + ') = 0\\)' + u + '\\(f\'\'(' + x + ') = 0\\)',
+        grund: T('Mit \\(f\'\'(' + x + ') = 0\\) wäre es gerade keine Extremstelle, sondern ein Kandidat für eine Wendestelle.',
+                 'With \\(f\'\'(' + x + ') = 0\\) it would precisely not be a stationary point, but a candidate for inflection.') },
+      { tex: '\\(f\'\'(' + x + ') = 0\\)' + u + '\\(f\'\'\'(' + x + ') \\neq 0\\)',
+        grund: T('Das ist der Nachweis einer Wendestelle, eine Ableitung zu spät.',
+                 'That is the proof of a point of inflection, one derivative too late.') }
+    ];
+    return [
+      { tex: '\\(f(' + x + ') = 0\\)' + u + T('Vorzeichenwechsel von \\(f\\)', 'sign change of \\(f\\)'),
+        grund: T('Das prüft eine Nullstelle, keine Extremstelle.',
+                 'That checks for a zero, not for a stationary point.') },
+      { tex: '\\(f\'(' + x + ') = 0\\)' + u + T('kein Vorzeichenwechsel von \\(f\'\\)', 'no sign change of \\(f\'\\)'),
+        grund: T('Genau umgekehrt: ohne Vorzeichenwechsel wäre es ein Sattelpunkt.',
+                 'Exactly the other way round: without a sign change it would be a saddle point.') },
+      { tex: '\\(f\'(' + x + ') \\neq 0\\)' + u + T('Vorzeichenwechsel von \\(f\'\\)', 'sign change of \\(f\'\\)'),
+        grund: T('An einer Extremstelle ist die Steigung gerade \\(0\\).',
+                 'At a stationary point the slope is exactly \\(0\\).') }
+    ];
+  } },
+
+{ id: 'aHochpunktNachweis', stufe: 'f1', werte: ['a', 'b'], punkt: 'H',
+  frage: function(v){ return weise(T('es sich bei ' + punktT(v.pname, v.a, v.b) + ' um einen ' + (v.pname === 'H' ? 'Hochpunkt' : 'Tiefpunkt') + ' von \\(f\\) handelt.',
+                                     punktT(v.pname, v.a, v.b) + ' is a ' + (v.pname === 'H' ? 'maximum' : 'minimum') + ' point of \\(f\\).'),
+                                   punktT(v.pname, v.a, v.b) + ' is a ' + (v.pname === 'H' ? 'maximum' : 'minimum') + ' point of \\(f\\).'); },
+  bed: function(v){
+    var a = v.a.tex, hoch = (v.pname === 'H');
+    var raus = [Bed('\\(f\'(' + a + ') = 0\\)', beidseitig(kombi("f'(#a)=0", { a: v.a.txt })))];
+    if (haken('stufeF2'))
+      raus.push(Bed('\\(f\'\'(' + a + ')' + (hoch ? ' < ' : ' > ') + '0\\)',
+                    beidseitig(kombi("f''(#a)" + (hoch ? '<' : '>') + "0", { a: v.a.txt }))));
+    else
+      raus.push(Bed(T('Vorzeichenwechsel von \\(f\'\\) bei \\(' + a + '\\) ' + (hoch ? 'von \\(+\\) nach \\(-\\)' : 'von \\(-\\) nach \\(+\\)'),
+                      'sign change of \\(f\'\\) at \\(' + a + '\\) ' + (hoch ? 'from \\(+\\) to \\(-\\)' : 'from \\(-\\) to \\(+\\)')),
+                    kombi("vzwvonf'bei#a", { a: v.a.txt }).concat(['vzw', "vorzeichenwechselvonf'"]),
+                    vzwHinweis()));
+    raus.push(Bed('\\(f(' + a + ') = ' + v.b.tex + '\\)',
+                  beidseitig(kombi('f(#a)=#b', { a: v.a.txt, b: v.b.txt }))));
+    return raus;
+  },
+  warum: function(v){
+    var a = v.a.tex, hoch = (v.pname === 'H');
+    return T('Zum Punkt gehören drei Dinge: waagerechte Tangente, die richtige Krümmung – ' +
+             (hoch ? 'bei einem Hochpunkt \\(f\'\'(' + a + ') < 0\\)' : 'bei einem Tiefpunkt \\(f\'\'(' + a + ') > 0\\)') +
+             ' – und dass die angegebene Höhe wirklich stimmt.',
+             'Three things belong to the point: a horizontal tangent, the right curvature – ' +
+             (hoch ? 'for a maximum \\(f\'\'(' + a + ') < 0\\)' : 'for a minimum \\(f\'\'(' + a + ') > 0\\)') +
+             ' – and that the stated height really is correct.');
+  },
+  /* Drei Bedingungen – also sind auch alle Irrwege dreiteilig. */
+  falsch: function(v){
+    var a = v.a.tex, bb = v.b.tex, hoch = (v.pname === 'H'), u = T(' und ', ' and ');
+    var zweit = haken('stufeF2')
+      ? ['\\(f\'\'(' + a + ')' + (hoch ? ' > ' : ' < ') + '0\\)',
+         '\\(f\'\'(' + a + ') = 0\\)',
+         '\\(f\'\'(' + a + ')' + (hoch ? ' < ' : ' > ') + '0\\)']
+      : [T('Vorzeichenwechsel von \\(f\'\\) ' + (hoch ? 'von \\(-\\) nach \\(+\\)' : 'von \\(+\\) nach \\(-\\)'),
+           'sign change of \\(f\'\\) ' + (hoch ? 'from \\(-\\) to \\(+\\)' : 'from \\(+\\) to \\(-\\)')),
+         T('kein Vorzeichenwechsel von \\(f\'\\)', 'no sign change of \\(f\'\\)'),
+         T('Vorzeichenwechsel von \\(f\'\\)', 'sign change of \\(f\'\\)')];
+    return [
+      { tex: '\\(f\'(' + a + ') = 0\\)' + u + zweit[0] + u + '\\(f(' + a + ') = ' + bb + '\\)',
+        grund: T('Das Vorzeichen ist verdreht – so käme ein ' + (hoch ? 'Tiefpunkt' : 'Hochpunkt') + ' heraus.',
+                 'The sign is the wrong way round – that would give a ' + (hoch ? 'minimum' : 'maximum') + '.') },
+      { tex: '\\(f\'(' + a + ') = 0\\)' + u + zweit[1] + u + '\\(f(' + a + ') = ' + bb + '\\)',
+        grund: T('Damit wäre es ein Kandidat für eine Wendestelle, kein ' + (hoch ? 'Hochpunkt' : 'Tiefpunkt') + '.',
+                 'That would make it a candidate for inflection, not a ' + (hoch ? 'maximum' : 'minimum') + '.') },
+      { tex: '\\(f(' + a + ') = 0\\)' + u + zweit[2] + u + '\\(f(' + bb + ') = ' + a + '\\)',
+        grund: T('Zwei Fehler auf einmal: oben steht die Nullstellen-Bedingung, und am Ende sind die Koordinaten vertauscht.',
+                 'Two mistakes at once: the first line is the condition for a zero, and at the end the coordinates are swapped.') }
+    ];
+  } },
+
+/* ═══ mit f″ ═══════════════════════════════════════════════════════════ */
+{ id: 'aKruemmungStelle', stufe: 'f2', werte: ['x'],
+  frage: function(v){ return untersuche(T('die Krümmung des Graphen von \\(f\\) ', 'the curvature of the graph of \\(f\\) ') + stelleT(v.x) + '.',
+                                        'the curvature of the graph of \\(f\\) ' + stelleT(v.x) + '.'); },
+  bed: function(v){ return [Bed(T('Vorzeichen von \\(f\'\'(' + v.x.tex + ')\\)',
+                                  'sign of \\(f\'\'(' + v.x.tex + ')\\)'),
+                                kombi("f''(#x)", { x: v.x.txt })
+                                  .concat(kombi("vorzeichenvonf''(#x)", { x: v.x.txt }))
+                                  .concat(kombi("f''(#x)>0", { x: v.x.txt }))
+                                  .concat(kombi("f''(#x)<0", { x: v.x.txt })),
+                                T('Es genügt \\(f\'\'(' + v.x.tex + ')\\) – entscheidend ist das Vorzeichen.',
+                                  'Just \\(f\'\'(' + v.x.tex + ')\\) is enough – the sign is what matters.')) ]; },
+  warum: function(v){ return T('Ist \\(f\'\'(' + v.x.tex + ') > 0\\), ist der Graph dort linksgekrümmt, sonst rechtsgekrümmt.',
+                               'If \\(f\'\'(' + v.x.tex + ') > 0\\) the graph curves to the left there, otherwise to the right.'); },
+  falsch: function(v){ var x = v.x.tex; return [
+    { tex: T('Vorzeichen von \\(f\'(' + x + ')\\)', 'sign of \\(f\'(' + x + ')\\)'),
+      grund: T('Das Vorzeichen der ersten Ableitung beschreibt Steigen und Fallen.',
+               'The sign of the first derivative describes rising and falling.') },
+    { tex: T('Vorzeichen von \\(f(' + x + ')\\)', 'sign of \\(f(' + x + ')\\)'),
+      grund: T('Das sagt nur, dass der Graph dort oberhalb oder unterhalb der \\(x\\)-Achse liegt.',
+               'That only says the graph is above or below the \\(x\\)-axis there.') },
+    { tex: T('Vorzeichenwechsel von \\(f\'\'\\) bei \\(' + x + '\\)', 'sign change of \\(f\'\'\\) at \\(' + x + '\\)'),
+      grund: T('Damit prüft man eine Wendestelle – gefragt ist nur, wie der Graph dort gekrümmt ist.',
+               'That checks for a point of inflection – you are only asked how the graph is curved there.') }
+  ]; } },
+
+{ id: 'aKruemmungBereich', stufe: 'f2',
+  frage: function(){ return bestimme(T('die Bereiche, in denen der Graph von \\(f\\) linksgekrümmt ist.',
+                                       'the intervals on which the graph of \\(f\\) curves to the left.'),
+                                     'the intervals on which the graph of \\(f\\) curves to the left.'); },
+  bed: function(){ return [Bed('\\(f\'\'(x) > 0\\)', beidseitig(["f''(x)>0"])) ]; },
+  warum: function(){ return T('Linkskrümmung heißt: die zweite Ableitung ist dort durchgehend positiv.',
+                              'Curving to the left means the second derivative is positive throughout.'); },
+  falsch: function(){ return [
+    { tex: '\\(f\'(x) > 0\\)',   grund: T('Das beschreibt Steigen, nicht Krümmung.',
+                                          'That describes rising, not curvature.') },
+    { tex: '\\(f\'\'(x) = 0\\)', grund: T('Das liefert nur die Grenzen zwischen den Bereichen.',
+                                          'That only gives the boundaries between the intervals.') },
+    { tex: '\\(f\'\'(x) < 0\\)', grund: T('Das ist die Rechtskrümmung – andersherum.',
+                                          'That is curving to the right – the other way round.') }
+  ]; } },
+
+{ id: 'aWendeKand', stufe: 'f2',
+  frage: function(){ return bestimme(T('die Kandidaten für die Wendestellen von \\(f\\).',
+                                       'the candidates for the points of inflection of \\(f\\).'),
+                                     'the candidates for the points of inflection of \\(f\\).'); },
+  bed: function(){ return [Bed('\\(f\'\'(x) = 0\\)', beidseitig(["f''(x)=0"])) ]; },
+  warum: function(){ return T('An einer Wendestelle wechselt die Krümmung – die zweite Ableitung muss dort \\(0\\) sein.',
+                              'At a point of inflection the curvature changes – the second derivative has to be \\(0\\) there.'); },
+  falsch: function(){ return [
+    { tex: '\\(f\'(x) = 0\\)', grund: T('Damit findet man Kandidaten für Extremstellen.',
+                                        'That finds candidates for stationary points.') },
+    { tex: '\\(f(x) = 0\\)',   grund: T('Das sind die Nullstellen.', 'Those are the zeros.') },
+    { tex: '\\(f\'\'(x) \\neq 0\\)', grund: T('Das ist gerade die Bedingung dafür, dass es keine Wendestelle ist.',
+                                              'That is precisely the condition for it not to be a point of inflection.') }
+  ]; } },
+
+{ id: 'aWendeNachweis', stufe: 'f2', werte: ['x'],
+  frage: function(v){ return weise(T('\\(f\\) ' + stelleT(v.x) + ' eine Wendestelle hat.',
+                                     '\\(f\\) has a point of inflection ' + stelleT(v.x) + '.'),
+                                   '\\(f\\) has a point of inflection ' + stelleT(v.x) + '.'); },
+  bed: function(v){ var x = v.x.tex; return [
+    Bed('\\(f\'\'(' + x + ') = 0\\)', beidseitig(kombi("f''(#x)=0", { x: v.x.txt }))),
+    Bed('\\(f\'\'\'(' + x + ') \\neq 0\\)',
+        beidseitig(kombi("f'''(#x)!=0", { x: v.x.txt }))
+          .concat(kombi("vzwvonf''bei#x", { x: v.x.txt }))
+          .concat(['vzw', "vorzeichenwechselvonf''"]),
+        anr('Statt \\(f\'\'\'\\) darfst du auch den Vorzeichenwechsel von \\(f\'\'\\) nennen („VZW").',
+            'Statt \\(f\'\'\'\\) dürfen Sie auch den Vorzeichenwechsel von \\(f\'\'\\) nennen („VZW").',
+            'Instead of \\(f\'\'\'\\) you may also name the sign change of \\(f\'\'\\) (“VZW”).'))
+  ]; },
+  warum: function(v){ var x = v.x.tex; return T('\\(f\'\'(' + x + ') = 0\\) ist notwendig; dass die Krümmung dort wirklich wechselt, zeigt \\(f\'\'\'(' + x + ') \\neq 0\\) – oder der Vorzeichenwechsel von \\(f\'\'\\).',
+                                                '\\(f\'\'(' + x + ') = 0\\) is necessary; that the curvature really changes is shown by \\(f\'\'\'(' + x + ') \\neq 0\\) – or by the sign change of \\(f\'\'\\).'); },
+  falsch: function(v){ var x = v.x.tex, u = T(' und ', ' and '); return [
+    { tex: '\\(f\'(' + x + ') = 0\\)' + u + '\\(f\'\'(' + x + ') \\neq 0\\)',
+      grund: T('Das ist der Nachweis einer Extremstelle, eine Ableitung zu früh.',
+               'That is the proof of a stationary point, one derivative too early.') },
+    { tex: '\\(f\'\'(' + x + ') \\neq 0\\)' + u + '\\(f\'\'\'(' + x + ') = 0\\)',
+      grund: T('Beide Bedingungen sind verdreht: an einer Wendestelle ist \\(f\'\'\\) gerade \\(0\\).',
+               'Both conditions are inverted: at a point of inflection \\(f\'\'\\) is exactly \\(0\\).') },
+    { tex: '\\(f(' + x + ') = 0\\)' + u + '\\(f\'\'(' + x + ') = 0\\)',
+      grund: T('Die erste Bedingung prüft eine Nullstelle und hat mit der Wendestelle nichts zu tun.',
+               'The first condition checks for a zero and has nothing to do with inflection.') }
+  ]; } },
+
+{ id: 'aWendepunktNachweis', stufe: 'f2', werte: ['a', 'b'], punkt: 'W',
+  frage: function(v){ return weise(T('es sich bei ' + punktT('W', v.a, v.b) + ' um einen Wendepunkt von \\(f\\) handelt.',
+                                     punktT('W', v.a, v.b) + ' is an inflection point of \\(f\\).'),
+                                   punktT('W', v.a, v.b) + ' is an inflection point of \\(f\\).'); },
+  bed: function(v){ var a = v.a.tex; return [
+    Bed('\\(f\'\'(' + a + ') = 0\\)', beidseitig(kombi("f''(#a)=0", { a: v.a.txt }))),
+    Bed('\\(f\'\'\'(' + a + ') \\neq 0\\)',
+        beidseitig(kombi("f'''(#a)!=0", { a: v.a.txt }))
+          .concat(['vzw', "vorzeichenwechselvonf''"]),
+        anr('Statt \\(f\'\'\'\\) darfst du auch den Vorzeichenwechsel von \\(f\'\'\\) nennen („VZW").',
+            'Statt \\(f\'\'\'\\) dürfen Sie auch den Vorzeichenwechsel von \\(f\'\'\\) nennen („VZW").',
+            'Instead of \\(f\'\'\'\\) you may also name the sign change of \\(f\'\'\\) (“VZW”).')),
+    Bed('\\(f(' + a + ') = ' + v.b.tex + '\\)',
+        beidseitig(kombi('f(#a)=#b', { a: v.a.txt, b: v.b.txt })))
+  ]; },
+  warum: function(v){ return T('Wie beim Hochpunkt gehören drei Dinge dazu: die Wendebedingung, der Nachweis, dass die Krümmung wirklich wechselt, und die Höhe des angegebenen Punktes.',
+                               'As with a maximum point, three things belong to it: the inflection condition, the proof that the curvature really changes, and the height of the given point.'); },
+  falsch: function(v){ var a = v.a.tex, bb = v.b.tex, u = T(' und ', ' and '); return [
+    { tex: '\\(f\'(' + a + ') = 0\\)' + u + '\\(f\'\'(' + a + ') \\neq 0\\)' + u + '\\(f(' + a + ') = ' + bb + '\\)',
+      grund: T('Das wäre der Nachweis eines Hoch- oder Tiefpunkts, eine Ableitung zu früh.',
+               'That would be the proof of a maximum or minimum, one derivative too early.') },
+    { tex: '\\(f\'\'(' + a + ') \\neq 0\\)' + u + '\\(f\'\'\'(' + a + ') = 0\\)' + u + '\\(f(' + a + ') = ' + bb + '\\)',
+      grund: T('Die ersten beiden Bedingungen sind verdreht: an einem Wendepunkt ist \\(f\'\'\\) gerade \\(0\\).',
+               'The first two conditions are inverted: at an inflection point \\(f\'\'\\) is exactly \\(0\\).') },
+    { tex: '\\(f\'\'(' + a + ') = 0\\)' + u + '\\(f\'\'\'(' + a + ') \\neq 0\\)' + u + '\\(f(' + bb + ') = ' + a + '\\)',
+      grund: T('Fast – nur sind am Ende die Koordinaten vertauscht.',
+               'Almost – only the coordinates at the end are swapped.') }
+  ]; } }
+
+];
+
+var ART_NACH_ID = {};
+ANSAETZE.forEach(function(a){ ART_NACH_ID[a.id] = a; });
+
+/* ══ Der kleinschrittige Satz (zweite Hilfestufe) ══════════════════════
+   Nicht die Formel, sondern was man der Reihe nach tut.               */
+var SAETZE = {
+  aYAchse: function(){ return T('Für \\(x\\) die Zahl \\(0\\) in die Funktionsgleichung einsetzen und ausrechnen – das Ergebnis ist der \\(y\\)-Wert des Schnittpunkts.',
+                                'Substitute \\(0\\) for \\(x\\) in the function and work it out – the result is the \\(y\\)-value of the intercept.'); },
+  aFunktionswert: function(v){ return T('\\(x = ' + v.x.tex + '\\) in die Funktionsgleichung einsetzen und ausrechnen.',
+                                        'Substitute \\(x = ' + v.x.tex + '\\) into the function and work it out.'); },
+  aNullstellen: function(){ return T('Die Funktionsgleichung gleich \\(0\\) setzen und diese Gleichung nach \\(x\\) lösen.',
+                                     'Set the function equal to \\(0\\) and solve that equation for \\(x\\).'); },
+  aNullstellePruefen: function(v){ return T('\\(x = ' + v.x.tex + '\\) in die Funktionsgleichung einsetzen, ausrechnen und nachsehen, ob \\(0\\) herauskommt.',
+                                            'Substitute \\(x = ' + v.x.tex + '\\) into the function, work it out and see whether you get \\(0\\).'); },
+  aHoehe: function(v){ return T('Die Funktionsgleichung gleich \\(' + v.c.tex + '\\) setzen und nach \\(x\\) lösen.',
+                                'Set the function equal to \\(' + v.c.tex + '\\) and solve for \\(x\\).'); },
+  aPunktprobe: function(v){ return T('Die erste Koordinate \\(' + v.a.tex + '\\) einsetzen, ausrechnen und nachsehen, ob die zweite Koordinate \\(' + v.b.tex + '\\) herauskommt.',
+                                     'Substitute the first coordinate \\(' + v.a.tex + '\\), work it out and see whether you get the second coordinate \\(' + v.b.tex + '\\).'); },
+  aSchnittGraphen: function(){ return T('Beide Funktionsgleichungen gleichsetzen und die entstehende Gleichung nach \\(x\\) lösen.',
+                                        'Set the two functions equal and solve the resulting equation for \\(x\\).'); },
+  aSteigung: function(v){ return T('Zuerst ableiten, dann \\(x = ' + v.x.tex + '\\) in die Ableitung einsetzen und ausrechnen.',
+                                   'First differentiate, then substitute \\(x = ' + v.x.tex + '\\) into the derivative and work it out.'); },
+  aExtremKand: function(){ return T('Ableiten, die Ableitung gleich \\(0\\) setzen und diese Gleichung nach \\(x\\) lösen.',
+                                    'Differentiate, set the derivative equal to \\(0\\) and solve that equation for \\(x\\).'); },
+  aWaagerecht: function(){ return T('Ableiten, die Ableitung gleich \\(0\\) setzen und nach \\(x\\) lösen – waagerecht heißt Steigung \\(0\\).',
+                                    'Differentiate, set the derivative equal to \\(0\\) and solve for \\(x\\) – horizontal means slope \\(0\\).'); },
+  aSteigungStellen: function(v){ return T('Ableiten, die Ableitung gleich \\(' + v.m.tex + '\\) setzen und nach \\(x\\) lösen.',
+                                          'Differentiate, set the derivative equal to \\(' + v.m.tex + '\\) and solve for \\(x\\).'); },
+  aMonotonieStelle: function(v){ return T('Ableiten, \\(x = ' + v.x.tex + '\\) in die Ableitung einsetzen und nur auf das Vorzeichen schauen: positiv heißt steigend, negativ fallend.',
+                                          'Differentiate, substitute \\(x = ' + v.x.tex + '\\) into the derivative and look only at the sign: positive means rising, negative falling.'); },
+  aTangente: function(v){ var x = v.x.tex; return T('Die Steigung \\(f\'(' + x + ')\\) und die Höhe \\(f(' + x + ')\\) ausrechnen und beides in \\(t(x) = m \\cdot (x - ' + x + ') + b\\) einsetzen.',
+                                                    'Work out the slope \\(f\'(' + x + ')\\) and the height \\(f(' + x + ')\\) and put both into \\(t(x) = m \\cdot (x - ' + x + ') + b\\).'); },
+  aExtremNachweis: function(v){ var x = v.x.tex;
+    return haken('stufeF2')
+      ? T('\\(x = ' + x + '\\) in die erste Ableitung einsetzen und zeigen, dass \\(0\\) herauskommt; dann dieselbe Stelle in die zweite Ableitung einsetzen und zeigen, dass dort nicht \\(0\\) herauskommt.',
+          'Substitute \\(x = ' + x + '\\) into the first derivative and show you get \\(0\\); then substitute the same point into the second derivative and show you do not get \\(0\\).')
+      : T('\\(x = ' + x + '\\) in die erste Ableitung einsetzen und zeigen, dass \\(0\\) herauskommt; dann links und rechts davon das Vorzeichen der Ableitung vergleichen – es muss wechseln.',
+          'Substitute \\(x = ' + x + '\\) into the first derivative and show you get \\(0\\); then compare the sign of the derivative to the left and to the right – it has to change.'); },
+  aHochpunktNachweis: function(v){ var a = v.a.tex, hoch = (v.pname === 'H');
+    return T('Drei Dinge zeigen: \\(f\'(' + a + ')\\) ist \\(0\\); die zweite Ableitung ist dort ' +
+             (hoch ? 'negativ' : 'positiv') + '; und \\(f(' + a + ')\\) ergibt wirklich \\(' + v.b.tex + '\\).',
+             'Show three things: \\(f\'(' + a + ')\\) is \\(0\\); the second derivative there is ' +
+             (hoch ? 'negative' : 'positive') + '; and \\(f(' + a + ')\\) really gives \\(' + v.b.tex + '\\).'); },
+  aKruemmungStelle: function(v){ return T('Zweimal ableiten, \\(x = ' + v.x.tex + '\\) einsetzen und nur auf das Vorzeichen schauen: positiv heißt linksgekrümmt, negativ rechtsgekrümmt.',
+                                          'Differentiate twice, substitute \\(x = ' + v.x.tex + '\\) and look only at the sign: positive means curving left, negative curving right.'); },
+  aKruemmungBereich: function(){ return T('Zweimal ableiten und die Ungleichung \\(f\'\'(x) > 0\\) lösen.',
+                                          'Differentiate twice and solve the inequality \\(f\'\'(x) > 0\\).'); },
+  aWendeKand: function(){ return T('Zweimal ableiten, die zweite Ableitung gleich \\(0\\) setzen und nach \\(x\\) lösen.',
+                                   'Differentiate twice, set the second derivative equal to \\(0\\) and solve for \\(x\\).'); },
+  aWendeNachweis: function(v){ var x = v.x.tex; return T('\\(x = ' + x + '\\) in die zweite Ableitung einsetzen und zeigen, dass \\(0\\) herauskommt; dann mit der dritten Ableitung (oder dem Vorzeichenwechsel von \\(f\'\'\\)) zeigen, dass die Krümmung dort wirklich wechselt.',
+                                                         'Substitute \\(x = ' + x + '\\) into the second derivative and show you get \\(0\\); then use the third derivative (or the sign change of \\(f\'\'\\)) to show that the curvature really changes there.'); },
+  aWendepunktNachweis: function(v){ var a = v.a.tex; return T('Drei Dinge zeigen: \\(f\'\'(' + a + ')\\) ist \\(0\\); die dritte Ableitung ist dort nicht \\(0\\); und \\(f(' + a + ')\\) ergibt wirklich \\(' + v.b.tex + '\\).',
+                                                              'Show three things: \\(f\'\'(' + a + ')\\) is \\(0\\); the third derivative there is not \\(0\\); and \\(f(' + a + ')\\) really gives \\(' + v.b.tex + '\\).'); }
+};
+
+/* ══ Spickzettel ═══════════════════════════════════════════════════════
+   Die Begriffe, die man hier dauernd braucht. Was zu f′ und f″ gehört,
+   steht nur da, wenn auch solche Aufgaben vorkommen.                  */
+function spickEintraege(){
+  var mitF1 = ARTEN_F1.some(function(id){ return haken('stufeF1') && haken(id); });
+  var mitF2 = ARTEN_F2.some(function(id){ return haken('stufeF2') && haken(id); });
+  var e = [
+    [T('Stelle', 'point'),            T('ein \\(x\\)-Wert', 'an \\(x\\)-value')],
+    [T('Funktionswert', 'value'),     T('der \\(y\\)-Wert, also \\(f(x)\\)', 'the \\(y\\)-value, i.e. \\(f(x)\\)')],
+    [T('Höhe', 'height'),             T('dasselbe wie der Funktionswert', 'the same as the value')],
+    [T('Punkt', 'point'),             T('beides: \\((x\\,|\\,y)\\)', 'both: \\((x\\,|\\,y)\\)')],
+    [T('Nullstelle', 'zero'),         T('Stelle mit \\(f(x) = 0\\)', 'where \\(f(x) = 0\\)')]
+  ];
+  if (mitF1) e = e.concat([
+    [T('Steigung', 'slope'),          T('\\(f\'\\), die erste Ableitung', '\\(f\'\\), the first derivative')],
+    [T('waagerecht', 'horizontal'),   T('Steigung \\(0\\), also \\(f\'(x) = 0\\)', 'slope \\(0\\), i.e. \\(f\'(x) = 0\\)')],
+    [T('Extremstelle', 'stationary'), T('dort kehrt sich die Steigung um: aus Steigen wird Fallen oder umgekehrt',
+                                        'the slope reverses there: rising turns into falling or the other way round')]
+  ]);
+  if (mitF2) e = e.concat([
+    [T('Krümmung', 'curvature'),      T('\\(f\'\'\\), die zweite Ableitung', '\\(f\'\'\\), the second derivative')],
+    [T('Wendestelle', 'inflection'),  T('dort kehrt sich die Krümmung um: aus links wird rechts oder umgekehrt',
+                                        'the curvature reverses there: left turns into right or the other way round')]
+  ]);
+  e.push([T('Kandidat', 'candidate'), T('erfüllt die notwendige Bedingung – bewiesen ist damit nichts',
+                                        'satisfies the necessary condition – nothing is proved yet')]);
+  return e;
+}
+function spickMalen(){
+  var d = document.getElementById('dSpick'), liste = document.getElementById('spickListe');
+  if (!d || !liste) return;
+  d.hidden = !haken('mitSpick');
+  if (d.hidden) return;
+  liste.innerHTML = spickEintraege().map(function(p){
+    return '<div class="spick-zeile"><span class="spick-wort">' + p[0] + '</span>'
+         + '<span class="spick-was">' + p[1] + '</span></div>';
+  }).join('');
+  mj(liste);
+}
+
+/* ── 4. Aufgabe würfeln ─────────────────────────────────────────────────── */
+function stufeAn(stufe){
+  return haken(stufe === 'f' ? 'stufeF' : (stufe === 'f1' ? 'stufeF1' : 'stufeF2'));
+}
+function moeglicheArten(){
+  return ANSAETZE.filter(function(a){ return stufeAn(a.stufe) && haken(a.id); });
+}
+/* Die zuletzt gezogenen Arten, die neueste zuerst. Aufgaben ohne
+   Zufallswerte sehen jedes Mal gleich aus - die sollen nicht kurz
+   hintereinander wiederkommen, auch nicht mit einer Aufgabe dazwischen. */
+var VERLAUF = [];
+function merkeArt(id){
+  VERLAUF.unshift(id);
+  if (VERLAUF.length > 8) VERLAUF.length = 8;
+}
+/** Wie weit zurück darf nichts wiederholt werden? Höchstens so weit, dass
+    immer noch etwas übrig bleibt. */
+function sperrTiefe(anzahl){
+  return Math.max(0, Math.min(anzahl - 1, 4));
+}
+function neueAufgabe(){
+  var moeglich = moeglicheArten();
+  if (!moeglich.length){
+    /* Nichts ausgewählt: statt einer leeren Seite ein freundlicher Hinweis. */
+    A = null;
+    document.getElementById('task').innerHTML =
+      T('Oben ist gerade keine Ansatzart ausgewählt – wähle mindestens eine aus.',
+        'No kind of approach is selected above – please pick at least one.');
+    document.getElementById('antwortBereich').innerHTML = '';
+    document.getElementById('loesung').innerHTML = '';
+    document.getElementById('weg').innerHTML = '';
+    kachelnMalen();
+    return;
+  }
+  var gesperrt = VERLAUF.slice(0, sperrTiefe(moeglich.length));
+  var frei = moeglich.filter(function(a){ return gesperrt.indexOf(a.id) < 0; });
+  var art = pick(frei.length ? frei : moeglich);
+  merkeArt(art.id);
+  HILFE = 0;
+  A = aufgabeBauen(art);
+  zeichne();
+}
+function aufgabeBauen(art, vorgabe){
+  var v = {};
+  /* Manche Arten brauchen Zahlen, die sich unterscheiden: bei der Punktprobe
+     wäre sonst der Irrweg „f(b) = a" wörtlich die richtige Antwort, sobald
+     a und b gleich gewürfelt werden. Darum darf eine Art sagen, welche
+     Zahlen für sie taugen - passt sie nicht, wird neu gewürfelt. */
+  for (var versuch = 0; versuch < 40; versuch++){
+    v = {};
+    (art.werte || []).forEach(function(k){ v[k] = wuerfelZahl(); });
+    if (!art.passt || art.passt(v)) break;
+  }
+  if (art.punkt) v.pname = (art.punkt === 'H') ? (coin() ? 'H' : 'Tp') : art.punkt;
+  if (vorgabe) Object.keys(vorgabe).forEach(function(k){ v[k] = vorgabe[k]; });
+  /* Ein Punktname mit zwei Zeichen wird im Text als T geschrieben. */
+  if (v.pname === 'Tp') v.pname = 'T';
+  var code = (art.werte || []).map(function(k){ return v[k].n + ':' + v[k].d; }).join(',')
+           + (art.punkt ? '|' + v.pname : '');
+  return { art: art, v: v, code: code, bed: art.bed(v), offen: true };
+}
+/** Eine Aufgabe aus der Adresszeile. */
+function aufgabeAusURL(){
+  var t = new URLSearchParams(location.search).get('t');
+  if (!t) return false;
+  var i = t.indexOf('_');
+  var id = (i < 0) ? t : t.slice(0, i);
+  var rest = (i < 0) ? '' : t.slice(i + 1);
+  var art = ART_NACH_ID[id];
+  if (!art) return false;
+  var teil = rest.split('|');
+  var zahlen = teil[0] ? teil[0].split(',') : [];
+  var v = {};
+  (art.werte || []).forEach(function(k, nr){
+    var p = (zahlen[nr] || '').split(':');
+    var n = parseFloat(p[0]), d = parseFloat(p[1]);
+    v[k] = (isFinite(n) && isFinite(d) && d !== 0) ? Zahl(n, d) : wuerfelZahl();
+  });
+  if (art.punkt) v.pname = teil[1] || art.punkt;
+  A = aufgabeBauen(art, v);
+  zeichne();
+  return true;
+}
+
+/* ── 5. Zeichnen ────────────────────────────────────────────────────────── */
+var mjKette = null;
+function mj(node){
+  if (!node) return;
+  var nachmessen = function(){
+    if (window.scaleToFit) node.querySelectorAll('.scale-el').forEach(function(e){ scaleToFit(e); });
+  };
+  if (!(window.MathJax && MathJax.typesetPromise)){ nachmessen(); return; }
+  mjKette = (mjKette || Promise.resolve()).then(function(){
+    var t = node.textContent || '';
+    if (t.indexOf('\\(') < 0 && t.indexOf('\\[') < 0) return null;
+    return MathJax.typesetPromise([node]);
+  }).then(function(){
+    nachmessen();
+    if (window.abFormelnPassen) abFormelnPassen(node);
+  }).catch(function(){});
+}
+function zeichne(){
+  if (!A) return;
+  /* Die Bedingungen hängen an Einstellungen (f″ an oder aus, Hilfestufe),
+     also beim Zeichnen neu bestimmen. */
+  A.bed = A.art.bed(A.v);
+  document.getElementById('task').innerHTML = A.art.frage(A.v);
+  hilfeZeichnen();
+  loesungZeichnen();
+  antwortZeichnen();
+  spickMalen();
+  var d = document.getElementById('dLoesung'); if (d) d.open = false;
+  if (window.abKachelAktuell) abKachelAktuell(document.getElementById('segStufen'), A.art.id, true);
+  mj(document.getElementById('taskBox'));
+  punkteMalen();
+}
+function hilfeZeichnen(){
+  var h = document.getElementById('hilfeText');
+  if (!h) return;
+  if (!A || HILFE < 2){ h.innerHTML = ''; return; }
+  var satz = SAETZE[A.art.id];
+  h.innerHTML = satz ? ('<b>' + T('Schritt für Schritt: ', 'Step by step: ') + '</b>' + satz(A.v)) : '';
+  mj(h);
+}
+function bedListeHTML(bed){
+  var mehrere = bed.length > 1;
+  return '<div class="bed-liste">' + bed.map(function(b, i){
+    return '<div class="ka-bed">' + (mehrere ? '<span class="bed-nr">(' + (i + 1) + ')</span> ' : '')
+         + formelText(b.tex) + '</div>';
+  }).join('') + '</div>';
+}
+function loesungZeichnen(){
+  var l = document.getElementById('loesung'), w = document.getElementById('weg');
+  if (!l || !A) return;
+  l.innerHTML = bedListeHTML(A.bed);
+  w.innerHTML = '<p class="ka-warum">' + A.art.warum(A.v) + '</p>';
+  mj(document.getElementById('dLoesung'));
+}
+
+/* ── 6. Die drei Antwortarten ───────────────────────────────────────────── */
+function modus(){ return radioWert('modus') || STD.modus; }
+function antwortGemeldet(ok){
+  if (!(window.abAutoAn && abAutoAn())) return;
+  if (window.abBlitz) abBlitz(ok);
+  if (ok && window.abAutoBald) abAutoBald();
+}
+var punkteTyp = {};
+function punkteMalen(){
+  var c = document.getElementById('counter');
+  if (c) c.textContent = T('Richtig: ', 'Correct: ') + richtig + ' / ' + gesamt;
+  /* Auf den Kacheln steht der Stand der ganzen Gruppe - gezählt wird aber je
+     Ansatzart. Also hier zusammenzählen. */
+  var proGruppe = {};
+  [['stufeF', ARTEN_F], ['stufeF1', ARTEN_F1], ['stufeF2', ARTEN_F2]].forEach(function(g){
+    var ok = 0, n = 0;
+    g[1].forEach(function(id){
+      var w = punkteTyp[id];
+      if (w){ ok += w.ok; n += w.n; }
+    });
+    if (n) proGruppe[g[0]] = { ok: ok, n: n };
+  });
+  if (window.abKachelZaehler) abKachelZaehler(document.getElementById('segStufen'), proGruppe);
+}
+function zaehle(ok){
+  gesamt++; if (ok) richtig++;
+  var id = A && A.art && A.art.id;
+  if (id){
+    if (!punkteTyp[id]) punkteTyp[id] = { ok: 0, n: 0 };
+    punkteTyp[id].n++; if (ok) punkteTyp[id].ok++;
+  }
+  punkteMalen();
+  antwortGemeldet(ok);
+}
+
+/** Eine Eingabe auf die Form bringen, in der verglichen wird. */
+function norm(s){
+  return String(s == null ? '' : s).toLowerCase()
+    .replace(/\\[,;!]/g, '')
+    .replace(/[·⋅×∙]/g, '*')
+    .replace(/[–—−]/g, '-')
+    .replace(/[‘’′]/g, "'")
+    .replace(/″/g, "''")
+    .replace(/‴/g, "'''")
+    .replace(/≠/g, '!=').replace(/<>/g, '!=')
+    .replace(/≥/g, '>=').replace(/≤/g, '<=')
+    .replace(/\s+/g, '')
+    .replace(/,/g, '.')
+    .replace(/^vorzeichenwechsel/, 'vzw')
+    .replace(/vorzeichen/g, 'vz')
+    .replace(/\.$/, '');
+}
+/** Mehrere Bedingungen in einem Feld: „… und …" trennen. */
+function teileEingabe(roh){
+  return String(roh == null ? '' : roh)
+    .split(/\s+und\s+|\s+and\s+|;|&&|&/i)
+    .map(function(s){ return s.trim(); })
+    .filter(Boolean);
+}
+function passt(eingabe, bed){
+  var e = norm(eingabe);
+  if (!e) return false;
+  for (var i = 0; i < bed.ok.length; i++) if (norm(bed.ok[i]) === e) return true;
+  return false;
+}
+/** Steht die Eingabe in der Liste der üblichen Irrwege? Dann gibt es den
+    passenden Hinweis statt einer allgemeinen Absage. */
+function irrwegZu(eingabe){
+  var e = norm(eingabe);
+  if (!e || !A) return null;
+  var treffer = null;
+  A.art.falsch(A.v).concat(vorratIrrwege(A.v)).forEach(function(f){
+    if (treffer) return;
+    /* Ein mehrteiliger Irrweg wird auch Stück für Stück erkannt. */
+    var teile = String(f.tex).split(/\\\)\s*(?:und|and)\s*\\\(/);
+    var ganz = norm(texRoh(f.tex));
+    if (ganz === e){ treffer = f; return; }
+    if (teile.length > 1){
+      teile.forEach(function(t, i){
+        if (treffer) return;
+        var s = t;
+        if (i > 0) s = '\\(' + s;
+        if (i < teile.length - 1) s = s + '\\)';
+        if (norm(texRoh(s)) === e) treffer = f;
+      });
+    }
+  });
+  return treffer;
+}
+
+function antwortZeichnen(){
+  var host = document.getElementById('antwortBereich');
+  host.innerHTML = ''; host.className = '';
+  if (!A) return;
+  var m = modus();
+  if (m === 'karte') karteBauen(host);
+  else if (m === 'frei') freitextBauen(host);
+  else wahlBauen(host);
+  hilfeKnopfBauen(host);
+  mj(host);
+}
+/* ── Hilfe in zwei Stufen ─────────────────────────────────────────────
+   1. Zur Formel kommt die Tätigkeit, und die Aufgabe wird ausführlich
+      formuliert ("an der Stelle x = 3" statt "an der Stelle 3").
+   2. Zusätzlich steht unter der Aufgabe in Worten, was zu tun ist.   */
+function hilfeKnopfBauen(host){
+  if (!A) return;
+  var zeile = document.createElement('div');
+  zeile.className = 'hilfe-zeile';
+  var b = document.createElement('button');
+  b.type = 'button'; b.className = 'btn-secondary hilfe-knopf';
+  b.innerHTML = (HILFE === 0) ? T('Hilfe', 'Help')
+              : (HILFE === 1) ? T('Mehr Hilfe', 'More help')
+                              : T('Mehr geht nicht', 'That is all the help there is');
+  b.disabled = (HILFE >= 2) || !SAETZE[A.art.id];
+  if (HILFE >= 1 && !SAETZE[A.art.id]) b.innerHTML = T('Mehr geht nicht', 'That is all the help there is');
+  b.addEventListener('click', function(){
+    if (HILFE >= 2) return;
+    HILFE++;
+    zeichne();
+  });
+  zeile.appendChild(b);
+  host.appendChild(zeile);
+}
+
+/* ── Karteikarten ─────────────────────────────────────────────────────── */
+function karteBauen(host){
+  host.className = 'pg-antwort';
+  var karte = document.createElement('div');
+  karte.className = 'ka-karte';
+  var zeile = document.createElement('div');
+  zeile.className = 'ka-hinweis';
+  zeile.innerHTML = anr('Überlege dir den Ansatz – dann umdrehen.',
+                        'Überlegen Sie sich den Ansatz – dann umdrehen.',
+                        'Think of the approach – then flip the card.');
+  var knopf = document.createElement('button');
+  knopf.type = 'button';
+  knopf.innerHTML = T('Umdrehen', 'Flip');
+  karte.appendChild(zeile);
+  karte.appendChild(knopf);
+  host.appendChild(karte);
+
+  knopf.addEventListener('click', function(){
+    karte.innerHTML = '';
+    var rueck = document.createElement('div');
+    rueck.className = 'ka-rueck';
+    rueck.innerHTML = bedListeHTML(A.bed);
+    var warum = document.createElement('div');
+    warum.className = 'ka-warum';
+    warum.innerHTML = A.art.warum(A.v);
+    karte.appendChild(rueck);
+    karte.appendChild(warum);
+    var jn = document.createElement('div');
+    jn.className = 'pg-jn';
+    [[T('Wusste ich', 'I knew it'), true], [T('Noch nicht', 'Not yet'), false]].forEach(function(p){
+      var b = document.createElement('button');
+      b.type = 'button'; b.className = 'pg-wahl-knopf';
+      b.innerHTML = p[1] ? ('✓ ' + p[0]) : ('✗ ' + p[0]);
+      b.addEventListener('click', function(){
+        [].forEach.call(jn.children, function(x){ x.disabled = true; });
+        b.classList.add(p[1] ? 'ok' : 'err');
+        zaehle(p[1]);
+      });
+      jn.appendChild(b);
+    });
+    karte.appendChild(jn);
+    mj(karte);
+  });
+}
+
+/* ── Freitext ─────────────────────────────────────────────────────────── */
+var ZEICHEN = ["f'", "f''", '=', '≠', '>', '<', '(', ')'];
+function freitextBauen(host){
+  host.className = 'pg-antwort';
+  var n = A.bed.length;
+  var frage = document.createElement('div');
+  frage.className = 'pg-frage';
+  frage.innerHTML = (n === 1)
+    ? anr('Schreibe den Ansatz auf:', 'Schreiben Sie den Ansatz auf:', 'Write down the approach:')
+    : anr('Schreibe alle ' + n + ' Bedingungen auf – die Reihenfolge ist egal:',
+          'Schreiben Sie alle ' + n + ' Bedingungen auf – die Reihenfolge ist egal:',
+          'Write down all ' + n + ' conditions – the order does not matter:');
+  host.appendChild(frage);
+
+  var felder = [];
+  for (var i = 0; i < n; i++){
+    var z = document.createElement('div');
+    z.className = 'ft-zeile';
+    if (n > 1){
+      var nr = document.createElement('span');
+      nr.className = 'ft-nr'; nr.textContent = '(' + (i + 1) + ')';
+      z.appendChild(nr);
+    }
+    var inp = document.createElement('input');
+    inp.type = 'text'; inp.className = 'ft-feld';
+    inp.autocomplete = 'off'; inp.spellcheck = false;
+    inp.setAttribute('aria-label', T('Bedingung ', 'Condition ') + (i + 1));
+    inp.placeholder = (i === 0) ? T("z. B. f(x) = 0", 'e.g. f(x) = 0') : '';
+    var mark = document.createElement('span');
+    mark.className = 'ft-mark';
+    z.appendChild(inp); z.appendChild(mark);
+    host.appendChild(z);
+    felder.push({ inp: inp, mark: mark });
+  }
+
+  /* Zeichen, die sich auf der Tastatur schlecht tippen lassen. */
+  var zeile = document.createElement('div');
+  zeile.className = 'ft-zeichen';
+  ZEICHEN.forEach(function(z){
+    var b = document.createElement('button');
+    b.type = 'button'; b.className = 'btn-secondary';
+    b.textContent = z;
+    b.addEventListener('click', function(){
+      var ziel = document.activeElement;
+      if (!ziel || !ziel.classList || !ziel.classList.contains('ft-feld')) ziel = felder[0].inp;
+      var a = ziel.selectionStart == null ? ziel.value.length : ziel.selectionStart;
+      var e = ziel.selectionEnd == null ? a : ziel.selectionEnd;
+      ziel.value = ziel.value.slice(0, a) + z + ziel.value.slice(e);
+      try { ziel.focus(); ziel.setSelectionRange(a + z.length, a + z.length); } catch (x) {}
+    });
+    zeile.appendChild(b);
+  });
+  host.appendChild(zeile);
+
+  if (haken('mitHinweis')){
+    var tipp = document.createElement('div');
+    tipp.className = 'ft-tipp';
+    var extra = A.bed.map(function(b){ return b.hinweis; }).filter(Boolean);
+    tipp.innerHTML = T('Schreibweise: <code>f\'(3)=0</code>, <code>f\'\'(x)&gt;0</code>, Ungleich als <code>!=</code>, Brüche als <code>1/2</code>. Leerzeichen sind egal.',
+                       'How to type it: <code>f\'(3)=0</code>, <code>f\'\'(x)&gt;0</code>, “not equal” as <code>!=</code>, fractions as <code>1/2</code>. Spaces do not matter.')
+      + (extra.length ? ' ' + extra.join(' ') : '');
+    host.appendChild(tipp);
+  }
+
+  var fb = document.createElement('div');
+  fb.className = 'pg-fb';
+  var knoepfe = document.createElement('div');
+  knoepfe.className = 'ft-knoepfe';
+  var pruefen = document.createElement('button');
+  pruefen.type = 'button';
+  pruefen.innerHTML = T('Prüfen', 'Check');
+  var zeigen = document.createElement('button');
+  zeigen.type = 'button'; zeigen.className = 'btn-secondary';
+  zeigen.innerHTML = T('Ansatz zeigen', 'Show the approach');
+  knoepfe.appendChild(pruefen); knoepfe.appendChild(zeigen);
+  host.appendChild(knoepfe);
+  host.appendChild(fb);
+
+  var erledigt = false;
+  function pruefeAlles(){
+    if (erledigt) return;
+    /* Alle Eingaben einsammeln - auch mehrere in einem Feld. */
+    var eingaben = [];
+    felder.forEach(function(f){ teileEingabe(f.inp.value).forEach(function(s){ eingaben.push(s); }); });
+    var offen = A.bed.slice();
+    var getroffen = new Array(A.bed.length).fill(false);
+    eingaben.forEach(function(e){
+      for (var i = 0; i < A.bed.length; i++){
+        if (!getroffen[i] && passt(e, A.bed[i])){ getroffen[i] = true; return; }
+      }
+    });
+    var alle = getroffen.every(Boolean);
+    /* Rückmeldung an den Feldern: pro Feld, ob seine Eingabe irgendwo passte */
+    felder.forEach(function(f, i){
+      var teile = teileEingabe(f.inp.value);
+      var gut = teile.length > 0 && teile.every(function(t){
+        return A.bed.some(function(b){ return passt(t, b); });
+      });
+      f.inp.classList.toggle('ok', gut);
+      f.inp.classList.toggle('err', !gut && teile.length > 0);
+      f.mark.textContent = teile.length ? (gut ? '✓' : '✗') : '';
+    });
+    if (alle){
+      erledigt = true;
+      fb.className = 'pg-fb ok';
+      fb.innerHTML = T('✓ Richtig!', '✓ Correct!');
+      felder.forEach(function(f){ f.inp.disabled = true; });
+      pruefen.disabled = true;
+      zaehle(true);
+    } else {
+      fb.className = 'pg-fb err';
+      var fehlen = A.bed.length - getroffen.filter(Boolean).length;
+      /* Zu den üblichen Irrwegen gibt es denselben Hinweis wie bei den
+         Antwortmöglichkeiten - sonst steht man hier ohne Erklärung da. */
+      var hinweis = null;
+      eingaben.forEach(function(e){
+        if (hinweis) return;
+        if (A.bed.some(function(bb){ return passt(e, bb); })) return;
+        var f = irrwegZu(e);
+        if (f) hinweis = f.grund;
+      });
+      if (hinweis){
+        fb.innerHTML = T('Das ist ein typischer Irrweg: ', 'That is a common wrong turn: ') + hinweis;
+      } else if (A.bed.length > 1 && fehlen < A.bed.length){
+        fb.innerHTML = T('Noch nicht alles – es fehlen ' + fehlen + ' von ' + A.bed.length + ' Bedingungen.',
+                         'Not quite – ' + fehlen + ' of ' + A.bed.length + ' conditions are still missing.');
+      } else {
+        fb.innerHTML = anr('Das stimmt noch nicht. Sieh dir den Ansatz an oder versuch es noch einmal.',
+                           'Das stimmt noch nicht. Sehen Sie sich den Ansatz an oder versuchen Sie es noch einmal.',
+                           'That is not right yet. Look at the approach or try again.');
+      }
+      mj(fb);
+    }
+  }
+  pruefen.addEventListener('click', pruefeAlles);
+  felder.forEach(function(f){
+    f.inp.addEventListener('keydown', function(ev){ if (ev.key === 'Enter') pruefeAlles(); });
+  });
+  zeigen.addEventListener('click', function(){
+    if (!erledigt){ erledigt = true; zaehle(false); }
+    var d = document.getElementById('dLoesung');
+    if (d){ d.open = true; mj(d); }
+  });
+  setTimeout(function(){ try { felder[0].inp.focus(); } catch (e) {} }, 0);
+}
+
+/* ── Antwortmöglichkeiten ─────────────────────────────────────────────── */
+/** Die richtige Antwort als ein Stück Text - bei mehreren Bedingungen mit „und". */
+function richtigeAntwortTex(){
+  if (A.bed.length === 1) return A.bed[0].tex;
+  return A.bed.map(function(b){ return b.tex; }).join(T(' und ', ' and '));
+}
+function mischen(a){
+  var r = a.slice();
+  for (var i = r.length - 1; i > 0; i--){ var j = Math.floor(Math.random() * (i + 1)); var h = r[i]; r[i] = r[j]; r[j] = h; }
+  return r;
+}
+/** Kommt in einer Antwort eine Ableitung vor, die gar nicht gewählt ist? */
+function passtZurAuswahl(tex){
+  var s = texRoh(tex);
+  if (!haken('stufeF1') && /f'[^']/.test(s + ' ')) return false;
+  if (!haken('stufeF2') && /f''/.test(s)) return false;
+  return true;
+}
+/* Fällt ein Irrweg weg, weil er eine abgewählte Ableitung nennt, rückt
+   einer aus diesem Vorrat nach - er kommt mit f allein aus. */
+function vorratIrrwege(v){
+  var z = (v && v.x) || (v && v.a) || (v && v.c) || (v && v.m) || Zahl(1);
+  return [
+    /* zuerst eine wortreiche Möglichkeit: wo die richtige Antwort mit
+       Worten anfängt, soll sie nicht die einzige bleiben */
+    { tex: T('Vorzeichen von \\(f(' + z.tex + ')\\)', 'sign of \\(f(' + z.tex + ')\\)'),
+      grund: T('Das sagt nur, ob der Graph dort oberhalb oder unterhalb der \\(x\\)-Achse liegt.',
+               'That only says whether the graph is above or below the \\(x\\)-axis there.') },
+    { tex: '\\(f(x) = 0\\)', grund: T('Das sind die Nullstellen – hier nicht gefragt.',
+                                      'Those are the zeros – not what is asked here.') },
+    { tex: '\\(f(0)\\)', grund: T('Das ist der Schnittpunkt mit der \\(y\\)-Achse.',
+                                  'That is the intercept with the \\(y\\)-axis.') },
+    { tex: '\\(x = ' + z.tex + '\\)', grund: T('Das ist keine Bedingung an \\(f\\), sondern nur eine Stelle.',
+                                               'That is not a condition on \\(f\\), just a point.') },
+    { tex: '\\(f(x) = x\\)', grund: T('Damit sucht man Stellen, an denen Höhe und Stelle übereinstimmen.',
+                                      'That looks for points where the height equals the point itself.') }
+  ];
+}
+function wahlBauen(host){
+  host.className = 'pg-antwort';
+  var frage = document.createElement('div');
+  frage.className = 'pg-frage';
+  frage.innerHTML = T('Welcher Ansatz passt?', 'Which approach fits?');
+  host.appendChild(frage);
+
+  var richtigTex = richtigeAntwortTex();
+  /* Irrwege, die eine abgewählte Ableitung nennen, fallen weg. */
+  var falsch = A.art.falsch(A.v).filter(function(f){ return passtZurAuswahl(f.tex); });
+  if (falsch.length < 3){
+    vorratIrrwege(A.v).forEach(function(f){
+      if (falsch.length >= 3) return;
+      if (!passtZurAuswahl(f.tex)) return;
+      if (texRoh(f.tex) === texRoh(richtigTex)) return;
+      if (falsch.some(function(g){ return texRoh(g.tex) === texRoh(f.tex); })) return;
+      falsch.push(f);
+    });
+  }
+  falsch = falsch.slice(0, 3);
+  var roh = [{ tex: richtigTex, gut: true }].concat(
+    falsch.map(function(f){ return { tex: f.tex, grund: f.grund, gut: false }; }));
+  /* Die Reihenfolge wird einmal gewuerfelt und dann festgehalten: beim
+     Einblenden der Hilfe wird der Antwortteil neu gebaut (die Formeln
+     bekommen dann die Taetigkeit dazu), und dabei duerfen die Knoepfe
+     nicht ihre Plaetze tauschen - man sucht sonst von vorn. */
+  if (!A.mischung || A.mischung.length !== roh.length)
+    A.mischung = mischen(roh.map(function(x, i){ return i; }));
+  var optionen = A.mischung.map(function(i){ return roh[i]; });
+  /* Die Reihenfolge merken - daran haengt auch der Test. */
+  A.optionen = optionen;
+
+  var liste = document.createElement('div');
+  liste.className = 'mc-liste';
+  var fb = document.createElement('div');
+  fb.className = 'pg-fb';
+  var fertig = false;
+  optionen.forEach(function(o){
+    var b = document.createElement('button');
+    b.type = 'button'; b.className = 'mc-knopf';
+    b.innerHTML = formelText(o.tex);
+    b.addEventListener('click', function(){
+      if (b.disabled || fertig) return;
+      if (o.gut){
+        fertig = true;
+        b.classList.add('ok');
+        fb.className = 'pg-fb ok';
+        fb.innerHTML = T('✓ Richtig! ', '✓ Correct! ') + A.art.warum(A.v);
+        [].forEach.call(liste.children, function(x){ x.disabled = true; });
+        zaehle(true);
+      } else {
+        b.classList.add('err');
+        b.disabled = true;
+        if (o.grund){
+          var g = document.createElement('span');
+          g.className = 'mc-grund';
+          g.innerHTML = o.grund;
+          b.appendChild(g);
+        }
+        fb.className = 'pg-fb err';
+        fb.innerHTML = anr('Das ist ein typischer Irrweg – probier es noch einmal.',
+                           'Das ist ein typischer Irrweg – versuchen Sie es noch einmal.',
+                           'That is a common wrong turn – have another go.');
+        zaehle(false);
+      }
+      mj(fb); mj(b);
+    });
+    liste.appendChild(b);
+  });
+  host.appendChild(liste);
+  host.appendChild(fb);
+}
+
+/* ── 7. Verdrahtung ─────────────────────────────────────────────────────── */
+var KACHELN = [
+  { haupt: 'stufeF',  subs: ARTEN_F },
+  { haupt: 'stufeF1', subs: ARTEN_F1 },
+  { haupt: 'stufeF2', subs: ARTEN_F2 }
+];
+function kachelnMalen(){
+  var host = document.getElementById('segStufen');
+  if (window.abKachelnMalen) abKachelnMalen(host);
+  /* Unter dem Buchstaben steht genau eine Zeile. Sind alle Unterpunkte an,
+     genügt „alle" - sonst stehen die Kurzformen da, und zu viel davon
+     schneidet die Zeile selbst ab. */
+  [['stufeF', ARTEN_F], ['stufeF1', ARTEN_F1], ['stufeF2', ARTEN_F2]].forEach(function(g){
+    var b = host ? host.querySelector('.tile[data-t="' + g[0] + '"]') : null;
+    var u = b ? b.querySelector('.tsub') : null;
+    if (!u) return;
+    var an = g[1].filter(haken);
+    if (!haken(g[0])) u.textContent = T('aus', 'off');
+    else if (!an.length) u.textContent = T('nichts ausgewählt', 'nothing selected');
+    else if (an.length === g[1].length) u.textContent = T('alle', 'all');
+  });
+  var n = STUFEN_IDS.filter(haken).length;
+  var z = document.getElementById('stufenZahl');
+  if (z) z.textContent = ' (' + n + '/' + STUFEN_IDS.length + ')';
+  var alle = document.getElementById('stufenAlle');
+  if (alle) alle.textContent = (n === STUFEN_IDS.length) ? T('keine', 'none') : T('alle', 'all');
+}
+
+window.addEventListener('load', function(){
+  einstellungenSetzen(urlLesen());
+  if (window.abSeedAusURL) abSeedAusURL();
+  if (window.abKacheln) abKacheln(document.getElementById('segStufen'), KACHELN, function(){
+    kachelnMalen(); neueAufgabe();
+  });
+  kachelnMalen();
+
+  STUFEN_IDS.concat(ALLE_ARTEN).forEach(function(id){
+    var e = document.getElementById(id);
+    if (e) e.addEventListener('change', function(){ kachelnMalen(); neueAufgabe(); });
+  });
+  document.querySelectorAll('input[name="zahlArt"], input[name="anrede"], #ausfuehrlich')
+    .forEach(function(e){ e.addEventListener('change', function(){ neueAufgabe(); }); });
+  document.getElementById('mitHinweis').addEventListener('change', function(){ antwortZeichnen(); });
+  document.getElementById('mitVerb').addEventListener('change', function(){ if (A) zeichne(); });
+  document.getElementById('mitSpick').addEventListener('change', spickMalen);
+
+  /* Der Umschalter unter der Aufgabe und die Einstellung zeigen dasselbe. */
+  document.querySelectorAll('input[name="modusOben"]').forEach(function(e){
+    e.addEventListener('change', function(){
+      radioSetzen('modus', e.value);
+      antwortZeichnen();
+      if (window.abGliderAlle) abGliderAlle();
+    });
+  });
+  document.querySelectorAll('input[name="modus"]').forEach(function(e){
+    e.addEventListener('change', function(){ modusObenAbgleichen(); antwortZeichnen(); });
+  });
+
+  var diffReset = document.getElementById('diffReset');
+  if (diffReset) diffReset.addEventListener('click', function(){
+    VON_HAND = {};
+    if (window.abVonHandLoeschen) abVonHandLoeschen();
+    var st = radioWert('diff');
+    if (st && st !== 'indiv') stufeAnwenden(st);
+    obenAbgleichen();
+    neueAufgabe();
+  });
+  document.querySelectorAll('input[name="diff"]').forEach(function(e){
+    e.addEventListener('change', function(){
+      if (e.value !== 'indiv') stufeAnwenden(e.value);
+      neueAufgabe();
+      if (e.value === 'indiv' && window.abEinstellungenOeffnen) abEinstellungenOeffnen('#dSettings');
+    });
+  });
+  var alle = document.getElementById('stufenAlle');
+  if (alle) alle.addEventListener('click', function(){
+    var an = STUFEN_IDS.filter(haken).length < STUFEN_IDS.length;
+    STUFEN_IDS.forEach(function(id){ setzeHaken(id, an); });
+    if (!STUFEN_IDS.filter(haken).length) setzeHaken('stufeF', true);
+    kachelnMalen(); neueAufgabe();
+  });
+  document.getElementById('genBtn').addEventListener('click', function(){ neueAufgabe(); });
+  document.getElementById('btnShare').addEventListener('click', function(){ linkKopieren(urlSchreiben(false), this); });
+  document.getElementById('btnTeilen').addEventListener('click', function(){ linkKopieren(urlSchreiben(true), this); });
+  document.getElementById('btnReset').addEventListener('click', function(){
+    VON_HAND = {};
+    if (window.abVonHandLoeschen) abVonHandLoeschen();
+    var s = {}; Object.keys(STD).forEach(function(k){ s[k] = STD[k]; });
+    einstellungenSetzen(s); neueAufgabe();
+  });
+  document.getElementById('btnPunkteReset').addEventListener('click', function(){
+    richtig = 0; gesamt = 0; punkteTyp = {};
+    punkteMalen();
+  });
+  if (window.abAutoStart) abAutoStart({
+    an: autoAn,
+    naechste: function(){ neueAufgabe(); },
+    gemerkt: function(an){ autoAn = an; try { history.replaceState({}, '', urlSchreiben(false)); } catch (e) {} }
+  });
+  document.getElementById('dLoesung').addEventListener('toggle', function(){
+    if (this.open) mj(this);
+  });
+
+  if (!aufgabeAusURL()) neueAufgabe();
+});
+
+/* Sprach- und Themewechsel: dieselbe Aufgabe neu beschriften. */
+window.addEventListener('tl-sprache', function(){ if (A) zeichne(); kachelnMalen(); });
+
+/* Beim Klick auf „Fehler melden": Ansatzart und aktuelle Aufgabe */
+window.fehlerKontext = function(){
+  var el = document.getElementById('task');
+  var aufgabe = el ? ((typeof tlFormelText === 'function') ? tlFormelText(el) : el.innerText) : '';
+  return [A ? A.art.id : '', aufgabe].filter(Boolean).join(' \u00b7 ');
+};
+</script>
+</body>
+</html>

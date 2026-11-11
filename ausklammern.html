@@ -273,6 +273,13 @@ function einstellungenSetzen(s){
   Object.keys(STD).forEach(function(k){
     if (typeof STD[k] === 'boolean') setzeHaken(k, s[k]); else radioSetzen(k, s[k]);
   });
+  /* Zu den Kaestchen gehoeren die Haeufigkeiten derselben Stufe. Ohne das
+     stuende der Regler beim Laden auf seinem HTML-Wert und zeigte etwas
+     anderes an, als die Schwierigkeit vorsieht. Ein Fall, den die Stufe
+     ausschaltet, behaelt dabei seinen Standardwert (siehe abReglerSetzen). */
+  var stufe = STUFEN[s.diff || STD.diff];
+  if (stufe && stufe.regler && window.abReglerSetzen)
+    abReglerSetzen(reglerOhneHand(stufe.regler));
   obenAbgleichen();
   if (window.abGliderAlle) abGliderAlle();
   kachelnMalen();
@@ -281,6 +288,9 @@ function einstellungenSetzen(s){
    sie sagt weiterhin, wie schwer die Zahlen sein sollen –, überschreibt aber
    nichts mehr, was man selbst eingestellt hat. */
 var VON_HAND = {};
+/** Von Hand umgestellt? Entweder hier gemerkt (change-Ereignis) oder von
+    aufgaben.js (Kachel oder Oval, die das Kästchen unmittelbar setzen). */
+function vonHand(k){ return !!VON_HAND[k] || !!(window.abVonHand && abVonHand(k)); }
 function aufIndividuell(){ /* die Stufe bleibt, wie sie ist */ }
 function vonHandMerken(ziel){
   if (!ziel) return;
@@ -297,16 +307,24 @@ document.addEventListener('change', function(ev){
     beide Namen gelten als ‚von Hand‘. */
 function reglerOhneHand(regler){
   var raus = {};
-  Object.keys(regler || {}).forEach(function(k){
-    if (VON_HAND[k] || VON_HAND['w' + k]) return;
-    raus[k] = regler[k];
+  /* Erst alle Regler auf den Standardwert der Seite - eine Stufe bestimmt
+     die Haeufigkeiten vollstaendig, und was sie nicht nennt, soll nicht vom
+     vorherigen Zustand uebrig bleiben. */
+  document.querySelectorAll('.slider-row input[type="range"]').forEach(function(e){
+    var std = parseInt(e.getAttribute('value'), 10);
+    if (e.id && isFinite(std)) raus[e.id.slice(1)] = std;
+  });
+  Object.keys(regler || {}).forEach(function(k){ raus[k] = regler[k]; });
+  /* Von Hand gestellte Regler bleiben, wie sie stehen. */
+  Object.keys(raus).forEach(function(k){
+    if (vonHand(k) || vonHand('w' + k)) delete raus[k];
   });
   return raus;
 }
 function stufeAnwenden(stufe){
   var p = STUFEN[stufe]; if (!p) return;
   Object.keys(p).forEach(function(k){
-    if (k === 'regler' || VON_HAND[k]) return;      /* von Hand gewählt bleibt */
+    if (k === 'regler' || vonHand(k)) return;      /* von Hand gewählt bleibt */
     if (typeof p[k] === 'boolean') setzeHaken(k, p[k]); else radioSetzen(k, p[k]);
   });
   /* Die Stufe stellt auch ein, wie oft welcher Fall drankommt - aber nur
@@ -578,6 +596,22 @@ function loesAusgabe(liste, opt){
     t += ' \\quad \\text{(' + (opt.keine || T('keine Lösung', 'no solution')) + ')}';
   return t;
 }
+/** Eine Loesung als TeX. Irrationale Werte stehen als Wurzel da - ohne
+    teilweises Wurzelziehen, damit die Loesung so aussieht, wie sie aus der
+    Rechnung faellt. */
+function loesWert(x){
+  if (pgGanz(x)) return pgZahl(x);
+  var br = pgBruch(x);
+  if (br && br.d <= 100) return pgZahl(x);
+  var q = Math.round(x * x * 1e9) / 1e9;
+  if (!pgKrumm(q)) return (x < 0 ? '-' : '') + pgWurzelRoh(q);
+  return pgGerundet(x, 2);
+}
+/** Dieselbe Loesung, bei einem krummen Wert mit dem Naeherungswert dahinter. */
+function loesGenau(x){
+  var t = loesWert(x);
+  return /[\\^]/.test(t) ? pgGenau(t, x) : t;
+}
 function loesungsTeX(){
   if (A.stil === 'erkennen') return '\\text{' + (A.erkLoesbar ? T('ja', 'yes') : T('nein', 'no')) + '}';
   if (A.stil === 'einsetzen')
@@ -586,7 +620,7 @@ function loesungsTeX(){
                                                      : T(' ist keine Lösung', ' is not a solution')) + '}';
   return loesAusgabe(A.loes.map(function(x){
     /* die ausgeklammerte Potenz macht die Null mehrfach */
-    return { tex: pgZahl(x), n: vielfachheit(x) };
+    return { tex: loesGenau(x), n: vielfachheit(x) };
   }));
 }
 function loesungZeichnen(){
@@ -671,7 +705,7 @@ function wegZeichnen(){
   /* Hier führt der Weg auf eine andere Seite - und zwar mit genau diesem Term. */
   z.push(restVerweis());
   if (A.restLoes.length)
-    z.push('\\[' + A.restLoes.map(function(x, i){ return 'x_' + (i + 2) + ' = ' + pgZahl(x); }).join(' \\qquad ') + '\\]');
+    z.push('\\[' + A.restLoes.map(function(x, i){ return 'x_' + (i + 2) + ' = ' + loesGenau(x); }).join(' \\qquad ') + '\\]');
   else
     z.push('<p>' + T('Der Restterm hat keine Lösung – es bleibt nur \\(x = 0\\).',
                      'The remaining term has no solution – only x = 0 is left.') + '</p>');
@@ -767,7 +801,10 @@ function antwortZeichnen(){
     vielfach: vielfachkeiten(),
     frage: (A.stil === 'nullstelle')
       ? T('Gib alle Nullstellen von f an.', 'State all roots of f.')
-      : T('Gib alle Lösungen der Gleichung an.', 'State all solutions of the equation.'),
+      : (A.stil === 'schnitt'
+        ? T('Gib alle Stellen an, an denen sich die Graphen schneiden.',
+            'State all points where the graphs intersect.')
+        : T('Gib alle Lösungen der Gleichung an.', 'State all solutions of the equation.')),
     onFertig: function(ok){ zaehle(ok); },
     hinweis: function(anzahl, werte){
       var hatNull = werte && werte.some(function(v){ return v !== null && Math.abs(v) < 1e-9; });
@@ -845,7 +882,7 @@ function quizBauen(){
   else if (A.restTyp === 'lin' && window.pgZahlSchritt)
     schritte.push(pgZahlSchritt(T('Restterm lösen', 'Solve the remaining term'),
       T('Löse ', 'Solve ') + '\\(' + klammerTeX() + ' = 0\\).', A.restLoes[0],
-      { kurz: 'x = ' + pgZahl(A.restLoes[0]),
+      { kurz: 'x = ' + loesWert(A.restLoes[0]),
         hilfe: [T('Zahl auf die andere Seite, dann durch den Faktor teilen.',
                   'Move the number to the other side, then divide by the factor.')] }));
   else if (A.restTyp === 'biqua'){
@@ -863,7 +900,7 @@ function quizBauen(){
       schritte.push(pgZahlSchritt(T('Größte Lösung', 'Largest solution'),
         T('Wie lautet die größte Lösung des Restterms?', 'What is the largest solution of the remaining term?'),
         A.restLoes[A.restLoes.length - 1],
-        { vorFeld: 'x', kurz: 'x = ' + pgZahl(A.restLoes[A.restLoes.length - 1]),
+        { vorFeld: 'x', kurz: 'x = ' + loesWert(A.restLoes[A.restLoes.length - 1]),
           hilfe: [T('Erst die Werte für z bestimmen, dann für jeden z die Wurzel ziehen.',
                     'First find the values for z, then take the root for each of them.')] }));
   }
@@ -1027,6 +1064,17 @@ function notbehelf(){
   window.pgZahlText = function(x){ return pgGanz(x) ? String(Math.round(x)) : String(Math.round(x * 1e6) / 1e6).replace('.', ','); };
   window.pgKlammer = function(x){ return (x < 0 || !pgGanz(x)) ? '\\left(' + pgZahl(x) + '\\right)' : pgZahl(x); };
   window.pgWurzel = function(r){ var w = Math.sqrt(r); return pgGanz(w) ? String(Math.round(w)) : '\\sqrt{' + pgZahl(r) + '}'; };
+  window.pgWurzelRoh = function(r){ var w = Math.sqrt(r); return pgGanz(w) ? String(Math.round(w)) : '\\sqrt{' + pgZahl(r) + '}'; };
+  window.pgKrumm = function(x){
+    if (typeof x !== 'number' || !isFinite(x) || pgGanz(x)) return false;
+    var b = pgBruch(x);
+    return !(b && b.d <= 100);
+  };
+  window.pgGerundet = function(x, n){
+    var k = (n == null) ? 2 : n;
+    return (Math.round(x * Math.pow(10, k)) / Math.pow(10, k)).toFixed(k).replace('.', '{,}');
+  };
+  window.pgGenau = function(tex, x, n){ return pgKrumm(x) ? (tex + ' \\approx ' + pgGerundet(x, n)) : tex; };
   window.pgGleich = function(a, b, t){ return Math.abs(a - b) < (t || 1e-6); };
   window.pgPoly = function(o, opt){
     var v = (opt && opt.v) || 'x';
@@ -1091,6 +1139,7 @@ window.addEventListener('load', function(){
     /* Alles, was von Hand steht, wird wieder freigegeben; danach setzt die
        Stufe ihre Werte erneut. */
     VON_HAND = {};
+    if (window.abVonHandLoeschen) abVonHandLoeschen();
     var st = radioWert('diff');
     if (st && st !== 'indiv') stufeAnwenden(st);
     obenAbgleichen();
@@ -1123,6 +1172,7 @@ window.addEventListener('load', function(){
   document.getElementById('btnTeilen').addEventListener('click', function(){ linkKopieren(urlSchreiben(true), this); });
   document.getElementById('btnReset').addEventListener('click', function(){
     VON_HAND = {};
+    if (window.abVonHandLoeschen) abVonHandLoeschen();
     var s = {}; Object.keys(STD).forEach(function(k){ s[k] = STD[k]; });
     einstellungenSetzen(s); neueAufgabe();
   });
