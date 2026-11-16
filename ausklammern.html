@@ -29,7 +29,7 @@ window.TK_GA_ID = 'G-5K8WYYXDL2';
 .weg-merke { color: var(--ab-leise); font-size: .9em; }
 </style>
 </head>
-<body class="tk-seite">
+<body class="tk-seite" data-gleichungsseite>
 
 <header class="tool-kopf">
   <div class="tk-text">
@@ -73,11 +73,11 @@ window.TK_GA_ID = 'G-5K8WYYXDL2';
   </div>
 
   <div class="form-block">
-    <b data-de="Zahlen" data-en="Numbers">Zahlen</b>
-    <span class="d" data-de="Diese Stufe setzt der Schwierigkeitsgrad über der Aufgabe." data-en="This level is set by the difficulty above the task.">Diese Stufe setzt der Schwierigkeitsgrad über der Aufgabe.</span>
-    <label class="opt"><input type="radio" name="loesLevel" value="klein"><span data-de="kleine ganze Zahlen (bis 6)" data-en="small whole numbers (up to 6)">kleine ganze Zahlen (bis 6)</span></label>
-    <label class="opt"><input type="radio" name="loesLevel" value="ganz" checked><span data-de="ganze Zahlen (bis 12)" data-en="whole numbers (up to 12)">ganze Zahlen (bis 12)</span></label>
-    <label class="opt"><input type="radio" name="loesLevel" value="bruch"><span data-de="auch halbe Zahlen" data-en="halves as well">auch halbe Zahlen</span></label>
+    <b data-de="Zahlen in der Lösung" data-en="Numbers in the solution">Zahlen in der Lösung</b>
+    <span class="d" data-de="Welche Arten von Lösungen soll der Restterm haben? Jede einzeln an- und abschaltbar – wie oft, sagen die Regler." data-en="Which kinds of solution should the remaining term have? Each can be switched on and off – the sliders say how often.">Welche Arten von Lösungen soll der Restterm haben? Jede einzeln an- und abschaltbar – wie oft, sagen die Regler.</span>
+    <div class="slider-row opt-regler" data-fuer="loesGanz"><label class="opt"><input type="checkbox" id="loesGanz" checked><span data-de="ganzzahlig" data-en="whole numbers">ganzzahlig</span></label><span class="sl-end" data-de="seltener" data-en="less often">seltener</span><input type="range" class="sl" id="wloesGanz" min="1" max="10" value="8"><span class="sl-end" data-de="häufiger" data-en="more often">häufiger</span><span class="d" data-de="z. B. x = 4" data-en="e.g. x = 4">z. B. x = 4</span></div>
+    <div class="slider-row opt-regler" data-fuer="loesHalb"><label class="opt"><input type="checkbox" id="loesHalb"><span data-de="halbe Zahlen" data-en="halves">halbe Zahlen</span></label><span class="sl-end" data-de="seltener" data-en="less often">seltener</span><input type="range" class="sl" id="wloesHalb" min="1" max="10" value="3"><span class="sl-end" data-de="häufiger" data-en="more often">häufiger</span><span class="d" data-de="z. B. x = 2,5 – beim linearen und quadratischen Restterm" data-en="e.g. x = 2.5 – with a linear or quadratic remaining term">z. B. x = 2,5 – beim linearen und quadratischen Restterm</span></div>
+    <label class="opt"><input type="checkbox" id="loesKlein"><span><span data-de="nur kleine Zahlen" data-en="only small numbers">nur kleine Zahlen</span><span class="d" data-de="die Lösungen bis 6 statt bis 12" data-en="solutions up to 6 instead of up to 12">die Lösungen bis 6 statt bis 12</span></span></label>
   </div>
 
   <div class="form-block">
@@ -205,7 +205,7 @@ var STD = {
   klamX: true, klamX2: false, klamX3: false, klamZahl: false,
   restLin: false, restQuad: true, restPot: false, restBiqua: false, restUnloesbar: true,
   potHoch: false,
-  loesLevel: 'ganz', faktorisieren: false, mitSkizze: true, erkFalsch: true, loesForm: 'index', loesWedge: false,
+  loesGanz: true, loesHalb: false, loesKlein: false, faktorisieren: false, mitSkizze: true, erkFalsch: true, loesForm: 'index', loesWedge: false,
   diff: 'normal'
 };
 var STUFEN = {
@@ -213,24 +213,24 @@ var STUFEN = {
      zwangsläufig ein linearer Term in der Klammer. */
   einf:   { klamX:true, klamX2:false, klamX3:false, klamZahl:false,
             restLin:true, restQuad:false, restPot:false, restBiqua:false, restUnloesbar:false,
-            potHoch:false, loesLevel:'klein', faktorisieren:false,
-            regler:{ klamX:10, restLin:10 } },
+            potHoch:false, loesGanz:true, loesHalb:false, loesKlein:true, faktorisieren:false,
+            regler:{ klamX:10, restLin:10, loesGanz:10 } },
   /* Leicht: quadratisch und hoch 3 - weiterhin nur x, aber der Rest darf auch
      quadratisch oder eine reine Potenz (x²) sein. Immer lösbar. */
   leicht: { klamX:true, klamX2:false, klamX3:false, klamZahl:false,
             restLin:true, restQuad:true, restPot:true, restBiqua:false, restUnloesbar:false,
-            potHoch:false, loesLevel:'klein', faktorisieren:false,
-            regler:{ klamX:10, restLin:6, restQuad:8, restPot:4 } },
+            potHoch:false, loesGanz:true, loesHalb:false, loesKlein:true, faktorisieren:false,
+            regler:{ klamX:10, restLin:6, restQuad:8, restPot:4, loesGanz:10 } },
   /* Normal: bis hoch 4 (auch x² ausklammern) und höhere Potenzen im Rest,
      alles außer biquadratisch, auch unlösbar. */
   normal: { klamX:true, klamX2:true, klamX3:false, klamZahl:true,
             restLin:true, restQuad:true, restPot:true, restBiqua:false, restUnloesbar:true,
-            potHoch:true, loesLevel:'ganz', faktorisieren:false,
-            regler:{ klamX:8, klamX2:5, klamZahl:5, restLin:4, restQuad:8, restPot:3, restUnloesbar:3 } },
+            potHoch:true, loesGanz:true, loesHalb:false, loesKlein:false, faktorisieren:false,
+            regler:{ klamX:8, klamX2:5, klamZahl:5, restLin:4, restQuad:8, restPot:3, restUnloesbar:3, loesGanz:8 } },
   schwer: { klamX:true, klamX2:true, klamX3:true, klamZahl:true,
             restLin:true, restQuad:true, restPot:true, restBiqua:true, restUnloesbar:true,
-            potHoch:true, loesLevel:'bruch', faktorisieren:true,
-            regler:{ klamX:6, klamX2:6, klamX3:4, klamZahl:7, restLin:3, restQuad:7, restPot:4, restBiqua:3, restUnloesbar:5 } }
+            potHoch:true, loesGanz:true, loesHalb:true, loesKlein:false, faktorisieren:true,
+            regler:{ klamX:6, klamX2:6, klamX3:4, klamZahl:7, restLin:3, restQuad:7, restPot:4, restBiqua:3, restUnloesbar:5, loesGanz:7, loesHalb:4 } }
 };
 
 /* Der Standard ist genau die Standard-Schwierigkeit: so stimmen Kästchen,
@@ -246,13 +246,15 @@ var KURZ = {
   klamX:'k1', klamX2:'k2', klamX3:'k3', klamZahl:'kz', potHoch:'ph',
   loesForm:'lf', loesWedge:'lw',
   restLin:'rl', restQuad:'rq', restPot:'rp', restBiqua:'rb', restUnloesbar:'ru',
-  loesLevel:'ll', faktorisieren:'fa', mitSkizze:'sk', erkFalsch:'ef', diff:'d'
+  loesGanz:'lg', loesHalb:'lh', loesKlein:'lk', faktorisieren:'fa', mitSkizze:'sk', erkFalsch:'ef', diff:'d'
 };
 /* Die möglichen Restterme - einzeln anwählbar, Häufigkeit über die Regler. */
 /* Die Arten des Restterms. Ob er lösbar ist, steht quer dazu (restUnloesbar). */
 var RESTARTEN = ['restLin','restQuad','restPot','restBiqua'];
 /* Was ausgeklammert wird - mit eigenen Häufigkeiten. */
 var KLAMARTEN = ['klamX','klamX2','klamX3'];
+/* Welche Zahlen in der Lösung stecken - ebenfalls mit eigenen Häufigkeiten. */
+var LARTEN = ['loesGanz','loesHalb'];
 var STILE = ['stilLoesen','stilNullstelle','stilUmstellen','stilSchnitt','stilErkennen','stilEinsetzen'];
 
 function haken(id){ var e = document.getElementById(id); return !!(e && e.checked); }
@@ -348,8 +350,11 @@ function urlSchreiben(mitAufgabe){
   if (mitAufgabe && A){
     var r = function(z){ return Math.round(z * 1e6) / 1e6; };
     p.set('t', [A.stil, A.k, A.restTyp, r(A.v), A.rest.map(r).join('.'),
-                r(A.rechtsC || 0), A.erkGrund || 'ok', r(A.probe === undefined ? 0 : A.probe)].join('_'));
+                r(A.rechtsC || 0), A.erkGrund || 'ok', r(A.probe === undefined ? 0 : A.probe),
+                r(A.erkC || 0)].join('_'));
   }
+  /* Regler, die anders stehen, als die Stufe sie stellt, gehören in den Link. */
+  if (window.abReglerSchreiben && typeof STUFEN !== 'undefined') abReglerSchreiben(p, (STUFEN[s.diff] || {}).regler);
   var qs = p.toString();
   var url = location.origin + location.pathname + (qs ? '?' + qs : '');
   /* Ein fester Seed gehoert mit in den Link - sonst wuerfelt die
@@ -359,6 +364,9 @@ function urlSchreiben(mitAufgabe){
 function urlLesen(){
   var p = new URLSearchParams(location.search), s = {};
   Object.keys(STD).forEach(function(k){ s[k] = STD[k]; });
+  /* Alte Links kennen noch die Stufe „ll" (klein / ganz / bruch). */
+  var ll = p.get('ll') || p.get('loesLevel');
+  if (ll){ s.loesGanz = true; s.loesKlein = (ll === 'klein'); s.loesHalb = (ll === 'bruch'); }
   Object.keys(KURZ).forEach(function(k){
     var v = p.get(KURZ[k]); if (v === null) v = p.get(k); if (v === null) return;
     s[k] = (typeof STD[k] === 'boolean') ? (v === '1' || v === 'true') : v;
@@ -399,15 +407,20 @@ function neueAufgabe(){
   var wU = (window.abGewicht ? abGewicht('restUnloesbar') : 3);
   var unloesbar = s.restUnloesbar && typ !== 'lin' && Math.random() < wU / (wU + 10);
 
-  var gross = (s.loesLevel === 'klein') ? 6 : 12;
+  /* Welche Zahlen in der Lösung? Ganzzahlig oder halb - wie oft, sagen die
+     Regler. Halbe Zahlen gibt es beim linearen und quadratischen Restterm. */
+  var lart = (window.abZiehe ? abZiehe(LARTEN) : null) || 'loesGanz';
+  var gross = s.loesKlein ? 6 : 12;
   var werte = [];
   for (var i = -gross; i <= gross; i++) if (i !== 0) werte.push(i);
-  if (s.loesLevel === 'bruch') werte = werte.concat([-2.5, -1.5, -0.5, 0.5, 1.5, 2.5]);
+  var halbe = [-2.5, -1.5, -0.5, 0.5, 1.5, 2.5];
+  var mitHalb = (lart === 'loesHalb');
+  var pool = mitHalb ? werte.concat(halbe) : werte;
 
   var rest, restLoes = [];
   if (typ === 'lin'){
     var a1 = waehle([1, 1, 2, 3, -1, -2]);
-    var x1 = waehle(werte);
+    var x1 = mitHalb ? waehle(halbe) : waehle(werte);
     rest = [a1, -a1 * x1];                       /* a1·x + b */
     restLoes = [x1];
   } else if (typ === 'quad'){
@@ -420,7 +433,7 @@ function neueAufgabe(){
       restLoes = [];
     } else {
       var a2 = waehle([1, 1, 1, 2, 3, -1]);
-      var r1 = waehle(werte), r2 = waehle(werte);
+      var r1 = mitHalb ? waehle(halbe) : waehle(werte), r2 = waehle(pool);
       rest = [a2, -a2 * (r1 + r2), a2 * r1 * r2];  /* a·x² + b·x + c */
       restLoes = (Math.abs(r1 - r2) < 1e-9) ? [r1] : [Math.min(r1, r2), Math.max(r1, r2)];
     }
@@ -458,14 +471,21 @@ function neueAufgabe(){
     A.rechtsC = waehle([1, 2, 3, -1, -2, 5]);     /* ein x-Term, der beim Umstellen wegfällt */
   }
   if (stil === 'einsetzen'){
-    var kandidat = (Math.random() < 0.5 && A.loes.length) ? waehle(A.loes) : waehle(werte);
-    A.probe = Math.round(kandidat * 1000) / 1000;
-    A.probeIst = A.loes.some(function(x){ return Math.abs(x - A.probe) < 1e-9; });
+    /* Eingesetzt wird eine glatte Zahl - eine krumme Lösung wäre gerundet
+       keine Lösung mehr. Gerundet wird nicht: aus 1/2 bliebe 0,5, aus 1/3
+       würde 0,333. */
+    var glatt = A.loes.filter(function(x){ return !(window.pgKrumm && pgKrumm(x)); });
+    var kandidat = (Math.random() < 0.5 && glatt.length) ? waehle(glatt) : waehle(pool);
+    A.probe = kandidat;
+    A.probeIst = A.loes.some(function(x){ return Math.abs(x - A.probe) < 1e-6; });
   }
   if (stil === 'erkennen'){
     var falsch = s.erkFalsch && Math.random() < 0.5;
     A.erkLoesbar = !falsch;
     A.erkGrund = falsch ? 'absolut' : 'ok';
+    /* Das störende Absolutglied gehört zur Aufgabe - sonst zeigte jedes
+       Neuzeichnen (Quiz, Weg, Sprachwechsel) eine andere Gleichung. */
+    A.erkC = falsch ? waehle([2, 3, -4, 6]) : 0;
   }
   zeichne();
 }
@@ -506,7 +526,7 @@ function vorfaktorTeX(){
 }
 function erkennenTeX(){
   var o = koeffizienten();
-  if (!A.erkLoesbar) o[0] = waehle([2, 3, -4, 6]);
+  if (!A.erkLoesbar) o[0] = A.erkC || 2;
   return pgPoly(o) + ' = 0';
 }
 function aufgabeTeX(){
@@ -574,6 +594,25 @@ function fWert(x, extraC){
   Object.keys(o).forEach(function(e){ s += o[e] * Math.pow(x, Number(e)); });
   return s;
 }
+/** Einsetzen der Probezahl, Summand für Summand - dieselbe Rechnung steht im
+    Lösungsweg und im Quiz. */
+function einsetzRechnung(){
+  var o = koeffizienten(), v = A.probe, kl = '\\left(' + pgZahl(v) + '\\right)';
+  var exps = Object.keys(o).map(Number).sort(function(a, b){ return b - a; });
+  var t1 = '', t2 = '', summe = 0;
+  exps.forEach(function(e, i){
+    var k = o[e], betrag = Math.abs(k), pot = Math.pow(v, e), wert = k * pot;
+    var x = e === 0 ? '' : (e === 1 ? kl : kl + '^{' + e + '}');
+    var fak = !x ? pgZahl(betrag) : (Math.abs(betrag - 1) < 1e-12 ? x : pgZahl(betrag) + '\\cdot' + x);
+    t1 += (k < 0 ? '-' : (i ? '+' : '')) + fak;
+    t2 += (wert < 0 ? '-' : (i ? '+' : '')) + pgZahl(Math.abs(wert));
+    summe += wert;
+  });
+  if (!exps.length){ t1 = '0'; t2 = '0'; }
+  var zeilen = [t1 + ' &= ' + t2];
+  if (exps.length > 1) zeilen.push('&= ' + pgZahl(summe));
+  return { linksTeX: t1, zeilen: zeilen, links: summe, rechts: 0, gleich: Math.abs(summe) < 1e-6 };
+}
 /** Wie oft ist x Lösung? Die ausgeklammerte Potenz zählt mehrfach. */
 function vielfachheit(x){
   if (Math.abs(x) < 1e-9) return Math.max(1, A.k || 1);
@@ -584,6 +623,9 @@ function vielfachheit(x){
 /** Die Lösungen in der eingestellten Schreibweise. */
 function loesAusgabe(liste, opt){
   opt = opt || {};
+  /* Was „keine" heißt, hängt von der Aufgabe ab: Nullstelle, Schnittstelle, Lösung. */
+  if (!opt.keine && window.A && A.stil === 'nullstelle') opt.keine = T('keine Nullstelle', 'no root');
+  if (!opt.keine && window.A && A.stil === 'schnitt') opt.keine = T('keine Schnittstelle', 'no intersection');
   if (!window.pgLoesungen){
     if (!liste.length) return '\\mathbb{L} = \\{\\,\\}';
     return '\\mathbb{L} = \\left\\{' + liste.map(function(e){ return (typeof e === 'string') ? e : e.tex; }).join(';\\ ') + '\\right\\}';
@@ -647,10 +689,14 @@ function faktorTeX(){
   var teile = [vorfaktorTeX()];
   if (A.restTyp === 'quad' && A.restLoes.length){
     var a = A.restRoh[0];
-    if (Math.abs(a - 1) > 1e-9) teile[0] = (Math.abs(A.v * a - 1) < 1e-9 ? '' : pgZahl(A.v * a))
-                                         + (A.k === 1 ? 'x' : 'x^{' + A.k + '}');
+    /* Der Faktor vor x: 1 bleibt weg, −1 wird zum Minus. */
+    if (Math.abs(a - 1) > 1e-9){
+      var va = A.v * a;
+      teile[0] = (Math.abs(va - 1) < 1e-9 ? '' : (Math.abs(va + 1) < 1e-9 ? '-' : pgZahl(va)))
+               + (A.k === 1 ? 'x' : 'x^{' + A.k + '}');
+    }
     A.restLoes.forEach(function(x){
-      teile.push('\\left(x' + (x > 0 ? '-' : '+') + pgZahl(Math.abs(x)) + '\\right)');
+      teile.push((Math.abs(x) < 1e-12) ? 'x' : '\\left(x' + (x > 0 ? '-' : '+') + pgZahl(Math.abs(x)) + '\\right)');
     });
     if (A.restLoes.length === 1) teile[teile.length - 1] = teile[teile.length - 1].replace(/\\right\)$/, '\\right)^{2}');
     return pgPoly(koeffizienten()) + ' = ' + teile.join('');
@@ -672,11 +718,10 @@ function wegZeichnen(){
     return;
   }
   if (A.stil === 'einsetzen'){
-    var wert = fWert(A.probe);
-    z.push('<p>' + T('Setze die Zahl ein:', 'Substitute the number:') + '</p>');
-    z.push('\\[' + pgPoly(koeffizienten()).replace(/x/g, '\\left(' + pgZahl(A.probe) + '\\right)')
-         + ' = ' + pgZahl(Math.round(wert * 1e6) / 1e6) + '\\]');
-    z.push('<p>' + (Math.abs(wert) < 1e-9
+    var e = einsetzRechnung();
+    z.push('<p>' + T('Setze die Zahl für x ein – in jeden Summanden:', 'Substitute the number for x – into every summand:') + '</p>');
+    z.push('\\[\\begin{aligned}' + e.zeilen.join(' \\\\ ') + '\\end{aligned}\\]');
+    z.push('<p>' + (e.gleich
       ? T('Es kommt 0 heraus – die Zahl ist also eine Lösung.', 'The result is 0 – so the number is a solution.')
       : T('Es kommt nicht 0 heraus – die Zahl ist also keine Lösung.', 'The result is not 0 – so the number is not a solution.')) + '</p>');
     document.getElementById('weg').innerHTML = z.join('');
@@ -698,23 +743,42 @@ function wegZeichnen(){
   z.push('<p>' + T('<b>2) Satz vom Nullprodukt:</b> Ein Produkt ist genau dann 0, wenn einer der Faktoren 0 ist.',
                    '<b>2) Zero product property:</b> a product is 0 exactly when one of the factors is 0.') + '</p>');
   z.push('\\[' + vorfaktorTeX() + ' = 0 \\quad\\text{' + T('oder', 'or') + '}\\quad ' + klammerTeX() + ' = 0\\]');
+  /* Die Null ist die erste Lösung - bei einer ausgeklammerten Potenz mehrfach,
+     dann mit mehreren Nummern. Der Restterm zählt danach weiter. */
+  var kNull = Math.max(1, A.k || 1);
+  var nullTeX = nummeriert([{ tex: '0', n: kNull }], 1)[0];
   z.push('<p>' + T('Aus dem ersten Faktor folgt sofort ', 'The first factor immediately gives ')
-       + '\\(x = 0\\)' + (A.k > 1 ? T(' (eine ' + (A.k === 2 ? 'doppelte' : A.k + '-fache') + ' Nullstelle)',
+       + '\\(' + nullTeX + '\\)' + (A.k > 1 ? T(' (eine ' + (A.k === 2 ? 'doppelte' : A.k + '-fache') + ' Nullstelle)',
                                       ' (a ' + (A.k === 2 ? 'double' : A.k + '-fold') + ' root)') : '') + '.</p>');
   z.push('<p>' + T('<b>3) Den Restterm lösen:</b> ', '<b>3) Solve the remaining term:</b> ') + restWeg() + '</p>');
   /* Hier führt der Weg auf eine andere Seite - und zwar mit genau diesem Term. */
   z.push(restVerweis());
-  if (A.restLoes.length)
-    z.push('\\[' + A.restLoes.map(function(x, i){ return 'x_' + (i + 2) + ' = ' + loesGenau(x); }).join(' \\qquad ') + '\\]');
+  var rest = A.restLoes.map(function(x){ return { tex: loesGenau(x), n: vielfachheit(x) }; });
+  if (rest.length)
+    z.push('\\[' + nummeriert(rest, kNull + 1).join(haken('loesWedge') ? ' \\wedge ' : ' \\qquad ') + '\\]');
   else
-    z.push('<p>' + T('Der Restterm hat keine Lösung – es bleibt nur \\(x = 0\\).',
-                     'The remaining term has no solution – only x = 0 is left.') + '</p>');
+    z.push('<p>' + T('Der Restterm hat keine Lösung – es bleibt nur ', 'The remaining term has no solution – only ')
+         + '\\(' + nullTeX + '\\)' + T(' übrig.', ' is left.') + '</p>');
   if (haken('faktorisieren')){
     var f = faktorTeX();
     if (f) z.push('<p>' + T('Vollständig faktorisiert:', 'Fully factorised:') + '</p>\\[' + f + '\\]');
   }
+  /* Zum Schluss alle Lösungen zusammen - in derselben Reihenfolge wie oben. */
+  z.push('<p>' + T('<b>Alle Lösungen:</b>', '<b>All solutions:</b>') + '</p>\\['
+       + loesAusgabe([{ tex: '0', n: kNull }].concat(rest)) + '\\]');
 
   document.getElementById('weg').innerHTML = z.join('');
+}
+/** Lösungen durchnummeriert ab einer bestimmten Nummer; eine mehrfache bekommt
+    mehrere Nummern (x₁,₂ = 0). */
+function nummeriert(liste, ab){
+  var nr = ab || 1;
+  return liste.map(function(e){
+    var n = Math.max(1, e.n || 1), ids = [];
+    for (var i = 0; i < n; i++) ids.push(nr + i);
+    nr += n;
+    return 'x_{' + ids.join(',\\,') + '} = ' + e.tex;
+  });
 }
 /** Der Restterm in Tippschreibweise - zum Weiterreichen an eine andere Seite. */
 function restText(){
@@ -736,7 +800,7 @@ function restVerweis(){
   if (!ziel) return '';
   var gl = restText();
   return '<div class="verwandt"><a href="' + ziel + (gl ? ('?gl=' + encodeURIComponent(gl + '=0')) : '')
-       + '">' + T('diesen Restterm üben: ', 'practise this remaining term: ') + name + ' →</a></div>';
+       + '" target="_blank" rel="noopener">' + T('diesen Restterm üben: ', 'practise this remaining term: ') + name + ' →</a></div>';
 }
 function restWeg(){
   if (A.restTyp === 'biqua') return T('Der Restterm ist biquadratisch – weiter mit der Substitution z = x².',
@@ -830,21 +894,37 @@ function quizBauen(){
   /* Vor allem anderen: Steht die Gleichung schon in der Form „… = 0"? */
   if (A.stil !== 'erkennen' && A.stil !== 'einsetzen' && window.pgSchrittNullForm)
     schritte.push(pgSchrittNullForm(A.stil === 'loesen', aufgabeTeX(), { art: A.stil }));
-  if (A.stil === 'erkennen' || A.stil === 'einsetzen'){
-    schritte.push({ titel: T('Entscheiden', 'Decide'), art: 'wahl',
-      frage: (A.stil === 'erkennen')
-        ? T('Steckt in jedem Summanden ein x?', 'Does every summand contain an x?')
-        : T('Ergibt das Einsetzen 0?', 'Does substituting give 0?'),
+  if (A.stil === 'erkennen'){
+    schritte.push({ titel: T('Hinschauen', 'Take a look'), art: 'wahl',
+      frage: T('Gibt es einen Summanden <b>ohne</b> x – ein Absolutglied?', 'Is there a summand <b>without</b> x – a constant term?'),
       optionen: [T('ja', 'yes'), T('nein', 'no')],
-      richtig: ((A.stil === 'erkennen') ? A.erkLoesbar : A.probeIst) ? 0 : 1,
+      richtig: A.erkLoesbar ? 1 : 0,
+      kurz: A.erkLoesbar ? T('kein Absolutglied', 'no constant term') : T('Absolutglied da', 'constant term present'),
+      falschText: T('Schau auf den letzten Summanden: Steht dort ein x?', 'Look at the last summand: is there an x in it?'),
+      hilfe: [T('Ein Absolutglied ist eine Zahl ganz ohne x.', 'A constant term is a number without any x.')] });
+    schritte.push({ titel: T('Entscheiden', 'Decide'), art: 'wahl',
+      frage: T('Lässt sich die Gleichung also durch Ausklammern lösen?', 'So can the equation be solved by factoring out?'),
+      optionen: [T('ja', 'yes'), T('nein', 'no')],
+      richtig: A.erkLoesbar ? 0 : 1,
+      kurz: A.erkLoesbar ? T('Ausklammern geht', 'factoring out works') : T('Ausklammern geht nicht', 'factoring out fails'),
+      falschText: T('Ausklammern geht nur, wenn in JEDEM Summanden ein x steckt.', 'Factoring out only works if EVERY summand contains an x.'),
       hilfe: [T('Ein Absolutglied (eine Zahl ohne x) verhindert das Ausklammern.',
                 'A constant term (a number without x) prevents factoring out.')] });
     pgQuiz(host, schritte, { gleichung: aufgabeTeX() });
     return;
   }
+  if (A.stil === 'einsetzen'){
+    if (window.pgSchritteEinsetzen)
+      schritte = schritte.concat(pgSchritteEinsetzen(einsetzRechnung(), { probeTeX: pgZahl(A.probe) }));
+    pgQuiz(host, schritte, { gleichung: aufgabeTeX() });
+    return;
+  }
   schritte.push({ titel: T('Ausklammern', 'Factoring out'), art: 'wahl',
     frage: T('Was lässt sich hier ausklammern?', 'What can be factored out here?'),
-    optionen: ['\\(' + vorfaktorTeX() + '\\)', '\\(x^{' + (A.k + 1) + '}\\)', '\\(' + (A.k > 1 ? 'x' : 'x^{2}') + '\\)'],
+    /* Die falschen Antworten: eine Potenz zu hoch und eine zu niedrig - bei
+       x selbst gibt es nichts Niedrigeres, dann die um zwei zu hohe. */
+    optionen: ['\\(' + vorfaktorTeX() + '\\)', '\\(x^{' + (A.k + 1) + '}\\)',
+               '\\(' + (A.k > 2 ? 'x^{' + (A.k - 1) + '}' : (A.k === 2 ? 'x' : 'x^{3}')) + '\\)'],
     richtig: 0, kurz: '\\(' + vorfaktorTeX() + '\\)',
     falschText: T('Es muss die <b>kleinste</b> vorkommende Potenz sein – sonst steckt sie nicht in jedem Summanden.',
                   'It has to be the <b>smallest</b> power that occurs – otherwise it is not in every summand.'),
@@ -1020,8 +1100,9 @@ function setzeAufgabe(stil, k, v, typ, rest, extra){
   if (extra){
     A.rechtsC = extra.rc || 0;
     A.erkGrund = extra.erk || 'ok'; A.erkLoesbar = (A.erkGrund === 'ok');
+    A.erkC = A.erkLoesbar ? 0 : (extra.erkC || 2);
     A.probe = extra.probe || 0;
-    A.probeIst = A.loes.some(function(x){ return Math.abs(x - A.probe) < 1e-9; });
+    A.probeIst = A.loes.some(function(x){ return Math.abs(x - A.probe) < 1e-6; });
   }
   zeichne();
 }
@@ -1044,7 +1125,8 @@ function aufgabeAusURL(){
   var zahlen = q[4].split('.').map(parseFloat);
   if (!isFinite(k) || !isFinite(vf) || zahlen.some(function(x){ return !isFinite(x); })) return false;
   var rest = (typ === 'pot') ? { a: zahlen[0], n: zahlen[1], d: zahlen[2] } : zahlen;
-  setzeAufgabe(q[0], k, vf, typ, rest, { rc: parseFloat(q[5]) || 0, erk: q[6] || 'ok', probe: parseFloat(q[7] || '0') });
+  setzeAufgabe(q[0], k, vf, typ, rest, { rc: parseFloat(q[5]) || 0, erk: q[6] || 'ok', probe: parseFloat(q[7] || '0'),
+                                          erkC: parseFloat(q[8] || '0') });
   return true;
 }
 
@@ -1095,6 +1177,15 @@ function notbehelf(){
 window.addEventListener('load', function(){
   notbehelf();
   einstellungenSetzen(urlLesen());
+  /* Was der Link anders einstellt als die Stufe, war von Hand gewählt - es
+     bleibt auch beim nächsten Stufenwechsel stehen. Dasselbe gilt für die
+     Schieberegler aus dem Link; sie kommen erst nach der Stufe dran. */
+  (function(){
+    var s0 = urlLesen();
+    if (window.abVonHandAusLink && typeof STUFEN !== 'undefined')
+      abVonHandAusLink(s0, STUFEN[s0.diff], function(k){ VON_HAND[k] = true; });
+    if (window.abReglerAusURL) abReglerAusURL(function(id){ VON_HAND['w' + id] = true; });
+  })();
   if (window.abSeedAusURL) abSeedAusURL();
   if (window.abKacheln) abKacheln(document.getElementById('segStile'), KACHELN, function(){
     /* Der Aufgabenstil gehört nicht zur Schwierigkeit - die Stufe bleibt stehen. */
@@ -1128,8 +1219,16 @@ window.addEventListener('load', function(){
     var e = document.getElementById(id);
     if (e) e.addEventListener('change', function(){ kachelnMalen(); neueAufgabe(); });
   });
-  document.querySelectorAll('input[name="loesLevel"], #erkFalsch').forEach(function(e){
+  document.querySelectorAll('#erkFalsch, #loesKlein').forEach(function(e){
     e.addEventListener('change', function(){ aufIndividuell(); neueAufgabe(); });
+  });
+  /* Bei den Zahlen in der Lösung bleibt immer mindestens ein Fall angekreuzt. */
+  LARTEN.forEach(function(id){
+    var e = document.getElementById(id);
+    if (e) e.addEventListener('change', function(){
+      if (!LARTEN.filter(haken).length) setzeHaken('loesGanz', true);
+      aufIndividuell(); neueAufgabe();
+    });
   });
   document.querySelectorAll('#faktorisieren, #mitSkizze').forEach(function(e){
     e.addEventListener('change', function(){ aufIndividuell(); if (A) loesungZeichnen(); });

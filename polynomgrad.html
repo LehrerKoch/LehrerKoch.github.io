@@ -588,6 +588,16 @@ function plotte(host, P, opt){
      + '" stroke="' + FARBE.achse() + '" stroke-width="1.6"/>'
      + '<line x1="' + xA.toFixed(1) + '" y1="' + R.o + '" x2="' + xA.toFixed(1) + '" y2="' + (H - R.u)
      + '" stroke="' + FARBE.achse() + '" stroke-width="1.6"/>';
+  /* Pfeile an den Enden: rechts an der x-Achse, oben an der y-Achse. Sie
+     wachsen mit der Schrift, damit sie auf dem Handy nicht verschwinden. */
+  var pf = Math.min(k, 1.6), al = 11 * pf, ab = 4.6 * pf;
+  var xs = B - R.r, ys = R.o;
+  s += '<polygon points="' + (xs + al * 0.7).toFixed(1) + ',' + yA.toFixed(1) + ' '
+     + (xs - al * 0.3).toFixed(1) + ',' + (yA - ab).toFixed(1) + ' '
+     + (xs - al * 0.3).toFixed(1) + ',' + (yA + ab).toFixed(1) + '" fill="' + FARBE.achse() + '"/>'
+     + '<polygon points="' + xA.toFixed(1) + ',' + (ys - al * 0.7).toFixed(1) + ' '
+     + (xA - ab).toFixed(1) + ',' + (ys + al * 0.3).toFixed(1) + ' '
+     + (xA + ab).toFixed(1) + ',' + (ys + al * 0.3).toFixed(1) + '" fill="' + FARBE.achse() + '"/>';
   /* Beschriftung der Achsen */
   /* Die Zahlen bekommen einen hellen Saum, damit sie auch dort lesbar
      bleiben, wo die Kurve hinter ihnen durchläuft. */
@@ -874,6 +884,8 @@ function urlSchreiben(mitAufgabe){
   if (mitAufgabe && A) p.set('t', A.stil + '_' + (A.stil === 'verst' ? A.nr : A.P.join(',')));
   if (MODUS === 'erkundung') p.set('m', 'e');
   if (!autoAn) p.set('auto', '0');
+  /* Regler, die anders stehen, als die Stufe sie stellt, gehören in den Link. */
+  if (window.abReglerSchreiben && typeof STUFEN !== 'undefined') abReglerSchreiben(p, (STUFEN[s.diff] || {}).regler);
   var qs = p.toString();
   var url = location.origin + location.pathname + (qs ? '?' + qs : '');
   if (window.abSeedFuerLink){ var ss = abSeedFuerLink(); if (ss) url += (qs ? '&' : '?') + 'seed=' + ss; }
@@ -1200,6 +1212,9 @@ function merkeAufgabe(schluessel){
 function stileAktiv(){ return STILE.filter(haken); }
 
 function neueAufgabe(){
+  /* Die Adresszeile hält die Einstellungen fest - ein Lesezeichen oder ein
+     weitergegebener Link stellt dieselbe Auswahl wieder her (auch die Regler). */
+  try { history.replaceState({}, '', urlSchreiben(false)); } catch (e) {}
   var stile = stileAktiv();
   if (!stile.length){ setzeHaken('stilGraph', true); stile = ['stilGraph']; kachelnMalen(); }
   var art = null;
@@ -1340,14 +1355,24 @@ var VFRAGEN = [
                r: 0,
                grund: T('Bei ungeradem Grad sind die beiden Enden entgegengesetzt: links unten, rechts oben.',
                         'With an odd degree the two ends are opposite: bottom left, top right.') }; } },
-  /* a und b so, dass die vier Möglichkeiten verschieden bleiben. */
-  { stufe: 3, f: function(){ var paar = pick([[2, 3], [2, 4], [3, 4], [3, 2], [4, 3]]);
-      var a = paar[0], b = paar[1];
-      return { frage: T('Welchen Grad hat \\(f(x) = (x - 1)^{' + a + '} \\cdot (x + 2)^{' + b + '}\\)?',
-                        'What is the degree of \\(f(x) = (x - 1)^{' + a + '} \\cdot (x + 2)^{' + b + '}\\)?'),
-               opt: [String(a + b), String(Math.max(a, b)), String(a * b), '2'], r: 0,
-               grund: T('Beim Ausmultiplizieren addieren sich die Exponenten: \\(' + a + ' + ' + b + ' = ' + (a + b) + '\\).',
-                        'When you expand, the exponents add up: \\(' + a + ' + ' + b + ' = ' + (a + b) + '\\).') }; } },
+  /* Nach der Regel gefragt, nicht nach dem Grad einer bestimmten Funktion –
+     das wäre eine Aufgabe, keine Verständnisfrage. */
+  { stufe: 3, f: function(){
+      if (coin(0.5))
+        return { frage: T('Ein Polynom ist das Produkt zweier Polynome vom Grad \\(m\\) und \\(n\\). Welchen Grad hat es?',
+                          'A polynomial is the product of two polynomials of degree \\(m\\) and \\(n\\). What is its degree?'),
+                 opt: ['\\(m + n\\)', '\\(m \\cdot n\\)', T('den größeren der beiden Grade', 'the larger of the two degrees'),
+                       T('das hängt von den Vorfaktoren ab', 'that depends on the coefficients')], r: 0,
+                 grund: T('Die höchste Potenz des Produkts entsteht nur aus den beiden höchsten Potenzen der Faktoren: \\(x^{m}\\cdot x^{n} = x^{m+n}\\). Die Grade der Faktoren addieren sich.',
+                          'The highest power of the product comes only from the two highest powers of the factors: \\(x^{m}\\cdot x^{n} = x^{m+n}\\). The degrees of the factors add up.') };
+      return { frage: T('Wie liest man den Grad eines Polynoms in Produktform wie \\(a\\cdot (x - x_1)^{k_1}\\cdot (x - x_2)^{k_2}\\cdots\\) ab?',
+                        'How do you read off the degree of a polynomial in product form such as \\(a\\cdot (x - x_1)^{k_1}\\cdot (x - x_2)^{k_2}\\cdots\\)?'),
+               opt: [T('Man addiert die Exponenten der Faktoren.', 'You add up the exponents of the factors.'),
+                     T('Man nimmt den größten Exponenten.', 'You take the largest exponent.'),
+                     T('Man zählt die Klammern.', 'You count the brackets.'),
+                     T('Man multipliziert die Exponenten.', 'You multiply the exponents.')], r: 0,
+               grund: T('Beim Ausmultiplizieren addieren sich die Grade der Faktoren: \\(k_1 + k_2 + \\ldots\\). So hat \\((x - 1)^{2}\\cdot (x + 2)^{3}\\) den Grad \\(2 + 3 = 5\\).',
+                        'When you expand, the degrees of the factors add up: \\(k_1 + k_2 + \\ldots\\). So \\((x - 1)^{2}\\cdot (x + 2)^{3}\\) has degree \\(2 + 3 = 5\\).') }; } },
   { stufe: 3, f: function(){
       return { frage: T('Ein Graph hat zwei Extrempunkte. Welchen Grad hat die Funktion mindestens?',
                         'A graph has two turning points. What is the least possible degree?'),
@@ -1426,10 +1451,10 @@ var VFRAGEN = [
                r: 0,
                grund: T('Beim Kreuzen ist die Vielfachheit ungerade, beim Berühren gerade. Zusammen müssen sie den Grad ergeben: \\(1 + 1 + 2 = 4\\).',
                         'At a crossing the multiplicity is odd, at a touch it is even. Together they have to add up to the degree: \\(1 + 1 + 2 = 4\\).') }; } },
-  { stufe: 1, f: function(){ var c = pick([3, 5, 7, 12]);
-      return { frage: T('Welchen Grad hat \\(f(x) = ' + c + '\\)?',
-                        'What is the degree of \\(f(x) = ' + c + '\\)?'),
-               opt: ['0', '1', String(c), T('gar keinen', 'none at all')], r: 0,
+  { stufe: 1, f: function(){
+      return { frage: T('Welchen Grad hat eine konstante Funktion \\(f(x) = c\\) mit \\(c \\neq 0\\)?',
+                        'What is the degree of a constant function \\(f(x) = c\\) with \\(c \\neq 0\\)?'),
+               opt: ['0', '1', '\\(c\\)', T('gar keinen', 'none at all')], r: 0,
                grund: T('Eine Zahl allein ist ein Polynom vom Grad 0 – ihr Graph ist eine waagerechte Gerade.',
                         'A number on its own is a polynomial of degree 0 – its graph is a horizontal line.') }; } },
   { stufe: 1, f: function(){
@@ -1688,12 +1713,11 @@ function rueckmeldung(geraten){
     if (geraten === 0)
       return T('Grad 0 hieße: \\(f(x)\\) ist überall dieselbe Zahl und der Graph eine waagerechte Gerade. Hier ändert sich der Funktionswert aber.',
                'Degree 0 would mean \\(f(x)\\) is the same number everywhere and the graph a horizontal line. Here the value does change.');
+    /* Nur die Bedeutung von Grad 1 - was der Graph stattdessen zeigt, soll
+       man selbst sehen. */
     if (geraten === 1)
-      return exN > 0
-        ? T('Eine Gerade hat keinen Extrempunkt – hier gibt es ' + exN + ' ' + tw.wort + '.',
-            'A straight line has no turning point – here there are ' + exN + ' ' + tw.wort + '.')
-        : T('Eine Gerade ist überall gleich steil. Sieh dir an, wie sich die Steigung hier ändert: der Graph ist gekrümmt.',
-            'A straight line has the same slope everywhere. Look at how the slope changes here: this graph is curved.');
+      return T('Grad 1 hieße: \\(f\\) wäre eine lineare Funktion, und ihr Graph müsste eine Gerade sein.',
+               'Degree 1 would mean: \\(f\\) would be a linear function, and its graph would have to be a straight line.');
     if (exN === 0)
       return T('Eine Parabel hat genau einen Extrempunkt – dieser Graph hat gar keinen, er steigt oder fällt durchweg.',
                'A parabola has exactly one turning point – this graph has none at all, it rises or falls throughout.');
@@ -1941,6 +1965,15 @@ function aufgabeAusURL(){
 
 window.addEventListener('load', function(){
   einstellungenSetzen(urlLesen());
+  /* Was der Link anders einstellt als die Stufe, war von Hand gewählt - es
+     bleibt auch beim nächsten Stufenwechsel stehen. Dasselbe gilt für die
+     Schieberegler aus dem Link; sie kommen erst nach der Stufe dran. */
+  (function(){
+    var s0 = urlLesen();
+    if (window.abVonHandAusLink && typeof STUFEN !== 'undefined')
+      abVonHandAusLink(s0, STUFEN[s0.diff], function(k){ VON_HAND[k] = true; });
+    if (window.abReglerAusURL) abReglerAusURL(function(id){ VON_HAND['w' + id] = true; });
+  })();
   if (window.abSeedAusURL) abSeedAusURL();
   if (window.abKacheln) abKacheln(document.getElementById('segStile'), KACHELN, function(){
     kachelnMalen(); neueAufgabe();

@@ -2076,13 +2076,20 @@ function aufIndividuell(){
     if (window.abGliderAlle) abGliderAlle();
   }
 }
+/* Schieberegler, die von Hand gestellt wurden: Eine danach gewählte Stufe
+   lässt sie stehen. Die Liste steht im Link (rh), damit das auch nach dem
+   Öffnen gilt; „Standard wiederherstellen" gibt sie wieder frei. */
+const REGLER_HAND = {};
+(new URLSearchParams(location.search).get('rh') || '').split(',')
+  .forEach(k => { if (k) REGLER_HAND[k] = true; });
+function reglerVonHand(id){ return !!REGLER_HAND[id]; }
 function stufeAnwenden(stufe){
   const p = STUFEN[stufe];
   if (!p) return;
   radioSetzen('zeroType', p.zeroType);
   const a = document.getElementById('maxDegree'), b = document.getElementById('maxZerosInRange');
-  if (a) a.value = p.degree;
-  if (b) b.value = p.zeros;
+  if (a && !reglerVonHand(a.id)) a.value = p.degree;
+  if (b && !reglerVonHand(b.id)) b.value = p.zeros;
   hakenSetzen('allowFractions', p.fractions);
   hakenSetzen('allowDecimals', p.decimals);
   hakenSetzen('allowFactor', p.factor);
@@ -2095,6 +2102,8 @@ function urlSchreiben(mitAufgabe){
     p.set(KURZ[k], (typeof s[k] === 'boolean') ? (s[k] ? 'true' : 'false') : s[k]);
   });
   if (mitAufgabe) p.set('sd', AUFGABENSTART);   /* genau diese Aufgabe */
+  const rh = Object.keys(REGLER_HAND);
+  if (rh.length) p.set('rh', rh.join(','));
   const qs = p.toString();
   return location.origin + location.pathname + (qs ? '?' + qs : '');
 }
@@ -2138,10 +2147,15 @@ document.querySelectorAll('input[name="diff"]').forEach(e => e.addEventListener(
   newTask();
   if (e.value === 'indiv' && window.abEinstellungenOeffnen) abEinstellungenOeffnen('#dSettings');
 }));
+document.querySelectorAll('#maxDegree, #maxZerosInRange')
+  .forEach(e => ['input', 'change'].forEach(art => e.addEventListener(art, () => { REGLER_HAND[e.id] = true; })));
 document.getElementById('genBtn').addEventListener('click', () => newTask());
 document.getElementById('btnShare').addEventListener('click', function(){ linkKopieren(urlSchreiben(false), this); });
 document.getElementById('btnTeilen').addEventListener('click', function(){ linkKopieren(urlSchreiben(true), this); });
-document.getElementById('btnReset').addEventListener('click', () => { einstellungenSetzen(STD); newTask(); });
+document.getElementById('btnReset').addEventListener('click', () => {
+  Object.keys(REGLER_HAND).forEach(k => { delete REGLER_HAND[k]; });
+  einstellungenSetzen(STD); newTask();
+});
 
 document.getElementById('sketchDetails')?.addEventListener('toggle',()=>drawSketch());
 document.getElementById('solutionPath')?.addEventListener('toggle',()=>{

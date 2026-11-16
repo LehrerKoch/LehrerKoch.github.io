@@ -49,7 +49,7 @@ window.TK_GA_ID = 'G-5K8WYYXDL2';   /* Google Analytics laedt erst nach Einwilli
 /* Lange Divisionszeilen dürfen notfalls geschoben werden statt abzuschneiden. */
 </style>
 </head>
-<body class="tk-seite">
+<body class="tk-seite" data-gleichungsseite>
 
 <header class="tool-kopf">
   <div class="tk-text">
@@ -430,6 +430,8 @@ function urlSchreiben(mitAufgabe){
                  A.erkArt || ''];
     p.set('t', teile.join('_'));
   }
+  /* Regler, die anders stehen, als die Stufe sie stellt, gehören in den Link. */
+  if (window.abReglerSchreiben && typeof STUFEN !== 'undefined') abReglerSchreiben(p, (STUFEN[s.diff] || {}).regler);
   var qs = p.toString();
   var url = location.origin + location.pathname + (qs ? '?' + qs : '');
   /* Ein fester Seed gehoert mit in den Link - sonst wuerfelt die
@@ -954,6 +956,9 @@ function vielfachheit(x){
 /** Die Lösungen in der eingestellten Schreibweise. */
 function loesAusgabe(liste, opt){
   opt = opt || {};
+  /* Was „keine" heißt, hängt von der Aufgabe ab: Nullstelle, Schnittstelle, Lösung. */
+  if (!opt.keine && window.A && A.stil === 'nullstelle') opt.keine = T('keine Nullstelle', 'no root');
+  if (!opt.keine && window.A && A.stil === 'schnitt') opt.keine = T('keine Schnittstelle', 'no intersection');
   if (!window.pgLoesungen){
     if (!liste.length) return '\\mathbb{L} = \\{\\,\\}';
     return '\\mathbb{L} = \\left\\{' + liste.map(function(e){ return (typeof e === 'string') ? e : e.tex; }).join(';\\ ') + '\\right\\}';
@@ -1047,7 +1052,7 @@ function restVerweis(rest){
   var r = rest || A.rest;
   if (!r || r.length !== 3 || !window.pgPolyText) return '';
   return '<div class="verwandt"><a href="quadratische_gleichungen.html?gl='
-       + encodeURIComponent(pgPolyText(r) + '=0') + '">'
+       + encodeURIComponent(pgPolyText(r) + '=0') + '" target="_blank" rel="noopener">'
        + T('diese Restgleichung üben: quadratische Gleichungen',
            'practise this remaining equation: quadratic equations') + ' \u2192</a></div>';
 }
@@ -1376,9 +1381,9 @@ function fokusWennDrin(inp){
    oder „Gleichung lösen" heißt dieselbe Zahl in der Aufgabe Lösung. Das Wort
    folgt deshalb der Aufgabenart, sonst fragt der Eingabebereich etwas
    anderes als die Aufgabe darüber. */
-function wortNull(gross){
+function wortNull(mehr){
   var n = (A && A.stil === 'nullstelle');
-  if (gross) return n ? T('Nullstelle', 'root') : T('Lösung', 'solution');
+  if (mehr) return n ? T('Nullstellen', 'roots') : T('Lösungen', 'solutions');
   return n ? T('Nullstelle', 'root') : T('Lösung', 'solution');
 }
 function antwortZeichnen(){
@@ -1806,10 +1811,16 @@ function schrittLoesungsmenge(){
     knoepfe: soll.length ? [] : [{ text: T('keine Lösung', 'no solution'), wert: 'keine' }],
     kurz: '\\(' + loesungsTeX() + '\\)',
     hilfe: [T('Mehrfach vorkommende Lösungen zählen nur einmal.', 'Repeated solutions count only once.'),
-            T('Nimm die geratenen Nullstellen und die aus der Restgleichung zusammen.',
-              'Take the guessed roots together with those from the remaining equation.')],
+            T('Nimm die geratenen ' + wortNull(true) + ' und die aus der Restgleichung zusammen.',
+              'Take the guessed ' + wortNull(true) + ' together with those from the remaining equation.')],
+    /* So würde man die Antwort tippen - gebraucht vom Prüflauf. */
+    muster: soll.length ? soll.map(function(x){
+      return (window.pgKrumm && pgKrumm(x)) ? pgGerundet(x, 2).replace('{,}', ',') : pgZahlText(x);
+    }).join('; ') : 'keine',
     pruefe: function(txt){
       var t = String(txt || '').trim();
+      if (t === '') return T('Bitte die Lösungen eintragen – oder „keine", wenn es keine gibt.',
+                             'Please enter the solutions – or “none” if there are none.');
       if (/^(keine|none|-|\{\s*\}|∅)$/i.test(t))
         return soll.length ? T('Lösungen gibt es hier schon.', 'There are solutions here.') : true;
       var teile = t.replace(/∨|\bor\b|\boder\b/g, ';').split(';')
@@ -1838,10 +1849,10 @@ function schritteRunde(st, i, anzahl){
   var wurzeln = kand.filter(function(c){ return Math.abs(polyWert(st.vor, c)) < 1e-7; });
   var nummer = anzahl > 1 ? ' (' + (i + 1) + ')' : '';
   raus.push({
-    titel: T('Nullstelle raten', 'Guess a root') + nummer, art: 'eingabe', vorFeld: 'x',
+    titel: T(wortNull() + ' raten', 'Guess a ' + wortNull()) + nummer, art: 'eingabe', vorFeld: 'x',
     gleichung: pgPoly(st.vor) + ' = 0',
-    frage: T('Welche Zahl ist eine Nullstelle? Probiere die Kandidaten der Reihe nach.',
-             'Which number is a root? Try the candidates one after another.'),
+    frage: T('Welche Zahl ist eine ' + wortNull() + '? Probiere die Kandidaten der Reihe nach.',
+             'Which number is a ' + wortNull() + '? Try the candidates one after another.'),
     platzhalter: T('Zahl', 'number'),
     kurz: 'x = ' + pgZahl(st.wurzel),
     hilfe: [T('Fang bei 1 und −1 an, dann 2 und −2 …', 'Start with 1 and −1, then 2 and −2 …'),
@@ -2116,8 +2127,8 @@ function quizBauen(){
 
   /* 2. Kandidaten */
   schritte.push({ titel: T('Kandidaten', 'Candidates'), art: 'wahl',
-    frage: T('Welche Zahlen kommen als rationale Nullstellen überhaupt in Frage?',
-             'Which numbers can be rational roots at all?'),
+    frage: T('Welche Zahlen kommen als rationale ' + wortNull(true) + ' überhaupt in Frage?',
+             'Which numbers can be rational ' + wortNull(true) + ' at all?'),
     optionen: (Math.abs(an - 1) > 1e-9)
       ? [T('Teiler von a₀, geteilt durch Teiler von aₙ', 'divisors of a₀ divided by divisors of aₙ'),
          T('alle ganzen Zahlen', 'all whole numbers'),
@@ -2319,6 +2330,15 @@ function notbehelf(){
 window.addEventListener('load', function(){
   notbehelf();
   einstellungenSetzen(urlLesen());
+  /* Was der Link anders einstellt als die Stufe, war von Hand gewählt - es
+     bleibt auch beim nächsten Stufenwechsel stehen. Dasselbe gilt für die
+     Schieberegler aus dem Link; sie kommen erst nach der Stufe dran. */
+  (function(){
+    var s0 = urlLesen();
+    if (window.abVonHandAusLink && typeof STUFEN !== 'undefined')
+      abVonHandAusLink(s0, STUFEN[s0.diff], function(k){ VON_HAND[k] = true; });
+    if (window.abReglerAusURL) abReglerAusURL(function(id){ VON_HAND['w' + id] = true; });
+  })();
   if (window.abSeedAusURL) abSeedAusURL();
   if (window.abKacheln) abKacheln(document.getElementById('segStile'), KACHELN, function(){
     /* Der Aufgabenstil gehört nicht zur Schwierigkeit - die Stufe bleibt stehen. */

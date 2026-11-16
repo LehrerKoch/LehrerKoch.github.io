@@ -60,6 +60,8 @@
     if (!isFinite(x)) return '\\text{?}';
     if (ganz(x)) return String(Math.round(x));
     var b = bruchVon(x);
+    /* Nenner 1: eine ganze Zahl mit winzigem Rundungsfehler - kein „2/1". */
+    if (b && b.d === 1) return String(b.n);
     if (b && b.d <= (opt.maxNenner || 100) && !opt.dezimal){
       var v = (b.n < 0 ? '-' : '') + '\\frac{' + Math.abs(b.n) + '}{' + b.d + '}';
       return v;
@@ -72,6 +74,7 @@
     if (!isFinite(x)) return '';
     if (ganz(x)) return String(Math.round(x));
     var b = bruchVon(x);
+    if (b && b.d === 1) return String(b.n);
     if (b && b.d <= 100) return b.n + '/' + b.d;
     return String(Math.round(x * 1e6) / 1e6).replace('.', ',');
   }
@@ -361,8 +364,16 @@
       if (stellen.length){
         lo = Math.min.apply(null, stellen);
         hi = Math.max.apply(null, stellen);
-        var rand = Math.max(1.5, (hi - lo) * 0.45);
+        /* Nur wenig Rand außerhalb der äußersten Stellen - weiter draußen
+           wird ein Polynom schnell sehr groß, und der Bereich um die
+           Nullstellen ginge unter. */
+        var rand = Math.max(1.2, (hi - lo) * 0.2);
         lo -= rand; hi += rand;
+        if (hi - lo < 4){ var mm = (lo + hi) / 2; lo = mm - 2; hi = mm + 2; }
+        /* Die y-Achse soll möglichst zu sehen sein - wenn der Ausschnitt dafür
+           höchstens doppelt so breit wird. */
+        if (lo > 0 && lo <= hi - lo) lo = -0.5;
+        if (hi < 0 && -hi <= hi - lo) hi = 0.5;
       }
       xMin = (xMin === undefined) ? lo : xMin;
       xMax = (xMax === undefined) ? hi : xMax;
@@ -394,6 +405,23 @@
     var grenze = Math.max.apply(null, kern.map(Math.abs)) || 1;
     var innen = wichtig.filter(function(y){ return Math.abs(y) <= grenze; });
     var yLo = Math.min.apply(null, innen), yHi = Math.max.apply(null, innen);
+    /* Mit markierten Stellen zählt der Bereich zwischen ihnen - und ein Stück
+       darüber hinaus, damit man den Graphen weiterlaufen sieht. Die Werte
+       ganz außen bestimmen den Ausschnitt nicht mehr: dort läuft der Graph
+       aus dem Bild. */
+    if (stellen.length){
+      var sLo = Math.min.apply(null, stellen), sHi = Math.max.apply(null, stellen);
+      var weit = Math.max(sLo - xMin, xMax - sHi, 0);
+      var aLo = Math.max(xMin, sLo - 0.35 * weit), aHi = Math.min(xMax, sHi + 0.35 * weit);
+      if (sHi - sLo < 1e-9){ aLo = Math.max(xMin, sLo - 0.5 * weit); aHi = Math.min(xMax, sHi + 0.5 * weit); }
+      var werte = [0];
+      for (var k2 = 0; k2 <= 160; k2++){
+        var xx = aLo + (aHi - aLo) * k2 / 160;
+        var w1 = f(xx); if (isFinite(w1)) werte.push(w1);
+        if (g){ var w2 = g(xx); if (isFinite(w2)) werte.push(w2); }
+      }
+      yLo = Math.min.apply(null, werte); yHi = Math.max.apply(null, werte);
+    }
     /* nicht über den tatsächlichen Wertebereich hinaus */
     yLo = Math.max(yLo, yMin); yHi = Math.min(yHi, yMax);
     if (!(yHi > yLo)){ yLo = yMin; yHi = yMax; }
@@ -425,6 +453,10 @@
 
     var svg = '<svg viewBox="0 0 ' + B + ' ' + H + '" class="pg-plot" role="img" aria-label="'
       + T('Skizze des Graphen', 'Sketch of the graph') + '">';
+    /* Was oben oder unten hinausläuft, wird an der Zeichenfläche abgeschnitten. */
+    var clipId = 'pgclip' + (pgSkizze._nr = (pgSkizze._nr || 0) + 1);
+    svg += '<clipPath id="' + clipId + '"><rect x="' + M + '" y="' + (M - 2) + '" width="' + (B - 2 * M)
+         + '" height="' + (H - 2 * M + 4) + '"/></clipPath>';
     /* Gitter */
     svg += '<g class="pg-gitter">';
     teil(xMin, xMax).forEach(function(t){
@@ -436,10 +468,21 @@
       svg += '<line x1="' + M + '" y1="' + sy(t).toFixed(1) + '" x2="' + (B - M) + '" y2="' + sy(t).toFixed(1) + '"/>';
     });
     svg += '</g>';
-    /* Achsen */
+    /* Achsen - mit Pfeilen an den Enden und den Namen x und y */
+    var y0 = sy(0), x0 = sx(0), yAchse = (x0 >= M - 0.5 && x0 <= B - M + 0.5);
     svg += '<g class="pg-achse">'
-      + '<line x1="' + M + '" y1="' + sy(0).toFixed(1) + '" x2="' + (B - M) + '" y2="' + sy(0).toFixed(1) + '"/>'
-      + '<line x1="' + sx(0).toFixed(1) + '" y1="' + M + '" x2="' + sx(0).toFixed(1) + '" y2="' + (H - M) + '"/>'
+      + '<line x1="' + M + '" y1="' + y0.toFixed(1) + '" x2="' + (B - M + 4) + '" y2="' + y0.toFixed(1) + '"/>'
+      + (yAchse ? '<line x1="' + x0.toFixed(1) + '" y1="' + (M - 4) + '" x2="' + x0.toFixed(1) + '" y2="' + (H - M) + '"/>' : '')
+      + '</g>';
+    svg += '<g class="pg-pfeil">'
+      + '<polygon points="' + (B - M + 11).toFixed(1) + ',' + y0.toFixed(1) + ' ' + (B - M + 1).toFixed(1) + ',' + (y0 - 4.5).toFixed(1)
+      + ' ' + (B - M + 1).toFixed(1) + ',' + (y0 + 4.5).toFixed(1) + '"/>'
+      + (yAchse ? '<polygon points="' + x0.toFixed(1) + ',' + (M - 11).toFixed(1) + ' ' + (x0 - 4.5).toFixed(1) + ',' + (M - 1).toFixed(1)
+      + ' ' + (x0 + 4.5).toFixed(1) + ',' + (M - 1).toFixed(1) + '"/>' : '')
+      + '</g>';
+    svg += '<g class="pg-achsname">'
+      + '<text x="' + (B - M + 6).toFixed(1) + '" y="' + (y0 - 8).toFixed(1) + '" text-anchor="middle">x</text>'
+      + (yAchse ? '<text x="' + (x0 + 9).toFixed(1) + '" y="' + (M - 2).toFixed(1) + '" text-anchor="start">y</text>' : '')
       + '</g>';
     /* Beschriftung der x-Achse an den ganzen Zahlen */
     svg += '<g class="pg-beschriftung">';
@@ -449,8 +492,10 @@
     });
     svg += '</g>';
     /* Graphen */
+    svg += '<g clip-path="url(#' + clipId + ')">';
     if (g) svg += '<path class="pg-kurve2" d="' + pfad(pts2) + '"/>';
     svg += '<path class="pg-kurve" d="' + pfad(pts) + '"/>';
+    svg += '</g>';
     /* Eine bewegliche Marke (Erkundungsmodus): senkrechte Linie und ein
        kleiner Punkt auf dem Graphen. */
     if (opt.marke !== undefined && opt.marke !== null && isFinite(opt.marke)
@@ -484,8 +529,12 @@
     if (opt.mitNull) alle = alle.concat([0]);
     if (!alle.length) alle = [0];
     var lo = Math.min.apply(null, alle), hi = Math.max.apply(null, alle);
-    var rand = Math.max(1.5, (hi - lo) * 0.3);
+    /* wenig Rand außerhalb der äußersten Stellen (wie bei pgSkizze) */
+    var rand = Math.max(1.2, (hi - lo) * 0.22);
     lo -= rand; hi += rand;
+    /* die y-Achse mit ins Bild nehmen, wenn das den Ausschnitt höchstens verdoppelt */
+    if (lo > 0 && lo <= hi - lo) lo = -0.5;
+    if (hi < 0 && -hi <= hi - lo) hi = 0.5;
     var min = opt.minBreite || 6;
     if (hi - lo < min){ var m = (lo + hi) / 2; lo = m - min / 2; hi = m + min / 2; }
     return { xMin: lo, xMax: hi };
@@ -681,6 +730,39 @@
     return ph === '' || /^(zahl|number)$/i.test(ph);
   }
 
+    /* In welcher Reihenfolge die Antworten einer Auswahlfrage dastehen.
+       Gemischt wird, damit die richtige Antwort nicht immer vorn steht - aber
+       nur einmal je Schritt und nach einem festen Muster aus Frage und
+       Gleichung: Blendet man eine Hilfe ein, bleibt alles an seinem Platz,
+       und ein geteilter Link zeigt dieselbe Reihenfolge. Natürliche Folgen
+       (ja/nein, keine/eine/zwei, aufsteigende Zahlen) bleiben, wie sie sind;
+       ein Schritt kann das Mischen mit fest: true auch abschalten. */
+    function reihenfolge(s, gl){
+      if (s._folge && s._folge.length === (s.optionen || []).length) return s._folge;
+      var ops = s.optionen || [], idx = ops.map(function(o, i){ return i; });
+      if (!s.fest && ops.length >= 3 && !natuerlicheFolge(ops)){
+        var t = ops.join('|') + '#' + (gl || '') + '#' + (s.frage || ''), h = 7;
+        for (var k = 0; k < t.length; k++) h = (h * 31 + t.charCodeAt(k)) >>> 0;
+        for (var j = idx.length - 1; j > 0; j--){
+          h = (Math.imul(h, 1664525) + 1013904223) >>> 0;
+          var z = (h >>> 8) % (j + 1), tmp = idx[j];
+          idx[j] = idx[z]; idx[z] = tmp;
+        }
+      }
+      s._folge = idx;
+      return idx;
+    }
+    function natuerlicheFolge(ops){
+      var t = ops.map(function(o){
+        return String(o).replace(/<[^>]*>/g, '').replace(/\\\(|\\\)/g, '').trim().toLowerCase();
+      });
+      var skalen = [['keine', 'eine', 'zwei'], ['none', 'one', 'two'], ['ja', 'nein'], ['yes', 'no']];
+      if (skalen.some(function(b){ return t.every(function(x, i){ return b[i] && x.indexOf(b[i]) === 0; }); })) return true;
+      var z = t.map(function(x){ return parseFloat(x.replace(',', '.')); });
+      return z.every(function(x){ return isFinite(x); })
+          && z.every(function(x, i){ return i === 0 || x > z[i - 1]; });
+    }
+
   function pgQuiz(host, schritte, opt){
     if (!host) return null;
     opt = opt || {};
@@ -754,7 +836,8 @@
       if (s.art === 'wahl'){
         var btns = document.createElement('div');
         btns.className = 'pg-wahl';
-        (s.optionen || []).forEach(function(o, i){
+        reihenfolge(s, gl).forEach(function(i){
+          var o = s.optionen[i];
           var b = document.createElement('button');
           b.type = 'button'; b.className = 'pg-wahl-knopf';
           b.innerHTML = o;
@@ -955,11 +1038,24 @@
     opt = opt || {};
     /* Wenn das Ergebnis krumm ist und grob geprüft wird, darf gerundet werden -
        das steht dann an der Frage. Der Platzhalter verrät nie die Lösung. */
-    var krumm = (opt.tol && opt.tol >= 1e-4 && Math.abs(soll - Math.round(soll)) > 1e-9);
+    var grob = (opt.tol && opt.tol >= 1e-4);
+    /* Der Hinweis aufs Runden steht nur da, wo wirklich gerundet werden muss:
+       2,5 oder 0,125 tippt man einfach ab. */
+    var krumm = grob && Math.abs(soll * 1000 - Math.round(soll * 1000)) > 1e-6;
+    /* Irrationale Werte duerfen genau (sqrt) oder auf zwei Stellen gerundet
+       dastehen, periodische Brueche auf drei. */
+    var stellen = (opt.tol && opt.tol >= 5e-3) ? 2 : 3;
     /* Zweite Hilfestufe: ein paar Vorschläge, darunter der richtige Wert. */
     var hs = (opt.hilfe || []).slice();
     if (opt.vorschlaege !== false){
-      var kand = [soll], runde = function(z){ return Math.round(z * 1000) / 1000; };
+      /* Brueche bleiben Brueche - 0,333 fuer 1/3 wuerde beim Pruefen gar nicht
+         angenommen. Gerundet wird nur, was sich nicht genau schreiben laesst. */
+      var runde = function(z){
+        if (!pgKrumm(z)) return z;
+        var f = Math.pow(10, stellen);
+        return Math.round(z * f) / f;
+      };
+      var kand = [soll];
       (opt.fehler || []).forEach(function(f){ kand.push(f[0]); });
       [-soll, soll + 1, soll - 1, soll * 2].forEach(function(z){ kand.push(z); });
       var fertig = [];
@@ -979,7 +1075,11 @@
     return {
       titel: titel, art: 'eingabe',
       frage: frage + (krumm ? ' <span class="pg-rund">'
-        + T('(auf 3 Nachkommastellen gerundet)', '(rounded to 3 decimals)') + '</span>' : ''),
+        + (stellen === 2
+            ? T('(genau, z.&nbsp;B. mit sqrt(…), oder auf 2 Nachkommastellen gerundet)',
+                '(exact, e.g. with sqrt(…), or rounded to 2 decimals)')
+            : T('(als Bruch oder auf 3 Nachkommastellen gerundet)',
+                '(as a fraction or rounded to 3 decimals)')) + '</span>' : ''),
       platzhalter: opt.platzhalter || T('Zahl', 'number'),
       vorFeld: opt.vorFeld,
       /* Steht im Schritt selbst, mit welcher Gleichung gerade gerechnet wird,
@@ -1010,8 +1110,17 @@
   /* Kettentext für „Wurzel ziehen": lässt sich die Wurzel nicht vereinfachen,
      wäre „√x = √x" nur Füllmaterial - dann steht die Wurzel allein da. */
   function wurzelKurz(D){
-    var gl = '\\sqrt{' + pgZahl(D) + '}', w = pgWurzel(D);
-    return (w === gl) ? gl : (gl + ' = ' + w);
+    var gl = '\\sqrt{' + pgZahl(D) + '}', w = Math.sqrt(D);
+    /* Ohne teilweises Wurzelziehen: geht die Wurzel nicht auf, folgt der
+       Näherungswert. */
+    return pgKrumm(w) ? (gl + ' \\approx ' + pgGerundet(w, 2)) : (gl + ' = ' + pgZahl(w));
+  }
+  /** Eine Lösung der Form „vorn ± Wurzel", exakt und - wenn krumm - gerundet.
+      vornTeX: der Teil vor dem ±, nennerTeX: bei der Mitternachtsformel 2a. */
+  function loesGenauTeX(x, vz, vornTeX, D, nennerTeX){
+    if (!pgKrumm(x)) return pgZahl(x);
+    var zaehler = (vornTeX ? vornTeX + (vz < 0 ? ' - ' : ' + ') : (vz < 0 ? '-' : '')) + pgWurzelRoh(D);
+    return (nennerTeX ? '\\frac{' + zaehler + '}{' + nennerTeX + '}' : zaehler) + ' \\approx ' + pgGerundet(x, 2);
   }
 
   /* Über jedem Schritt soll die Gleichung stehen, an der gerade gerechnet
@@ -1028,7 +1137,8 @@
     opt = opt || {};
     var v = opt.v || 'x';
     var p = b / a, q = c / a, m = p / 2, m2 = m * m, D = m2 - q;
-    var W = (D >= 0) ? Math.sqrt(D) : null;
+    /* Eine winzige negative Zahl ist Rechenungenauigkeit, keine fehlende Lösung. */
+    var W = (D >= -1e-9) ? Math.sqrt(Math.max(0, D)) : null;
     var x1 = (W === null) ? null : -m - W, x2 = (W === null) ? null : -m + W;
     var S = [];
     var normal = (Math.abs(a - 1) > 1e-9);
@@ -1067,12 +1177,18 @@
                  'Substitute into \\(' + v + '_{1,2} = -\\frac{p}{2} \\pm \\sqrt{\\left(\\frac{p}{2}\\right)^{2} - q}\\). What do you get? Separate several values with a semicolon.'),
         platzhalter: T('z. B. 2; -3', 'e.g. 2; -3'),
         knoepfe: loesListe.length ? [] : [{ text: T('keine Lösung', 'no solution'), wert: 'keine' }],
-        kurz: loesListe.length ? loesListe.map(function(z){ return pgZahl(z); }).join(';\\ ') : T('keine Lösung', 'no solution'),
+        kurz: loesListe.length
+          ? loesListe.map(function(z, i){
+              return loesGenauTeX(z, i === 0 && loesListe.length > 1 ? -1 : 1, Math.abs(m) < 1e-12 ? '' : pgZahl(-m), D);
+            }).join(';\\ ')
+          : T('keine Lösung', 'no solution'),
+        /* So würde man die Antwort tippen - gebraucht vom Prüflauf. */
+        muster: loesListe.length ? loesListe.map(function(z){ return pgKrumm(z) ? pgGerundet(z, 2).replace('{,}', ',') : pgZahlText(z); }).join('; ') : 'keine',
         hilfe: [T('Unter der Wurzel steht \\(\\left(\\frac{p}{2}\\right)^{2} - q = ' + pgZahl(D) + '\\).',
                   'Under the root you get \\(\\left(\\frac{p}{2}\\right)^{2} - q = ' + pgZahl(D) + '\\).'),
                 (D < -1e-9)
                   ? T('Aus einer negativen Zahl lässt sich keine Wurzel ziehen.', 'You cannot take the square root of a negative number.')
-                  : T('Rechne \\(' + pgZahl(-m) + ' \\pm ' + pgWurzel(D) + '\\).', 'Work out \\(' + pgZahl(-m) + ' \\pm ' + pgWurzel(D) + '\\).')],
+                  : T('Rechne \\(' + pgZahl(-m) + ' \\pm ' + pgWurzelRoh(D) + '\\).', 'Work out \\(' + pgZahl(-m) + ' \\pm ' + pgWurzelRoh(D) + '\\).')],
         pruefe: function(txt){
           var t = String(txt || '').trim();
           if (/^(keine|none|-|\u2205)$/i.test(t))
@@ -1148,25 +1264,67 @@
           hilfe: [T('Welche Zahl mit sich selbst malgenommen ergibt ' + pgZahlText(D) + '?',
                     'Which number multiplied by itself gives ' + pgZahlText(D) + '?')] }));
     }
-    if (W !== null){
+    if (W !== null && D <= 1e-9){
+      /* Unter der Wurzel steht 0: plus und minus ergeben dasselbe. */
+      S.push(zahlSchritt(T('Die Lösung', 'The solution'),
+        T('Unter der Wurzel steht 0 – plus und minus ergeben dasselbe. Wie lautet die (doppelte) Lösung \\(' + v + ' = -\\frac{p}{2}\\)?',
+          'There is 0 under the root – plus and minus give the same. What is the (double) solution \\(' + v + ' = -\\frac{p}{2}\\)?'), x1,
+        { vorFeld: v, kurz: v + '_{1,2} = ' + pgZahl(x1), tol: schrittTol(x1),
+          fehler: [[-x1, T('Achte auf das Vorzeichen: es heißt minus p halbe.', 'Mind the sign: it is minus p over two.')]],
+          hilfe: [T('Es bleibt nur der Wert vor dem ±.', 'Only the value in front of the ± is left.')] }));
+    } else if (W !== null){
+      var vornPQ = (Math.abs(m) < 1e-12) ? '' : pgZahl(-m);
       S.push(zahlSchritt(v + '₁',
-        T('Jetzt der Fall mit <b>minus</b>: \\(' + v + '_1 = ' + pgZahl(-m) + ' - ' + pgWurzel(D) + '\\). Wie viel ist das?',
-          'Now the case with <b>minus</b>: \\(' + v + '_1 = ' + pgZahl(-m) + ' - ' + pgWurzel(D) + '\\). What is that?'), x1,
-        { vorFeld: v + '_1', kurz: v + '_1 = ' + pgZahl(x1), tol: schrittTol(x1),
+        T('Jetzt der Fall mit <b>minus</b>: \\(' + v + '_1 = ' + (vornPQ ? vornPQ + ' - ' : '-') + pgWurzelRoh(D) + '\\). Wie viel ist das?',
+          'Now the case with <b>minus</b>: \\(' + v + '_1 = ' + (vornPQ ? vornPQ + ' - ' : '-') + pgWurzelRoh(D) + '\\). What is that?'), x1,
+        { vorFeld: v + '_1', kurz: v + '_1 = ' + loesGenauTeX(x1, -1, vornPQ, D), tol: schrittTol(x1),
           fehler: [[x2, T('Das ist der Fall mit plus – hier ist der mit minus gefragt.',
                           'That is the case with plus – here the one with minus is wanted.')],
                    [-x1, T('Achte auf die Vorzeichen.', 'Mind the signs.')]],
           hilfe: [T('Vom ersten Wert die Wurzel abziehen.', 'Subtract the root from the first value.')] }));
-      if (D > 1e-9){
-        S.push(zahlSchritt(v + '₂',
-          T('Und der Fall mit <b>plus</b>: \\(' + v + '_2 = ' + pgZahl(-m) + ' + ' + pgWurzel(D) + '\\).',
-            'And the case with <b>plus</b>: \\(' + v + '_2 = ' + pgZahl(-m) + ' + ' + pgWurzel(D) + '\\).'), x2,
-          { vorFeld: v + '_2', kurz: v + '_2 = ' + pgZahl(x2), tol: schrittTol(x2),
-            fehler: [[x1, T('Das war schon der Fall mit minus.', 'That was the case with minus already.')]],
-            hilfe: [T('Zum ersten Wert die Wurzel addieren.', 'Add the root to the first value.')] }));
-      }
+      S.push(zahlSchritt(v + '₂',
+        T('Und der Fall mit <b>plus</b>: \\(' + v + '_2 = ' + (vornPQ ? vornPQ + ' + ' : '') + pgWurzelRoh(D) + '\\).',
+          'And the case with <b>plus</b>: \\(' + v + '_2 = ' + (vornPQ ? vornPQ + ' + ' : '') + pgWurzelRoh(D) + '\\).'), x2,
+        { vorFeld: v + '_2', kurz: v + '_2 = ' + loesGenauTeX(x2, 1, vornPQ, D), tol: schrittTol(x2),
+          fehler: [[x1, T('Das war schon der Fall mit minus.', 'That was the case with minus already.')]],
+          hilfe: [T('Zum ersten Wert die Wurzel addieren.', 'Add the root to the first value.')] }));
     }
     return fertig();
+  }
+
+  /**
+   * Die zwei Schritte der Aufgabenart „Einsetzen": erst die linke Seite
+   * ausrechnen, dann mit der rechten vergleichen.
+   *   e   { linksTeX, links, rechts, gleich } - dieselbe Rechnung, die die Seite
+   *       in ihrem Lösungsweg zeigt
+   *   opt.probeTeX   die eingesetzte Zahl      opt.v   Name der Variablen
+   *   opt.nullstelle wird nach einer Nullstelle gefragt (statt nach einer Lösung)?
+   */
+  function pgSchritteEinsetzen(e, opt){
+    opt = opt || {};
+    var v = opt.v || 'x', pT = opt.probeTeX, S = [];
+    var wasDe = opt.nullstelle ? 'eine Nullstelle' : 'eine Lösung',
+        wasEn = opt.nullstelle ? 'a root' : 'a solution';
+    S.push(zahlSchritt(T('Einsetzen', 'Substituting'),
+      T('Setze \\(' + v + ' = ' + pT + '\\) in die linke Seite ein. Was kommt heraus?',
+        'Substitute \\(' + v + ' = ' + pT + '\\) on the left-hand side. What do you get?')
+        + '<br>\\[' + e.linksTeX + ' = \\;?\\]', e.links,
+      { kurz: e.linksTeX + ' = ' + pgZahl(e.links), tol: 1e-4,
+        hilfe: opt.hilfe || [T('Erst die Potenzen ausrechnen, dann multiplizieren, zuletzt zusammenzählen.',
+                               'Work out the powers first, then multiply, then add up.')] }));
+    S.push({ titel: T('Vergleichen', 'Compare'), art: 'wahl',
+      frage: T('Links kommt \\(' + pgZahl(e.links) + '\\) heraus, rechts steht \\(' + pgZahl(e.rechts)
+               + '\\). Ist \\(' + v + ' = ' + pT + '\\) also ' + wasDe + '?',
+               'The left-hand side gives \\(' + pgZahl(e.links) + '\\), the right-hand side is \\(' + pgZahl(e.rechts)
+               + '\\). So is \\(' + v + ' = ' + pT + '\\) ' + wasEn + '?'),
+      optionen: [T('ja', 'yes'), T('nein', 'no')],
+      richtig: e.gleich ? 0 : 1,
+      kurz: e.gleich ? (opt.nullstelle ? T('Nullstelle', 'root') : T('Lösung', 'solution'))
+                     : (opt.nullstelle ? T('keine Nullstelle', 'not a root') : T('keine Lösung', 'not a solution')),
+      falschText: T('Eine Zahl ist genau dann ' + wasDe + ', wenn beide Seiten denselben Wert haben.',
+                    'A number is ' + wasEn + ' exactly when both sides have the same value.'),
+      hilfe: [T('Vergleiche die beiden Zahlen: Sind sie gleich?', 'Compare the two numbers: are they equal?')] });
+    return S;
   }
 
   /** Dasselbe über die Mitternachtsformel. */
@@ -1174,7 +1332,8 @@
     opt = opt || {};
     var v = opt.v || 'x';
     var D = b * b - 4 * a * c;
-    var W = (D >= 0) ? Math.sqrt(D) : null;
+    /* Eine winzige negative Zahl ist Rechenungenauigkeit, keine fehlende Lösung. */
+    var W = (D >= -1e-9) ? Math.sqrt(Math.max(0, D)) : null;
     var x1 = (W === null) ? null : (-b - W) / (2 * a), x2 = (W === null) ? null : (-b + W) / (2 * a);
     var S = [];
     /* Hier wird nicht umgeformt - über allen Schritten steht dieselbe Gleichung. */
@@ -1220,16 +1379,23 @@
       S.push(zahlSchritt(T('Nenner', 'Denominator'),
         T('Berechne den Nenner \\(2a\\).', 'Work out the denominator \\(2a\\).'), 2 * a,
         { vorFeld: '2a', kurz: '2a = ' + pgZahl(2 * a) }));
-      S.push(zahlSchritt(v + '₁',
-        T('Jetzt der Fall mit <b>minus</b>: \\(' + v + '_1 = \\frac{' + pgZahl(-b) + ' - ' + pgWurzel(D) + '}{' + pgZahl(2 * a) + '}\\).',
-          'Now the case with <b>minus</b>: \\(' + v + '_1 = \\frac{' + pgZahl(-b) + ' - ' + pgWurzel(D) + '}{' + pgZahl(2 * a) + '}\\).'), x1,
-        { vorFeld: v + '_1', kurz: v + '_1 = ' + pgZahl(x1), tol: schrittTol(x1),
-          fehler: [[x2, T('Das ist der Fall mit plus.', 'That is the case with plus.')]] }));
-      if (D > 1e-9){
+      if (D <= 1e-9){
+        S.push(zahlSchritt(T('Die Lösung', 'The solution'),
+          T('Unter der Wurzel steht 0 – plus und minus ergeben dasselbe: \\(' + v + ' = \\frac{-b}{2a}\\). Wie lautet die (doppelte) Lösung?',
+            'There is 0 under the root – plus and minus give the same: \\(' + v + ' = \\frac{-b}{2a}\\). What is the (double) solution?'), x1,
+          { vorFeld: v, kurz: v + '_{1,2} = ' + pgZahl(x1), tol: schrittTol(x1),
+            fehler: [[-x1, T('Achte auf das Vorzeichen von b.', 'Mind the sign of b.')]] }));
+      } else {
+        var vornM = (Math.abs(b) < 1e-12) ? '' : pgZahl(-b);
+        S.push(zahlSchritt(v + '₁',
+          T('Jetzt der Fall mit <b>minus</b>: \\(' + v + '_1 = \\frac{' + (vornM ? vornM + ' - ' : '-') + pgWurzelRoh(D) + '}{' + pgZahl(2 * a) + '}\\).',
+            'Now the case with <b>minus</b>: \\(' + v + '_1 = \\frac{' + (vornM ? vornM + ' - ' : '-') + pgWurzelRoh(D) + '}{' + pgZahl(2 * a) + '}\\).'), x1,
+          { vorFeld: v + '_1', kurz: v + '_1 = ' + loesGenauTeX(x1, -1, vornM, D, pgZahl(2 * a)), tol: schrittTol(x1),
+            fehler: [[x2, T('Das ist der Fall mit plus.', 'That is the case with plus.')]] }));
         S.push(zahlSchritt(v + '₂',
-          T('Und der Fall mit <b>plus</b>: \\(' + v + '_2 = \\frac{' + pgZahl(-b) + ' + ' + pgWurzel(D) + '}{' + pgZahl(2 * a) + '}\\).',
-            'And the case with <b>plus</b>: \\(' + v + '_2 = \\frac{' + pgZahl(-b) + ' + ' + pgWurzel(D) + '}{' + pgZahl(2 * a) + '}\\).'), x2,
-          { vorFeld: v + '_2', kurz: v + '_2 = ' + pgZahl(x2), tol: schrittTol(x2),
+          T('Und der Fall mit <b>plus</b>: \\(' + v + '_2 = \\frac{' + (vornM ? vornM + ' + ' : '') + pgWurzelRoh(D) + '}{' + pgZahl(2 * a) + '}\\).',
+            'And the case with <b>plus</b>: \\(' + v + '_2 = \\frac{' + (vornM ? vornM + ' + ' : '') + pgWurzelRoh(D) + '}{' + pgZahl(2 * a) + '}\\).'), x2,
+          { vorFeld: v + '_2', kurz: v + '_2 = ' + loesGenauTeX(x2, 1, vornM, D, pgZahl(2 * a)), tol: schrittTol(x2),
             fehler: [[x1, T('Das war schon der Fall mit minus.', 'That was the case with minus already.')]] }));
       }
     }
@@ -1242,25 +1408,40 @@
     var v = opt.v || 'x';
     var w = -d / a, gerade = (n % 2 === 0);
     var S = [];
-    S.push(zahlSchritt(T('Zahl beiseite', 'Move the number'),
-      T('Bringe die Zahl auf die andere Seite: \\(' + pgZahl(a) + v + '^{' + n + '} = \\;?\\)',
-        'Move the number to the other side: \\(' + pgZahl(a) + v + '^{' + n + '} = \\;?\\)'), -d,
-      { kurz: pgZahl(a) + v + '^{' + n + '} = ' + pgZahl(-d),
-        fehler: [[d, T('Beim Hinüberbringen dreht sich das Vorzeichen um.',
-                       'The sign flips when you move it across.')]],
-        hilfe: [T('Auf beiden Seiten dieselbe Zahl addieren bzw. subtrahieren.',
-                  'Add or subtract the same number on both sides.')] }));
-    if (Math.abs(a - 1) > 1e-9){
-      S.push(zahlSchritt(T('durch den Faktor teilen', 'Divide by the factor'),
-        T('Teile durch ' + pgZahlText(a) + ': \\(' + v + '^{' + n + '} = \\;?\\)',
-          'Divide by ' + pgZahlText(a) + ': \\(' + v + '^{' + n + '} = \\;?\\)'), w,
-        { kurz: v + '^{' + n + '} = ' + pgZahl(w),
-          fehler: [[-w, T('Achte auf das Vorzeichen des Faktors.', 'Mind the sign of the factor.')],
-                   [-d * a, T('Hier wird geteilt, nicht multipliziert.', 'Here you divide, not multiply.')]],
-          hilfe: [T('Beide Seiten durch den Faktor vor der Potenz teilen.',
-                    'Divide both sides by the factor in front of the power.')] }));
+    /* Die Potenz mit ihrem Faktor - ohne „1x²". */
+    var pot = function(k){ var o = {}; o[n] = k; return pgPoly(o, { v: v }); };
+    /* Über den Schritten steht die Gleichung, an der gerade gerechnet wird:
+       erst a·xⁿ + d = 0, nach dem Hinüberbringen a·xⁿ = −d, zuletzt xⁿ = w. */
+    var glNull = (function(){
+      var o = {}; o[n] = a; if (Math.abs(d) > 1e-12) o[0] = d;
+      return pgPoly(o, { v: v }) + ' = 0';
+    })();
+    var glZahl = pot(a) + ' = ' + pgZahl(-d);
+    var glPot  = pot(1) + ' = ' + pgZahl(w);
+    /* opt.schon: Die Aufgabe steht schon als xⁿ = w da - dann gibt es nichts
+       hinüberzubringen und nichts zu teilen. */
+    if (!opt.schon){
+      if (Math.abs(d) > 1e-12)
+        S.push(zahlSchritt(T('Zahl beiseite', 'Move the number'),
+          T('Bringe die Zahl auf die andere Seite: \\(' + pot(a) + ' = \\;?\\)',
+            'Move the number to the other side: \\(' + pot(a) + ' = \\;?\\)'), -d,
+          { gleichung: glNull, kurz: glZahl,
+            fehler: [[d, T('Beim Hinüberbringen dreht sich das Vorzeichen um.',
+                           'The sign flips when you move it across.')]],
+            hilfe: [T('Auf beiden Seiten dieselbe Zahl addieren bzw. subtrahieren.',
+                      'Add or subtract the same number on both sides.')] }));
+      if (Math.abs(a - 1) > 1e-9){
+        S.push(zahlSchritt(T('durch den Faktor teilen', 'Divide by the factor'),
+          T('Teile durch ' + pgZahlText(a) + ': \\(' + pot(1) + ' = \\;?\\)',
+            'Divide by ' + pgZahlText(a) + ': \\(' + pot(1) + ' = \\;?\\)'), w,
+          { gleichung: glZahl, kurz: glPot,
+            fehler: [[-w, T('Achte auf das Vorzeichen des Faktors.', 'Mind the sign of the factor.')],
+                     [-d * a, T('Hier wird geteilt, nicht multipliziert.', 'Here you divide, not multiply.')]],
+            hilfe: [T('Beide Seiten durch den Faktor vor der Potenz teilen.',
+                      'Divide both sides by the factor in front of the power.')] }));
+      }
     }
-    S.push({ titel: T('Exponent ansehen', 'Look at the exponent'), art: 'wahl',
+    S.push({ titel: T('Exponent ansehen', 'Look at the exponent'), art: 'wahl', gleichung: glPot,
       frage: T('Der Exponent ist ' + n + '. Was heißt das für die Anzahl der Lösungen?',
                'The exponent is ' + n + '. What does that mean for the number of solutions?'),
       optionen: gerade
@@ -1277,15 +1458,18 @@
             'An even power is never negative: a positive number gives two solutions, 0 gives one, a negative none.')
         : T('Eine ungerade Potenz nimmt jeden Wert an – es gibt immer genau eine Lösung.',
             'An odd power takes every value – there is always exactly one solution.'),
-      hilfe: [T('Denk an \\(' + v + '^{2}\\): das Ergebnis ist nie negativ.',
-                'Think of \\(' + v + '^{2}\\): the result is never negative.')] });
+      hilfe: [gerade
+        ? T('Denk an \\(' + v + '^{2}\\): das Ergebnis ist nie negativ.',
+            'Think of \\(' + v + '^{2}\\): the result is never negative.')
+        : T('Denk an \\(' + v + '^{3}\\): \\((-2)^{3} = -8\\) – das Vorzeichen bleibt erhalten.',
+            'Think of \\(' + v + '^{3}\\): \\((-2)^{3} = -8\\) – the sign is kept.')] });
     var loes = [];
     if (Math.abs(w) < 1e-12) loes = [0];
     else if (gerade) loes = (w > 0) ? [-Math.pow(w, 1 / n), Math.pow(w, 1 / n)] : [];
     else loes = [Math.sign(w) * Math.pow(Math.abs(w), 1 / n)];
-    S.push({ titel: T('Wie viele Lösungen?', 'How many solutions?'), art: 'wahl',
-      frage: T('Rechts steht ' + pgZahlText(w) + '. Wie viele Lösungen gibt es also?',
-               'The right-hand side is ' + pgZahlText(w) + '. So how many solutions are there?'),
+    S.push({ titel: T('Wie viele Lösungen?', 'How many solutions?'), art: 'wahl', gleichung: glPot,
+      frage: T('Rechts steht \\(' + pgZahl(w) + '\\). Wie viele Lösungen gibt es also?',
+               'The right-hand side is \\(' + pgZahl(w) + '\\). So how many solutions are there?'),
       optionen: [T('keine', 'none'), T('eine', 'one'), T('zwei', 'two')],
       richtig: loes.length,
       kurz: loes.length + ' ' + T('Lösung(en)', 'solution(s)'),
@@ -1293,20 +1477,37 @@
                     'The sign on the right and the exponent decide together.') });
     if (loes.length){
       var gross = loes[loes.length - 1];
+      /* Geht die Wurzel nicht auf, bleibt sie als Wurzel stehen - dahinter
+         der Näherungswert. */
+      var wurzel = function(vz){
+        var betrag = (n === 2) ? '\\sqrt{' + pgZahl(Math.abs(w)) + '}'
+                               : '\\sqrt[' + n + ']{' + pgZahl(Math.abs(w)) + '}';
+        return (vz < 0 ? '-' : '') + betrag;
+      };
+      var genau = function(x){
+        return pgKrumm(x) ? (wurzel(x) + ' \\approx ' + pgGerundet(x, 2)) : pgZahl(x);
+      };
+      var welche = (n === 2) ? T('die Wurzel', 'the square root')
+                             : T('die ' + n + '. Wurzel', 'the ' + n + 'th root');
       S.push(zahlSchritt(T('Wurzel ziehen', 'Take the root'),
-        T('Ziehe die ' + n + '-te Wurzel: ' + (loes.length > 1 ? 'Wie lautet die positive Lösung?' : 'Wie lautet die Lösung?'),
-          'Take the ' + n + 'th root: ' + (loes.length > 1 ? 'what is the positive solution?' : 'what is the solution?')), gross,
-        { kurz: v + ' = ' + pgZahl(gross), tol: schrittTol(gross),
+        T('Ziehe ' + welche + ': ' + (loes.length > 1 ? 'Wie lautet die positive Lösung?' : 'Wie lautet die Lösung?'),
+          'Take ' + welche + ': ' + (loes.length > 1 ? 'what is the positive solution?' : 'what is the solution?')), gross,
+        { gleichung: glPot, kurz: v + ' = ' + genau(gross), tol: schrittTol(gross),
           fehler: [[w, T('Das ist noch \\(' + v + '^{' + n + '}\\) – jetzt fehlt die Wurzel.',
                          'That is still \\(' + v + '^{' + n + '}\\) – the root is still missing.')],
                    [w / n, T('Wurzelziehen ist nicht Teilen.', 'Taking a root is not dividing.')]],
-          hilfe: [T('Welche Zahl hoch ' + n + ' ergibt ' + pgZahlText(w) + '?',
-                    'Which number raised to the power ' + n + ' gives ' + pgZahlText(w) + '?')] }));
+          hilfe: [T('Welche Zahl hoch ' + n + ' ergibt \\(' + pgZahl(w) + '\\)?',
+                    'Which number raised to the power ' + n + ' gives \\(' + pgZahl(w) + '\\)?')] }));
       if (loes.length > 1){
-        S.push({ titel: T('die zweite Lösung', 'the second solution'), art: 'wahl',
+        /* Die Auswahl steht als Formel da - sonst bliebe bei Brüchen und
+           Wurzeln der TeX-Quelltext auf dem Knopf stehen. */
+        var kehr = pgKrumm(gross) ? ('\\frac{1}{' + wurzel(1) + '}')
+                 : (Math.abs(gross - 1) < 1e-9 ? pgZahl(2) : pgZahl(1 / gross));
+        S.push({ titel: T('die zweite Lösung', 'the second solution'), art: 'wahl', gleichung: glPot,
           frage: T('Wie lautet die zweite Lösung?', 'What is the second solution?'),
-          optionen: [pgZahl(loes[0]), pgZahl(1 / gross), '0'],
-          richtig: 0, kurz: v + ' = ' + pgZahl(loes[0]),
+          optionen: ['\\(' + (pgKrumm(gross) ? wurzel(-1) : pgZahl(loes[0])) + '\\)',
+                     '\\(' + kehr + '\\)', '\\(0\\)'],
+          richtig: 0, kurz: v + ' = ' + genau(loes[0]),
           falschText: T('Bei einem geraden Exponenten gehört zu jeder Lösung auch ihre Gegenzahl.',
                         'With an even exponent every solution comes with its opposite.'),
           hilfe: [T('(−a)ⁿ ist bei geradem n dasselbe wie aⁿ.', '(−a)ⁿ equals aⁿ for even n.')] });
@@ -1520,7 +1721,7 @@
     var e = PGSEITEN[art];
     if (!e) return '';
     return T('Das ist ', 'This is ') + T('eine ' + e[1], 'a ' + e[2]) + '. '
-      + '<a href="' + e[0] + (glText ? ('?gl=' + encodeURIComponent(glText)) : '') + '">'
+      + '<a href="' + e[0] + (glText ? ('?gl=' + encodeURIComponent(glText)) : '') + '" target="_blank" rel="noopener">'
       + T('auf der passenden Seite üben', 'practise it on the right page') + ' →</a>';
   }
 
@@ -1809,10 +2010,61 @@
     return T('Hinweis: ', 'Note: ') + teile.join(T(', ', ', ')) + '.';
   }
 
+  /* ── 9. Gleichungsseiten: Sperre und fester Platz ─────────────────────────
+     Nur auf Seiten mit <body data-gleichungsseite>. */
+  /** Sperrt den Eingabebereich - ist er schon fertig, bleibt es beim Sperren
+      ohne Hinweis. */
+  function pgEingabeSperren(host){
+    if (!host || host.classList.contains('pg-gesperrt')) return;
+    var offen = host.querySelectorAll('input:not(:disabled), button:not(:disabled), select:not(:disabled), textarea:not(:disabled)');
+    host.classList.add('pg-gesperrt');
+    [].forEach.call(offen, function(e){ e.disabled = true; });
+    if (!offen.length) return;
+    var n = document.createElement('div');
+    n.className = 'pg-sperr-hinweis';
+    n.innerHTML = T('Die Lösung ist eingeblendet – für diese Aufgabe ist die Eingabe gesperrt.',
+                    'The answer is shown – input is locked for this task.');
+    host.appendChild(n);
+  }
+  /** Platz für die Gleichung: was einmal gebraucht wurde, bleibt reserviert. */
+  function pgGleichungsPlatz(t){
+    if (!t || t._pgPlatz) return;
+    t._pgPlatz = true;
+    var hoechst = 0;
+    var messen = function(){
+      var h = 0;
+      [].forEach.call(t.children, function(k){
+        /* die umgestellte Zeile auf der Gleichungsart-Seite zählt nicht mit */
+        if (k.classList.contains('null-form')) return;
+        var cs = window.getComputedStyle(k);
+        h += k.offsetHeight + (parseFloat(cs.marginTop) || 0) + (parseFloat(cs.marginBottom) || 0);
+      });
+      if (h > hoechst + 0.5){ hoechst = h; t.style.minHeight = Math.ceil(h) + 'px'; }
+    };
+    if (typeof ResizeObserver === 'function') new ResizeObserver(messen).observe(t);
+    if (typeof MutationObserver === 'function')
+      new MutationObserver(function(){ setTimeout(messen, 0); }).observe(t, { childList: true, subtree: true });
+  }
+  function pgGleichungsseite(){
+    if (!document.body || !document.body.hasAttribute('data-gleichungsseite')) return;
+    pgGleichungsPlatz(document.getElementById('task'));
+    /* toggle steigt nicht auf - in der Einfangphase kommt es trotzdem an */
+    document.addEventListener('toggle', function(ev){
+      var d = ev.target;
+      if (!d || d.id !== 'dLoesung' || !d.open) return;
+      pgEingabeSperren(document.getElementById('antwortBereich'));
+    }, true);
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', pgGleichungsseite);
+  else pgGleichungsseite();
+  window.pgEingabeSperren = pgEingabeSperren;
+
   window.pgAntwort     = pgAntwort;
   window.pgAntwortListe = pgAntwortListe;
+  window.pgQuizFolge = reihenfolge;
   window.pgQuiz        = pgQuiz;
   window.pgSchrittePQ  = pgSchrittePQ;
+  window.pgSchritteEinsetzen = pgSchritteEinsetzen;
   window.pgSchritteMNF = pgSchritteMNF;
   window.pgSchrittePotenz = pgSchrittePotenz;
   window.pgZahlSchritt = zahlSchritt;

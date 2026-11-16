@@ -351,13 +351,16 @@ html.dark details[open].weg{ background:#1b2026; border-color:#2f4f6f; }
 .step .sh{ font-weight:bold; font-size:.88em; color:#1a3a5a; }
 .step .sx{ font-size:.88em; color:#555; margin:2px 0; }
 .step .note-line{ color:#333; margin-top:2px; }
-.step-link{ display:inline-block; margin:5px 0 2px; background:#E07B00; color:#fff; text-decoration:none;
+.step-link{ display:table; margin:8px 0 2px auto; background:#E07B00; color:#fff; text-decoration:none;
   font-size:.8em; padding:5px 11px; border-radius:5px; }
 .varsw{ display:flex; flex-wrap:wrap; gap:5px; margin:2px 0 6px; }
 .varsw button{ background:#fff; color:#0d47a1 !important; font-size:.8em; padding:5px 11px; border-radius:16px;
   border:1.5px solid #b6d4f0; margin:0; }
 .varsw button.on{ background:#3a7ac0; color:#fff !important; border-color:#3a7ac0; font-weight:bold; }
 .wegsel{ font-size:.8em; color:#555; margin:2px 0 0; }
+.qz-weg{ display:flex; align-items:center; flex-wrap:wrap; gap:4px 8px; margin:0 0 8px; }
+.qz-weg .wegsel{ margin:0; }
+.qz-weg .varsw{ margin:0; }
 .extlink{ text-align:center; margin:8px 0 4px; display:flex; flex-wrap:wrap; gap:6px; justify-content:center; }
 .extlink a{ display:inline-block; background:#3a7ac0; color:#fff; text-decoration:none; font-size:.85em;
   padding:8px 15px; border-radius:5px; }
@@ -617,6 +620,19 @@ const P10 = 10;                       /* intern feiner rechnen als angezeigt wir
 const rd  = (x, n) => Math.round(x * Math.pow(10, n == null ? 6 : n)) / Math.pow(10, n == null ? 6 : n);
 const eq0 = x => Math.abs(x) < EPS;
 const eqN = (a, b) => Math.abs(a - b) < 1e-6;
+/** Eine Eingabe gegen den erwarteten Wert prüfen: genau - oder, wenn der Wert
+    krumm ist (kein Dezimalbruch mit höchstens drei Stellen, etwa √5 oder 1/3),
+    auch gerundet (auf zwei Nachkommastellen genau). Eine 0 oder ein falsches
+    Vorzeichen geht dabei nie durch - sonst wäre 1/320 schon mit 0 „richtig“. */
+function passt(x, soll){
+  if (x == null || soll == null || !isFinite(x) || !isFinite(soll)) return false;
+  if (eqN(x, soll)) return true;
+  if (1000 % Q.of(soll).d === 0) return false;
+  if (eq0(x) || Math.sign(x) !== Math.sign(soll)) return false;
+  return Math.abs(x - soll) <= 0.006;
+}
+/** dasselbe für Punkte und Vektoren */
+function gleichV(a, b){ return !!a && !!b && [0, 1, 2].every(i => passt(a[i], b[i])); }
 function gcd(a, b){ a = Math.abs(a); b = Math.abs(b); while (b){ [a, b] = [b, a % b]; } return a; }
 function lcm(a, b){ a = Math.abs(Math.round(a)); b = Math.abs(Math.round(b)); return (!a || !b) ? 0 : a / gcd(a, b) * b; }
 /* =========================================================================
@@ -725,10 +741,16 @@ function affine(p, c, sym){
   if (eq0(p)) return term(c, sym, true);
   return numTeX(p) + coef(c, sym);
 }
+/** „\\frac{z}{n} = Wert" - der Wert nur, wenn er anders aussieht als der Bruch
+    (sonst stünde da „\\frac{17}{3} = \\frac{17}{3}"). */
+function bruchWert(z, n, val){
+  const fr = '\\frac{' + numTeX(z) + '}{' + numTeX(n) + '}', v = numTeX(val);
+  return (fr === v) ? fr : fr + EQ(val) + v;           /* gerundet: ≈ */
+}
 function quotTeX(sym, z, n, val){
   if (eqN(n, 1))  return sym + ' = ' + numTeX(z);
   if (eqN(n, -1)) return sym + ' = ' + numTeX(-z);
-  return sym + ' = \\frac{' + numTeX(z) + '}{' + numTeX(n) + '} = ' + numTeX(val);
+  return sym + ' = ' + bruchWert(z, n, val);
 }
 
 /* ---------- Zufallszahlen nach den Einstellungen ---------- */
@@ -1003,12 +1025,18 @@ function relTeX(ok){
   return ok ? '\\;{\\color{' + (DUNKEL() ? '#81c784' : '#1a6a1a') + '}{=}}\\;'
             : '\\;{\\color{' + (DUNKEL() ? '#ef9a9a' : '#9a1010') + '}{\\neq}}\\;';
 }
+/** Term und Wert: „2 + 3·(−1) = −1" - ist der Term schon die Zahl, nur sie. */
+function mitWert(term, wert, links){
+  const w = numTeX(wert);
+  if (term === w) return w;
+  return links ? term + EQ(wert) + w : w + EQ(wert) + term;
+}
 /** eine Probezeile: linker Term = Wert  (=/≠)  Wert = rechter Term */
 function probeZeileTeX(lc, lu, lt, rc, ru, rt){
   const l = snap(lc + lu * lt), r = snap(rc + ru * rt), ok = eqN(l, r);
   return { ok: ok, l: l, r: r,
-    tex: '\\begin{array}{c}' + affine(lc, lu, paren(lt)) + ' = ' + numTeX(l)
-       + relTeX(ok) + numTeX(r) + ' = ' + affine(rc, ru, paren(rt)) + '\\end{array}' };
+    tex: '\\begin{array}{c}' + mitWert(affine(lc, lu, paren(lt)), l, true)
+       + relTeX(ok) + mitWert(affine(rc, ru, paren(rt)), r, false) + '\\end{array}' };
 }
 function dotTeX(a, b){ return [0, 1, 2].map(i => paren(a[i]) + '\\cdot ' + paren(b[i])).join(' + '); }
 function crossTeX(u, v){
@@ -1124,7 +1152,7 @@ function solve2(A1, B1, C1, A2, B2, C2){
     const rest = snap(C - (forT ? B * val : A * val)), coeff = forT ? A : B, sym = forT ? par() : par2();
     if (eqN(coeff, 1))  return sym + ' = ' + numTeX(rest);
     if (eqN(coeff, -1)) return sym + ' = ' + numTeX(-rest);
-    return sym + ' = \\frac{' + numTeX(rest) + '}{' + numTeX(coeff) + '} = ' + numTeX(snap(rest / coeff));
+    return sym + ' = ' + bruchWert(rest, coeff, snap(rest / coeff));
   };
   if (eq0(A1) || eq0(A2)){
     const f = eq0(A1) ? [A1, B1, C1, 'I'] : [A2, B2, C2, 'II'];
@@ -1414,10 +1442,11 @@ const VIS = {
     const co = u.map(x => eq0(x) ? '0' : (VIS.n(x) + 't')).join('|');
     return name + ' = Vektor(' + ptName + '; ' + co + ')' + VIS.opt(o);
   },
-  /* v=3d: 3D-Ansicht, pm=box: Ebenen bis zum Rand des Koordinatensystems,
-     die Hilfsvektoren zeichnen wir selbst als eigene Objekte */
+  /* v=3d: 3D-Ansicht; die Hilfsvektoren zeichnen wir selbst als eigene Objekte.
+     Den Ausschnitt der Ebenen bestimmt die Seite selbst (Standard, bis zu den
+     Punkten aufgezogen) - kein Achsenbereich mehr. */
   url(lines, par){
-    let u = VIS.page + '?o=' + encodeURIComponent(lines.join(String.fromCharCode(10))) + '&v=3d&pm=box';
+    let u = VIS.page + '?o=' + encodeURIComponent(lines.join(String.fromCharCode(10))) + '&v=3d';
     if (par){
       /* Parameterwert und passender Bereich, damit der gesuchte Punkt erreichbar ist */
       const w = snap(par), r = Math.max(3, Math.ceil(Math.abs(w) + 1));
@@ -1445,7 +1474,8 @@ const VIS_PKT  = c2 => ({ farbe: c2 || VC.pkt, stufe: 1 });
 const VIS_ORT  = c2 => ({ farbe: c2 || VC.hilf, strich: 'gepunktet' });
 const VIS_RICH = c2 => ({ farbe: c2 || VC.hilf, strich: 'durchgezogen', stufe: 2 });
 /* Standard: alle Hilfslinien; Ebenen zusätzlich mit quadratischem Ausschnitt
-   (bei Umwandlungen und zwei Ebenen wird stattdessen 'Achsen' gesetzt) */
+   (bei Umwandlungen und zwei Ebenen bleibt es bei der Standarddarstellung
+   der Seite - 'Standard' -, aufgezogen bis zu den Punkten) */
 const VIS_OBJ  = c2 => ({ farbe: c2 || VC.obj, hilfsvektoren: 'alle' });
 const VIS_EB   = c2 => ({ farbe: c2 || VC.obj, hilfsvektoren: 'alle', ebene: 'Quadrat' });
 
@@ -1500,23 +1530,32 @@ function visPlaneNor(eName, ptName, p, n, c2){
            vEbeneNor(eName, ptName, ptName + 'n', c2) ];
 }
 /** Ebene aus Punkt und zwei Spannvektoren, benannt */
+/** Ausschnitt einer Ebene: 'Standard' heißt keine eigene Angabe (die Seite
+    entscheidet), aber bis zu den Punkten aufgezogen. */
+function ebeneAusschnitt(aus){
+  return (aus === 'Standard') ? { aufziehen: 'an' } : { ebene: aus };
+}
+function ebeneAusschnittText(aus){
+  return (aus === 'Standard') ? '; aufziehen:an' : '; ebene:' + aus;
+}
 function visFormPar(nm, ptName, p, u, v, col, suffix, ausschnitt){
   const s = suffix || '', aus = ausschnitt || 'Quadrat';
   return [ vPunkt(ptName, p, col), VIS.vektor2('u' + s, ptName, u, { farbe: col, stufe: 1 }),
            VIS.vektor2('v' + s, ptName, v, { farbe: col, stufe: 1 }),
            nm + ' = Ebene(' + ptName + '; u' + s + '; v' + s + ') {farbe:' + col
-             + '; hilfsvektoren:alle; ebene:' + aus + '}' ];
+             + '; hilfsvektoren:alle' + ebeneAusschnittText(aus) + '}' ];
 }
 /** Ebene aus Punkt und Normalenvektor, benannt */
 function visFormNor(nm, ptName, p, n, col, suffix, ausschnitt){
   const s = suffix || '', aus = ausschnitt || 'Quadrat';
   return [ vPunkt(ptName, p, col), VIS.vektor2('n' + s, ptName, n, { farbe: col, stufe: 2 }),
            nm + ' = Ebene(' + ptName + '; n' + s + ') {farbe:' + col
-             + '; hilfsvektoren:alle; ebene:' + aus + '}' ];
+             + '; hilfsvektoren:alle' + ebeneAusschnittText(aus) + '}' ];
 }
 /** Ebene in Koordinatenform, benannt */
 function visFormKoo(nm, n, d, col, ausschnitt){
-  return [ VIS.ebeneKoord(nm, n, d, { farbe: col, hilfsvektoren: 'alle', ebene: ausschnitt || 'Quadrat' }) ];
+  return [ VIS.ebeneKoord(nm, n, d, Object.assign({ farbe: col, hilfsvektoren: 'alle' },
+                                                ebeneAusschnitt(ausschnitt || 'Quadrat'))) ];
 }
 /** zwei Geraden mit der aufgespannten Ebene; Stützpunkt und zweiter Spannvektor
     richten sich nach dem gewählten Lösungsweg */
@@ -2137,6 +2176,7 @@ function quizStart(stages){
 function quizRender(host){
   host.innerHTML = '';
   if (!QUIZ || !QUIZ.stages.length) return;
+  if (wegeImQuiz()) host.appendChild(quizWegSchalter(host));
   /* Wie auf den Gleichungsseiten: was schon gelöst ist, steht oben als kurze
      Kette, damit der laufende Schritt nicht immer weiter nach unten rutscht. */
   if (QUIZ.stages.length > 1){
@@ -2155,8 +2195,9 @@ function quizRender(host){
     host.appendChild(quizStageBox(st, i, host));
     /* Das Quiz als Hilfe steht als eigener Kasten unter dem aktuellen Schritt -
        so geraten seine Eingabefelder der eigenen Antwort nicht dazwischen. */
-    if (i === QUIZ.idx && !QUIZ.st[i].done && st.hilfe && st.hilfe.length)
-      host.appendChild(hilfeWrap(st, QUIZ.st[i], host));
+    const hl = hilfeListe(st, i);
+    if (i === QUIZ.idx && !QUIZ.st[i].done && hl && hl.length)
+      host.appendChild(hilfeWrap(st, QUIZ.st[i], host, hl));
   });
   if (QUIZ.idx >= QUIZ.stages.length){
     /* „Alles richtig gelöst“ gilt nur, wenn man nichts angezeigt bekommen hat. */
@@ -2308,15 +2349,58 @@ function quizStageBox(st, i, host){
    `hilfe: [ ... ]` mitbringt - jedes Element ist eine gewöhnliche Stufe
    (stageChoice, stageNums, …), ergänzt um `erklaerung`.
    ========================================================================= */
+/* ---------- Lösungswege im Quiz ----------
+   Bringt ein Lösungsweg eigene Zwischenfragen mit (variant.hilfe), wählt man
+   ihn schon über dem Quiz. Das Quiz als Hilfestellung folgt dann diesem Weg,
+   und der Lösungsweg unten zeigt denselben - umgekehrt genauso. */
+function wegeImQuiz(){
+  return !!(TASK && TASK.variants && TASK.variants.length > 1
+            && TASK.variants.some(v => v.hilfe && v.hilfe.length));
+}
+/** Zwischenfragen zur Stufe i: die des gewählten Weges, sonst die der Stufe */
+function hilfeListe(st, i){
+  const v = (TASK && TASK.variants) ? TASK.variants[WEGWAHL.v] : null;
+  if (v && v.hilfe && v.hilfe.length && i === (v.hilfeStufe || 0)) return v.hilfe;
+  return st.hilfe;
+}
+/** Nummer des Weges, zu dem diese Zwischenfragen gehören (0 = ohne Weg) */
+function hilfeWegNr(schritte){
+  if (!TASK || !TASK.variants) return 0;
+  const i = TASK.variants.findIndex(v => v.hilfe === schritte);
+  return i < 0 ? 0 : i + 1;
+}
+function quizWegSchalter(host){
+  const wrap = el('div', { class: 'qz-weg' });
+  wrap.appendChild(el('span', { class: 'wegsel' }, T('Lösungsweg:', 'Method:')));
+  const sw = el('div', { class: 'varsw' });
+  TASK.variants.forEach((v, i) => {
+    const b = el('button', { type: 'button', data: { i: i } }, v.label);
+    if (i === WEGWAHL.v) b.classList.add('on');
+    b.addEventListener('click', () => { if (WEGWAHL.v !== i) wegWaehlen(i); });
+    sw.appendChild(b);
+  });
+  wrap.appendChild(sw);
+  return wrap;
+}
+/** Weg wechseln - im Quiz und im Lösungsweg */
+function wegWaehlen(i){
+  const qa = $('#quizArea');
+  /* Eingetipptes, aber noch nicht Geprüftes bleibt stehen. */
+  if (qa && QUIZ) QUIZ.eingaben = $$('.qz-cur-step:not(.qz-solved) input', qa).map(x => x.value);
+  const knopf = $$('details.loesung .varsw button')[i];
+  if (knopf){ knopf.click(); return; }       /* der Lösungsweg zieht das Quiz mit */
+  WEGWAHL.v = i; WEGWAHL.klick = true;
+  if (qa && QUIZ) quizRender(qa);
+}
 /** Umschaltknopf und Kasten des Hilfe-Quiz */
-function hilfeWrap(stage, s, host){
+function hilfeWrap(stage, s, host, hl){
   const wrap = el('div', { class: 'qh-wrap' });
   /* Beschriftung wie auf den Gleichungsseiten. */
   const text = auf => auf ? T('Quiz ausblenden', 'Hide the step-by-step help')
                           : T('Quiz als Hilfestellung', 'Quiz as a hint');
   const kb = el('button', { type: 'button', class: 'hint-btn hilfe-btn' }, text(!!s.hilfeAuf));
   const kbox = el('div', { style: s.hilfeAuf ? '' : 'display:none' });
-  if (s.hilfeAuf) kbox.appendChild(hilfeBox(stage, s, host));
+  if (s.hilfeAuf) kbox.appendChild(hilfeBox(stage, s, host, hl));
   wrap.classList.toggle('auf', !!s.hilfeAuf);
   kb.addEventListener('click', () => {
     const auf = kbox.style.display === 'none';
@@ -2324,7 +2408,7 @@ function hilfeWrap(stage, s, host){
     s.hilfeAuf = auf;
     wrap.classList.toggle('auf', auf);
     kb.textContent = text(auf);
-    if (auf && !kbox.firstChild) kbox.appendChild(hilfeBox(stage, s, host));
+    if (auf && !kbox.firstChild) kbox.appendChild(hilfeBox(stage, s, host, hl));
     if (auf) mj(kbox);
   });
   const kopf = el('div', { class: 'qh-kopfzeile' });
@@ -2336,22 +2420,23 @@ function hilfeWrap(stage, s, host){
   return wrap;
 }
 /** Zustand der Hilfe zu einer Quizstufe anlegen oder weiterverwenden */
-function hilfeStand(s, schritte){
-  if (!s.hilfeSt || s.hilfeSt.n !== schritte.length)
-    s.hilfeSt = { n: schritte.length, idx: 0,
+function hilfeStand(s, schritte, weg){
+  /* Ein anderer Lösungsweg fängt mit seinen Zwischenfragen von vorn an. */
+  if (!s.hilfeSt || s.hilfeSt.n !== schritte.length || (s.hilfeSt.weg || 0) !== (weg || 0))
+    s.hilfeSt = { n: schritte.length, idx: 0, weg: weg || 0,
       st: schritte.map(() => ({ done: false, chosen: null, vals: null, wrong: {}, fb: null, stufe: 0 })) };
   return s.hilfeSt;
 }
 /** der ganze Hilfebereich zu einer Quizstufe */
-function hilfeBox(stage, s, host){
-  const schritte = stage.hilfe;
-  const z = hilfeStand(s, schritte);
+function hilfeBox(stage, s, host, hl){
+  const schritte = hl || stage.hilfe;
+  const z = hilfeStand(s, schritte, hilfeWegNr(schritte));
   const box = el('div', { class: 'qh-box' });
   box.appendChild(el('p', { class: 'qh-kopf' },
     T('Beantworte die Zwischenfragen \u2013 danach steht die L\u00f6sung fast von selbst da.',
       'Answer the intermediate questions \u2013 then the solution almost writes itself.')));
   const neu = () => {
-    const ersatz = hilfeBox(stage, s, host);
+    const ersatz = hilfeBox(stage, s, host, schritte);
     box.replaceWith(ersatz);
     mj(ersatz);
   };
@@ -2504,7 +2589,7 @@ function lockQuiz(){
   const qa = $('#quizArea');
   if (!qa) return;
   qa.classList.add('qz-locked');
-  $$('input, button', qa).forEach(x => { x.disabled = true; });
+  $$('input, button', qa).forEach(x => { if (!x.closest('.qz-weg')) x.disabled = true; });
 }
 
 /* =========================================================================
@@ -2591,6 +2676,12 @@ function solutionArea(z){
         varIdx = i; WEGWAHL.v = i; WEGWAHL.klick = true;
         paintWeg(box, TASK.variants[i]);
         if (zeigeLinks) zeigeLinks();
+        /* Das Quiz als Hilfe folgt demselben Weg. */
+        const qa = $('#quizArea');
+        if (qa && QUIZ && wegeImQuiz()){
+          if (!QUIZ.eingaben) QUIZ.eingaben = $$('.qz-cur-step:not(.qz-solved) input', qa).map(x => x.value);
+          quizRender(qa);
+        }
       });
       sw.appendChild(b);
     });
@@ -3434,8 +3525,8 @@ function stagePoint(title, name, right, sub, hint){
     verify(box){
       const q = readVec($('#inQ', box));
       if (!q) return { ok: false, cls: 'warn', msg: T('Bitte alle drei Koordinaten eintragen.', 'Please enter all three coordinates.') };
-      if (V.same(q, right)) return { ok: true, answer: '\\(' + ptTeX(name, right) + '\\)' };
-      const w = [0, 1, 2].filter(i => !eqN(q[i], right[i]));
+      if (gleichV(q, right)) return { ok: true, answer: '\\(' + ptTeX(name, right) + '\\)' };
+      const w = [0, 1, 2].filter(i => !passt(q[i], right[i]));
       return { ok: false, msg: w.length === 1
         ? T('Die ' + (w[0] + 1) + '. Koordinate stimmt noch nicht.', 'The ' + ORD(w[0] + 1) + ' coordinate is not right yet.')
         : (hint || T('Noch nicht richtig – rechne die Koordinaten noch einmal nach.', 'Not right yet – recalculate the coordinates.')) };
@@ -3453,7 +3544,7 @@ function stageNums(title, labels, vals, sub, hint){
     verify(box){
       const got = labels.map((L, i) => parseNum($('#inN' + i, box).value));
       if (got.some(x => x === null)) return { ok: false, cls: 'warn', msg: T('Bitte alle Felder ausfüllen.', 'Please fill in all fields.') };
-      const bad = got.map((x, i) => eqN(x, vals[i]) ? -1 : i).filter(i => i >= 0);
+      const bad = got.map((x, i) => passt(x, vals[i]) ? -1 : i).filter(i => i >= 0);
       if (!bad.length) return { ok: true, answer: '\\(' + labels.map((L, i) => L + ' = ' + numTeX(vals[i])).join(',\\quad ') + '\\)' };
       return { ok: false, msg: T('Noch nicht richtig bei \\(' + bad.map(i => labels[i]).join('\\) und \\(') + '\\). ',
                                     'Not right yet for \\(' + bad.map(i => labels[i]).join('\\) and \\(') + '\\). ') + (hint || '') };
@@ -3540,6 +3631,18 @@ function wurzelTeX(n){
     }
     return '\\sqrt{' + g + '}';
   }
+  /* Bruch unter der Wurzel: √(p/q) = √(p·q)/q, dann kürzen - aus √(400/9)
+     wird 20/3, aus √(8/9) wird 2√2/3, aus √(1/2) wird √2/2. */
+  const b = Q.of(n), pq = b.n * b.d;
+  if (b.d > 1 && b.n > 0 && pq < 1e9){
+    let k = 1, r = pq;
+    for (let t = Math.floor(Math.sqrt(pq)); t >= 2; t--){
+      if (pq % (t * t) === 0){ k = t; r = pq / (t * t); break; }
+    }
+    const gt = gcd(k, b.d) || 1, oben = k / gt, unten = b.d / gt;
+    const wz = (r === 1) ? numTeX(oben) : ((oben === 1 ? '' : numTeX(oben)) + '\\sqrt{' + r + '}');
+    return (unten === 1) ? wz : '\\frac{' + wz + '}{' + unten + '}';
+  }
   return '\\sqrt{' + numTeX(n) + '}';
 }
 /** Länge aus dem Quadrat: exakt und als Näherung. */
@@ -3567,6 +3670,21 @@ function crossAusTeX(a, b){
     + z.map(([i, j]) => paren(a[i]) + '\\cdot ' + paren(b[j]) + ' - ' + paren(a[j]) + '\\cdot ' + paren(b[i])).join(' \\\\ ')
     + '\\end{pmatrix}';
 }
+/** Die Produkte des Skalarprodukts schon ausgerechnet: 4 + (−2) + 6 */
+function dotProdTeX(a, b){
+  return a.map((x, i) => { const pr = snap(x * b[i]); return i ? paren(pr) : numTeX(pr); }).join(' + ');
+}
+/** Die Produkte des Kreuzprodukts schon ausgerechnet: (4 − (−3) | …) */
+function crossProdTeX(a, b){
+  const z = [[1, 2], [2, 0], [0, 1]];
+  return '\\begin{pmatrix}'
+    + z.map(([i, j]) => numTeX(snap(a[i] * b[j])) + ' - ' + paren(snap(a[j] * b[i]))).join(' \\\\ ')
+    + '\\end{pmatrix}';
+}
+/** Skalarprodukt ganz: einsetzen = Produkte = Summe */
+function dotKette(a, b, d){ return dotAusTeX(a, b) + ' = ' + dotProdTeX(a, b) + ' = ' + numTeX(d); }
+/** Kreuzprodukt ganz: einsetzen = Produkte = Ergebnis */
+function crossKette(a, b, c){ return crossAusTeX(a, b) + ' = ' + crossProdTeX(a, b) + ' = ' + TX.vec(c); }
 /** Eingabefeld für einen Vektor als Quizstufe – jede Lösung, die passt. */
 function stageVecFrei(title, name, pruef, sub, hint, soll){
   return { kind: 'input', title: title, sub: sub,
@@ -3649,13 +3767,13 @@ function hZahl(frage, label, soll, opt){
     verify(box){
       const v = parseNum($('#inH', box).value);
       if (v === null) return { ok: false, cls: 'warn', msg: T('Bitte eine Zahl eintragen.', 'Please enter a number.') };
-      if (eqN(v, soll) || (opt.tol && Math.abs(v - soll) <= opt.tol)){
+      if (passt(v, soll) || (opt.tol && Math.abs(v - soll) <= opt.tol)){
         /* Krumme Werte werden gerundet gezeigt - sonst stünde dort ein
            Riesenbruch wie 1856371/318365. */
         const txt = opt.antwort || (opt.tol ? tfmt(rd(soll, 2), 2) : numTeX(soll));
         return { ok: true, answer: '\\(' + (label ? label + ' = ' : '') + txt + '\\)' };
       }
-      if (eqN(v, -soll) && !eq0(soll))
+      if (passt(v, -soll) && !eq0(soll))
         return { ok: false, msg: T('Nur das Vorzeichen stimmt noch nicht.', 'Only the sign is not right yet.') };
       return { ok: false, msg: opt.fehler || T('Noch nicht richtig – rechne es Schritt für Schritt nach.', 'Not right yet – work it out step by step.') };
     } };
@@ -3673,10 +3791,10 @@ function hVek(frage, label, soll, opt){
     verify(box){
       const v = readVec($('#inHV', box));
       if (!v) return { ok: false, cls: 'warn', msg: T('Bitte alle drei Felder ausfüllen.', 'Please fill in all three fields.') };
-      if (V.same(v, soll)) return { ok: true, answer: '\\(' + (label ? label + ' = ' : '') + TX.vec(soll) + '\\)' };
-      if (V.same(v, V.mul(soll, -1)))
+      if (gleichV(v, soll)) return { ok: true, answer: '\\(' + (label ? label + ' = ' : '') + TX.vec(soll) + '\\)' };
+      if (gleichV(v, V.mul(soll, -1)))
         return { ok: false, msg: T('Alle Vorzeichen sind vertauscht – achte auf die Reihenfolge.', 'All the signs are swapped – mind the order.') };
-      const falsch = [0, 1, 2].filter(i => !eqN(v[i], soll[i]));
+      const falsch = [0, 1, 2].filter(i => !passt(v[i], soll[i]));
       return { ok: false, msg: falsch.length === 1
         ? T('Die ' + (falsch[0] + 1) + '. Komponente stimmt noch nicht.', 'The ' + ORD(falsch[0] + 1) + ' component is not right yet.')
         : T('Es stimmen noch nicht alle Komponenten.', 'Not all components are right yet.') };
@@ -3711,7 +3829,7 @@ function hKreuz(a, b, erg, label){
     const p = paare[i][0], q = paare[i][1];
     return hZahl(
       T('Was ergibt die ' + (i + 1) + '. Komponente?', 'What is the ' + ORD(i + 1) + ' component?'),
-      numTeX(a[p]) + '\\cdot ' + paren(b[q]) + ' - ' + numTeX(a[q]) + '\\cdot ' + paren(b[p]),
+      numTeX(a[p]) + '\\cdot ' + paren(b[q]) + ' - ' + paren(a[q]) + '\\cdot ' + paren(b[p]),
       erg[i],
       { weg: 'a_{' + (p + 1) + '}\\cdot b_{' + (q + 1) + '} - a_{' + (q + 1) + '}\\cdot b_{' + (p + 1) + '}',
         sub: i === 0 ? T('Für jede Zeile werden die beiden anderen Zeilen über Kreuz multipliziert – die mittlere Zeile bekommt ein Minus davor.',
@@ -3798,10 +3916,10 @@ function hilfeBauen(t){
       schritte = [
         hZahl(T('Was ergeben die beiden bekannten Produkte zusammen?', 'What do the two known products add up to?'),
           numTeX(d.a[d.andere[0]]) + '\\cdot ' + paren(d.rest[d.andere[0]]) + ' + '
-            + numTeX(d.a[d.andere[1]]) + '\\cdot ' + paren(d.rest[d.andere[1]]), rest,
+            + paren(d.a[d.andere[1]]) + '\\cdot ' + paren(d.rest[d.andere[1]]), rest,
           { sub: T('Die Zeile mit der Lücke lässt du zunächst weg.', 'Leave out the row with the gap for now.') }),
         hZahl(T('Welches Produkt fehlt noch, damit die Summe 0 wird?', 'Which product is still missing so that the sum is 0?'),
-          numTeX(d.a[d.i]) + '\\cdot x', snap(-rest),
+          term(d.a[d.i], 'x', true), snap(-rest),
           { sub: T('Die ganze Summe muss null ergeben.', 'The whole sum has to be zero.') }),
         hZahl(T('Und wie groß ist \\(x\\)?', 'And what is \\(x\\)?'), 'x', d.x,
           { sub: T('Durch den Vorfaktor teilen.', 'Divide by the coefficient.') })
@@ -3920,7 +4038,10 @@ function genSkal(m){
         step(T('Regel', 'Rule'), T('Beim Skalarprodukt werden die Zeilen einzeln multipliziert und die drei Ergebnisse addiert. Heraus kommt eine Zahl – kein Vektor.',
                                    'For the dot product the rows are multiplied separately and the three results added. The result is a number – not a vector.'),
           '\\vec{a}\\circ \\vec{b} = a_1 b_1 + a_2 b_2 + a_3 b_3'),
-        step(T('Einsetzen', 'Substitute'), '', '\\vec{a}\\circ \\vec{b} = ' + dotAusTeX(a, b) + ' = ' + numTeX(d)),
+        step(T('Einsetzen', 'Substitute'), '', '\\vec{a}\\circ \\vec{b} = ' + dotAusTeX(a, b)),
+        step(T('Produkte ausrechnen', 'Work out the products'), T('Erst jedes Produkt einzeln:', 'First each product on its own:'),
+          '\\vec{a}\\circ \\vec{b} = ' + dotProdTeX(a, b)),
+        step(T('Addieren', 'Add'), '', '\\vec{a}\\circ \\vec{b} = ' + numTeX(d)),
         step(T('Was sagt das Ergebnis?', 'What does the result mean?'),
           eq0(d) ? T('Das Skalarprodukt ist 0 – die beiden Vektoren stehen senkrecht aufeinander.', 'The dot product is 0 – the two vectors are perpendicular.')
           : (d > 0 ? T('Das Skalarprodukt ist positiv – der Winkel zwischen den Vektoren ist kleiner als 90°.', 'The dot product is positive – the angle between the vectors is less than 90°.')
@@ -3951,7 +4072,10 @@ function genKreuz(m){
         step(T('Regel', 'Rule'), T('In jeder Zeile des Ergebnisses kommt die eigene Zeilennummer nicht vor: die erste Zeile benutzt Zeile 2 und 3, die zweite Zeile 3 und 1, die dritte Zeile 1 und 2.',
                                    'In each row of the result, its own row number does not appear: the first row uses rows 2 and 3, the second rows 3 and 1, the third rows 1 and 2.'),
           '\\vec{a}\\times \\vec{b} = \\begin{pmatrix} a_2 b_3 - a_3 b_2 \\\\ a_3 b_1 - a_1 b_3 \\\\ a_1 b_2 - a_2 b_1 \\end{pmatrix}'),
-        step(T('Einsetzen', 'Substitute'), '', '\\vec{a}\\times \\vec{b} = ' + crossAusTeX(a, b) + ' = ' + TX.vec(c)),
+        step(T('Einsetzen', 'Substitute'), '', '\\vec{a}\\times \\vec{b} = ' + crossAusTeX(a, b)),
+        step(T('Produkte ausrechnen', 'Work out the products'), T('Erst jedes Produkt einzeln:', 'First each product on its own:'),
+          '\\vec{a}\\times \\vec{b} = ' + crossProdTeX(a, b)),
+        step(T('Zusammenfassen', 'Simplify'), '', '\\vec{a}\\times \\vec{b} = ' + TX.vec(c)),
         step(T('Probe', 'Check'), T('Das Ergebnis muss auf beiden Ausgangsvektoren senkrecht stehen – beide Skalarprodukte sind 0:',
                                     'The result must be perpendicular to both original vectors – both dot products are 0:'),
           '\\vec{a}\\circ \\left(\\vec{a}\\times \\vec{b}\\right) = ' + numTeX(V.dot(a, c))
@@ -3983,8 +4107,8 @@ function genSpat(m){
     variants: [{
       label: T('In zwei Schritten', 'In two steps'),
       steps: [
-        step(T('Kreuzprodukt', 'Cross product'), '', '\\vec{a}\\times \\vec{b} = ' + crossAusTeX(a, b) + ' = ' + TX.vec(kr)),
-        step(T('Skalarprodukt', 'Dot product'), '', TX.vec(kr) + '\\circ ' + TX.vec(c) + ' = ' + dotAusTeX(kr, c) + ' = ' + numTeX(sp)),
+        step(T('Kreuzprodukt', 'Cross product'), '', '\\vec{a}\\times \\vec{b} = ' + crossKette(a, b, kr)),
+        step(T('Skalarprodukt', 'Dot product'), '', TX.vec(kr) + '\\circ ' + TX.vec(c) + ' = ' + dotKette(kr, c, sp)),
         step(T('Bedeutung', 'Meaning'), eq0(sp)
           ? T('Das Spatprodukt ist 0 – die drei Vektoren liegen in einer Ebene.', 'The triple product is 0 – the three vectors lie in one plane.')
           : T('Der Betrag des Spatprodukts ist das Volumen des von den drei Vektoren aufgespannten Spats: \\(V = ', 'The absolute value of the triple product is the volume of the parallelepiped spanned by the three vectors: \\(V = ')
@@ -4025,7 +4149,7 @@ function genPruef(m){
         step(T('Regel', 'Rule'), T('Zwei Vektoren (außer dem Nullvektor) stehen genau dann senkrecht aufeinander, wenn ihr Skalarprodukt 0 ist.',
                                    'Two vectors (other than the zero vector) are perpendicular exactly when their dot product is 0.'),
           '\\vec{a}\\perp \\vec{b} \\iff \\vec{a}\\circ \\vec{b} = 0'),
-        step(T('Ausrechnen', 'Work it out'), '', '\\vec{a}\\circ \\vec{b} = ' + dotAusTeX(a, b) + ' = ' + numTeX(d)),
+        step(T('Ausrechnen', 'Work it out'), '', '\\vec{a}\\circ \\vec{b} = ' + dotKette(a, b, d)),
         step(T('Ergebnis', 'Result'), senkrecht
           ? T('Das Ergebnis ist 0 – die Vektoren stehen senkrecht aufeinander.', 'The result is 0 – the vectors are perpendicular.')
           : T('Das Ergebnis ist nicht 0 – die Vektoren stehen nicht senkrecht aufeinander.', 'The result is not 0 – the vectors are not perpendicular.'), '')
@@ -4071,7 +4195,7 @@ function genFehl(m){
           T('In der Zeile mit der Lücke steht \\(x\\), die übrigen Zeilen sind bekannt:', 'The row with the gap contains \\(x\\), the other rows are known:'),
           [0, 1, 2].map(j => (j === i) ? (paren(a[j]) + '\\cdot x') : (paren(a[j]) + '\\cdot ' + paren(rest[j]))).join(' + ') + ' = 0'),
         step(T('Ausrechnen', 'Work it out'), T('Die Zeilen ohne \\(x\\) ergeben zusammen \\(', 'The rows without \\(x\\) add up to \\(') + numTeX(summe) + '\\):',
-          numTeX(a[i]) + 'x' + (summe < 0 ? ' - ' + numTeX(-summe) : ' + ' + numTeX(summe)) + ' = 0'),
+          varTerm(a[i], 'x', true) + (eq0(summe) ? '' : (summe < 0 ? ' - ' + numTeX(-summe) : ' + ' + numTeX(summe))) + ' = 0'),
         step(T('Nach \\(x\\) auflösen', 'Solve for \\(x\\)'), '', 'x = ' + numTeX(x)),
         step(T('Probe', 'Check'), '', TX.vec(a) + '\\circ ' + TX.vec(b) + ' = ' + numTeX(V.dot(a, b)))
       ]
@@ -4114,7 +4238,7 @@ function genEins(m){
         step(T('Trick', 'Trick'), T('Vertauscht man zwei Komponenten von \\(\\vec{a}\\), dreht bei einer das Vorzeichen um und setzt die dritte auf 0, hebt sich das Skalarprodukt auf:',
                                     'If you swap two components of \\(\\vec{a}\\), flip the sign of one of them and set the third to 0, the dot product cancels:'),
           '\\vec{b} = ' + TX.vec(bsp)),
-        step(T('Probe', 'Check'), '', TX.vec(a) + '\\circ ' + TX.vec(bsp) + ' = ' + dotAusTeX(a, bsp) + ' = 0'),
+        step(T('Probe', 'Check'), '', TX.vec(a) + '\\circ ' + TX.vec(bsp) + ' = ' + dotKette(a, bsp, 0)),
         step(T('Wie viele Lösungen?', 'How many solutions?'), T('Alle Vektoren senkrecht zu \\(\\vec{a}\\) bilden eine ganze Ebene – es gibt unendlich viele richtige Antworten.',
                                                                 'All vectors perpendicular to \\(\\vec{a}\\) form a whole plane – there are infinitely many correct answers.'), '')
       ]
@@ -4147,7 +4271,7 @@ function genZwei(m){
       steps: [
         step(T('Ansatz', 'Approach'), T('Das Kreuzprodukt liefert genau einen Vektor, der auf beiden Ausgangsvektoren senkrecht steht.',
                                         'The cross product gives exactly a vector that is perpendicular to both original vectors.'), ''),
-        step(T('Ausrechnen', 'Work it out'), '', '\\vec{a}\\times \\vec{b} = ' + crossAusTeX(a, b) + ' = ' + TX.vec(n)),
+        step(T('Ausrechnen', 'Work it out'), '', '\\vec{a}\\times \\vec{b} = ' + crossKette(a, b, n)),
         step(T('Probe', 'Check'), '', '\\vec{a}\\circ \\vec{n} = ' + numTeX(V.dot(a, n)) + '\\qquad \\vec{b}\\circ \\vec{n} = ' + numTeX(V.dot(b, n))),
         step(T('Auch richtig', 'Also correct'), T('Jedes Vielfache tut es ebenso, zum Beispiel \\(', 'Any multiple works just as well, for example \\(')
           + TX.vec(red.v) + T('\\).', '\\).'), '')
@@ -4180,7 +4304,7 @@ function genWvv(m){
       steps: [
         step(T('Formel', 'Formula'), T('Das Skalarprodukt verbindet die Beträge mit dem Winkel:', 'The dot product links the magnitudes with the angle:'),
           '\\cos\\left(\\alpha\\right) = \\frac{\\vec{a}\\circ \\vec{b}}{|\\vec{a}|\\cdot |\\vec{b}|}'),
-        step(T('Skalarprodukt', 'Dot product'), '', '\\vec{a}\\circ \\vec{b} = ' + dotAusTeX(a, b) + ' = ' + numTeX(d)),
+        step(T('Skalarprodukt', 'Dot product'), '', '\\vec{a}\\circ \\vec{b} = ' + dotKette(a, b, d)),
         step(T('Beträge', 'Magnitudes'), '',
           '|\\vec{a}| = \\sqrt{' + quadAusTeX(a) + '} = ' + la.exakt + '\\qquad |\\vec{b}| = \\sqrt{' + quadAusTeX(b) + '} = ' + lb.exakt),
         step(T('Einsetzen', 'Substitute'), '',
@@ -4219,7 +4343,7 @@ function genWgg(m){
         step(T('Was zählt', 'What matters'), T('Für den Winkel zählen nur die Richtungsvektoren – wo die Geraden liegen, spielt keine Rolle. Damit der Winkel nicht stumpf wird, nimmt man den Betrag des Skalarprodukts:',
                                                'Only the direction vectors matter for the angle – where the lines lie is irrelevant. To keep the angle acute, the absolute value of the dot product is used:'),
           '\\cos\\left(\\alpha\\right) = \\frac{\\left|\\vec{u}\\circ \\vec{v}\\right|}{|\\vec{u}|\\cdot |\\vec{v}|}'),
-        step(T('Skalarprodukt', 'Dot product'), '', '\\vec{u}\\circ \\vec{v} = ' + dotAusTeX(u, v) + ' = ' + numTeX(d)),
+        step(T('Skalarprodukt', 'Dot product'), '', '\\vec{u}\\circ \\vec{v} = ' + dotKette(u, v, d)),
         step(T('Beträge', 'Magnitudes'), '',
           '|\\vec{u}| = ' + lu.exakt + '\\qquad |\\vec{v}| = ' + lv.exakt),
         step(T('Einsetzen', 'Substitute'), '',
@@ -4258,7 +4382,7 @@ function genWge(m){
         step(T('Warum der Sinus?', 'Why the sine?'), T('Das Skalarprodukt liefert den Winkel zwischen Richtungs- und Normalenvektor. Der Normalenvektor steht aber senkrecht auf der Ebene – der gesuchte Winkel ist also 90° kleiner. Deshalb steht hier der Sinus:',
                                                        'The dot product gives the angle between the direction vector and the normal vector. But the normal vector is perpendicular to the plane – so the angle we want is 90° smaller. That is why the sine appears here:'),
           '\\sin\\left(\\alpha\\right) = \\frac{\\left|\\vec{u}\\circ \\vec{n}\\right|}{|\\vec{u}|\\cdot |\\vec{n}|}'),
-        step(T('Skalarprodukt', 'Dot product'), '', '\\vec{u}\\circ \\vec{n} = ' + dotAusTeX(u, n) + ' = ' + numTeX(d)),
+        step(T('Skalarprodukt', 'Dot product'), '', '\\vec{u}\\circ \\vec{n} = ' + dotKette(u, n, d)),
         step(T('Beträge', 'Magnitudes'), '', '|\\vec{u}| = ' + lu.exakt + '\\qquad |\\vec{n}| = ' + ln.exakt),
         step(T('Einsetzen', 'Substitute'), '',
           '\\sin\\left(\\alpha\\right) = \\frac{' + numTeX(Math.abs(d)) + '}{' + lu.exakt + '\\cdot ' + ln.exakt + '} \\approx ' + tfmt(rd(sinw, 4), 4)),
@@ -4267,7 +4391,7 @@ function genWge(m){
     }],
     note: T('Typischer Fehler: den Kosinus nehmen. Dann bekommt man den Winkel zum Normalenvektor, nicht zur Ebene.',
             'A common mistake is to use the cosine. That gives the angle to the normal vector, not to the plane.'),
-    vis: [vPunkt('P', p1), vVek('u', 'P', u)].concat(visFormKoo('E', n, dd, VC.zweit, 'Achsen'))
+    vis: [vPunkt('P', p1), vVek('u', 'P', u)].concat(visFormKoo('E', n, dd, VC.zweit, 'Standard'))
   };
 }
 
@@ -4305,7 +4429,7 @@ function genWee(m){
         step(T('Winkel', 'Angle'), '', '\\alpha \\approx ' + gradTeX(w))
       ]
     }],
-    vis: visFormKoo('E', n1, d1, VC.obj, 'Achsen').concat(visFormKoo('F', n2, d2, VC.zweit, 'Achsen'))
+    vis: visFormKoo('E', n1, d1, VC.obj, 'Standard').concat(visFormKoo('F', n2, d2, VC.zweit, 'Standard'))
   };
 }
 
@@ -4330,7 +4454,7 @@ function genPara(m){
         step(T('Warum das Kreuzprodukt?', 'Why the cross product?'), T('Der Betrag des Kreuzprodukts ist genau der Flächeninhalt des von beiden Vektoren aufgespannten Parallelogramms.',
                                                                        'The magnitude of the cross product is exactly the area of the parallelogram spanned by the two vectors.'),
           'A = \\left|\\vec{a}\\times \\vec{b}\\right|'),
-        step(T('Kreuzprodukt', 'Cross product'), '', '\\vec{a}\\times \\vec{b} = ' + crossAusTeX(a, b) + ' = ' + TX.vec(kr)),
+        step(T('Kreuzprodukt', 'Cross product'), '', '\\vec{a}\\times \\vec{b} = ' + crossKette(a, b, kr)),
         step(T('Betrag', 'Magnitude'), '', 'A = \\sqrt{' + quadAusTeX(kr) + '} = ' + L.tex)
       ]
     }],
@@ -4366,7 +4490,7 @@ function genDrei(m){
         step(T('Warum die Hälfte?', 'Why the half?'), T('Die beiden Vektoren spannen ein Parallelogramm auf – das Dreieck ist genau die Hälfte davon.',
                                                         'The two vectors span a parallelogram – the triangle is exactly half of it.'),
           'A = \\tfrac{1}{2}\\cdot \\left|' + TX.arrow('AB') + ' \\times ' + TX.arrow('AC') + '\\right|'),
-        step(T('Kreuzprodukt', 'Cross product'), '', TX.arrow('AB') + ' \\times ' + TX.arrow('AC') + ' = ' + TX.vec(kr)),
+        step(T('Kreuzprodukt', 'Cross product'), '', TX.arrow('AB') + ' \\times ' + TX.arrow('AC') + ' = ' + crossKette(u, v, kr)),
         step(T('Betrag und Hälfte', 'Magnitude and half'), '',
           'A = \\tfrac{1}{2}\\cdot \\sqrt{' + quadAusTeX(kr) + '} = \\tfrac{1}{2}\\cdot ' + L.exakt + ' \\approx ' + tfmt(rd(flaeche, 2), 2))
       ]
@@ -4398,8 +4522,8 @@ function genVol(m){
         step(T('Formel', 'Formula'), T('Das Spatprodukt liefert das Volumen – das Vorzeichen sagt nur, wie die drei Vektoren zueinander liegen, deshalb der Betrag:',
                                        'The triple product gives the volume – the sign only says how the three vectors are arranged, hence the absolute value:'),
           'V = \\left|\\left(\\vec{a}\\times \\vec{b}\\right)\\circ \\vec{c}\\right|'),
-        step(T('Kreuzprodukt', 'Cross product'), '', '\\vec{a}\\times \\vec{b} = ' + TX.vec(kr)),
-        step(T('Skalarprodukt', 'Dot product'), '', TX.vec(kr) + '\\circ ' + TX.vec(c) + ' = ' + dotAusTeX(kr, c) + ' = ' + numTeX(sp)),
+        step(T('Kreuzprodukt', 'Cross product'), '', '\\vec{a}\\times \\vec{b} = ' + crossKette(a, b, kr)),
+        step(T('Skalarprodukt', 'Dot product'), '', TX.vec(kr) + '\\circ ' + TX.vec(c) + ' = ' + dotKette(kr, c, sp)),
         step(T('Volumen', 'Volume'), '', 'V = \\left|' + numTeX(sp) + '\\right| = ' + numTeX(vol))
       ]
     }],
@@ -4435,8 +4559,8 @@ function genKomp(m){
         step(T('Ansatz', 'Approach'), T('Drei Vektoren liegen genau dann in einer Ebene, wenn der von ihnen aufgespannte Spat kein Volumen hat:',
                                         'Three vectors lie in one plane exactly when the parallelepiped they span has no volume:'),
           '\\left(\\vec{a}\\times \\vec{b}\\right)\\circ \\vec{c} = 0'),
-        step(T('Kreuzprodukt', 'Cross product'), '', '\\vec{a}\\times \\vec{b} = ' + TX.vec(kr)),
-        step(T('Skalarprodukt', 'Dot product'), '', TX.vec(kr) + '\\circ ' + TX.vec(c) + ' = ' + numTeX(sp)),
+        step(T('Kreuzprodukt', 'Cross product'), '', '\\vec{a}\\times \\vec{b} = ' + crossKette(a, b, kr)),
+        step(T('Skalarprodukt', 'Dot product'), '', TX.vec(kr) + '\\circ ' + TX.vec(c) + ' = ' + dotKette(kr, c, sp)),
         step(T('Ergebnis', 'Result'), komp
           ? T('Das Spatprodukt ist 0 – die Vektoren sind komplanar.', 'The triple product is 0 – the vectors are coplanar.')
           : T('Das Spatprodukt ist nicht 0 – die Vektoren spannen den Raum auf.', 'The triple product is not 0 – the vectors span space.'), '')

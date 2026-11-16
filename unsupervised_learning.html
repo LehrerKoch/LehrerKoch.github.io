@@ -578,6 +578,11 @@ function saveToURL(){
     p.set('mr',document.getElementById('mrRuns').value);p.set('mm',document.getElementById('mrMetric').value);
     p.set('sm',document.querySelector('input[name="smode"]:checked')?.value||'phase');
     p.set('vm',document.querySelector('input[name="viewmode"]:checked')?.value||'viz');
+    /* Datenquelle und die Regler der Zufallsdaten */
+    p.set('ds',document.querySelector('input[name="dsrc"]:checked')?.value||'text');
+    p.set('rn',document.getElementById('rn').value);p.set('rc',document.getElementById('rcl').value);
+    p.set('rs',document.getElementById('rstr').value);p.set('ro',document.getElementById('rout').checked?1:0);
+    p.set('rd',document.getElementById('rdim').value);p.set('ri',document.getElementById('rint').checked?1:0);
     history.replaceState(null,'','#'+p.toString());
   }catch(_){}
 }
@@ -597,6 +602,12 @@ function loadFromURL(){
     document.getElementById('normalize').checked=gB('nz',false);document.getElementById('mrRuns').value=gN('mr',3);document.getElementById('mrMetric').value=g('mm','total');
     const sm=g('sm','phase');document.querySelectorAll('input[name="smode"]').forEach(r=>r.checked=r.value===sm);
     const vm=g('vm','viz');document.querySelectorAll('input[name="viewmode"]').forEach(r=>r.checked=r.value===vm);
+    const ds=g('ds','text');document.querySelectorAll('input[name="dsrc"]').forEach(r=>{r.checked=r.value===ds;if(r.checked)showDS(r);});
+    document.getElementById('rn').value=gN('rn',30);document.getElementById('rcl').value=gN('rc',3);
+    document.getElementById('rstr').value=gN('rs',6);document.getElementById('rstr_lbl').textContent=document.getElementById('rstr').value;
+    document.getElementById('rout').checked=gB('ro',false);
+    document.getElementById('rdim').value=gN('rd',2);document.getElementById('rdim-lbl').textContent=document.getElementById('rdim').value;
+    document.getElementById('rint').checked=gB('ri',true);updateRandDimUI();
   }catch(_){}
 }
 
@@ -1420,6 +1431,9 @@ window.addEventListener('resize',()=>{if(pts.length){setupCanvas();render();}if(
 syncGStepLabel();
 loadFromURL();
 loadText();
+/* Auch Datenquelle und Zufallsdaten-Regler landen in der Adresse */
+['rn','rcl','rstr','rout','rdim','rint'].forEach(id=>{const e=document.getElementById(id);if(e){e.addEventListener('input',saveToURL);e.addEventListener('change',saveToURL);}});
+document.querySelectorAll('input[name="dsrc"]').forEach(r=>r.addEventListener('change',saveToURL));
 // ═══ SPRACHE / THEME WECHSELN – Daten und Fortschritt bleiben erhalten ═══
 function neuZeichnen(){
   try{

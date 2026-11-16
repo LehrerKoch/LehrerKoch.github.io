@@ -33,6 +33,15 @@ window.TK_GA_ID = 'G-5K8WYYXDL2';   /* Google Analytics laedt erst nach Einwilli
 .wege button { flex: 1 1 210px; max-width: 320px; min-height: 52px; font-size: .97em;
   line-height: 1.25; padding: 8px 10px; }
 .wege button .unter { display: block; font-size: .82em; opacity: .8; font-weight: normal; }
+/* „Erst eine Seite = 0 bringen“: eigener Knopf über den Gleichungsarten,
+   etwas anders gezeichnet - er ist ein Zwischenschritt, keine Art. */
+.null-zeile { display: flex; justify-content: center; margin: 4px auto 8px; }
+.null-zeile .null-knopf { min-height: 40px; padding: 6px 18px; border-style: dashed; border-radius: 22px;
+  font-size: .95em; }
+.null-zeile .null-knopf.ok, .null-zeile .null-knopf.err { border-style: solid; }
+/* die umgestellte Gleichung unter der Aufgabe */
+.null-form { color: var(--ab-gr-dunkel); }
+html.dark .null-form { color: #a5d6a7; }
 /* Kurzfassung des Lösungswegs */
 /* ── Entscheidungsbaum ──────────────────────────────────────
    Wurzel oben, darunter die Fragen als Rauten und die Folgerungen als
@@ -44,7 +53,7 @@ window.TK_GA_ID = 'G-5K8WYYXDL2';   /* Google Analytics laedt erst nach Einwilli
 .bm-wrap { margin: 14px auto 16px; max-width: 100%; }
 .bm-svg { display: block; margin: 0 auto; width: 100%; height: auto; }
 .bm-breit { max-width: 1090px; }
-.bm-schmal { display: none; max-width: 470px; }
+.bm-schmal { display: none; max-width: 420px; }
 @media (max-width: 760px){
   .bm-breit { display: none; }
   .bm-schmal { display: block; }
@@ -85,6 +94,12 @@ html.dark .bm-svg .bm-kantentext.an { fill: #a5d6a7; }
   margin: .35em auto .25em; max-width: min(700px, 96vw); text-align: left; }
 .wegliste .wt { font-size: .86em; color: #4a6a4a; text-align: right; }
 .wegliste .wf { min-width: 0; }
+/* Zu breite Formeln werden verkleinert (scale.js). Auf breiten Schirmen ohne
+   Abschneiden - so bleiben Stichwort und Formel auf einer Grundlinie. */
+.wegliste .wf.scale-wrapper, .gl-loes-w.scale-wrapper { width: auto; padding: 0; }
+.wegliste .wf.scale-wrapper { overflow: visible; }
+/* als Block: dann gilt die erste Formelzeile als Grundlinie, nicht die letzte */
+.wegliste .wf > .scale-el { display: block; }
 /* Ein Schritt ganz ohne Formel geht über beide Spalten. */
 .wegliste .wv { grid-column: 1 / -1; font-size: .92em; }
 html.dark .wegliste .wt { color: #a5c3a5; }
@@ -92,6 +107,7 @@ html.dark .wegliste .wt { color: #a5c3a5; }
   .wegliste { grid-template-columns: minmax(0, 1fr); gap: 1px; }
   .wegliste .wt { text-align: left; }
   .wegliste .wf { margin: 0 0 7px 12px; }
+  .wegliste .wf.scale-wrapper { overflow: hidden; }
 }
 .art-name { font-weight: bold; color: var(--ab-gr-dunkel); }
 /* Gleichungsart und ausgerechnete Loesungen gehoeren zur Loesung - sie
@@ -117,7 +133,7 @@ html.dark a.art-link.blanko { background: none; border: none;
 .art-link.blanko::after { content: " ↗"; }
 </style>
 </head>
-<body class="tk-seite">
+<body class="tk-seite" data-gleichungsseite>
 
 <header class="tool-kopf">
   <div class="tk-text">
@@ -345,8 +361,8 @@ var INFO = {
     schritte: [['alle x-Terme auf eine Seite, alle Zahlen auf die andere',
                 'move all x terms to one side, all numbers to the other'],
                ['durch den Faktor vor dem x teilen', 'divide by the factor in front of x']],
-    /* Die Waagen-Seite kennt den Parameter ?gl= nicht - dort steht der Link ohne. */
-    seite: 'waage.html', glParam: false
+    /* Die Waagen-Seite liest die Gleichung aus ?eq= (ax + b = cx + d). */
+    seite: 'waage.html', glParam: 'eq'
   },
   quadratisch: {
     name: ['quadratische Gleichung', 'quadratic equation'],
@@ -381,7 +397,7 @@ var INFO = {
   },
   biquadratisch: {
     name: ['biquadratische Gleichung', 'biquadratic equation'],
-    weg:  ['substituieren z = x², p-q-Formel', 'substitute z = x², pq formula'],
+    weg:  ['substituieren z = x², dann p-q-Formel', 'substitute z = x², then pq formula'],
     schritte: [['u = x² setzen – es entsteht eine quadratische Gleichung',
                 'set u = x² – a quadratic equation appears'],
                ['die Gleichung in u lösen', 'solve the equation in u'],
@@ -505,6 +521,9 @@ function urlSchreiben(mitAufgabe){
     if (A.rechts && !(A.rechts.length === 1 && Math.abs(A.rechts[0]) < 1e-9))
       p.set('r', A.rechts.join('.'));
   }
+  /* Regler, die anders stehen, als die Stufe sie stellt, gehören in den Link. */
+  if (window.abReglerSchreiben && typeof STUFEN !== 'undefined') abReglerSchreiben(p, (STUFEN[s.diff] || {}).regler);
+  if (autoAn) p.set('auto', '1');
   var qs = p.toString();
   var url = location.origin + location.pathname + (qs ? '?' + qs : '');
   /* Ein fester Seed gehoert mit in den Link - sonst wuerfelt die
@@ -631,6 +650,10 @@ function sortiere(l){
 /* ── 3. Aufgabe würfeln ─────────────────────────────────────────────────── */
 var A = null;
 var richtig = 0, gesamt = 0;
+/* Automatische Aufgabe: nach einer richtigen Antwort kommt die nächste von
+   selbst. Zu Beginn aus; langes Drücken auf „Neue Aufgabe generieren"
+   schaltet sie um, und die Wahl steht in der Adresszeile. */
+var autoAn = false;
 
 function zufall(n){ return Math.floor(Math.random() * n); }
 function waehle(liste){ return liste[zufall(liste.length)]; }
@@ -856,6 +879,7 @@ function neueAufgabe(){
   rechtsAnwenden(A, rechteSeite(A.koeff));
   A.wege = wege(A);
   A.gewaehlt = null;
+  A.nullGemacht = false;
   zeichne();
 }
 
@@ -895,7 +919,7 @@ function wegHTML(schritte){
   (schritte || []).forEach(function(s){
     var t = wegTeilen(s);
     if (!t.formel){ h += '<div class="wv">' + t.wort + '</div>'; return; }
-    h += '<div class="wt">' + t.wort + '</div><div class="wf">' + t.formel + '</div>';
+    h += '<div class="wt">' + t.wort + '</div><div class="wf scale-wrapper"><div class="scale-el">' + t.formel + '</div></div>';
   });
   return h + '</div>';
 }
@@ -958,6 +982,8 @@ function kurzSchritte(a, weg){
     out.push(T('Ein Produkt ist 0, wenn ein Faktor 0 ist – also jeden Faktor einzeln gleich 0 setzen.',
                'A product is 0 if one factor is 0 – so set each factor equal to 0 on its own.'));
     (a.wurzeln || []).forEach(function(r){
+      /* Der Faktor x ist schon „x = 0" - nicht „x + 0 = 0". */
+      if (Math.abs(r) < 1e-12){ out.push(F('x = 0')); return; }
       out.push(F('x' + (r > 0 ? '-' : '+') + pgZahl(Math.abs(r)) + ' = 0')
              + ' → ' + F('x = ' + pgZahl(r)));
     });
@@ -1036,11 +1062,25 @@ function polyTeilen(k, r){
 /* Wenn mehrere Wege gehen, ist das der kürzeste: x² − 4 = 0 löst man schneller
    durch Wurzelziehen als mit der p-q-Formel. */
 var VORZUG = ['nullprodukt', 'ausklammern', 'potenz', 'biquadratisch', 'quadratisch', 'linear', 'polynom'];
+/** Die Gleichung für die Waage: sie kennt nur ax + b = cx + d. Stehen auf
+    beiden Seiten höhere Potenzen, die sich wegheben, geht die
+    zusammengefasste Form ax + b = 0 hinüber. */
+function waageParam(){
+  if (!A || !window.pgPolyText) return '';
+  var grad = function(k){ var p = polyKurz(k || [0]); return p.length - 1; };
+  var links = A.links || polyKurz(A.koeff), rechts = A.rechts || [0];
+  var txt = (grad(links) <= 1 && grad(rechts) <= 1)
+    ? pgPolyText(links) + '=' + pgPolyText(rechts)
+    : pgPolyText(polyKurz(A.koeff)) + '=0';
+  if (!/x/.test(txt)) return '';
+  return '?eq=' + encodeURIComponent(txt);
+}
 /** Der Verweis auf die Übungsseite - mit der konkreten Gleichung im Gepäck. */
 function uebungsLink(weg){
   var seite = INFO[weg].seite;
   if (!seite) return '#';
   if (INFO[weg].glParam === false) return seite;
+  if (INFO[weg].glParam === 'eq') return seite + waageParam();
   var g = A && A.glText ? A.glText : '';
   return seite + (g ? ('?gl=' + encodeURIComponent(g)) : '');
 }
@@ -1154,9 +1194,11 @@ function bmLegen(n, tiefe, stand){
    untereinander auf einer Mittellinie, die Folgerungen gehen links und
    rechts davon ab. So passt der Baum ohne seitliches Schieben auf ein
    Handy \u2013 nur kleiner rechnen hie\u00dfe, ihn unlesbar zu machen. */
-var BMS = { rand: 14, mitte: 215, breite: 430, luft: 52, versatz: 44,
-            blattB: 150, blattH: 58, rauteB: 230, rauteH: 86,
-            wurzelB: 140, wurzelH: 40 };
+/* luft: unter einer Frage, dort stehen die Antworten an den Kanten;
+   luftKurz: überall sonst - dort läuft nur eine Linie durch. */
+var BMS = { rand: 10, mitte: 215, breite: 430, luft: 36, luftKurz: 22, versatz: 44,
+            blattB: 150, blattH: 50, rauteB: 236, rauteH: 76,
+            wurzelB: 136, wurzelH: 34, kanteOben: true };
 
 /** halbe H\u00f6he eines Knotens - danach richten sich die Kanten */
 function bmHalb(n, G){
@@ -1169,8 +1211,10 @@ function bmLegenSchmal(baum){
   baum.x = G.mitte; baum.y = unten + G.wurzelH / 2;
   unten = baum.y + G.wurzelH / 2;
   var knoten = baum.kinder[0] ? baum.kinder[0].ziel : null;
+  /* Die Kante von der Wurzel trägt keine Antwort - dort reicht wenig Luft. */
+  var abstand = G.luftKurz;
   while (knoten){
-    knoten.y = unten + G.luft + G.rauteH / 2;
+    knoten.y = unten + abstand + G.rauteH / 2;
     knoten.x = G.mitte;
     unten = knoten.y + G.rauteH / 2;
     var blaetter = [], weiter = null;
@@ -1178,9 +1222,12 @@ function bmLegenSchmal(baum){
       if (k.ziel.art === 'blatt') blaetter.push(k.ziel); else weiter = k.ziel;
     });
     /* Je Reihe eines links und eines rechts der Mittellinie. Bleibt am Ende
-       eines \u00fcbrig und l\u00e4uft keine Linie mehr weiter, steht es in der Mitte. */
+       eines \u00fcbrig und l\u00e4uft keine Linie mehr weiter, steht es in der Mitte.
+       Nur unter der Frage braucht es Platz für die Antworten. */
+    abstand = G.luft;
     for (var i = 0; i < blaetter.length; i += 2){
-      var y = unten + G.luft + G.blattH / 2;
+      var y = unten + abstand + G.blattH / 2;
+      abstand = G.luftKurz;
       var a = blaetter[i], b = blaetter[i + 1] || null;
       if (!b && !weiter){ a.x = G.mitte; }
       else {
@@ -1218,8 +1265,10 @@ function bmKanten(n, an, G){
          f\u00fchrt - also in dessen eigener Spalte. St\u00fcnde sie mittig \u00fcber dem
          waagerechten St\u00fcck, l\u00e4gen die Antworten benachbarter \u00c4ste
          \u00fcbereinander (\u201enur gerade\u201c auf \u201egemischte\u201c). */
+      /* Im schmalen Zuschnitt ist unter der Linie zu wenig Luft - dort steht
+         die Antwort darüber, zwischen Raute und Linie. */
       h += '<text class="bm-kantentext' + (hell ? ' an' : '') + '" x="' + (c.x + 7)
-         + '" y="' + (bus + 12) + '" text-anchor="start">' + bmEsc(k.kante) + '</text>';
+         + '" y="' + (G.kanteOben ? bus - 8 : bus + 12) + '" text-anchor="start">' + bmEsc(k.kante) + '</text>';
     }
     h += bmKanten(c, an, G);
   });
@@ -1323,6 +1372,28 @@ function mj(node){
   }).catch(function(){});
 }
 
+/** Steht die Gleichung noch nicht in der Form „… = 0“? */
+function brauchtNull(a){
+  a = a || A;
+  return !!(a && a.rechts && !(a.rechts.length === 1 && Math.abs(a.rechts[0]) < 1e-9));
+}
+/** Die Gleichung nach dem Umstellen: alles links, rechts 0. */
+function nullFormTeX(a){
+  a = a || A;
+  return (a.art === 'nullprodukt') ? a.anzeige : (pgPoly(polyKurz(a.koeff)) + ' = 0');
+}
+/** Unter der Aufgabe erscheint die umgestellte Gleichung. */
+function nullFormZeigen(){
+  var t = document.getElementById('task');
+  if (!t || t.querySelector('.null-form')) return;
+  var d = document.createElement('div');
+  d.className = 'null-form';
+  /* Das Äquivalenzzeichen steht links daneben (\\llap) - so bleibt die
+     Gleichung selbst mittig unter der gegebenen. */
+  d.innerHTML = '\\[\\llap{\\Leftrightarrow\\quad}' + nullFormTeX() + '\\]';
+  t.appendChild(d);
+  mj(t);
+}
 function antwortZeichnen(){
   var host = document.getElementById('antwortBereich');
   host.innerHTML = '';
@@ -1336,6 +1407,46 @@ function antwortZeichnen(){
   reihe.className = 'wege';
   var fb = document.createElement('div');
   fb.className = 'pg-fb';
+  /* Der Zwischenschritt „Erst eine Seite = 0 bringen“: sichtbar, sobald
+     umzuformende Aufgaben vorkommen können - auch dann, wenn diese Aufgabe
+     schon = 0 ist. Sonst verriete schon sein Erscheinen die Antwort. */
+  var braucht = brauchtNull();
+  var nullKnopf = null;
+  if (haken('rUm') || braucht){
+    var zeile = document.createElement('div');
+    zeile.className = 'null-zeile';
+    nullKnopf = document.createElement('button');
+    nullKnopf.type = 'button';
+    nullKnopf.className = 'pg-wahl-knopf null-knopf';
+    nullKnopf.innerHTML = T('Erst eine Seite = 0 bringen', 'First bring one side to 0');
+    nullKnopf.addEventListener('click', function(){
+      if (A.gewaehlt || A.nullGemacht) return;
+      if (braucht){
+        A.nullGemacht = true;
+        nullKnopf.classList.add('ok');
+        nullKnopf.disabled = true;
+        nullFormZeigen();
+        fb.className = 'pg-fb ok';
+        fb.innerHTML = T('✓ Richtig – jetzt steht rechts 0. Welche Art von Gleichung ist das?',
+                         '✓ Correct – now the right-hand side is 0. What kind of equation is it?');
+        return;
+      }
+      /* schon = 0: dieser Schritt war unnötig */
+      A.gewaehlt = 'null';
+      var kurz0 = hauptWeg(A);
+      nullKnopf.classList.add('err');
+      nullKnopf.disabled = true;
+      [].forEach.call(reihe.children, function(x, i){ x.disabled = true; if (ARTEN[i] === kurz0) x.classList.add('ok'); });
+      fb.className = 'pg-fb err';
+      fb.innerHTML = T('Hier steht schon = 0 – du kannst direkt die Art wählen. Am schnellsten geht: ',
+                       'This already says = 0 – you can choose the kind directly. The quickest way is: ')
+                   + T(INFO[kurz0].weg[0], INFO[kurz0].weg[1]);
+      zaehle(false);
+      antwortGemeldet(false, false);
+    });
+    zeile.appendChild(nullKnopf);
+    host.appendChild(zeile);
+  }
   ARTEN.forEach(function(art){
     var b = document.createElement('button');
     b.type = 'button'; b.className = 'pg-wahl-knopf';
@@ -1346,10 +1457,32 @@ function antwortZeichnen(){
       A.gewaehlt = art;
       var geht = A.wege.indexOf(art) >= 0;
       var kurz = hauptWeg(A);
+      /* Noch nicht = 0 umgestellt: Nur lineare Gleichungen und
+         Potenzgleichungen darf man direkt angehen - mit Hinweis. Bei allen
+         anderen muss erst eine Seite 0 werden. */
+      var ohneNull = braucht && !A.nullGemacht;
+      var direktOk = (art === 'linear' || art === 'potenz');
+      if (ohneNull && !(direktOk && geht)){
+        b.classList.add('err');
+        [].forEach.call(reihe.children, function(x, i){ x.disabled = true; if (ARTEN[i] === kurz) x.classList.add('ok'); });
+        if (nullKnopf){ nullKnopf.classList.add('ok'); nullKnopf.disabled = true; }
+        nullFormZeigen();
+        fb.className = 'pg-fb err';
+        fb.innerHTML = (geht
+          ? T('Die Art stimmt – aber zuerst muss eine Seite = 0 werden. ',
+              'The kind is right – but first one side has to become 0. ')
+          : T('Zuerst muss eine Seite = 0 werden – erst dann sieht man die Art sicher. ',
+              'First one side has to become 0 – only then can you tell the kind for sure. '))
+          + T('Danach am schnellsten: ', 'After that the quickest way is: ') + T(INFO[kurz].weg[0], INFO[kurz].weg[1]);
+        zaehle(false);
+        antwortGemeldet(false, false);
+        return;
+      }
       /* Drei Fälle: der kürzeste Weg (grün), ein Weg, der auch zum Ziel
          führt, aber länger ist (gelb), und ein Weg, der gar nicht geht. */
       b.classList.add(geht ? (art === kurz ? 'ok' : 'warn') : 'err');
       [].forEach.call(reihe.children, function(x){ x.disabled = true; });
+      if (nullKnopf) nullKnopf.disabled = true;
       [].forEach.call(reihe.children, function(x, i){
         if (ARTEN[i] === kurz) x.classList.add('ok');
         else if (A.wege.indexOf(ARTEN[i]) >= 0 && !geht) x.classList.add('warn');
@@ -1370,7 +1503,12 @@ function antwortZeichnen(){
           ? T('✓ Richtig – und das ist hier der kürzeste Weg.', '✓ Correct – and that is the shortest way here.')
           : T('✓ Richtig!', '✓ Correct!');
       }
+      /* direkt umgestellt, ohne vorher = 0: richtig, aber mit Hinweis */
+      if (ohneNull && geht)
+        fb.innerHTML += '<div class="pg-fb-sub">' + T('Beachte: Die Gleichung stand noch nicht in der Form „… = 0“ – bei dieser Art darf man direkt umstellen.',
+          'Note: the equation was not yet in the form “… = 0” – for this kind you may rearrange directly.') + '</div>';
       zaehle(geht);
+      antwortGemeldet(geht, art === kurz);
     });
     reihe.appendChild(b);
   });
@@ -1392,7 +1530,8 @@ function loesungZeichnen(){
   var z = [];
   z.push('<p class="gl-art">\\(\\text{' + T(INFO[weg].name[0], INFO[weg].name[1]) + '}\\)</p>');
   if (haken('zeigeMenge')){
-    z.push('<p class="gl-loes">\\(\\left(' + loesungsMengeTeX() + '\\right)\\)</p>');
+    z.push('<div class="scale-wrapper gl-loes-w"><div class="scale-el"><p class="gl-loes">\\(\\left('
+         + loesungsMengeTeX() + '\\right)\\)</p></div></div>');
   }
   if (A.wege.length > 1){
     z.push('<p class="weg-merke">' + T('Es geht auch mit: ', 'It also works with: ')
@@ -1415,7 +1554,7 @@ function loesungZeichnen(){
   }
   if (haken('zeigeLink')){
     var seite = INFO[weg].seite;
-    z.push('<p style="text-align:center;">' + (seite
+    z.push('<p style="text-align:right;">' + (seite
       ? '<a class="step-link" href="' + uebungsLink(weg) + '" target="_blank" rel="noopener">'
         + T('Diese Gleichung dort üben: ', 'Practise this equation there: ')
         + T(INFO[weg].name[0], INFO[weg].name[1]) + ' →</a>'
@@ -1468,6 +1607,17 @@ function zaehle(ok){
   gesamt++; if (ok) richtig++;
   var c = document.getElementById('counter');
   if (c) c.textContent = T('Richtig: ', 'Correct: ') + richtig + ' / ' + gesamt;
+}
+/** Nur bei eingeschalteter Automatik: kurz aufleuchten, und nach dem
+    kürzesten Weg kommt die nächste Aufgabe. Ein Weg, der zwar geht, aber
+    länger ist, bleibt stehen - sonst verschwände der Hinweis auf den
+    kürzeren sofort wieder. Eine eigene Gleichung wird nicht weggeklickt. */
+function antwortGemeldet(geht, kuerzester){
+  if (!(window.abAutoAn && abAutoAn())) return;
+  if (!geht){ if (window.abBlitz) abBlitz(false); return; }
+  if (!kuerzester) return;
+  if (window.abBlitz) abBlitz(true);
+  if (A && A.art !== 'eigen' && window.abAutoBald) abAutoBald();
 }
 
 /* ── 6. Quiz ────────────────────────────────────────────────────────────── */
@@ -1702,7 +1852,17 @@ function notbehelf(){
 
 window.addEventListener('load', function(){
   notbehelf();
+  autoAn = new URLSearchParams(location.search).get('auto') === '1';
   einstellungenSetzen(urlLesen());
+  /* Was der Link anders einstellt als die Stufe, war von Hand gewählt - es
+     bleibt auch beim nächsten Stufenwechsel stehen. Dasselbe gilt für die
+     Schieberegler aus dem Link; sie kommen erst nach der Stufe dran. */
+  (function(){
+    var s0 = urlLesen();
+    if (window.abVonHandAusLink && typeof STUFEN !== 'undefined')
+      abVonHandAusLink(s0, STUFEN[s0.diff], function(k){ VON_HAND[k] = true; });
+    if (window.abReglerAusURL) abReglerAusURL(function(id){ VON_HAND['w' + id] = true; });
+  })();
   if (window.abSeedAusURL) abSeedAusURL();
   if (window.abKacheln) abKacheln(document.getElementById('segArten'), KACHELN, function(){
     if (!ARTEN.filter(function(x){ return haken(ART_ID[x]); }).length) setzeHaken('artLinear', true);
@@ -1778,6 +1938,11 @@ window.addEventListener('load', function(){
     });
   });
   document.getElementById('genBtn').addEventListener('click', function(){ neueAufgabe(); });
+  if (window.abAutoStart) abAutoStart({
+    an: autoAn,
+    naechste: function(){ neueAufgabe(); },
+    gemerkt: function(an){ autoAn = an; try { history.replaceState({}, '', urlSchreiben(false)); } catch (e) {} }
+  });
   document.getElementById('btnShare').addEventListener('click', function(){ linkKopieren(urlSchreiben(false), this); });
   document.getElementById('btnTeilen').addEventListener('click', function(){ linkKopieren(urlSchreiben(true), this); });
   document.getElementById('btnReset').addEventListener('click', function(){

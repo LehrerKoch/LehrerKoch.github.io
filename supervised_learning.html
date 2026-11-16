@@ -1107,9 +1107,50 @@ function updateLegend(){
 function fmtN(v){const s=(Math.round(v*1000)/1000).toString();return s==='0'?'0':s;}
 function fmtN4(v){if(v==null||isNaN(v))return'0';if(Math.abs(v)<1e-9)return'0';return(Math.round(v*10000)/10000).toString();}
 
+// ═══ URL ═══
+/* Die Einstellungen stehen hinter # in der Adresse - wie auf der
+   Schwesterseite zum unüberwachten Lernen. Wer den Link teilt, teilt sie mit. */
+function saveToURL(){
+  try{
+    const p=new URLSearchParams(),$=id=>document.getElementById(id);
+    p.set('ds',document.querySelector('input[name="dsrc"]:checked')?.value||'text');
+    p.set('rn',$('rn').value);p.set('rc',$('rcl').value);p.set('rs',$('rstr').value);
+    p.set('rd',$('rdim').value);p.set('ri',$('rint').checked?1:0);
+    p.set('kk',$('kk').value);p.set('mt',$('metric').value);p.set('wt',$('weighted').checked?1:0);
+    p.set('bd',$('boundary').checked?1:0);p.set('cl',$('showLabels').checked?1:0);
+    p.set('yd',$('ydir').value);p.set('sg',$('showgrid').checked?1:0);p.set('gs',$('gstep-slider').value);
+    p.set('a1',$('axlbl0').value);p.set('a2',$('axlbl1').value);
+    p.set('tp',document.querySelector('input[name="tpmode"]:checked')?.value||'manual');
+    p.set('sm',getStepMode());
+    history.replaceState(null,'','#'+p.toString());
+  }catch(_){}
+}
+function loadFromURL(){
+  if(!location.hash||location.hash==='#')return;
+  try{
+    const p=new URLSearchParams(location.hash.slice(1)),$=id=>document.getElementById(id);
+    const g=(k,d)=>p.has(k)?p.get(k):d,gN=(k,d)=>p.has(k)?+p.get(k):d,gB=(k,d)=>p.has(k)?p.get(k)==='1':d;
+    const ds=g('ds','text');document.querySelectorAll('input[name="dsrc"]').forEach(r=>{r.checked=r.value===ds;if(r.checked)showDS(r);});
+    $('rn').value=gN('rn',30);$('rcl').value=gN('rc',3);
+    $('rstr').value=gN('rs',6);$('rstr_lbl').textContent=$('rstr').value;
+    $('rdim').value=gN('rd',2);$('rdim-lbl').textContent=$('rdim').value;$('rint').checked=gB('ri',true);
+    $('kk').value=gN('kk',3);$('metric').value=g('mt','eu');$('weighted').checked=gB('wt',false);
+    $('boundary').checked=gB('bd',false);$('showLabels').checked=gB('cl',true);
+    $('ydir').value=g('yd','up');$('showgrid').checked=gB('sg',true);$('gstep-slider').value=gN('gs',3);
+    $('axlbl0').value=g('a1','x');$('axlbl1').value=g('a2','y');
+    const tp=g('tp','manual');document.querySelectorAll('input[name="tpmode"]').forEach(r=>r.checked=r.value===tp);
+    const sm=g('sm','phase');document.querySelectorAll('input[name="smode"]').forEach(r=>r.checked=r.value===sm);
+  }catch(_){}
+}
+
 // ═══ INIT ═══
 ['file','random','example'].forEach(s=>document.getElementById('d-'+s).style.display='none');
+loadFromURL();
 syncGStepLbl();refreshTPUI();loadText();
+/* jede Änderung in den Einstellungen landet in der Adresse */
+['rn','rcl','rstr','rdim','rint','kk','metric','weighted','boundary','showLabels','ydir','showgrid','gstep-slider','axlbl0','axlbl1']
+  .forEach(id=>{const e=document.getElementById(id);if(e){e.addEventListener('input',saveToURL);e.addEventListener('change',saveToURL);}});
+document.querySelectorAll('input[name="dsrc"], input[name="tpmode"], input[name="smode"]').forEach(r=>r.addEventListener('change',saveToURL));
 window.addEventListener('resize',()=>{
   if(trainPts.length&&dim<=2){computeRange();setupCanvas();render();}
   if(trainPts.length&&dim===3&&renderer3&&scene3){

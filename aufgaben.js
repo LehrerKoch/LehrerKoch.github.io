@@ -327,7 +327,7 @@
         ? '<span class="pname"></span><span class="pzahl"></span>' + pfeil
         : ('<span class="tk">\u2713</span>'
           + '<span class="ttext">'
-          +   '<span class="tname"></span>'
+          +   '<span class="tname"></span><span class="tzaehler"></span>'
           +   '<span class="tsub"></span>'
           + '</span>'
           /* Der Stand steht rechts am Rand, nicht im Namen. */
@@ -485,6 +485,10 @@
         ? TX(art.name, art.nameEn || art.name)
         : (art.haupt ? beschriftung(art.haupt) : ''))
         + (art.haupt ? sterne(art.haupt) : '');
+      /* Auf Wunsch der Seite (zahl:true): wie viele Unterpunkte sind an?
+         Ist die Kachel aus, steht 0 da - wie bei den Ovalen. */
+      var tz = b.querySelector('.tzaehler');
+      if (tz) tz.textContent = (art.zahl && subs.length) ? ('(' + (ein ? aktiv.length : 0) + '/' + subs.length + ')') : '';
       var u = b.querySelector('.tsub');
       if (!subs.length){
         u.innerHTML = art.hinweis ? TX(art.hinweis, art.hinweisEn || art.hinweis) : beschreibung(art.haupt);
@@ -932,6 +936,62 @@
     abReglerAbgleichen();
   }
   window.abPillen = abPillen;
+
+  /* ══ Schieberegler im Link ════════════════════════════════════════════════
+     Ein Regler kommt in den Link, wenn er anders steht, als ihn das Öffnen
+     der Seite von selbst stellen würde: auf den Wert der Stufe - oder, ohne
+     Stufe bzw. bei abgeschaltetem Fall, auf seinen Grundwert (das
+     value-Attribut). Beim Öffnen werden diese Werte nach der Stufe gesetzt und
+     gelten als von Hand gewählt: ein späterer Stufenwechsel lässt sie stehen. */
+  function reglerDerEinstellungen(){
+    return [].filter.call(document.querySelectorAll('input[type="range"][id^="w"]'), function(e){
+      return !!(e.closest && e.closest('#dSettings, details.einst'));
+    });
+  }
+  function abReglerErwartet(e, stufenRegler){
+    var id = e.id.slice(1), k = document.getElementById(id);
+    var std = e.getAttribute('value');
+    if (k && k.type === 'checkbox' && !k.checked) return std;
+    if (stufenRegler && stufenRegler[id] != null) return String(stufenRegler[id]);
+    return std;
+  }
+  /** p: URLSearchParams der Seite; stufenRegler: die Regler der aktuellen Stufe */
+  function abReglerSchreiben(p, stufenRegler){
+    reglerDerEinstellungen().forEach(function(e){
+      var erw = abReglerErwartet(e, stufenRegler);
+      if (erw == null || String(e.value) !== String(erw)) p.set('r.' + e.id.slice(1), e.value);
+    });
+  }
+  /** Regler aus dem Link setzen; markiere(id) merkt sie als von Hand gewählt. */
+  function abReglerAusURL(markiere){
+    var p, gesetzt = [];
+    try { p = new URLSearchParams(location.search); } catch (x) { return gesetzt; }
+    p.forEach(function(v, k){
+      if (k.indexOf('r.') !== 0) return;
+      var id = k.slice(2), e = document.getElementById('w' + id);
+      if (!e || e.type !== 'range') return;
+      var z = parseInt(v, 10);
+      if (!isFinite(z)) return;
+      var lo = parseInt(e.min || '1', 10), hi = parseInt(e.max || '10', 10);
+      e.value = String(Math.max(lo, Math.min(hi, z)));
+      gesetzt.push(id);
+      if (markiere) markiere(id);
+    });
+    if (gesetzt.length) abReglerAbgleichen();
+    return gesetzt;
+  }
+  /** Einstellungen aus dem Link, die anders sind, als die Stufe sie setzt,
+      waren von Hand gewählt - markiere(k) merkt sie sich. */
+  function abVonHandAusLink(s, stufe, markiere){
+    if (!s || !stufe || !markiere) return;
+    Object.keys(stufe).forEach(function(k){
+      if (k === 'regler' || k === 'nr' || !(k in s)) return;
+      if (String(s[k]) !== String(stufe[k])) markiere(k);
+    });
+  }
+  window.abReglerSchreiben = abReglerSchreiben;
+  window.abReglerAusURL = abReglerAusURL;
+  window.abVonHandAusLink = abVonHandAusLink;
 
   /* ══ Fester Zufalls-Seed ══════════════════════════════════════════════════
      Mit einem Seed würfelt die Seite bei allen dieselben Aufgaben - praktisch,

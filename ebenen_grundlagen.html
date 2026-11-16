@@ -351,13 +351,16 @@ html.dark details[open].weg{ background:#1b2026; border-color:#2f4f6f; }
 .step .sh{ font-weight:bold; font-size:.88em; color:#1a3a5a; }
 .step .sx{ font-size:.88em; color:#555; margin:2px 0; }
 .step .note-line{ color:#333; margin-top:2px; }
-.step-link{ display:inline-block; margin:5px 0 2px; background:#E07B00; color:#fff; text-decoration:none;
+.step-link{ display:table; margin:8px 0 2px auto; background:#E07B00; color:#fff; text-decoration:none;
   font-size:.8em; padding:5px 11px; border-radius:5px; }
 .varsw{ display:flex; flex-wrap:wrap; gap:5px; margin:2px 0 6px; }
 .varsw button{ background:#fff; color:#0d47a1 !important; font-size:.8em; padding:5px 11px; border-radius:16px;
   border:1.5px solid #b6d4f0; margin:0; }
 .varsw button.on{ background:#3a7ac0; color:#fff !important; border-color:#3a7ac0; font-weight:bold; }
 .wegsel{ font-size:.8em; color:#555; margin:2px 0 0; }
+.qz-weg{ display:flex; align-items:center; flex-wrap:wrap; gap:4px 8px; margin:0 0 8px; }
+.qz-weg .wegsel{ margin:0; }
+.qz-weg .varsw{ margin:0; }
 .extlink{ text-align:center; margin:8px 0 4px; display:flex; flex-wrap:wrap; gap:6px; justify-content:center; }
 .extlink a{ display:inline-block; background:#3a7ac0; color:#fff; text-decoration:none; font-size:.85em;
   padding:8px 15px; border-radius:5px; }
@@ -620,6 +623,19 @@ const P10 = 10;                       /* intern feiner rechnen als angezeigt wir
 const rd  = (x, n) => Math.round(x * Math.pow(10, n == null ? 6 : n)) / Math.pow(10, n == null ? 6 : n);
 const eq0 = x => Math.abs(x) < EPS;
 const eqN = (a, b) => Math.abs(a - b) < 1e-6;
+/** Eine Eingabe gegen den erwarteten Wert prüfen: genau - oder, wenn der Wert
+    krumm ist (kein Dezimalbruch mit höchstens drei Stellen, etwa √5 oder 1/3),
+    auch gerundet (auf zwei Nachkommastellen genau). Eine 0 oder ein falsches
+    Vorzeichen geht dabei nie durch - sonst wäre 1/320 schon mit 0 „richtig“. */
+function passt(x, soll){
+  if (x == null || soll == null || !isFinite(x) || !isFinite(soll)) return false;
+  if (eqN(x, soll)) return true;
+  if (1000 % Q.of(soll).d === 0) return false;
+  if (eq0(x) || Math.sign(x) !== Math.sign(soll)) return false;
+  return Math.abs(x - soll) <= 0.006;
+}
+/** dasselbe für Punkte und Vektoren */
+function gleichV(a, b){ return !!a && !!b && [0, 1, 2].every(i => passt(a[i], b[i])); }
 function gcd(a, b){ a = Math.abs(a); b = Math.abs(b); while (b){ [a, b] = [b, a % b]; } return a; }
 function lcm(a, b){ a = Math.abs(Math.round(a)); b = Math.abs(Math.round(b)); return (!a || !b) ? 0 : a / gcd(a, b) * b; }
 /* =========================================================================
@@ -728,10 +744,16 @@ function affine(p, c, sym){
   if (eq0(p)) return term(c, sym, true);
   return numTeX(p) + coef(c, sym);
 }
+/** „\\frac{z}{n} = Wert" - der Wert nur, wenn er anders aussieht als der Bruch
+    (sonst stünde da „\\frac{17}{3} = \\frac{17}{3}"). */
+function bruchWert(z, n, val){
+  const fr = '\\frac{' + numTeX(z) + '}{' + numTeX(n) + '}', v = numTeX(val);
+  return (fr === v) ? fr : fr + EQ(val) + v;           /* gerundet: ≈ */
+}
 function quotTeX(sym, z, n, val){
   if (eqN(n, 1))  return sym + ' = ' + numTeX(z);
   if (eqN(n, -1)) return sym + ' = ' + numTeX(-z);
-  return sym + ' = \\frac{' + numTeX(z) + '}{' + numTeX(n) + '} = ' + numTeX(val);
+  return sym + ' = ' + bruchWert(z, n, val);
 }
 
 /* ---------- Zufallszahlen nach den Einstellungen ---------- */
@@ -1006,12 +1028,18 @@ function relTeX(ok){
   return ok ? '\\;{\\color{' + (DUNKEL() ? '#81c784' : '#1a6a1a') + '}{=}}\\;'
             : '\\;{\\color{' + (DUNKEL() ? '#ef9a9a' : '#9a1010') + '}{\\neq}}\\;';
 }
+/** Term und Wert: „2 + 3·(−1) = −1" - ist der Term schon die Zahl, nur sie. */
+function mitWert(term, wert, links){
+  const w = numTeX(wert);
+  if (term === w) return w;
+  return links ? term + EQ(wert) + w : w + EQ(wert) + term;
+}
 /** eine Probezeile: linker Term = Wert  (=/≠)  Wert = rechter Term */
 function probeZeileTeX(lc, lu, lt, rc, ru, rt){
   const l = snap(lc + lu * lt), r = snap(rc + ru * rt), ok = eqN(l, r);
   return { ok: ok, l: l, r: r,
-    tex: '\\begin{array}{c}' + affine(lc, lu, paren(lt)) + ' = ' + numTeX(l)
-       + relTeX(ok) + numTeX(r) + ' = ' + affine(rc, ru, paren(rt)) + '\\end{array}' };
+    tex: '\\begin{array}{c}' + mitWert(affine(lc, lu, paren(lt)), l, true)
+       + relTeX(ok) + mitWert(affine(rc, ru, paren(rt)), r, false) + '\\end{array}' };
 }
 function dotTeX(a, b){ return [0, 1, 2].map(i => paren(a[i]) + '\\cdot ' + paren(b[i])).join(' + '); }
 function crossTeX(u, v){
@@ -1127,7 +1155,7 @@ function solve2(A1, B1, C1, A2, B2, C2){
     const rest = snap(C - (forT ? B * val : A * val)), coeff = forT ? A : B, sym = forT ? par() : par2();
     if (eqN(coeff, 1))  return sym + ' = ' + numTeX(rest);
     if (eqN(coeff, -1)) return sym + ' = ' + numTeX(-rest);
-    return sym + ' = \\frac{' + numTeX(rest) + '}{' + numTeX(coeff) + '} = ' + numTeX(snap(rest / coeff));
+    return sym + ' = ' + bruchWert(rest, coeff, snap(rest / coeff));
   };
   if (eq0(A1) || eq0(A2)){
     const f = eq0(A1) ? [A1, B1, C1, 'I'] : [A2, B2, C2, 'II'];
@@ -1417,10 +1445,11 @@ const VIS = {
     const co = u.map(x => eq0(x) ? '0' : (VIS.n(x) + 't')).join('|');
     return name + ' = Vektor(' + ptName + '; ' + co + ')' + VIS.opt(o);
   },
-  /* v=3d: 3D-Ansicht, pm=box: Ebenen bis zum Rand des Koordinatensystems,
-     die Hilfsvektoren zeichnen wir selbst als eigene Objekte */
+  /* v=3d: 3D-Ansicht; die Hilfsvektoren zeichnen wir selbst als eigene Objekte.
+     Den Ausschnitt der Ebenen bestimmt die Seite selbst (Standard, bis zu den
+     Punkten aufgezogen) - kein Achsenbereich mehr. */
   url(lines, par){
-    let u = VIS.page + '?o=' + encodeURIComponent(lines.join(String.fromCharCode(10))) + '&v=3d&pm=box';
+    let u = VIS.page + '?o=' + encodeURIComponent(lines.join(String.fromCharCode(10))) + '&v=3d';
     if (par){
       /* Parameterwert und passender Bereich, damit der gesuchte Punkt erreichbar ist */
       const w = snap(par), r = Math.max(3, Math.ceil(Math.abs(w) + 1));
@@ -1439,6 +1468,15 @@ const LGS = {
       + '&method=' + (method || 'add') + '&scaled=1';
   }
 };
+/** Verweis auf die Seite zum Skalar- und Kreuzprodukt: dort wird genau dieses
+    Kreuzprodukt Schritt für Schritt ausgerechnet. Nur bei überschaubaren Zahlen. */
+function kreuzLink(a, b){
+  const kurz = x => isFinite(x) && Math.abs(x) < 1000 && Math.abs(x * 100 - Math.round(x * 100)) < 1e-9;
+  if (!a || !b || !a.concat(b).every(kurz)) return null;
+  const v = { a: a.map(snap), b: b.map(snap) };
+  return { href: 'skalar_kreuzprodukt.html?mo=manuell&mt=' + encodeURIComponent(JSON.stringify({ id: 'rech.kreuz', v: v })),
+           text: T('Dieses Kreuzprodukt Schritt für Schritt', 'This cross product step by step') };
+}
 /* ---------- Bausteine für die Verlinkung ----------
    Gegebene Werte stehen als konkrete Zahlen da, alles andere verweist über den
    Namen darauf. Die Hilfsvektoren zeichnen wir selbst, damit Stütz- und
@@ -1448,7 +1486,8 @@ const VIS_PKT  = c2 => ({ farbe: c2 || VC.pkt, stufe: 1 });
 const VIS_ORT  = c2 => ({ farbe: c2 || VC.hilf, strich: 'gepunktet' });
 const VIS_RICH = c2 => ({ farbe: c2 || VC.hilf, strich: 'durchgezogen', stufe: 2 });
 /* Standard: alle Hilfslinien; Ebenen zusätzlich mit quadratischem Ausschnitt
-   (bei Umwandlungen und zwei Ebenen wird stattdessen 'Achsen' gesetzt) */
+   (bei Umwandlungen und zwei Ebenen bleibt es bei der Standarddarstellung
+   der Seite - 'Standard' -, aufgezogen bis zu den Punkten) */
 const VIS_OBJ  = c2 => ({ farbe: c2 || VC.obj, hilfsvektoren: 'alle' });
 const VIS_EB   = c2 => ({ farbe: c2 || VC.obj, hilfsvektoren: 'alle', ebene: 'Quadrat' });
 
@@ -1503,23 +1542,32 @@ function visPlaneNor(eName, ptName, p, n, c2){
            vEbeneNor(eName, ptName, ptName + 'n', c2) ];
 }
 /** Ebene aus Punkt und zwei Spannvektoren, benannt */
+/** Ausschnitt einer Ebene: 'Standard' heißt keine eigene Angabe (die Seite
+    entscheidet), aber bis zu den Punkten aufgezogen. */
+function ebeneAusschnitt(aus){
+  return (aus === 'Standard') ? { aufziehen: 'an' } : { ebene: aus };
+}
+function ebeneAusschnittText(aus){
+  return (aus === 'Standard') ? '; aufziehen:an' : '; ebene:' + aus;
+}
 function visFormPar(nm, ptName, p, u, v, col, suffix, ausschnitt){
   const s = suffix || '', aus = ausschnitt || 'Quadrat';
   return [ vPunkt(ptName, p, col), VIS.vektor2('u' + s, ptName, u, { farbe: col, stufe: 1 }),
            VIS.vektor2('v' + s, ptName, v, { farbe: col, stufe: 1 }),
            nm + ' = Ebene(' + ptName + '; u' + s + '; v' + s + ') {farbe:' + col
-             + '; hilfsvektoren:alle; ebene:' + aus + '}' ];
+             + '; hilfsvektoren:alle' + ebeneAusschnittText(aus) + '}' ];
 }
 /** Ebene aus Punkt und Normalenvektor, benannt */
 function visFormNor(nm, ptName, p, n, col, suffix, ausschnitt){
   const s = suffix || '', aus = ausschnitt || 'Quadrat';
   return [ vPunkt(ptName, p, col), VIS.vektor2('n' + s, ptName, n, { farbe: col, stufe: 2 }),
            nm + ' = Ebene(' + ptName + '; n' + s + ') {farbe:' + col
-             + '; hilfsvektoren:alle; ebene:' + aus + '}' ];
+             + '; hilfsvektoren:alle' + ebeneAusschnittText(aus) + '}' ];
 }
 /** Ebene in Koordinatenform, benannt */
 function visFormKoo(nm, n, d, col, ausschnitt){
-  return [ VIS.ebeneKoord(nm, n, d, { farbe: col, hilfsvektoren: 'alle', ebene: ausschnitt || 'Quadrat' }) ];
+  return [ VIS.ebeneKoord(nm, n, d, Object.assign({ farbe: col, hilfsvektoren: 'alle' },
+                                                ebeneAusschnitt(ausschnitt || 'Quadrat'))) ];
 }
 /** zwei Geraden mit der aufgespannten Ebene; Stützpunkt und zweiter Spannvektor
     richten sich nach dem gewählten Lösungsweg */
@@ -2138,6 +2186,7 @@ function quizStart(stages){
 function quizRender(host){
   host.innerHTML = '';
   if (!QUIZ || !QUIZ.stages.length) return;
+  if (wegeImQuiz()) host.appendChild(quizWegSchalter(host));
   /* Wie auf den Gleichungsseiten: was schon gelöst ist, steht oben als kurze
      Kette, damit der laufende Schritt nicht immer weiter nach unten rutscht. */
   if (QUIZ.stages.length > 1){
@@ -2156,8 +2205,9 @@ function quizRender(host){
     host.appendChild(quizStageBox(st, i, host));
     /* Das Quiz als Hilfe steht als eigener Kasten unter dem aktuellen Schritt -
        so geraten seine Eingabefelder der eigenen Antwort nicht dazwischen. */
-    if (i === QUIZ.idx && !QUIZ.st[i].done && st.hilfe && st.hilfe.length)
-      host.appendChild(hilfeWrap(st, QUIZ.st[i], host));
+    const hl = hilfeListe(st, i);
+    if (i === QUIZ.idx && !QUIZ.st[i].done && hl && hl.length)
+      host.appendChild(hilfeWrap(st, QUIZ.st[i], host, hl));
   });
   if (QUIZ.idx >= QUIZ.stages.length){
     /* „Alles richtig gelöst“ gilt nur, wenn man nichts angezeigt bekommen hat. */
@@ -2309,15 +2359,58 @@ function quizStageBox(st, i, host){
    `hilfe: [ ... ]` mitbringt - jedes Element ist eine gewöhnliche Stufe
    (stageChoice, stageNums, …), ergänzt um `erklaerung`.
    ========================================================================= */
+/* ---------- Lösungswege im Quiz ----------
+   Bringt ein Lösungsweg eigene Zwischenfragen mit (variant.hilfe), wählt man
+   ihn schon über dem Quiz. Das Quiz als Hilfestellung folgt dann diesem Weg,
+   und der Lösungsweg unten zeigt denselben - umgekehrt genauso. */
+function wegeImQuiz(){
+  return !!(TASK && TASK.variants && TASK.variants.length > 1
+            && TASK.variants.some(v => v.hilfe && v.hilfe.length));
+}
+/** Zwischenfragen zur Stufe i: die des gewählten Weges, sonst die der Stufe */
+function hilfeListe(st, i){
+  const v = (TASK && TASK.variants) ? TASK.variants[WEGWAHL.v] : null;
+  if (v && v.hilfe && v.hilfe.length && i === (v.hilfeStufe || 0)) return v.hilfe;
+  return st.hilfe;
+}
+/** Nummer des Weges, zu dem diese Zwischenfragen gehören (0 = ohne Weg) */
+function hilfeWegNr(schritte){
+  if (!TASK || !TASK.variants) return 0;
+  const i = TASK.variants.findIndex(v => v.hilfe === schritte);
+  return i < 0 ? 0 : i + 1;
+}
+function quizWegSchalter(host){
+  const wrap = el('div', { class: 'qz-weg' });
+  wrap.appendChild(el('span', { class: 'wegsel' }, T('Lösungsweg:', 'Method:')));
+  const sw = el('div', { class: 'varsw' });
+  TASK.variants.forEach((v, i) => {
+    const b = el('button', { type: 'button', data: { i: i } }, v.label);
+    if (i === WEGWAHL.v) b.classList.add('on');
+    b.addEventListener('click', () => { if (WEGWAHL.v !== i) wegWaehlen(i); });
+    sw.appendChild(b);
+  });
+  wrap.appendChild(sw);
+  return wrap;
+}
+/** Weg wechseln - im Quiz und im Lösungsweg */
+function wegWaehlen(i){
+  const qa = $('#quizArea');
+  /* Eingetipptes, aber noch nicht Geprüftes bleibt stehen. */
+  if (qa && QUIZ) QUIZ.eingaben = $$('.qz-cur-step:not(.qz-solved) input', qa).map(x => x.value);
+  const knopf = $$('details.loesung .varsw button')[i];
+  if (knopf){ knopf.click(); return; }       /* der Lösungsweg zieht das Quiz mit */
+  WEGWAHL.v = i; WEGWAHL.klick = true;
+  if (qa && QUIZ) quizRender(qa);
+}
 /** Umschaltknopf und Kasten des Hilfe-Quiz */
-function hilfeWrap(stage, s, host){
+function hilfeWrap(stage, s, host, hl){
   const wrap = el('div', { class: 'qh-wrap' });
   /* Beschriftung wie auf den Gleichungsseiten. */
   const text = auf => auf ? T('Quiz ausblenden', 'Hide the step-by-step help')
                           : T('Quiz als Hilfestellung', 'Quiz as a hint');
   const kb = el('button', { type: 'button', class: 'hint-btn hilfe-btn' }, text(!!s.hilfeAuf));
   const kbox = el('div', { style: s.hilfeAuf ? '' : 'display:none' });
-  if (s.hilfeAuf) kbox.appendChild(hilfeBox(stage, s, host));
+  if (s.hilfeAuf) kbox.appendChild(hilfeBox(stage, s, host, hl));
   wrap.classList.toggle('auf', !!s.hilfeAuf);
   kb.addEventListener('click', () => {
     const auf = kbox.style.display === 'none';
@@ -2325,7 +2418,7 @@ function hilfeWrap(stage, s, host){
     s.hilfeAuf = auf;
     wrap.classList.toggle('auf', auf);
     kb.textContent = text(auf);
-    if (auf && !kbox.firstChild) kbox.appendChild(hilfeBox(stage, s, host));
+    if (auf && !kbox.firstChild) kbox.appendChild(hilfeBox(stage, s, host, hl));
     if (auf) mj(kbox);
   });
   const kopf = el('div', { class: 'qh-kopfzeile' });
@@ -2337,22 +2430,23 @@ function hilfeWrap(stage, s, host){
   return wrap;
 }
 /** Zustand der Hilfe zu einer Quizstufe anlegen oder weiterverwenden */
-function hilfeStand(s, schritte){
-  if (!s.hilfeSt || s.hilfeSt.n !== schritte.length)
-    s.hilfeSt = { n: schritte.length, idx: 0,
+function hilfeStand(s, schritte, weg){
+  /* Ein anderer Lösungsweg fängt mit seinen Zwischenfragen von vorn an. */
+  if (!s.hilfeSt || s.hilfeSt.n !== schritte.length || (s.hilfeSt.weg || 0) !== (weg || 0))
+    s.hilfeSt = { n: schritte.length, idx: 0, weg: weg || 0,
       st: schritte.map(() => ({ done: false, chosen: null, vals: null, wrong: {}, fb: null, stufe: 0 })) };
   return s.hilfeSt;
 }
 /** der ganze Hilfebereich zu einer Quizstufe */
-function hilfeBox(stage, s, host){
-  const schritte = stage.hilfe;
-  const z = hilfeStand(s, schritte);
+function hilfeBox(stage, s, host, hl){
+  const schritte = hl || stage.hilfe;
+  const z = hilfeStand(s, schritte, hilfeWegNr(schritte));
   const box = el('div', { class: 'qh-box' });
   box.appendChild(el('p', { class: 'qh-kopf' },
     T('Beantworte die Zwischenfragen \u2013 danach steht die L\u00f6sung fast von selbst da.',
       'Answer the intermediate questions \u2013 then the solution almost writes itself.')));
   const neu = () => {
-    const ersatz = hilfeBox(stage, s, host);
+    const ersatz = hilfeBox(stage, s, host, schritte);
     box.replaceWith(ersatz);
     mj(ersatz);
   };
@@ -2505,7 +2599,7 @@ function lockQuiz(){
   const qa = $('#quizArea');
   if (!qa) return;
   qa.classList.add('qz-locked');
-  $$('input, button', qa).forEach(x => { x.disabled = true; });
+  $$('input, button', qa).forEach(x => { if (!x.closest('.qz-weg')) x.disabled = true; });
 }
 
 /* =========================================================================
@@ -2592,6 +2686,12 @@ function solutionArea(z){
         varIdx = i; WEGWAHL.v = i; WEGWAHL.klick = true;
         paintWeg(box, TASK.variants[i]);
         if (zeigeLinks) zeigeLinks();
+        /* Das Quiz als Hilfe folgt demselben Weg. */
+        const qa = $('#quizArea');
+        if (qa && QUIZ && wegeImQuiz()){
+          if (!QUIZ.eingaben) QUIZ.eingaben = $$('.qz-cur-step:not(.qz-solved) input', qa).map(x => x.value);
+          quizRender(qa);
+        }
       });
       sw.appendChild(b);
     });
@@ -3438,8 +3538,8 @@ function stagePoint(title, name, right, sub, hint){
     verify(box){
       const q = readVec($('#inQ', box));
       if (!q) return { ok: false, cls: 'warn', msg: T('Bitte alle drei Koordinaten eintragen.', 'Please enter all three coordinates.') };
-      if (V.same(q, right)) return { ok: true, answer: '\\(' + ptTeX(name, right) + '\\)' };
-      const w = [0, 1, 2].filter(i => !eqN(q[i], right[i]));
+      if (gleichV(q, right)) return { ok: true, answer: '\\(' + ptTeX(name, right) + '\\)' };
+      const w = [0, 1, 2].filter(i => !passt(q[i], right[i]));
       return { ok: false, msg: w.length === 1
         ? T('Die ' + (w[0] + 1) + '. Koordinate stimmt noch nicht.', 'The ' + ORD(w[0] + 1) + ' coordinate is not right yet.')
         : (hint || T('Noch nicht richtig – rechne die Koordinaten noch einmal nach.', 'Not right yet – recalculate the coordinates.')) };
@@ -3457,7 +3557,7 @@ function stageNums(title, labels, vals, sub, hint){
     verify(box){
       const got = labels.map((L, i) => parseNum($('#inN' + i, box).value));
       if (got.some(x => x === null)) return { ok: false, cls: 'warn', msg: T('Bitte alle Felder ausfüllen.', 'Please fill in all fields.') };
-      const bad = got.map((x, i) => eqN(x, vals[i]) ? -1 : i).filter(i => i >= 0);
+      const bad = got.map((x, i) => passt(x, vals[i]) ? -1 : i).filter(i => i >= 0);
       if (!bad.length) return { ok: true, answer: '\\(' + labels.map((L, i) => L + ' = ' + numTeX(vals[i])).join(',\\quad ') + '\\)' };
       return { ok: false, msg: T('Noch nicht richtig bei \\(' + bad.map(i => labels[i]).join('\\) und \\(') + '\\). ',
                                     'Not right yet for \\(' + bad.map(i => labels[i]).join('\\) and \\(') + '\\). ') + (hint || '') };
@@ -3545,9 +3645,9 @@ function normalCheckStep(u, v, n){
     '\\vec{n}' + SP() + '\\vec{u} = ' + dotTeX(n, u) + ' = 0\\qquad\\vec{n}' + SP() + '\\vec{v} = ' + dotTeX(n, v) + ' = 0', OKNOTE(true));
 }
 function crossStep(u, v, n0){
-  return step(T('Normalenvektor über das Kreuzprodukt', 'Normal vector via the cross product'),
+  return Object.assign(step(T('Normalenvektor über das Kreuzprodukt', 'Normal vector via the cross product'),
     T('Der Normalenvektor steht senkrecht auf beiden Spannvektoren. Das leistet das Kreuzprodukt:', 'The normal vector is perpendicular to both spanning vectors. The cross product provides exactly that:'),
-    crossNorTeX(u, v, n0 || V.cross(u, v)));
+    crossNorTeX(u, v, n0 || V.cross(u, v))), { link: kreuzLink(u, v) });
 }
 function reduceStep(w, n){
   const k = V.factor(n, w);
@@ -3708,9 +3808,9 @@ function spannSwitch(n, p, u, v){
     const st = [ tauschRegelStep(n, a2) ];
     st.push(zweit
       ? tauschRegelStep(n, zweit)
-      : step(T('Zweiter Spannvektor über das Kreuzprodukt', 'Second spanning vector via the cross product'),
+      : Object.assign(step(T('Zweiter Spannvektor über das Kreuzprodukt', 'Second spanning vector via the cross product'),
           T('Hier hilft die Regel kein zweites Mal weiter. Das Kreuzprodukt aus \\(\\vec{n}\\) und ', 'Here the rule does not help a second time. The cross product of \\(\\vec{n}\\) and ')
-          + T('\\(\\vec{u}\\) steht auf beiden senkrecht:', '\\(\\vec{u}\\) is perpendicular to both:'), '\\vec{v} = ' + crossTeX(n, a2.u)));
+          + T('\\(\\vec{u}\\) steht auf beiden senkrecht:', '\\(\\vec{u}\\) is perpendicular to both:'), '\\vec{v} = ' + crossTeX(n, a2.u)), { link: kreuzLink(n, a2.u) }));
     st.push(step(T('Zusammensetzen', 'Put it together'), '', planeParTeX('E', p, a2.u, v2)));
     return { label: '\\(' + axName(a2.k) + '\\)' + T('-Komponente auf \\(0\\)', '-component set to \\(0\\)'), steps: st };
   });
@@ -3739,11 +3839,18 @@ function punkteSwitch(n, d, pts){
 /* =========================================================================
    Parametergleichung aufstellen
    ========================================================================= */
+/** Ebene aus einer eingegebenen Koordinatenform. Ein kürzbarer Normalenvektor
+    wird nur gekürzt, wenn die rechte Seite mitgeht (aus 2x = 4 wird x = 2) -
+    sonst bleibt die Gleichung, wie sie eingegeben wurde. */
+function planeKooGekuerzt(n, d){
+  const r = V.reduce(n), d2 = snap(d / r.k);
+  return eq0(d2 - Math.round(d2)) ? planeFromKoo(r.v, d2) : planeFromKoo(n.slice(), d);
+}
 function planeFrom(m){
   if (!m) return null;
   if (m.n != null && m.d != null){
     if (V.zero(m.n)) throw new Error(T('Der Normalenvektor darf nicht der Nullvektor sein.', 'The normal vector must not be the zero vector.'));
-    return planeFromKoo(V.reduce(m.n).v, m.d);
+    return planeKooGekuerzt(m.n, m.d);
   }
   if (m.n != null){
     if (V.zero(m.n)) throw new Error(T('Der Normalenvektor darf nicht der Nullvektor sein.', 'The normal vector must not be the zero vector.'));
@@ -3779,13 +3886,13 @@ function hZahl(frage, label, soll, opt){
     verify(box){
       const v = parseNum($('#inH', box).value);
       if (v === null) return { ok: false, cls: 'warn', msg: T('Bitte eine Zahl eintragen.', 'Please enter a number.') };
-      if (eqN(v, soll) || (opt.tol && Math.abs(v - soll) <= opt.tol)){
+      if (passt(v, soll) || (opt.tol && Math.abs(v - soll) <= opt.tol)){
         /* Krumme Werte werden gerundet gezeigt - sonst stünde dort ein
            Riesenbruch wie 1856371/318365. */
         const txt = opt.antwort || (opt.tol ? tfmt(rd(soll, 2), 2) : numTeX(soll));
         return { ok: true, answer: '\\(' + (label ? label + ' = ' : '') + txt + '\\)' };
       }
-      if (eqN(v, -soll) && !eq0(soll))
+      if (passt(v, -soll) && !eq0(soll))
         return { ok: false, msg: T('Nur das Vorzeichen stimmt noch nicht.', 'Only the sign is not right yet.') };
       return { ok: false, msg: opt.fehler || T('Noch nicht richtig – rechne es Schritt für Schritt nach.', 'Not right yet – work it out step by step.') };
     } };
@@ -3803,10 +3910,10 @@ function hVek(frage, label, soll, opt){
     verify(box){
       const v = readVec($('#inHV', box));
       if (!v) return { ok: false, cls: 'warn', msg: T('Bitte alle drei Felder ausfüllen.', 'Please fill in all three fields.') };
-      if (V.same(v, soll)) return { ok: true, answer: '\\(' + (label ? label + ' = ' : '') + TX.vec(soll) + '\\)' };
-      if (V.same(v, V.mul(soll, -1)))
+      if (gleichV(v, soll)) return { ok: true, answer: '\\(' + (label ? label + ' = ' : '') + TX.vec(soll) + '\\)' };
+      if (gleichV(v, V.mul(soll, -1)))
         return { ok: false, msg: T('Alle Vorzeichen sind vertauscht – achte auf die Reihenfolge.', 'All the signs are swapped – mind the order.') };
-      const falsch = [0, 1, 2].filter(i => !eqN(v[i], soll[i]));
+      const falsch = [0, 1, 2].filter(i => !passt(v[i], soll[i]));
       return { ok: false, msg: falsch.length === 1
         ? T('Die ' + (falsch[0] + 1) + '. Komponente stimmt noch nicht.', 'The ' + ORD(falsch[0] + 1) + ' component is not right yet.')
         : T('Es stimmen noch nicht alle Komponenten.', 'Not all components are right yet.') };
@@ -3834,7 +3941,7 @@ function hKreuz(a, b, erg, label){
     const p = paare[i][0], q = paare[i][1];
     return hZahl(
       T('Was ergibt die ' + (i + 1) + '. Komponente?', 'What is the ' + ORD(i + 1) + ' component?'),
-      numTeX(a[p]) + '\\cdot ' + paren(b[q]) + ' - ' + numTeX(a[q]) + '\\cdot ' + paren(b[p]),
+      numTeX(a[p]) + '\\cdot ' + paren(b[q]) + ' - ' + paren(a[q]) + '\\cdot ' + paren(b[p]),
       erg[i],
       { weg: 'a_{' + (p + 1) + '}\\cdot b_{' + (q + 1) + '} - a_{' + (q + 1) + '}\\cdot b_{' + (p + 1) + '}',
         sub: i === 0 ? T('Für jede Zeile werden die beiden anderen Zeilen über Kreuz multipliziert.',
@@ -4077,6 +4184,32 @@ function hilfeBauen(t){
     }
   }
   if (schritte && schritte.length) t.stages[0].hilfe = schritte;
+
+  /* Koordinatengleichung aus den Spurpunkten: zwei Wege mit eigenen
+     Zwischenfragen - Achsenabschnittsform oder Kreuzprodukt. */
+  if (t.id === 'koo.spur' && schritte && schritte.length && t.variants && t.variants.length === 2 && d.pts){
+    const ab = d.pts.map((q, i) => q[i]);
+    const xs = [0, 1, 2].map(i => axName(i));
+    t.variants[1].hilfe = schritte;
+    t.variants[0].hilfe = [
+      mitErk(stageNums(T('Welche Achsenabschnitte liest du an den Spurpunkten ab?', 'Which intercepts do you read off the intercept points?'),
+        ['a', 'b', 'c'], ab,
+        T('Jeder Spurpunkt liegt auf einer Achse – seine einzige Koordinate, die nicht 0 ist, ist der Achsenabschnitt.',
+          'Each intercept point lies on an axis – its only coordinate that is not 0 is the intercept.')),
+        T('Achsenabschnittsform: \\(\\frac{' + xs[0] + '}{' + numTeX(ab[0]) + '} + \\frac{' + xs[1] + '}{' + numTeX(ab[1]) + '} + \\frac{'
+          + xs[2] + '}{' + numTeX(ab[2]) + '} = 1\\).',
+          'Intercept form: \\(\\frac{' + xs[0] + '}{' + numTeX(ab[0]) + '} + \\frac{' + xs[1] + '}{' + numTeX(ab[1]) + '} + \\frac{'
+          + xs[2] + '}{' + numTeX(ab[2]) + '} = 1\\).')),
+      hZahl(T('Mit welcher Zahl multiplizierst du, damit keine Brüche bleiben?', 'Which number do you multiply by so that no fractions remain?'),
+        '\\text{' + T('Hauptnenner', 'common denominator') + '}', d.d,
+        { sub: T('Das kleinste gemeinsame Vielfache der drei Nenner.', 'The least common multiple of the three denominators.') }),
+      hVek(T('Welche Zahlen stehen danach vor \\(' + xs[0] + '\\), \\(' + xs[1] + '\\) und \\(' + xs[2] + '\\)?',
+             'Which numbers are then in front of \\(' + xs[0] + '\\), \\(' + xs[1] + '\\) and \\(' + xs[2] + '\\)?'),
+        '\\vec{n}', d.n,
+        { sub: T('Den Hauptnenner durch jeden Achsenabschnitt teilen.', 'Divide the common denominator by each intercept.'),
+          erk: T('Damit ist \\(' + planeKooTeX('E', d.n, d.d) + '\\).', 'So \\(' + planeKooTeX('E', d.n, d.d) + '\\).') })
+    ];
+  }
 }
 
 function genParPU(m){
@@ -4266,8 +4399,8 @@ function genParVonNor(m){
           + TX.arrow('AB') + T('\\) und \\(', '\\) and \\(') + TX.arrow('AC') + '\\):',
           planeParTeX('E', pts[0], V.sub(pts[1], pts[0]), V.sub(pts[2], pts[0]))) ] }
     ],
-    vis: visFormNor('E', 'P', E.p, E.n, VC.obj, '', 'Achsen')
-      .concat(visFormPar('F', 'P', E.p, u, v, VC.erg, '2', 'Achsen'))
+    vis: visFormNor('E', 'P', E.p, E.n, VC.obj, '', 'Standard')
+      .concat(visFormPar('F', 'P', E.p, u, v, VC.erg, '2', 'Standard'))
   };
 }
 
@@ -4322,8 +4455,8 @@ function genParVonKoo(m){
         ];
       })() }
     ].filter((x, i) => i === 0 || !eq0(E.n[solveIdx])),
-    vis: visFormKoo('E', E.n, E.d, VC.obj, 'Achsen')
-      .concat(visFormPar('F', 'A', pts[0], V.sub(pts[1], pts[0]), V.sub(pts[2], pts[0]), VC.erg, '2', 'Achsen'))
+    vis: visFormKoo('E', E.n, E.d, VC.obj, 'Standard')
+      .concat(visFormPar('F', 'A', pts[0], V.sub(pts[1], pts[0]), V.sub(pts[2], pts[0]), VC.erg, '2', 'Standard'))
   };
 }
 
@@ -4385,7 +4518,7 @@ function genParGeradePunkt(m){
 function ebeneAusForm(m, form){
   if (form === 'koo'){
     if (V.zero(m.n)) throw new Error(T('Der Normalenvektor darf nicht der Nullvektor sein.', 'The normal vector must not be the zero vector.'));
-    return planeFromKoo(V.reduce(m.n).v, m.d);
+    return planeKooGekuerzt(m.n, m.d);
   }
   if (form === 'nor'){
     if (V.zero(m.n)) throw new Error(T('Der Normalenvektor darf nicht der Nullvektor sein.', 'The normal vector must not be the zero vector.'));
@@ -4406,8 +4539,8 @@ function kooVorspann(E, form){
     'd = \\vec{n}' + SP() + '\\vec{p} = ' + dotTeX(E.n, E.p) + ' = ' + numTeX(E.d)
     + '\\quad\\Rightarrow\\quad ' + planeKooTeX('E', E.n, E.d)) ];
   return [
-    step(T('Normalenvektor bestimmen', 'Find the normal vector'), T('Das Kreuzprodukt der Spannvektoren steht senkrecht auf der Ebene:', 'The cross product of the spanning vectors is perpendicular to the plane:'),
-      '\\vec{n} = ' + crossTeX(E.u, E.v)),
+    Object.assign(step(T('Normalenvektor bestimmen', 'Find the normal vector'), T('Das Kreuzprodukt der Spannvektoren steht senkrecht auf der Ebene:', 'The cross product of the spanning vectors is perpendicular to the plane:'),
+      '\\vec{n} = ' + crossTeX(E.u, E.v)), { link: kreuzLink(E.u, E.v) }),
     step(T('In Koordinatenform umschreiben', 'Rewrite in Cartesian form'), T('Der Stützpunkt liefert die Zahl auf der rechten Seite:', 'The base point gives the number on the right-hand side:'),
       'd = ' + dotTeX(E.n, E.p) + ' = ' + numTeX(E.d) + '\\quad\\Rightarrow\\quad ' + planeKooTeX('E', E.n, E.d))
   ];
@@ -4530,8 +4663,8 @@ function genNorVonPar(m){
         step(T('Normalengleichung aufstellen', 'Set up the equation in normal form'), T('Der entgegengesetzte Normalenvektor beschreibt dieselbe Ebene:', 'The opposite normal vector describes the same plane:'), planeNorTeX('E', E.p, red2.v))
       ] }
     ],
-    vis: visFormPar('E', 'P', E.p, E.u, E.v, VC.obj, '', 'Achsen')
-      .concat(visFormNor('F', 'P', E.p, red.v, VC.erg, '2', 'Achsen'))
+    vis: visFormPar('E', 'P', E.p, E.u, E.v, VC.obj, '', 'Standard')
+      .concat(visFormNor('F', 'P', E.p, red.v, VC.erg, '2', 'Standard'))
   };
 }
 
@@ -4563,8 +4696,8 @@ function genNorVonKoo(m){
       { label: T('über einen Spurpunkt', 'via an axis intercept'), steps: mkWeg(A, T('Am bequemsten setzt man zwei Koordinaten auf \\(0\\) und rechnet die dritte aus:', 'It is easiest to set two coordinates to \\(0\\) and calculate the third:')) },
       { label: T('über einen frei gewählten Punkt', 'via a freely chosen point'), steps: mkWeg(B, T('Man darf zwei Koordinaten beliebig wählen und die dritte ausrechnen:', 'You may choose two coordinates freely and calculate the third:')) }
     ],
-    vis: visFormKoo('E', E.n, E.d, VC.obj, 'Achsen')
-      .concat(visFormNor('F', 'P', A, E.n, VC.erg, '2', 'Achsen'))
+    vis: visFormKoo('E', E.n, E.d, VC.obj, 'Standard')
+      .concat(visFormNor('F', 'P', A, E.n, VC.erg, '2', 'Standard'))
   };
 }
 
@@ -4627,8 +4760,8 @@ function genKooVonPar(m){
         step(T('Zusammenfassen', 'Simplify'), '', planeKooTeX('E', red.v, d))
       ] }
     ],
-    vis: visFormPar('E', 'P', E.p, E.u, E.v, VC.obj, '', 'Achsen')
-      .concat(visFormKoo('F', red.v, d, VC.erg, 'Achsen'))
+    vis: visFormPar('E', 'P', E.p, E.u, E.v, VC.obj, '', 'Standard')
+      .concat(visFormKoo('F', red.v, d, VC.erg, 'Standard'))
   };
 }
 function genKooVonNor(m){
@@ -4642,20 +4775,20 @@ function genKooVonNor(m){
     stages: [stagePlaneKoo(E.n, E.d)],
     sol: '\\[' + planeKooTeX('E', E.n, E.d) + '\\]',
     variants: [
+      { label: T('Normalenvektor und Punkt einsetzen', 'substitute the normal vector and the point'), steps: [
+        step(T('Koeffizienten ablesen', 'Read off the coefficients'), T('Die Komponenten des Normalenvektors sind die Koeffizienten:', 'The components of the normal vector are the coefficients:'), kooLHS(E.n) + ' = d'),
+        dStep(E.n, E.p, E.d),
+        step(T('Gleichung angeben', 'State the equation'), '', planeKooTeX('E', E.n, E.d))
+      ] },
       { label: T('ausmultiplizieren', 'expand'), steps: [
         step(T('Skalarprodukt ausschreiben', 'Write out the dot product'), T('Jede Komponente des Normalenvektors mal die zugehörige Klammer:', 'Each component of the normal vector times the corresponding bracket:'),
           expandNorTeX(E.n, E.p)),
         step(T('Klammern auflösen', 'Remove the brackets'), '', kooLHS(E.n) + ' - \\left(' + dotTeX(E.n, E.p) + '\\right) = 0'),
         step(T('Zahl auf die rechte Seite', 'Number to the right-hand side'), '', planeKooTeX('E', E.n, E.d))
-      ] },
-      { label: T('Normalenvektor und Punkt einsetzen', 'substitute the normal vector and the point'), steps: [
-        step(T('Koeffizienten ablesen', 'Read off the coefficients'), T('Die Komponenten des Normalenvektors sind die Koeffizienten:', 'The components of the normal vector are the coefficients:'), kooLHS(E.n) + ' = d'),
-        dStep(E.n, E.p, E.d),
-        step(T('Gleichung angeben', 'State the equation'), '', planeKooTeX('E', E.n, E.d))
       ] }
     ],
-    vis: visFormNor('E', 'P', E.p, E.n, VC.obj, '', 'Achsen')
-      .concat(visFormKoo('F', E.n, E.d, VC.erg, 'Achsen'))
+    vis: visFormNor('E', 'P', E.p, E.n, VC.obj, '', 'Standard')
+      .concat(visFormKoo('F', E.n, E.d, VC.erg, 'Standard'))
   };
 }
 function genKooSpur(m){
@@ -4874,8 +5007,14 @@ function stagePlanePar(p0, n0, d0){
   return { kind: 'input', title: T('Gib eine Parametergleichung von \\(E\\) an.', 'State a parametric equation of \\(E\\).'),
     zeige(box){
       const cand = orthCandidates(n0, Math.max(3, Math.abs(S.vmax || 5)));
-      const u = cand[0];
-      const v = cand.find(w => u && !V.parallel(u, w));
+      let u = cand[0];
+      let v = cand.find(w => u && !V.parallel(u, w));
+      if (!u || !v){
+        /* Notfalls über Kreuzprodukte - die stehen immer senkrecht auf n0. */
+        const e = [[1, 0, 0], [0, 1, 0], [0, 0, 1]].map(x => V.cross(n0, x)).filter(x => !V.zero(x));
+        u = e.length ? V.reduce(e[0]).v : null;
+        v = u ? V.reduce(V.cross(n0, u)).v : null;
+      }
       if (!u || !v) return false;
       const schreib = (id, w) => $$('input', $(id, box)).forEach(
         (f, j) => { f.value = zahlInText(w[j]); });
@@ -4896,9 +5035,12 @@ function stagePlanePar(p0, n0, d0){
       if (!p || !u || !v) return { ok: false, cls: 'warn', msg: T('Bitte alle neun Felder ausfüllen.', 'Please fill in all nine fields.') };
       if (V.zero(u) || V.zero(v)) return { ok: false, msg: T('Ein Spannvektor darf nicht der Nullvektor sein.', 'A spanning vector must not be the zero vector.') };
       if (V.parallel(u, v)) return { ok: false, msg: T('Die beiden Spannvektoren sind Vielfache voneinander – sie spannen nur eine Gerade auf, keine Ebene.', 'The two spanning vectors are multiples of each other – they only span a line, not a plane.') };
-      const schief = [['u', u], ['v', v]].filter(x => !eq0(V.dot(n0, x[1])));
+      /* Gerundete Eingaben (zwei Nachkommastellen) dürfen um die Rundung
+         daneben liegen - ganzzahlige gehen ohnehin genau auf. */
+      const rund = 1e-6 + 0.006 * (Math.abs(n0[0]) + Math.abs(n0[1]) + Math.abs(n0[2]));
+      const schief = [['u', u], ['v', v]].filter(x => Math.abs(V.dot(n0, x[1])) > rund);
       if (schief.length) return { ok: false, msg: T('Der Vektor \\(\\vec{', 'The vector \\(\\vec{') + schief[0][0] + T('}\\) liegt nicht in der Ebene: er steht nicht senkrecht auf \\(', '}\\) does not lie in the plane: it is not perpendicular to \\(') + TX.vec(n0) + '\\).' };
-      if (!eqN(V.dot(n0, p), d0)) return { ok: false, msg: T('Die Spannvektoren passen, aber der Stützpunkt liegt nicht in der Ebene.', 'The spanning vectors fit, but the base point does not lie in the plane.') };
+      if (Math.abs(V.dot(n0, p) - d0) > rund) return { ok: false, msg: T('Die Spannvektoren passen, aber der Stützpunkt liegt nicht in der Ebene.', 'The spanning vectors fit, but the base point does not lie in the plane.') };
       return { ok: true, answer: '\\(' + planeParTeX('', p, u, v) + '\\)' + (V.same(p, p0) ? '' : T(' (anderer Stützpunkt – ebenfalls richtig)', ' (different base point – also correct)')) };
     } };
 }
@@ -5109,8 +5251,8 @@ Object.assign(WB, {
     'The components of the normal vector are the coefficients; substituting the point gives the number on the right.',
   'Kreuzprodukt der Spannvektoren als Normalenvektor, danach den Stützpunkt einsetzen.':
     'Use the cross product of the spanning vectors as the normal vector, then substitute the base point.',
-  'Das Skalarprodukt ausmultiplizieren und die Zahlen auf die rechte Seite bringen.':
-    'Expand the dot product and bring the numbers to the right-hand side.',
+  'Die Komponenten des Normalenvektors sind die Koeffizienten; d bekommt man, indem man den Stützpunkt einsetzt.':
+    'The components of the normal vector are the coefficients; you get d by substituting the base point.',
   'Aus den Achsenabschnitten die Achsenabschnittsform aufstellen und mit dem Hauptnenner multiplizieren.':
     'Set up the intercept form from the intercepts and multiply by the common denominator.',
   'Auf einer Koordinatenachse sind die beiden anderen Koordinaten \\(0\\): einsetzen und nach der verbleibenden Koordinate auflösen.':
@@ -5194,7 +5336,7 @@ const TIPPS = {
   'nor.vk':   'Die Koeffizienten der Gleichung sind der Normalenvektor; einen Punkt der Ebene findest du durch Einsetzen.',
   'koo.pn':   'Die Komponenten des Normalenvektors sind die Koeffizienten; die Zahl rechts liefert der eingesetzte Punkt.',
   'koo.vp':   'Kreuzprodukt der Spannvektoren als Normalenvektor, danach den Stützpunkt einsetzen.',
-  'koo.vn':   'Das Skalarprodukt ausmultiplizieren und die Zahlen auf die rechte Seite bringen.',
+  'koo.vn':   'Die Komponenten des Normalenvektors sind die Koeffizienten; d bekommt man, indem man den Stützpunkt einsetzt.',
   'koo.spur': 'Aus den Achsenabschnitten die Achsenabschnittsform aufstellen und mit dem Hauptnenner multiplizieren.',
   'spur.par': SPUR_TIPP, 'spur.nor': SPUR_TIPP, 'spur.koo': SPUR_TIPP,
   'prb.par':  'Setze den Punkt in die Parametergleichung ein und prüfe, ob das Gleichungssystem lösbar ist.',

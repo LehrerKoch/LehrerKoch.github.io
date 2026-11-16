@@ -1084,11 +1084,16 @@ function aufIndividuell(){
 /* Wer den Grad selbst einstellt, will ihn behalten - die Schwierigkeit lässt
    ihn dann in Ruhe (wie beim Aufgabenformat auf den anderen Seiten). */
 var gradVonHand = false;
+/* Dasselbe für die übrigen Schieberegler (Größe des Gleichungssystems). */
+var REGLER_HAND = {};
+(new URLSearchParams(location.search).get('rh') || '').split(',')
+  .forEach(function(k){ if (k) REGLER_HAND[k] = true; });
 function stufeAnwenden(stufe){
   var p = STUFEN[stufe];
   if (!p) return;
   Object.keys(p).forEach(function(k){
     if (k === 'degree' && gradVonHand) return;
+    if (REGLER_HAND[k]) return;                 /* von Hand gestellt */
     if (typeof p[k] === 'boolean'){ hakenSetzen(k, p[k]); return; }
     if (typeof p[k] === 'number'){
       var el = document.getElementById(k);
@@ -1107,7 +1112,10 @@ function urlSchreiben(mitAufgabe){
     p.set(KURZ[k], (typeof s[k] === 'boolean') ? (s[k] ? '1' : '0') : s[k]);
   });
   if (gradVonHand) p.set('gh', '1');
+  if (Object.keys(REGLER_HAND).length) p.set('rh', Object.keys(REGLER_HAND).join(','));
   if (mitAufgabe) p.set('sd', AUFGABENSTART);   /* genau diese Aufgabe */
+  /* Regler, die anders stehen, als die Stufe sie stellt, gehören in den Link. */
+  if (window.abReglerSchreiben && typeof STUFEN !== 'undefined') abReglerSchreiben(p, (STUFEN[s.diff] || {}).regler);
   var qs = p.toString();
   return location.origin + location.pathname + (qs ? '?' + qs : '');
 }
@@ -2637,9 +2645,11 @@ function renderSolution(task){
           var tVal=tangentTex(m,bt);
           // Show: t(x0) = m·x0+b = y0 to explain where y0 came from
           var tEval=''; // compute t(x0) step by step
-          var mPart=m===1?'':numTex(m)+'\\cdot';
+          var mPart=m===1?'':(m===-1?'-':numTex(m)+'\\cdot ');
           var bPart=bt>=0?'+'+numTex(bt):(bt<0?numTex(bt):'');
-          tEval='t('+numTex(x0t)+') = '+mPart+numTex(x0t)+bPart+' = '+numTex(yv);
+          /* negative Stelle in Klammern: „3·(−2)“ statt „3·−2“ */
+          var xPart=(x0t<0&&mPart!=='')?'\\left('+numTex(x0t)+'\\right)':numTex(x0t);
+          tEval='t('+numTex(x0t)+') = '+mPart+xPart+bPart+' = '+numTex(yv);
           tangPrelude='<div class="sol-eq" style="font-size:.9em;color:#555;">'
             +'Schnittpunkt: \\('+tEval+'\\), also \\(f('+numTex(x0t)+')='+numTex(yv)+'\\)'
             +'</div>';
@@ -2725,6 +2735,8 @@ document.getElementById('sketchDetails').addEventListener('toggle',function(e){
 },true);
 
 einstellungenSetzen(urlLesen());
+/* Schieberegler aus dem Link - erst nach der Stufe, sonst stellte sie sie zurück. */
+if (window.abReglerAusURL) abReglerAusURL();
 
 spiegleRadio(['presMode','presModeTop'], function(){ neueAufgabe(); });
 
@@ -2756,7 +2768,8 @@ document.querySelectorAll('#alsoLower, #maxLGS, input[name="coeffType"], '
 document.querySelectorAll('#maxLGS').forEach(function(e){
   /* Schon beim Ziehen umschalten - sonst steht noch die alte Stufe da,
      während der Regler längst woanders ist. */
-  e.addEventListener('input', function(){ reglerBeschriften(); aufIndividuell(); });
+  e.addEventListener('input', function(){ REGLER_HAND[e.id] = true; reglerBeschriften(); aufIndividuell(); });
+  e.addEventListener('change', function(){ REGLER_HAND[e.id] = true; });
 });
 document.querySelectorAll('#degree').forEach(function(e){
   e.addEventListener('input', function(){ reglerBeschriften(); gradVonHand = true; });
@@ -2794,7 +2807,9 @@ document.getElementById('genBtn').addEventListener('click', function(){ neueAufg
 document.getElementById('btnShare').addEventListener('click', function(){ linkKopieren(urlSchreiben(false), this); });
 document.getElementById('btnTeilen').addEventListener('click', function(){ linkKopieren(urlSchreiben(true), this); });
 document.getElementById('btnReset').addEventListener('click', function(){
-  gradVonHand = false; einstellungenSetzen(STD); neueAufgabe();
+  gradVonHand = false;
+  Object.keys(REGLER_HAND).forEach(function(k){ delete REGLER_HAND[k]; });
+  einstellungenSetzen(STD); neueAufgabe();
 });
 
 {

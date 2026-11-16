@@ -117,6 +117,10 @@ html.dark .mc-knopf { border-color: #3d4752; background: #1d242b; }
    Rand, gleich breit auf und zu, rahmenlos. Hier nur etwas kleiner gesetzt. */
 .spick { max-width: 620px; margin: 12px auto 0; font-size: .86em; }
 .spick > summary .reiter { padding: 6px 16px; font-size: .95em; }
+/* Der Zettel steht linksbündig - dann gehört auch sein Reiter nach links:
+   zu als Knopf am linken Rand, offen als Reiter kurz hinter der Ecke. */
+details.spick > summary { justify-content: flex-start; }
+details[open].spick > summary .linie:first-child { flex: 0 0 14px; }
 /* Zwei Spalten: der Begriff links, die Erklärung rechts. Eine lange
    Erklärung bricht nur innerhalb ihrer Spalte um, nicht unter den
    Begriff - deshalb nowrap an der Zeile und min-width:0 an der Spalte. */
@@ -224,7 +228,6 @@ html.kein-has #segStufen > .tile.mit-arr { padding-right: 8px; }
     <div class="unter">
       <label class="opt"><input type="checkbox" id="aKruemmungStelle" data-kurz="Krümmung" data-kurz-en="curvature" checked data-stufe="2"><span><span data-de="Krümmung an einer Stelle" data-en="Curvature at a point">Krümmung an einer Stelle</span></span></label>
       <label class="opt"><input type="checkbox" id="aWendeKand" data-kurz="Wendestellen" data-kurz-en="inflection" checked data-stufe="1"><span><span data-de="Kandidaten für Wendestellen" data-en="Candidates for points of inflection">Kandidaten für Wendestellen</span></span></label>
-      <label class="opt"><input type="checkbox" id="aKruemmungBereich" data-kurz="Krümmungsber." data-kurz-en="curvature int." data-stufe="3"><span><span data-de="Krümmungsbereiche" data-en="Intervals of curvature">Krümmungsbereiche</span></span></label>
       <label class="opt"><input type="checkbox" id="aWendeNachweis" data-kurz="Nachweis WS" data-kurz-en="proof: infl." checked data-stufe="3"><span><span data-de="Nachweis einer Wendestelle" data-en="Proving a point of inflection">Nachweis einer Wendestelle</span><span class="d" data-de="mehrere Bedingungen" data-en="several conditions">mehrere Bedingungen</span></span></label>
       <label class="opt"><input type="checkbox" id="aWendepunktNachweis" data-kurz="Nachweis WP" data-kurz-en="proof: infl. pt" data-stufe="4"><span><span data-de="Nachweis eines Wendepunkts" data-en="Proving an inflection point">Nachweis eines Wendepunkts</span><span class="d" data-de="mit Punkt, also drei Bedingungen" data-en="with a given point, so three conditions">mit Punkt, also drei Bedingungen</span></span></label>
     </div>
@@ -371,7 +374,7 @@ var ARTEN_F  = ['aYAchse', 'aFunktionswert', 'aNullstellen', 'aNullstellePruefen
 var ARTEN_F1 = ['aSteigung', 'aExtremKand', 'aWaagerecht', 'aSteigungStellen',
                 'aMonotonieStelle', 'aTangente',
                 'aExtremNachweis', 'aHochpunktNachweis'];
-var ARTEN_F2 = ['aKruemmungStelle', 'aWendeKand', 'aKruemmungBereich',
+var ARTEN_F2 = ['aKruemmungStelle', 'aWendeKand',
                 'aWendeNachweis', 'aWendepunktNachweis'];
 var STUFEN_IDS = ['stufeF', 'stufeF1', 'stufeF2'];
 var ALLE_ARTEN = ARTEN_F.concat(ARTEN_F1, ARTEN_F2);
@@ -383,7 +386,7 @@ var STD = {
   aSteigung: true, aExtremKand: true, aWaagerecht: true, aSteigungStellen: true,
   aMonotonieStelle: true, aTangente: false,
   aExtremNachweis: true, aHochpunktNachweis: false,
-  aKruemmungStelle: true, aWendeKand: true, aKruemmungBereich: false,
+  aKruemmungStelle: true, aWendeKand: true,
   aWendeNachweis: true, aWendepunktNachweis: false,
   zahlArt: 'klein', modus: 'wahl', anrede: 'sie',
   ausfuehrlich: true, mitHinweis: true, mitVerb: false, mitSpick: true,
@@ -416,7 +419,7 @@ var STERNE = { aYAchse:1, aFunktionswert:1, aNullstellen:1, aNullstellePruefen:2
      von Anfang an dazu, darum ein Stern. */
   aSteigung:1, aExtremKand:1, aWaagerecht:2, aSteigungStellen:2,
   aMonotonieStelle:2, aTangente:3, aExtremNachweis:3, aHochpunktNachweis:4,
-  aKruemmungStelle:2, aWendeKand:1, aKruemmungBereich:3,
+  aKruemmungStelle:2, aWendeKand:1,
   aWendeNachweis:3, aWendepunktNachweis:4 };
 function artenZurStufe(stufe){
   var nr = (STUFEN[stufe] || {}).nr || 3;
@@ -432,7 +435,12 @@ function artenZurStufe(stufe){
 
 var KURZ = { stufeF: 'sf', stufeF1: 's1', stufeF2: 's2',
   zahlArt: 'za', modus: 'mo', anrede: 'an', ausfuehrlich: 'af', mitHinweis: 'mh', diff: 'd' };
-ALLE_ARTEN.forEach(function(id, i){ KURZ[id] = 'a' + i; });
+/* Die Kürzel zählen die Arten durch. Die Krümmungsbereiche gibt es nicht
+   mehr - ihr Platz in der Zählung bleibt frei, sonst bedeuteten die
+   Kürzel in alten Links plötzlich andere Arten. */
+var URL_ARTEN = ARTEN_F.concat(ARTEN_F1, ['aKruemmungStelle', 'aWendeKand', '-',
+                                          'aWendeNachweis', 'aWendepunktNachweis']);
+URL_ARTEN.forEach(function(id, i){ if (STD.hasOwnProperty(id)) KURZ[id] = 'a' + i; });
 
 function haken(id){ var e = document.getElementById(id); return !!(e && e.checked); }
 function setzeHaken(id, v){ var e = document.getElementById(id); if (e) e.checked = !!v; }
@@ -1082,22 +1090,6 @@ var ANSAETZE = [
                'That checks for a point of inflection – you are only asked how the graph is curved there.') }
   ]; } },
 
-{ id: 'aKruemmungBereich', stufe: 'f2',
-  frage: function(){ return bestimme(T('die Bereiche, in denen der Graph von \\(f\\) linksgekrümmt ist.',
-                                       'the intervals on which the graph of \\(f\\) curves to the left.'),
-                                     'the intervals on which the graph of \\(f\\) curves to the left.'); },
-  bed: function(){ return [Bed('\\(f\'\'(x) > 0\\)', beidseitig(["f''(x)>0"])) ]; },
-  warum: function(){ return T('Linkskrümmung heißt: die zweite Ableitung ist dort durchgehend positiv.',
-                              'Curving to the left means the second derivative is positive throughout.'); },
-  falsch: function(){ return [
-    { tex: '\\(f\'(x) > 0\\)',   grund: T('Das beschreibt Steigen, nicht Krümmung.',
-                                          'That describes rising, not curvature.') },
-    { tex: '\\(f\'\'(x) = 0\\)', grund: T('Das liefert nur die Grenzen zwischen den Bereichen.',
-                                          'That only gives the boundaries between the intervals.') },
-    { tex: '\\(f\'\'(x) < 0\\)', grund: T('Das ist die Rechtskrümmung – andersherum.',
-                                          'That is curving to the right – the other way round.') }
-  ]; } },
-
 { id: 'aWendeKand', stufe: 'f2',
   frage: function(){ return bestimme(T('die Kandidaten für die Wendestellen von \\(f\\).',
                                        'the candidates for the points of inflection of \\(f\\).'),
@@ -1217,8 +1209,6 @@ var SAETZE = {
              (hoch ? 'negative' : 'positive') + '; and \\(f(' + a + ')\\) really gives \\(' + v.b.tex + '\\).'); },
   aKruemmungStelle: function(v){ return T('Zweimal ableiten, \\(x = ' + v.x.tex + '\\) einsetzen und nur auf das Vorzeichen schauen: positiv heißt linksgekrümmt, negativ rechtsgekrümmt.',
                                           'Differentiate twice, substitute \\(x = ' + v.x.tex + '\\) and look only at the sign: positive means curving left, negative curving right.'); },
-  aKruemmungBereich: function(){ return T('Zweimal ableiten und die Ungleichung \\(f\'\'(x) > 0\\) lösen.',
-                                          'Differentiate twice and solve the inequality \\(f\'\'(x) > 0\\).'); },
   aWendeKand: function(){ return T('Zweimal ableiten, die zweite Ableitung gleich \\(0\\) setzen und nach \\(x\\) lösen.',
                                    'Differentiate twice, set the second derivative equal to \\(0\\) and solve for \\(x\\).'); },
   aWendeNachweis: function(v){ var x = v.x.tex; return T('\\(x = ' + x + '\\) in die zweite Ableitung einsetzen und zeigen, dass \\(0\\) herauskommt; dann mit der dritten Ableitung (oder dem Vorzeichenwechsel von \\(f\'\'\\)) zeigen, dass die Krümmung dort wirklich wechselt.',
@@ -1834,10 +1824,11 @@ function wahlBauen(host){
 }
 
 /* ── 7. Verdrahtung ─────────────────────────────────────────────────────── */
+/* zahl: hinter dem Namen steht leise, wie viele Unteraufgaben an sind */
 var KACHELN = [
-  { haupt: 'stufeF',  subs: ARTEN_F },
-  { haupt: 'stufeF1', subs: ARTEN_F1 },
-  { haupt: 'stufeF2', subs: ARTEN_F2 }
+  { haupt: 'stufeF',  subs: ARTEN_F,  zahl: true },
+  { haupt: 'stufeF1', subs: ARTEN_F1, zahl: true },
+  { haupt: 'stufeF2', subs: ARTEN_F2, zahl: true }
 ];
 function kachelnMalen(){
   var host = document.getElementById('segStufen');

@@ -70,7 +70,7 @@ html.dark #modeErk .erk-eingesetzt { color: #9fc4ea; }
 .erk-tab td { overflow-wrap: anywhere; height: 3.2em; }
 </style>
 </head>
-<body class="tk-seite">
+<body class="tk-seite" data-gleichungsseite>
 
 <header class="tool-kopf">
   <div class="tk-text">
@@ -133,10 +133,11 @@ html.dark #modeErk .erk-eingesetzt { color: #9fc4ea; }
   </div>
 
   <div class="form-block">
-    <b data-de="Zahlen" data-en="Numbers">Zahlen</b>
-    <label class="opt"><input type="radio" name="loesLevel" value="klein"><span data-de="kleine ganze Zahlen (bis 6)" data-en="small whole numbers (up to 6)">kleine ganze Zahlen (bis 6)</span></label>
-    <label class="opt"><input type="radio" name="loesLevel" value="ganz" checked><span data-de="ganze Zahlen (bis 12)" data-en="whole numbers (up to 12)">ganze Zahlen (bis 12)</span></label>
-    <label class="opt"><input type="radio" name="loesLevel" value="bruch"><span data-de="auch halbe Zahlen" data-en="halves as well">auch halbe Zahlen</span></label>
+    <b data-de="Zahlen in der Lösung" data-en="Numbers in the solution">Zahlen in der Lösung</b>
+    <span class="d" data-de="Welche Arten von Nullstellen sollen die Faktoren haben? Jede einzeln an- und abschaltbar – wie oft, sagen die Regler." data-en="Which kinds of root should the factors have? Each can be switched on and off – the sliders say how often.">Welche Arten von Nullstellen sollen die Faktoren haben? Jede einzeln an- und abschaltbar – wie oft, sagen die Regler.</span>
+    <div class="slider-row opt-regler" data-fuer="loesGanz"><label class="opt"><input type="checkbox" id="loesGanz" checked><span data-de="ganzzahlig" data-en="whole numbers">ganzzahlig</span></label><span class="sl-end" data-de="seltener" data-en="less often">seltener</span><input type="range" class="sl" id="wloesGanz" min="1" max="10" value="8"><span class="sl-end" data-de="häufiger" data-en="more often">häufiger</span><span class="d" data-de="z. B. x = 4" data-en="e.g. x = 4">z. B. x = 4</span></div>
+    <div class="slider-row opt-regler" data-fuer="loesHalb"><label class="opt"><input type="checkbox" id="loesHalb"><span data-de="halbe Zahlen" data-en="halves">halbe Zahlen</span></label><span class="sl-end" data-de="seltener" data-en="less often">seltener</span><input type="range" class="sl" id="wloesHalb" min="1" max="10" value="3"><span class="sl-end" data-de="häufiger" data-en="more often">häufiger</span><span class="d" data-de="z. B. x = 2,5 – bei Linearfaktoren und quadratischen Faktoren; der Regler gilt für jede einzelne Nullstelle" data-en="e.g. x = 2.5 – with linear and quadratic factors; the slider applies to each single root">z. B. x = 2,5 – bei Linearfaktoren und quadratischen Faktoren; der Regler gilt für jede einzelne Nullstelle</span></div>
+    <label class="opt"><input type="checkbox" id="loesKlein"><span><span data-de="nur kleine Zahlen" data-en="only small numbers">nur kleine Zahlen</span><span class="d" data-de="die Nullstellen bis 6 statt bis 12" data-en="roots up to 6 instead of up to 12">die Nullstellen bis 6 statt bis 12</span></span></label>
   </div>
 
   <div class="form-block">
@@ -304,31 +305,31 @@ var STD = {
   fakLin: true, fakNullX: false, fakGedreht: false, fakFaktor: false, fakQuad: false,
   fakPot: false, fakOhne: false, fakZahl: false, fakIrrational: false, sortiert: true,
   mehrfach: false, mehrKlammer: true, mehrPotenz: false, mehrVersteckt: false,
-  loesLevel: 'ganz', ausmultipliziert: false, mitSkizze: true, erkFalsch: true, loesForm: 'index', loesWedge: false,
+  loesGanz: true, loesHalb: false, loesKlein: false, ausmultipliziert: false, mitSkizze: true, erkFalsch: true, loesForm: 'index', loesWedge: false,
   diff: 'normal'
 };
 var STUFEN = {
   /* Einführung: nur Linearfaktoren - sonst nichts. */
   einf:   { anzahl:'2', fakLin:true, fakNullX:false, fakGedreht:false, fakFaktor:false, fakQuad:false,
             fakPot:false, fakOhne:false, fakZahl:false, fakIrrational:false, mehrfach:false,
-            loesLevel:'klein', ausmultipliziert:false,
-            regler:{ fakLin:10 } },
+            loesGanz:true, loesHalb:false, loesKlein:true, ausmultipliziert:false,
+            regler:{ fakLin:10, loesGanz:10 } },
   /* Leicht: dazu der Zahlfaktor, Linearfaktoren mit Vorfaktor und reine
      Potenzen von x (Nullstelle 0). */
   leicht: { anzahl:'2', fakLin:true, fakNullX:true, fakGedreht:false, fakFaktor:true, fakQuad:false,
             fakPot:false, fakOhne:false, fakZahl:true, fakIrrational:false, mehrfach:false,
-            loesLevel:'klein', ausmultipliziert:false,
-            regler:{ fakLin:9, fakNullX:4, fakFaktor:4, fakZahl:4 } },
+            loesGanz:true, loesHalb:false, loesKlein:true, ausmultipliziert:false,
+            regler:{ fakLin:9, fakNullX:4, fakFaktor:4, fakZahl:4, loesGanz:10 } },
   /* Normal: alles - nur nicht gedreht. */
   normal: { anzahl:'3', fakLin:true, fakNullX:true, fakGedreht:false, fakFaktor:true, fakQuad:true,
             fakPot:true, fakOhne:true, fakZahl:true, fakIrrational:true, mehrfach:true,
-            mehrKlammer:false, mehrPotenz:true, mehrVersteckt:true, loesLevel:'ganz', ausmultipliziert:false,
-            regler:{ fakLin:9, fakNullX:4, fakFaktor:4, fakZahl:5, fakQuad:3, fakPot:3, fakOhne:2, fakIrrational:2 } },
+            mehrKlammer:false, mehrPotenz:true, mehrVersteckt:true, loesGanz:true, loesHalb:false, loesKlein:false, ausmultipliziert:false,
+            regler:{ fakLin:9, fakNullX:4, fakFaktor:4, fakZahl:5, fakQuad:3, fakPot:3, fakOhne:2, fakIrrational:2, loesGanz:8 } },
   /* Herausfordernd: dazu die gedrehten Linearfaktoren. */
   schwer: { anzahl:'mind2', fakLin:true, fakNullX:true, fakGedreht:true, fakFaktor:true, fakQuad:true,
             fakPot:true, fakOhne:true, fakZahl:true, fakIrrational:true, mehrfach:true,
-            mehrKlammer:true, mehrPotenz:true, mehrVersteckt:true, loesLevel:'bruch', ausmultipliziert:true,
-            regler:{ fakLin:8, fakNullX:5, fakFaktor:4, fakZahl:7, fakQuad:3, fakPot:3, fakOhne:2, fakIrrational:2 } }
+            mehrKlammer:true, mehrPotenz:true, mehrVersteckt:true, loesGanz:true, loesHalb:true, loesKlein:false, ausmultipliziert:true,
+            regler:{ fakLin:8, fakNullX:5, fakFaktor:4, fakZahl:7, fakQuad:3, fakPot:3, fakOhne:2, fakIrrational:2, loesGanz:8, loesHalb:2 } }
 };
 
 /* Der Standard ist genau die Standard-Schwierigkeit: so stimmen Kästchen,
@@ -343,13 +344,15 @@ var KURZ = {
   stilLoesen:'sl', stilNullstelle:'sn', stilErkennen:'se', stilEinsetzen:'si',
   anzahl:'an', fakLin:'fl', fakNullX:'fx', fakGedreht:'fg', fakFaktor:'ff', fakQuad:'fq', fakPot:'fp',
   mehrfach:'mf', mehrKlammer:'mk', mehrPotenz:'mp', mehrVersteckt:'mv',
-  fakOhne:'fo', fakZahl:'fz', fakIrrational:'fi', sortiert:'so', loesLevel:'ll', ausmultipliziert:'am', mitSkizze:'sk', erkFalsch:'ef', diff:'d'
+  fakOhne:'fo', fakZahl:'fz', fakIrrational:'fi', sortiert:'so', loesGanz:'lg', loesHalb:'lh', loesKlein:'lk', ausmultipliziert:'am', mitSkizze:'sk', erkFalsch:'ef', diff:'d'
 };
 /* Die Faktorarten - einzeln anwählbar, Häufigkeit über die Regler. */
 /* Die Faktorarten, zwischen denen gewürfelt wird. „Gedreht" steht bewusst
    NICHT dabei: es ist keine eigene Art, sondern nur eine Schreibweise, die
    jeden Linearfaktor treffen kann. */
 var FAKARTEN = ['fakLin','fakNullX','fakFaktor','fakQuad','fakPot','fakOhne','fakIrrational'];
+/* Ganz oder halb: wird für jede Nullstelle neu nach den Reglern gezogen. */
+var LARTEN = ['loesGanz','loesHalb'];
 /* Alles außer „linear" steckt im Menü des Chips „gemischt". */
 /* Die Gruppen in der Chipleiste: Linearfaktoren und Potenzfaktoren haben
    jeweils Unterformen (Pfeil, langer Druck oder Rechtsklick). */
@@ -456,6 +459,8 @@ function urlSchreiben(mitAufgabe){
     p.set('t', [A.stil, A.zahl, A.fak.map(function(f){ return f.code; }).join('~'),
                 A.rechts || 0, A.probe === undefined ? 0 : A.probe].join('_'));
   }
+  /* Regler, die anders stehen, als die Stufe sie stellt, gehören in den Link. */
+  if (window.abReglerSchreiben && typeof STUFEN !== 'undefined') abReglerSchreiben(p, (STUFEN[s.diff] || {}).regler);
   var qs = p.toString();
   var url = location.origin + location.pathname + (qs ? '?' + qs : '');
   /* Ein fester Seed gehoert mit in den Link - sonst wuerfelt die
@@ -465,6 +470,9 @@ function urlSchreiben(mitAufgabe){
 function urlLesen(){
   var p = new URLSearchParams(location.search), s = {};
   Object.keys(STD).forEach(function(k){ s[k] = STD[k]; });
+  /* Alte Links kennen noch die Stufe „ll" (klein / ganz / bruch). */
+  var ll = p.get('ll') || p.get('loesLevel');
+  if (ll){ s.loesGanz = true; s.loesKlein = (ll === 'klein'); s.loesHalb = (ll === 'bruch'); }
   Object.keys(KURZ).forEach(function(k){
     var v = p.get(KURZ[k]); if (v === null) v = p.get(k); if (v === null) return;
     s[k] = (typeof STD[k] === 'boolean') ? (v === '1' || v === 'true') : v;
@@ -502,6 +510,7 @@ function fakQuadratisch(r1, r2){
   return {
     code: 'q:' + r1 + ':' + r2,
     tex: pgPoly({ 2: 1, 1: p, 0: q }),
+    koeff: { 2: 1, 1: p, 0: q },
     wert: function(x){ return x * x + p * x + q; },
     loes: function(){ return (Math.abs(r1 - r2) < 1e-9) ? [r1] : [Math.min(r1, r2), Math.max(r1, r2)]; },
     art: 'quad'
@@ -511,6 +520,7 @@ function fakPotenz(n, w){
   return {
     code: 'p:' + n + ':' + w,
     tex: pgPoly((function(){ var o = {}; o[n] = 1; o[0] = -Math.pow(w, n); return o; })()),
+    koeff: (function(){ var o = {}; o[n] = 1; o[0] = -Math.pow(w, n); return o; })(),
     wert: function(x){ return Math.pow(x, n) - Math.pow(w, n); },
     loes: function(){ return (n % 2 === 0) ? [-Math.abs(w), Math.abs(w)] : [w]; },
     art: 'pot'
@@ -521,6 +531,7 @@ function fakIrr(w){
   return {
     code: 'i:' + w,
     tex: pgPoly({ 2: 1, 0: -w }),
+    koeff: { 2: 1, 0: -w },
     wert: function(x){ return x * x - w; },
     loes: function(){ return [-Math.sqrt(w), Math.sqrt(w)]; },
     art: 'irr', w: w
@@ -530,6 +541,7 @@ function fakOhneNull(c){
   return {
     code: 'o:' + c,
     tex: pgPoly({ 2: 1, 0: c }),
+    koeff: { 2: 1, 0: c },
     wert: function(x){ return x * x + c; },
     loes: function(){ return []; },
     art: 'ohne'
@@ -568,12 +580,24 @@ function neueAufgabe(){
     while (anz < 8 && Math.random() < WEITER[anz - 2]) anz++;
   } else anz = parseInt(s.anzahl, 10) || 2;
 
-  var gross = (s.loesLevel === 'klein') ? 6 : 12;
+  var gross = s.loesKlein ? 6 : 12;
   var werte = [];
   /* Die 0 fehlt hier mit Absicht: Faktoren mit der Nullstelle 0 sind reine
      Potenzen von x und kommen nur über „nur Potenzen von x". */
   for (var i = -gross; i <= gross; i++) if (i !== 0) werte.push(i);
-  if (s.loesLevel === 'bruch') werte = werte.concat([-2.5, -1.5, -0.5, 0.5, 1.5, 2.5]);
+  /* Ganz oder halb? Für jede Nullstelle neu nach den Reglern gezogen.
+     Ist die Auswahl erschöpft, geht es mit ganzen Zahlen weiter. */
+  var halbe = [-2.5, -1.5, -0.5, 0.5, 1.5, 2.5];
+  var alleWerte = s.loesHalb ? werte.concat(halbe) : werte;
+  var zahlenPool = function(){
+    var id = (window.abZiehe ? abZiehe(LARTEN) : null) || 'loesGanz';
+    return (id === 'loesHalb') ? halbe : werte;
+  };
+  var freiAus = function(pool){
+    var f = pool.filter(function(w){ return benutzt.indexOf(w) < 0; });
+    if (!f.length) f = werte.filter(function(w){ return benutzt.indexOf(w) < 0; });
+    return f.length ? f : pool;
+  };
 
   /* Welche Faktorart kommt dran? Nach den Reglern in den Einstellungen. */
   var ARTID = { fakLin:'lin', fakNullX:'nullx', fakFaktor:'faktor', fakQuad:'quad',
@@ -615,7 +639,7 @@ function neueAufgabe(){
           continue;
         }
         /* versteckt: ein quadratischer Faktor, der dieselbe Nullstelle enthält */
-        var partner = waehle(werte.filter(function(w){ return Math.abs(w - nst) > 1e-9; }));
+        var partner = waehle(zahlenPool().filter(function(w){ return Math.abs(w - nst) > 1e-9; }));
         fak.push(fakQuadratisch(Math.min(nst, partner), Math.max(nst, partner)));
         benutzt.push(partner);
         continue;
@@ -635,18 +659,14 @@ function neueAufgabe(){
     if (art === 'lin' || art === 'faktor'){
       /* Ein leeres Feld ist in JavaScript wahr - deshalb ausdrücklich prüfen,
          sonst käme „undefined" als Nullstelle heraus. */
-      var frei = werte.filter(function(w){ return benutzt.indexOf(w) < 0; });
-      if (!frei.length) frei = werte;
-      var a = waehle(frei);
+      var a = waehle(freiAus(zahlenPool()));
       benutzt.push(a);
       /* „Gedreht" ist keine eigene Art, sondern eine Schreibweise: jeder
          Linearfaktor kann sie treffen, wenn sie erlaubt ist. */
       var gedreht = !!s.fakGedreht && Math.random() < 0.4;
       fak.push(fakLinear(a, gedreht, art === 'faktor' ? waehle([2, 3, 4, 5]) : 1));
     } else if (art === 'quad'){
-      var freiQ = werte.filter(function(w){ return benutzt.indexOf(w) < 0; });
-      if (freiQ.length < 2) freiQ = werte;
-      var r1 = waehle(freiQ), r2 = waehle(freiQ);
+      var r1 = waehle(freiAus(zahlenPool())), r2 = waehle(freiAus(zahlenPool()));
       fak.push(fakQuadratisch(r1, r2)); benutzt.push(r1); benutzt.push(r2);
     } else if (art === 'pot'){
       var n = waehle([2, 3]);
@@ -666,9 +686,7 @@ function neueAufgabe(){
     var gesehen = {};
     fak = fak.map(function(f8){
       if (!gesehen[f8.code]){ gesehen[f8.code] = 1; return f8; }
-      var frei2 = werte.filter(function(w){ return benutzt.indexOf(w) < 0; });
-      if (!frei2.length) frei2 = werte;
-      var a9 = waehle(frei2);
+      var a9 = waehle(freiAus(zahlenPool()));
       benutzt.push(a9);
       var neu8 = fakLinear(a9, false, 1);
       gesehen[neu8.code] = 1;
@@ -707,9 +725,12 @@ function neueAufgabe(){
 
   A = { stil: stil, fak: fak, zahl: zahl, loes: loes };
   if (stil === 'einsetzen'){
-    var kandidat = (Math.random() < 0.5 && loes.length) ? waehle(loes) : waehle(werte);
-    A.probe = Math.round(kandidat * 1000) / 1000;
-    A.probeIst = loes.some(function(x){ return Math.abs(x - A.probe) < 1e-9; });
+    /* Eingesetzt wird eine glatte Zahl - eine krumme Lösung wäre gerundet
+       keine Lösung mehr. Gerundet wird nicht: aus 1/3 würde sonst 0,333. */
+    var glatt = loes.filter(function(x){ return !(window.pgKrumm && pgKrumm(x)); });
+    var kandidat = (Math.random() < 0.5 && glatt.length) ? waehle(glatt) : waehle(alleWerte);
+    A.probe = kandidat;
+    A.probeIst = loes.some(function(x){ return Math.abs(x - A.probe) < 1e-6; });
   }
   if (stil === 'erkennen'){
     var falsch = s.erkFalsch && Math.random() < 0.5;
@@ -852,6 +873,9 @@ function vielfachheit(x){
 /** Die Lösungen in der eingestellten Schreibweise. */
 function loesAusgabe(liste, opt){
   opt = opt || {};
+  /* Was „keine" heißt, hängt von der Aufgabe ab: Nullstelle, Schnittstelle, Lösung. */
+  if (!opt.keine && window.A && A.stil === 'nullstelle') opt.keine = T('keine Nullstelle', 'no root');
+  if (!opt.keine && window.A && A.stil === 'schnitt') opt.keine = T('keine Schnittstelle', 'no intersection');
   if (!window.pgLoesungen){
     if (!liste.length) return '\\mathbb{L} = \\{\\,\\}';
     return '\\mathbb{L} = \\left\\{' + liste.map(function(e){ return (typeof e === 'string') ? e : e.tex; }).join(';\\ ') + '\\right\\}';
@@ -926,6 +950,25 @@ function nullproduktBaum(stufe){
   return h;
 }
 
+/** Je Faktor, der selbst eine eigene Gleichungsart ist, ein Verweis, der
+    genau diese Gleichung an die passende Seite übergibt. Lineare Faktoren
+    brauchen keinen - die sind mit einem Schritt gelöst. */
+function faktorVerweise(){
+  if (!window.pgPolyText) return '';
+  var schon = {};
+  return (A.fak || []).map(function(f){
+    if (!f.koeff || f.art === 'lin') return '';
+    var gl = pgPolyText(f.koeff) + '=0';
+    if (schon[gl]) return '';
+    schon[gl] = true;
+    var quad = (f.art === 'quad');
+    var seite = quad ? 'quadratische_gleichungen.html' : 'potenzgleichungen.html';
+    var name = quad ? T('quadratische Gleichungen', 'quadratic equations') : T('Potenzgleichungen', 'power equations');
+    return '<div class="verwandt"><a href="' + seite + '?gl=' + encodeURIComponent(gl) + '" target="_blank" rel="noopener">'
+      + T('diese Gleichung üben: ', 'practise this equation: ') + '\\(' + f.tex + ' = 0\\) – ' + name + ' →</a></div>';
+  }).join('');
+}
+
 function wegZeichnen(){
   var z = [];
   if (A.stil === 'erkennen'){
@@ -960,6 +1003,7 @@ function wegZeichnen(){
     z.push('<p class="weg-merke">' + T('Die Zahl ', 'The number ') + '\\(' + pgZahl(A.zahl) + '\\)'
       + T(' ist nie 0 – sie liefert keine Lösung.', ' is never 0 – it gives no solution.') + '</p>');
   z.push(nullproduktBaum(2));
+  z.push(faktorVerweise());
   z.push('<p>' + T('Alle gefundenen Werte zusammen bilden die Lösungsmenge:',
                    'All the values found together form the solution set:') + '</p>');
   z.push('\\[' + loesungsTeX() + '\\]');
@@ -1067,14 +1111,44 @@ function quizBauen(){
   /* Vor allem anderen: Steht die Gleichung schon in der Form „… = 0"? */
   if (A.stil !== 'erkennen' && A.stil !== 'einsetzen' && window.pgSchrittNullForm)
     schritte.push(pgSchrittNullForm(A.stil === 'loesen', aufgabeTeX(), { art: A.stil }));
-  if (A.stil === 'erkennen' || A.stil === 'einsetzen'){
+  if (A.stil === 'erkennen'){
     schritte.push({ titel: T('Entscheiden', 'Decide'), art: 'wahl',
-      frage: (A.stil === 'erkennen') ? T('Steht rechts eine 0?', 'Is there a 0 on the right?')
-                                     : T('Wird einer der Faktoren 0?', 'Does one of the factors become 0?'),
+      frage: T('Steht rechts eine 0?', 'Is there a 0 on the right?'),
       optionen: [T('ja', 'yes'), T('nein', 'no')],
-      richtig: ((A.stil === 'erkennen') ? A.erkLoesbar : A.probeIst) ? 0 : 1,
+      richtig: A.erkLoesbar ? 0 : 1,
+      kurz: A.erkLoesbar ? T('Produkt = 0', 'product = 0') : T('Produkt ≠ 0', 'product ≠ 0'),
+      falschText: T('Schau auf die rechte Seite der Gleichung.', 'Look at the right-hand side of the equation.'),
       hilfe: [T('Der Satz vom Nullprodukt gilt nur, wenn das Produkt gleich 0 ist.',
                 'The zero product property only holds when the product equals 0.')] });
+    pgQuiz(host, schritte, { gleichung: aufgabeTeX() });
+    return;
+  }
+  if (A.stil === 'einsetzen'){
+    /* Jeden Faktor einzeln ausrechnen - ein Faktor 0 genügt. */
+    var pT = pgZahl(A.probe), null0 = false;
+    A.fak.forEach(function(f, i){
+      var w = Math.round(f.wert(A.probe) * 1e6) / 1e6;
+      if (Math.abs(w) < 1e-9) null0 = true;
+      var fT = '\\left(' + f.tex + '\\right)';
+      schritte.push(pgZahlSchritt(T((i + 1) + '. Faktor', 'Factor ' + (i + 1)),
+        T('Setze \\(x = ' + pT + '\\) in den ' + (i + 1) + '. Faktor ein. Was kommt heraus?',
+          'Substitute \\(x = ' + pT + '\\) into factor ' + (i + 1) + '. What do you get?')
+          + '<br>\\[' + fT.split('x').join('\\left(' + pT + '\\right)') + ' = \\;?\\]', w,
+        { kurz: fT + ' = ' + pgZahl(w), tol: 1e-4,
+          hilfe: [T('Die Zahl für jedes x in diesem Faktor einsetzen und ausrechnen.',
+                    'Put the number in for every x in this factor and work it out.')] }));
+    });
+    schritte.push({ titel: T('Entscheiden', 'Decide'), art: 'wahl',
+      frage: T('Wird einer der Faktoren 0 – ist \\(x = ' + pT + '\\) also eine Lösung?',
+               'Does one of the factors become 0 – so is \\(x = ' + pT + '\\) a solution?'),
+      optionen: [T('ja', 'yes'), T('nein', 'no')],
+      richtig: A.probeIst ? 0 : 1,
+      kurz: A.probeIst ? T('Lösung', 'solution') : T('keine Lösung', 'not a solution'),
+      falschText: null0
+        ? T('Ein Faktor ist 0 – dann ist das ganze Produkt 0.', 'One factor is 0 – then the whole product is 0.')
+        : T('Kein Faktor ist 0 – dann kann das Produkt nicht 0 sein.', 'No factor is 0 – then the product cannot be 0.'),
+      hilfe: [T('Ein Produkt ist genau dann 0, wenn mindestens ein Faktor 0 ist.',
+                'A product is 0 exactly when at least one factor is 0.')] });
     pgQuiz(host, schritte, { gleichung: aufgabeTeX() });
     return;
   }
@@ -1093,7 +1167,9 @@ function quizBauen(){
     frage: T('In wie viele einzelne Gleichungen zerfällt das Produkt?',
              'Into how many separate equations does the product split?')
          + nullproduktBaum(1),
-    optionen: ['1', '2', '3', '4', '5'].slice(0, Math.max(3, Math.min(5, A.fak.length + 1))),
+    /* So viele Knöpfe, dass die richtige Zahl immer dabei ist - auch bei
+       sechs oder sieben Faktoren. */
+    optionen: ['1', '2', '3', '4', '5', '6', '7', '8'].slice(0, Math.max(3, Math.min(8, A.fak.length + 1))),
     richtig: A.fak.length - 1,
     kurz: A.fak.length + ' ' + T('Gleichungen', 'equations'),
     falschText: T('Jeder Faktor wird für sich gleich 0 gesetzt – zähle die Klammern.',
@@ -1372,7 +1448,7 @@ function setzeAufgabe(stil, zahl, fak, extra){
     A.rechts = extra.rechts || 0;
     A.erkLoesbar = !A.rechts;
     A.probe = extra.probe || 0;
-    A.probeIst = loes.some(function(x){ return Math.abs(x - A.probe) < 1e-9; });
+    A.probeIst = loes.some(function(x){ return Math.abs(x - A.probe) < 1e-6; });
   }
   zeichne();
 }
@@ -1432,6 +1508,15 @@ function notbehelf(){
 window.addEventListener('load', function(){
   notbehelf();
   einstellungenSetzen(urlLesen());
+  /* Was der Link anders einstellt als die Stufe, war von Hand gewählt - es
+     bleibt auch beim nächsten Stufenwechsel stehen. Dasselbe gilt für die
+     Schieberegler aus dem Link; sie kommen erst nach der Stufe dran. */
+  (function(){
+    var s0 = urlLesen();
+    if (window.abVonHandAusLink && typeof STUFEN !== 'undefined')
+      abVonHandAusLink(s0, STUFEN[s0.diff], function(k){ VON_HAND[k] = true; });
+    if (window.abReglerAusURL) abReglerAusURL(function(id){ VON_HAND['w' + id] = true; });
+  })();
   if (window.abSeedAusURL) abSeedAusURL();
   if (window.abKacheln) abKacheln(document.getElementById('segStile'), KACHELN, function(){
     /* Der Aufgabenstil gehört nicht zur Schwierigkeit - die Stufe bleibt stehen. */
@@ -1480,7 +1565,14 @@ window.addEventListener('load', function(){
     var e = document.getElementById(id);
     if (e) e.addEventListener('change', function(){ kachelnMalen(); neueAufgabe(); });
   });
-  document.querySelectorAll('input[name="loesLevel"], #erkFalsch').forEach(function(e){
+  /* Bei den Zahlen in der Lösung bleibt immer mindestens ein Fall angekreuzt. */
+  LARTEN.forEach(function(id){
+    var e = document.getElementById(id);
+    if (e) e.addEventListener('change', function(){
+      if (!LARTEN.filter(haken).length) setzeHaken('loesGanz', true);
+    }, true);
+  });
+  document.querySelectorAll('#loesGanz, #loesHalb, #loesKlein, #erkFalsch').forEach(function(e){
     e.addEventListener('change', function(){ aufIndividuell(); neueAufgabe(); });
   });
   document.querySelectorAll('#ausmultipliziert, #mitSkizze').forEach(function(e){

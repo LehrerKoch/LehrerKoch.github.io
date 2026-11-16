@@ -1049,6 +1049,48 @@ html.dark .site-footer { border-top-color:#3a434b; color:#9aa5b1; }
     // die Legende hängt aber an den Farben des Modus.
     window.addEventListener('tl-theme', () => { updateLegend(); });
 
+    /* Einstellungen in der Adresse (hinter ?): Wer den Link teilt, teilt sie
+       mit - wie auf den anderen Seiten. Nur Abweichungen vom Standard stehen
+       drin, damit die Adresse kurz bleibt. */
+    (function () {
+        const KURZ = { 'toggle-sound': 'ton', 'toggle-keyboard': 'tast', 'toggle-multi': 'multi',
+            'toggle-sum': 'summe', 'toggle-graph': 'graph', 'toggle-move': 'beweg', 'speed-slider': 'tempo',
+            'toggle-legend': 'gl', 'check-auto-chord': 'fokus', 'select-auto-chord': 'fakk',
+            'check-base-chord': 'grund', 'select-base-chord': 'gakk', 'check-interval': 'intv',
+            'select-interval': 'iwahl' };
+        const felder = () => Object.keys(KURZ).map(id => document.getElementById(id)).filter(Boolean);
+        const wert = e => e.type === 'checkbox' ? (e.checked ? '1' : '0') : String(e.value);
+        const STD = {};
+        felder().forEach(e => { STD[e.id] = wert(e); });
+        function schreiben() {
+            try {
+                const p = new URLSearchParams(location.search);
+                felder().forEach(e => { const k = KURZ[e.id], w = wert(e); if (w === STD[e.id]) p.delete(k); else p.set(k, w); });
+                const qs = p.toString();
+                history.replaceState(null, '', location.pathname + (qs ? '?' + qs : '') + location.hash);
+            } catch (x) {}
+        }
+        /* Werte aus der Adresse übernehmen - über die üblichen Ereignisse,
+           damit die Seite genauso reagiert wie bei einem Klick. */
+        try {
+            const p = new URLSearchParams(location.search);
+            felder().forEach(e => {
+                const k = KURZ[e.id];
+                if (!p.has(k)) return;
+                const w = p.get(k);
+                if (e.type === 'checkbox') {
+                    const an = (w === '1');
+                    if (e.checked !== an) { e.checked = an; e.dispatchEvent(new Event('change', { bubbles: true })); }
+                } else if (String(e.value) !== w && [...(e.options || [{ value: w }])].some(o => o.value === w || e.type === 'range')) {
+                    e.value = w;
+                    e.dispatchEvent(new Event('input', { bubbles: true }));
+                    e.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+            });
+        } catch (x) {}
+        felder().forEach(e => { e.addEventListener('change', schreiben); e.addEventListener('input', schreiben); });
+    })();
+
     window.fehlerKontext = function () {
         const toene = [...activeNotes.keys()];
         const modus = document.getElementById('check-auto-chord').checked

@@ -366,11 +366,18 @@ function aufIndividuell(){
     if (window.abGliderAlle) abGliderAlle();
   }
 }
+/* Schieberegler, die von Hand gestellt wurden: Eine danach gewählte Stufe
+   lässt sie stehen. Die Liste steht im Link (rh), damit das auch nach dem
+   Öffnen gilt; „Standard wiederherstellen" gibt sie wieder frei. */
+const REGLER_HAND = {};
+(new URLSearchParams(location.search).get('rh') || '').split(',')
+  .forEach(k => { if (k) REGLER_HAND[k] = true; });
+function reglerVonHand(id){ return !!REGLER_HAND[id]; }
 function stufeAnwenden(stufe){
   const p = STUFEN[stufe];
   if (!p) return;
   const s = document.getElementById('maxDegree');
-  if (s) s.value = p.degree;
+  if (s && !reglerVonHand(s.id)) s.value = p.degree;
   hakenSetzen('allowDecimals', p.decimals);
   hakenSetzen('allowFractions', p.fractions);
   gradAnzeigen();
@@ -382,6 +389,8 @@ function urlSchreiben(mitAufgabe){
     p.set(KURZ[k], (typeof s[k] === 'boolean') ? (s[k] ? '1' : '0') : s[k]);
   });
   if (mitAufgabe) p.set('sd', AUFGABENSTART);   /* genau diese Aufgabe */
+  const rh = Object.keys(REGLER_HAND);
+  if (rh.length) p.set('rh', rh.join(','));
   const qs = p.toString();
   return location.origin + location.pathname + (qs ? '?' + qs : '');
 }
@@ -434,10 +443,15 @@ document.querySelectorAll('input[name="diff"]').forEach(e => e.addEventListener(
   newTask();
   if (e.value === 'indiv' && window.abEinstellungenOeffnen) abEinstellungenOeffnen('#dSettings');
 }));
+document.querySelectorAll('#maxDegree')
+  .forEach(e => ['input', 'change'].forEach(art => e.addEventListener(art, () => { REGLER_HAND[e.id] = true; })));
 document.getElementById('genBtn').addEventListener('click', () => newTask());
 document.getElementById('btnShare').addEventListener('click', function(){ linkKopieren(urlSchreiben(false), this); });
 document.getElementById('btnTeilen').addEventListener('click', function(){ linkKopieren(urlSchreiben(true), this); });
-document.getElementById('btnReset').addEventListener('click', () => { einstellungenSetzen(STD); newTask(); });
+document.getElementById('btnReset').addEventListener('click', () => {
+  Object.keys(REGLER_HAND).forEach(k => { delete REGLER_HAND[k]; });
+  einstellungenSetzen(STD); newTask();
+});
 
 // ================================================================
 

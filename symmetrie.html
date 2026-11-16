@@ -404,6 +404,8 @@ function urlSchreiben(mitAufgabe){
     else p.set('t', [A.stil, A.P.map(function(z){ return Math.round(z * 1e6) / 1e6; }).join(',')].join('_'));
   }
   if (!autoAn) p.set('auto', '0');
+  /* Regler, die anders stehen, als die Stufe sie stellt, gehören in den Link. */
+  if (window.abReglerSchreiben && typeof STUFEN !== 'undefined') abReglerSchreiben(p, (STUFEN[s.diff] || {}).regler);
   var qs = p.toString();
   var url = location.origin + location.pathname + (qs ? '?' + qs : '');
   if (window.abSeedFuerLink){ var ss = abSeedFuerLink(); if (ss) url += (qs ? '&' : '?') + 'seed=' + ss; }
@@ -432,7 +434,14 @@ var A = null, richtig = 0, gesamt = 0;
 function pick(a){ return a[Math.floor(Math.random() * a.length)]; }
 function coin(p){ return Math.random() < (p === undefined ? 0.5 : p); }
 function ri(a, b){ return a + Math.floor(Math.random() * (b - a + 1)); }
-function rund(x){ return Math.round(x * 1e9) / 1e9; }
+function rund(x){
+  /* Alle Vorfaktoren sind Vielfache von 1/12 (Halbe, Drittel, Viertel).
+     Liegt ein Wert so dicht daran, wird er genau darauf gesetzt - sonst wurde
+     aus −2/3 · 3 ein „−2,000000001", der als 2/1 dastand. */
+  var z = Math.round(x * 12);
+  if (Math.abs(x * 12 - z) < 1e-6) return z / 12;
+  return Math.round(x * 1e9) / 1e9;
+}
 
 function gradMax(){ var v = parseInt(zahlWert('gradBis'), 10); return (v >= 1 && v <= 9) ? v : 5; }
 function zahlArt(){ return radioWert('zahlArt') || STD.zahlArt; }
@@ -571,6 +580,9 @@ function faktorTeX(teile){
 }
 
 function neueAufgabe(){
+  /* Die Adresszeile hält die Einstellungen fest - ein Lesezeichen oder ein
+     weitergegebener Link stellt dieselbe Auswahl wieder her (auch die Regler). */
+  try { history.replaceState({}, '', urlSchreiben(false)); } catch (e) {}
   if (window.abSeedNeu) abSeedNeu();
   var stile = STILE.filter(haken);
   if (!stile.length){ setzeHaken('stilGleichung', true); stile = ['stilGleichung']; kachelnMalen(); }
@@ -1012,10 +1024,24 @@ function quizBauen(){
                 'Write down the exponent of every term – including the \\(0\\) of a constant.')] });
   } else {
     var S = spiegelP(A.P);
+    /* Die falschen Antworten sind typische Fehler: f(x) unverändert, alles
+       umgedreht, gerade statt ungerade Hochzahlen umgedreht. Bei einer
+       symmetrischen Funktion fallen davon zwei mit der richtigen zusammen -
+       dann kommen Fehler bei einzelnen Summanden hinzu. */
+    var nurEiner = function(Q, e){ var R = Q.slice(); R[e] = rund(-(R[e] || 0)); return R; };
+    var hoechste = A.P.length - 1;
+    while (hoechste > 0 && Math.abs(A.P[hoechste] || 0) < 1e-12) hoechste--;
+    var niedrigste = 0;
+    while (niedrigste < hoechste && Math.abs(A.P[niedrigste] || 0) < 1e-12) niedrigste++;
+    var kandidatenFx = [S, A.P, pSkal(A.P, -1), pSkal(S, -1), nurEiner(S, hoechste), nurEiner(S, niedrigste)];
+    var optTeX = [];
+    kandidatenFx.forEach(function(Q){
+      var t = '\\(' + polyTeX(Q) + '\\)';
+      if (optTeX.length < 3 && optTeX.indexOf(t) < 0) optTeX.push(t);
+    });
     schritte.push({ titel: T('Einsetzen', 'Substituting'), art: 'wahl',
       frage: T('Was ergibt \\(f(-x)\\)?', 'What is \\(f(-x)\\)?'),
-      optionen: [ '\\(' + polyTeX(S) + '\\)', '\\(' + polyTeX(A.P) + '\\)', '\\(' + polyTeX(pSkal(A.P, -1)) + '\\)' ]
-        .map(function(t){ return t; }),
+      optionen: optTeX,
       richtig: 0,
       kurz: 'f(-x) = ' + polyTeX(S),
       falschText: T('Bei geraden Hochzahlen hebt sich das Minus weg, bei ungeraden bleibt es stehen.',
@@ -1257,6 +1283,15 @@ function aufgabeAusURL(){
 
 window.addEventListener('load', function(){
   einstellungenSetzen(urlLesen());
+  /* Was der Link anders einstellt als die Stufe, war von Hand gewählt - es
+     bleibt auch beim nächsten Stufenwechsel stehen. Dasselbe gilt für die
+     Schieberegler aus dem Link; sie kommen erst nach der Stufe dran. */
+  (function(){
+    var s0 = urlLesen();
+    if (window.abVonHandAusLink && typeof STUFEN !== 'undefined')
+      abVonHandAusLink(s0, STUFEN[s0.diff], function(k){ VON_HAND[k] = true; });
+    if (window.abReglerAusURL) abReglerAusURL(function(id){ VON_HAND['w' + id] = true; });
+  })();
   if (window.abSeedAusURL) abSeedAusURL();
   if (window.abKacheln) abKacheln(document.getElementById('segStile'), KACHELN, function(){
     kachelnMalen(); neueAufgabe();

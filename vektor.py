@@ -16,6 +16,7 @@ Kurzübersicht
     A.abstand(E)                          # nur das Ergebnis (exakt!)
     print(A.weg.abstand(E))               # derselbe Rechenweg, schön formatiert
     print(A.weg.abstand(E).tex())         # derselbe Rechenweg als LaTeX
+    A.weg.abstand(E).link()               # dieselbe Aufgabe auf der Webseite
     zeige(A, B, g, E, S)                  # Bild in analytische_geometrie.html
 
 Drei Konventionen, die überall gelten
@@ -32,6 +33,7 @@ Drei Konventionen, die überall gelten
 Alles Weitere steht in ``hilfe()``.
 """
 
+import json
 import math
 import os
 import re
@@ -625,6 +627,9 @@ class STIL(object):
                       ``aligned``, ``gather*`` oder ``None``)
     ``vektorpfeil``   LaTeX: ``\\vec`` für Vektornamen
     ``seite``         Pfad oder Adresse von analytische_geometrie.html
+                      (``None``: die Seite im Netz, siehe ``webseite``)
+    ``webseite``      Adresse der Mathe-Tools im Netz – für die
+                      Visualisierungsseite und die Aufgabenseiten
     ================  ======================================================
     """
 
@@ -636,10 +641,11 @@ class STIL(object):
     umgebung = 'align*'
     vektorpfeil = True
     seite = None
+    webseite = 'https://lehrerkoch.github.io/'
 
 
 _STIL_FELDER = ('komma', 'stellen', 'trenner', 'spalten', 'kurz',
-                'umgebung', 'vektorpfeil', 'seite')
+                'umgebung', 'vektorpfeil', 'seite', 'webseite')
 
 
 def einstellen(**felder):
@@ -990,15 +996,18 @@ class Rechnung(object):
     """Ergebnis **und** Lösungsweg.
 
     ``print(r)`` zeigt den Weg als Text, ``r.tex()`` als LaTeX,
-    ``r.ergebnis`` ist das mathematische Ergebnis.
+    ``r.ergebnis`` ist das mathematische Ergebnis, ``r.link()`` die Adresse
+    der passenden Aufgabenseite der Mathe-Tools mit genau diesen Werten.
     """
 
-    __slots__ = ('ergebnis', 'schritte', 'titel')
+    __slots__ = ('ergebnis', 'schritte', 'titel', 'aufgabe')
 
-    def __init__(self, ergebnis=None, schritte=(), titel=None):
+    def __init__(self, ergebnis=None, schritte=(), titel=None, aufgabe=None):
         self.ergebnis = ergebnis
         self.schritte = [s for s in schritte if s is not None]
         self.titel = titel
+        # (Datei, Aufgabenart, Werte) der passenden Aufgabenseite - oder None
+        self.aufgabe = aufgabe
 
     # ---- Zugriff ----------------------------------------------------- #
     @property
@@ -1041,6 +1050,31 @@ class Rechnung(object):
             if s is not None:
                 self.schritte.append(s)
         return self
+
+    # ---- Aufgabenseite ----------------------------------------------- #
+    def link(self):
+        """Die passende Aufgabenseite der Mathe-Tools – mit genau diesen
+        Werten als „Eigene Aufgabe“: dort gibt es denselben Lösungsweg
+        Schritt für Schritt, ein Quiz und das Bild dazu.
+
+        ``r.link()`` ist die Adresse, ``r.link().oeffnen()`` öffnet sie.
+        """
+        if not self.aufgabe:
+            raise GeometrieFehler(
+                'Zu dieser Rechnung gibt es keine passende Aufgabenseite.')
+        datei, art, werte = self.aufgabe
+        mt = json.dumps({'id': art, 'v': werte}, separators=(',', ':'),
+                        ensure_ascii=False)
+        from urllib.parse import quote
+        url = '%s?mt=%s' % (_webadresse(datei), quote(mt, safe=''))
+        return Link(url, '%s – %s' % (self.titel or art, datei),
+                    titel='Aufgabe auf der Webseite öffnen')
+
+    aufgabenlink = link
+
+    def oeffnen(self):
+        """Öffnet die passende Aufgabenseite im Browser."""
+        return self.link().oeffnen()
 
     # ---- Ausgabe ----------------------------------------------------- #
     def text(self, titel=True, einzug=''):
@@ -1132,7 +1166,11 @@ class Weg(object):
 
         def mit_lösungsweg(*args, **kwargs):
             kwargs['_weg'] = True
-            return f(obj, *args, **kwargs)
+            r = f(obj, *args, **kwargs)
+            # Welche Aufgabenseite passt? (für r.link())
+            if isinstance(r, Rechnung) and r.aufgabe is None:
+                r.aufgabe = _aufgabe_zu(f.__name__, obj, args)
+            return r
 
         mit_lösungsweg.__name__ = name
         mit_lösungsweg.__doc__ = f.__doc__
@@ -3988,23 +4026,50 @@ _SEITEN_PARAMETER = {
 }
 
 
-def seite(pfad=None):
-    """Legt die Visualisierungsseite fest oder gibt sie zurück.
+def _webadresse(datei):
+    """Die Adresse einer Seite der Mathe-Tools im Netz."""
+    basis = str(STIL.webseite or 'https://lehrerkoch.github.io/')
+    if not basis.endswith('/'):
+        basis += '/'
+    return basis + datei
 
-    Ohne Angabe wird ``analytische_geometrie.html`` neben ``vektor.py``
-    gesucht, sonst im aktuellen Ordner.
-    """
-    if pfad is not None:
-        STIL.seite = pfad
-        return STIL.seite
-    if STIL.seite:
-        return STIL.seite
+
+def _lokale_seite():
+    """analytische_geometrie.html neben vektor.py oder im aktuellen Ordner."""
     hier = os.path.dirname(os.path.abspath(__file__))
     for kandidat in (os.path.join(hier, _SEITE_DATEI),
                      os.path.abspath(_SEITE_DATEI)):
         if os.path.exists(kandidat):
             return kandidat
-    return _SEITE_DATEI
+    return None
+
+
+def seite(pfad=None):
+    """Legt die Visualisierungsseite fest oder gibt sie zurück.
+
+    Voreingestellt ist die Seite im Netz:
+    https://lehrerkoch.github.io/analytische_geometrie.html
+
+    ``seite('lokal')``  die Datei neben ``vektor.py`` (sonst im Ordner)
+    ``seite(pfad)``     eine bestimmte Datei oder Adresse
+    ``seite('netz')``   wieder die Seite im Netz
+    """
+    if pfad is not None:
+        wahl = str(pfad).strip().lower()
+        if wahl in ('netz', 'online', 'web', 'internet'):
+            STIL.seite = None
+        elif wahl in ('lokal', 'local', 'datei'):
+            gefunden = _lokale_seite()
+            if not gefunden:
+                raise EingabeFehler('%s liegt weder neben vektor.py noch im '
+                                    'aktuellen Ordner' % _SEITE_DATEI)
+            STIL.seite = gefunden
+        else:
+            STIL.seite = pfad
+        return seite()
+    if STIL.seite:
+        return STIL.seite
+    return _webadresse(_SEITE_DATEI)
 
 
 def _basis_adresse():
@@ -4021,13 +4086,14 @@ def _basis_adresse():
 
 
 class Link(object):
-    """Eine Adresse der Visualisierungsseite – mit ``.oeffnen()``."""
+    """Eine Adresse (Visualisierungs- oder Aufgabenseite) – mit ``.oeffnen()``."""
 
-    __slots__ = ('url', 'text')
+    __slots__ = ('url', 'text', 'titel')
 
-    def __init__(self, url, text=''):
+    def __init__(self, url, text='', titel=None):
         self.url = url
         self.text = text
+        self.titel = titel or 'Bild in analytische_geometrie.html \u00f6ffnen'
 
     def oeffnen(self):
         """Öffnet die Seite im Browser."""
@@ -4052,9 +4118,9 @@ class Link(object):
         return self.url
 
     def _repr_html_(self):
-        return '<a href="%s" target="_blank">Bild in analytische_geometrie.html ' \
-               '\u00f6ffnen</a><pre style="margin-top:4px">%s</pre>' \
-               % (self.url, self.text)
+        from html import escape
+        return '<a href="%s" target="_blank">%s</a><pre style="margin-top:4px">%s</pre>' \
+               % (escape(self.url), escape(self.titel), escape(self.text))
 
 
 _AUTONAMEN = {'Punkt': list('ABCDPQRS'), 'Vektor': list('abcuvw'),
@@ -4183,6 +4249,194 @@ def zeige(*objekte, **kw):
     return l
 
 
+# ---------------------------------------------------------------------- #
+#  Welche Aufgabenseite passt zu einer Rechnung?                          #
+#  Die Seiten nehmen eine „Eigene Aufgabe“ über ?mt={"id":…,"v":{…}} an.  #
+# ---------------------------------------------------------------------- #
+
+def _js_zahl(x):
+    """Eine Zahl für die Seite: ganz bleibt ganz, sonst die Dezimalzahl
+    (1/3 kommt als 0.3333333333333333 an – die Seite erkennt den Bruch)."""
+    if isinstance(x, Wurzel):
+        return float(x)
+    q = Q(x)
+    if q.denominator == 1:
+        return int(q.numerator)
+    return float(q)
+
+
+def _js_vek(v):
+    """Koordinaten für die Seite – die Aufgabenseiten rechnen im Raum."""
+    v = v if isinstance(v, Vektor) else Vektor(v)
+    if v.dimension != 3:
+        raise DimensionsFehler('Die Aufgabenseiten rechnen im Raum')
+    return [_js_zahl(k) for k in v.koordinaten]
+
+
+def _js_gerade(g, p='p', u='u'):
+    return {p: _js_vek(g.stuetz), u: _js_vek(g.rv)}
+
+
+def _js_koo(E, n='n', d='d'):
+    """Ebene in Koordinatenform n·x = d."""
+    return {n: _js_vek(E.n), d: _js_zahl(E.d)}
+
+
+def _js_ebene(E, koo=('n', 'd'), nor=('p', 'n'), par=('p', 'u', 'v')):
+    """Ebene in der Form, in der sie gegeben ist: ('koo'|'nor'|'par', Werte)."""
+    form = {'KF': 'koo', 'NF': 'nor', 'PF': 'par'}.get(getattr(E, 'form', 'KF'), 'koo')
+    if form == 'nor':
+        return form, {nor[0]: _js_vek(E.stuetz), nor[1]: _js_vek(E.n)}
+    if form == 'par':
+        return form, {par[0]: _js_vek(E.stuetz), par[1]: _js_vek(E.rv1),
+                      par[2]: _js_vek(E.rv2)}
+    return form, {koo[0]: _js_vek(E.n), koo[1]: _js_zahl(E.d)}
+
+
+def _zusammen(*teile):
+    raus = {}
+    for t in teile:
+        raus.update(t)
+    return raus
+
+
+def _aufgabe_zu(methode, obj, args):
+    """(Datei, Aufgabenart, Werte) der passenden Aufgabenseite – oder None."""
+    try:
+        return _aufgabe_suchen(methode, obj, list(args))
+    except Exception:
+        return None
+
+
+def _aufgabe_suchen(m, obj, args):
+    x = args[0] if args else None
+    y = args[1] if len(args) > 1 else None
+    SK, VG, AB = 'skalar_kreuzprodukt.html', 'vektoren_grundlagen.html', 'abstaende.html'
+    # ---- Punkte: Abstände, Lote, Spiegelungen ---------------------- #
+    if isinstance(obj, Punkt) and m in ('abstand', 'lotfusspunkt', 'spiegeln'):
+        A = _js_vek(obj)
+        if isinstance(x, Gerade):
+            return (AB, 'spieg.pg' if m == 'spiegeln' else 'pg.ab',
+                    _zusammen(_js_gerade(x), {'A': A}))
+        if isinstance(x, Ebene):
+            return (AB, 'spieg.pe' if m == 'spiegeln' else 'pe.ab',
+                    _zusammen(_js_koo(x), {'A': A}))
+        if m == 'abstand':
+            return (AB, 'pp.ab', {'A': A, 'B': _js_vek(_als_punkt(x))})
+        if m == 'spiegeln':
+            return (AB, 'spieg.pp', {'A': A, 'Z': _js_vek(_als_punkt(x))})
+        return None
+    # ---- Vektoren -------------------------------------------------- #
+    if isinstance(obj, Vektor):
+        a = _js_vek(obj)
+        if m == 'dot':
+            return (SK, 'rech.skal', {'a': a, 'b': _js_vek(_eins(args))})
+        if m == 'kreuz':
+            return (SK, 'rech.kreuz', {'a': a, 'b': _js_vek(_eins(args))})
+        if m == 'volumen':
+            return (SK, 'anw.vol', {'a': a, 'b': _js_vek(x), 'c': _js_vek(y)})
+        if m == 'flaeche':
+            return (SK, 'anw.para', {'a': a, 'b': _js_vek(x)})
+        if m == 'ist_orthogonal' and not isinstance(x, (Gerade, Ebene)):
+            return (SK, 'orth.pruef', {'a': a, 'b': _js_vek(x)})
+        if m == 'ist_komplanar':
+            return (SK, 'anw.komp', {'a': a, 'b': _js_vek(x), 'c': _js_vek(y)})
+        if m == 'winkel' and not isinstance(x, (Gerade, Ebene)):
+            return (SK, 'wink.vv', {'a': a, 'b': _js_vek(x)})
+        if m == 'laenge':
+            return (VG, 'lang.betr', {'a': a})
+        if m == 'normiert':
+            return (VG, 'lang.einh', {'a': a})
+        if m == 'ist_kollinear' and not isinstance(x, (Gerade, Ebene)):
+            return (VG, 'abh.koll', {'a': a, 'b': _js_vek(x)})
+        if m == 'mittelpunkt':
+            return (VG, 'pkt.mitte', {'A': a, 'B': _js_vek(x)})
+        return None
+    # ---- Geraden --------------------------------------------------- #
+    if isinstance(obj, Gerade):
+        if m == 'punkt':
+            return ('geraden_grundlagen.html', 'pkt.tp',
+                    _zusammen(_js_gerade(obj), {'t': _js_zahl(1 if x is None else x)}))
+        if m == 'hat_punkt' or (m in ('lage', 'schneide') and
+                                not isinstance(x, (Gerade, Ebene))):
+            return ('geraden_grundlagen.html', 'pkt.prb',
+                    _zusammen(_js_gerade(obj), {'Q': _js_vek(_als_punkt(x))}))
+        if m in ('lage', 'schneide'):
+            if isinstance(x, Gerade):
+                return ('lage_gerade_gerade.html', 'lage',
+                        _zusammen(_js_gerade(obj, 'gp', 'gu'), _js_gerade(x, 'hp', 'hu')))
+            return _lage_gerade_ebene(obj, x)
+        if m == 'winkel':
+            if isinstance(x, Gerade):
+                return (SK, 'wink.gg', _zusammen(_js_gerade(obj), _js_gerade(x, 'q', 'v')))
+            if isinstance(x, Ebene):
+                return (SK, 'wink.ge', _zusammen(_js_gerade(obj), _js_koo(x)))
+            return None
+        if m in ('abstand', 'lotfusspunkt'):
+            if isinstance(x, Gerade):
+                return _abstand_geraden(obj, x)
+            if isinstance(x, Ebene):
+                return _abstand_gerade_ebene(obj, x)
+            return (AB, 'pg.ab', _zusammen(_js_gerade(obj), {'A': _js_vek(_als_punkt(x))}))
+        return None
+    # ---- Ebenen ---------------------------------------------------- #
+    if isinstance(obj, Ebene):
+        if m == 'hat_punkt' or (m in ('lage', 'schneide') and
+                                not isinstance(x, (Gerade, Ebene))):
+            form, werte = _js_ebene(obj)
+            werte['Q'] = _js_vek(_als_punkt(x))
+            return ('ebenen_grundlagen.html', 'prb.' + form, werte)
+        if m in ('lage', 'schneide'):
+            if isinstance(x, Gerade):
+                return _lage_gerade_ebene(x, obj)
+            fA, wA = _js_ebene(obj, ('An', 'Ad'), ('Ap', 'An'), ('Ap', 'Au', 'Av'))
+            fB, wB = _js_ebene(x, ('Bn', 'Bd'), ('Bp', 'Bn'), ('Bp', 'Bu', 'Bv'))
+            return ('lage_ebene_ebene.html', 'ee', _zusammen({'fA': fA, 'fB': fB}, wA, wB))
+        if m == 'winkel':
+            if isinstance(x, Ebene):
+                return (SK, 'wink.ee', _zusammen(_js_koo(obj), _js_koo(x, 'n2', 'd2')))
+            if isinstance(x, Gerade):
+                return (SK, 'wink.ge', _zusammen(_js_gerade(x), _js_koo(obj)))
+            return None
+        if m in ('abstand', 'lotfusspunkt'):
+            if isinstance(x, Gerade):
+                return _abstand_gerade_ebene(x, obj)
+            if isinstance(x, Ebene):
+                if not obj.n.ist_kollinear(x.n) or x.hat_punkt(obj.stuetz):
+                    return None                      # schneidend oder gleich
+                return (AB, 'ge.ee', _zusammen(_js_koo(obj, 'n', 'd1'), _js_koo(x, 'n2', 'd2')))
+            return (AB, 'pe.ab', _zusammen(_js_koo(obj), {'A': _js_vek(_als_punkt(x))}))
+        if m == 'spiegeln' and not isinstance(x, (Gerade, Ebene)):
+            return (AB, 'spieg.pe', _zusammen(_js_koo(obj), {'A': _js_vek(_als_punkt(x))}))
+        return None
+    return None
+
+
+def _lage_gerade_ebene(g, E):
+    form, werte = _js_ebene(E, ('n', 'd'), ('Ep', 'n'), ('Ep', 'Eu', 'Ev'))
+    return ('lage_gerade_ebene.html', 'lge',
+            _zusammen(_js_gerade(g, 'gp', 'gu'), {'f': form}, werte))
+
+
+def _abstand_geraden(g, h):
+    """Parallele oder windschiefe Geraden – schneidende haben Abstand 0."""
+    werte = _zusammen(_js_gerade(g), _js_gerade(h, 'q', 'v'))
+    if g.rv.ist_kollinear(h.rv):
+        if h.hat_punkt(g.stuetz):
+            return None                              # dieselbe Gerade
+        return ('abstaende.html', 'gg.par', werte)
+    if Vektor(h.stuetz - g.stuetz).dot(g.rv.kreuz(h.rv)) == 0:
+        return None                                  # sie schneiden sich
+    return ('abstaende.html', 'gg.wind', werte)
+
+
+def _abstand_gerade_ebene(g, E):
+    """Nur eine echt parallele Gerade hat einen Abstand zur Ebene."""
+    if g.rv.dot(E.n) != 0 or E.hat_punkt(g.stuetz):
+        return None
+    return ('abstaende.html', 'ge.par', _zusammen(_js_koo(E), _js_gerade(g)))
+
+
 def zeichnen(*objekte, **kw):
     """Alt: Adresse der Visualisierungsseite (früher matheretter)."""
     kw.pop('dim', None)
@@ -4286,14 +4540,18 @@ Lösungswege
   print(A.weg.abstand(E))      Rechenweg als Text
   A.weg.abstand(E).tex()       Rechenweg als LaTeX
   A.weg.abstand(E).ergebnis    das Ergebnis dazu
+  A.weg.abstand(E).link()      dieselbe Aufgabe auf der Webseite (mit Quiz)
+  A.weg.abstand(E).oeffnen()   ... und gleich im Browser öffnen
   dir(A.weg)                   alles, was einen Weg kennt
   einstellen(kurz=True, umgebung='aligned', stellen=3)
 
 Bild
 ----
   zeige(A, B, g, E)            öffnet analytische_geometrie.html
+                               (https://lehrerkoch.github.io/...)
   link(A, g, E)                nur die Adresse
   seitentext(A, g, E)          Text für die Textansicht der Seite
+  seite('lokal')               die Datei neben vektor.py statt der Webseite
   seite("C:/.../analytische_geometrie.html")     Seite festlegen
   g.aussehen(farbe='rot')      Darstellung auf der Seite
 """

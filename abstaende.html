@@ -351,13 +351,16 @@ html.dark details[open].weg{ background:#1b2026; border-color:#2f4f6f; }
 .step .sh{ font-weight:bold; font-size:.88em; color:#1a3a5a; }
 .step .sx{ font-size:.88em; color:#555; margin:2px 0; }
 .step .note-line{ color:#333; margin-top:2px; }
-.step-link{ display:inline-block; margin:5px 0 2px; background:#E07B00; color:#fff; text-decoration:none;
+.step-link{ display:table; margin:8px 0 2px auto; background:#E07B00; color:#fff; text-decoration:none;
   font-size:.8em; padding:5px 11px; border-radius:5px; }
 .varsw{ display:flex; flex-wrap:wrap; gap:5px; margin:2px 0 6px; }
 .varsw button{ background:#fff; color:#0d47a1 !important; font-size:.8em; padding:5px 11px; border-radius:16px;
   border:1.5px solid #b6d4f0; margin:0; }
 .varsw button.on{ background:#3a7ac0; color:#fff !important; border-color:#3a7ac0; font-weight:bold; }
 .wegsel{ font-size:.8em; color:#555; margin:2px 0 0; }
+.qz-weg{ display:flex; align-items:center; flex-wrap:wrap; gap:4px 8px; margin:0 0 8px; }
+.qz-weg .wegsel{ margin:0; }
+.qz-weg .varsw{ margin:0; }
 .extlink{ text-align:center; margin:8px 0 4px; display:flex; flex-wrap:wrap; gap:6px; justify-content:center; }
 .extlink a{ display:inline-block; background:#3a7ac0; color:#fff; text-decoration:none; font-size:.85em;
   padding:8px 15px; border-radius:5px; }
@@ -616,6 +619,19 @@ const P10 = 10;                       /* intern feiner rechnen als angezeigt wir
 const rd  = (x, n) => Math.round(x * Math.pow(10, n == null ? 6 : n)) / Math.pow(10, n == null ? 6 : n);
 const eq0 = x => Math.abs(x) < EPS;
 const eqN = (a, b) => Math.abs(a - b) < 1e-6;
+/** Eine Eingabe gegen den erwarteten Wert prüfen: genau - oder, wenn der Wert
+    krumm ist (kein Dezimalbruch mit höchstens drei Stellen, etwa √5 oder 1/3),
+    auch gerundet (auf zwei Nachkommastellen genau). Eine 0 oder ein falsches
+    Vorzeichen geht dabei nie durch - sonst wäre 1/320 schon mit 0 „richtig“. */
+function passt(x, soll){
+  if (x == null || soll == null || !isFinite(x) || !isFinite(soll)) return false;
+  if (eqN(x, soll)) return true;
+  if (1000 % Q.of(soll).d === 0) return false;
+  if (eq0(x) || Math.sign(x) !== Math.sign(soll)) return false;
+  return Math.abs(x - soll) <= 0.006;
+}
+/** dasselbe für Punkte und Vektoren */
+function gleichV(a, b){ return !!a && !!b && [0, 1, 2].every(i => passt(a[i], b[i])); }
 function gcd(a, b){ a = Math.abs(a); b = Math.abs(b); while (b){ [a, b] = [b, a % b]; } return a; }
 function lcm(a, b){ a = Math.abs(Math.round(a)); b = Math.abs(Math.round(b)); return (!a || !b) ? 0 : a / gcd(a, b) * b; }
 /* =========================================================================
@@ -724,10 +740,16 @@ function affine(p, c, sym){
   if (eq0(p)) return term(c, sym, true);
   return numTeX(p) + coef(c, sym);
 }
+/** „\\frac{z}{n} = Wert" - der Wert nur, wenn er anders aussieht als der Bruch
+    (sonst stünde da „\\frac{17}{3} = \\frac{17}{3}"). */
+function bruchWert(z, n, val){
+  const fr = '\\frac{' + numTeX(z) + '}{' + numTeX(n) + '}', v = numTeX(val);
+  return (fr === v) ? fr : fr + EQ(val) + v;           /* gerundet: ≈ */
+}
 function quotTeX(sym, z, n, val){
   if (eqN(n, 1))  return sym + ' = ' + numTeX(z);
   if (eqN(n, -1)) return sym + ' = ' + numTeX(-z);
-  return sym + ' = \\frac{' + numTeX(z) + '}{' + numTeX(n) + '} = ' + numTeX(val);
+  return sym + ' = ' + bruchWert(z, n, val);
 }
 
 /* ---------- Zufallszahlen nach den Einstellungen ---------- */
@@ -1002,12 +1024,18 @@ function relTeX(ok){
   return ok ? '\\;{\\color{' + (DUNKEL() ? '#81c784' : '#1a6a1a') + '}{=}}\\;'
             : '\\;{\\color{' + (DUNKEL() ? '#ef9a9a' : '#9a1010') + '}{\\neq}}\\;';
 }
+/** Term und Wert: „2 + 3·(−1) = −1" - ist der Term schon die Zahl, nur sie. */
+function mitWert(term, wert, links){
+  const w = numTeX(wert);
+  if (term === w) return w;
+  return links ? term + EQ(wert) + w : w + EQ(wert) + term;
+}
 /** eine Probezeile: linker Term = Wert  (=/≠)  Wert = rechter Term */
 function probeZeileTeX(lc, lu, lt, rc, ru, rt){
   const l = snap(lc + lu * lt), r = snap(rc + ru * rt), ok = eqN(l, r);
   return { ok: ok, l: l, r: r,
-    tex: '\\begin{array}{c}' + affine(lc, lu, paren(lt)) + ' = ' + numTeX(l)
-       + relTeX(ok) + numTeX(r) + ' = ' + affine(rc, ru, paren(rt)) + '\\end{array}' };
+    tex: '\\begin{array}{c}' + mitWert(affine(lc, lu, paren(lt)), l, true)
+       + relTeX(ok) + mitWert(affine(rc, ru, paren(rt)), r, false) + '\\end{array}' };
 }
 function dotTeX(a, b){ return [0, 1, 2].map(i => paren(a[i]) + '\\cdot ' + paren(b[i])).join(' + '); }
 function crossTeX(u, v){
@@ -1123,7 +1151,7 @@ function solve2(A1, B1, C1, A2, B2, C2){
     const rest = snap(C - (forT ? B * val : A * val)), coeff = forT ? A : B, sym = forT ? par() : par2();
     if (eqN(coeff, 1))  return sym + ' = ' + numTeX(rest);
     if (eqN(coeff, -1)) return sym + ' = ' + numTeX(-rest);
-    return sym + ' = \\frac{' + numTeX(rest) + '}{' + numTeX(coeff) + '} = ' + numTeX(snap(rest / coeff));
+    return sym + ' = ' + bruchWert(rest, coeff, snap(rest / coeff));
   };
   if (eq0(A1) || eq0(A2)){
     const f = eq0(A1) ? [A1, B1, C1, 'I'] : [A2, B2, C2, 'II'];
@@ -1413,10 +1441,11 @@ const VIS = {
     const co = u.map(x => eq0(x) ? '0' : (VIS.n(x) + 't')).join('|');
     return name + ' = Vektor(' + ptName + '; ' + co + ')' + VIS.opt(o);
   },
-  /* v=3d: 3D-Ansicht, pm=box: Ebenen bis zum Rand des Koordinatensystems,
-     die Hilfsvektoren zeichnen wir selbst als eigene Objekte */
+  /* v=3d: 3D-Ansicht; die Hilfsvektoren zeichnen wir selbst als eigene Objekte.
+     Den Ausschnitt der Ebenen bestimmt die Seite selbst (Standard, bis zu den
+     Punkten aufgezogen) - kein Achsenbereich mehr. */
   url(lines, par){
-    let u = VIS.page + '?o=' + encodeURIComponent(lines.join(String.fromCharCode(10))) + '&v=3d&pm=box';
+    let u = VIS.page + '?o=' + encodeURIComponent(lines.join(String.fromCharCode(10))) + '&v=3d';
     if (par){
       /* Parameterwert und passender Bereich, damit der gesuchte Punkt erreichbar ist */
       const w = snap(par), r = Math.max(3, Math.ceil(Math.abs(w) + 1));
@@ -1435,6 +1464,15 @@ const LGS = {
       + '&method=' + (method || 'add') + '&scaled=1';
   }
 };
+/** Verweis auf die Seite zum Skalar- und Kreuzprodukt: dort wird genau dieses
+    Kreuzprodukt Schritt für Schritt ausgerechnet. Nur bei überschaubaren Zahlen. */
+function kreuzLink(a, b){
+  const kurz = x => isFinite(x) && Math.abs(x) < 1000 && Math.abs(x * 100 - Math.round(x * 100)) < 1e-9;
+  if (!a || !b || !a.concat(b).every(kurz)) return null;
+  const v = { a: a.map(snap), b: b.map(snap) };
+  return { href: 'skalar_kreuzprodukt.html?mo=manuell&mt=' + encodeURIComponent(JSON.stringify({ id: 'rech.kreuz', v: v })),
+           text: T('Dieses Kreuzprodukt Schritt für Schritt', 'This cross product step by step') };
+}
 /* ---------- Bausteine für die Verlinkung ----------
    Gegebene Werte stehen als konkrete Zahlen da, alles andere verweist über den
    Namen darauf. Die Hilfsvektoren zeichnen wir selbst, damit Stütz- und
@@ -1444,7 +1482,8 @@ const VIS_PKT  = c2 => ({ farbe: c2 || VC.pkt, stufe: 1 });
 const VIS_ORT  = c2 => ({ farbe: c2 || VC.hilf, strich: 'gepunktet' });
 const VIS_RICH = c2 => ({ farbe: c2 || VC.hilf, strich: 'durchgezogen', stufe: 2 });
 /* Standard: alle Hilfslinien; Ebenen zusätzlich mit quadratischem Ausschnitt
-   (bei Umwandlungen und zwei Ebenen wird stattdessen 'Achsen' gesetzt) */
+   (bei Umwandlungen und zwei Ebenen bleibt es bei der Standarddarstellung
+   der Seite - 'Standard' -, aufgezogen bis zu den Punkten) */
 const VIS_OBJ  = c2 => ({ farbe: c2 || VC.obj, hilfsvektoren: 'alle' });
 const VIS_EB   = c2 => ({ farbe: c2 || VC.obj, hilfsvektoren: 'alle', ebene: 'Quadrat' });
 
@@ -1499,23 +1538,32 @@ function visPlaneNor(eName, ptName, p, n, c2){
            vEbeneNor(eName, ptName, ptName + 'n', c2) ];
 }
 /** Ebene aus Punkt und zwei Spannvektoren, benannt */
+/** Ausschnitt einer Ebene: 'Standard' heißt keine eigene Angabe (die Seite
+    entscheidet), aber bis zu den Punkten aufgezogen. */
+function ebeneAusschnitt(aus){
+  return (aus === 'Standard') ? { aufziehen: 'an' } : { ebene: aus };
+}
+function ebeneAusschnittText(aus){
+  return (aus === 'Standard') ? '; aufziehen:an' : '; ebene:' + aus;
+}
 function visFormPar(nm, ptName, p, u, v, col, suffix, ausschnitt){
   const s = suffix || '', aus = ausschnitt || 'Quadrat';
   return [ vPunkt(ptName, p, col), VIS.vektor2('u' + s, ptName, u, { farbe: col, stufe: 1 }),
            VIS.vektor2('v' + s, ptName, v, { farbe: col, stufe: 1 }),
            nm + ' = Ebene(' + ptName + '; u' + s + '; v' + s + ') {farbe:' + col
-             + '; hilfsvektoren:alle; ebene:' + aus + '}' ];
+             + '; hilfsvektoren:alle' + ebeneAusschnittText(aus) + '}' ];
 }
 /** Ebene aus Punkt und Normalenvektor, benannt */
 function visFormNor(nm, ptName, p, n, col, suffix, ausschnitt){
   const s = suffix || '', aus = ausschnitt || 'Quadrat';
   return [ vPunkt(ptName, p, col), VIS.vektor2('n' + s, ptName, n, { farbe: col, stufe: 2 }),
            nm + ' = Ebene(' + ptName + '; n' + s + ') {farbe:' + col
-             + '; hilfsvektoren:alle; ebene:' + aus + '}' ];
+             + '; hilfsvektoren:alle' + ebeneAusschnittText(aus) + '}' ];
 }
 /** Ebene in Koordinatenform, benannt */
 function visFormKoo(nm, n, d, col, ausschnitt){
-  return [ VIS.ebeneKoord(nm, n, d, { farbe: col, hilfsvektoren: 'alle', ebene: ausschnitt || 'Quadrat' }) ];
+  return [ VIS.ebeneKoord(nm, n, d, Object.assign({ farbe: col, hilfsvektoren: 'alle' },
+                                                ebeneAusschnitt(ausschnitt || 'Quadrat'))) ];
 }
 /** zwei Geraden mit der aufgespannten Ebene; Stützpunkt und zweiter Spannvektor
     richten sich nach dem gewählten Lösungsweg */
@@ -2136,6 +2184,7 @@ function quizStart(stages){
 function quizRender(host){
   host.innerHTML = '';
   if (!QUIZ || !QUIZ.stages.length) return;
+  if (wegeImQuiz()) host.appendChild(quizWegSchalter(host));
   /* Wie auf den Gleichungsseiten: was schon gelöst ist, steht oben als kurze
      Kette, damit der laufende Schritt nicht immer weiter nach unten rutscht. */
   if (QUIZ.stages.length > 1){
@@ -2154,8 +2203,9 @@ function quizRender(host){
     host.appendChild(quizStageBox(st, i, host));
     /* Das Quiz als Hilfe steht als eigener Kasten unter dem aktuellen Schritt -
        so geraten seine Eingabefelder der eigenen Antwort nicht dazwischen. */
-    if (i === QUIZ.idx && !QUIZ.st[i].done && st.hilfe && st.hilfe.length)
-      host.appendChild(hilfeWrap(st, QUIZ.st[i], host));
+    const hl = hilfeListe(st, i);
+    if (i === QUIZ.idx && !QUIZ.st[i].done && hl && hl.length)
+      host.appendChild(hilfeWrap(st, QUIZ.st[i], host, hl));
   });
   if (QUIZ.idx >= QUIZ.stages.length){
     /* „Alles richtig gelöst“ gilt nur, wenn man nichts angezeigt bekommen hat. */
@@ -2307,15 +2357,58 @@ function quizStageBox(st, i, host){
    `hilfe: [ ... ]` mitbringt - jedes Element ist eine gewöhnliche Stufe
    (stageChoice, stageNums, …), ergänzt um `erklaerung`.
    ========================================================================= */
+/* ---------- Lösungswege im Quiz ----------
+   Bringt ein Lösungsweg eigene Zwischenfragen mit (variant.hilfe), wählt man
+   ihn schon über dem Quiz. Das Quiz als Hilfestellung folgt dann diesem Weg,
+   und der Lösungsweg unten zeigt denselben - umgekehrt genauso. */
+function wegeImQuiz(){
+  return !!(TASK && TASK.variants && TASK.variants.length > 1
+            && TASK.variants.some(v => v.hilfe && v.hilfe.length));
+}
+/** Zwischenfragen zur Stufe i: die des gewählten Weges, sonst die der Stufe */
+function hilfeListe(st, i){
+  const v = (TASK && TASK.variants) ? TASK.variants[WEGWAHL.v] : null;
+  if (v && v.hilfe && v.hilfe.length && i === (v.hilfeStufe || 0)) return v.hilfe;
+  return st.hilfe;
+}
+/** Nummer des Weges, zu dem diese Zwischenfragen gehören (0 = ohne Weg) */
+function hilfeWegNr(schritte){
+  if (!TASK || !TASK.variants) return 0;
+  const i = TASK.variants.findIndex(v => v.hilfe === schritte);
+  return i < 0 ? 0 : i + 1;
+}
+function quizWegSchalter(host){
+  const wrap = el('div', { class: 'qz-weg' });
+  wrap.appendChild(el('span', { class: 'wegsel' }, T('Lösungsweg:', 'Method:')));
+  const sw = el('div', { class: 'varsw' });
+  TASK.variants.forEach((v, i) => {
+    const b = el('button', { type: 'button', data: { i: i } }, v.label);
+    if (i === WEGWAHL.v) b.classList.add('on');
+    b.addEventListener('click', () => { if (WEGWAHL.v !== i) wegWaehlen(i); });
+    sw.appendChild(b);
+  });
+  wrap.appendChild(sw);
+  return wrap;
+}
+/** Weg wechseln - im Quiz und im Lösungsweg */
+function wegWaehlen(i){
+  const qa = $('#quizArea');
+  /* Eingetipptes, aber noch nicht Geprüftes bleibt stehen. */
+  if (qa && QUIZ) QUIZ.eingaben = $$('.qz-cur-step:not(.qz-solved) input', qa).map(x => x.value);
+  const knopf = $$('details.loesung .varsw button')[i];
+  if (knopf){ knopf.click(); return; }       /* der Lösungsweg zieht das Quiz mit */
+  WEGWAHL.v = i; WEGWAHL.klick = true;
+  if (qa && QUIZ) quizRender(qa);
+}
 /** Umschaltknopf und Kasten des Hilfe-Quiz */
-function hilfeWrap(stage, s, host){
+function hilfeWrap(stage, s, host, hl){
   const wrap = el('div', { class: 'qh-wrap' });
   /* Beschriftung wie auf den Gleichungsseiten. */
   const text = auf => auf ? T('Quiz ausblenden', 'Hide the step-by-step help')
                           : T('Quiz als Hilfestellung', 'Quiz as a hint');
   const kb = el('button', { type: 'button', class: 'hint-btn hilfe-btn' }, text(!!s.hilfeAuf));
   const kbox = el('div', { style: s.hilfeAuf ? '' : 'display:none' });
-  if (s.hilfeAuf) kbox.appendChild(hilfeBox(stage, s, host));
+  if (s.hilfeAuf) kbox.appendChild(hilfeBox(stage, s, host, hl));
   wrap.classList.toggle('auf', !!s.hilfeAuf);
   kb.addEventListener('click', () => {
     const auf = kbox.style.display === 'none';
@@ -2323,7 +2416,7 @@ function hilfeWrap(stage, s, host){
     s.hilfeAuf = auf;
     wrap.classList.toggle('auf', auf);
     kb.textContent = text(auf);
-    if (auf && !kbox.firstChild) kbox.appendChild(hilfeBox(stage, s, host));
+    if (auf && !kbox.firstChild) kbox.appendChild(hilfeBox(stage, s, host, hl));
     if (auf) mj(kbox);
   });
   const kopf = el('div', { class: 'qh-kopfzeile' });
@@ -2335,22 +2428,23 @@ function hilfeWrap(stage, s, host){
   return wrap;
 }
 /** Zustand der Hilfe zu einer Quizstufe anlegen oder weiterverwenden */
-function hilfeStand(s, schritte){
-  if (!s.hilfeSt || s.hilfeSt.n !== schritte.length)
-    s.hilfeSt = { n: schritte.length, idx: 0,
+function hilfeStand(s, schritte, weg){
+  /* Ein anderer Lösungsweg fängt mit seinen Zwischenfragen von vorn an. */
+  if (!s.hilfeSt || s.hilfeSt.n !== schritte.length || (s.hilfeSt.weg || 0) !== (weg || 0))
+    s.hilfeSt = { n: schritte.length, idx: 0, weg: weg || 0,
       st: schritte.map(() => ({ done: false, chosen: null, vals: null, wrong: {}, fb: null, stufe: 0 })) };
   return s.hilfeSt;
 }
 /** der ganze Hilfebereich zu einer Quizstufe */
-function hilfeBox(stage, s, host){
-  const schritte = stage.hilfe;
-  const z = hilfeStand(s, schritte);
+function hilfeBox(stage, s, host, hl){
+  const schritte = hl || stage.hilfe;
+  const z = hilfeStand(s, schritte, hilfeWegNr(schritte));
   const box = el('div', { class: 'qh-box' });
   box.appendChild(el('p', { class: 'qh-kopf' },
     T('Beantworte die Zwischenfragen \u2013 danach steht die L\u00f6sung fast von selbst da.',
       'Answer the intermediate questions \u2013 then the solution almost writes itself.')));
   const neu = () => {
-    const ersatz = hilfeBox(stage, s, host);
+    const ersatz = hilfeBox(stage, s, host, schritte);
     box.replaceWith(ersatz);
     mj(ersatz);
   };
@@ -2503,7 +2597,7 @@ function lockQuiz(){
   const qa = $('#quizArea');
   if (!qa) return;
   qa.classList.add('qz-locked');
-  $$('input, button', qa).forEach(x => { x.disabled = true; });
+  $$('input, button', qa).forEach(x => { if (!x.closest('.qz-weg')) x.disabled = true; });
 }
 
 /* =========================================================================
@@ -2590,6 +2684,12 @@ function solutionArea(z){
         varIdx = i; WEGWAHL.v = i; WEGWAHL.klick = true;
         paintWeg(box, TASK.variants[i]);
         if (zeigeLinks) zeigeLinks();
+        /* Das Quiz als Hilfe folgt demselben Weg. */
+        const qa = $('#quizArea');
+        if (qa && QUIZ && wegeImQuiz()){
+          if (!QUIZ.eingaben) QUIZ.eingaben = $$('.qz-cur-step:not(.qz-solved) input', qa).map(x => x.value);
+          quizRender(qa);
+        }
       });
       sw.appendChild(b);
     });
@@ -3434,8 +3534,8 @@ function stagePoint(title, name, right, sub, hint){
     verify(box){
       const q = readVec($('#inQ', box));
       if (!q) return { ok: false, cls: 'warn', msg: T('Bitte alle drei Koordinaten eintragen.', 'Please enter all three coordinates.') };
-      if (V.same(q, right)) return { ok: true, answer: '\\(' + ptTeX(name, right) + '\\)' };
-      const w = [0, 1, 2].filter(i => !eqN(q[i], right[i]));
+      if (gleichV(q, right)) return { ok: true, answer: '\\(' + ptTeX(name, right) + '\\)' };
+      const w = [0, 1, 2].filter(i => !passt(q[i], right[i]));
       return { ok: false, msg: w.length === 1
         ? T('Die ' + (w[0] + 1) + '. Koordinate stimmt noch nicht.', 'The ' + ORD(w[0] + 1) + ' coordinate is not right yet.')
         : (hint || T('Noch nicht richtig – rechne die Koordinaten noch einmal nach.', 'Not right yet – recalculate the coordinates.')) };
@@ -3453,7 +3553,7 @@ function stageNums(title, labels, vals, sub, hint){
     verify(box){
       const got = labels.map((L, i) => parseNum($('#inN' + i, box).value));
       if (got.some(x => x === null)) return { ok: false, cls: 'warn', msg: T('Bitte alle Felder ausfüllen.', 'Please fill in all fields.') };
-      const bad = got.map((x, i) => eqN(x, vals[i]) ? -1 : i).filter(i => i >= 0);
+      const bad = got.map((x, i) => passt(x, vals[i]) ? -1 : i).filter(i => i >= 0);
       if (!bad.length) return { ok: true, answer: '\\(' + labels.map((L, i) => L + ' = ' + numTeX(vals[i])).join(',\\quad ') + '\\)' };
       return { ok: false, msg: T('Noch nicht richtig bei \\(' + bad.map(i => labels[i]).join('\\) und \\(') + '\\). ',
                                     'Not right yet for \\(' + bad.map(i => labels[i]).join('\\) and \\(') + '\\). ') + (hint || '') };
@@ -3547,6 +3647,18 @@ function wurzelTeX(n){
     }
     return '\\sqrt{' + g + '}';
   }
+  /* Bruch unter der Wurzel: √(p/q) = √(p·q)/q, dann kürzen - aus √(400/9)
+     wird 20/3, aus √(8/9) wird 2√2/3, aus √(1/2) wird √2/2. */
+  const b = Q.of(n), pq = b.n * b.d;
+  if (b.d > 1 && b.n > 0 && pq < 1e9){
+    let k = 1, r = pq;
+    for (let t = Math.floor(Math.sqrt(pq)); t >= 2; t--){
+      if (pq % (t * t) === 0){ k = t; r = pq / (t * t); break; }
+    }
+    const gt = gcd(k, b.d) || 1, oben = k / gt, unten = b.d / gt;
+    const wz = (r === 1) ? numTeX(oben) : ((oben === 1 ? '' : numTeX(oben)) + '\\sqrt{' + r + '}');
+    return (unten === 1) ? wz : '\\frac{' + wz + '}{' + unten + '}';
+  }
   return '\\sqrt{' + numTeX(n) + '}';
 }
 /** Länge aus dem Quadrat: exakt, mit Näherung, und ob sie glatt aufgeht */
@@ -3597,12 +3709,18 @@ function hesseTeX(n, d, L){
   return '\\frac{\\left|' + zaehler + '\\right|}{' + nenner.exakt + '}';
 }
 /** Schritt: Betrag eines Vektors ausrechnen */
+/** „\\sqrt{q} = Ergebnis" - ohne die Wurzel doppelt zu nennen, wenn sie sich
+    nicht vereinfachen lässt (\\sqrt{46} = \\sqrt{46} \\approx …). */
+function wurzelGleich(L){
+  const w = '\\sqrt{' + numTeX(L.q) + '}';
+  return (L.tex.indexOf(w) === 0) ? L.tex : w + ' = ' + L.tex;
+}
 function betragSchritt(v, name, L){
   L = L || betrag(v);
   return step(T('Betrag berechnen', 'Work out the magnitude'),
     T('Quadrate addieren und die Wurzel ziehen:', 'Add the squares and take the root:'),
     '\\left|' + name + '\\right| = \\sqrt{' + [0, 1, 2].map(i => paren(v[i]) + '^2').join(' + ')
-      + '} = \\sqrt{' + numTeX(L.q) + '} = ' + L.tex);
+      + '} = ' + wurzelGleich(L));
 }
 /** kurzer Richtungsvektor - damit Kreuzprodukte und Abstände klein bleiben */
 function randDirKlein(){
@@ -3684,13 +3802,13 @@ function hZahl(frage, label, soll, opt){
     verify(box){
       const v = parseNum($('#inH', box).value);
       if (v === null) return { ok: false, cls: 'warn', msg: T('Bitte eine Zahl eintragen.', 'Please enter a number.') };
-      if (eqN(v, soll) || (opt.tol && Math.abs(v - soll) <= opt.tol)){
+      if (passt(v, soll) || (opt.tol && Math.abs(v - soll) <= opt.tol)){
         /* Krumme Werte werden gerundet gezeigt - sonst stünde dort ein
            Riesenbruch wie 1856371/318365. */
         const txt = opt.antwort || (opt.tol ? tfmt(rd(soll, 2), 2) : numTeX(soll));
         return { ok: true, answer: '\\(' + (label ? label + ' = ' : '') + txt + '\\)' };
       }
-      if (eqN(v, -soll) && !eq0(soll))
+      if (passt(v, -soll) && !eq0(soll))
         return { ok: false, msg: T('Nur das Vorzeichen stimmt noch nicht.', 'Only the sign is not right yet.') };
       return { ok: false, msg: opt.fehler || T('Noch nicht richtig – rechne es Schritt für Schritt nach.', 'Not right yet – work it out step by step.') };
     } };
@@ -3708,10 +3826,10 @@ function hVek(frage, label, soll, opt){
     verify(box){
       const v = readVec($('#inHV', box));
       if (!v) return { ok: false, cls: 'warn', msg: T('Bitte alle drei Felder ausfüllen.', 'Please fill in all three fields.') };
-      if (V.same(v, soll)) return { ok: true, answer: '\\(' + (label ? label + ' = ' : '') + TX.vec(soll) + '\\)' };
-      if (V.same(v, V.mul(soll, -1)))
+      if (gleichV(v, soll)) return { ok: true, answer: '\\(' + (label ? label + ' = ' : '') + TX.vec(soll) + '\\)' };
+      if (gleichV(v, V.mul(soll, -1)))
         return { ok: false, msg: T('Alle Vorzeichen sind vertauscht – achte auf die Reihenfolge.', 'All the signs are swapped – mind the order.') };
-      const falsch = [0, 1, 2].filter(i => !eqN(v[i], soll[i]));
+      const falsch = [0, 1, 2].filter(i => !passt(v[i], soll[i]));
       return { ok: false, msg: falsch.length === 1
         ? T('Die ' + (falsch[0] + 1) + '. Komponente stimmt noch nicht.', 'The ' + ORD(falsch[0] + 1) + ' component is not right yet.')
         : T('Es stimmen noch nicht alle Komponenten.', 'Not all components are right yet.') };
@@ -3787,8 +3905,9 @@ function hKreuz(a, b, erg, label){
   return [0, 1, 2].map(i => {
     const p = paare[i][0], q = paare[i][1];
     return hZahl(
-      T('Was ergibt die ' + (i + 1) + '. Komponente?', 'What is the ' + ORD(i + 1) + ' component?'),
-      numTeX(a[p]) + '\\cdot ' + paren(b[q]) + ' - ' + numTeX(a[q]) + '\\cdot ' + paren(b[p]), erg[i],
+      T('Was ergibt die ' + (i + 1) + '. Komponente von \\(' + (label || '\\vec{a}\\times\\vec{b}') + '\\)?',
+        'What is the ' + ORD(i + 1) + ' component of \\(' + (label || '\\vec{a}\\times\\vec{b}') + '\\)?'),
+      numTeX(a[p]) + '\\cdot ' + paren(b[q]) + ' - ' + paren(a[q]) + '\\cdot ' + paren(b[p]), erg[i],
       { weg: 'a_{' + (p + 1) + '}\\cdot b_{' + (q + 1) + '} - a_{' + (q + 1) + '}\\cdot b_{' + (p + 1) + '}',
         sub: i === 0 ? T('Für jede Zeile werden die beiden anderen Zeilen über Kreuz multipliziert.',
                          'For each row the other two rows are multiplied crosswise.') : '',
@@ -3818,6 +3937,9 @@ function hSpiegel(F, A, bild, name){
 /** Zwischenschritte zur laufenden Aufgabe */
 function hilfeBauen(t){
   if (!t || !t.stages || !t.stages.length || !t.pruef) return;
+  /* Bringen die Lösungswege eigene Zwischenfragen mit, gelten diese - das
+     Quiz als Hilfe folgt dann dem Weg, der über dem Quiz gewählt ist. */
+  if (t.variants && t.variants.some(v => v.hilfe && v.hilfe.length)) return;
   const d = t.pruef;
   let schritte = null;
   switch (d.art){
@@ -4006,8 +4128,8 @@ function hilfeBauen(t){
                    'First both dot products, then divide and double.') }),
         hVek(T('Wie lautet der gespiegelte Richtungsvektor?', 'What is the reflected direction vector?'),
           '\\vec{u}\\,\'', d.u2,
-          { sub: T('\\(\\vec{u}\\,\' = \\vec{u} - ' + numTeX(k) + '\\cdot\\vec{n}\\).',
-                   '\\(\\vec{u}\\,\' = \\vec{u} - ' + numTeX(k) + '\\cdot\\vec{n}\\).') })
+          { sub: T('\\(\\vec{u}\\,\' = \\vec{u}' + term(-k, '\\vec{n}', false) + '\\).',
+                   '\\(\\vec{u}\\,\' = \\vec{u}' + term(-k, '\\vec{n}', false) + '\\).') })
       ];
       break;
     }
@@ -4029,8 +4151,8 @@ function hilfeBauen(t){
                    'First both dot products, then divide and double.') }),
         hVek(T('Wie lautet der gespiegelte Normalenvektor?', 'What is the reflected normal vector?'),
           '\\vec{n}\\,\'', d.n2,
-          { sub: T('\\(\\vec{n}\\,\' = ' + numTeX(k) + '\\cdot\\vec{u} - \\vec{n}\\).',
-                   '\\(\\vec{n}\\,\' = ' + numTeX(k) + '\\cdot\\vec{u} - \\vec{n}\\).') }),
+          { sub: T('\\(\\vec{n}\\,\' = ' + (term(k, '\\vec{u}', true) + ' - \\vec{n}').replace(/^ - /, '-') + '\\).',
+                   '\\(\\vec{n}\\,\' = ' + (term(k, '\\vec{u}', true) + ' - \\vec{n}').replace(/^ - /, '-') + '\\).') }),
         hZahl(T('Und wie lautet die rechte Seite?', 'And what is the right-hand side?'), 'd\'', d.d2,
           { sub: T('Einen gespiegelten Punkt der Ebene in \\(\\vec{n}\\,\'' + SP() + xsym() + '\\) einsetzen.',
                    'Substitute a reflected point of the plane into \\(\\vec{n}\\,\'' + SP() + xsym() + '\\).') })
@@ -4039,6 +4161,523 @@ function hilfeBauen(t){
     }
   }
   if (schritte && schritte.length) t.stages[0].hilfe = schritte;
+}
+
+/* =========================================================================
+   Lösungswege als Bausteine
+   Jeder Baustein liefert die Schritte für den Lösungsweg (steps) und dazu
+   die Zwischenfragen für das Quiz als Hilfestellung (hilfe) - in derselben
+   Reihenfolge. Ein Lösungsweg setzt sich aus Bausteinen zusammen; der
+   Schalter über dem Quiz wählt ihn für Quiz und Lösungsweg zugleich.
+   Standardweg: ein Hilfsobjekt (Hilfsebene, Lotgerade), das die Aufgabe auf
+   den Abstand zweier Punkte oder eines Punktes von einer Ebene zurückführt.
+   Alternative: eine Formel, die man direkt benutzt.
+   ========================================================================= */
+/** Antwortmöglichkeiten reihum drehen - fest aus den Zahlen der Aufgabe,
+    damit die richtige nicht immer vorn steht und ein Link dieselbe
+    Reihenfolge zeigt. */
+function dreheOpts(opts, zahlen){
+  const k = Math.abs(Math.round((zahlen || []).reduce((s, x, i) => s + x * (2 * i + 3), 0))) % opts.length;
+  return opts.slice(k).concat(opts.slice(0, k));
+}
+function wegAus(label, teile){
+  const steps = [], hilfe = [];
+  teile.forEach(b => {
+    if (!b) return;
+    (b.steps || []).forEach(x => steps.push(x));
+    (b.hilfe || []).forEach(x => hilfe.push(x));
+  });
+  return { label: label, steps: steps, hilfe: hilfe };
+}
+/** Die Koordinaten eines Geradenpunktes in eine Koordinatengleichung
+    einsetzen: 2·(1 + 2r) − (3 − r) + 3·(2 + 3r) = 7 */
+function einsetzZeile(nv, p, u, d, sym){
+  let s = '';
+  [0, 1, 2].forEach(i => {
+    if (eq0(nv[i])) return;
+    const k = nv[i], a = Math.abs(k);
+    const vor = s ? (k < 0 ? ' - ' : ' + ') : (k < 0 ? '-' : '');
+    const faktor = eqN(a, 1) ? '' : numTeX(a) + '\\cdot ';
+    const innen = eq0(u[i]) ? paren(p[i]) : '\\left(' + affine(p[i], u[i], sym || par()) + '\\right)';
+    s += vor + faktor + innen;
+  });
+  return (s || '0') + ' = ' + numTeX(d);
+}
+/** c + k·r = d, dann r = … */
+function aufloesZeilen(c, k, d, t, sym){
+  const r = sym || par();
+  const kTeil = (eqN(Math.abs(k), 1) ? '' : numTeX(Math.abs(k)) + '\\cdot ') + r;
+  const links = eq0(c) ? ((k < 0 ? '-' : '') + kTeil) : numTeX(c) + (k < 0 ? ' - ' : ' + ') + kTeil;
+  return [links + ' = ' + numTeX(d), r + ' = ' + numTeX(t)];
+}
+/** Punkt in die linke Seite einer Koordinatengleichung: 2·3 + (−1)·4 + 3·1 */
+function einsetzPunkt(nv, A){
+  const t = [];
+  [0, 1, 2].forEach(i => { if (!eq0(nv[i])) t.push(numTeX(nv[i]) + '\\cdot ' + paren(A[i])); });
+  return (t.join(' + ') || '0').replace(/\+ -/g, '- ');
+}
+
+/* ---------- Hilfsobjekte ---------- */
+/** Hilfsebene durch einen Punkt senkrecht zu einer Geraden - liefert den
+    Lotfußpunkt auf der Geraden. */
+function bsHilfsebene(p, u, A, nameA, gName){
+  nameA = nameA || 'A'; gName = gName || 'g';
+  const lf = lotFuss(p, u, A), F = lf.F, r = lf.t;
+  const dH = snap(V.dot(u, A)), up = snap(V.dot(u, p)), uu = snap(V.dot(u, u));
+  const einsA = einsetzPunkt(u, A);
+  const zeilen = [einsetzZeile(u, p, u, dH)].concat(aufloesZeilen(up, uu, dH, r));
+  return {
+    F: F, r: r,
+    steps: [
+      step(T('Hilfsebene aufstellen', 'Set up the auxiliary plane'),
+        T('Die Hilfsebene \\(H\\) geht durch \\(' + nameA + '\\) und steht senkrecht auf \\(' + gName + '\\): '
+          + 'Der Richtungsvektor von \\(' + gName + '\\) ist ihr Normalenvektor, die rechte Seite liefert \\(' + nameA + '\\):',
+          'The auxiliary plane \\(H\\) passes through \\(' + nameA + '\\) and is perpendicular to \\(' + gName + '\\): '
+          + 'the direction vector of \\(' + gName + '\\) is its normal vector, \\(' + nameA + '\\) gives the right-hand side:'),
+        mehrzeilig2([einsA + ' = ' + numTeX(dH), planeKooTeX('H', u, dH)])),
+      step(T('Gerade mit der Hilfsebene schneiden', 'Intersect the line with the auxiliary plane'),
+        T('Die Koordinaten der Geradenpunkte in die Gleichung von \\(H\\) einsetzen:',
+          'Substitute the coordinates of the points of the line into the equation of \\(H\\):'),
+        mehrzeilig2(zeilen)),
+      step(T('Lotfußpunkt', 'Foot of the perpendicular'),
+        T('Den Parameterwert in die Geradengleichung einsetzen:', 'Substitute the parameter value into the equation of the line:'),
+        TX.arrow('OF') + ' = ' + TX.vec(p) + ' + ' + paren(r) + '\\cdot ' + TX.vec(u) + ' = ' + TX.vec(F))
+    ],
+    hilfe: [
+      hWahl(T('Welche Hilfsebene führt zum Lotfußpunkt auf \\(' + gName + '\\)?', 'Which auxiliary plane leads to the foot of the perpendicular on \\(' + gName + '\\)?'),
+        dreheOpts([{ v: 'senk', t: T('die Ebene durch \\(' + nameA + '\\), die senkrecht auf \\(' + gName + '\\) steht', 'the plane through \\(' + nameA + '\\) perpendicular to \\(' + gName + '\\)') },
+         { v: 'par', t: T('die Ebene durch \\(' + nameA + '\\), die \\(' + gName + '\\) enthält', 'the plane through \\(' + nameA + '\\) that contains \\(' + gName + '\\)') },
+         { v: 'stuetz', t: T('die Ebene durch den Stützpunkt von \\(' + gName + '\\), senkrecht auf \\(' + gName + '\\)', 'the plane through the base point of \\(' + gName + '\\), perpendicular to \\(' + gName + '\\)') }], A.concat(u)),
+        'senk',
+        { par: T('In dieser Ebene liegt die ganze Gerade – sie schneidet \\(' + gName + '\\) nicht in einem Punkt.', 'This plane contains the whole line – it does not meet \\(' + gName + '\\) in a single point.'),
+          stuetz: T('Diese Ebene geht nicht durch \\(' + nameA + '\\) – ihr Schnittpunkt mit \\(' + gName + '\\) ist nur der Stützpunkt.', 'This plane does not pass through \\(' + nameA + '\\) – it meets \\(' + gName + '\\) only at the base point.') },
+        { antwort: T('Hilfsebene durch \\(' + nameA + '\\), senkrecht auf \\(' + gName + '\\)', 'auxiliary plane through \\(' + nameA + '\\), perpendicular to \\(' + gName + '\\)'),
+          erk: T('Wo sie \\(' + gName + '\\) schneidet, liegt der Lotfußpunkt.', 'Where it meets \\(' + gName + '\\) is the foot of the perpendicular.') }),
+      hVek(T('Welcher Vektor ist Normalenvektor der Hilfsebene \\(H\\)?', 'Which vector is the normal vector of the auxiliary plane \\(H\\)?'),
+        '\\vec{n}_H', u,
+        { sub: T('\\(H\\) steht senkrecht auf \\(' + gName + '\\) – nimm den Richtungsvektor von \\(' + gName + '\\).',
+                 '\\(H\\) is perpendicular to \\(' + gName + '\\) – take the direction vector of \\(' + gName + '\\).'),
+          erk: T('Die Gleichung von \\(H\\) beginnt also mit \\(' + kooLHS(u) + '\\).',
+                 'So the equation of \\(H\\) starts with \\(' + kooLHS(u) + '\\).') }),
+      hZahl(T('Welche Zahl steht in der Gleichung von \\(H\\) auf der rechten Seite?',
+              'Which number is on the right-hand side of the equation of \\(H\\)?'),
+        einsA, dH,
+        { kurz: kooLHS(u),
+          sub: T('\\(' + nameA + '\\) liegt in \\(H\\): Setze die Koordinaten von \\(' + nameA + '\\) in die linke Seite ein.',
+                 '\\(' + nameA + '\\) lies in \\(H\\): substitute the coordinates of \\(' + nameA + '\\) into the left-hand side.'),
+          erk: T('Damit ist \\(' + planeKooTeX('H', u, dH) + '\\).', 'So \\(' + planeKooTeX('H', u, dH) + '\\).') }),
+      hZahl(T('Für welchen Parameterwert schneidet \\(' + gName + '\\) die Hilfsebene?',
+              'For which parameter value does \\(' + gName + '\\) meet the auxiliary plane?'),
+        par(), r,
+        { sub: T('Setze die Koordinaten der Geradenpunkte in die Gleichung von \\(H\\) ein: \\(' + zeilen[0]
+                 + '\\) – und löse nach \\(' + par() + '\\) auf.',
+                 'Substitute the coordinates of the points of the line into the equation of \\(H\\): \\(' + zeilen[0]
+                 + '\\) – and solve for \\(' + par() + '\\).') }),
+      hPunkt(T('Wie lautet der Lotfußpunkt \\(F\\)?', 'What is the foot of the perpendicular \\(F\\)?'), 'F', F,
+        { sub: T('Setze \\(' + par() + ' = ' + numTeX(r) + '\\) in die Geradengleichung ein.',
+                 'Substitute \\(' + par() + ' = ' + numTeX(r) + '\\) into the equation of the line.'),
+          erk: T('\\(F\\) ist der Punkt von \\(' + gName + '\\), der \\(' + nameA + '\\) am nächsten liegt.',
+                 '\\(F\\) is the point of \\(' + gName + '\\) closest to \\(' + nameA + '\\).') })
+    ]
+  };
+}
+/** Lotgerade durch einen Punkt senkrecht zu einer Ebene (Koordinatenform
+    n·x = d) - liefert den Lotfußpunkt in der Ebene. */
+function bsLotgerade(n, d, A, nameA, eName, sym){
+  nameA = nameA || 'A'; eName = eName || 'E'; sym = sym || par();
+  const nA = snap(V.dot(n, A)), nn = snap(V.dot(n, n));
+  const t = snap((d - nA) / nn), F = V.add(A, V.mul(n, t));
+  const zeilen = [einsetzZeile(n, A, n, d, sym)].concat(aufloesZeilen(nA, nn, d, t, sym));
+  return {
+    F: F, t: t,
+    steps: [
+      step(T('Lotgerade aufstellen', 'Set up the perpendicular line'),
+        T('Die Lotgerade \\(l\\) geht durch \\(' + nameA + '\\) und steht senkrecht auf \\(' + eName
+          + '\\) – der Normalenvektor von \\(' + eName + '\\) ist ihr Richtungsvektor:',
+          'The perpendicular line \\(l\\) passes through \\(' + nameA + '\\) and is perpendicular to \\(' + eName
+          + '\\) – the normal vector of \\(' + eName + '\\) is its direction vector:'),
+        lineTeX('l', A, n, sym)),
+      step(T('Lotgerade mit der Ebene schneiden', 'Intersect the perpendicular line with the plane'),
+        T('Die Koordinaten der Punkte von \\(l\\) in die Gleichung von \\(' + eName + '\\) einsetzen:',
+          'Substitute the coordinates of the points of \\(l\\) into the equation of \\(' + eName + '\\):'),
+        mehrzeilig2(zeilen)),
+      step(T('Lotfußpunkt', 'Foot of the perpendicular'),
+        T('Den Parameterwert in die Gleichung von \\(l\\) einsetzen:', 'Substitute the parameter value into the equation of \\(l\\):'),
+        TX.arrow('OF') + ' = ' + TX.vec(A) + ' + ' + paren(t) + '\\cdot ' + TX.vec(n) + ' = ' + TX.vec(F))
+    ],
+    hilfe: [
+      hWahl(T('Welche Hilfsgerade führt zum Lotfußpunkt in \\(' + eName + '\\)?', 'Which auxiliary line leads to the foot of the perpendicular in \\(' + eName + '\\)?'),
+        dreheOpts([{ v: 'lot', t: T('die Gerade durch \\(' + nameA + '\\), die senkrecht auf \\(' + eName + '\\) steht (Lotgerade)', 'the line through \\(' + nameA + '\\) perpendicular to \\(' + eName + '\\) (perpendicular line)') },
+         { v: 'par', t: T('eine Gerade durch \\(' + nameA + '\\), die parallel zu \\(' + eName + '\\) verläuft', 'a line through \\(' + nameA + '\\) parallel to \\(' + eName + '\\)') },
+         { v: 'null', t: T('die Gerade durch den Ursprung mit dem Normalenvektor als Richtung', 'the line through the origin with the normal vector as direction') }], A.concat(n)),
+        'lot',
+        { par: T('Eine Parallele trifft \\(' + eName + '\\) gar nicht.', 'A parallel line never meets \\(' + eName + '\\).'),
+          null: T('Die Richtung stimmt, aber die Gerade muss durch \\(' + nameA + '\\) gehen.', 'The direction is right, but the line has to pass through \\(' + nameA + '\\).') },
+        { antwort: T('Lotgerade durch \\(' + nameA + '\\), senkrecht auf \\(' + eName + '\\)', 'perpendicular line through \\(' + nameA + '\\) to \\(' + eName + '\\)'),
+          erk: T('Wo sie \\(' + eName + '\\) trifft, liegt der Lotfußpunkt.', 'Where it meets \\(' + eName + '\\) is the foot of the perpendicular.') }),
+      hVek(T('Welcher Vektor ist Richtungsvektor der Lotgeraden?', 'Which vector is the direction vector of the perpendicular line?'),
+        '\\vec{v}', n,
+        { sub: T('Die Lotgerade steht senkrecht auf \\(' + eName + '\\) – nimm den Normalenvektor von \\(' + eName + '\\).',
+                 'The perpendicular line is perpendicular to \\(' + eName + '\\) – take the normal vector of \\(' + eName + '\\).'),
+          erk: T('Die Lotgerade ist also \\(' + lineTeX('l', A, n, sym) + '\\).', 'So the perpendicular line is \\(' + lineTeX('l', A, n, sym) + '\\).') }),
+      hZahl(T('Für welchen Parameterwert trifft die Lotgerade die Ebene?', 'For which parameter value does the perpendicular line meet the plane?'),
+        sym, t,
+        { sub: T('Setze die Koordinaten der Punkte von \\(l\\) in die Gleichung von \\(' + eName + '\\) ein: \\(' + zeilen[0]
+                 + '\\) – und löse nach \\(' + sym + '\\) auf.',
+                 'Substitute the coordinates of the points of \\(l\\) into the equation of \\(' + eName + '\\): \\(' + zeilen[0]
+                 + '\\) – and solve for \\(' + sym + '\\).') }),
+      hPunkt(T('Wie lautet der Lotfußpunkt \\(F\\)?', 'What is the foot of the perpendicular \\(F\\)?'), 'F', F,
+        { sub: T('Setze \\(' + sym + ' = ' + numTeX(t) + '\\) in die Gleichung der Lotgeraden ein.',
+                 'Substitute \\(' + sym + ' = ' + numTeX(t) + '\\) into the equation of the perpendicular line.'),
+          erk: T('\\(F\\) ist der Punkt von \\(' + eName + '\\), der \\(' + nameA + '\\) am nächsten liegt.',
+                 '\\(F\\) is the point of \\(' + eName + '\\) closest to \\(' + nameA + '\\).') })
+    ]
+  };
+}
+/** Abstand zweier Punkte: Verbindungsvektor und Betrag */
+function bsPunktAbstand(X, Y, vekName, dName, L){
+  const XY = V.sub(Y, X);
+  L = L || betrag(XY);
+  return {
+    steps: [
+      step(T('Verbindungsvektor', 'Connecting vector'), T('Spitze minus Fuß:', 'Tip minus tail:'),
+        vekName + ' = ' + TX.vec(Y) + ' - ' + TX.vec(X) + ' = ' + TX.vec(XY)),
+      step(T('Abstand', 'Distance'), T('Der Abstand ist die Länge dieses Vektors:', 'The distance is the length of this vector:'),
+        dName + ' = \\left|' + vekName + '\\right| = \\sqrt{' + [0, 1, 2].map(i => paren(XY[i]) + '^2').join(' + ')
+          + '} = ' + wurzelGleich(L))
+    ],
+    hilfe: [hVek(T('Wie lautet der Verbindungsvektor \\(' + vekName + '\\)?', 'What is the connecting vector \\(' + vekName + '\\)?'),
+      vekName, XY, { sub: T('„Spitze minus Fuß“: der Zielpunkt zuerst.', '“Tip minus tail”: the target point comes first.') })]
+      .concat(hBetrag(XY, dName))
+  };
+}
+/** Abstand Punkt - Ebene mit der Hesseschen Normalform */
+function bsHNF(n, d, A, nameA, eName, opt){
+  opt = opt || {};
+  nameA = nameA || 'A'; eName = eName || 'E';
+  const Ln = betrag(n), z = snap(V.dot(n, A) - d);
+  const L = opt.L || laenge(snap(z * z / Ln.q));
+  const eins = einsetzPunkt(n, A) + (eq0(d) ? '' : (d > 0 ? ' - ' : ' + ') + numTeX(Math.abs(d)));
+  const dName = 'd(' + nameA + ';' + eName + ')';
+  return {
+    L: L,
+    steps: [
+      betragSchritt(n, '\\vec{n}', Ln),
+      step(T('Hessesche Normalform', 'Hesse normal form'),
+        T('Die Koordinatengleichung durch die Länge des Normalenvektors teilen. Setzt man einen Punkt ein, ist der Betrag sein Abstand von \\(' + eName + '\\):',
+          'Divide the Cartesian equation by the length of the normal vector. Substituting a point, the absolute value is its distance from \\(' + eName + '\\):'),
+        'd(X;' + eName + ') = ' + hesseTeX(n, d, Ln)),
+      step(T('Punkt einsetzen', 'Substitute the point'), '',
+        (Ln.exakt === '1'
+          ? dName + ' = \\left|' + eins + '\\right| = \\left|' + numTeX(z) + '\\right| = ' + L.tex
+          : dName + ' = \\frac{\\left|' + eins + '\\right|}{' + Ln.exakt + '} = \\frac{\\left|' + numTeX(z) + '\\right|}{'
+            + Ln.exakt + '} = ' + L.tex))
+    ],
+    hilfe: (opt.ohneN ? [] : [
+      hVek(T('Wie lautet der Normalenvektor von \\(' + eName + '\\)?', 'What is the normal vector of \\(' + eName + '\\)?'), '\\vec{n}', n,
+        { sub: T('Die Zahlen vor \\(' + axName(0) + '\\), \\(' + axName(1) + '\\) und \\(' + axName(2) + '\\) bilden ihn.',
+                 'The numbers in front of \\(' + axName(0) + '\\), \\(' + axName(1) + '\\) and \\(' + axName(2) + '\\) form it.') })])
+      .concat(hBetrag(n, '\\left|\\vec{n}\\right|'))
+      .concat([
+        hZahl(T('Was ergibt \\(' + nameA + '\\), eingesetzt in den Zähler der Hesseschen Normalform (noch ohne Betrag)?',
+                'What does \\(' + nameA + '\\) give in the numerator of the Hesse normal form (before taking the absolute value)?'),
+          eins, z, { kurz: '\\vec{n}' + SP() + TX.arrow('O' + nameA) + ' - d',
+            sub: T('Die Koordinaten von \\(' + nameA + '\\) in die linke Seite einsetzen und \\(d\\) abziehen.',
+                   'Substitute the coordinates of \\(' + nameA + '\\) into the left-hand side and subtract \\(d\\).') }),
+        hZahl(T('Wie groß ist der Abstand?', 'What is the distance?'), dName, L.wert,
+          { tol: L.glatt ? 0 : 0.006,
+            sub: T('Betrag des Zählers geteilt durch \\(\\left|\\vec{n}\\right|\\)' + (L.glatt ? '.' : ' – runde auf zwei Nachkommastellen.'),
+                   'Absolute value of the numerator divided by \\(\\left|\\vec{n}\\right|\\)' + (L.glatt ? '.' : ' – round to two decimal places.')) })
+      ])
+  };
+}
+/** Spiegelpunkt aus Punkt und Lotfußpunkt */
+function bsSpiegelpunkt(F, A, nameBild){
+  nameBild = nameBild || 'A\'';
+  const bild = V.sub(V.mul(F, 2), A);
+  return {
+    bild: bild,
+    steps: [step(T('Spiegelpunkt', 'Image point'),
+      T('Der Lotfußpunkt ist die Mitte von \\(A\\) und \\(' + nameBild + '\\) – vom Lotfußpunkt geht es noch einmal dieselbe Strecke weiter:',
+        'The foot is the midpoint of \\(A\\) and \\(' + nameBild + '\\) – from the foot, go the same distance again:'),
+      TX.arrow('O' + nameBild) + ' = 2\\cdot ' + TX.arrow('OF') + ' - ' + TX.arrow('OA')
+        + ' = 2\\cdot ' + TX.vec(F) + ' - ' + TX.vec(A) + ' = ' + TX.vec(bild))],
+    hilfe: [hSpiegel(F, A, bild, nameBild)]
+  };
+}
+
+/* ---------- Formeln ---------- */
+/** Abstand Punkt - Gerade: d = |PX × u| / |u| */
+function bsFormelPG(p, u, X, nameX, dName, L){
+  const PX = V.sub(X, p), kr = V.cross(PX, u);
+  const Lk = betrag(kr), Lu = betrag(u);
+  L = L || laenge(snap(Lk.q / Lu.q));
+  const vek = TX.arrow('P' + nameX);
+  return {
+    L: L,
+    steps: [
+      step(T('Formel', 'Formula'),
+        T('Der Abstand lässt sich direkt ausrechnen – \\(P\\) ist der Stützpunkt der Geraden, \\(\\vec{u}\\) ihr Richtungsvektor. '
+          + 'Der Zähler ist die Fläche des Parallelogramms aus \\(' + vek + '\\) und \\(\\vec{u}\\), geteilt durch die Grundseite:',
+          'The distance can be worked out directly – \\(P\\) is the base point of the line, \\(\\vec{u}\\) its direction vector. '
+          + 'The numerator is the area of the parallelogram spanned by \\(' + vek + '\\) and \\(\\vec{u}\\), divided by the base:'),
+        dName + ' = \\frac{\\left|' + vek + '\\times\\vec{u}\\right|}{\\left|\\vec{u}\\right|}'),
+      step(T('Verbindungsvektor', 'Connecting vector'), '',
+        vek + ' = ' + TX.vec(X) + ' - ' + TX.vec(p) + ' = ' + TX.vec(PX)),
+      Object.assign(step(T('Kreuzprodukt', 'Cross product'), '',
+        vek + '\\times\\vec{u} = ' + TX.vec(PX) + '\\times' + TX.vec(u) + ' = ' + TX.vec(kr)), { link: kreuzLink(PX, u) }),
+      step(T('Beträge', 'Magnitudes'), '',
+        mehrzeilig2(['\\left|' + vek + '\\times\\vec{u}\\right| = ' + wurzelGleich(Lk),
+                     '\\left|\\vec{u}\\right| = ' + wurzelGleich(Lu)])),
+      step(T('Einsetzen', 'Substitute'), '',
+        dName + ' = ' + (Lu.exakt === '1' ? '' : '\\frac{' + Lk.exakt + '}{' + Lu.exakt + '} = ') + L.tex)
+    ],
+    hilfe: [hVek(T('Wie lautet der Verbindungsvektor \\(' + vek + '\\) vom Stützpunkt \\(P\\) zu \\(' + nameX + '\\)?',
+                   'What is the connecting vector \\(' + vek + '\\) from the base point \\(P\\) to \\(' + nameX + '\\)?'),
+      vek, PX, { sub: T('„Spitze minus Fuß“.', '“Tip minus tail”.') })]
+      .concat(hKreuz(PX, u, kr, vek + '\\times\\vec{u}'))
+      .concat(hBetrag(kr, '\\left|' + vek + '\\times\\vec{u}\\right|'))
+      .concat(hBetrag(u, '\\left|\\vec{u}\\right|'))
+      .concat([hZahl(T('Wie groß ist der Abstand?', 'What is the distance?'), dName, L.wert,
+        { tol: L.glatt ? 0 : 0.006,
+          sub: T('Die beiden Beträge durcheinander teilen' + (L.glatt ? '.' : ' – runde auf zwei Nachkommastellen.'),
+                 'Divide the two magnitudes' + (L.glatt ? '.' : ' – round to two decimal places.')) })])
+  };
+}
+/** Abstand windschiefer Geraden: d = |(q − p)·n| / |n| mit n = u × v */
+function bsFormelWind(p, u, q, v, L){
+  const n = V.cross(u, v), PQ = V.sub(q, p), sp = snap(V.dot(PQ, n)), Ln = betrag(n);
+  const qp = '\\left(\\vec{q}-\\vec{p}\\right)';
+  return {
+    steps: [
+      step(T('Formel', 'Formula'),
+        T('Man projiziert den Verbindungsvektor der beiden Stützpunkte auf den gemeinsamen Normalenvektor '
+          + '\\(\\vec{n} = \\vec{u}\\times\\vec{v}\\) – also das Skalarprodukt mit dem normierten Vektor \\(\\vec{n}_0 = \\frac{\\vec{n}}{\\left|\\vec{n}\\right|}\\):',
+          'Project the connecting vector of the two base points onto the common normal vector '
+          + '\\(\\vec{n} = \\vec{u}\\times\\vec{v}\\) – that is, the dot product with the unit vector \\(\\vec{n}_0 = \\frac{\\vec{n}}{\\left|\\vec{n}\\right|}\\):'),
+        'd(g;h) = \\left|' + qp + SP() + '\\vec{n}_0\\right| = \\frac{\\left|' + qp + SP() + '\\left(\\vec{u}\\times\\vec{v}\\right)\\right|}{\\left|\\vec{u}\\times\\vec{v}\\right|}'),
+      Object.assign(step(T('Kreuzprodukt', 'Cross product'), '',
+        '\\vec{n} = \\vec{u}\\times\\vec{v} = ' + TX.vec(u) + '\\times' + TX.vec(v) + ' = ' + TX.vec(n)), { link: kreuzLink(u, v) }),
+      step(T('Verbindungsvektor der Stützpunkte', 'Connecting vector of the base points'), '',
+        '\\vec{q}-\\vec{p} = ' + TX.vec(q) + ' - ' + TX.vec(p) + ' = ' + TX.vec(PQ)),
+      step(T('Skalarprodukt', 'Dot product'), '',
+        qp + SP() + '\\vec{n} = ' + dotTeX(PQ, n) + ' = ' + numTeX(sp)),
+      betragSchritt(n, '\\vec{n}', Ln),
+      step(T('Einsetzen', 'Substitute'), '',
+        'd(g;h) = ' + (Ln.exakt === '1' ? '\\left|' + numTeX(sp) + '\\right|'
+                                        : '\\frac{\\left|' + numTeX(sp) + '\\right|}{' + Ln.exakt + '}') + ' = ' + L.tex)
+    ],
+    hilfe: hKreuz(u, v, n, '\\vec{u}\\times\\vec{v}')
+      .concat([
+        hVek(T('Wie lautet der Verbindungsvektor der Stützpunkte?', 'What is the connecting vector of the base points?'),
+          '\\vec{q}-\\vec{p}', PQ, { sub: T('Stützpunkt von \\(h\\) minus Stützpunkt von \\(g\\).', 'Base point of \\(h\\) minus base point of \\(g\\).') }),
+        hZahl(T('Wie groß ist das Skalarprodukt mit \\(\\vec{n}\\)?', 'What is the dot product with \\(\\vec{n}\\)?'),
+          dotTeX(PQ, n), sp, { kurz: qp + SP() + '\\vec{n}',
+            sub: T('Zeile für Zeile multiplizieren und addieren.', 'Multiply row by row and add.') })
+      ])
+      .concat(hBetrag(n, '\\left|\\vec{n}\\right|'))
+      .concat([hZahl(T('Wie groß ist der Abstand?', 'What is the distance?'), 'd(g;h)', L.wert,
+        { tol: L.glatt ? 0 : 0.006,
+          sub: T('Betrag des Skalarprodukts geteilt durch \\(\\left|\\vec{n}\\right|\\)' + (L.glatt ? '.' : ' – runde auf zwei Nachkommastellen.'),
+                 'Absolute value of the dot product divided by \\(\\left|\\vec{n}\\right|\\)' + (L.glatt ? '.' : ' – round to two decimal places.')) })])
+  };
+}
+/** Abstand paralleler Ebenen: d = |d₁ − d₂'| / |n₁|, wenn F mit demselben
+    Normalenvektor geschrieben ist */
+function bsFormelEE(n, d1, n2, d2, L){
+  const lam = V.factor(n, n2), d2s = snap(d2 / lam), Ln = betrag(n), z = snap(d1 - d2s);
+  const steps = [], hilfe = [];
+  if (!eqN(lam, 1)){
+    steps.push(step(T('Gleiche Normalenvektoren', 'Equal normal vectors'),
+      T('Die Gleichung von \\(F\\) durch \\(' + numTeX(lam) + '\\) teilen – dann haben beide Ebenen denselben Normalenvektor:',
+        'Divide the equation of \\(F\\) by \\(' + numTeX(lam) + '\\) – then both planes have the same normal vector:'),
+      planeKooTeX('F', n, d2s)));
+    hilfe.push(hZahl(T('Mit welcher Zahl ist \\(\\vec{n}_1\\) malgenommen, um \\(\\vec{n}_2\\) zu erhalten?',
+                       'By which number is \\(\\vec{n}_1\\) multiplied to give \\(\\vec{n}_2\\)?'),
+      '\\lambda', lam, { sub: T('\\(\\vec{n}_2 = \\lambda\\cdot\\vec{n}_1\\) – vergleiche eine Komponente, die nicht 0 ist.',
+                                '\\(\\vec{n}_2 = \\lambda\\cdot\\vec{n}_1\\) – compare a component that is not 0.') }));
+    hilfe.push(hZahl(T('Welche rechte Seite hat \\(F\\), nachdem du durch \\(\\lambda\\) geteilt hast?',
+                       'What is the right-hand side of \\(F\\) after dividing by \\(\\lambda\\)?'),
+      'd_2\'', d2s, { sub: T('Die rechte Seite von \\(F\\) durch \\(' + numTeX(lam) + '\\) teilen.',
+                             'Divide the right-hand side of \\(F\\) by \\(' + numTeX(lam) + '\\).') }));
+  }
+  steps.push(step(T('Formel', 'Formula'),
+    T('Haben beide Ebenen denselben Normalenvektor \\(\\vec{n}\\), ist ihr Abstand der Unterschied der rechten Seiten, geteilt durch \\(\\left|\\vec{n}\\right|\\):',
+      'If both planes have the same normal vector \\(\\vec{n}\\), their distance is the difference of the right-hand sides divided by \\(\\left|\\vec{n}\\right|\\):'),
+    'd(E;F) = \\frac{\\left|d_1 - d_2\\right|}{\\left|\\vec{n}\\right|}'));
+  steps.push(betragSchritt(n, '\\vec{n}', Ln));
+  steps.push(step(T('Einsetzen', 'Substitute'), '',
+    'd(E;F) = \\frac{\\left|' + numTeX(d1) + ' - ' + paren(d2s) + '\\right|}{' + Ln.exakt + '} = \\frac{\\left|'
+      + numTeX(z) + '\\right|}{' + Ln.exakt + '} = ' + L.tex));
+  hBetrag(n, '\\left|\\vec{n}\\right|').forEach(h => hilfe.push(h));
+  hilfe.push(hZahl(T('Wie groß ist der Abstand?', 'What is the distance?'), 'd(E;F)', L.wert,
+    { tol: L.glatt ? 0 : 0.006,
+      sub: T('\\(\\left|d_1 - d_2\\right|\\) geteilt durch \\(\\left|\\vec{n}\\right|\\)' + (L.glatt ? '.' : ' – runde auf zwei Nachkommastellen.'),
+             '\\(\\left|d_1 - d_2\\right|\\) divided by \\(\\left|\\vec{n}\\right|\\)' + (L.glatt ? '.' : ' – round to two decimal places.')) }));
+  return { steps: steps, hilfe: hilfe };
+}
+/** Hilfsebene für windschiefe Geraden: enthält g, parallel zu h */
+function bsHilfsebeneWind(p, u, v){
+  const n = V.cross(u, v), dE = snap(V.dot(n, p));
+  const eins = einsetzPunkt(n, p);
+  return {
+    n: n, d: dE,
+    steps: [
+      step(T('Hilfsebene aufstellen', 'Set up the auxiliary plane'),
+        T('Die Hilfsebene \\(E\\) enthält \\(g\\) und ist parallel zu \\(h\\) – sie wird von \\(\\vec{u}\\) und \\(\\vec{v}\\) aufgespannt. '
+          + 'Ihr Normalenvektor steht auf beiden senkrecht:',
+          'The auxiliary plane \\(E\\) contains \\(g\\) and is parallel to \\(h\\) – it is spanned by \\(\\vec{u}\\) and \\(\\vec{v}\\). '
+          + 'Its normal vector is perpendicular to both:'),
+        '\\vec{n} = \\vec{u}\\times\\vec{v} = ' + TX.vec(u) + '\\times' + TX.vec(v) + ' = ' + TX.vec(n)),
+      step(T('Koordinatengleichung der Hilfsebene', 'Cartesian equation of the auxiliary plane'),
+        T('Der Stützpunkt \\(P\\) von \\(g\\) liegt in \\(E\\) und liefert die rechte Seite:',
+          'The base point \\(P\\) of \\(g\\) lies in \\(E\\) and gives the right-hand side:'),
+        mehrzeilig2([eins + ' = ' + numTeX(dE), planeKooTeX('E', n, dE)])),
+      step(T('Zurückführen auf Punkt und Ebene', 'Reduce to point and plane'),
+        T('Jeder Punkt von \\(h\\) hat von \\(E\\) denselben Abstand – genau den Abstand der beiden Geraden. '
+          + 'Gesucht ist also der Abstand des Stützpunktes \\(Q\\) von \\(h\\) zur Ebene \\(E\\).',
+          'Every point of \\(h\\) has the same distance from \\(E\\) – exactly the distance between the two lines. '
+          + 'So we need the distance of the base point \\(Q\\) of \\(h\\) from the plane \\(E\\).'), '')
+    ],
+    hilfe: [hWahl(T('Welche Hilfsebene führt den Abstand auf einen Abstand Punkt–Ebene zurück?', 'Which auxiliary plane reduces the task to a distance between a point and a plane?'),
+        dreheOpts([{ v: 'gh', t: T('die Ebene, die \\(g\\) enthält und parallel zu \\(h\\) ist', 'the plane that contains \\(g\\) and is parallel to \\(h\\)') },
+         { v: 'beide', t: T('die Ebene, die \\(g\\) und \\(h\\) enthält', 'the plane that contains \\(g\\) and \\(h\\)') },
+         { v: 'senk', t: T('die Ebene durch \\(Q\\), die senkrecht auf \\(g\\) steht', 'the plane through \\(Q\\) perpendicular to \\(g\\)') }], p.concat(u, v)),
+        'gh',
+        { beide: T('Windschiefe Geraden liegen in keiner gemeinsamen Ebene.', 'Skew lines do not lie in a common plane.'),
+          senk: T('Damit fände man nur den Abstand von \\(Q\\) zu \\(g\\) – \\(Q\\) ist aber nicht der nächste Punkt von \\(h\\).', 'That would only give the distance from \\(Q\\) to \\(g\\) – but \\(Q\\) is not the closest point of \\(h\\).') },
+        { antwort: T('Hilfsebene durch \\(g\\), parallel zu \\(h\\)', 'auxiliary plane through \\(g\\), parallel to \\(h\\)'),
+          erk: T('Sie wird von \\(\\vec{u}\\) und \\(\\vec{v}\\) aufgespannt – ihr Normalenvektor ist \\(\\vec{u}\\times\\vec{v}\\).', 'It is spanned by \\(\\vec{u}\\) and \\(\\vec{v}\\) – its normal vector is \\(\\vec{u}\\times\\vec{v}\\).') })]
+      .concat(hKreuz(u, v, n, '\\vec{u}\\times\\vec{v}')).concat([
+      hZahl(T('Welche Zahl steht in der Gleichung der Hilfsebene \\(E\\) rechts?', 'Which number is on the right-hand side of the equation of the auxiliary plane \\(E\\)?'),
+        eins, dE, { kurz: kooLHS(n),
+          sub: T('Der Stützpunkt \\(P\\) von \\(g\\) liegt in \\(E\\) – setze ihn in die linke Seite ein.',
+                 'The base point \\(P\\) of \\(g\\) lies in \\(E\\) – substitute it into the left-hand side.'),
+          erk: T('Damit ist \\(' + planeKooTeX('E', n, dE) + '\\).', 'So \\(' + planeKooTeX('E', n, dE) + '\\).') }),
+      hWahl(T('Welcher Abstand ist jetzt noch zu berechnen?', 'Which distance is left to work out?'),
+        dreheOpts([{ v: 'qe', t: T('der von \\(Q\\) (auf \\(h\\)) zur Ebene \\(E\\)', 'the one from \\(Q\\) (on \\(h\\)) to the plane \\(E\\)') },
+         { v: 'pe', t: T('der von \\(P\\) (auf \\(g\\)) zur Ebene \\(E\\)', 'the one from \\(P\\) (on \\(g\\)) to the plane \\(E\\)') },
+         { v: 'pq', t: T('der von \\(P\\) zu \\(Q\\)', 'the one from \\(P\\) to \\(Q\\)') }], n.concat([dE])),
+        'qe',
+        { pe: T('\\(P\\) liegt in \\(E\\) – sein Abstand ist 0.', '\\(P\\) lies in \\(E\\) – its distance is 0.'),
+          pq: T('\\(P\\) und \\(Q\\) sind nicht die nächsten Punkte der beiden Geraden.', '\\(P\\) and \\(Q\\) are not the closest points of the two lines.') },
+        { antwort: T('Abstand von \\(Q\\) zu \\(E\\)', 'distance from \\(Q\\) to \\(E\\)') })
+    ])
+  };
+}
+/** Gerade parallel zur Ebene: Parallelität prüfen, ein Punkt genügt */
+function bsPunktDerGeraden(n, u, p){
+  return {
+    steps: [
+      step(T('Parallelität prüfen', 'Check for parallelism'),
+        T('Der Richtungsvektor steht senkrecht auf dem Normalenvektor:', 'The direction vector is perpendicular to the normal vector:'),
+        '\\vec{n}' + SP() + '\\vec{u} = ' + dotTeX(n, u) + ' = 0'),
+      step(T('Zurückführen auf Punkt und Ebene', 'Reduce to point and plane'),
+        T('Bei paralleler Lage hat jeder Punkt der Geraden denselben Abstand – wir nehmen den Stützpunkt \\(' + ptTeX('P', p) + '\\).',
+          'When they are parallel, every point of the line has the same distance – we take the base point \\(' + ptTeX('P', p) + '\\).'), '')
+    ],
+    hilfe: [hWahl(T('Warum genügt ein einziger Punkt der Geraden?', 'Why is a single point of the line enough?'),
+      dreheOpts([{ v: 'par', t: T('weil die Gerade parallel zur Ebene liegt', 'because the line is parallel to the plane') },
+       { v: 'auf', t: T('weil der Stützpunkt immer der nächste Punkt ist', 'because the base point is always the closest one') },
+       { v: 'egal', t: T('das genügt nicht – man braucht zwei Punkte', 'that is not enough – you need two points') }], p.concat(n)),
+      'par',
+      { auf: T('Der Stützpunkt ist nicht besonders – jeder Punkt der Geraden hat denselben Abstand.', 'The base point is nothing special – every point of the line has the same distance.'),
+        egal: T('Bei paralleler Lage ist der Abstand überall gleich.', 'When they are parallel the distance is the same everywhere.') },
+      { antwort: T('ein Punkt genügt – die Gerade ist parallel', 'one point is enough – the line is parallel'),
+        erk: T('Also: Abstand des Stützpunktes \\(P\\) von \\(E\\).', 'So: the distance of the base point \\(P\\) from \\(E\\).') })]
+  };
+}
+/** Ein einfacher Punkt einer Ebene: zwei Koordinaten 0, die dritte ausgerechnet */
+function einfacherPunkt(nv, d){
+  const kand = [0, 1, 2].filter(i => !eq0(nv[i]));
+  const glatt = kand.filter(i => Number.isInteger(snap(d / nv[i])));
+  const i = (glatt.length ? glatt : kand)[0];
+  const Q = [0, 0, 0];
+  Q[i] = snap(d / nv[i]);
+  return { Q: Q, i: i };
+}
+/** Parallele Ebenen: ein Punkt der zweiten Ebene */
+function bsPunktVonF(n2, d2, lam){
+  const e = einfacherPunkt(n2, d2), Q = e.Q, i = e.i;
+  const andere = [0, 1, 2].filter(k => k !== i).map(k => axName(k));
+  return {
+    Q: Q,
+    steps: [
+      step(T('Parallelität prüfen', 'Check for parallelism'),
+        T('Die Normalenvektoren sind Vielfache voneinander:', 'The normal vectors are multiples of each other:'),
+        '\\vec{n}_2 = ' + numTeX(lam) + '\\cdot\\vec{n}_1'),
+      step(T('Punkt der zweiten Ebene', 'A point of the second plane'),
+        T('Jeder Punkt von \\(F\\) hat von \\(E\\) denselben Abstand. Setze \\(' + andere[0] + ' = ' + andere[1] + ' = 0\\) und rechne die dritte Koordinate aus:',
+          'Every point of \\(F\\) has the same distance from \\(E\\). Set \\(' + andere[0] + ' = ' + andere[1] + ' = 0\\) and work out the third coordinate:'),
+        ptTeX('Q', Q))
+    ],
+    hilfe: [hPunkt(T('Welchen Punkt \\(Q\\) von \\(F\\) erhältst du mit \\(' + andere[0] + ' = ' + andere[1] + ' = 0\\)?',
+                     'Which point \\(Q\\) of \\(F\\) do you get with \\(' + andere[0] + ' = ' + andere[1] + ' = 0\\)?'), 'Q', Q,
+      { sub: T('Die beiden Nullen in die Gleichung von \\(F\\) einsetzen und nach \\(' + axName(i) + '\\) auflösen.',
+               'Substitute the two zeros into the equation of \\(F\\) and solve for \\(' + axName(i) + '\\).'),
+        erk: T('Gesucht ist jetzt der Abstand von \\(Q\\) zur Ebene \\(E\\).', 'Now we need the distance from \\(Q\\) to the plane \\(E\\).') })]
+  };
+}
+/** Spiegelung an einer Ebene mit dem doppelten Parameter */
+function bsSpiegelDoppelt(n, d, A){
+  const nA = snap(V.dot(n, A)), nn = snap(V.dot(n, n));
+  const t = snap((d - nA) / nn), bild = V.add(A, V.mul(n, snap(2 * t)));
+  const zeilen = [einsetzZeile(n, A, n, d)].concat(aufloesZeilen(nA, nn, d, t));
+  return {
+    bild: bild,
+    steps: [
+      step(T('Lotgerade', 'Perpendicular line'),
+        T('Sie geht durch \\(A\\) und hat \\(\\vec{n}\\) als Richtung:', 'It passes through \\(A\\) with \\(\\vec{n}\\) as direction:'),
+        lineTeX('l', A, n)),
+      step(T('Parameter des Lotfußpunktes', 'Parameter of the foot'),
+        T('In die Ebenengleichung einsetzen:', 'Substitute into the equation of the plane:'), mehrzeilig2(zeilen)),
+      step(T('Doppelter Parameter', 'Twice the parameter'),
+        T('Der Spiegelpunkt liegt auf der Lotgeraden beim doppelten Wert:', 'The image point lies on the perpendicular line at twice that value:'),
+        TX.arrow('OA\'') + ' = ' + TX.vec(A) + ' + ' + paren(snap(2 * t)) + '\\cdot ' + TX.vec(n) + ' = ' + TX.vec(bild))
+    ],
+    hilfe: [
+      hZahl(T('Für welchen Parameterwert trifft die Lotgerade die Ebene?', 'For which parameter value does the perpendicular line meet the plane?'),
+        par(), t, { sub: T('Lotgerade \\(' + lineTeX('l', A, n) + '\\) einsetzen: \\(' + zeilen[0] + '\\).',
+                           'Substitute the perpendicular line \\(' + lineTeX('l', A, n) + '\\): \\(' + zeilen[0] + '\\).') }),
+      hZahl(T('Welcher Parameterwert gehört zum Spiegelpunkt?', 'Which parameter value belongs to the image point?'),
+        par() + '\'', snap(2 * t), { sub: T('Der Spiegelpunkt ist doppelt so weit von \\(A\\) entfernt wie der Lotfußpunkt.',
+                                             'The image point is twice as far from \\(A\\) as the foot.') }),
+      hPunkt(T('Wie lautet der Spiegelpunkt?', 'What is the image point?'), 'A\'', bild,
+        { sub: T('Den doppelten Parameterwert in die Lotgerade einsetzen.', 'Substitute twice the parameter value into the perpendicular line.') })
+    ]
+  };
+}
+/** Spiegelung an einer Geraden: Lotfußpunkt über die Projektionsformel */
+function bsFormelLotPG(p, u, A){
+  const PA = V.sub(A, p), z = snap(V.dot(PA, u)), uu = snap(V.dot(u, u));
+  const r = snap(z / uu), F = V.add(p, V.mul(u, r));
+  const pa = '\\left(' + TX.arrow('OA') + ' - \\vec{p}\\right)';
+  return {
+    F: F,
+    steps: [
+      step(T('Formel für den Lotfußpunkt', 'Formula for the foot'),
+        T('Der Lotfußpunkt gehört zu dem Parameterwert, bei dem \\(' + TX.arrow('FA') + '\\) senkrecht auf \\(\\vec{u}\\) steht:',
+          'The foot belongs to the parameter value at which \\(' + TX.arrow('FA') + '\\) is perpendicular to \\(\\vec{u}\\):'),
+        par() + ' = \\frac{' + pa + SP() + '\\vec{u}}{\\vec{u}' + SP() + '\\vec{u}}'),
+      step(T('Einsetzen', 'Substitute'), '',
+        mehrzeilig2([TX.arrow('OA') + ' - \\vec{p} = ' + TX.vec(A) + ' - ' + TX.vec(p) + ' = ' + TX.vec(PA),
+                     par() + ' = ' + bruchWert(z, uu, r)])),
+      step(T('Lotfußpunkt', 'Foot of the perpendicular'), '',
+        TX.arrow('OF') + ' = ' + TX.vec(p) + ' + ' + paren(r) + '\\cdot ' + TX.vec(u) + ' = ' + TX.vec(F))
+    ],
+    hilfe: [
+      hVek(T('Wie lautet \\(' + TX.arrow('OA') + ' - \\vec{p}\\)?', 'What is \\(' + TX.arrow('OA') + ' - \\vec{p}\\)?'),
+        TX.arrow('OA') + ' - \\vec{p}', PA, { sub: T('Punkt minus Stützpunkt der Geraden.', 'The point minus the base point of the line.') }),
+      hZahl(T('Wie groß ist das Skalarprodukt mit \\(\\vec{u}\\)?', 'What is the dot product with \\(\\vec{u}\\)?'),
+        dotTeX(PA, u), z, { kurz: pa + SP() + '\\vec{u}' }),
+      hZahl(T('Und wie groß ist \\(\\vec{u}' + SP() + '\\vec{u}\\)?', 'And what is \\(\\vec{u}' + SP() + '\\vec{u}\\)?'),
+        dotTeX(u, u), uu, { kurz: '\\vec{u}' + SP() + '\\vec{u}' }),
+      hZahl(T('Welcher Parameterwert gehört zum Lotfußpunkt?', 'Which parameter value belongs to the foot?'),
+        par(), r, { sub: T('Die beiden Skalarprodukte durcheinander teilen.', 'Divide the two dot products.') }),
+      hPunkt(T('Wie lautet der Lotfußpunkt \\(F\\)?', 'What is the foot of the perpendicular \\(F\\)?'), 'F', F,
+        { sub: T('Den Parameterwert in die Geradengleichung einsetzen.', 'Substitute the parameter value into the equation of the line.') })
+    ]
+  };
 }
 
 /* --- Abstand zweier Punkte --- */
@@ -4095,18 +4734,14 @@ function genPgLot(m){
       stageAbstand(T('Und wie groß ist der Abstand?', 'And what is the distance?'), L)
     ],
     sol: '\\[' + ptTeX('F', F) + ',\\qquad d(A;g) = ' + L.tex + '\\]',
-    variants: [{
-      label: T('über eine Hilfsebene', 'Via an auxiliary plane'),
-      steps: hilfsebeneSchritte(p, u, A, lf, F).concat([
-        step(T('Verbindungsvektor', 'Connecting vector'), '',
-          TX.arrow('FA') + ' = ' + TX.vec(A) + ' - ' + TX.vec(F) + ' = ' + TX.vec(FA)),
-        betragSchritt(FA, TX.arrow('FA'), L),
-        step(T('Ergebnis', 'Result'), '', 'd(A;g) = ' + L.tex)
-      ])
-    }, {
-      label: T('mit der Formel', 'With the formula'),
-      steps: pgFormelSchritte(p, u, A, L)
-    }],
+    variants: (function(){
+      const he = bsHilfsebene(p, u, A, 'A', 'g');
+      return [
+        wegAus(T('über eine Hilfsebene', 'Via an auxiliary plane'),
+          [he, bsPunktAbstand(he.F, A, TX.arrow('FA'), 'd(A;g)', L)]),
+        wegAus(T('mit der Formel', 'With the formula'), [bsFormelPG(p, u, A, 'A', 'd(A;g)', L)])
+      ];
+    })(),
     note: T('Der Lotfußpunkt ist der Punkt von \\(g\\), der \\(A\\) am nächsten liegt.',
             'The foot of the perpendicular is the point of \\(g\\) closest to \\(A\\).'),
     vis: [vPunkt('P', p), vVek('u', 'P', u), vGerade('g', 'P', 'u'), vPunkt('A', A), vPunkt('F', F, VC.erg), vVekPP('FA', 'F', 'A', VC.erg)]
@@ -4148,11 +4783,11 @@ function pgFormelSchritte(p, u, A, L){
       'd(A;g) = \\frac{\\left|' + TX.arrow('PA') + '\\times\\vec{u}\\right|}{\\left|\\vec{u}\\right|}'),
     step(T('Verbindungsvektor', 'Connecting vector'), '',
       TX.arrow('PA') + ' = ' + TX.vec(A) + ' - ' + TX.vec(p) + ' = ' + TX.vec(PA)),
-    step(T('Kreuzprodukt', 'Cross product'), '',
-      TX.arrow('PA') + '\\times\\vec{u} = ' + TX.vec(PA) + '\\times' + TX.vec(u) + ' = ' + TX.vec(kr)),
+    Object.assign(step(T('Kreuzprodukt', 'Cross product'), '',
+      TX.arrow('PA') + '\\times\\vec{u} = ' + TX.vec(PA) + '\\times' + TX.vec(u) + ' = ' + TX.vec(kr)), { link: kreuzLink(PA, u) }),
     step(T('Beträge', 'Magnitudes'), '',
-      mehrzeilig2(['\\left|' + TX.arrow('PA') + '\\times\\vec{u}\\right| = \\sqrt{' + numTeX(Lk.q) + '} = ' + Lk.tex,
-                   '\\left|\\vec{u}\\right| = \\sqrt{' + numTeX(Lu.q) + '} = ' + Lu.tex])),
+      mehrzeilig2(['\\left|' + TX.arrow('PA') + '\\times\\vec{u}\\right| = ' + wurzelGleich(Lk),
+                   '\\left|\\vec{u}\\right| = ' + wurzelGleich(Lu)])),
     step(T('Einsetzen', 'Substitute'), '',
       'd(A;g) = \\frac{' + Lk.exakt + '}{' + Lu.exakt + '} = ' + L.tex)
   ];
@@ -4201,32 +4836,28 @@ function genGgPar(m){
                  'For parallel lines one point of one line is enough – its distance to the other is the same everywhere.') })
     ],
     sol: '\\[d(g;h) = ' + L.tex + '\\]',
-    variants: [{
-      label: T('Punkt zur anderen Geraden', 'Point to the other line'),
-      steps: [
-        step(T('Ansatz', 'Approach'),
-          T('Parallele Geraden haben überall denselben Abstand – man nimmt den Aufpunkt \\(Q\\) von \\(h\\) und berechnet seinen Abstand zu \\(g\\).',
-            'Parallel lines have the same distance everywhere – take the base point \\(Q\\) of \\(h\\) and work out its distance to \\(g\\).'), ''),
-        step(T('Verbindungsvektor', 'Connecting vector'), '',
-          TX.arrow('PQ') + ' = ' + TX.vec(q) + ' - ' + TX.vec(p) + ' = ' + TX.vec(PQ)),
-        step(T('Kreuzprodukt', 'Cross product'), '',
-          TX.arrow('PQ') + '\\times\\vec{u} = ' + TX.vec(kr)),
-        step(T('Einsetzen', 'Substitute'), '',
-          'd(g;h) = \\frac{\\left|' + TX.arrow('PQ') + '\\times\\vec{u}\\right|}{\\left|\\vec{u}\\right|} = \\frac{'
-            + Lk.exakt + '}{' + Lu.exakt + '} = ' + L.tex)
-      ]
-    }, {
-      label: T('über eine Hilfsebene', 'Via an auxiliary plane'),
-      steps: (function(){
-        const lf = lotFuss(p, u, q), FQ = V.sub(q, lf.F);
-        /* Derselbe ausführliche Weg wie bei Punkt und Gerade: erst die Ebene
-           durch den Punkt senkrecht zur Geraden, dann der Schnitt. */
-        return hilfsebeneSchritte(p, u, q, lf, lf.F).concat([
-          step(T('Abstand', 'Distance'), '',
-            'd(g;h) = \\left|' + TX.arrow('FQ') + '\\right| = \\left|' + TX.vec(FQ) + '\\right| = ' + L.tex)
-        ]);
-      })()
-    }],
+    variants: (function(){
+      const he = bsHilfsebene(p, u, q, 'Q', 'g');
+      const ansatz = {
+        steps: [step(T('Zurückführen auf Punkt und Gerade', 'Reduce to point and line'),
+          T('Parallele Geraden haben überall denselben Abstand – man nimmt den Stützpunkt \\(' + ptTeX('Q', q)
+            + '\\) von \\(h\\) und berechnet seinen Abstand zu \\(g\\).',
+            'Parallel lines have the same distance everywhere – take the base point \\(' + ptTeX('Q', q)
+            + '\\) of \\(h\\) and work out its distance to \\(g\\).'), '')],
+        hilfe: [hWahl(T('Welcher Abstand ist zu berechnen?', 'Which distance do you need to work out?'),
+          dreheOpts([{ v: 'qg', t: T('der vom Stützpunkt \\(Q\\) von \\(h\\) zur Geraden \\(g\\)', 'the one from the base point \\(Q\\) of \\(h\\) to the line \\(g\\)') },
+           { v: 'pq', t: T('der vom Stützpunkt \\(P\\) zum Stützpunkt \\(Q\\)', 'the one from the base point \\(P\\) to the base point \\(Q\\)') }], q.concat(u)),
+          'qg',
+          { pq: T('\\(P\\) und \\(Q\\) liegen im Allgemeinen nicht einander gegenüber – ihr Abstand ist meist größer.',
+                  '\\(P\\) and \\(Q\\) are usually not opposite each other – their distance is mostly larger.') },
+          { antwort: T('Abstand von \\(Q\\) zu \\(g\\)', 'distance from \\(Q\\) to \\(g\\)') })]
+      };
+      return [
+        wegAus(T('Punkt von \\(h\\), dann Hilfsebene', 'Point of \\(h\\), then auxiliary plane'),
+          [ansatz, he, bsPunktAbstand(he.F, q, TX.arrow('FQ'), 'd(g;h)', L)]),
+        wegAus(T('mit der Formel', 'With the formula'), [bsFormelPG(p, u, q, 'Q', 'd(g;h)', L)])
+      ];
+    })(),
     note: T('Bei parallelen Geraden ist der Abstand überall gleich – der Startpunkt ist frei wählbar.',
             'For parallel lines the distance is the same everywhere – you may pick any starting point.'),
     vis: visZweiGeradenKurz(p, u, q, v)
@@ -4270,39 +4901,21 @@ function genGgWind(m){
         { sub: T('\\(d = \\frac{\\left|\\left(\\vec{q}-\\vec{p}\\right)\\circ\\vec{n}\\right|}{\\left|\\vec{n}\\right|}\\)',
                  '\\(d = \\frac{\\left|\\left(\\vec{q}-\\vec{p}\\right)\\circ\\vec{n}\\right|}{\\left|\\vec{n}\\right|}\\)') })
     ],
-    sol: '\\[d(g;h) = \\frac{\\left|\\left(\\vec{q}-\\vec{p}\\right)' + SP() + '\\vec{n}\\right|}{\\left|\\vec{n}\\right|} = \\frac{\\left|'
-      + numTeX(sp) + '\\right|}{' + Ln.exakt + '} = ' + L.tex + '\\]',
-    variants: [{
-      label: T('mit dem gemeinsamen Normalenvektor', 'With the common normal vector'),
-      steps: [
-        step(T('Normalenvektor', 'Normal vector'),
-          T('Er steht auf beiden Geraden senkrecht:', 'It is perpendicular to both lines:'),
-          '\\vec{n} = \\vec{u}\\times\\vec{v} = ' + TX.vec(u) + '\\times' + TX.vec(v) + ' = ' + TX.vec(n)),
-        step(T('Verbindungsvektor der Aufpunkte', 'Connecting vector of the base points'), '',
-          '\\vec{q} - \\vec{p} = ' + TX.vec(q) + ' - ' + TX.vec(p) + ' = ' + TX.vec(PQ)),
-        step(T('Projektion auf den Normalenvektor', 'Projection onto the normal vector'),
-          T('Nur der Anteil längs \\(\\vec{n}\\) bleibt vom Abstand übrig:', 'Only the part along \\(\\vec{n}\\) is left of the distance:'),
-          '\\left(\\vec{q}-\\vec{p}\\right)' + SP() + '\\vec{n} = ' + numTeX(sp)),
-        betragSchritt(n, '\\vec{n}', Ln),
-        step(T('Einsetzen', 'Substitute'), '',
-          'd(g;h) = \\frac{\\left|' + numTeX(sp) + '\\right|}{' + Ln.exakt + '} = ' + L.tex)
-      ]
-    }, {
-      label: T('über eine Hilfsebene', 'Via an auxiliary plane'),
-      steps: [
-        step(T('Hilfsebene', 'Auxiliary plane'),
-          T('Man legt durch \\(g\\) eine Ebene, die zu \\(h\\) parallel ist – ihr Normalenvektor ist \\(\\vec{n} = \\vec{u}\\times\\vec{v}\\).',
-            'Put a plane through \\(g\\) that is parallel to \\(h\\) – its normal vector is \\(\\vec{n} = \\vec{u}\\times\\vec{v}\\).'),
-          planeKooTeX('E', n, snap(V.dot(n, p)))),
-        step(T('Abstand eines Punktes von \\(h\\)', 'Distance of a point of \\(h\\)'),
-          T('Jeder Punkt von \\(h\\) hat denselben Abstand zu dieser Ebene – zum Beispiel der Aufpunkt \\(Q\\):',
-            'Every point of \\(h\\) has the same distance to this plane – for instance the base point \\(Q\\):'),
-          'd = \\frac{\\left|\\vec{n}' + SP() + '\\vec{q} - ' + numTeX(snap(V.dot(n, p))) + '\\right|}{\\left|\\vec{n}\\right|} = ' + L.tex),
-        step(T('Warum das derselbe Abstand ist', 'Why this is the same distance'),
-          T('Die Hilfsebene enthält \\(g\\) und liegt parallel zu \\(h\\) – der Abstand der Ebene zu \\(h\\) ist deshalb genau der Abstand der beiden Geraden.',
-            'The auxiliary plane contains \\(g\\) and is parallel to \\(h\\) – so its distance to \\(h\\) is exactly the distance of the two lines.'), '')
-      ]
-    }],
+    sol: '\\[d(g;h) = \\frac{\\left|\\left(\\vec{q}-\\vec{p}\\right)' + SP() + '\\vec{n}\\right|}{\\left|\\vec{n}\\right|} = '
+      + (Ln.exakt === '1' ? '\\left|' + numTeX(sp) + '\\right|' : '\\frac{\\left|' + numTeX(sp) + '\\right|}{' + Ln.exakt + '}')
+      + ' = ' + L.tex + '\\]',
+    variants: (function(){
+      const hw = bsHilfsebeneWind(p, u, v);
+      const lot = bsLotgerade(hw.n, hw.d, q, 'Q', 'E', par3());
+      const erg = { steps: [step(T('Ergebnis', 'Result'), '', 'd(g;h) = d(Q;E) = ' + L.tex)] };
+      return [
+        wegAus(T('Hilfsebene, dann Lotgerade', 'Auxiliary plane, then perpendicular line'),
+          [hw, lot, bsPunktAbstand(q, lot.F, TX.arrow('QF'), 'd(g;h)', L)]),
+        wegAus(T('Hilfsebene, dann Hessesche Normalform', 'Auxiliary plane, then Hesse normal form'),
+          [hw, bsHNF(hw.n, hw.d, q, 'Q', 'E', { ohneN: true, L: L }), erg]),
+        wegAus(T('mit der Formel', 'With the formula'), [bsFormelWind(p, u, q, v, L)])
+      ];
+    })(),
     note: T('Windschiefe Geraden haben genau ein gemeinsames Lot – seine Länge ist der Abstand.',
             'Skew lines have exactly one common perpendicular – its length is the distance.'),
     vis: visZweiGeradenKurz(p, u, q, v)
@@ -4354,14 +4967,14 @@ function genPeLot(m){
       stageAbstand(T('Und wie groß ist der Abstand?', 'And what is the distance?'), L)
     ],
     sol: '\\[' + ptTeX('F', F) + ',\\qquad d(A;E) = ' + L.tex + '\\]',
-    variants: [{ label: T('über die Lotgerade', 'Via the perpendicular line'), steps: peLotSchritte(n, d, A, L) },
-      { label: T('mit der Hesseschen Normalform', 'With the Hesse normal form'),
-        steps: [
-          betragSchritt(n, '\\vec{n}', Ln),
-          step(T('Hessesche Normalform', 'Hesse normal form'), '', 'd(X;E) = ' + hesseTeX(n, d, Ln)),
-          step(T('Punkt einsetzen', 'Substitute the point'), '',
-            'd(A;E) = \\frac{\\left|' + numTeX(snap(V.dot(n, A) - d)) + '\\right|}{' + Ln.exakt + '} = ' + L.tex)
-        ] }],
+    variants: (function(){
+      const lot = bsLotgerade(n, d, A, 'A', 'E');
+      return [
+        wegAus(T('über die Lotgerade', 'Via the perpendicular line'),
+          [lot, bsPunktAbstand(A, lot.F, TX.arrow('AF'), 'd(A;E)', L)]),
+        wegAus(T('mit der Hesseschen Normalform', 'With the Hesse normal form'), [bsHNF(n, d, A, 'A', 'E', { L: L })])
+      ];
+    })(),
     note: T('Der Lotfußpunkt ist der Punkt der Ebene, der \\(A\\) am nächsten liegt.',
             'The foot of the perpendicular is the point of the plane closest to \\(A\\).'),
     vis: [visPlaneKoo('E', n, d), vPunkt('A', A), vPunkt('F', F, VC.erg), vVekPP('AF', 'A', 'F', VC.erg)]
@@ -4408,25 +5021,17 @@ function genGePar(m){
         { sub: T('Den Aufpunkt in die Hessesche Normalform einsetzen.', 'Substitute the base point into the Hesse normal form.') })
     ],
     sol: '\\[d(g;E) = \\frac{\\left|' + numTeX(zaehler) + '\\right|}{' + Ln.exakt + '} = ' + L.tex + '\\]',
-    variants: [{
-      label: T('Aufpunkt und Hessesche Normalform', 'Base point and Hesse normal form'),
-      steps: [
-        step(T('Parallelität prüfen', 'Check for parallelism'),
-          T('Der Richtungsvektor steht senkrecht auf dem Normalenvektor:', 'The direction vector is perpendicular to the normal vector:'),
-          '\\vec{n}' + SP() + '\\vec{u} = ' + TX.vec(n) + SP() + TX.vec(u) + ' = 0'),
-        step(T('Ein Punkt genügt', 'One point is enough'),
-          T('Bei paralleler Lage hat jeder Punkt der Geraden denselben Abstand – wir nehmen den Aufpunkt \\(' + ptTeX('P', p) + '\\).',
-            'When they are parallel every point of the line has the same distance – we take the base point \\(' + ptTeX('P', p) + '\\).'), ''),
-        betragSchritt(n, '\\vec{n}', Ln),
-        step(T('Einsetzen', 'Substitute'), '',
-          'd(g;E) = \\frac{\\left|' + [0, 1, 2].map(i => numTeX(n[i]) + '\\cdot ' + paren(p[i])).join(' + ')
-            + (eq0(d) ? '' : (d > 0 ? ' - ' : ' + ') + numTeX(Math.abs(d))) + '\\right|}{' + Ln.exakt
-            + '} = \\frac{\\left|' + numTeX(zaehler) + '\\right|}{' + Ln.exakt + '} = ' + L.tex)
-      ]
-    }, {
-      label: T('über den Lotfußpunkt', 'Via the foot of the perpendicular'),
-      steps: peLotSchritte(n, d, p, L)
-    }],
+    variants: (function(){
+      const pk = bsPunktDerGeraden(n, u, p);
+      const lot = bsLotgerade(n, d, p, 'P', 'E', par2());
+      const erg = { steps: [step(T('Ergebnis', 'Result'), '', 'd(g;E) = d(P;E) = ' + L.tex)] };
+      return [
+        wegAus(T('Punkt der Geraden, dann Lotgerade', 'Point of the line, then perpendicular line'),
+          [pk, lot, bsPunktAbstand(p, lot.F, TX.arrow('PF'), 'd(g;E)', L)]),
+        wegAus(T('Punkt der Geraden, dann Hessesche Normalform', 'Point of the line, then Hesse normal form'),
+          [pk, bsHNF(n, d, p, 'P', 'E', { L: L }), erg])
+      ];
+    })(),
     note: T('Liegt die Gerade nicht parallel zur Ebene, schneidet sie diese – dann ist der Abstand 0.',
             'If the line is not parallel to the plane it meets it – then the distance is 0.'),
     vis: [visPlaneKoo('E', n, d), vPunkt('P', p), vVek('u', 'P', u), vGerade('g', 'P', 'u')]
@@ -4472,25 +5077,18 @@ function genGeEE(m){
                  'Substitute this point into the Hesse normal form of the other plane.') })
     ],
     sol: '\\[d(E;F) = \\frac{\\left|' + numTeX(zaehler) + '\\right|}{' + Ln.exakt + '} = ' + L.tex + '\\]',
-    variants: [{
-      label: T('Punkt und Hessesche Normalform', 'Point and Hesse normal form'),
-      steps: [
-        step(T('Parallelität prüfen', 'Check for parallelism'),
-          T('Die Normalenvektoren sind Vielfache voneinander:', 'The normal vectors are multiples of each other:'),
-          '\\vec{n}_2 = ' + numTeX(faktor) + '\\cdot \\vec{n}_1'),
-        step(T('Punkt der zweiten Ebene', 'A point of the second plane'),
-          T('Zwei Koordinaten frei wählen, die dritte ausrechnen – hier zum Beispiel:', 'Choose two coordinates freely, work out the third – here for instance:'),
-          ptTeX('Q', Q0)),
-        betragSchritt(n, '\\vec{n}_1', Ln),
-        step(T('Einsetzen', 'Substitute'), '',
-          'd(E;F) = \\frac{\\left|' + [0, 1, 2].map(i => numTeX(n[i]) + '\\cdot ' + paren(Q0[i])).join(' + ')
-            + (eq0(d1) ? '' : (d1 > 0 ? ' - ' : ' + ') + numTeX(Math.abs(d1))) + '\\right|}{' + Ln.exakt
-            + '} = \\frac{\\left|' + numTeX(zaehler) + '\\right|}{' + Ln.exakt + '} = ' + L.tex)
-      ]
-    }, {
-      label: T('über die Lotgerade', 'Via the perpendicular line'),
-      steps: peLotSchritte(n, d1, Q0, L)
-    }],
+    variants: (function(){
+      const pf = bsPunktVonF(n2, d2, lam);
+      const lot = bsLotgerade(n, d1, pf.Q, 'Q', 'E');
+      const erg = { steps: [step(T('Ergebnis', 'Result'), '', 'd(E;F) = d(Q;E) = ' + L.tex)] };
+      return [
+        wegAus(T('Punkt von \\(F\\), dann Lotgerade', 'Point of \\(F\\), then perpendicular line'),
+          [pf, lot, bsPunktAbstand(pf.Q, lot.F, TX.arrow('QF'), 'd(E;F)', L)]),
+        wegAus(T('Punkt von \\(F\\), dann Hessesche Normalform', 'Point of \\(F\\), then Hesse normal form'),
+          [pf, bsHNF(n, d1, pf.Q, 'Q', 'E', { L: L }), erg]),
+        wegAus(T('mit der Formel', 'With the formula'), [bsFormelEE(n, d1, n2, d2, L)])
+      ];
+    })(),
     note: T('Zwei parallele Ebenen haben überall denselben Abstand – welchen Punkt man nimmt, ist gleichgültig.',
             'Two parallel planes have the same distance everywhere – which point you take does not matter.'),
     vis: [visPlaneKoo('E', n, d1), visPlaneKoo('F', n2, d2)]
@@ -4510,10 +5108,10 @@ function stageVecA(title, name, soll, sub, hint){
     verify(box){
       const v = readVec($('#inV', box));
       if (!v) return { ok: false, cls: 'warn', msg: T('Bitte alle drei Felder ausfüllen.', 'Please fill in all three fields.') };
-      if (V.same(v, soll)) return { ok: true, answer: '\\(' + name + ' = ' + TX.vec(soll) + '\\)' };
-      if (V.same(v, V.mul(soll, -1)))
+      if (gleichV(v, soll)) return { ok: true, answer: '\\(' + name + ' = ' + TX.vec(soll) + '\\)' };
+      if (gleichV(v, V.mul(soll, -1)))
         return { ok: false, msg: T('Alle Vorzeichen sind vertauscht – achte auf die Reihenfolge.', 'All the signs are swapped – mind the order.') };
-      const falsch = [0, 1, 2].filter(i => !eqN(v[i], soll[i]));
+      const falsch = [0, 1, 2].filter(i => !passt(v[i], soll[i]));
       return { ok: false, msg: falsch.length === 1
         ? T('Die ' + (falsch[0] + 1) + '. Komponente stimmt noch nicht.', 'The ' + ORD(falsch[0] + 1) + ' component is not right yet.')
         : (hint || T('Noch nicht richtig – rechne Komponente für Komponente.', 'Not right yet – work it out component by component.')) };
@@ -4639,7 +5237,9 @@ function genSpiegPE(m){
   }
   const s = spiegPE(A, n, d);
   if (eq0(s.t)) throw new Error(T('Der Punkt liegt in der Ebene.', 'The point lies in the plane.'));
-  if (!vGanz(s.bild)) throw new Error(T('Der Spiegelpunkt wäre nicht ganzzahlig.', 'The image point would not be integral.'));
+  /* Zufallsaufgaben sind so gebaut, dass der Spiegelpunkt ganzzahlig ist;
+     eine eigene Aufgabe (auch aus vektor.py) darf Brüche ergeben. */
+  if (!m && !vGanz(s.bild)) throw new Error(T('Der Spiegelpunkt wäre nicht ganzzahlig.', 'The image point would not be integral.'));
   const L = betrag(V.sub(s.F, A));
   return {
     id: 'spieg.pe', kap: T('Punkt an einer Ebene', 'Point in a plane'),
@@ -4655,29 +5255,13 @@ function genSpiegPE(m){
         T('Vom Lotfußpunkt noch einmal dieselbe Strecke weiter.', 'Go the same distance again beyond the foot.'))
     ],
     sol: '\\[' + ptTeX('F', s.F) + ',\\qquad ' + ptTeX('A\'', s.bild) + '\\]',
-    variants: [{
-      label: T('über den Lotfußpunkt', 'Via the foot of the perpendicular'),
-      steps: peLotSchritte(n, d, A, L).slice(0, 3).concat([
-        step(T('Doppelt so weit', 'Twice as far'),
-          T('Der Lotfußpunkt ist die Mitte zwischen \\(A\\) und \\(A\'\\):',
-            'The foot is the midpoint of \\(A\\) and \\(A\'\\):'),
-          TX.arrow('OA\'') + ' = 2\\cdot ' + TX.arrow('OF') + ' - ' + TX.arrow('OA')
-            + ' = 2\\cdot ' + TX.vec(s.F) + ' - ' + TX.vec(A) + ' = ' + TX.vec(s.bild))
-      ])
-    }, {
-      label: T('mit dem doppelten Parameter', 'With twice the parameter'),
-      steps: [
-        step(T('Lotgerade', 'Perpendicular line'),
-          T('Sie geht durch \\(A\\) und hat \\(\\vec{n}\\) als Richtung:', 'It passes through \\(A\\) with \\(\\vec{n}\\) as direction:'),
-          lineTeX('l', A, n)),
-        step(T('Parameter des Lotfußpunktes', 'Parameter of the foot'), '',
-          par() + ' = \\frac{' + numTeX(d) + ' - \\vec{n}' + SP() + TX.arrow('OA') + '}{\\vec{n}' + SP() + '\\vec{n}} = '
-            + numTeX(s.t)),
-        step(T('Doppelter Parameter', 'Twice the parameter'),
-          T('Der Spiegelpunkt liegt beim doppelten Wert:', 'The image point is at twice that value:'),
-          TX.arrow('OA\'') + ' = ' + TX.vec(A) + ' + ' + paren(snap(2 * s.t)) + '\\cdot ' + TX.vec(n) + ' = ' + TX.vec(s.bild))
-      ]
-    }],
+    variants: (function(){
+      const lot = bsLotgerade(n, d, A, 'A', 'E');
+      return [
+        wegAus(T('über die Lotgerade', 'Via the perpendicular line'), [lot, bsSpiegelpunkt(lot.F, A)]),
+        wegAus(T('mit dem doppelten Parameter', 'With twice the parameter'), [bsSpiegelDoppelt(n, d, A)])
+      ];
+    })(),
     note: T('Punkt und Spiegelpunkt liegen auf derselben Lotgeraden, aber auf verschiedenen Seiten der Ebene.',
             'The point and its image lie on the same perpendicular line, on opposite sides of the plane.'),
     vis: [visPlaneKoo('E', n, d), vPunkt('A', A), vPunkt('F', s.F, VC.zweit), vPunkt('A\'', s.bild, VC.erg)]
@@ -4691,7 +5275,7 @@ function genSpiegPG(m){
   if (V.zero(u)) throw new Error(T('Der Richtungsvektor darf nicht der Nullvektor sein.', 'The direction vector must not be the zero vector.'));
   const s = spiegPG(A, p, u);
   if (V.same(s.F, A)) throw new Error(T('Der Punkt liegt auf der Geraden.', 'The point lies on the line.'));
-  if (!vGanz(s.bild)) throw new Error(T('Der Spiegelpunkt wäre nicht ganzzahlig.', 'The image point would not be integral.'));
+  if (!m && !vGanz(s.bild)) throw new Error(T('Der Spiegelpunkt wäre nicht ganzzahlig.', 'The image point would not be integral.'));
   const FA = V.sub(A, s.F);
   return {
     id: 'spieg.pg', kap: T('Punkt an einer Geraden', 'Point in a line'),
@@ -4706,24 +5290,14 @@ function genSpiegPG(m){
         T('Vom Lotfußpunkt noch einmal dieselbe Strecke weiter.', 'Go the same distance again beyond the foot.'))
     ],
     sol: '\\[' + ptTeX('F', s.F) + ',\\qquad ' + ptTeX('A\'', s.bild) + '\\]',
-    variants: [{
-      label: T('über den Lotfußpunkt', 'Via the foot of the perpendicular'),
-      steps: [
-        step(T('Ansatz', 'Approach'),
-          T('Der Lotfußpunkt liegt auf \\(g\\), und \\(' + TX.arrow('FA') + '\\) steht senkrecht auf \\(\\vec{u}\\):',
-            'The foot lies on \\(g\\), and \\(' + TX.arrow('FA') + '\\) is perpendicular to \\(\\vec{u}\\):'),
-          par() + ' = \\frac{\\left(' + TX.arrow('OA') + ' - \\vec{p}\\right)' + SP() + '\\vec{u}}{\\vec{u}' + SP() + '\\vec{u}} = '
-            + numTeX(s.t)),
-        step(T('Lotfußpunkt', 'Foot of the perpendicular'), '',
-          TX.arrow('OF') + ' = ' + TX.vec(p) + ' + ' + paren(s.t) + '\\cdot ' + TX.vec(u) + ' = ' + TX.vec(s.F)),
-        step(T('Verbindungsvektor', 'Connecting vector'), '',
-          TX.arrow('FA') + ' = ' + TX.vec(A) + ' - ' + TX.vec(s.F) + ' = ' + TX.vec(FA)),
-        step(T('Noch einmal dieselbe Strecke', 'The same distance again'),
-          T('Vom Lotfußpunkt aus dieselbe Strecke weiter:', 'From the foot, the same distance again:'),
-          TX.arrow('OA\'') + ' = ' + TX.arrow('OF') + ' + ' + TX.arrow('FA') + '\\cdot(-1)'
-            + '\\;\\text{bzw.}\\;' + TX.arrow('OA\'') + ' = 2\\cdot ' + TX.vec(s.F) + ' - ' + TX.vec(A) + ' = ' + TX.vec(s.bild))
-      ]
-    }],
+    variants: (function(){
+      const he = bsHilfsebene(p, u, A, 'A', 'g');
+      const fo = bsFormelLotPG(p, u, A);
+      return [
+        wegAus(T('über eine Hilfsebene', 'Via an auxiliary plane'), [he, bsSpiegelpunkt(he.F, A)]),
+        wegAus(T('mit der Formel', 'With the formula'), [fo, bsSpiegelpunkt(fo.F, A)])
+      ];
+    })(),
     note: T('Die Gerade ist die Mittelsenkrechte der Strecke \\(\\overline{AA\'}\\).',
             'The line is the perpendicular bisector of the segment \\(\\overline{AA\'}\\).'),
     vis: [vPunkt('P', p), vVek('u', 'P', u), vGerade('g', 'P', 'u'), vPunkt('A', A),
@@ -4918,6 +5492,10 @@ function genSpiegEP(m){
   const d2 = snap(2 * V.dot(n, Z) - d);
   if (eqN(d2, d)) throw new Error(T('Das Spiegelzentrum liegt in der Ebene.', 'The centre lies in the plane.'));
   const Zs = spiegPE(Z, n, d);
+  /* Ein Punkt, der sicher in E liegt - bei einer eigenen Aufgabe ist P0
+     sonst ein beliebiger Punkt. */
+  const Pk = (m && m.d != null && !eqN(V.dot(n, P0), d)) ? einfacherPunkt(n, d).Q : P0;
+  const Pb = spiegPP(Pk, Z), nZ = snap(V.dot(n, Z));
   return {
     id: 'spieg.ep', kap: T('Ebene an einem Punkt', 'Plane in a point'),
     pruef: { art: 'spiegEP', n: n, d0: d, Z: Z, d2: d2 },
@@ -4939,13 +5517,24 @@ function genSpiegEP(m){
             'A reflection in a point only reverses \\(\\vec{n}\\) – the image plane is parallel to \\(E\\):'),
           '\\vec{n}\\,\' = \\vec{n} = ' + TX.vec(n)),
         step(T('Einen Punkt spiegeln', 'Reflect one point'),
-          T('Der Punkt \\(' + ptTeX('P', P0) + '\\) liegt in \\(E\\). Sein Bild:',
-            'The point \\(' + ptTeX('P', P0) + '\\) lies in \\(E\\). Its image:'),
-          TX.arrow('OP\'') + ' = 2\\cdot ' + TX.vec(Z) + ' - ' + TX.vec(P0) + ' = ' + TX.vec(spiegPP(P0, Z))),
+          T('Der Punkt \\(' + ptTeX('P', Pk) + '\\) liegt in \\(E\\). Sein Bild:',
+            'The point \\(' + ptTeX('P', Pk) + '\\) lies in \\(E\\). Its image:'),
+          TX.arrow('OP\'') + ' = 2\\cdot ' + TX.vec(Z) + ' - ' + TX.vec(Pk) + ' = ' + TX.vec(Pb)),
         step(T('Einsetzen', 'Substitute'),
           T('Der Bildpunkt muss die Gleichung der Bildebene erfüllen:', 'The image point has to satisfy the equation of the image plane:'),
-          'd\' = \\vec{n}' + SP() + TX.vec(spiegPP(P0, Z)) + ' = ' + numTeX(d2)),
+          'd\' = \\vec{n}' + SP() + TX.vec(Pb) + ' = ' + numTeX(d2)),
         step(T('Bildebene', 'Image plane'), '', planeKooTeX('E\'', n, d2))
+      ],
+      hilfe: [
+        hWahl(T('Was passiert bei der Spiegelung am Punkt mit dem Normalenvektor?', 'What happens to the normal vector in the reflection in the point?'),
+          [{ v: 'bleibt', t: T('er bleibt (bis aufs Vorzeichen) – die Bildebene ist parallel', 'it stays (up to the sign) – the image plane is parallel') },
+           { v: 'neu', t: T('er muss neu berechnet werden', 'it has to be recalculated') }],
+          'bleibt', { neu: T('Eine Punktspiegelung dreht jede Richtung nur um.', 'A reflection in a point only reverses each direction.') },
+          { antwort: T('\\(\\vec{n}\\) bleibt', '\\(\\vec{n}\\) stays') }),
+        hPunkt(T('Spiegle den Punkt \\(' + ptTeX('P', Pk) + '\\) von \\(E\\) an \\(Z\\).', 'Reflect the point \\(' + ptTeX('P', Pk) + '\\) of \\(E\\) in \\(Z\\).'), 'P\'', Pb,
+          { sub: T('\\(' + TX.arrow('OP\'') + ' = 2\\cdot ' + TX.arrow('OZ') + ' - ' + TX.arrow('OP') + '\\).', '\\(' + TX.arrow('OP\'') + ' = 2\\cdot ' + TX.arrow('OZ') + ' - ' + TX.arrow('OP') + '\\).') }),
+        hZahl(T('Welche rechte Seite hat die Bildebene?', 'What is the right-hand side of the image plane?'), einsetzPunkt(n, Pb), d2,
+          { kurz: 'd\'', sub: T('\\(P\'\\) in die linke Seite der Gleichung einsetzen.', 'Substitute \\(P\'\\) into the left-hand side of the equation.') })
       ]
     }, {
       label: T('mit dem Abstand', 'Via the distance'),
@@ -4953,12 +5542,20 @@ function genSpiegEP(m){
         step(T('Abstand von \\(Z\\)', 'Distance from \\(Z\\)'),
           T('Die Bildebene liegt auf der anderen Seite von \\(Z\\), genauso weit entfernt:',
             'The image plane lies on the other side of \\(Z\\), equally far away:'),
-          'd\' = 2\\cdot\\left(\\vec{n}' + SP() + TX.arrow('OZ') + '\\right) - d = 2\\cdot ' + numTeX(snap(V.dot(n, Z)))
+          'd\' = 2\\cdot\\left(\\vec{n}' + SP() + TX.arrow('OZ') + '\\right) - d = 2\\cdot ' + paren(snap(V.dot(n, Z)))
             + ' - ' + paren(d) + ' = ' + numTeX(d2)),
         step(T('Probe', 'Check'),
           T('Der Spiegelpunkt von \\(Z\\) an \\(E\\) liegt in der Bildebene:', 'The reflection of \\(Z\\) in \\(E\\) lies in the image plane:'),
           '\\vec{n}' + SP() + TX.vec(Zs.bild) + ' = ' + numTeX(snap(V.dot(n, Zs.bild)))),
         step(T('Bildebene', 'Image plane'), '', planeKooTeX('E\'', n, d2))
+      ],
+      hilfe: [
+        hZahl(T('Was ergibt \\(Z\\), eingesetzt in die linke Seite der Gleichung von \\(E\\)?', 'What does \\(Z\\) give in the left-hand side of the equation of \\(E\\)?'),
+          einsetzPunkt(n, Z), nZ, { kurz: '\\vec{n}' + SP() + TX.arrow('OZ') }),
+        hZahl(T('Welche rechte Seite hat die Bildebene?', 'What is the right-hand side of the image plane?'),
+          '2\\cdot ' + paren(nZ) + ' - ' + paren(d), d2,
+          { kurz: 'd\'', sub: T('\\(Z\\) liegt in der Mitte: \\(d\' = 2\\cdot\\left(\\vec{n}' + SP() + TX.arrow('OZ') + '\\right) - d\\).',
+                                 '\\(Z\\) is the midpoint: \\(d\' = 2\\cdot\\left(\\vec{n}' + SP() + TX.arrow('OZ') + '\\right) - d\\).') })
       ]
     }],
     note: T('Bildebene und Ausgangsebene sind parallel – \\(Z\\) liegt genau in der Mitte zwischen ihnen.',
@@ -5120,6 +5717,13 @@ function markiereAktuell(host){
             && (!teil[1] || act.some(s => s.id === teil[1]));
     b.classList.toggle('aktuell', def.id === teil[0] && an);
     b.classList.remove('aktuell-gruppe');
+  });
+  /* im offenen Menü der Kachel: die Unteraufgabe, die gerade dran ist */
+  const pop = document.querySelector('.pop');
+  if (pop) $$('label', pop).forEach(l => {
+    const cb = $('input[data-s]', l);
+    l.classList.toggle('aktuell', !!(cb && teil[1] && cb.dataset.s === teil[1]
+      && POPOWNER && POPOWNER.dataset.t === teil[0]));
   });
 }
 function resetControls(){ buildTiles($('#tiles'), TYPES, S, () => { typenVonHand = true; refreshTiles(); }); }

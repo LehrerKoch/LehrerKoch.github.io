@@ -434,6 +434,16 @@ let chartCurN    = 3;
 // INIT
 // ===================================================
 window.addEventListener('load', () => {
+  /* Anzahl der Türen aus der Adresse (?tueren=5) - der Regler ist die
+     Einstellung der Seite und wird so mit dem Link geteilt. */
+  try {
+    const t = parseInt(new URLSearchParams(location.search).get('tueren'), 10);
+    const sl = document.getElementById('doorSlider');
+    if (sl && t >= +sl.min && t <= +sl.max){
+      sl.value = String(t); N = t;
+      document.getElementById('doorBadge').textContent = N;
+    }
+  } catch (e) {}
   initGame();
   updateStatsUI();
   // Lock phase-info height after intro text renders
@@ -449,6 +459,13 @@ window.addEventListener('load', () => {
 function onDoorChange(v) {
   N = parseInt(v);
   document.getElementById('doorBadge').textContent = N;
+  /* in die Adresse - drei Türen sind der Standard und brauchen keinen Eintrag */
+  try {
+    const p = new URLSearchParams(location.search);
+    if (N === 3) p.delete('tueren'); else p.set('tueren', String(N));
+    const qs = p.toString();
+    history.replaceState(null, '', location.pathname + (qs ? '?' + qs : '') + location.hash);
+  } catch (e) {}
   stopAP(false, false);
   const el = document.getElementById('phaseInfo');
   el.style.minHeight = '';
