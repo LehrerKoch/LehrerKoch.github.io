@@ -1480,13 +1480,16 @@ function autoVerdrahten(){
     if(b.classList.contains('zb-reset')) return;
     let t=null, lang=false;
     b.addEventListener('pointerdown',ev=>{
-      if(ev.button!=null&&ev.button!==0) return;
+      if(ev.button!=null&&ev.button!==0){ if(ev.pointerType==='mouse') lang=false; return; }
       lang=false;
       t=setTimeout(()=>{ lang=true; autoUmschalten(); }, 550);
     });
     ['pointerup','pointerleave','pointercancel'].forEach(e=>
       b.addEventListener(e,()=>clearTimeout(t)));
-    b.addEventListener('contextmenu',ev=>{ ev.preventDefault(); clearTimeout(t); lang=true; autoUmschalten(); });
+    /* Auf Touch-Tafeln mit Windows (z. B. Promethean) kommt das Kontextmenü
+       erst beim Loslassen - nach dem langen Druck, der schon umgeschaltet hat.
+       Dann nicht noch einmal umschalten. */
+    b.addEventListener('contextmenu',ev=>{ ev.preventDefault(); clearTimeout(t); if(lang) return; lang=true; autoUmschalten(); });
     b.addEventListener('click',ev=>{
       clearTimeout(t);
       if(lang){ lang=false; ev.preventDefault(); ev.stopImmediatePropagation(); }

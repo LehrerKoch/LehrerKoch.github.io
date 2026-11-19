@@ -69,12 +69,14 @@ h1{font-size:1.45rem;margin:14px 0 2px;padding-right:150px}
 @media(max-width:1000px){
   .wrap{grid-template-columns:1fr;gap:6px}
   .stagewrap{order:-1}
-  /* etwas schmaler, damit daneben gescrollt werden kann */
-  #stageBox{height:min(54vh,430px);width:90%;margin:0 auto}
+  /* etwas schmaler, damit daneben gescrollt werden kann. Mit .stagewrap
+     davor - sonst gewinnt die Grundregel für #stageBox weiter unten. */
+  .stagewrap #stageBox{width:90%;margin:0 auto}
 }
-@media(max-width:560px){ #stageBox{height:min(42vh,320px)} }
+/* wie beim 3D-Koordinatensystem: links und rechts ein breiterer Rand, auf
+   dem man mit dem Finger die Seite scrollen kann */
+@media(max-width:560px){ .stagewrap #stageBox{width:calc(100% - 64px)} }
 @media(max-width:400px){
-  #stageBox{height:min(38vh,270px)}
   .rtype,.rform{font-size:10px;max-width:5.4em}
   .ibtn{width:19px;height:19px;font-size:10px}
   .chip{font-size:10.5px;padding:2px 6px}
@@ -4041,6 +4043,121 @@ function namesBefore(idx){
   OBJ.forEach((o,i)=>{ if(i<idx && o.name && o.type!=='note' && o.type!=='fehler') out.push(o.name); });
   return out;
 }
+/* Welche Namen passen in ein Feld? In ein Punkt-Feld nur Punkte, in ein
+   Vektor-Feld Vektoren (dazu Geraden und Strecken: von ihnen zählt die
+   Richtung), in einen Schnitt nur, was sich mit dem anderen Objekt schneiden
+   lässt. Die bisherige Wahl bleibt immer wählbar. */
+const ART_DES_TYPS = {punkt:'P', vektor:'V', gerade:'G', ebene:'E', strecke:'S', kugel:'KU', kreis:'KR', winkel:'W', text:'TX'};
+function artVon(q){
+  if(q.reskind && q.reskind !== 'NONE' && q.reskind !== 'ERR') return q.reskind;
+  return ART_DES_TYPS[q.type] || '';
+}
+const SCHNITT_MIT = {G:['G','E','KU'], E:['G','E','KU','S'], KU:['G','E'], S:['E']};
+function passendeNamen(o, ai){
+  const i1 = OBJ.indexOf(o), idx = i1 < 0 ? OBJ.length : i1, sp = specFor(o)[ai] || {k:'p'};
+  const letzte = {}, reihe = [];          /* je Name das letzte Objekt davor - darauf zeigt er */
+  OBJ.forEach((q, i)=>{
+    if(i >= idx || !q.name || q.type === 'note' || q.type === 'fehler' || q.name === o.name) return;
+    if(!(q.name in letzte)) reihe.push(q.name);
+    letzte[q.name] = q;
+  });
+  let passt = ()=>true;
+  if(sp.k === 'p') passt = q=>{ const k = artVon(q); return k === 'P' || (q.type === 'schnitt' && !k); };
+  else if(sp.k === 'v') passt = q=>['V','G','S'].indexOf(artVon(q)) >= 0;
+  else if(sp.k === 'o'){
+    const b = o.args[ai === 0 ? 1 : 0];
+    const ka = (b && b.k === 'ref' && letzte[b.n]) ? artVon(letzte[b.n]) : '';
+    passt = q=>{ const k = artVon(q); return !!SCHNITT_MIT[k] && (!SCHNITT_MIT[ka] || SCHNITT_MIT[k].indexOf(ka) >= 0); };
+  }
+  const out = reihe.filter(n=>passt(letzte[n]));
+  const jetzt = (o.args[ai] && o.args[ai].k === 'ref') ? o.args[ai].n : null;
+  if(jetzt && out.indexOf(jetzt) < 0) out.push(jetzt);
+  return out;
+}
+
+/* ---------------------------------------------------------------- Umbenennen
+   Wird ein Objekt umbenannt, ziehen alle Bezüge darauf mit: Argumente, die es
+   beim Namen nennen, und Namen in Rechnungen (auch in Verbindungsvektoren
+   wie AB). Welche das sind, steht beim ersten Tastendruck fest - so bleibt
+   es dabei, auch wenn der Name unterwegs kurz leer ist oder wie ein anderes
+   Objekt heißt. */
+const NAME_RE = /[A-Za-zÄÖÜäöüßα-ωΑ-Ω_][A-Za-z0-9ÄÖÜäöüßα-ωΑ-Ω_']*/g;
+function bezuegeAuf(o){
+  const i0 = OBJ.indexOf(o), alt = o.name, out = [];
+  if(i0 < 0 || !alt) return out;
+  const istPunkt = artVon(o) === 'P';
+  for(let i = i0 + 1; i < OBJ.length; i++){
+    const p = OBJ[i];
+    (p.args || []).forEach((a, ai)=>{
+      if(a.k === 'ref' && a.n === alt) out.push({o:p, ai:ai});
+      if(a.k === 'rech' && a.e != null){
+        const teile = rechNamenTeile(String(a.e), alt, i, istPunkt);
+        if(teile) out.push({o:p, ai:ai, rech:teile});
+      }
+    });
+    if(p.name === alt) break;                       /* ab hier meint der Name das spätere Objekt */
+  }
+  return out;
+}
+/** Rechnung in Stücke zerlegen; null steht dort, wo der alte Name stand. */
+function rechNamenTeile(text, alt, idx, altIstPunkt){
+  const namen = {};
+  OBJ.forEach((q, i)=>{ if(i < idx && q.name) namen[q.name] = q; });
+  const punkt = n=>n === 'O' || (n === alt ? altIstPunkt : !!(namen[n] && artVon(namen[n]) === 'P'));
+  const teile = [];
+  let pos = 0, treffer = false, m;
+  NAME_RE.lastIndex = 0;
+  while((m = NAME_RE.exec(text))){
+    const v = m[0], a = m.index;
+    if(a > 0 && text[a-1] === '\\') continue;      /* \times, \cdot */
+    if(v === alt){ teile.push(text.slice(pos, a), null); pos = a + v.length; treffer = true; continue; }
+    if(namen[v]) continue;                          /* ein eigener Name */
+    /* Verbindungsvektor wie AB: dieselbe Aufteilung wie beim Auswerten -
+       die erste, bei der links und rechts ein Punkt steht */
+    for(let k = 1; k < v.length; k++){
+      const l = v.slice(0, k), r = v.slice(k);
+      if(!punkt(l) || !punkt(r)) continue;
+      if(l === alt || r === alt){
+        teile.push(text.slice(pos, a), l === alt ? null : l, r === alt ? null : r);
+        pos = a + v.length; treffer = true;
+      }
+      break;
+    }
+  }
+  if(!treffer) return null;
+  teile.push(text.slice(pos));
+  return teile;
+}
+function bezuegeSetzen(liste, neu){
+  liste.forEach(b=>{
+    const a = b.o.args[b.ai];
+    if(!a) return;
+    if(b.rech){ if(a.k === 'rech') b.o.args[b.ai] = {k:'rech', e:b.rech.map(t=>t === null ? neu : t).join('')}; }
+    else if(a.k === 'ref') a.n = neu;
+  });
+}
+/** Die Liste nicht neu bauen (das Namensfeld behält den Schreibfleck), nur
+    die betroffenen Stellen nachziehen. */
+function bezuegeZeigen(liste, o, feld){
+  const i0 = OBJ.indexOf(o);
+  $$('#objList .row[data-i="'+i0+'"] input.rname').forEach(f=>{
+    if(f !== feld){ f.value = o.name; f.style.width = nameW(o.name); }
+  });
+  liste.forEach(b=>{
+    const i = OBJ.indexOf(b.o);
+    $$('#objList .row[data-i="'+i+'"]').forEach(rw=>{
+      if(b.rech){
+        const f = rw.querySelector('.rechin');
+        if(f && f !== document.activeElement) f.value = b.o.args[b.ai].e;
+        return;
+      }
+      chipRefresh(rw, b.ai, b.o);
+      const sel = (openRow === b.o.id && openArg === b.ai) ? rw.querySelector('select[data-act="refsel"]') : null;
+      if(sel) sel.innerHTML = passendeNamen(b.o, b.ai).map(n=>'<option value="'+esc(n)+'"'
+        + (n === b.o.args[b.ai].n ? ' selected' : '')+'>'+esc(n)+'</option>').join('');
+    });
+  });
+}
 const SAMPLE = {
   punkt:[['1','2','3']], vektor:[['1','1','1'],['3','2','2']], strecke:[['0','0','0'],['3','2','1']],
   winkel:[['3','0','0'],['0','0','0'],['0','3','0']],
@@ -4078,9 +4195,13 @@ function makeObj(type, form){
     }
   }
   if(type === 'schnitt'){
+    /* gleich zwei Objekte vorschlagen, die sich auch schneiden lassen */
     const n = namesBefore(1e9);
-    o.args[0] = {k:'ref', n:n[0] || 'g'};
-    o.args[1] = {k:'ref', n:n[1] || n[0] || 'E'};
+    o.args[0] = {k:'ref', n:''}; o.args[1] = {k:'ref', n:''};
+    const erst = passendeNamen(o, 0);
+    o.args[0].n = erst[0] || n[0] || 'g';
+    const zweit = passendeNamen(o, 1).filter(x=>x !== o.args[0].n);
+    o.args[1].n = zweit[0] || (erst[0] ? erst[0] : (n[1] || n[0] || 'E'));
   }
   o.name = autoName(type);
   return o;
@@ -4312,11 +4433,13 @@ function argEditorHTML(o, ai){
   const a = o.args[ai];
   let h = '<div class="redit"><div class="edlbl">'+esc(sp.l||TL('Wert','Value'))+'</div>';
   if(sp.k === 'p' || sp.k === 'v'){
-    const names = namesBefore(OBJ.indexOf(o)).filter(n=>n !== o.name);
+    const names = passendeNamen(o, ai);
     h += '<div class="vecin">';
     h += '<span class="seg small" data-seg2="argkind">'
        + '<button data-v="lit" class="'+(a.k==='lit'?'on':'')+'">'+TL('Koordinaten','Coordinates')+'</button>'
-       + '<button data-v="ref" class="'+(a.k==='ref'?'on':'')+'"'+(names.length?'':' disabled')+'>Name</button></span>';
+       + '<button data-v="ref" class="'+(a.k==='ref'?'on':'')+'"'+(names.length?'':' disabled title="'
+       + (sp.k === 'p' ? TL('Weiter oben steht noch kein Punkt mit Namen.', 'There is no named point further up yet.')
+                       : TL('Weiter oben steht noch kein Vektor mit Namen.', 'There is no named vector further up yet.'))+'"')+'>Name</button></span>';
     if(a.k === 'ref'){
       h += '<select data-act="refsel">'
          + names.map(n=>'<option value="'+esc(n)+'"'+(n===a.n?' selected':'')+'>'+esc(n)+'</option>').join('')
@@ -4341,11 +4464,14 @@ function argEditorHTML(o, ai){
          + '<span class="ax">·'+axNameHTML(j)+(j<2?' +':' =')+'</span></span>';
     h += '<span class="nw"><input type="text" data-act="ko" data-j="3" value="'+esc(a.e[3])+'" inputmode="decimal"></span></div>';
   } else if(sp.k === 'o'){
-    const names = namesBefore(OBJ.indexOf(o)).filter(n=>n !== o.name);
+    const names = passendeNamen(o, ai);
     h += '<div class="vecin"><select data-act="refsel">'
        + names.map(n=>'<option value="'+esc(n)+'"'+(n===a.n?' selected':'')+'>'+esc(n)+'</option>').join('')
        + '</select></div>';
-    if(!names.length) h += '<p class="hintline">'+TL('Benenne zuerst die Objekte, die geschnitten werden sollen.', 'First give names to the objects that are to be intersected.')+'</p>';
+    if(!names.length) h += '<p class="hintline">'+(namesBefore(OBJ.indexOf(o)).filter(n=>n !== o.name).length
+      ? TL('Weiter oben steht noch nichts, was sich hiermit schneiden lässt (Gerade, Ebene, Kugel oder Strecke).',
+           'There is nothing further up yet that can be intersected with this (line, plane, sphere or segment).')
+      : TL('Benenne zuerst die Objekte, die geschnitten werden sollen.', 'First give names to the objects that are to be intersected.'))+'</p>';
   }
   return h + '</div>';
 }
@@ -4592,7 +4718,7 @@ function initList(){
       const kind = seg.dataset.seg2, v = b.dataset.v, t = optTarget(r);
       if(kind === 'argkind'){
         const a = o.args[openArg];
-        if(v === 'ref' && a.k !== 'ref') o.args[openArg] = {k:'ref', n:(namesBefore(r.i).filter(n=>n!==o.name)[0]||'A')};
+        if(v === 'ref' && a.k !== 'ref') o.args[openArg] = {k:'ref', n:(passendeNamen(o, openArg)[0]||'A')};
         if(v === 'lit' && a.k !== 'lit') o.args[openArg] = {k:'lit', e:['1','1','1']};
       }
       else if(kind === 'odash') t.dash = v;
@@ -4698,7 +4824,16 @@ function initList(){
       });
       pushFromList(); refresh(); return;
     }
-    if(act === 'name'){ o.name = el.value.trim(); el.style.width = nameW(o.name); pushFromList(); refresh(); return; }
+    if(act === 'name'){
+      if(!el._bezuege) el._bezuege = {alt:o.name, liste:bezuegeAuf(o)};
+      o.name = el.value.trim();
+      /* leer heißt noch nicht umbenannt: die Bezüge behalten den alten Namen */
+      bezuegeSetzen(el._bezuege.liste, o.name || el._bezuege.alt);
+      el.style.width = nameW(o.name);
+      pushFromList(); refresh();
+      bezuegeZeigen(el._bezuege.liste, o, el);
+      return;
+    }
     /* Die Rechnung wird beim Tippen uebernommen. Die Liste wird dabei nicht
        neu gebaut - sonst verloere das Feld bei jedem Zeichen den Schreibfleck. */
     if(act === 'rech'){ o.args[0] = {k:'rech', e:el.value}; pushFromList(); refresh(); return; }
@@ -4733,6 +4868,7 @@ function initList(){
     const r = rowOf(el);
     if(!r || !r.o || !act) return;
     const o = r.o;
+    if(act === 'name'){ el._bezuege = null; return; }   /* Umbenennen fertig */
     if(act === 'type'){ convertObj(o, el.value); openRow = null; }
     else if(act === 'form'){ convertObj(o, o.type, el.value); openRow = null; }
     else if(act === 'refsel'){ o.args[openArg] = {k:'ref', n:el.value}; }

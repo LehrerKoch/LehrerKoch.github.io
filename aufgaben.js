@@ -788,15 +788,25 @@
       b._abAuto = true;
       var t = null, lang = false;
       b.addEventListener('pointerdown', function(ev){
-        if (ev.button != null && ev.button !== 0) return;
+        if (ev.button != null && ev.button !== 0){
+          /* rechte Maustaste: gleich schaltet das Kontextmenü um */
+          if (ev.pointerType === 'mouse') lang = false;
+          return;
+        }
         lang = false;
         t = setTimeout(function(){ lang = true; abAutoUmschalten(); }, 550);
       });
       ['pointerup','pointerleave','pointercancel'].forEach(function(e){
         b.addEventListener(e, function(){ clearTimeout(t); });
       });
+      /* Das Kontextmenü-Ereignis kommt bei langem Druck zusätzlich - auf
+         Touch-Tafeln mit Windows (z. B. Promethean) erst beim Loslassen. Hat
+         der lange Druck schon umgeschaltet, darf es nicht noch einmal
+         umschalten, sonst ist die Automatik gleich wieder aus. */
       b.addEventListener('contextmenu', function(ev){
-        ev.preventDefault(); clearTimeout(t); lang = true; abAutoUmschalten();
+        ev.preventDefault(); clearTimeout(t);
+        if (lang) return;
+        lang = true; abAutoUmschalten();
       });
       b.addEventListener('click', function(ev){
         clearTimeout(t);

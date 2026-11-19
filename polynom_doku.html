@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>polynom.py – Dokumentation</title>
+<meta name="description" content="Ganzrationale Funktionen in Python: exakt rechnen, Lösungswege ausgeben, Graphen zeichnen.">
+<style>
+:root{
+  --papier:#fbfaf7; --karte:#ffffff; --text:#23282d; --leise:#6b757e;
+  --linie:#e2e0d8; --akzent:#2e7d32; --akzent2:#1565c0; --code:#f4f3ee;
+  --codetext:#2d3a2f; --aus:#eef3ee; --austext:#355c38; --mark:#fff7d6;
+  --schatten:0 1px 2px rgba(0,0,0,.04), 0 6px 18px rgba(0,0,0,.05);
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --papier:#15181b; --karte:#1b2026; --text:#e6e8ea; --leise:#9aa5b1;
+    --linie:#2c343c; --akzent:#7cc47f; --akzent2:#7fb3f0; --code:#11161a;
+    --codetext:#cfe3d2; --aus:#15201a; --austext:#9ed6a2; --mark:#3a3418;
+    --schatten:0 1px 2px rgba(0,0,0,.3), 0 6px 18px rgba(0,0,0,.35);
+  }
+}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  margin:0; background:var(--papier); color:var(--text);
+  font:16px/1.65 "Segoe UI", Candara, Calibri, system-ui, -apple-system, sans-serif;
+}
+a{color:var(--akzent2); text-decoration:none;}
+a:hover{text-decoration:underline;}
+code, pre, .mono{font-family:"Cascadia Mono", Consolas, "DejaVu Sans Mono", monospace;}
+code{background:var(--code); color:var(--codetext); padding:1px 5px;
+  border-radius:5px; font-size:.92em; white-space:nowrap;}
+pre code{background:none; padding:0; white-space:pre;}
+
+/* ---------- Gerüst ---------- */
+.huelle{display:flex; gap:34px; max-width:1240px; margin:0 auto; padding:0 20px 80px;}
+nav.inhalt{
+  flex:0 0 272px; position:sticky; top:0; align-self:flex-start;
+  max-height:100vh; overflow-y:auto; padding:22px 0 30px;
+}
+main{flex:1 1 auto; min-width:0; max-width:900px; padding-top:22px;}
+header.kopf{
+  border-bottom:1px solid var(--linie); background:var(--karte);
+  padding:30px 20px 24px; margin-bottom:0;
+}
+header.kopf .mitte{max-width:1240px; margin:0 auto;}
+header.kopf h1{margin:0 0 6px; font-size:1.95em; letter-spacing:-.3px;}
+header.kopf p{margin:0; color:var(--leise); max-width:70ch;}
+header.kopf .version{
+  display:inline-block; margin-left:10px; font-size:.5em; vertical-align:middle;
+  background:var(--aus); color:var(--austext); border-radius:999px;
+  padding:3px 10px; font-weight:600; letter-spacing:.3px;
+}
+
+/* ---------- Inhaltsverzeichnis ---------- */
+nav.inhalt .suche{width:100%; padding:7px 10px; margin:0 0 10px;
+  border:1px solid var(--linie); border-radius:8px; background:var(--karte);
+  color:var(--text); font:inherit; font-size:.92em;}
+nav.inhalt ol{list-style:none; margin:0; padding:0;}
+nav.inhalt li{margin:0;}
+nav.inhalt a{
+  display:block; padding:4px 10px 4px 12px; color:var(--text);
+  border-left:2px solid transparent; font-size:.93em;
+}
+nav.inhalt a:hover{background:var(--code); text-decoration:none;}
+nav.inhalt a.s2{padding-left:26px; font-size:.88em; color:var(--leise);}
+nav.inhalt a.hier{border-left-color:var(--akzent); color:var(--akzent);
+  font-weight:600; background:var(--code);}
+nav.inhalt .ivtitel{font-size:.78em; text-transform:uppercase;
+  letter-spacing:.09em; color:var(--leise); margin:0 0 8px 12px;}
+.nurklein{display:none;}
+
+/* ---------- Inhalte ---------- */
+section.kap{padding-top:26px;}
+h2{font-size:1.5em; margin:26px 0 10px; padding-bottom:6px;
+  border-bottom:1px solid var(--linie);}
+h2 .nr{color:var(--akzent); font-size:.72em; font-weight:700; margin-right:10px;
+  letter-spacing:.04em;}
+h3{font-size:1.16em; margin:28px 0 8px;}
+h4{font-size:1em; margin:22px 0 6px; color:var(--leise);
+  text-transform:uppercase; letter-spacing:.05em; font-size:.82em;}
+h2, h3{scroll-margin-top:14px;}
+section.kap{scroll-margin-top:14px;}
+.anker{opacity:0; margin-left:8px; color:var(--leise); font-weight:400;
+  font-size:.8em; text-decoration:none;}
+h2:hover .anker, h3:hover .anker{opacity:1;}
+p{margin:10px 0;}
+p.lead{color:var(--leise); font-size:1.03em; margin-bottom:14px;}
+ul, ol{margin:10px 0 10px 22px; padding:0;}
+li{margin:3px 0;}
+
+/* ---------- Beispiele ---------- */
+.bsp{position:relative; margin:14px 0 18px;}
+.bsptitel{font-size:.82em; color:var(--leise); margin-bottom:4px;
+  text-transform:uppercase; letter-spacing:.05em;}
+pre.repl, pre.aus{
+  margin:0; padding:12px 14px; border-radius:10px; overflow-x:auto;
+  background:var(--code); border:1px solid var(--linie); box-shadow:var(--schatten);
+  font-size:.9em; line-height:1.55;
+}
+pre.aus{background:var(--aus); color:var(--austext);}
+pre.repl span{display:block;}
+pre.repl span.e{color:var(--codetext);}
+pre.repl span.e::before{content:"› "; color:var(--leise); user-select:none;}
+pre.repl.nur span.e::before{content:"";}
+pre.repl span.a{color:var(--austext); padding-left:1.1em; background:linear-gradient(
+  to right, rgba(46,125,50,.07), rgba(46,125,50,0)); }
+@media (prefers-color-scheme: dark){
+  pre.repl span.a{background:linear-gradient(
+    to right, rgba(124,196,127,.10), rgba(124,196,127,0));}
+}
+.kopie{
+  position:absolute; top:6px; right:8px; opacity:0; transition:opacity .15s;
+  background:var(--karte); color:var(--leise); border:1px solid var(--linie);
+  border-radius:6px; font:inherit; font-size:.74em; padding:2px 8px; cursor:pointer;
+}
+.bsp:hover .kopie{opacity:1;}
+.kopie:hover{color:var(--akzent); border-color:var(--akzent);}
+.bsptitel + pre + .kopie{top:24px;}
+
+/* ---------- Tabellen ---------- */
+.tabwrap{overflow-x:auto; margin:12px 0 18px;}
+table{border-collapse:collapse; width:100%; font-size:.93em;
+  background:var(--karte); border:1px solid var(--linie); border-radius:10px;}
+th, td{text-align:left; padding:7px 11px; border-bottom:1px solid var(--linie);
+  vertical-align:top;}
+th{font-size:.84em; text-transform:uppercase; letter-spacing:.05em;
+  color:var(--leise); font-weight:600; background:var(--code);}
+tbody tr:last-child td{border-bottom:none;}
+tbody tr:hover{background:var(--code);}
+td.mono{white-space:nowrap;}
+td.art{color:var(--leise); font-size:.86em; white-space:nowrap;}
+table.meth td:first-child{width:1%;}
+.wegmark{display:inline-block; font-size:.72em; background:var(--aus);
+  color:var(--austext); border-radius:5px; padding:1px 5px; margin-left:5px;
+  font-family:inherit;}
+
+/* ---------- Kästen ---------- */
+.box{margin:14px 0; padding:11px 14px; border-radius:10px;
+  border:1px solid var(--linie); border-left:4px solid var(--leise);
+  background:var(--karte); font-size:.95em;}
+.box.hin{border-left-color:var(--akzent2);}
+.box.ach{border-left-color:#c62828;}
+.box.tip{border-left-color:var(--akzent);}
+.box strong{margin-right:4px;}
+
+/* ---------- Fußzeile ---------- */
+footer{max-width:1240px; margin:0 auto; padding:30px 20px 60px;
+  color:var(--leise); font-size:.88em; border-top:1px solid var(--linie);}
+
+/* ---------- klein ---------- */
+@media (max-width:900px){
+  .huelle{flex-direction:column; gap:0; padding:0 16px 60px;}
+  nav.inhalt{position:static; max-height:none; flex:none; width:100%;
+    padding:14px 0 0;}
+  nav.inhalt ol{max-height:0; overflow:hidden; transition:max-height .2s;}
+  nav.inhalt.auf ol{max-height:3000px; overflow:auto;}
+  nav.inhalt .ivtitel{display:none;}
+  nav.inhalt .suche{display:none; margin-top:8px;}
+  nav.inhalt.auf .suche{display:block;}
+  .nurklein{display:block;}
+  #ivschalter{width:100%; padding:9px 12px; border-radius:8px;
+    border:1px solid var(--linie); background:var(--karte); color:var(--text);
+    font:inherit; text-align:left; cursor:pointer;}
+  header.kopf{padding:22px 16px 18px;}
+  main{padding-top:10px;}
+}
+@media print{
+  nav.inhalt, .kopie{display:none;}
+  body{background:#fff;}
+  .bsp, table{box-shadow:none;}
+  a{color:inherit;}
+}
+</style>
+</head>
+<body>
+<header class="kopf"><div class="mitte"><h1>polynom.py – Dokumentation<span class="version">Fassung 1.0</span></h1><p>Ganzrationale Funktionen in Python: exakt rechnen, Lösungswege ausgeben, Graphen zeichnen – das Gegenstück zu <a href="vektor_doku.html">vektor.py</a>.</p></div></header>
+<div class="huelle">
+<nav class="inhalt"><p class="ivtitel">Inhalt</p>
+<button id="ivschalter" class="nurklein" type="button">Inhalt &nbsp;▾</button>
+<input class="suche" type="search" placeholder="Suchen …" aria-label="Inhalt durchsuchen">
+<ol>
+<li><a class="s1" href="#start">Überblick</a></li>
+<li><a class="s2" href="#start-laden">Modul laden</a></li>
+<li><a class="s1" href="#schnellstart">Schnellstart</a></li>
+<li><a class="s1" href="#konventionen">Die drei Konventionen</a></li>
+<li><a class="s2" href="#konv-1">1. Methoden liefern das Ergebnis – nie Text</a></li>
+<li><a class="s2" href="#konv-2">2. Derselbe Aufruf über .weg liefert den Lösungsweg</a></li>
+<li><a class="s2" href="#konv-3">3. Gerechnet wird exakt</a></li>
+<li><a class="s1" href="#eingabe">Polynome eingeben</a></li>
+<li><a class="s2" href="#eingabe-text">Als Text</a></li>
+<li><a class="s2" href="#eingabe-koeff">Über die Koeffizienten</a></li>
+<li><a class="s2" href="#eingabe-null">Über die Nullstellen</a></li>
+<li><a class="s2" href="#eingabe-x">Mit der Variablen x rechnen</a></li>
+<li><a class="s1" href="#rechnen">Rechnen mit Polynomen</a></li>
+<li><a class="s2" href="#rechnen-tabelle">Wertetabelle</a></li>
+<li><a class="s1" href="#zahlen">Zahlen: Brüche, Wurzeln, Näherungen</a></li>
+<li><a class="s1" href="#ableitung">Ableitung und Integral</a></li>
+<li><a class="s1" href="#nullstellen">Nullstellen und Gleichungen</a></li>
+<li><a class="s2" href="#nullstellen-loese">Gleichungen und Schnittpunkte</a></li>
+<li><a class="s1" href="#steigung">Steigung, Tangente, Normale, Sekante</a></li>
+<li><a class="s1" href="#kurven">Extrem-, Sattel- und Wendepunkte</a></li>
+<li><a class="s2" href="#kurven-punkt">Punkte</a></li>
+<li><a class="s1" href="#mono">Monotonie und Krümmung</a></li>
+<li><a class="s1" href="#global">Symmetrie, Grenzverhalten, globale Extrema</a></li>
+<li><a class="s1" href="#steckbrief">Steckbriefaufgaben</a></li>
+<li><a class="s1" href="#wege">Lösungswege</a></li>
+<li><a class="s2" href="#wege-rechnung">Die Rechnung</a></li>
+<li><a class="s2" href="#wege-selbst">Eigene Schritte</a></li>
+<li><a class="s1" href="#latex">LaTeX-Ausgabe</a></li>
+<li><a class="s1" href="#bild">Bilder</a></li>
+<li><a class="s2" href="#bild-skizze">Skizze ohne matplotlib</a></li>
+<li><a class="s1" href="#webseite">Dieselbe Aufgabe auf der Webseite</a></li>
+<li><a class="s1" href="#einstellungen">Einstellungen</a></li>
+<li><a class="s1" href="#fehler">Fehlermeldungen</a></li>
+<li><a class="s1" href="#rezepte">Rezepte</a></li>
+<li><a class="s2" href="#rezept-kurve">Komplette Kurvendiskussion</a></li>
+<li><a class="s2" href="#rezept-spline">Übergang zweier Funktionen prüfen (Splines)</a></li>
+<li><a class="s2" href="#rezept-anwendung">Anwendung: Tangente und Zeitpunkt</a></li>
+<li><a class="s2" href="#rezept-latex">Lösungsweg für ein Arbeitsblatt</a></li>
+<li><a class="s1" href="#index">Alle Namen auf einen Blick</a></li>
+<li><a class="s2" href="#index-modul">Modul</a></li>
+<li><a class="s2" href="#index-methoden">Methoden eines Polynoms</a></li>
+</ol></nav>
+<main>
+<section id="start" class="kap">
+<h2><span class="nr">1</span>Überblick<a class="anker" href="#start" aria-label="Link">#</a></h2>
+<p class="lead">polynom.py ist das Gegenstück zu vektor.py für die Analysis: ein Python-Modul für ganzrationale Funktionen (Polynome). Es rechnet exakt mit Brüchen und Wurzeln, erzählt auf Wunsch den Lösungsweg – als Text oder als LaTeX –, zeichnet Graphen mit allen besonderen Punkten und öffnet dieselbe Aufgabe auf der passenden Übungsseite der Mathe-Tools.</p>
+<p>Das Modul ist eine einzelne Datei und braucht nur Python 3. Für Bilder wird <code>matplotlib</code> benutzt, wenn es installiert ist – sonst gibt es eine Skizze aus Zeichen.</p>
+<div class="bsp"><pre class="repl"><code><span class="e">from polynom import *</span><span class="e">f = Polynom(&quot;f(x) = -x^4 + 5x^3 + 6&quot;)</span><span class="e">f.extrempunkte()</span><span class="a">[H(15/4 | 18411/256) ≈ H(3,75 | 71,92)]</span><span class="e">f.nullstellen()</span><span class="a">[-1, ≈5,05]</span></code></pre><button class="kopie" type="button" title="Quelltext kopieren">kopieren</button></div>
+<p>Drei Dinge unterscheiden das Modul von einem Taschenrechner:</p>
+<ul><li><strong>Exakt.</strong> <code>H(15/4 | 18411/256)</code> statt 3,75 und 71,918…; Wurzeln bleiben Wurzeln (<code>2√3/3</code>). Wo es exakt nicht geht, steht ehrlich ein ≈.</li><li><strong>Mit Lösungsweg.</strong> Jede Rechnung kann ihren Weg in Schulschreibweise erzählen – auch als LaTeX. <code>.link()</code> öffnet dieselbe Aufgabe auf der Übungsseite.</li><li><strong>Bequeme Eingabe.</strong> <code>x^2</code>, <code>x²</code>, <code>x^(2)</code> (GeoGebra), <code>2(x-1)(x+3)^2</code>, <code>1/3 x^3</code>, <code>0,5x</code> – oder über die Nullstellen.</li></ul>
+<h3 id="start-laden">Modul laden<a class="anker" href="#start-laden" aria-label="Link">#</a></h3>
+<p>Am einfachsten liegt <code>polynom.py</code> im selben Ordner wie das eigene Skript oder Notebook (wie <code>vektor.py</code>):</p>
+<div class="bsp"><pre class="repl nur"><code>from polynom import *          # alles auf einmal (empfohlen)
+
+import polynom                # oder mit Vorsatz
+f = polynom.Polynom(&quot;x^2 - 4&quot;)</code></pre><button class="kopie" type="button">kopieren</button></div>
+<div class="box tip"><strong>Tipp</strong> <code>hilfe()</code> druckt eine Kurzanleitung, <code>dir(f.weg)</code> zeigt alle Rechnungen mit Lösungsweg, und jede Methode hat einen Docstring: <code>help(Polynom.tangente)</code>.</div>
+</section>
+<section id="schnellstart" class="kap">
+<h2><span class="nr">2</span>Schnellstart<a class="anker" href="#schnellstart" aria-label="Link">#</a></h2>
+<p class="lead">Eine Kurvendiskussion von Anfang bis Ende.</p>
+<p><strong>Aufgabe.</strong> Untersuche f(x) = −x⁴ + 5x³ + 6: Nullstellen, Extrem- und Wendepunkte, Steigung bei x = −1.</p>
+<div class="bsp"><pre class="repl"><code><span class="e">f = Polynom(&quot;f(x) = -x^4 + 5x^3 + 6&quot;)</span><span class="e">f.ableitung()</span><span class="a">f&#x27;(x) = -4x³ + 15x²</span><span class="e">f.ableitung(2)</span><span class="a">f&#x27;&#x27;(x) = -12x² + 30x</span><span class="e">f.nullstellen()</span><span class="a">[-1, ≈5,05]</span><span class="e">f.extrempunkte()</span><span class="a">[H(15/4 | 18411/256) ≈ H(3,75 | 71,92)]</span><span class="e">f.sattelpunkte()</span><span class="a">[S(0 | 6)]</span><span class="e">f.wendepunkte()</span><span class="a">[W₁(0 | 6), W₂(5/2 | 721/16) ≈ W₂(2,5 | 45,06)]</span><span class="e">f.steigung(-1)</span><span class="a">19</span><span class="e">f.steigungswinkel(-1)</span><span class="a">≈86,99</span></code></pre><button class="kopie" type="button" title="Quelltext kopieren">kopieren</button></div>
+<p>Und die Extrempunkte mit Lösungsweg:</p>
+<div class="bsp"><pre class="repl"><code><span class="e">print(f.weg.extrempunkte())</span><span class="a">Extrempunkte von f</span><span class="a">------------------</span><span class="a">1. Ableitungen bilden:</span><span class="a">  f&#x27;(x) = -4x³ + 15x²</span><span class="a">  f&#x27;&#x27;(x) = -12x² + 30x</span><span class="a">2. Notwendige Bedingung f&#x27;(x) = 0:</span><span class="a">  -4x³ + 15x² = 0</span><span class="a">  x² ausklammern:</span><span class="a">    x²·(-4x + 15) = 0</span><span class="a">  Satz vom Nullprodukt: Ein Produkt ist null, wenn ein Faktor null ist.</span><span class="a">    x² = 0 ⇒ x = 0 (doppelt)</span><span class="a">    oder:</span><span class="a">      -4x + 15 = 0</span><span class="a">      Nach x auflösen:</span><span class="a">        -4x = -15</span><span class="a">        x = 15/4</span><span class="a">3. Hinreichende Bedingung f&#x27;&#x27;(x) ≠ 0 (sonst Vorzeichenwechsel von f&#x27; prüfen):</span><span class="a">  f&#x27;&#x27;(0) = -12·0² + 30·0 = 0</span><span class="a">  Keine Entscheidung – Vorzeichen von f&#x27; links und rechts prüfen:</span><span class="a">    f&#x27;(-1) = -4·(-1)³ + 15·(-1)² = 19 &gt; 0</span><span class="a">    f&#x27;(2) = -4·2³ + 15·2² = 28 &gt; 0</span><span class="a">  Kein Vorzeichenwechsel ⇒ kein Extrempunkt, sondern ein Sattelpunkt bei x = 0.</span><span class="a">  f&#x27;&#x27;(15/4) = -12·(15/4)² + 30·(15/4)</span><span class="a">            = -225/4</span><span class="a">            = -56,25</span><span class="a">            &lt; 0</span><span class="a">            ⇒ Hochpunkt bei x = 15/4</span><span class="a">4. y-Koordinaten (in f einsetzen):</span><span class="a">  f(0) = -0⁴ + 5·0³ + 6 = 6</span><span class="a">  f(15/4) = -(15/4)⁴ + 5·(15/4)³ + 6</span><span class="a">          = -50625/256 + 16875/64 + 6</span><span class="a">          = 18411/256</span><span class="a">          ≈ 71,92</span><span class="a">Extrempunkte: H(15/4 | 18411/256) ≈ H(3,75 | 71,92)</span><span class="a">Sattelpunkt: S(0 | 6)</span></code></pre><button class="kopie" type="button" title="Quelltext kopieren">kopieren</button></div>
+<p>Derselbe Weg als LaTeX (Ausschnitt) und die passende Aufgabenseite:</p>
+<div class="bsp"><pre class="repl"><code><span class="e">r = f.weg.steigung(-1)</span><span class="e">print(r.tex())</span><span class="a">\begin{align*}</span><span class="a">&amp;\text{Die Ableitung gibt die Steigung an:} \\</span><span class="a">f&#x27;(x) &amp;= -4x^3+15x^2 \\</span><span class="a">&amp;\text{Stelle einsetzen:} \\</span><span class="a">f&#x27;\left(-1\right) &amp;= -4\cdot \left(-1\right)^{3}+15\cdot \left(-1\right)^{2} = 4+15 = 19</span><span class="a">\end{align*}</span><span class="e">r.link()</span><span class="a">https://lehrerkoch.github.io/steigung_tangenten.html?mt=%7B%22id%22%3A%22abl.mx%22%2C%22v%22%3A%7B%22P%22%3A%22-x%5E4%2B5x%5E3%2B6%22%2C%22x0%22%3A-1%7D%7D</span></code></pre><button class="kopie" type="button" title="Quelltext kopieren">kopieren</button></div>
+<p>Zum Schluss das Bild – Nullstellen, Sattel-, Wende- und Hochpunkt sind markiert:</p>
+<div class="bsp"><pre class="repl nur"><code>f.zeichne()                      # Fenster bzw. Datei graph_f.png
+f.zeichne(ableitungen=1, datei=&quot;f.png&quot;)</code></pre><button class="kopie" type="button">kopieren</button></div>
+</section>
+<section id="konventionen" class="kap">
+<h2><span class="nr">3</span>Die drei Konventionen<a class="anker" href="#konventionen" aria-label="Link">#</a></h2>
+<p class="lead">Wie bei vektor.py folgt alles denselben drei Regeln.</p>
+<h3 id="konv-1">1. Methoden liefern das Ergebnis – nie Text<a class="anker" href="#konv-1" aria-label="Link">#</a></h3>
+<p>Jeder Aufruf gibt das mathematische Objekt zurück: eine Zahl, ein Polynom, eine Liste von Punkten oder Intervallen. Damit kann sofort weitergerechnet werden.</p>
+<div class="bsp"><pre class="repl"><code><span class="e">t = f.tangente(2)</span><span class="e">t</span><span class="a">t(x) = 28x - 26</span><span class="e">t.nullstellen()</span><span class="a">[13/14]</span><span class="e">H = f.extrempunkte()[0]</span><span class="e">H.x, H.y</span><span class="a">(15/4, 18411/256)</span></code></pre><button class="kopie" type="button" title="Quelltext kopieren">kopieren</button></div>
+<h3 id="konv-2">2. Derselbe Aufruf über .weg liefert den Lösungsweg<a class="anker" href="#konv-2" aria-label="Link">#</a></h3>
+<p><code>f.weg.methode(...)</code> rechnet dasselbe, gibt aber eine <code>Rechnung</code> zurück: <code>print</code> zeigt den Weg, <code>.tex()</code> liefert LaTeX, <code>.ergebnis</code> das Ergebnis, <code>.link()</code> die Aufgabenseite.</p>
+<div class="bsp"><pre class="repl"><code><span class="e">r = f.weg.tangente(2)</span><span class="e">r.ergebnis</span><span class="a">t(x) = 28x - 26</span><span class="e">print(r)</span><span class="a">Tangente an f bei x = 2</span><span class="a">-----------------------</span><span class="a">Berührpunkt: y-Koordinate</span><span class="a">  f(2) = -2⁴ + 5·2³ + 6 = -16 + 40 + 6 = 30</span><span class="a">Steigung der Tangente: m = f&#x27;(2)</span><span class="a">  f&#x27;(x) = -4x³ + 15x²</span><span class="a">  f&#x27;(2) = -4·2³ + 15·2² = -32 + 60 = 28</span><span class="a">Ansatz t(x) = m·x + b – Punkt einsetzen und nach b auflösen:</span><span class="a">  30 = 28·2 + b</span><span class="a">  b = -26</span><span class="a">Tangentengleichung:</span><span class="a">  t(x) = 28x - 26</span></code></pre><button class="kopie" type="button" title="Quelltext kopieren">kopieren</button></div>
+<div class="bsp"><pre class="repl"><code><span class="e">dir(f.weg)</span><span class="a">[&#x27;ableitung&#x27;, &#x27;art&#x27;, &#x27;extrempunkte&#x27;, &#x27;globale_extrema&#x27;, &#x27;grenzverhalten&#x27;, &#x27;integral&#x27;, &#x27;kruemmung&#x27;, &#x27;kruemmung_an&#x27;, &#x27;mittlere_aenderungsrate&#x27;, &#x27;monotonie&#x27;, &#x27;normale&#x27;, &#x27;nullstellen&#x27;, &#x27;schnittpunkte&#x27;, &#x27;sekante&#x27;, &#x27;sekantensteigung&#x27;, &#x27;stammfunktion&#x27;, &#x27;steigung&#x27;, &#x27;steigungswinkel&#x27;, &#x27;stellen_mit_steigung&#x27;, &#x27;symmetrie&#x27;, &#x27;tangente&#x27;, &#x27;wendepunkte&#x27;, &#x27;wendetangenten&#x27;, &#x27;wert&#x27;, &#x27;y_achsenabschnitt&#x27;]</span></code></pre><button class="kopie" type="button" title="Quelltext kopieren">kopieren</button></div>
+<h3 id="konv-3">3. Gerechnet wird exakt<a class="anker" href="#konv-3" aria-label="Link">#</a></h3>
+<p>Koeffizienten sind Brüche, Lösungen quadratischer Gleichungen sind <code>Wurzelzahl</code>en (a + b·√r). Nur wo es exakt nicht geht – etwa bei der Nullstelle von x³ − 6x² + 6x − 6 – entsteht eine <code>Naeherung</code>; sie wird immer mit ≈ angezeigt.</p>
+<div class="bsp"><pre class="repl"><code><span class="e">g = Polynom(&quot;x^3 - 4x&quot;)</span><span class="e">g.extrempunkte()</span><span class="a">[H(-2√3/3 | 16√3/9) ≈ H(-1,15 | 3,08), T(2√3/3 | -16√3/9) ≈ T(1,15 | -3,08)]</span><span class="e">g(Wurzelzahl(0, 2, 3) / 3)</span><span class="a">-16√3/9</span><span class="e">Polynom(&quot;x^3 - 6x^2 + 6x - 6&quot;).nullstellen()</span><span class="a">[≈5,05]</span></code></pre><button class="kopie" type="button" title="Quelltext kopieren">kopieren</button></div>
+</section>
+<section id="eingabe" class="kap">
+<h2><span class="nr">4</span>Polynome eingeben<a class="anker" href="#eingabe" aria-label="Link">#</a></h2>
+<p class="lead">Polynome lassen sich als Text, über Koeffizienten, über die Nullstellen oder durch Rechnen mit der Variablen x erzeugen.</p>
+<h3 id="eingabe-text">Als Text<a class="anker" href="#eingabe-text" aria-label="Link">#</a></h3>
+<div class="tabwrap"><table class=""><thead><tr><th>Eingabe</th><th>Ergebnis</th></tr></thead><tbody><tr><td class="mono"><code>x^2 + 3x^2</code></td><td><code>4x²</code></td></tr><tr><td class="mono"><code>x²</code></td><td><code>x²</code></td></tr><tr><td class="mono"><code>3x^(2) + 2x</code></td><td><code>3x² + 2x</code></td></tr><tr><td class="mono"><code>2*x**3 - x</code></td><td><code>2x³ - x</code></td></tr><tr><td class="mono"><code>1/3 x^3 - 5x^2</code></td><td><code>1/3 x³ - 5x²</code></td></tr><tr><td class="mono"><code>1/3x^3</code></td><td><code>1/3 x³</code></td></tr><tr><td class="mono"><code>0,5x^2 - 1,25</code></td><td><code>1/2 x² - 5/4</code></td></tr><tr><td class="mono"><code>(x-1)(x+2)</code></td><td><code>x² + x - 2</code></td></tr><tr><td class="mono"><code>2(x-1)(x+3)^2</code></td><td><code>2x³ + 10x² + 6x - 18</code></td></tr><tr><td class="mono"><code>-(x+1)^2</code></td><td><code>-x² - 2x - 1</code></td></tr><tr><td class="mono"><code>x(x-2)(x+2)</code></td><td><code>x³ - 4x</code></td></tr><tr><td class="mono"><code>(x^2-1)/(x-1)</code></td><td><code>x + 1</code></td></tr><tr><td class="mono"><code>x^2/4 - 1</code></td><td><code>1/4 x² - 1</code></td></tr><tr><td class="mono"><code>\frac{1}{2}x^{2} - 3</code></td><td><code>1/2 x² - 3</code></td></tr><tr><td class="mono"><code>−x⁴ + 5x³ + 6</code></td><td><code>-x⁴ + 5x³ + 6</code></td></tr></tbody></table></div>
+<p>Davor darf ein Funktionsname stehen: <code>Polynom(&quot;h(t) = -27t^3 + 270t^2&quot;)</code> heißt dann <code>h</code> mit der Variablen <code>t</code>. Erlaubt sind Hochzahlen als <code>^</code>, <code>**</code> oder hochgestellte Ziffern, das Komma als Dezimaltrennzeichen, <code>·</code>, <code>*</code> oder gar kein Malzeichen (<code>2x</code>, <code>3(x+1)</code>), Klammern aller Art und einfache LaTeX-Schreibweisen.</p>
+<div class="bsp"><pre class="repl"><code><span class="e">h = Polynom(&quot;h(t) = -27t^3 + 270t^2 - 324t + 729&quot;)</span><span class="e">h</span><span class="a">h(t) = -27t³ + 270t² - 324t + 729</span><span class="e">h.variable, h.name</span><span class="a">(&#x27;t&#x27;, &#x27;h&#x27;)</span></code></pre><button class="kopie" type="button" title="Quelltext kopieren">kopieren</button></div>
+<p>Fehler werden verständlich gemeldet:</p>
+<div class="bsp"><pre class="repl"><code><span class="e">try:</span><span class="e">    Polynom(&quot;x2 + 1&quot;)</span><span class="e">except EingabeFehler as e:</span><span class="e">    print(e)</span><span class="a">»x2« – fehlt ein Rechenzeichen? (meinst du x^2?)</span><span class="e">try:</span><span class="e">    Polynom(&quot;1/x&quot;)</span><span class="e">except EingabeFehler as e:</span><span class="e">    print(e)</span><span class="a">Teilen durch einen Term mit x ergibt kein Polynom.</span></code></pre><button class="kopie" type="button" title="Quelltext kopieren">kopieren</button></div>
+<h3 id="eingabe-koeff">Über die Koeffizienten<a class="anker" href="#eingabe-koeff" aria-label="Link">#</a></h3>
+<p>Mehrere Zahlen sind die Koeffizienten <em>wie geschrieben</em> – von der höchsten Potenz an. <code>aus_koeffizienten</code> nimmt auch eine aufsteigende Liste.</p>
+<div class="bsp"><pre class="repl"><code><span class="e">Polynom(1, 0, -4, 0)</span><span class="a">f(x) = x³ - 4x</span><span class="e">Polynom.aus_koeffizienten([0, -4, 0, 1], aufsteigend=True)</span><span class="a">f(x) = x³ - 4x</span><span class="e">Polynom(1, &quot;-1/3&quot;, 2)</span><span class="a">f(x) = x² - 1/3 x + 2</span></code></pre><button class="kopie" type="button" title="Quelltext kopieren">kopieren</button></div>
+<h3 id="eingabe-null">Über die Nullstellen<a class="anker" href="#eingabe-null" aria-label="Link">#</a></h3>
+<div class="bsp"><pre class="repl"><code><span class="e">aus_nullstellen(-2, 0, 2)</span><span class="a">f(x) = x³ - 4x</span><span class="e">aus_nullstellen(1, 3, faktor=-2)</span><span class="a">f(x) = -2x² + 8x - 6</span><span class="e">aus_nullstellen({2: 2}, -1, name=&quot;p&quot;)</span><span class="a">p(x) = x³ - 3x² + 4</span></code></pre><button class="kopie" type="button" title="Quelltext kopieren">kopieren</button></div>
+<h3 id="eingabe-x">Mit der Variablen x rechnen<a class="anker" href="#eingabe-x" aria-label="Link">#</a></h3>
+<p><code>x</code> ist selbst ein Polynom. So lassen sich Funktionen auch wie in Python schreiben – und verschieben, indem man <code>x - 4</code> einsetzt:</p>
+<div class="bsp"><pre class="repl"><code><span class="e">p = 2*x**3 - 4*x + 1</span><span class="e">p</span><span class="a">f(x) = 2x³ - 4x + 1</span><span class="e">f = Polynom(&quot;f(x) = x^3 - 4x&quot;)</span><span class="e">f(x - 4)</span><span class="a">f(x) = x³ - 12x² + 44x - 48</span><span class="e">g = f(x - 4).benannt(&quot;g&quot;)</span><span class="e">g</span><span class="a">g(x) = x³ - 12x² + 44x - 48</span></code></pre><button class="kopie" type="button" title="Quelltext kopieren">kopieren</button></div>
+</section>
+<section id="rechnen" class="kap">
+<h2><span class="nr">5</span>Rechnen mit Polynomen<a class="anker" href="#rechnen" aria-label="Link">#</a></h2>
+<p class="lead">Polynome verhalten sich wie Zahlen.</p>
+<div class="tabwrap"><table class=""><thead><tr><th>Schreibweise</th><th>Bedeutung</th></tr></thead><tbody><tr><td class="mono"><code>f + g</code></td><td>Summe (auch mit Zahlen)</td></tr><tr><td class="mono"><code>f - g</code></td><td>Differenz</td></tr><tr><td class="mono"><code>f * g</code></td><td>Produkt</td></tr><tr><td class="mono"><code>f ** 3</code></td><td>Potenz (natürliche Hochzahl)</td></tr><tr><td class="mono"><code>f / g</code></td><td>Division – nur, wenn sie aufgeht</td></tr><tr><td class="mono"><code>f // g</code></td><td>Quotient der Polynomdivision</td></tr><tr><td class="mono"><code>f % g</code></td><td>Rest der Polynomdivision</td></tr><tr><td class="mono"><code>divmod(f, g)</code></td><td>Quotient und Rest</td></tr><tr><td class="mono"><code>f(2)</code></td><td>Funktionswert (exakt)</td></tr><tr><td class="mono"><code>f(g)</code></td><td>Verkettung f(g(x))</td></tr><tr><td class="mono"><code>f == g</code></td><td>gleiche Koeffizienten?</td></tr></tbody></table></div>
+<div class="bsp"><pre class="repl"><code><span class="e">f = Polynom(&quot;-x^4 + 5x^3 + 6&quot;)</span><span class="e">divmod(f, x + 1)</span><span class="a">(q(x) = -x³ + 6x² - 6x + 6, r(x) = 0)</span><span class="e">f(Zahl(15, 4))</span><span class="a">18411/256</span><span class="e">f([0, 1, 2])</span><span class="a">[6, 10, 30]</span><span class="e">f.koeffizienten</span><span class="a">[-1, 5, 0, 0, 6]</span><span class="e">f.grad, f.leitkoeffizient, f.absolutglied</span><span class="a">(4, -1, 6)</span><span class="e">f.faktorisiert()</span><span class="a">&#x27;-(x + 1)(x³ - 6x² + 6x - 6)&#x27;</span></code></pre><button class="kopie" type="button" title="Quelltext kopieren">kopieren</button></div>
+<h3 id="rechnen-tabelle">Wertetabelle<a class="anker" href="#rechnen-tabelle" aria-label="Link">#</a></h3>
+<div class="bsp"><pre class="repl"><code><span class="e">print(Polynom(&quot;x^3 - 4x&quot;).wertetabelle(-2, 2, 0.5))</span><span class="a">   x | -2 | -3/2 | -1 | -1/2 | 0 |   1/2 |  1 |   3/2 | 2</span><span class="a">-----+----+------+----+------+---+-------+----+-------+--</span><span class="a">f(x) |  0 | 21/8 |  3 | 15/8 | 0 | -15/8 | -3 | -21/8 | 0</span></code></pre><button class="kopie" type="button" title="Quelltext kopieren">kopieren</button></div>
+</section>
+<section id="zahlen" class="kap">
+<h2><span class="nr">6</span>Zahlen: Brüche, Wurzeln, Näherungen<a class="anker" href="#zahlen" aria-label="Link">#</a></h2>
+<p class="lead">Drei Zahlentypen decken die Analysis der Oberstufe ab.</p>
+<div class="tabwrap"><table class=""><thead><tr><th>Typ</th><th>Beispiel</th><th>Bedeutung</th></tr></thead><tbody><tr><td class="mono"><code>Zahl</code></td><td><code>18411/256</code></td><td>ein Bruch (fractions.Fraction), der sich auch so zeigt</td></tr><tr><td class="mono"><code>Wurzelzahl</code></td><td><code>(5 + √17)/2</code></td><td>exakt a + b·√r – Lösungen quadratischer Gleichungen; rechnet exakt mit +, −, ·, :, Potenzen und Vergleichen</td></tr><tr><td class="mono"><code>Naeherung</code></td><td><code>≈5,05</code>, <code>∛2</code></td><td>nicht exakt darstellbar – immer mit ≈; manche kennen eine exakte Schreibweise (∛2)</td></tr></tbody></table></div>
+<div class="bsp"><pre class="repl"><code><span class="e">Q(&quot;2/3&quot;) + Q(0.1)</span><span class="a">23/30</span><span class="e">wurzel(18)</span><span class="a">3√2</span><span class="e">w = Wurzelzahl(1, 1, 2)</span><span class="e">w</span><span class="a">1 + √2</span><span class="e">w * w</span><span class="a">3 + 2√2</span><span class="e">1 / w</span><span class="a">-1 + √2</span><span class="e">nte_wurzel(Zahl(27, 8), 3)</span><span class="a">3/2</span><span class="e">nte_wurzel(2, 3)</span><span class="a">∛2 ≈ 1,26</span><span class="e">gerundet(Zahl(18411, 256))</span><span class="a">71.92</span><span class="e">ist_exakt(nte_wurzel(2, 3)), ist_exakt(Naeherung(1.5))</span><span class="a">(True, False)</span></code></pre><button class="kopie" type="button" title="Quelltext kopieren">kopieren</button></div>
+</section>
+<section id="ableitung" class="kap">
+<h2><span class="nr">7</span>Ableitung und Integral<a class="anker" href="#ableitung" aria-label="Link">#</a></h2>
+<div class="bsp"><pre class="repl"><code><span class="e">f = Polynom(&quot;-x^4 + 5x^3 + 6&quot;)</span><span class="e">f.ableitung()</span><span class="a">f&#x27;(x) = -4x³ + 15x²</span><span class="e">f.ableitung(3)</span><span class="a">f&#x27;&#x27;&#x27;(x) = -24x + 30</span><span class="e">print(f.weg.ableitung())</span><span class="a">Ableitung von f</span><span class="a">---------------</span><span class="a">Potenzregel (a·xⁿ)&#x27; = n·a·xⁿ⁻¹ für jeden Summanden; eine Zahl allein fällt weg.</span><span class="a">f&#x27;(x) = 4·(-1)x³ + 3·5x² = -4x³ + 15x²</span></code></pre><button class="kopie" type="button" title="Quelltext kopieren">kopieren</button></div>
+<div class="bsp"><pre class="repl"><code><span class="e">g = Polynom(&quot;x^2&quot;)</span><span class="e">g.stammfunktion()</span><span class="a">F(x) = 1/3 x³</span><span class="e">g.integral(0, 3)</span><span class="a">9</span><span class="e">print(g.weg.integral(0, 3))</span><span class="a">Integral von 0 bis 3</span><span class="a">--------------------</span><span class="a">Stammfunktion bilden:</span><span class="a">  F(x) = 1/3 x³</span><span class="a">F(3) = 1/3·3³ = 9</span><span class="a">F(0) = 1/3·0³ = 0</span><span class="a">Obere minus untere Grenze:</span><span class="a">  ∫ von 0 bis 3 = 9 - 0 = 9</span></code></pre><button class="kopie" type="button" title="Quelltext kopieren">kopieren</button></div>
+</section>
+<section id="nullstellen" class="kap">
+<h2><span class="nr">8</span>Nullstellen und Gleichungen<a class="anker" href="#nullstellen" aria-label="Link">#</a></h2>
+<p class="lead">Gelöst wird wie im Unterricht – das Verfahren wird passend zur Gleichung gewählt.</p>
+<div class="tabwrap"><table class=""><thead><tr><th>Gleichung</th><th>Verfahren im Lösungsweg</th></tr></thead><tbody><tr><td class="mono">ax + b = 0</td><td>nach x auflösen</td></tr><tr><td class="mono">kein absolutes Glied</td><td>x bzw. xᵏ ausklammern, Satz vom Nullprodukt</td></tr><tr><td class="mono">a·xⁿ + c = 0</td><td>nach xⁿ auflösen, Wurzel ziehen (gerade n: ±)</td></tr><tr><td class="mono">quadratisch</td><td>p-q-Formel (oder abc-Formel, siehe Einstellungen)</td></tr><tr><td class="mono">nur x⁴, x², Zahl (allgemein x²ᵐ, xᵐ, Zahl)</td><td>Substitution z = x², Rücksubstitution</td></tr><tr><td class="mono">sonst</td><td>Nullstelle raten (Teiler des absoluten Glieds), Polynomdivision, Rest lösen</td></tr><tr><td class="mono">keine rationale Nullstelle</td><td>Näherung über Vorzeichenwechsel / Intervallhalbierung</td></tr></tbody></table></div>
+<div class="bsp"><pre class="repl"><code><span class="e">Polynom(&quot;x^4 - 9x^2&quot;).nullstellen()</span><span class="a">[-3, 0, 3]</span><span class="e">Polynom(&quot;x^4 - 9x^2&quot;).nullstellen_vielfach()</span><span class="a">[(-3, 1), (0, 2), (3, 1)]</span><span class="e">Polynom(&quot;2x^2 - 3&quot;).nullstellen()</span><span class="a">[-√6/2, √6/2]</span><span class="e">Polynom(&quot;x^4 - 5x^2 + 2&quot;).nullstellen()</span><span class="a">[-√((5 + √17)/2) ≈ -2,14, -√((5 - √17)/2) ≈ -0,66, √((5 - √17)/2) ≈ 0,66, √((5 + √17)/2) ≈ 2,14]</span></code></pre><button class="kopie" type="button" title="Quelltext kopieren">kopieren</button></div>
+<div class="bsp"><pre class="repl"><code><span class="e">print(Polynom(&quot;f(x) = -x^4 + 5x^3 + 6&quot;).weg.nullstellen())</span><span class="a">Nullstellen von f</span><span class="a">-----------------</span><span class="a">Ansatz: Funktionsterm gleich null setzen.</span><span class="a">  f(x) = 0</span><span class="a">-x⁴ + 5x³ + 6 = 0</span><span class="a">Nullstelle raten: Ganzzahlige Lösungen sind Teiler von 6: ±1, ±2, ±3, ±6</span><span class="a">  f(1) = 10 ≠ 0</span><span class="a">  f(-1) = -(-1)⁴ + 5·(-1)³ + 6 = 0</span><span class="a">Gefunden: x = -1</span><span class="a">Polynomdivision (oder Horner-Schema):</span><span class="a">  (-x⁴ + 5x³ + 6) : (x + 1) = -x³ + 6x² - 6x + 6</span><span class="a">Restgleichung lösen:</span><span class="a">  -x³ + 6x² - 6x + 6 = 0</span><span class="a">  Nullstelle raten: Ganzzahlige Lösungen sind Teiler von 6: ±1, ±2, ±3, ±6</span><span class="a">    p(1) = 5 ≠ 0</span><span class="a">    p(-1) = 19 ≠ 0</span><span class="a">    p(2) = 10 ≠ 0</span><span class="a">    p(-2) = 50 ≠ 0</span><span class="a">    p(3) = 15 ≠ 0</span><span class="a">    p(-3) = 105 ≠ 0</span><span class="a">    p(6) = -30 ≠ 0</span><span class="a">    p(-6) = 474 ≠ 0</span><span class="a">  Keine dieser Zahlen ist eine Lösung – exakt lässt sich die Gleichung mit Schulmitteln nicht lösen.</span><span class="a">  Näherung über Vorzeichenwechsel (Intervallhalbierung bzw. Taschenrechner):</span><span class="a">    p(5) = 1, p(6) = -30 ⇒ Lösung zwischen 5 und 6: x ≈ 5,05</span><span class="a">Nullstellen: x₁ = -1, x₂ ≈ 5,05</span><span class="a">Schnittpunkte mit der x-Achse: N₁(-1 | 0), N₂(≈5,05 | 0)</span></code></pre><button class="kopie" type="button" title="Quelltext kopieren">kopieren</button></div>
+<h3 id="nullstellen-loese">Gleichungen und Schnittpunkte<a class="anker" href="#nullstellen-loese" aria-label="Link">#</a></h3>
+<p><code>loese</code> löst eine Polynomgleichung mit zwei Seiten; <code>schnittpunkte</code> setzt zwei Funktionen gleich.</p>
+<div class="bsp"><pre class="repl"><code><span class="e">loese(&quot;x^3 = 4x&quot;)</span><span class="a">[-2, 0, 2]</span><span class="e">print(loese(&quot;x^2 + 1 = 2x + 4&quot;, _weg=True))</span><span class="a">Gleichung lösen</span><span class="a">---------------</span><span class="a">Gleichung:</span><span class="a">  x² + 1 = 2x + 4</span><span class="a">Alles auf eine Seite:</span><span class="a">  x² - 2x - 3 = 0</span><span class="a">p-q-Formel mit p = -2 und q = -3:</span><span class="a">x₁,₂ = 1 ± √(1 + 3) = 1 ± √4</span><span class="a">x₁,₂ = 1 ± 2</span><span class="a">x₁ = -1</span><span class="a">x₂ = 3</span><span class="a">Lösungen: x₁ = -1, x₂ = 3</span><span class="e">f = Polynom(&quot;f(x) = x^3 - 4x&quot;)</span><span class="e">g = Polynom(&quot;g(x) = 2x&quot;)</span><span class="e">f.schnittpunkte(g)</span><span class="a">[S₁(-√6 | -2√6) ≈ S₁(-2,45 | -4,9), S₂(0 | 0), S₃(√6 | 2√6) ≈ S₃(2,45 | 4,9)]</span></code></pre><button class="kopie" type="button" title="Quelltext kopieren">kopieren</button></div>
+</section>
+<section id="steigung" class="kap">
+<h2><span class="nr">9</span>Steigung, Tangente, Normale, Sekante<a class="anker" href="#steigung" aria-label="Link">#</a></h2>
+<div class="bsp"><pre class="repl"><code><span class="e">f = Polynom(&quot;f(x) = x^3 - 4x&quot;)</span><span class="e">f.steigung(2)</span><span class="a">8</span><span class="e">f.steigungswinkel(1)</span><span class="a">-45</span><span class="e">f.stellen_mit_steigung(8)</span><span class="a">[-2, 2]</span><span class="e">f.tangente(2)</span><span class="a">t(x) = 8x - 16</span><span class="e">f.normale(1)</span><span class="a">n(x) = x - 4</span><span class="e">f.sekantensteigung(-1, 2)</span><span class="a">-1</span><span class="e">f.sekante(-1, 2)</span><span class="a">s(x) = -x + 2</span></code></pre><button class="kopie" type="button" title="Quelltext kopieren">kopieren</button></div>
+<div class="bsp"><pre class="repl"><code><span class="e">print(f.weg.tangente(2))</span><span class="a">Tangente an f bei x = 2</span><span class="a">-----------------------</span><span class="a">Berührpunkt: y-Koordinate</span><span class="a">  f(2) = 2³ - 4·2 = 8 - 8 = 0</span><span class="a">Steigung der Tangente: m = f&#x27;(2)</span><span class="a">  f&#x27;(x) = 3x² - 4</span><span class="a">  f&#x27;(2) = 3·2² - 4 = 12 - 4 = 8</span><span class="a">Ansatz t(x) = m·x + b – Punkt einsetzen und nach b auflösen:</span><span class="a">  0 = 8·2 + b</span><span class="a">  b = -16</span><span class="a">Tangentengleichung:</span><span class="a">  t(x) = 8x - 16</span></code></pre><button class="kopie" type="button" title="Quelltext kopieren">kopieren</button></div>
+<div class="box hin"><strong>Hinweis</strong> Heißt die Variable selbst <code>t</code> (etwa bei <code>h(t)</code>), bekommt die Tangente einen anderen Namen, damit nichts doppelt heißt.</div>
+</section>
+<section id="kurven" class="kap">
+<h2><span class="nr">10</span>Extrem-, Sattel- und Wendepunkte<a class="anker" href="#kurven" aria-label="Link">#</a></h2>
+<p class="lead">Mit notwendiger und hinreichender Bedingung – und dem Vorzeichenwechsel, wenn die höhere Ableitung null ist.</p>
+<div class="bsp"><pre class="repl"><code><span class="e">f = Polynom(&quot;f(x) = -x^4 + 5x^3 + 6&quot;)</span><span class="e">f.extrempunkte()</span><span class="a">[H(15/4 | 18411/256) ≈ H(3,75 | 71,92)]</span><span class="e">f.hochpunkte(), f.tiefpunkte()</span><span class="a">([H(15/4 | 18411/256) ≈ H(3,75 | 71,92)], [])</span><span class="e">f.sattelpunkte()</span><span class="a">[S(0 | 6)]</span><span class="e">f.extremstellen()</span><span class="a">[15/4]</span><span class="e">f.art(0), f.art(Zahl(15, 4)), f.art(1)</span><span class="a">(&#x27;Sattelpunkt&#x27;, &#x27;Hochpunkt&#x27;, None)</span><span class="e">f.wendepunkte()</span><span class="a">[W₁(0 | 6), W₂(5/2 | 721/16) ≈ W₂(2,5 | 45,06)]</span><span class="e">f.wendestellen()</span><span class="a">[0, 5/2]</span><span class="e">f.kruemmung_an(1)</span><span class="a">18</span><span class="e">f.wendetangenten()</span><span class="a">[t(x) = 6, t(x) = 125/4 x - 529/16]</span></code></pre><button class="kopie" type="button" title="Quelltext kopieren">kopieren</button></div>
+<div class="bsp"><pre class="repl"><code><span class="e">print(f.weg.wendepunkte())</span><span class="a">Wendepunkte von f</span><span class="a">-----------------</span><span class="a">1. Ableitungen bilden:</span><span class="a">  f&#x27;(x) = -4x³ + 15x²</span><span class="a">  f&#x27;&#x27;(x) = -12x² + 30x</span><span class="a">  f&#x27;&#x27;&#x27;(x) = -24x + 30</span><span class="a">2. Notwendige Bedingung f&#x27;&#x27;(x) = 0:</span><span class="a">  -12x² + 30x = 0</span><span class="a">  x ausklammern:</span><span class="a">    x·(-12x + 30) = 0</span><span class="a">  Satz vom Nullprodukt: Ein Produkt ist null, wenn ein Faktor null ist.</span><span class="a">    x = 0</span><span class="a">    oder:</span><span class="a">      -12x + 30 = 0</span><span class="a">      Nach x auflösen:</span><span class="a">        -12x = -30</span><span class="a">        x = 30/12 = 5/2</span><span class="a">3. Hinreichende Bedingung f&#x27;&#x27;&#x27;(x) ≠ 0 (sonst Vorzeichenwechsel von f&#x27;&#x27; prüfen):</span><span class="a">  f&#x27;&#x27;&#x27;(0) = -24·0 + 30</span><span class="a">          = 30</span><span class="a">          ≠ 0</span><span class="a">          ⇒ Wendestelle (rechts → links gekrümmt)</span><span class="a">  f&#x27;&#x27;&#x27;(5/2) = -24·(5/2) + 30</span><span class="a">            = -30</span><span class="a">            ≠ 0</span><span class="a">            ⇒ Wendestelle (links → rechts gekrümmt)</span><span class="a">4. y-Koordinaten (in f einsetzen):</span><span class="a">  f(0) = -0⁴ + 5·0³ + 6 = 6</span><span class="a">  f(5/2) = -(5/2)⁴ + 5·(5/2)³ + 6</span><span class="a">         = -625/16 + 625/8 + 6</span><span class="a">         = 721/16</span><span class="a">         ≈ 45,06</span><span class="a">Wendepunkte: W₁(0 | 6), W₂(5/2 | 721/16) ≈ W₂(2,5 | 45,06)</span><span class="a">Waagerechte Tangente (f&#x27; = 0) ⇒ Sattelpunkt: W₁(0 | 6)</span></code></pre><button class="kopie" type="button" title="Quelltext kopieren">kopieren</button></div>
+<h3 id="kurven-punkt">Punkte<a class="anker" href="#kurven-punkt" aria-label="Link">#</a></h3>
+<p>Ergebnisse sind <code>Punkt</code>-Objekte mit <code>x</code>, <code>y</code>, <code>name</code> und <code>art</code>. Gerundet zeigt sie <code>naeherung()</code>, <code>tex()</code> liefert LaTeX.</p>
+<div class="bsp"><pre class="repl"><code><span class="e">H = f.extrempunkte()[0]</span><span class="e">H.art</span><span class="a">&#x27;Hochpunkt&#x27;</span><span class="e">H.naeherung()</span><span class="a">&#x27;H(3,75 | 71,92)&#x27;</span><span class="e">H.tex()</span><span class="a">&#x27;H\\left(\\frac{15}{4}\\,\\middle|\\,\\frac{18411}{256}\\right)&#x27;</span><span class="e">x0, y0 = H</span></code></pre><button class="kopie" type="button" title="Quelltext kopieren">kopieren</button></div>
+</section>
+<section id="mono" class="kap">
+<h2><span class="nr">11</span>Monotonie und Krümmung<a class="anker" href="#mono" aria-label="Link">#</a></h2>
+<p>Ohne Grenzen wird auf ganz ℝ gerechnet (offene Intervalle wie auf der Webseite), mit <code>von</code>/<code>bis</code> nur in diesem Bereich (geschlossene Intervalle).</p>
+<div class="bsp"><pre class="repl"><code><span class="e">h = Polynom(&quot;h(t) = -27t^3 + 270t^2 - 324t + 729&quot;)</span><span class="e">h.monotonie()</span><span class="a">[]-∞; 2/3[ ≈ ]-∞; 0,67[ (fallend), ]2/3; 6[ ≈ ]0,67; 6[ (steigend), ]6; ∞[ (fallend)]</span><span class="e">h.monotonie(0, 9)</span><span class="a">[[0; 2/3] ≈ [0; 0,67] (fallend), [2/3; 6] ≈ [0,67; 6] (steigend), [6; 9] (fallend)]</span><span class="e">h.kruemmung()</span><span class="a">[]-∞; 10/3[ ≈ ]-∞; 3,33[ (linksgekrümmt), ]10/3; ∞[ ≈ ]3,33; ∞[ (rechtsgekrümmt)]</span></code></pre><button class="kopie" type="button" title="Quelltext kopieren">kopieren</button></div>
+<div class="bsp"><pre class="repl"><code><span class="e">print(Polynom(&quot;-x^4 + 5x^3 + 6&quot;).weg.monotonie())</span><span class="a">Monotonie von f</span><span class="a">---------------</span><span class="a">Ableitung bilden:</span><span class="a">  f&#x27;(x) = -4x³ + 15x²</span><span class="a">Nullstellen von f&#x27; (dort kann sich das Monotonieverhalten ändern):</span><span class="a">  -4x³ + 15x² = 0</span><span class="a">  x² ausklammern:</span><span class="a">    x²·(-4x + 15) = 0</span><span class="a">  Satz vom Nullprodukt: Ein Produkt ist null, wenn ein Faktor null ist.</span><span class="a">    x² = 0 ⇒ x = 0 (doppelt)</span><span class="a">    oder:</span><span class="a">      -4x + 15 = 0</span><span class="a">      Nach x auflösen:</span><span class="a">        -4x = -15</span><span class="a">        x = 15/4</span><span class="a">Vorzeichen von f&#x27; in jedem Abschnitt (Probe einsetzen):</span><span class="a">  f&#x27;(-1) = -4·(-1)³ + 15·(-1)²</span><span class="a">         = 19</span><span class="a">         &gt; 0</span><span class="a">         ⇒ steigend auf ]-∞; 0[</span><span class="a">  f&#x27;(2) = -4·2³ + 15·2²</span><span class="a">        = 28</span><span class="a">        &gt; 0</span><span class="a">        ⇒ steigend auf ]0; 15/4[</span><span class="a">  f&#x27;(4) = -4·4³ + 15·4²</span><span class="a">        = -16</span><span class="a">        &lt; 0</span><span class="a">        ⇒ fallend auf ]15/4; ∞[</span><span class="a">Ergebnis: f ist streng monoton steigend auf ]-∞; 15/4[ und streng monoton fallend auf ]15/4; ∞[.</span><span class="a">(An x = 0 ändert sich das Vorzeichen von f&#x27; nicht – dort liegt ein Sattelpunkt, die Monotonie bleibt.)</span></code></pre><button class="kopie" type="button" title="Quelltext kopieren">kopieren</button></div>
+</section>
+<section id="global" class="kap">
+<h2><span class="nr">12</span>Symmetrie, Grenzverhalten, globale Extrema<a class="anker" href="#global" aria-label="Link">#</a></h2>
+<div class="bsp"><pre class="repl"><code><span class="e">Polynom(&quot;x^4 - 9x^2&quot;).symmetrie()</span><span class="a">&#x27;achsensymmetrisch&#x27;</span><span class="e">Polynom(&quot;x^3 - 4x&quot;).symmetrie()</span><span class="a">&#x27;punktsymmetrisch&#x27;</span><span class="e">Polynom(&quot;-x^4 + 5x^3 + 6&quot;).symmetrie()</span><span class="a">&#x27;keine&#x27;</span><span class="e">Polynom(&quot;-x^4 + 5x^3 + 6&quot;).grenzverhalten()</span><span class="a">(&#x27;-∞&#x27;, &#x27;-∞&#x27;)</span><span class="e">print(Polynom(&quot;-x^4 + 5x^3 + 6&quot;).weg.symmetrie())</span><span class="a">Symmetrie von f</span><span class="a">---------------</span><span class="a">Hochzahlen der Summanden (eine Zahl allein zählt als x⁰): 4, 3, 0</span><span class="a">Gerade und ungerade Hochzahlen gemischt ⇒ weder achsensymmetrisch zur y-Achse noch punktsymmetrisch zum Ursprung.</span><span class="a">Probe mit f(-x):</span><span class="a">  f(-x) = -x⁴ - 5x³ + 6</span><span class="a">  weder f(x) noch -f(x)</span></code></pre><button class="kopie" type="button" title="Quelltext kopieren">kopieren</button></div>
+<div class="bsp"><pre class="repl"><code><span class="e">h = Polynom(&quot;h(t) = -27t^3 + 270t^2 - 324t + 729&quot;)</span><span class="e">h.globale_extrema(0, 9)</span><span class="a">{&#x27;maximum&#x27;: H(6 | 2673), &#x27;minimum&#x27;: R(9 | 0)}</span><span class="e">h.globale_extrema()</span><span class="a">{&#x27;maximum&#x27;: None, &#x27;minimum&#x27;: None}</span><span class="e">Polynom(&quot;x^4 - 2x^2&quot;).globale_extrema()</span><span class="a">{&#x27;maximum&#x27;: None, &#x27;minimum&#x27;: T₁(-1 | -1)}</span></code></pre><button class="kopie" type="button" title="Quelltext kopieren">kopieren</button></div>
+</section>
+<section id="steckbrief" class="kap">
+<h2><span class="nr">13</span>Steckbriefaufgaben<a class="anker" href="#steckbrief" aria-label="Link">#</a></h2>
+<p class="lead">Ein Polynom aus Bedingungen rekonstruieren – mit Ansatz, Gleichungssystem und Lösung.</p>
+<div class="tabwrap"><table class=""><thead><tr><th>Bedingung</th><th>bedeutet</th></tr></thead><tbody><tr><td class="mono"><code>f(0) = -6</code></td><td>Punkt (0 | −6)</td></tr><tr><td class="mono"><code>f&#x27;(2) = 0</code></td><td>Steigung 0 bei x = 2</td></tr><tr><td class="mono"><code>f&#x27;&#x27;(1) = 0</code></td><td>Krümmung 0 bei x = 1</td></tr><tr><td class="mono"><code>P(1|0)</code>, <code>N(3|0)</code></td><td>Punkt</td></tr><tr><td class="mono"><code>H(2|5)</code>, <code>T(…)</code>, <code>E(…)</code></td><td>Punkt und waagerechte Tangente</td></tr><tr><td class="mono"><code>W(1|2)</code></td><td>Punkt und f''(1) = 0</td></tr><tr><td class="mono"><code>Sattelpunkt(…)</code></td><td>Punkt, f' = 0 und f'' = 0</td></tr><tr><td class="mono"><code>Nullstelle bei 3</code></td><td>f(3) = 0</td></tr><tr><td class="mono"><code>Extremstelle bei 2</code></td><td>f'(2) = 0</td></tr><tr><td class="mono"><code>Wendestelle bei 1</code></td><td>f''(1) = 0</td></tr><tr><td class="mono"><code>Steigung 3 bei 0</code></td><td>f'(0) = 3</td></tr><tr><td class="mono"><code>(n, x0, y0)</code></td><td>f⁽ⁿ⁾(x0) = y0</td></tr></tbody></table></div>
+<div class="bsp"><pre class="repl"><code><span class="e">steckbrief(2, &quot;f(0) = -6&quot;, &quot;f(1) = 0&quot;, &quot;f&#x27;(2) = 0&quot;)</span><span class="a">f(x) = -2x² + 8x - 6</span><span class="e">steckbrief(3, &quot;H(0|4)&quot;, &quot;W(1|2)&quot;)</span><span class="a">f(x) = x³ - 3x² + 4</span><span class="e">print(steckbrief(3, &quot;H(0|4)&quot;, &quot;W(1|2)&quot;, weg=True))</span><span class="a">Steckbriefaufgabe (Grad 3)</span><span class="a">--------------------------</span><span class="a">Ansatz (Grad 3):</span><span class="a">  f(x) = ax³ + bx² + cx + d</span><span class="a">  f&#x27;(x) = 3ax² + 2bx + c</span><span class="a">  f&#x27;&#x27;(x) = 6ax + 2b</span><span class="a">Bedingungen in Gleichungen übersetzen:</span><span class="a">  f(0) = 4 ⇒ d = 4</span><span class="a">  f&#x27;(0) = 0 ⇒ c = 0</span><span class="a">  f(1) = 2 ⇒ a + b + c + d = 2</span><span class="a">  f&#x27;&#x27;(1) = 0 ⇒ 6a + 2b = 0</span><span class="a">Lineares Gleichungssystem lösen (Einsetzen bzw. Gauß-Verfahren):</span><span class="a">  a = 1, b = -3, c = 0, d = 4</span><span class="a">Ergebnis:</span><span class="a">  f(x) = x³ - 3x² + 4</span></code></pre><button class="kopie" type="button" title="Quelltext kopieren">kopieren</button></div>
+</section>
+<section id="wege" class="kap">
+<h2><span class="nr">14</span>Lösungswege<a class="anker" href="#wege" aria-label="Link">#</a></h2>
+<h3 id="wege-rechnung">Die Rechnung<a class="anker" href="#wege-rechnung" aria-label="Link">#</a></h3>
+<div class="tabwrap"><table class=""><thead><tr><th>Name</th><th>Bedeutung</th></tr></thead><tbody><tr><td class="mono"><code>r.ergebnis</code></td><td>das Ergebnis (wie ohne .weg)</td></tr><tr><td class="mono"><code>print(r)</code></td><td>der Weg als Text</td></tr><tr><td class="mono"><code>r.text(titel=False)</code></td><td>ohne Überschrift</td></tr><tr><td class="mono"><code>r.tex()</code></td><td>als LaTeX (align*)</td></tr><tr><td class="mono"><code>r.tex(umgebung=&quot;aligned&quot;)</code></td><td>in \[ … \] mit aligned</td></tr><tr><td class="mono"><code>r.tex(umgebung=None)</code></td><td>nur die Zeilen</td></tr><tr><td class="mono"><code>r.titel</code></td><td>die Überschrift</td></tr><tr><td class="mono"><code>r.schritte</code></td><td>die einzelnen Schritte</td></tr><tr><td class="mono"><code>r.link()</code></td><td>dieselbe Aufgabe auf der Webseite</td></tr><tr><td class="mono"><code>r.oeffnen()</code></td><td>die Seite im Browser öffnen</td></tr><tr><td class="mono"><code>r.dazu(...)</code></td><td>eigene Schritte anhängen</td></tr></tbody></table></div>
+<h3 id="wege-selbst">Eigene Schritte<a class="anker" href="#wege-selbst" aria-label="Link">#</a></h3>
+<p>Lösungswege lassen sich zusammensetzen – etwa für eine ganze Klausuraufgabe:</p>
+<div class="bsp"><pre class="repl"><code><span class="e">f = Polynom(&quot;f(x) = x^3 - 4x&quot;)</span><span class="e">r = Rechnung(titel=&quot;Aufgabe 5.3 g)&quot;)</span><span class="e">r.dazu(hinweis(&quot;Extrempunkte des Splines f:&quot;), f.weg.extrempunkte())</span><span class="a">Aufgabe 5.3 g)</span><span class="a">--------------</span><span class="a">Extrempunkte des Splines f:</span><span class="a">1. Ableitungen bilden:</span><span class="a">  f&#x27;(x) = 3x² - 4</span><span class="a">  f&#x27;&#x27;(x) = 6x</span><span class="a">2. Notwendige Bedingung f&#x27;(x) = 0:</span><span class="a">  3x² - 4 = 0</span><span class="a">  Nach x² auflösen:</span><span class="a">    x² = 4/3</span><span class="a">  Wurzel ziehen – zwei Lösungen:</span><span class="a">    x₁,₂ = ±√(4/3) = ±2√3/3 ≈ ±1,15</span><span class="a">3. Hinreichende Bedingung f&#x27;&#x27;(x) ≠ 0 (sonst Vorzeichenwechsel von f&#x27; prüfen):</span><span class="a">  f&#x27;&#x27;(-2√3/3) = 6·(-2√3/3)</span><span class="a">              = -4√3</span><span class="a">              ≈ -6,93</span><span class="a">              &lt; 0</span><span class="a">              ⇒ Hochpunkt bei x = -2√3/3</span><span class="a">  f&#x27;&#x27;(2√3/3) = 6·(2√3/3)</span><span class="a">             = 4√3</span><span class="a">             ≈ 6,93</span><span class="a">             &gt; 0</span><span class="a">             ⇒ Tiefpunkt bei x = 2√3/3</span><span class="a">4. y-Koordinaten (in f einsetzen):</span><span class="a">  f(-2√3/3) = (-2√3/3)³ - 4·(-2√3/3) = 16√3/9 ≈ 3,08</span><span class="a">  f(2√3/3) = (2√3/3)³ - 4·(2√3/3) = -16√3/9 ≈ -3,08</span><span class="a">Extrempunkte: H(-2√3/3 | 16√3/9) ≈ H(-1,15 | 3,08), T(2√3/3 | -16√3/9) ≈ T(1,15 | -3,08)</span><span class="e">print(r.text()[:300])</span><span class="a">Aufgabe 5.3 g)</span><span class="a">--------------</span><span class="a">Extrempunkte des Splines f:</span><span class="a">1. Ableitungen bilden:</span><span class="a">  f&#x27;(x) = 3x² - 4</span><span class="a">  f&#x27;&#x27;(x) = 6x</span><span class="a">2. Notwendige Bedingung f&#x27;(x) = 0:</span><span class="a">  3x² - 4 = 0</span><span class="a">  Nach x² auflösen:</span><span class="a">    x² = 4/3</span><span class="a">  Wurzel ziehen – zwei Lösungen:</span><span class="a">    x₁,₂ = ±√(4/3) = ±2√3/3 ≈ ±1,15</span><span class="a">3. Hinreichende Bedingung f&#x27;&#x27;(x) ≠ 0</span></code></pre><button class="kopie" type="button" title="Quelltext kopieren">kopieren</button></div>
+<p><code>Schritt(links, glieder, hinweis)</code> baut eine Zeile wie <code>f(2) = 8 - 8 = 0</code>; <code>F(text, tex)</code> ist ein Formelstück mit eigener LaTeX-Schreibweise.</p>
+<div class="bsp"><pre class="repl"><code><span class="e">print(Schritt(F(&quot;m&quot;), [F(&quot;(5 - 0)/(0 + 10)&quot;, r&quot;\frac{5-0}{0+10}&quot;), Zahl(1, 2)]))</span><span class="a">m = (5 - 0)/(0 + 10) = 1/2</span></code></pre><button class="kopie" type="button" title="Quelltext kopieren">kopieren</button></div>
+</section>
+<section id="latex" class="kap">
+<h2><span class="nr">15</span>LaTeX-Ausgabe<a class="anker" href="#latex" aria-label="Link">#</a></h2>
+<p>Jeder Weg kommt als <code>align*</code>-Umgebung; Erklärsätze stehen in <code>\text{…}</code>, Brüche als <code>\frac</code>, Dezimalkommas als <code>{,}</code>. Die Ausgabe läuft mit <code>pdflatex</code> und <code>amsmath</code>.</p>
+<div class="bsp"><pre class="repl"><code><span class="e">print(Polynom(&quot;x^2 - 10x - 24&quot;).weg.nullstellen().tex())</span><span class="a">\begin{align*}</span><span class="a">&amp;\text{Ansatz: Funktionsterm gleich null setzen.} \\</span><span class="a">f(x) &amp;= 0 \\</span><span class="a">x^2-10x-24 &amp;= 0 \\</span><span class="a">&amp;\text{p-q-Formel mit p = -10 und q = -24:} \\</span><span class="a">x_{1,2} &amp;= 5\pm\sqrt{25+24} = 5\pm\sqrt{49} \\</span><span class="a">x_{1,2} &amp;= 5\pm 7 \\</span><span class="a">x_1 &amp;= -2 \\</span><span class="a">x_2 &amp;= 12 \\</span><span class="a">&amp;\text{Nullstellen: }x_{1} = -2,\quad x_{2} = 12 \\</span><span class="a">&amp;\text{Schnittpunkte mit der x-Achse: }N_{1}\left(-2\,\middle|\,0\right),\quad N_{2}\left(12\,\middle|\,0\right)</span><span class="a">\end{align*}</span></code></pre><button class="kopie" type="button" title="Quelltext kopieren">kopieren</button></div>
+<p>Einzelne Objekte haben ebenfalls <code>.tex()</code>:</p>
+<div class="bsp"><pre class="repl"><code><span class="e">f = Polynom(&quot;f(x) = 1/3 x^3 - 5x^2 - 24x&quot;)</span><span class="e">f.tex()</span><span class="a">&#x27;\\frac{1}{3}x^3-5x^2-24x&#x27;</span><span class="e">f.gleichung_tex()</span><span class="a">&#x27;f(x) = \\frac{1}{3}x^3-5x^2-24x&#x27;</span><span class="e">f.extrempunkte()[0].tex()</span><span class="a">&#x27;H\\left(-2\\,\\middle|\\,\\frac{76}{3}\\right)&#x27;</span><span class="e">f.monotonie()[0].tex()</span><span class="a">&#x27;\\left] -\\infty;\\, -2 \\right[&#x27;</span></code></pre><button class="kopie" type="button" title="Quelltext kopieren">kopieren</button></div>
+</section>
+<section id="bild" class="kap">
+<h2><span class="nr">16</span>Bilder<a class="anker" href="#bild" aria-label="Link">#</a></h2>
+<p><code>f.zeichne()</code> bzw. <code>zeichne(f, g, …)</code> zeichnet mit matplotlib. Nullstellen, y-Achsenabschnitt, Hoch-, Tief-, Sattel- und Wendepunkte werden markiert und beschriftet; der Ausschnitt richtet sich nach diesen Punkten.</p>
+<div class="tabwrap"><table class=""><thead><tr><th>Angabe</th><th>Bedeutung</th></tr></thead><tbody><tr><td class="mono"><code>von=-2, bis=6</code></td><td>x-Bereich</td></tr><tr><td class="mono"><code>unten=-5, oben=5</code></td><td>y-Bereich</td></tr><tr><td class="mono"><code>ableitungen=1</code></td><td>f' gestrichelt dazu (2: auch f'')</td></tr><tr><td class="mono"><code>tangenten=[2]</code></td><td>Tangente an der Stelle 2</td></tr><tr><td class="mono"><code>(f, -2, 2)</code></td><td>f nur auf [−2; 2] (abschnittsweise Funktionen, Splines)</td></tr><tr><td class="mono"><code>Punkt(1, 3, &quot;Q&quot;)</code>, <code>(1, 3, &quot;Q&quot;)</code></td><td>eigene Punkte</td></tr><tr><td class="mono"><code>punkte=False / &#x27;alle&#x27;</code></td><td>keine Markierungen / Markierungen aller Funktionen</td></tr><tr><td class="mono"><code>datei=&quot;bild.png&quot;</code></td><td>als Datei speichern (auch .pdf, .svg)</td></tr><tr><td class="mono"><code>titel=&quot;…&quot;</code>, <code>groesse=(7, 4.5)</code></td><td>Überschrift, Größe in Zoll</td></tr></tbody></table></div>
+<div class="bsp"><pre class="repl nur"><code>f = Polynom(&quot;f(x) = -x^4 + 5x^3 + 6&quot;)
+f.zeichne(ableitungen=1, datei=&quot;kurvendiskussion.png&quot;)
+
+f = Polynom(&quot;f(x) = x^3 - 4x&quot;); g = f(x - 4).benannt(&quot;g&quot;)
+zeichne((f, -2, 2), (g, 2, 6), (-1, 3.5, &quot;Q&quot;), (1, -3.5, &quot;S&quot;), datei=&quot;splines.png&quot;)</code></pre><button class="kopie" type="button">kopieren</button></div>
+<h3 id="bild-skizze">Skizze ohne matplotlib<a class="anker" href="#bild-skizze" aria-label="Link">#</a></h3>
+<div class="bsp"><pre class="repl"><code><span class="e">print(Polynom(&quot;f(x) = x^3 - 4x&quot;).skizze(breite=48, hoehe=13))</span><span class="a">f(x) = x³ - 4x   (x von -2,75 bis 2,75, y von -7,86 bis 7,86)</span><span class="a">                        |                     *</span><span class="a">                        |                     *</span><span class="a">                        |                    *</span><span class="a">                        |                   *</span><span class="a">          ****H****     |                  *</span><span class="a">        **         **** |                 *</span><span class="a">------N*---------------*W---------------*N------</span><span class="a">     *                  |****         **</span><span class="a">    *                   |    ****T****</span><span class="a">   *                    |</span><span class="a">  *                     |</span><span class="a">  *                     |</span><span class="a"> *                      |</span></code></pre><button class="kopie" type="button" title="Quelltext kopieren">kopieren</button></div>
+</section>
+<section id="webseite" class="kap">
+<h2><span class="nr">17</span>Dieselbe Aufgabe auf der Webseite<a class="anker" href="#webseite" aria-label="Link">#</a></h2>
+<p class="lead">Zu den wichtigsten Aufgabentypen öffnet <code>.link()</code> die passende Übungsseite der Mathe-Tools – mit genau dieser Funktion als „Eigene Aufgabe“: dort gibt es den Lösungsweg Schritt für Schritt, ein Quiz und eine Skizze.</p>
+<div class="tabwrap"><table class=""><thead><tr><th>Aufruf</th><th>Seite</th></tr></thead><tbody><tr><td class="mono"><code>f.weg.nullstellen()</code></td><td>passende Gleichungsseite (Ausklammern, quadratisch, biquadratisch, Potenzgleichung, Nullstelle raten) – sonst „Gleichungsart erkennen“</td></tr><tr><td class="mono"><code>f.weg.ableitung()</code></td><td>Polynome ableiten</td></tr><tr><td class="mono"><code>f.weg.steigung(x0)</code>, <code>steigungswinkel</code>, <code>stellen_mit_steigung</code></td><td>Steigung und Tangenten</td></tr><tr><td class="mono"><code>f.weg.tangente(x0)</code>, <code>normale</code>, <code>sekante</code>, <code>sekantensteigung</code></td><td>Steigung und Tangenten</td></tr><tr><td class="mono"><code>f.weg.extrempunkte()</code>, <code>art(x0)</code>, <code>monotonie()</code>, <code>globale_extrema(a, b)</code></td><td>Extremstellen</td></tr><tr><td class="mono"><code>f.weg.wendepunkte()</code>, <code>wendetangenten()</code>, <code>kruemmung_an(x0)</code></td><td>Wendestellen</td></tr><tr><td class="mono"><code>f.weg.symmetrie()</code></td><td>Symmetrie bei Polynomen</td></tr><tr><td class="mono"><code>f.weg.grenzverhalten()</code></td><td>Grenzverhalten von Polynomen</td></tr></tbody></table></div>
+<div class="bsp"><pre class="repl"><code><span class="e">f = Polynom(&quot;f(x) = -x^4 + 5x^3 + 6&quot;)</span><span class="e">f.weg.wendepunkte().link()</span><span class="a">https://lehrerkoch.github.io/wendestellen.html?mt=%7B%22id%22%3A%22pkt.koo%22%2C%22v%22%3A%7B%22P%22%3A%22-x%5E4%2B5x%5E3%2B6%22%7D%7D</span><span class="e">for art, l in f.aufgabenseiten().items():</span><span class="e">    print(art, &quot;→&quot;, str(l)[:70] + &quot;…&quot;)</span><span class="a">nullstellen → https://lehrerkoch.github.io/nullstelle_raten.html?gl=-x%5E4%2B5x%5E3%…</span><span class="a">gleichungsart → https://lehrerkoch.github.io/gleichungart.html?t=eigen_6.0.0.5.-1…</span><span class="a">ableitung → https://lehrerkoch.github.io/polynom-ableitung.html?f=6,0,0,5,-1…</span><span class="a">extrempunkte → https://lehrerkoch.github.io/extremstellen.html?mt=%7B%22id%22%3A%22pk…</span><span class="a">monotonie → https://lehrerkoch.github.io/extremstellen.html?mt=%7B%22id%22%3A%22mo…</span><span class="a">wendepunkte → https://lehrerkoch.github.io/wendestellen.html?mt=%7B%22id%22%3A%22pkt…</span><span class="a">wendetangente → https://lehrerkoch.github.io/wendestellen.html?mt=%7B%22id%22%3A%22tan…</span><span class="a">symmetrie → https://lehrerkoch.github.io/symmetrie.html?t=gleichung_6,0,0,5,-1…</span><span class="a">grenzverhalten → https://lehrerkoch.github.io/grenzverhalten-poly.html?t=gBestimmen_l_4…</span></code></pre><button class="kopie" type="button" title="Quelltext kopieren">kopieren</button></div>
+<p><code>f.link(&quot;monotonie&quot;)</code> liefert eine einzelne Seite, <code>.oeffnen()</code> öffnet sie. Die Adresse der Webseite steht in <code>STIL.webseite</code> – für eine Kopie auf dem eigenen Rechner etwa <code>einstellen(webseite=&quot;file:///C:/…/Website/&quot;)</code>.</p>
+</section>
+<section id="einstellungen" class="kap">
+<h2><span class="nr">18</span>Einstellungen<a class="anker" href="#einstellungen" aria-label="Link">#</a></h2>
+<div class="tabwrap"><table class=""><thead><tr><th>Einstellung</th><th>Voreinstellung</th><th>Bedeutung</th></tr></thead><tbody><tr><td class="mono"><code>komma</code></td><td><code>True</code></td><td>Dezimalkomma statt Punkt</td></tr><tr><td class="mono"><code>stellen</code></td><td><code>2</code></td><td>Nachkommastellen bei Näherungen</td></tr><tr><td class="mono"><code>hoch</code></td><td><code>&#x27;unicode&#x27;</code></td><td>Hochzahlen im Text: x³ – oder '^' für x^3 (zum Kopieren)</td></tr><tr><td class="mono"><code>quadratisch</code></td><td><code>&#x27;pq&#x27;</code></td><td>p-q-Formel – oder 'abc' für die Mitternachtsformel</td></tr><tr><td class="mono"><code>intervall</code></td><td><code>&#x27;eckig&#x27;</code></td><td>]a; b[ – oder 'rund' für (a; b)</td></tr><tr><td class="mono"><code>umgebung</code></td><td><code>&#x27;align*&#x27;</code></td><td>LaTeX-Umgebung der Lösungswege</td></tr><tr><td class="mono"><code>webseite</code></td><td><code>&#x27;https://lehrerkoch.github.io/&#x27;</code></td><td>Adresse der Mathe-Tools</td></tr></tbody></table></div>
+<div class="bsp"><pre class="repl"><code><span class="e">with stil(quadratisch=&quot;abc&quot;):</span><span class="e">    print(Polynom(&quot;2x^2 - 3x - 2&quot;).weg.nullstellen())</span><span class="a">Nullstellen von f</span><span class="a">-----------------</span><span class="a">Ansatz: Funktionsterm gleich null setzen.</span><span class="a">  f(x) = 0</span><span class="a">2x² - 3x - 2 = 0</span><span class="a">abc-Formel mit a = 2, b = -3, c = -2:</span><span class="a">x₁,₂ = (3 ± √((-3)² - 4·2·(-2)))/4 = (3 ± √25)/4</span><span class="a">x₁,₂ = (3 ± 5)/4</span><span class="a">x₁ = -1/2 = -0,5</span><span class="a">x₂ = 2</span><span class="a">Nullstellen: x₁ = -1/2, x₂ = 2</span><span class="a">Schnittpunkte mit der x-Achse: N₁(-1/2 | 0) ≈ N₁(-0,5 | 0), N₂(2 | 0)</span></code></pre><button class="kopie" type="button" title="Quelltext kopieren">kopieren</button></div>
+<div class="bsp"><pre class="repl"><code><span class="e">with stil(hoch=&quot;^&quot;):</span><span class="e">    print(Polynom(&quot;1/3 x^3 - 5x^2&quot;))</span><span class="a">f(x) = 1/3 x^3 - 5x^2</span><span class="e">Polynom(&quot;1/3 x^3 - 5x^2&quot;).geogebra()</span><span class="a">&#x27;f(x) = 1/3x^3 - 5x^2&#x27;</span></code></pre><button class="kopie" type="button" title="Quelltext kopieren">kopieren</button></div>
+<p><code>einstellen(...)</code> ändert dauerhaft, <code>with stil(...):</code> nur für einen Block.</p>
+</section>
+<section id="fehler" class="kap">
+<h2><span class="nr">19</span>Fehlermeldungen<a class="anker" href="#fehler" aria-label="Link">#</a></h2>
+<div class="tabwrap"><table class=""><thead><tr><th>Fehler</th><th>wann</th></tr></thead><tbody><tr><td class="mono"><code>EingabeFehler</code></td><td>Text nicht lesbar, Division geht nicht auf, Bedingung unbekannt</td></tr><tr><td class="mono"><code>NichtExaktFehler</code></td><td>exakte Rechnung unmöglich (z. B. Wurzel aus einer negativen Zahl)</td></tr><tr><td class="mono"><code>PolynomFehler</code></td><td>Oberbegriff, etwa: Steckbrief nicht eindeutig lösbar</td></tr></tbody></table></div>
+</section>
+<section id="rezepte" class="kap">
+<h2><span class="nr">20</span>Rezepte<a class="anker" href="#rezepte" aria-label="Link">#</a></h2>
+<h3 id="rezept-kurve">Komplette Kurvendiskussion<a class="anker" href="#rezept-kurve" aria-label="Link">#</a></h3>
+<div class="bsp"><pre class="repl nur"><code>f = Polynom(&quot;f(x) = -x^4 + 5x^3 + 6&quot;)
+for r in (f.weg.symmetrie(), f.weg.grenzverhalten(), f.weg.y_achsenabschnitt(),
+          f.weg.nullstellen(), f.weg.extrempunkte(), f.weg.wendepunkte(), f.weg.monotonie()):
+    print(r, &quot;\n&quot;)
+f.zeichne(ableitungen=1)</code></pre><button class="kopie" type="button">kopieren</button></div>
+<h3 id="rezept-spline">Übergang zweier Funktionen prüfen (Splines)<a class="anker" href="#rezept-spline" aria-label="Link">#</a></h3>
+<div class="bsp"><pre class="repl"><code><span class="e">f = Polynom(&quot;f(x) = x^3 - 4x&quot;)</span><span class="e">g = Polynom(&quot;g(x) = x^3 - 12x^2 + 44x - 48&quot;)</span><span class="e">f(2) == g(2), f.steigung(2) == g.steigung(2)</span><span class="a">(True, True)</span><span class="e">f.ableitung(2)(2), g.ableitung(2)(2)</span><span class="a">(12, -12)</span></code></pre><button class="kopie" type="button" title="Quelltext kopieren">kopieren</button></div>
+<h3 id="rezept-anwendung">Anwendung: Tangente und Zeitpunkt<a class="anker" href="#rezept-anwendung" aria-label="Link">#</a></h3>
+<div class="bsp"><pre class="repl"><code><span class="e">h = Polynom(&quot;h(t) = -27t^3 + 270t^2 - 324t + 729&quot;)</span><span class="e">tg = h.tangente(8)</span><span class="e">tg</span><span class="a">g(t) = -1188t + 11097</span><span class="e">t = tg.nullstellen()[0]</span><span class="e">t, gerundet(t)</span><span class="a">(411/44, 9.34)</span></code></pre><button class="kopie" type="button" title="Quelltext kopieren">kopieren</button></div>
+<h3 id="rezept-latex">Lösungsweg für ein Arbeitsblatt<a class="anker" href="#rezept-latex" aria-label="Link">#</a></h3>
+<div class="bsp"><pre class="repl nur"><code>r = Polynom(&quot;f(x) = 1/3 x^3 - 5x^2 - 24x&quot;).weg.extrempunkte()
+with open(&quot;extrempunkte.tex&quot;, &quot;w&quot;, encoding=&quot;utf-8&quot;) as d:
+    d.write(r.tex())</code></pre><button class="kopie" type="button">kopieren</button></div>
+</section>
+<section id="index" class="kap">
+<h2><span class="nr">21</span>Alle Namen auf einen Blick<a class="anker" href="#index" aria-label="Link">#</a></h2>
+<h3 id="index-modul">Modul<a class="anker" href="#index-modul" aria-label="Link">#</a></h3>
+<div class="tabwrap"><table class="meth"><thead><tr><th>Name</th><th>Art</th><th>Bedeutung</th></tr></thead><tbody><tr><td class="mono"><code>Polynom</code></td><td><span class="art">Klasse</span></td><td>Eine ganzrationale Funktion mit exakten Koeffizienten.</td></tr><tr><td class="mono"><code>x</code></td><td><span class="art">Polynom</span></td><td>Die Variable x als Polynom – zum Rechnen: 2*x**3 - 4*x.</td></tr><tr><td class="mono"><code>variable</code></td><td><span class="art">Funktion</span></td><td>Die Variable als Polynom – zum Rechnen: ``t = variable(&#x27;t&#x27;); h = 3*t**2``.</td></tr><tr><td class="mono"><code>aus_nullstellen</code></td><td><span class="art">Funktion</span></td><td>Polynom über seine Nullstellen: ``aus_nullstellen(-1, 2, 2, faktor=3)``</td></tr><tr><td class="mono"><code>loese</code></td><td><span class="art">Funktion</span></td><td>Löst eine Polynomgleichung exakt: ``loese(&quot;x^4 - 9x^2 = 0&quot;)`` → [-3, 0, 3].</td></tr><tr><td class="mono"><code>steckbrief</code></td><td><span class="art">Funktion</span></td><td>Steckbriefaufgabe: das Polynom vom Grad ``grad`` mit diesen Eigenschaften.</td></tr><tr><td class="mono"><code>zeichne</code></td><td><span class="art">Funktion</span></td><td>Zeichnet Polynome mit ihren besonderen Punkten (matplotlib).</td></tr><tr><td class="mono"><code>skizze</code></td><td><span class="art">Funktion</span></td><td>Der Graph als Zeichenbild (ohne matplotlib) – mit H, T, W, S, N.</td></tr><tr><td class="mono"><code>Punkt</code></td><td><span class="art">Klasse</span></td><td>Ein Punkt des Graphen: ``H(15/4 | 18411/256)``.</td></tr><tr><td class="mono"><code>Intervall</code></td><td><span class="art">Klasse</span></td><td>Ein Intervall ``]a; b[`` – ``None`` als Grenze heißt ±∞.</td></tr><tr><td class="mono"><code>Tabelle</code></td><td><span class="art">Klasse</span></td><td>Eine Wertetabelle – ``print(t)``, ``t.tex()``, ``t.paare``.</td></tr><tr><td class="mono"><code>Rechnung</code></td><td><span class="art">Klasse</span></td><td>Ergebnis **und** Lösungsweg.</td></tr><tr><td class="mono"><code>Schritt</code></td><td><span class="art">Klasse</span></td><td>Eine Zeile eines Lösungswegs: ``links = glied1 = glied2 ≈ glied3``.</td></tr><tr><td class="mono"><code>hinweis</code></td><td><span class="art">Funktion</span></td><td>Ein Erklärsatz im Lösungsweg – Text und Formeln gemischt:</td></tr><tr><td class="mono"><code>Link</code></td><td><span class="art">Klasse</span></td><td>Eine Adresse der Mathe-Tools – mit ``.oeffnen()``.</td></tr><tr><td class="mono"><code>F</code></td><td><span class="art">Funktion</span></td><td>Kurzform für ein Formelstück: ``F(&quot;f&#x27;(x) = 0&quot;, &quot;f&#x27;(x) = 0&quot;)``.</td></tr><tr><td class="mono"><code>Teil</code></td><td><span class="art">Klasse</span></td><td>Ein Stück Formel mit eigener Text- und LaTeX-Schreibweise.</td></tr><tr><td class="mono"><code>Ausdruck</code></td><td><span class="art">Klasse</span></td><td>Eine Formel aus mehreren Stücken; wird erst beim Ausgeben gesetzt.</td></tr><tr><td class="mono"><code>Zahl</code></td><td><span class="art">Klasse</span></td><td>Eine Bruchzahl, die sich auch so zeigt: ``2/3`` statt ``Fraction(2, 3)``.</td></tr><tr><td class="mono"><code>Bruch</code></td><td><span class="art">Klasse</span></td><td>fractions.Fraction</td></tr><tr><td class="mono"><code>Q</code></td><td><span class="art">Funktion</span></td><td>Macht aus x eine **exakte** Zahl.</td></tr><tr><td class="mono"><code>Wurzelzahl</code></td><td><span class="art">Klasse</span></td><td>Eine exakte Zahl ``a + b·√r`` (a, b Brüche, r &gt; 1 quadratfrei).</td></tr><tr><td class="mono"><code>wurzel</code></td><td><span class="art">Funktion</span></td><td>Exakte Quadratwurzel: ``wurzel(18)`` ist ``3√2``, ``wurzel(9/4)`` ist 3/2.</td></tr><tr><td class="mono"><code>nte_wurzel</code></td><td><span class="art">Funktion</span></td><td>Exakte n-te Wurzel, wenn sie aufgeht (``nte_wurzel(27/8, 3)`` = 3/2),</td></tr><tr><td class="mono"><code>Naeherung</code></td><td><span class="art">Klasse</span></td><td>Eine Zahl, die sich nicht exakt als Bruch oder Wurzelterm schreiben</td></tr><tr><td class="mono"><code>ist_exakt</code></td><td><span class="art">Funktion</span></td><td>Ist x exakt bekannt (Bruch, Wurzelzahl, exakte Schreibweise)?</td></tr><tr><td class="mono"><code>gerundet</code></td><td><span class="art">Funktion</span></td><td>Rundet eine Zahl für die Ausgabe (exakte Zahlen bleiben sonst exakt).</td></tr><tr><td class="mono"><code>zahl_text</code></td><td><span class="art">Funktion</span></td><td>Eine Zahl als Text: ``3``, ``-2/3``, ``1,5``, ``2√3/3``.</td></tr><tr><td class="mono"><code>zahl_tex</code></td><td><span class="art">Funktion</span></td><td>Eine Zahl als LaTeX: ``3``, ``-\frac{2}{3}``, ``\frac{2\sqrt{3}}{3}``.</td></tr><tr><td class="mono"><code>einstellen</code></td><td><span class="art">Funktion</span></td><td>Ändert Voreinstellungen dauerhaft: ``einstellen(hoch=&#x27;^&#x27;)``.</td></tr><tr><td class="mono"><code>stil</code></td><td><span class="art">Klasse</span></td><td>Einstellungen nur für einen Block: ``with stil(quadratisch=&#x27;abc&#x27;): ...``</td></tr><tr><td class="mono"><code>STIL</code></td><td><span class="art">Klasse</span></td><td>Voreinstellungen für alle Ausgaben – mit ``einstellen(...)`` ändern.</td></tr><tr><td class="mono"><code>hilfe</code></td><td><span class="art">Funktion</span></td><td>Zeigt eine Übersicht aller Möglichkeiten.</td></tr><tr><td class="mono"><code>PolynomFehler</code></td><td><span class="art">Klasse</span></td><td>Oberbegriff aller Fehler dieses Moduls.</td></tr><tr><td class="mono"><code>EingabeFehler</code></td><td><span class="art">Klasse</span></td><td>Eine Eingabe ließ sich nicht lesen.</td></tr><tr><td class="mono"><code>NichtExaktFehler</code></td><td><span class="art">Klasse</span></td><td>Das Ergebnis wäre kein exakter Bruch- oder Wurzelterm mehr.</td></tr></tbody></table></div>
+<h3 id="index-methoden">Methoden eines Polynoms<a class="anker" href="#index-methoden" aria-label="Link">#</a></h3>
+<p><span class="wegmark" title="Lösungsweg über .weg">.weg</span> = mit Lösungsweg über <code>.weg</code>.</p>
+<div class="tabwrap"><table class="meth"><thead><tr><th>Name</th><th>Art</th><th>Bedeutung</th></tr></thead><tbody><tr><td class="mono"><code>a</code></td><td><span class="art">Methode</span></td><td>Der Faktor vor xⁿ.</td></tr><tr><td class="mono"><code>abl</code></td><td><span class="art">Methode</span></td><td>Kurzform von ``ableitung``.</td></tr><tr><td class="mono"><code>ableitung</code> <span class="wegmark" title="Lösungsweg über .weg">.weg</span></td><td><span class="art">Methode</span></td><td>Die n-te Ableitung (Voreinstellung: die erste) – wieder ein Polynom.</td></tr><tr><td class="mono"><code>absolutglied</code></td><td><span class="art">Eigenschaft</span></td><td></td></tr><tr><td class="mono"><code>art</code> <span class="wegmark" title="Lösungsweg über .weg">.weg</span></td><td><span class="art">Methode</span></td><td>Was liegt bei x0 vor? &#x27;Hochpunkt&#x27;, &#x27;Tiefpunkt&#x27;, &#x27;Sattelpunkt&#x27; oder</td></tr><tr><td class="mono"><code>aufgabenseiten</code></td><td><span class="art">Methode</span></td><td>Alle passenden Aufgabenseiten der Mathe-Tools zu dieser Funktion.</td></tr><tr><td class="mono"><code>aufsteigend</code></td><td><span class="art">Eigenschaft</span></td><td>Koeffizienten aufsteigend: ``[a0, a1, a2, …]``.</td></tr><tr><td class="mono"><code>aus_koeffizienten</code></td><td><span class="art">Klassenmethode</span></td><td>Koeffizienten als Liste – absteigend wie geschrieben (Voreinstellung)</td></tr><tr><td class="mono"><code>benannt</code></td><td><span class="art">Methode</span></td><td>Dasselbe Polynom unter anderem Namen: ``f.benannt(&#x27;g&#x27;)``.</td></tr><tr><td class="mono"><code>besondere_punkte</code></td><td><span class="art">Methode</span></td><td>Alle besonderen Punkte: Nullstellen, Sy, Extrem-, Sattel- und Wendepunkte</td></tr><tr><td class="mono"><code>extrempunkte</code> <span class="wegmark" title="Lösungsweg über .weg">.weg</span></td><td><span class="art">Methode</span></td><td>Die lokalen Hoch- und Tiefpunkte (Sattelpunkte: ``sattelpunkte()``).</td></tr><tr><td class="mono"><code>extremstellen</code></td><td><span class="art">Methode</span></td><td>Die Stellen der lokalen Hoch- und Tiefpunkte.</td></tr><tr><td class="mono"><code>faktorisiert</code></td><td><span class="art">Methode</span></td><td>Zerlegung in Linearfaktoren, soweit es mit Brüchen geht (Text).</td></tr><tr><td class="mono"><code>faktorisiert_tex</code></td><td><span class="art">Methode</span></td><td></td></tr><tr><td class="mono"><code>geogebra</code></td><td><span class="art">Methode</span></td><td>Für GeoGebra: ``f(x) = -x^4 + 5x^3 + 6``.</td></tr><tr><td class="mono"><code>gleichung</code></td><td><span class="art">Methode</span></td><td>``f(x) = -x⁴ + 5x³ + 6``</td></tr><tr><td class="mono"><code>gleichung_tex</code></td><td><span class="art">Methode</span></td><td></td></tr><tr><td class="mono"><code>globale_extrema</code> <span class="wegmark" title="Lösungsweg über .weg">.weg</span></td><td><span class="art">Methode</span></td><td>Globales Maximum und Minimum – auf [a; b] oder (ohne Grenzen) auf ℝ.</td></tr><tr><td class="mono"><code>grad</code></td><td><span class="art">Eigenschaft</span></td><td>Der Grad (die höchste Hochzahl); das Nullpolynom hat Grad -1.</td></tr><tr><td class="mono"><code>grenzverhalten</code> <span class="wegmark" title="Lösungsweg über .weg">.weg</span></td><td><span class="art">Methode</span></td><td>Verhalten für x → -∞ und x → +∞: etwa ``(&#x27;-∞&#x27;, &#x27;-∞&#x27;)``.</td></tr><tr><td class="mono"><code>hochpunkte</code></td><td><span class="art">Methode</span></td><td></td></tr><tr><td class="mono"><code>integral</code> <span class="wegmark" title="Lösungsweg über .weg">.weg</span></td><td><span class="art">Methode</span></td><td>Das bestimmte Integral von a bis b – exakt.</td></tr><tr><td class="mono"><code>koeffizient</code></td><td><span class="art">Methode</span></td><td>Der Faktor vor xⁿ.</td></tr><tr><td class="mono"><code>koeffizienten</code></td><td><span class="art">Eigenschaft</span></td><td>Koeffizienten absteigend, wie geschrieben: ``[-1, 5, 0, 0, 6]``.</td></tr><tr><td class="mono"><code>kruemmung</code> <span class="wegmark" title="Lösungsweg über .weg">.weg</span></td><td><span class="art">Methode</span></td><td>Krümmungsintervalle: art=&#x27;linksgekrümmt&#x27; (f&#x27;&#x27; &gt; 0) bzw. &#x27;rechtsgekrümmt&#x27;.</td></tr><tr><td class="mono"><code>kruemmung_an</code> <span class="wegmark" title="Lösungsweg über .weg">.weg</span></td><td><span class="art">Methode</span></td><td>f&#x27;&#x27;(x0) mit Deutung: &gt; 0 linksgekrümmt, &lt; 0 rechtsgekrümmt.</td></tr><tr><td class="mono"><code>latex</code></td><td><span class="art">Methode</span></td><td>Nur der Term als LaTeX: ``-x^4+5x^3+6``.</td></tr><tr><td class="mono"><code>leitkoeffizient</code></td><td><span class="art">Eigenschaft</span></td><td></td></tr><tr><td class="mono"><code>link</code></td><td><span class="art">Methode</span></td><td>Die Aufgabenseite zu dieser Funktion: ``f.link(&#x27;wendepunkte&#x27;)``.</td></tr><tr><td class="mono"><code>mittlere_aenderungsrate</code> <span class="wegmark" title="Lösungsweg über .weg">.weg</span></td><td><span class="art">Methode</span></td><td>Die mittlere Änderungsrate (f(b) - f(a))/(b - a).</td></tr><tr><td class="mono"><code>monotonie</code> <span class="wegmark" title="Lösungsweg über .weg">.weg</span></td><td><span class="art">Methode</span></td><td>Monotonie-Intervalle: [Intervall(…, art=&#x27;steigend&#x27;|&#x27;fallend&#x27;), …].</td></tr><tr><td class="mono"><code>name</code></td><td><span class="art">Methode</span></td><td></td></tr><tr><td class="mono"><code>normale</code> <span class="wegmark" title="Lösungsweg über .weg">.weg</span></td><td><span class="art">Methode</span></td><td>Die Normale (senkrecht zur Tangente) an der Stelle x0 – oder None,</td></tr><tr><td class="mono"><code>nullstellen</code> <span class="wegmark" title="Lösungsweg über .weg">.weg</span></td><td><span class="art">Methode</span></td><td>Alle reellen Nullstellen, aufsteigend (exakt, sonst als Näherung).</td></tr><tr><td class="mono"><code>nullstellen_vielfach</code></td><td><span class="art">Methode</span></td><td>[(x, Vielfachheit), …] – etwa ``[(0, 2), (-3, 1), (3, 1)]``.</td></tr><tr><td class="mono"><code>nullstellenpunkte</code></td><td><span class="art">Methode</span></td><td>Die Schnittpunkte mit der x-Achse als Punkte N₁, N₂, …</td></tr><tr><td class="mono"><code>sattelpunkte</code></td><td><span class="art">Methode</span></td><td>Stellen mit waagerechter Tangente ohne Vorzeichenwechsel von f&#x27;.</td></tr><tr><td class="mono"><code>schnittpunkte</code> <span class="wegmark" title="Lösungsweg über .weg">.weg</span></td><td><span class="art">Methode</span></td><td>Schnittpunkte der Graphen von f und g (Polynom oder Zahl).</td></tr><tr><td class="mono"><code>sekante</code> <span class="wegmark" title="Lösungsweg über .weg">.weg</span></td><td><span class="art">Methode</span></td><td>Die Sekante durch (a | f(a)) und (b | f(b)).</td></tr><tr><td class="mono"><code>sekantensteigung</code> <span class="wegmark" title="Lösungsweg über .weg">.weg</span></td><td><span class="art">Methode</span></td><td>Die mittlere Änderungsrate (f(b) - f(a))/(b - a).</td></tr><tr><td class="mono"><code>skizze</code></td><td><span class="art">Methode</span></td><td>Eine kleine Skizze aus Zeichen – für die Konsole.</td></tr><tr><td class="mono"><code>stammfunktion</code> <span class="wegmark" title="Lösungsweg über .weg">.weg</span></td><td><span class="art">Methode</span></td><td>Eine Stammfunktion F (mit Konstante c, Voreinstellung 0).</td></tr><tr><td class="mono"><code>steigung</code> <span class="wegmark" title="Lösungsweg über .weg">.weg</span></td><td><span class="art">Methode</span></td><td>Die Steigung des Graphen an der Stelle x0: f&#x27;(x0).</td></tr><tr><td class="mono"><code>steigungswinkel</code> <span class="wegmark" title="Lösungsweg über .weg">.weg</span></td><td><span class="art">Methode</span></td><td>Der Steigungswinkel α an der Stelle x0 in Grad (tan α = f&#x27;(x0)).</td></tr><tr><td class="mono"><code>stellen_mit_steigung</code> <span class="wegmark" title="Lösungsweg über .weg">.weg</span></td><td><span class="art">Methode</span></td><td>Alle Stellen, an denen der Graph die Steigung m hat: f&#x27;(x) = m.</td></tr><tr><td class="mono"><code>symmetrie</code> <span class="wegmark" title="Lösungsweg über .weg">.weg</span></td><td><span class="art">Methode</span></td><td>&#x27;achsensymmetrisch&#x27; (zur y-Achse), &#x27;punktsymmetrisch&#x27; (zum Ursprung)</td></tr><tr><td class="mono"><code>tangente</code> <span class="wegmark" title="Lösungsweg über .weg">.weg</span></td><td><span class="art">Methode</span></td><td>Die Tangente an den Graphen an der Stelle x0 (als Polynom t).</td></tr><tr><td class="mono"><code>tex</code></td><td><span class="art">Methode</span></td><td>Nur der Term als LaTeX: ``-x^4+5x^3+6``.</td></tr><tr><td class="mono"><code>text</code></td><td><span class="art">Methode</span></td><td>Nur der Term: ``-x⁴ + 5x³ + 6``.</td></tr><tr><td class="mono"><code>tiefpunkte</code></td><td><span class="art">Methode</span></td><td></td></tr><tr><td class="mono"><code>variable</code></td><td><span class="art">Methode</span></td><td></td></tr><tr><td class="mono"><code>weg</code></td><td><span class="art">Eigenschaft</span></td><td>``f.weg.methode(...)`` liefert den Lösungsweg (siehe ``dir(f.weg)``).</td></tr><tr><td class="mono"><code>wendepunkte</code> <span class="wegmark" title="Lösungsweg über .weg">.weg</span></td><td><span class="art">Methode</span></td><td>Die Wendepunkte (Sattelpunkte sind besondere Wendepunkte).</td></tr><tr><td class="mono"><code>wendestellen</code></td><td><span class="art">Methode</span></td><td></td></tr><tr><td class="mono"><code>wendetangenten</code> <span class="wegmark" title="Lösungsweg über .weg">.weg</span></td><td><span class="art">Methode</span></td><td>Die Tangenten in allen Wendepunkten.</td></tr><tr><td class="mono"><code>wert</code> <span class="wegmark" title="Lösungsweg über .weg">.weg</span></td><td><span class="art">Methode</span></td><td>Funktionswert f(x0), exakt.</td></tr><tr><td class="mono"><code>wertetabelle</code></td><td><span class="art">Methode</span></td><td>Wertetabelle von ``von`` bis ``bis`` – ``print(f.wertetabelle(-2, 2, 0.5))``.</td></tr><tr><td class="mono"><code>y_achsenabschnitt</code> <span class="wegmark" title="Lösungsweg über .weg">.weg</span></td><td><span class="art">Methode</span></td><td>Schnittpunkt mit der y-Achse: Sy(0 | f(0)).</td></tr><tr><td class="mono"><code>zeichne</code></td><td><span class="art">Methode</span></td><td>Zeichnet den Graphen mit allen besonderen Punkten (matplotlib).</td></tr></tbody></table></div>
+</section>
+</main>
+</div>
+<footer>Dokumentation zu <code>polynom.py</code> · erzeugt aus dem Modul selbst, alle Beispielausgaben sind echte Programmausgaben · M. Koch</footer>
+<script>
+/* Inhaltsverzeichnis: aktuelle Stelle hervorheben */
+(function(){
+  var ziele = [].slice.call(document.querySelectorAll('nav.inhalt a[href^="#"]'));
+  var nach = {};
+  ziele.forEach(function(a){ nach[a.getAttribute('href').slice(1)] = a; });
+  var marken = [].slice.call(document.querySelectorAll('section.kap, h3[id]'));
+  function aktuell(){
+    var besser = null, oben = 90;
+    marken.forEach(function(m){
+      var y = m.getBoundingClientRect().top;
+      if(y - oben <= 0) besser = m;
+    });
+    ziele.forEach(function(a){ a.classList.remove('hier'); });
+    if(besser && nach[besser.id]) nach[besser.id].classList.add('hier');
+  }
+  window.addEventListener('scroll', aktuell, {passive:true});
+  window.addEventListener('resize', aktuell);
+  aktuell();
+
+  /* Suchfeld filtert das Verzeichnis */
+  var feld = document.querySelector('nav.inhalt .suche');
+  if(feld) feld.addEventListener('input', function(){
+    var q = feld.value.trim().toLowerCase();
+    ziele.forEach(function(a){
+      var treffer = !q || a.textContent.toLowerCase().indexOf(q) >= 0;
+      a.parentNode.style.display = treffer ? '' : 'none';
+    });
+  });
+
+  /* Verzeichnis auf kleinen Bildschirmen auf- und zuklappen */
+  var schalter = document.getElementById('ivschalter');
+  if(schalter) schalter.addEventListener('click', function(){
+    document.querySelector('nav.inhalt').classList.toggle('auf');
+  });
+
+  /* kopieren */
+  document.addEventListener('click', function(e){
+    var b = e.target.closest ? e.target.closest('.kopie') : null;
+    if(!b) return;
+    var pre = b.parentNode.querySelector('pre');
+    var text = [].slice.call(pre.querySelectorAll('span.e'))
+                 .map(function(s){ return s.textContent; }).join('\n');
+    if(!text) text = pre.textContent;
+    var fertig = function(){ b.textContent = 'kopiert';
+      setTimeout(function(){ b.textContent = 'kopieren'; }, 1200); };
+    if(navigator.clipboard && navigator.clipboard.writeText)
+      navigator.clipboard.writeText(text).then(fertig, fertig);
+    else {
+      var t = document.createElement('textarea');
+      t.value = text; document.body.appendChild(t); t.select();
+      try{ document.execCommand('copy'); }catch(err){}
+      document.body.removeChild(t); fertig();
+    }
+  });
+})();
+</script>
+</body>
+</html>

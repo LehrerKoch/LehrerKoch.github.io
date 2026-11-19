@@ -2081,9 +2081,11 @@ class Vektor(object):
                             [bruchteil(innen, Ausdruck(betrag(_bez(self)), MAL,
                                                        betrag(_bez(o)))),
                              bruchteil(innen2, Ausdruck(la, MAL, lb)),
-                             kos, ('≈', gerundet(kos, 4))]),
+                             kos] + ([] if (isinstance(kos, Bruch) and kos.denominator == 1)
+                                     else [('≈', gerundet(kos, 4))])),
                     Schritt(Teil('α', r'\alpha'),
-                            [('≈', Ausdruck(erg, GRAD) if to_degree else erg)])]
+                            [('=' if (to_degree and abs(wert - round(wert)) < 1e-9) else '≈',
+                              Ausdruck(erg, GRAD) if to_degree else erg)])]
         if gegenwinkel:
             schritte.insert(0, hinweis('Der Winkel zur Ebene ergänzt den Winkel '
                                        'zum Normalenvektor zu 90° – daher sin.'))
@@ -2904,9 +2906,8 @@ class Gerade(object):
                   for i in range(self.dimension)]
         ztex = [r'%s &= %s' % (zahl_tex(p[i]), self._koordinate(i, tex=True))
                 for i in range(self.dimension)]
-        schritte = [Schritt(Teil('Ansatz:', r'\text{Ansatz: }'),
-                            [Ausdruck(p, Teil(' = ', '='), self.stuetz, PLUS,
-                                      Teil(self.variable), MAL, self.rv)]),
+        schritte = [Schritt(p, [Ausdruck(self.stuetz, PLUS, Teil(self.variable), MAL, self.rv)],
+                            hinweis='Ansatz: Punkt mit der Geradengleichung gleichsetzen'),
                     Block(zeilen, ztex)]
         if erg:
             schritte.append(Schritt(Teil(self.variable),
@@ -3064,11 +3065,11 @@ class Gerade(object):
             schritte = [hinweis('Die Geraden sind echt parallel – kein Schnittpunkt.')]
             return _ausgabe(Rechnung(None, schritte, 'Schnitt'), **_kw(kw))
         lg = loese([g.rv, -h.rv], h.stuetz - g.stuetz, _weg=True)
-        schritte = [Schritt(Teil('Ansatz:', r'\text{Ansatz: }'),
-                            [Ausdruck(g.stuetz, PLUS, Teil(g.variable), MAL, g.rv,
-                                      Teil(' = ', '='), h.stuetz, PLUS,
+        schritte = [Schritt(Ausdruck(g.stuetz, PLUS, Teil(g.variable), MAL, g.rv),
+                            [Ausdruck(h.stuetz, PLUS,
                                       Teil(h.variable if h.variable != g.variable
-                                           else 's'), MAL, h.rv)])]
+                                           else 's'), MAL, h.rv)],
+                            hinweis='Ansatz: Geradengleichungen gleichsetzen')]
         schritte += lg.schritte
         if lg.ergebnis.art == 'keine':
             schritte.append(hinweis('Unlösbar – die Geraden sind windschief.'))
@@ -3625,24 +3626,38 @@ class Ebene(object):
         for i in range(self.dimension):
             if self.n[i] == 0:
                 continue
-            c = zahl_text(self.n[i])
-            cx = zahl_tex(self.n[i])
+            c = Q(self.n[i])
+            a = abs(c)
+            ct = '' if a == 1 else zahl_text(a) + '·'
+            cx = '' if a == 1 else zahl_tex(a) + r'\cdot '
             kern, kernx = g._koordinate(i), g._koordinate(i, tex=True)
             if _atom(kern):
-                zeilen.append('%s·%s' % (c, kern))
-                ztex.append(r'%s\cdot %s' % (cx, kernx))
+                st, sx = ct + kern, cx + kernx
             else:
-                zeilen.append('%s·(%s)' % (c, kern))
-                ztex.append(r'%s\cdot\left(%s\right)' % (cx, kernx))
-        links2 = '%s%s' % (zahl_text(sk) if sk != 1 else '', v)
-        links2x = '%s%s' % (zahl_tex(sk) if sk != 1 else '', v)
+                st, sx = '%s(%s)' % (ct, kern), r'%s\left(%s\right)' % (cx, kernx)
+            if not zeilen:                      # erstes Glied: Vorzeichen davor
+                zeilen.append(('-' if c < 0 else '') + st)
+                ztex.append(('-' if c < 0 else '') + sx)
+            else:                               # sonst » - 4·(…)« statt » + -4·(…)«
+                zeilen.append(('- ' if c < 0 else '+ ') + st)
+                ztex.append(('- ' if c < 0 else '+ ') + sx)
+
+        def _vor(z, tex=False):
+            if z == 1:
+                return ''
+            if z == -1:
+                return '-'
+            t = zahl_tex(z) if tex else zahl_text(z)
+            return t if tex or '/' not in t else t + ' '
+        links2 = '%s%s' % (_vor(sk), v)
+        links2x = '%s%s' % (_vor(sk, True), v)
         if sk0 != 0:
             links2 += ' %s %s' % ('+' if sk0 > 0 else '-',
                                   zahl_text(abs(Q(sk0))))
             links2x += ' %s %s' % ('+' if sk0 > 0 else '-',
                                    zahl_tex(abs(Q(sk0))))
         schritte = [hinweis('Geradengleichung in die Koordinatenform einsetzen:'),
-                    Schritt(Teil(' + '.join(zeilen), ' + '.join(ztex)), [self.d]),
+                    Schritt(Teil(' '.join(zeilen), ' '.join(ztex)), [self.d]),
                     Schritt(Teil(links2, links2x), [self.d]),
                     Schritt(Teil(v), [bruchteil(self.d - sk0, sk), t]),
                     Schritt(Teil('S'), [Ausdruck(g.stuetz, PLUS, mal(t, g.rv)), erg])]

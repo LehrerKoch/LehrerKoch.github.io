@@ -11,16 +11,20 @@
    16px, und der Inhalt stünde auf einem 3840px-Panel als schmaler
    Streifen in der Mitte.
 
-   Deshalb wird oberhalb von Full HD stufenlos vergrößert:
-   Zoom = Fensterbreite / 1920. Die Seite sieht damit immer so aus
-   wie auf einem Full-HD-Bildschirm, nur eben größer – die
-   Inhaltsspalte nimmt also immer denselben Anteil der Breite ein
-   (bei 960px Spalte etwa die Hälfte). Weil die Rechnung in CSS
-   steht, passt sie sich beim Ziehen des Fensters sofort an.
+   Deshalb wird oberhalb von Full HD stufenlos vergrößert - aber nur
+   zu drei Vierteln dessen, was die reine Breite hergäbe:
+   Zoom = 0,25 + Fensterbreite / 2560 (= 1 + ¾·(Breite/1920 − 1)).
+   Bei 1920px ist das genau 1, bei 2560px 1,25, bei 3840px (4K) 1,75
+   statt 2. Die Inhaltsspalte wird damit auf großen Bildschirmen etwas
+   breiter als auf Full HD, die Schrift nicht ganz so riesig. Weil die
+   Rechnung in CSS steht, passt sie sich beim Ziehen des Fensters
+   sofort an.
 
    Anpassen:
-     1920px = die Breite, die als „normal“ gilt. Kleinere Zahl =
-     alles größer und die Spalte schmaler, größere Zahl = umgekehrt.
+     0.25 und 2560px gehören zusammen: 0.25 + 1920/2560 = 1 muss
+     gelten, damit es bei Full HD ohne Sprung beginnt. Für die volle
+     Vergrößerung (Zoom = Breite/1920) beides durch calc(100vw / 1920px)
+     ersetzen; für noch weniger z. B. 0.5 + 100vw / 3840px.
      800px  = Notbremse für sehr breite, flache Bildschirme (21:9):
      mehr als Fensterhöhe/800 wird nie vergrößert, damit senkrecht
      nichts abgeschnitten wird. Bei üblichen 16:9-Bildschirmen
@@ -35,7 +39,7 @@
 
 @media (min-width: 1921px) and (orientation: landscape) {
 
-    :root { --tk-zoom: min(calc(100vw / 1920px), calc(100vh / 800px)); }
+    :root { --tk-zoom: min(calc(0.25 + 100vw / 2560px), calc(100vh / 800px)); }
 
     html { zoom: var(--tk-zoom, 1); }
 

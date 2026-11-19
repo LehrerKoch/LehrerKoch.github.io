@@ -121,6 +121,9 @@ html.dark .mc-knopf { border-color: #3d4752; background: #1d242b; }
    zu als Knopf am linken Rand, offen als Reiter kurz hinter der Ecke. */
 details.spick > summary { justify-content: flex-start; }
 details[open].spick > summary .linie:first-child { flex: 0 0 14px; }
+/* Auch zugeklappt steht der Kopf schon 14px vom Rand - sonst springt er beim
+   Öffnen um genau dieses Stück Linie nach rechts. */
+details.spick:not([open]) > summary .linie:first-child { display: block; flex: 0 0 14px; visibility: hidden; }
 /* Zwei Spalten: der Begriff links, die Erklärung rechts. Eine lange
    Erklärung bricht nur innerhalb ihrer Spalte um, nicht unter den
    Begriff - deshalb nowrap an der Zeile und min-width:0 an der Spalte. */
@@ -1848,8 +1851,14 @@ function kachelnMalen(){
   var n = STUFEN_IDS.filter(haken).length;
   var z = document.getElementById('stufenZahl');
   if (z) z.textContent = ' (' + n + '/' + STUFEN_IDS.length + ')';
+  /* Steht irgendetwas an, heißt der Knopf „keine" - er schaltet dann
+     wirklich alles ab, und man wählt danach in Ruhe eine einzelne Stufe. */
   var alle = document.getElementById('stufenAlle');
-  if (alle) alle.textContent = (n === STUFEN_IDS.length) ? T('keine', 'none') : T('alle', 'all');
+  if (alle){
+    alle.textContent = n ? T('keine', 'none') : T('alle', 'all');
+    alle.title = n ? T('alle Stufen abwählen', 'deselect all levels')
+                   : T('alle Stufen wählen – langer Druck: auch alle Unterpunkte', 'select all levels – long press: all sub-items as well');
+  }
 }
 
 window.addEventListener('load', function(){
@@ -1898,13 +1907,45 @@ window.addEventListener('load', function(){
       if (e.value === 'indiv' && window.abEinstellungenOeffnen) abEinstellungenOeffnen('#dSettings');
     });
   });
+  /* „keine": alles aus - eine neue Aufgabe meldet dann, dass nichts
+     ausgewählt ist. „alle": jede Stufe wieder an, mit ihren Unterpunkten
+     wie zuletzt (sind dort keine an, dann alle). Langer Druck oder
+     Rechtsklick auf „alle": auch alle Unterpunkte. */
   var alle = document.getElementById('stufenAlle');
-  if (alle) alle.addEventListener('click', function(){
-    var an = STUFEN_IDS.filter(haken).length < STUFEN_IDS.length;
-    STUFEN_IDS.forEach(function(id){ setzeHaken(id, an); });
-    if (!STUFEN_IDS.filter(haken).length) setzeHaken('stufeF', true);
-    kachelnMalen(); neueAufgabe();
-  });
+  if (alle){
+    var UNTER = { stufeF: ARTEN_F, stufeF1: ARTEN_F1, stufeF2: ARTEN_F2 };
+    var irgendwas = function(){ return STUFEN_IDS.filter(haken).length > 0; };
+    var timer = null, lang = false;
+    var allesAn = function(){
+      lang = true;
+      STUFEN_IDS.forEach(function(id){ setzeHaken(id, true); UNTER[id].forEach(function(u){ setzeHaken(u, true); }); });
+      kachelnMalen(); neueAufgabe();
+    };
+    alle.addEventListener('pointerdown', function(ev){
+      if (ev.button != null && ev.button !== 0) return;
+      lang = false;
+      if (irgendwas()) return;
+      timer = setTimeout(allesAn, 500);
+    });
+    ['pointerup', 'pointerleave', 'pointercancel'].forEach(function(e){
+      alle.addEventListener(e, function(){ clearTimeout(timer); });
+    });
+    alle.addEventListener('contextmenu', function(ev){
+      ev.preventDefault(); clearTimeout(timer);
+      if (!lang && !irgendwas()) allesAn();
+    });
+    alle.addEventListener('click', function(ev){
+      ev.preventDefault(); ev.stopPropagation();
+      clearTimeout(timer);
+      if (lang){ lang = false; return; }
+      if (irgendwas()) STUFEN_IDS.forEach(function(id){ setzeHaken(id, false); });
+      else STUFEN_IDS.forEach(function(id){
+        setzeHaken(id, true);
+        if (!UNTER[id].filter(haken).length) UNTER[id].forEach(function(u){ setzeHaken(u, true); });
+      });
+      kachelnMalen(); neueAufgabe();
+    });
+  }
   document.getElementById('genBtn').addEventListener('click', function(){ neueAufgabe(); });
   document.getElementById('btnShare').addEventListener('click', function(){ linkKopieren(urlSchreiben(false), this); });
   document.getElementById('btnTeilen').addEventListener('click', function(){ linkKopieren(urlSchreiben(true), this); });

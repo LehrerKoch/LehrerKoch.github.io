@@ -17,7 +17,10 @@ MathJax = {
   tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] }
 };
 </script>
-<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<!-- Nur TeX-Eingabe (tex-chtml): Mit der MathML-Eingabe (tex-mml-chtml) wurde beim Neusetzen
+     der ganzen Seite das unsichtbare Vorlese-MathML jeder Formel noch einmal gesetzt - die Seite
+     wuchs mit jeder Aufgabe und wurde immer langsamer. -->
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
     <!-- Besuchszaehlung (Google Analytics). Geladen wird sie erst, wenn der
          Besucher zustimmt - siehe einwilligung.js. -->
 <script>
@@ -333,6 +336,24 @@ table.gv-tab tr.gv-passt td { background: #e8f5e9; font-weight: bold; }
 html.dark .gv-bildknopf { background: #fff; border-color: #4a545c; }
 html.dark table.gv-tab th, html.dark table.gv-tab td { border-bottom-color: #3a434b; }
 html.dark table.gv-tab tr.gv-passt td { background: #1e3a22; }
+/* Kacheln mit Unterformen: rechts Platz für den Pfeil - sonst liegt der
+   Richtig-Zähler der Kachel über dem Pfeil. */
+#segStile > .tile:has(.arr) { padding-right: 18px; }
+html.kein-has #segStile > .tile.mit-arr { padding-right: 18px; }
+@media (max-width: 860px) {
+  #segStile > .tile:has(.arr), html.kein-has #segStile > .tile.mit-arr { padding-right: 14px; }
+}
+/* Die fertigen Skizzen sind Bilder mit weißem Grund: ein Rahmen wie bei den
+   Bildern zum Anklicken, damit sie nicht lose auf der farbigen Aufgabe liegen. */
+.gv-bild { box-sizing: border-box; padding: 6px; border: 2px solid #ccc; border-radius: 10px; background: #fff; }
+html.dark .gv-bild { border-color: #4a545c; }
+/* Eigene Funktion: zweite Zeile mit der Aufgabenform */
+#manualPanel .mp-zeile + .mp-zeile { margin-top: 8px; }
+#manualPanel .mp-lbl { font-weight: bold; font-size: .92em; }
+#manualPanel select { flex: 1 1 220px; min-width: 0; font-size: .95em; padding: 6px 8px;
+  border: 1.5px solid var(--ab-gr-rand, #b8d8b8); border-radius: 6px; background: var(--ab-weiss, #fff);
+  color: var(--ab-text, #222); font-family: inherit; }
+html.dark #manualPanel select { background: #1b2026; color: #e7eae8; border-color: #4a5a4a; }
 </style>
 <script>
 /* MathJax ist nicht immer da (offline oder blockiert) - dann bleibt die Seite
@@ -423,12 +444,18 @@ function mjStart(fn){
 
 <div class="form-block">
   <b data-de="Schreibweise" data-en="Notation">Schreibweise</b>
-  <span class="d" data-de="Wie wird das Grenzverhalten notiert – in den Antworten und in der Begründung?" data-en="How is the end behaviour written – in the answers and in the reasoning?">Wie wird das Grenzverhalten notiert – in den Antworten und in der Begründung?</span>
-  <label class="opt"><input type="radio" name="schreib" value="pfeil" checked><span><span data-de="mit Pfeilen" data-en="with arrows">mit Pfeilen</span><span class="d" data-de="für $x \to +\infty$ gilt $f(x) \to +\infty$" data-en="as $x \to +\infty$: $f(x) \to +\infty$">für $x \to +\infty$ gilt $f(x) \to +\infty$</span></span></label>
+  <span class="d" data-de="Wie wird das Grenzverhalten notiert, in den Antworten und in der Begründung?" data-en="How is the end behaviour written, in the answers and in the reasoning?">Wie wird das Grenzverhalten notiert, in den Antworten und in der Begründung?</span>
+  <label class="opt"><input type="radio" name="schreib" value="pfeil" checked><span><span data-de="mit Pfeilen" data-en="with arrows">mit Pfeilen</span><span class="d" data-de="für $x \to +\infty$ gilt $f(x) \to +\infty$" data-en="as $x \to +\infty$ we have $f(x) \to +\infty$">für $x \to +\infty$ gilt $f(x) \to +\infty$</span></span></label>
   <label class="opt"><input type="radio" name="schreib" value="lim"><span><span data-de="mit lim" data-en="with lim">mit lim</span><span class="d">$\lim\limits_{x \to +\infty} f(x) = +\infty$</span></span></label>
   <label class="opt"><input type="checkbox" id="ohnePlus"><span><span data-de="$\infty$ statt $+\infty$" data-en="$\infty$ instead of $+\infty$">$\infty$ statt $+\infty$</span><span class="d" data-de="ohne Pluszeichen: $x \to \infty$" data-en="without the plus sign: $x \to \infty$">ohne Pluszeichen: $x \to \infty$</span></span></label>
 </div>
 
+</div>
+<div class="seed-zeile">
+  <label class="opt"><input type="checkbox" id="seedAn"><span data-de="fester Zufalls-Seed" data-en="fixed random seed">fester Zufalls-Seed</span></label>
+  <input type="text" id="seedWert" autocomplete="off" inputmode="numeric" aria-label="Seed" data-de-aria-label="Seed" data-en-aria-label="Seed">
+  <button type="button" class="btn-secondary" id="seedNeu" title="neuen Seed würfeln" data-de-title="neuen Seed würfeln" data-en-title="roll a new seed">⟳</button>
+  <span class="d" data-de="Mit demselben Seed bekommen alle dieselbe Folge von Aufgaben, der Seed steht dann im geteilten Link." data-en="With the same seed everyone gets the same sequence of tasks; the seed is then part of the shared link.">Mit demselben Seed bekommen alle dieselbe Folge von Aufgaben, der Seed steht dann im geteilten Link.</span>
 </div>
 </details>
 
@@ -467,14 +494,31 @@ function mjStart(fn){
 
 <div id="genRow">
   <button id="genBtn" onclick="newTask()" data-de='<span class="auto-kreis">&#x27F3;</span>&nbsp;Neue Aufgabe generieren' data-en='<span class="auto-kreis">&#x27F3;</span>&nbsp;Generate a new task'><span class="auto-kreis">&#x27F3;</span>&nbsp;Neue Aufgabe generieren</button>
+  <button id="manualBtn" class="btn-secondary" type="button" title="Eigene Funktion" data-de-title="Eigene Funktion" data-en-title="Your own function" data-de='&#9998;<span class="mb-text">&nbsp;Eigene Funktion</span>' data-en='&#9998;<span class="mb-text">&nbsp;Your own function</span>'>&#9998;<span class="mb-text">&nbsp;Eigene Funktion</span></button>
   <span class="punkte rechts">
     <span id="counter">Richtig: 0 / 0</span>
     <button id="btnPunkteReset" type="button" title="Punktzahl zurücksetzen" data-de-title="Punktzahl zurücksetzen" data-en-title="Reset the score">↺</button>
   </span>
 </div>
 
+<div id="manualPanel" hidden>
+  <div class="mp-kopf" data-de="Eigene Funktion eingeben" data-en="Enter your own function">Eigene Funktion eingeben</div>
+  <div class="mp-hinweis" data-de="Tippe ein Polynom ein, z. B. -2x^3+4x-1, 0,5x^4-x oder -3(x^2-1). Exponenten gehen mit ^ oder als ², ³, … Darunter wählst du, wie die Aufgabe gestellt wird, an der Gleichung oder am Graphen." data-en="Type a polynomial, e.g. -2x^3+4x-1, 0.5x^4-x or -3(x^2-1). Exponents work with ^ or as ², ³, … Below you choose how the task is asked, from the equation or from the graph.">Tippe ein Polynom ein, z. B. -2x^3+4x-1, 0,5x^4-x oder -3(x^2-1). Exponenten gehen mit ^ oder als ², ³, … Darunter wählst du, wie die Aufgabe gestellt wird, an der Gleichung oder am Graphen.</div>
+  <div class="mp-zeile">
+    <input type="text" id="eigeneEingabe" autocomplete="off" spellcheck="false" placeholder="-2x^3+4x-1" aria-label="Funktionsgleichung" data-de-aria-label="Funktionsgleichung" data-en-aria-label="Equation of the function">
+  </div>
+  <div class="mp-zeile">
+    <span class="mp-lbl" data-de="Aufgabe:" data-en="Task:">Aufgabe:</span>
+    <select id="eigeneArt" aria-label="Aufgabenform" data-de-aria-label="Aufgabenform" data-en-aria-label="Kind of task"></select>
+    <button type="button" id="eigeneBtn" data-de="übernehmen" data-en="use it">übernehmen</button>
+    <button type="button" class="btn-secondary" id="eigeneAbbruch" data-de="Abbrechen" data-en="Cancel">Abbrechen</button>
+  </div>
+  <div class="meld" id="eigeneMeldung"></div>
+</div>
+
 <div class="task">
-<div class="task-head"><h2 data-de="Aufgabe" data-en="Task">Aufgabe</h2></div>
+<div class="task-head"><h2 data-de="Aufgabe" data-en="Task">Aufgabe</h2>
+  <button class="share-btn" id="btnTeilen" type="button" title="Diese Aufgabe teilen (Link kopieren)" data-de-title="Diese Aufgabe teilen (Link kopieren)" data-en-title="Share this task (copy link)" data-de='🔗<span class="sh-text">&nbsp;Teilen</span>' data-en='🔗<span class="sh-text">&nbsp;Share</span>'>🔗<span class="sh-text">&nbsp;Teilen</span></button></div>
 <p id="taskText" class="task-hinweis"></p>
 <div class="scale-wrapper">
   <div id="task" class="scale-el"></div>
@@ -683,6 +727,8 @@ function buildPolyString(coeffs, explicitDeg) {
 
 // ---------------- Neue Aufgabe ----------------
 function newTask() {
+  /* fester Seed: der Zufall jeder Aufgabe ist festgelegt (aufgaben.js) */
+  if (window.abSeedNaechste) abSeedNaechste();
   document.getElementById('explanation').innerHTML = '';
   document.getElementById('explanationDetails').open = false;
   antwortenFreigeben();
@@ -690,6 +736,7 @@ function newTask() {
      bleibt es beim Bestimmen des Grenzverhaltens. Verständnisfragen
      brauchen keine Funktion. */
   const modus = (typeof modusZiehen === 'function') ? modusZiehen() : null;
+  if (modus && modus.stil === 'nichts') { nichtsAusgewaehlt(); return; }
   if (modus && modus.stil === 'verst' && typeof verstAufgabe === 'function') { verstAufgabe(modus); return; }
 
   const funcType   = document.querySelector('input[name="funcType"]:checked').value;
@@ -760,6 +807,12 @@ function newTask() {
   const isPure = (funcType === 'power' || funcType === 'powerWithFactor');
 
   currentTask = { fLatex, degree, leadPositive, coeffs, factor, isPure, funcType, modus };
+  aufgabeAnzeigen();
+}
+
+/* Zeigt die Aufgabe aus currentTask - gewürfelt, selbst eingegeben oder aus
+   einem geteilten Link. */
+function aufgabeAnzeigen() {
   if (typeof quizVorbereiten === 'function') quizVorbereiten();
 
   // Skizze aktualisieren
@@ -817,7 +870,7 @@ function punkteZuruecksetzen() {
 
 /* Markiert die Antworten und zählt die Punkte - einmal pro Aufgabe. */
 function aufgabeAbschliessen() {
-  if (aufgabeBewertet) return;
+  if (!currentTask || aufgabeBewertet) return;
   /* Bei den Quizformen wird nicht in den Spalten angekreuzt. */
   if (typeof wahlModus === 'function' && wahlModus()) { wahlAbschliessen(null); return; }
   aufgabeBewertet = true;
@@ -1279,9 +1332,11 @@ window.addEventListener('tl-sprache', spracheNeu);
 window.addEventListener('tl-theme',   begruendungNeu);
 
 window.onload = () => {
+  /* Seed aus dem Link zuerst - loadSettingsFromURL schreibt die Adresszeile neu. */
+  if (window.abSeedAusURL) abSeedAusURL();
   loadSettingsFromURL();
   updateDegTickLabels();
-  mjStart(() => newTask());
+  mjStart(() => { if (!(typeof aufgabeAusLink === 'function' && aufgabeAusLink())) newTask(); });
 };
 </script>
 <div id="lobby-spacer"></div>
@@ -1450,13 +1505,9 @@ function gewichtetZiehen(ids){
   return ids[ids.length - 1];
 }
 function modusZiehen(){
-  let kand = STILE_GV.filter(function(id){ return hk(id) && unterAktiv(id).length; });
-  if (!kand.length){
-    hkSetzen('stilGleichung', true);
-    if (!SUBS_GL.some(hk)) hkSetzen('gBestimmen', true);
-    kand = ['stilGleichung'];
-    kachelnMalenGV();
-  }
+  const kand = STILE_GV.filter(function(id){ return hk(id) && unterAktiv(id).length; });
+  /* Nichts ausgewählt: keine Aufgabe, sondern ein Hinweis (siehe nichtsAusgewaehlt). */
+  if (!kand.length) return { id: null, stil: 'nichts', sub: 'nichts' };
   const id = gewichtetZiehen(kand);
   const subs = unterAktiv(id);
   return { id: id, stil: { stilGleichung: 'gleichung', stilGraph: 'graph', stilVerst: 'verst' }[id],
@@ -1481,7 +1532,7 @@ function kuerzel(wert){ return wert.indexOf('+') >= 0 ? 'p' : 'n'; }
 function skizzenDatei(L, R){ return 'static/images/GrenzwertSkizzen/' + kuerzel(L) + kuerzel(R) + '_limit.png'; }
 function gleichungTeX(t){
   const p = buildPolyString(t.coeffs, t.degree);
-  return t.factor ? coeffToString(t.factor, false) + '\\left(' + p + '\\right)' : p;
+  return t.factor ? coeffToString(t.factor, true) + '\\left(' + p + '\\right)' : p;
 }
 /** Vier Gleichungen mit verschiedenem Grenzverhalten: die richtige, dieselbe
     mit umgedrehtem Vorzeichen vorn, dieselbe mit einem um 1 anderen Grad -
@@ -1544,9 +1595,29 @@ const AUFGABENTEXT = {
                 'Which equation fits this graph?'],
   verst:       ['', '']
 };
+/* Ist oben kein Aufgabenstil ausgewählt, gibt es keine Aufgabe - nur diesen
+   Hinweis. Ein Klick auf eine Kachel (oder „alle") bringt wieder Aufgaben. */
+let gvNichts = false;
+function nichtsAusgewaehlt(){
+  gvNichts = true;
+  currentTask = null;
+  document.getElementById('task').innerHTML = '';
+  document.getElementById('graphBox').innerHTML = '';
+  document.getElementById('wahlBereich').innerHTML = '';
+  document.getElementById('mainContainer').style.display = 'none';
+  const be = document.getElementById('explanationDetails');
+  if (be){ be.open = false; be.style.display = 'none'; }
+  aufgabenTextZeigen();
+  if (window.abKachelAktuell) abKachelAktuell(document.getElementById('segStile'), null);
+}
 function aufgabenTextZeigen(){
   const m = currentTask && currentTask.modus, el = document.getElementById('taskText');
   if (!el) return;
+  if (gvNichts){
+    el.innerHTML = T('Es ist kein Aufgabenstil ausgewählt, wähle oben mindestens einen aus.',
+                     'No kind of task is selected, choose at least one above.');
+    return;
+  }
   const t = (m && AUFGABENTEXT[m.sub]) || ['', ''];
   el.innerHTML = T(t[0], t[1]);
 }
@@ -1555,6 +1626,9 @@ function modusZeigen(){
   const gb = document.getElementById('graphBox'), wahl = document.getElementById('wahlBereich');
   const main = document.getElementById('mainContainer');
   if (!m){ return; }
+  gvNichts = false;
+  const be0 = document.getElementById('explanationDetails');
+  if (be0) be0.style.display = '';
   aufgabenTextZeigen();
   gb.innerHTML = ''; wahl.innerHTML = '';
   if (m.sub === 'bSkizzeVerh' || m.sub === 'bSkizzeGl'){
@@ -1584,7 +1658,7 @@ function wahlBauen(){
     }).join('') + '</div>';
   } else if (m.stil === 'verst'){
     h = '<div class="gv-optionen">' + t.reihe.map(function(k, i){
-      return '<button type="button" class="pg-wahl-knopf" data-i="' + i + '">' + t.frage.o[k]() + '</button>';
+      return '<button type="button" class="pg-wahl-knopf" data-i="' + i + '">' + U(t.frage.o[k]()) + '</button>';
     }).join('') + '</div>';
   } else {
     h = '<div class="gv-optionen">' + t.wahl.map(function(o, i){
@@ -1618,7 +1692,7 @@ function wahlAbschliessen(i){
   if (fb){
     if (i == null){ fb.className = 'pg-fb warn'; fb.textContent = T('Die passende Antwort ist markiert.', 'The matching answer is marked.'); }
     else if (ok){ fb.className = 'pg-fb ok'; fb.textContent = T('✓ Richtig!', '✓ Correct!'); }
-    else { fb.className = 'pg-fb err'; fb.textContent = T('Das passt nicht – die richtige Antwort ist grün markiert.', 'That does not fit – the right answer is marked green.'); }
+    else { fb.className = 'pg-fb err'; fb.textContent = T('Das passt nicht, die richtige Antwort ist grün markiert.', 'That does not fit; the right answer is marked green.'); }
   }
   punkteRichtig += ok ? 1 : 0;
   punkteGesamt  += 1;
@@ -1736,12 +1810,8 @@ function graphSVG(o){
        + '<text x="' + (B - M + 6) + '" y="' + (y0 - 8).toFixed(1) + '" text-anchor="middle">x</text>'
        + (yAchse ? '<text x="' + (x0 + 9).toFixed(1) + '" y="' + (M - 2) + '" text-anchor="start">y</text>' : '')
        + '</g>';
-  svg += '<g class="pg-beschriftung" fill="#777" font-size="10" text-anchor="middle">';
-  teil(xMin, xMax).forEach(function(v){
-    if (Math.abs(v) < 1e-9 || Math.abs(v - Math.round(v)) > 1e-9) return;
-    svg += '<text x="' + sx(v).toFixed(1) + '" y="' + (y0 + 13).toFixed(1) + '">' + Math.round(v) + '</text>';
-  });
-  svg += '</g>';
+  /* Keine Zahlen an der x-Achse: Es geht nur um das Verhalten ganz links und
+     ganz rechts, nicht um einzelne Stellen. */
   /* der Graph - was weit außerhalb liegt, unterbricht den Pfad */
   let d = '', auf = false;
   const N = 700, hoch = yMax - yMin;
@@ -1768,26 +1838,28 @@ const VFRAGEN = [
     o: [TT('der Summand mit der höchsten Potenz von \\(x\\)', 'the term with the highest power of \\(x\\)'),
         TT('der Summand ohne \\(x\\) (das Absolutglied)', 'the term without \\(x\\) (the constant term)'),
         TT('der Summand mit dem betragsmäßig größten Koeffizienten', 'the term with the largest coefficient'),
-        TT('alle Summanden gemeinsam – keiner überwiegt', 'all terms together – none dominates')],
+        TT('alle Summanden gemeinsam, keiner überwiegt', 'all terms together, none dominates')],
     e: TT('Für betragsmäßig große \\(x\\) wächst die höchste Potenz am schnellsten und überwiegt alle anderen Summanden. Deshalb genügt es, den Summanden mit der höchsten Potenz anzusehen.',
           'For large \\(|x|\\) the highest power grows fastest and outweighs all other terms. So it is enough to look at the term with the highest power.') },
-  { s: 1, f: function(){ return T('Wie verhält sich \\(f(x) = x^2\\) für ', 'How does \\(f(x) = x^2\\) behave as ') + '\\(' + U('x \\to -\\infty') + '\\)?'; },
-    o: [function(){ return '\\(' + gwTeX('left', PI) + '\\)'; },
-        function(){ return '\\(' + gwTeX('left', MI) + '\\)'; },
-        function(){ return '\\(' + gwTeX('left', '0') + '\\)'; }],
-    e: TT('Ein Quadrat ist nie negativ: \\((-100)^2 = 10\\,000\\). Für betragsmäßig große negative \\(x\\) wird \\(x^2\\) also beliebig groß.',
-          'A square is never negative: \\((-100)^2 = 10\\,000\\). For large negative \\(x\\), \\(x^2\\) becomes arbitrarily large.') },
-  { s: 1, f: function(){ return T('Wie verhält sich \\(f(x) = x^3\\) für ', 'How does \\(f(x) = x^3\\) behave as ') + '\\(' + U('x \\to -\\infty') + '\\)?'; },
-    o: [function(){ return '\\(' + gwTeX('left', MI) + '\\)'; },
-        function(){ return '\\(' + gwTeX('left', PI) + '\\)'; },
-        function(){ return '\\(' + gwTeX('left', '0') + '\\)'; }],
-    e: TT('Eine ungerade Potenz behält das Vorzeichen: \\((-100)^3 = -1\\,000\\,000\\). Für \\(x \\to -\\infty\\) wird \\(x^3\\) also beliebig klein (stark negativ).',
-          'An odd power keeps the sign: \\((-100)^3 = -1\\,000\\,000\\). As \\(x \\to -\\infty\\), \\(x^3\\) becomes arbitrarily negative.') },
+  { s: 1, f: TT('Was beschreibt das Grenzverhalten einer Funktion?', 'What does the end behaviour of a function describe?'),
+    o: [TT('wie sich die Funktionswerte verhalten, wenn \\(x\\) gegen \\(-\\infty\\) bzw. \\(+\\infty\\) strebt', 'how the function values behave as \\(x\\) tends to \\(-\\infty\\) or \\(+\\infty\\)'),
+        TT('wo der Graph die \\(x\\)-Achse schneidet', 'where the graph crosses the \\(x\\)-axis'),
+        TT('den größten und den kleinsten Funktionswert', 'the largest and the smallest function value'),
+        TT('wie der Graph in der Nähe von \\(x = 0\\) verläuft', 'how the graph runs near \\(x = 0\\)')],
+    e: TT('Das Grenzverhalten beschreibt die Ränder des Graphen: Wohin streben die Funktionswerte, wenn man immer weiter nach links (\\(x \\to -\\infty\\)) bzw. nach rechts (\\(x \\to +\\infty\\)) geht? Nullstellen und Extrempunkte gehören dagegen zum Verlauf dazwischen.',
+          'The end behaviour describes the edges of the graph: where do the function values go when you move further and further to the left (\\(x \\to -\\infty\\)) or to the right (\\(x \\to +\\infty\\))? Zeros and turning points belong to the part in between.') },
+  { s: 1, f: function(){ return T('Was bedeutet die Aussage „', 'What does the statement “') + gwSatz('right', MI) + T('“?', '” mean?'); },
+    o: [TT('Je größer \\(x\\) wird, desto kleiner werden die Funktionswerte, sie fallen unter jede Grenze.', 'The larger \\(x\\) gets, the smaller the function values become; they fall below every bound.'),
+        TT('Für große \\(x\\) nähern sich die Funktionswerte der Zahl 0.', 'For large \\(x\\) the function values approach the number 0.'),
+        TT('An der Stelle \\(+\\infty\\) hat die Funktion den Wert \\(-\\infty\\).', 'At the point \\(+\\infty\\) the function has the value \\(-\\infty\\).'),
+        TT('Der Graph fällt zuerst und steigt danach.', 'The graph falls at first and rises afterwards.')],
+    e: TT('\\(\\infty\\) ist keine Zahl, die man einsetzen kann, sondern beschreibt eine Bewegung: Wird \\(x\\) immer größer, werden die Funktionswerte immer stärker negativ, kleiner als \\(-1000\\), kleiner als \\(-1\\,000\\,000\\) und so weiter. Rechts läuft der Graph nach unten aus jedem Bildausschnitt hinaus.',
+          '\\(\\infty\\) is not a number you can substitute but describes a movement: as \\(x\\) keeps growing, the function values become more and more negative, less than \\(-1000\\), less than \\(-1\\,000\\,000\\) and so on. On the right the graph leaves every viewing window at the bottom.') },
   { s: 1, f: TT('Ein Polynom hat einen geraden Grad und einen positiven Leitkoeffizienten. Welches Grenzverhalten hat es?',
                 'A polynomial has an even degree and a positive leading coefficient. What is its end behaviour?'),
     o: [paarText(PI, PI), paarText(MI, MI), paarText(MI, PI), paarText(PI, MI)],
-    e: TT('Gerader Grad: auf beiden Seiten dasselbe Verhalten wie bei \\(x^2\\). Der positive Leitkoeffizient spiegelt nichts – also beide Male \\(+\\infty\\).',
-          'Even degree: the same behaviour on both sides as for \\(x^2\\). The positive leading coefficient reflects nothing – so \\(+\\infty\\) on both sides.') },
+    e: TT('Gerader Grad: auf beiden Seiten dasselbe Verhalten wie bei \\(x^2\\). Der positive Leitkoeffizient spiegelt nichts, also beide Male \\(+\\infty\\).',
+          'Even degree: the same behaviour on both sides as for \\(x^2\\). The positive leading coefficient reflects nothing; so \\(+\\infty\\) on both sides.') },
   { s: 2, f: TT('Ein Polynom hat einen ungeraden Grad und einen negativen Leitkoeffizienten. Welches Grenzverhalten hat es?',
                 'A polynomial has an odd degree and a negative leading coefficient. What is its end behaviour?'),
     o: [paarText(PI, MI), paarText(MI, PI), paarText(PI, PI), paarText(MI, MI)],
@@ -1795,26 +1867,36 @@ const VFRAGEN = [
           'Odd degree: like \\(x^3\\), \\(-\\infty\\) on the left and \\(+\\infty\\) on the right. The negative leading coefficient reflects in the \\(x\\)-axis: \\(+\\infty\\) on the left, \\(-\\infty\\) on the right.') },
   { s: 2, f: TT('Was bewirkt ein negativer Leitkoeffizient beim Grenzverhalten?',
                 'What does a negative leading coefficient do to the end behaviour?'),
-    o: [TT('Es kehrt sich auf beiden Seiten um – der Graph ist an der \\(x\\)-Achse gespiegelt.', 'It is reversed on both sides – the graph is reflected in the \\(x\\)-axis.'),
+    o: [TT('Es kehrt sich auf beiden Seiten um, der Graph ist an der \\(x\\)-Achse gespiegelt.', 'It is reversed on both sides; the graph is reflected in the \\(x\\)-axis.'),
         TT('Nur das Verhalten für \\(x \\to -\\infty\\) kehrt sich um.', 'Only the behaviour as \\(x \\to -\\infty\\) is reversed.'),
         TT('Nur das Verhalten für \\(x \\to +\\infty\\) kehrt sich um.', 'Only the behaviour as \\(x \\to +\\infty\\) is reversed.'),
-        TT('Nichts – es zählt nur der Grad.', 'Nothing – only the degree counts.')],
+        TT('Nichts, es zählt nur der Grad.', 'Nothing, only the degree counts.')],
     e: TT('Ein negativer Leitkoeffizient dreht alle großen Werte ins Negative und umgekehrt: Der Graph wird an der \\(x\\)-Achse gespiegelt, auf beiden Seiten kehrt sich das Verhalten um.',
           'A negative leading coefficient turns all large values negative and vice versa: the graph is reflected in the \\(x\\)-axis, and the behaviour is reversed on both sides.') },
   { s: 2, f: TT('Kann ein Polynom ungeraden Grades für \\(x \\to -\\infty\\) und für \\(x \\to +\\infty\\) dasselbe Verhalten haben?',
                 'Can a polynomial of odd degree behave the same way as \\(x \\to -\\infty\\) and as \\(x \\to +\\infty\\)?'),
-    o: [TT('Nein – bei ungeradem Grad ist es auf beiden Seiten entgegengesetzt.', 'No – with an odd degree it is opposite on the two sides.'),
+    o: [TT('Nein, bei ungeradem Grad ist es auf beiden Seiten entgegengesetzt.', 'No, with an odd degree it is opposite on the two sides.'),
         TT('Ja, wenn der Leitkoeffizient negativ ist.', 'Yes, if the leading coefficient is negative.'),
         TT('Ja, wenn das Absolutglied groß genug ist.', 'Yes, if the constant term is large enough.'),
-        TT('Ja – das hängt von den übrigen Summanden ab.', 'Yes – that depends on the other terms.')],
-    e: TT('Eine ungerade Potenz behält das Vorzeichen von \\(x\\): links und rechts kommen entgegengesetzte Vorzeichen heraus. Der Leitkoeffizient kann beide Seiten nur gemeinsam umdrehen.',
-          'An odd power keeps the sign of \\(x\\): the two sides give opposite signs. The leading coefficient can only reverse both sides together.') },
-  { s: 2, f: function(){ return T('Wie verhält sich \\(f(x) = -2x^4 + 100x^3 - 5\\) für ', 'How does \\(f(x) = -2x^4 + 100x^3 - 5\\) behave as ') + '\\(' + U('x \\to +\\infty') + '\\)?'; },
-    o: [function(){ return '\\(' + gwTeX('right', MI) + '\\)'; },
-        function(){ return '\\(' + gwTeX('right', PI) + '\\)'; },
-        function(){ return '\\(' + gwTeX('right', '-5') + '\\)'; }],
-    e: TT('Entscheidend ist \\(-2x^4\\): gerader Grad, negativer Leitkoeffizient. Die große Zahl 100 gehört nur zu \\(x^3\\) – für große \\(x\\) gewinnt trotzdem \\(x^4\\).',
-          'What counts is \\(-2x^4\\): even degree, negative leading coefficient. The large number 100 only belongs to \\(x^3\\) – for large \\(x\\), \\(x^4\\) still wins.') },
+        TT('Ja, das hängt von den übrigen Summanden ab.', 'Yes, that depends on the other terms.')],
+    e: TT('Eine ungerade Potenz behält das Vorzeichen von \\(x\\). Links und rechts kommen entgegengesetzte Vorzeichen heraus. Der Leitkoeffizient kann beide Seiten nur gemeinsam umdrehen.',
+          'An odd power keeps the sign of \\(x\\), so the two sides give opposite signs. The leading coefficient can only reverse both sides together.') },
+  { s: 2, f: TT('Vor einem Polynom steht noch ein Faktor, z. B. \\(5 \\cdot (\\ldots)\\) oder \\(-5 \\cdot (\\ldots)\\). Was bewirkt er beim Grenzverhalten?',
+                'There is an extra factor in front of a polynomial, e.g. \\(5 \\cdot (\\ldots)\\) or \\(-5 \\cdot (\\ldots)\\). What does it do to the end behaviour?'),
+    o: [TT('Ein positiver Faktor ändert nichts, ein negativer kehrt das Verhalten auf beiden Seiten um.', 'A positive factor changes nothing, a negative one reverses the behaviour on both sides.'),
+        TT('Er ändert nichts, egal, welches Vorzeichen er hat.', 'It changes nothing, whatever its sign.'),
+        TT('Ein großer Faktor macht aus \\(+\\infty\\) eine feste Zahl.', 'A large factor turns \\(+\\infty\\) into a fixed number.'),
+        TT('Ein negativer Faktor kehrt nur das Verhalten für \\(x \\to -\\infty\\) um.', 'A negative factor only reverses the behaviour as \\(x \\to -\\infty\\).')],
+    e: TT('Der Faktor multipliziert jeden Funktionswert. Mit einer positiven Zahl bleiben große positive Werte groß und positiv, negative bleiben negativ. Mit einer negativen Zahl drehen sich alle Vorzeichen um, wie bei einem negativen Leitkoeffizienten wird der Graph an der \\(x\\)-Achse gespiegelt.',
+          'The factor multiplies every function value. With a positive number, large positive values stay large and positive, negative ones stay negative. With a negative number all signs flip, just like with a negative leading coefficient, the graph is reflected in the \\(x\\)-axis.') },
+  { s: 2, f: TT('Bei \\(f(x) = -2x^4 + 100x^3 - 5\\) ist 100 der betragsmäßig größte Koeffizient. Welche Rolle spielt er für das Grenzverhalten?',
+                'In \\(f(x) = -2x^4 + 100x^3 - 5\\), 100 is the coefficient with the largest absolute value. What role does it play for the end behaviour?'),
+    o: [TT('Keine, es entscheidet nur der Summand mit der höchsten Potenz, also \\(-2x^4\\).', 'None, only the term with the highest power decides, i.e. \\(-2x^4\\).'),
+        TT('Er entscheidet, weil er am größten ist.', 'It decides because it is the largest.'),
+        TT('Er entscheidet nur für \\(x \\to +\\infty\\), für \\(x \\to -\\infty\\) entscheidet \\(-2x^4\\).', 'It decides only as \\(x \\to +\\infty\\); as \\(x \\to -\\infty\\), \\(-2x^4\\) decides.'),
+        TT('Es kommt auf das Verhältnis von 100 zu \\(-2\\) an.', 'It depends on the ratio of 100 to \\(-2\\).')],
+    e: TT('Für betragsmäßig große \\(x\\) wächst \\(x^4\\) schneller als \\(x^3\\). Ab \\(|x| > 50\\) ist \\(2x^4\\) größer als \\(100\\,|x|^3\\), und \\(-2x^4\\) bestimmt das Vorzeichen. Große Koeffizienten bei niedrigeren Potenzen verschieben nur, ab wann das so ist.',
+          'For large \\(|x|\\), \\(x^4\\) grows faster than \\(x^3\\). From \\(|x| > 50\\) on, \\(2x^4\\) is larger than \\(100\\,|x|^3\\), and \\(-2x^4\\) decides the sign. Large coefficients of lower powers only shift the point from which this holds.') },
   { s: 3, f: function(){ return T('Für ein Polynom gilt ', 'For a polynomial, ') + gwPaar(PI, PI) + T('. Was folgt daraus?', '. What follows?'); },
     o: [TT('gerader Grad, positiver Leitkoeffizient', 'even degree, positive leading coefficient'),
         TT('gerader Grad, negativer Leitkoeffizient', 'even degree, negative leading coefficient'),
@@ -1827,69 +1909,91 @@ const VFRAGEN = [
         TT('ungerader Grad, negativer Leitkoeffizient', 'odd degree, negative leading coefficient'),
         TT('gerader Grad, positiver Leitkoeffizient', 'even degree, positive leading coefficient'),
         TT('gerader Grad, negativer Leitkoeffizient', 'even degree, negative leading coefficient')],
-    e: TT('Entgegengesetztes Verhalten heißt ungerader Grad. Links \\(-\\infty\\) und rechts \\(+\\infty\\) ist genau das Verhalten von \\(x^3\\) – ohne Spiegelung, also mit positivem Leitkoeffizienten.',
-          'Opposite behaviour means an odd degree. \\(-\\infty\\) on the left and \\(+\\infty\\) on the right is exactly how \\(x^3\\) behaves – without reflection, so with a positive leading coefficient.') },
+    e: TT('Entgegengesetztes Verhalten heißt ungerader Grad. Links \\(-\\infty\\) und rechts \\(+\\infty\\) ist genau das Verhalten von \\(x^3\\), ohne Spiegelung, also mit positivem Leitkoeffizienten.',
+          'Opposite behaviour means an odd degree. \\(-\\infty\\) on the left and \\(+\\infty\\) on the right is exactly how \\(x^3\\) behaves, without reflection, so with a positive leading coefficient.') },
   { s: 3, f: TT('Kann ein Polynom vom Grad 1 oder höher für \\(x \\to +\\infty\\) gegen eine Zahl streben, z. B. gegen 0?',
                 'Can a polynomial of degree 1 or more tend to a number, e.g. 0, as \\(x \\to +\\infty\\)?'),
-    o: [TT('Nein – es strebt immer gegen \\(+\\infty\\) oder \\(-\\infty\\).', 'No – it always tends to \\(+\\infty\\) or \\(-\\infty\\).'),
+    o: [TT('Nein, es strebt immer gegen \\(+\\infty\\) oder \\(-\\infty\\).', 'No, it always tends to \\(+\\infty\\) or \\(-\\infty\\).'),
         TT('Ja, wenn der Leitkoeffizient sehr klein ist.', 'Yes, if the leading coefficient is very small.'),
         TT('Ja, bei geradem Grad.', 'Yes, with an even degree.'),
         TT('Ja, wenn das Absolutglied 0 ist.', 'Yes, if the constant term is 0.')],
-    e: TT('Die höchste Potenz wächst betragsmäßig über jede Grenze – auch mit einem winzigen Koeffizienten. Ein Polynom ab Grad 1 strebt deshalb immer gegen \\(+\\infty\\) oder \\(-\\infty\\).',
-          'The highest power grows beyond every bound in absolute value – even with a tiny coefficient. A polynomial of degree 1 or more therefore always tends to \\(+\\infty\\) or \\(-\\infty\\).') },
-  { s: 3, f: function(){ return T('Wie verhält sich \\(f(x) = 0{,}001x^3 - 1000x^2\\) für ', 'How does \\(f(x) = 0.001x^3 - 1000x^2\\) behave as ') + '\\(' + U('x \\to +\\infty') + '\\)?'; },
-    o: [function(){ return '\\(' + gwTeX('right', PI) + '\\)'; },
-        function(){ return '\\(' + gwTeX('right', MI) + '\\)'; },
-        function(){ return '\\(' + gwTeX('right', '0') + '\\)'; }],
-    e: TT('Auch mit winzigem Koeffizienten wächst \\(x^3\\) irgendwann schneller als \\(1000x^2\\) – ab etwa \\(x = 1\\,000\\,000\\) überwiegt \\(0{,}001x^3\\). Entscheidend sind der ungerade Grad 3 und der positive Leitkoeffizient.',
-          'Even with a tiny coefficient, \\(x^3\\) eventually grows faster than \\(1000x^2\\) – from about \\(x = 1\\,000\\,000\\) on, \\(0.001x^3\\) dominates. What counts is the odd degree 3 and the positive leading coefficient.') },
+    e: TT('Die höchste Potenz wächst betragsmäßig über jede Grenze, auch mit einem winzigen Koeffizienten. Ein Polynom ab Grad 1 strebt deshalb immer gegen \\(+\\infty\\) oder \\(-\\infty\\).',
+          'The highest power grows beyond every bound in absolute value, even with a tiny coefficient. A polynomial of degree 1 or more therefore always tends to \\(+\\infty\\) or \\(-\\infty\\).') },
+  { s: 3, f: TT('Ab ungefähr welchem \\(x\\) ist \\(0{,}001x^3\\) größer als \\(1000x^2\\)?', 'From roughly which \\(x\\) on is \\(0.001x^3\\) larger than \\(1000x^2\\)?'),
+    o: [TT('ab etwa \\(x = 1\\,000\\,000\\)', 'from about \\(x = 1\\,000\\,000\\)'),
+        TT('ab etwa \\(x = 1000\\)', 'from about \\(x = 1000\\)'),
+        TT('ab etwa \\(x = 10\\)', 'from about \\(x = 10\\)'),
+        TT('nie, \\(1000x^2\\) bleibt immer größer', 'never, \\(1000x^2\\) always stays larger')],
+    e: TT('Teilt man \\(0{,}001x^3 > 1000x^2\\) durch \\(x^2\\), bleibt \\(0{,}001x > 1000\\), also \\(x > 1\\,000\\,000\\). Ab dort überwiegt die höchste Potenz, auch mit winzigem Koeffizienten. Deshalb entscheidet bei \\(f(x) = 0{,}001x^3 - 1000x^2\\) am Ende doch \\(0{,}001x^3\\) über das Grenzverhalten.',
+          'Dividing \\(0.001x^3 > 1000x^2\\) by \\(x^2\\) leaves \\(0.001x > 1000\\), i.e. \\(x > 1\\,000\\,000\\). From there on the highest power dominates, even with a tiny coefficient. That is why \\(0.001x^3\\) decides the end behaviour of \\(f(x) = 0.001x^3 - 1000x^2\\) after all.') },
   { s: 3, f: TT('Warum hat jedes Polynom ungeraden Grades mindestens eine Nullstelle?',
                 'Why does every polynomial of odd degree have at least one zero?'),
-    o: [TT('Es strebt auf der einen Seite gegen \\(-\\infty\\), auf der anderen gegen \\(+\\infty\\) – dazwischen muss der Graph die \\(x\\)-Achse schneiden.',
-           'It tends to \\(-\\infty\\) on one side and to \\(+\\infty\\) on the other – in between the graph has to cross the \\(x\\)-axis.'),
+    o: [TT('Es strebt auf der einen Seite gegen \\(-\\infty\\), auf der anderen gegen \\(+\\infty\\), dazwischen muss der Graph die \\(x\\)-Achse schneiden.',
+           'It tends to \\(-\\infty\\) on one side and to \\(+\\infty\\) on the other, in between the graph has to cross the \\(x\\)-axis.'),
         TT('Weil das Absolutglied immer eine Nullstelle liefert.', 'Because the constant term always gives a zero.'),
         TT('Weil jedes Polynom eine Nullstelle hat.', 'Because every polynomial has a zero.'),
         TT('Weil \\(x = 0\\) immer eine Nullstelle ist.', 'Because \\(x = 0\\) is always a zero.')],
     e: TT('Bei ungeradem Grad ist das Verhalten auf beiden Seiten entgegengesetzt: Der Graph kommt von unten und geht nach oben (oder umgekehrt). Weil er keine Sprünge hat, kreuzt er dazwischen die \\(x\\)-Achse. (Polynome geraden Grades wie \\(x^2 + 1\\) haben dagegen nicht immer eine Nullstelle.)',
           'With an odd degree the behaviour on the two sides is opposite: the graph comes from below and goes up (or the other way round). As it has no jumps, it crosses the \\(x\\)-axis in between. (Polynomials of even degree such as \\(x^2 + 1\\) need not have a zero.)') },
-  { s: 4, f: TT('Welches Grenzverhalten hat \\(f(x) = -(x-1)^2\\,(x+3)\\)?', 'What is the end behaviour of \\(f(x) = -(x-1)^2\\,(x+3)\\)?'),
-    o: [paarText(PI, MI), paarText(MI, PI), paarText(MI, MI), paarText(PI, PI)],
-    e: TT('Ausmultipliziert beginnt das Polynom mit \\(-x^2 \\cdot x = -x^3\\): Grad 3 (ungerade), Leitkoeffizient \\(-1\\). Also links \\(+\\infty\\) und rechts \\(-\\infty\\).',
-          'Multiplied out, the polynomial starts with \\(-x^2 \\cdot x = -x^3\\): degree 3 (odd), leading coefficient \\(-1\\). So \\(+\\infty\\) on the left and \\(-\\infty\\) on the right.') },
-  { s: 4, f: TT('Welches Grenzverhalten hat \\(f(x) = 2x^3\\,(3 - x)\\)?', 'What is the end behaviour of \\(f(x) = 2x^3\\,(3 - x)\\)?'),
-    o: [paarText(MI, MI), paarText(PI, PI), paarText(MI, PI), paarText(PI, MI)],
-    e: TT('Der höchste Summand ist \\(2x^3 \\cdot (-x) = -2x^4\\): Grad 4 (gerade), Leitkoeffizient \\(-2\\). Auf beiden Seiten also \\(-\\infty\\).',
-          'The highest term is \\(2x^3 \\cdot (-x) = -2x^4\\): degree 4 (even), leading coefficient \\(-2\\). So \\(-\\infty\\) on both sides.') },
-  { s: 4, f: function(){ return T('Wie verhält sich \\(f(x) = x^4 - x^5\\) für ', 'How does \\(f(x) = x^4 - x^5\\) behave as ') + '\\(' + U('x \\to +\\infty') + '\\)?'; },
-    o: [function(){ return '\\(' + gwTeX('right', MI) + '\\)'; },
-        function(){ return '\\(' + gwTeX('right', PI) + '\\)'; },
-        function(){ return '\\(' + gwTeX('right', '0') + '\\)'; }],
-    e: TT('Die höchste Potenz ist \\(x^5\\) mit dem Koeffizienten \\(-1\\) – auch wenn \\(x^4\\) vorne steht. Ungerader Grad mit negativem Leitkoeffizienten: rechts \\(-\\infty\\).',
-          'The highest power is \\(x^5\\) with coefficient \\(-1\\) – even though \\(x^4\\) is written first. Odd degree with a negative leading coefficient: \\(-\\infty\\) on the right.') },
+  { s: 3, f: TT('Wie viele verschiedene Arten von Grenzverhalten (links und rechts zusammen) kann ein Polynom vom Grad 1 oder höher haben?',
+                'How many different kinds of end behaviour (left and right together) can a polynomial of degree 1 or more have?'),
+    o: [TT('4', '4'), TT('2', '2'), TT('3', '3'), TT('unendlich viele', 'infinitely many')],
+    e: TT('Auf jeder Seite geht es gegen \\(+\\infty\\) oder gegen \\(-\\infty\\). Gerader Grad: auf beiden Seiten gleich (beide \\(+\\infty\\) oder beide \\(-\\infty\\)); ungerader Grad: entgegengesetzt (links \\(-\\infty\\) und rechts \\(+\\infty\\) oder umgekehrt). Das sind genau vier Möglichkeiten, die vier Skizzen.',
+          'On each side it tends to \\(+\\infty\\) or to \\(-\\infty\\). Even degree: the same on both sides (both \\(+\\infty\\) or both \\(-\\infty\\)); odd degree: opposite (\\(-\\infty\\) on the left and \\(+\\infty\\) on the right or the other way round). That makes exactly four possibilities; the four sketches.') },
+  { s: 3, f: TT('Bei \\(f(x) = x^4 - x^5 + 3x\\) steht \\(x^4\\) vorne. Welcher Summand entscheidet über das Grenzverhalten?',
+                'In \\(f(x) = x^4 - x^5 + 3x\\), \\(x^4\\) is written first. Which term decides the end behaviour?'),
+    o: [TT('\\(-x^5\\), er hat die höchste Potenz', '\\(-x^5\\), it has the highest power'),
+        TT('\\(x^4\\), er steht vorne', '\\(x^4\\), it is written first'),
+        TT('\\(3x\\), er hat den größten Koeffizienten', '\\(3x\\), it has the largest coefficient'),
+        TT('\\(x^4\\) und \\(-x^5\\) gemeinsam', '\\(x^4\\) and \\(-x^5\\) together')],
+    e: TT('Entscheidend ist die höchste Potenz, nicht die Reihenfolge, in der die Summanden dastehen. Sortiert heißt die Funktion \\(f(x) = -x^5 + x^4 + 3x\\), also Grad 5 und Leitkoeffizient \\(-1\\).',
+          'What counts is the highest power, not the order in which the terms are written. Sorted, the function reads \\(f(x) = -x^5 + x^4 + 3x\\), so degree 5 and leading coefficient \\(-1\\).') },
   { s: 4, f: TT('Ein Polynom hat geraden Grad und einen positiven Leitkoeffizienten. Was lässt sich über seinen Graphen sicher sagen?',
                 'A polynomial has an even degree and a positive leading coefficient. What can be said for sure about its graph?'),
     o: [TT('Er hat einen tiefsten Punkt (ein globales Minimum).', 'It has a lowest point (a global minimum).'),
         TT('Er hat einen höchsten Punkt (ein globales Maximum).', 'It has a highest point (a global maximum).'),
         TT('Er hat mindestens eine Nullstelle.', 'It has at least one zero.'),
         TT('Er ist achsensymmetrisch zur \\(y\\)-Achse.', 'It is symmetric about the \\(y\\)-axis.')],
-    e: TT('Auf beiden Seiten geht der Graph nach oben (\\(+\\infty\\)). Dazwischen muss es eine tiefste Stelle geben – ein globales Minimum. Eine Nullstelle braucht es nicht (z. B. \\(x^2 + 1\\)), und symmetrisch muss der Graph auch nicht sein.',
-          'On both sides the graph goes up (\\(+\\infty\\)). In between there has to be a lowest point – a global minimum. A zero is not needed (e.g. \\(x^2 + 1\\)), and the graph need not be symmetric.') },
+    e: TT('Auf beiden Seiten geht der Graph nach oben (\\(+\\infty\\)). Dazwischen muss es eine tiefste Stelle geben, ein globales Minimum. Eine Nullstelle braucht es nicht (z. B. \\(x^2 + 1\\)), und symmetrisch muss der Graph auch nicht sein.',
+          'On both sides the graph goes up (\\(+\\infty\\)). In between there has to be a lowest point, a global minimum. A zero is not needed (e.g. \\(x^2 + 1\\)), and the graph need not be symmetric.') },
   { s: 4, f: function(){ return T('Für ', 'As ') + '\\(' + U('x \\to +\\infty') + '\\)' + T(' gilt ', ', ') + '\\(' + U('f(x) \\to +\\infty') + '\\)' + T(' und ', ' and ') + '\\(' + U('g(x) \\to -\\infty') + '\\)' + T('. Was gilt für das Produkt?', '. What holds for the product?'); },
     o: [function(){ return '\\(' + gwTeX('right', MI, 'f(x) \\cdot g(x)') + '\\)'; },
         function(){ return '\\(' + gwTeX('right', PI, 'f(x) \\cdot g(x)') + '\\)'; },
         function(){ return '\\(' + gwTeX('right', '0', 'f(x) \\cdot g(x)') + '\\)'; }],
-    e: TT('Beide Faktoren werden betragsmäßig beliebig groß, einer positiv, einer negativ – das Produkt wird also beliebig stark negativ: \\(-\\infty\\).',
-          'Both factors grow beyond every bound in absolute value, one positive, one negative – so the product becomes arbitrarily negative: \\(-\\infty\\).') }
+    e: TT('Beide Faktoren werden betragsmäßig beliebig groß, einer positiv, einer negativ, das Produkt wird also beliebig stark negativ: \\(-\\infty\\).',
+          'Both factors grow beyond every bound in absolute value, one positive, one negative; so the product becomes arbitrarily negative: \\(-\\infty\\).') },
+  { s: 4, f: TT('Wie findet man bei \\(f(x) = -(x-1)^2\\,(x+3)\\) am schnellsten den Summanden mit der höchsten Potenz?',
+                'What is the quickest way to find the term with the highest power of \\(f(x) = -(x-1)^2\\,(x+3)\\)?'),
+    o: [TT('Die höchsten Potenzen der Klammern multiplizieren: \\(-x^2 \\cdot x = -x^3\\).', 'Multiply the highest powers of the brackets: \\(-x^2 \\cdot x = -x^3\\).'),
+        TT('Alles ausmultiplizieren, anders geht es nicht.', 'Multiply everything out; there is no other way.'),
+        TT('Die Klammer mit dem höchsten Exponenten nehmen: \\(-(x-1)^2\\), also Grad 2.', 'Take the bracket with the highest exponent: \\(-(x-1)^2\\), so degree 2.'),
+        TT('Die Nullstellen 1 und \\(-3\\) ablesen, die größere entscheidet.', 'Read off the zeros 1 and \\(-3\\); the larger one decides.')],
+    e: TT('Beim Ausmultiplizieren entsteht die höchste Potenz nur aus den höchsten Potenzen der Faktoren: \\((x-1)^2\\) beginnt mit \\(x^2\\), \\((x+3)\\) mit \\(x\\). Mit dem Minus davor ergibt das \\(-x^3\\), also Grad 3 und Leitkoeffizient \\(-1\\).',
+          'When multiplying out, the highest power only comes from the highest powers of the factors: \\((x-1)^2\\) starts with \\(x^2\\), \\((x+3)\\) with \\(x\\). With the minus in front this gives \\(-x^3\\), so degree 3 and leading coefficient \\(-1\\).') },
+  { s: 4, f: TT('Das Polynom \\(p\\) hat den Grad 3, das Polynom \\(q\\) den Grad 2. Welchen Grad hat das Produkt \\(p(x) \\cdot q(x)\\)?',
+                'The polynomial \\(p\\) has degree 3, the polynomial \\(q\\) degree 2. What is the degree of the product \\(p(x) \\cdot q(x)\\)?'),
+    o: [TT('5', '5'), TT('6', '6'), TT('3', '3'), TT('Das hängt von den Koeffizienten ab.', 'That depends on the coefficients.')],
+    e: TT('Die höchsten Potenzen werden multipliziert: \\(x^3 \\cdot x^2 = x^5\\). Die beiden Leitkoeffizienten sind nicht 0, also auch ihr Produkt nicht, der Grad ist genau 5. Für das Grenzverhalten zählt dann das Produkt der beiden Leitkoeffizienten.',
+          'The highest powers are multiplied: \\(x^3 \\cdot x^2 = x^5\\). Neither leading coefficient is 0, so neither is their product; the degree is exactly 5. For the end behaviour, the product of the two leading coefficients then counts.') },
+  { s: 4, f: TT('Zwei Polynome haben beide den Grad 4. Kann ihre Summe ein anderes Grenzverhalten haben als jeder der beiden Summanden?',
+                'Two polynomials both have degree 4. Can their sum have a different end behaviour from each of the two?'),
+    o: [TT('Ja, heben sich die Summanden mit \\(x^4\\) weg (z. B. \\(3x^4\\) und \\(-3x^4\\)), entscheidet eine niedrigere Potenz.', 'Yes, if the \\(x^4\\) terms cancel (e.g. \\(3x^4\\) and \\(-3x^4\\)), a lower power decides.'),
+        TT('Nein, die Summe hat immer wieder den Grad 4.', 'No, the sum always has degree 4 again.'),
+        TT('Nein, gleicher Grad heißt gleiches Grenzverhalten.', 'No, the same degree means the same end behaviour.'),
+        TT('Ja, aber nur, wenn sich die Absolutglieder unterscheiden.', 'Yes, but only if the constant terms differ.')],
+    e: TT('Bei \\((3x^4 + x^3) + (-3x^4 + 2)\\) bleibt \\(x^3 + 2\\) übrig: Grad 3 und damit links \\(-\\infty\\), rechts \\(+\\infty\\), während die beiden Summanden auf beiden Seiten gleich verlaufen. Haben die Leitkoeffizienten dagegen dasselbe Vorzeichen, kann sich nichts wegheben.',
+          'In \\((3x^4 + x^3) + (-3x^4 + 2)\\), \\(x^3 + 2\\) is left: degree 3, so \\(-\\infty\\) on the left and \\(+\\infty\\) on the right, while each of the two summands behaves the same on both sides. If the leading coefficients have the same sign, nothing can cancel.') }
 ];
 const STUFE_NR = { einf: 1, leicht: 2, normal: 3, schwer: 4, indiv: 4 };
 let letzteFrage = -1;
-function verstAufgabe(modus){
+function verstAufgabe(modus, nrFest){
   const d = (document.querySelector('input[name="diff"]:checked') || {}).value || 'normal';
   const grenze = STUFE_NR[d] || 4;
   let pool = [];
   VFRAGEN.forEach(function(q, i){ if (q.s <= grenze && i !== letzteFrage) pool.push(i); });
   if (!pool.length) pool = VFRAGEN.map(function(q, i){ return i; });
-  const nr = pool[Math.floor(Math.random() * pool.length)];
+  /* nrFest: eine bestimmte Frage - aus einem geteilten Link */
+  const nr = (nrFest != null && VFRAGEN[nrFest]) ? nrFest : pool[Math.floor(Math.random() * pool.length)];
   letzteFrage = nr;
   const q = VFRAGEN[nr];
   const reihe = mischen(q.o.map(function(o, i){ return i; }));
@@ -1902,11 +2006,11 @@ function verstAufgabe(modus){
 function verstZeigen(){
   const t = currentTask;
   if (!t || !t.frage) return;
-  document.getElementById('task').innerHTML = '<p class="gv-frage">' + t.frage.f() + '</p>';
+  document.getElementById('task').innerHTML = '<p class="gv-frage">' + U(t.frage.f()) + '</p>';
   /* nach einem Sprachwechsel: die Knöpfe neu beschriften, ihr Zustand bleibt */
   document.querySelectorAll('#wahlBereich [data-i]').forEach(function(b){
     const i = parseInt(b.dataset.i, 10);
-    if (t.reihe[i] != null) b.innerHTML = t.frage.o[t.reihe[i]]();
+    if (t.reihe[i] != null) b.innerHTML = U(t.frage.o[t.reihe[i]]());
   });
 }
 
@@ -1959,7 +2063,13 @@ function kachelnMalenGV(){
   const z = document.getElementById('stilZahl');
   if (z) z.textContent = ' (' + n + '/' + STILE_GV.length + ')';
   const alle = document.getElementById('stilAlle');
-  if (alle) alle.textContent = (n === STILE_GV.length) ? T('keine', 'none') : T('alle', 'all');
+  if (alle){
+    /* Steht irgendetwas an, schaltet der Knopf alles ab - sonst alles an. */
+    alle.textContent = n ? T('keine', 'none') : T('alle', 'all');
+    alle.title = n ? T('alle Aufgabenstile abwählen', 'deselect all kinds of task')
+                   : T('alle Aufgabenstile wählen, langer Druck: auch alle Unterformen',
+                       'select all kinds of task, long press: all sub-forms as well');
+  }
   if (window.abReglerAbgleichen) abReglerAbgleichen();
 }
 function stilURLSchreiben(p){
@@ -1970,6 +2080,12 @@ function stilURLSchreiben(p){
   if (hk('ohnePlus')) p.set('op', '1'); else p.delete('op');
   [...p.keys()].filter(function(k){ return k.indexOf('r.') === 0; }).forEach(function(k){ p.delete(k); });
   if (window.abReglerSchreiben) abReglerSchreiben(p, null);
+  /* Der Seed gehört in die Adresszeile, die geteilte Aufgabe nicht: nach
+     dem Laden steht dort wieder nur die Einstellung. */
+  const sAn = document.getElementById('seedAn'), sWert = document.getElementById('seedWert');
+  if (sAn && sWert && sAn.checked && String(sWert.value).trim()) p.set('seed', String(sWert.value).trim());
+  else p.delete('seed');
+  p.delete('t');
 }
 function stilURLLesen(p){
   Object.keys(STIL_KURZ).forEach(function(id){
@@ -1983,10 +2099,6 @@ function stilURLLesen(p){
   kopfSetzen();
 }
 function stilGeaendert(){
-  if (!STILE_GV.some(function(id){ return hk(id) && unterAktiv(id).length; })){
-    hkSetzen('stilGleichung', true);
-    if (!SUBS_GL.some(hk)) hkSetzen('gBestimmen', true);
-  }
   kachelnMalenGV();
   saveSettingsToURL();
   newTask();
@@ -2002,13 +2114,45 @@ document.addEventListener('DOMContentLoaded', function(){
     const e = document.getElementById(id);
     if (e) e.addEventListener('change', function(){ saveSettingsToURL(); newTask(); });
   });
+  /* „keine": alles aus - statt einer Aufgabe kommt der Hinweis, dass nichts
+     ausgewählt ist. „alle": alle Stile an, mit ihren zuletzt gewählten
+     Unterformen (hat ein Stil gar keine, kommen alle dazu). Langer Druck oder
+     Rechtsklick auf „alle": alle Stile mit allen Unterformen. */
   const alle = document.getElementById('stilAlle');
-  if (alle) alle.addEventListener('click', function(ev){
-    ev.preventDefault(); ev.stopPropagation();
-    const an = STILE_GV.filter(hk).length !== STILE_GV.length;
-    STILE_GV.forEach(function(id){ hkSetzen(id, an); });
-    stilGeaendert();
-  });
+  if (alle){
+    const irgendwas = function(){ return STILE_GV.some(hk); };
+    let zeit = null, lang = false;
+    const allesAn = function(){
+      lang = true;
+      STILE_GV.concat(SUBS_GL, SUBS_GR).forEach(function(id){ hkSetzen(id, true); });
+      stilGeaendert();
+    };
+    alle.addEventListener('pointerdown', function(ev){
+      if (ev.button != null && ev.button !== 0) return;
+      lang = false;
+      if (irgendwas()) return;               /* nur „alle" kennt den langen Druck */
+      zeit = setTimeout(allesAn, 500);
+    });
+    ['pointerup', 'pointerleave', 'pointercancel'].forEach(function(e){
+      alle.addEventListener(e, function(){ clearTimeout(zeit); });
+    });
+    alle.addEventListener('contextmenu', function(ev){
+      ev.preventDefault(); clearTimeout(zeit);
+      if (!lang && !irgendwas()) allesAn();
+    });
+    alle.addEventListener('click', function(ev){
+      ev.preventDefault(); ev.stopPropagation();
+      clearTimeout(zeit);
+      if (lang){ lang = false; return; }
+      if (irgendwas()) STILE_GV.forEach(function(id){ hkSetzen(id, false); });
+      else {
+        STILE_GV.forEach(function(id){ hkSetzen(id, true); });
+        if (!SUBS_GL.some(hk)) SUBS_GL.forEach(function(id){ hkSetzen(id, true); });
+        if (!SUBS_GR.some(hk)) SUBS_GR.forEach(function(id){ hkSetzen(id, true); });
+      }
+      stilGeaendert();
+    });
+  }
   document.querySelectorAll('input[name="schreib"], #ohnePlus').forEach(function(e){
     e.addEventListener('change', function(){ kopfSetzen(); saveSettingsToURL(); newTask(); });
   });
@@ -2027,7 +2171,298 @@ document.addEventListener('DOMContentLoaded', function(){
   };
 })();
 /* Die Spaltenköpfe stellt theme-language.js selbst um (data-de/data-en). */
-window.addEventListener('tl-sprache', function(){ kachelnMalenGV(); aufgabenTextZeigen(); });
+window.addEventListener('tl-sprache', function(){ kachelnMalenGV(); aufgabenTextZeigen(); eigeneArtFuellen(); });
+/* ── Polynom-Seite: Aufgabe als Text (für den Link) und eigene Polynome ── */
+const FT_KURZ = { power: 'p', powerWithFactor: 'a', polynomial: 'l' };
+const FT_LANG = { p: 'power', a: 'powerWithFactor', l: 'polynomial' };
+function koeffText(c){ return c.type === 'fraction' ? (c.num + '/' + c.den) : String(c.value); }
+function koeffAusText(s){
+  s = String(s);
+  if (/^-?\d+\/\d+$/.test(s)){
+    const a = s.split('/').map(Number);
+    if (!a[1]) return null;
+    const g = ggT(a[0], a[1]);
+    return (a[1] / g === 1) ? { type: 'integer', value: a[0] / g } : { type: 'fraction', num: a[0] / g, den: a[1] / g };
+  }
+  if (/^-?\d+$/.test(s)) return { type: 'integer', value: parseInt(s, 10) };
+  if (/^-?\d*\.\d+$/.test(s)) return { type: 'decimal', value: parseFloat(s) };
+  return null;
+}
+/** Wie newTask es baut: Gleichung, Vorzeichen, „nur ein Summand". */
+function polyAufgabe(coeffs, degree, factor, funcType, modus){
+  const polyStr = buildPolyString(coeffs, degree);
+  const fLatex = factor ? coeffToString(factor, true) + '\\left(' + polyStr + '\\right)' : polyStr;
+  return { fLatex: fLatex, degree: degree, leadPositive: !coeffIsNegative(coeffs[0]), coeffs: coeffs,
+           factor: factor, isPure: (funcType === 'power' || funcType === 'powerWithFactor'),
+           funcType: funcType, modus: modus };
+}
+function aufgabeAlsText(){
+  const t = currentTask, m = t && t.modus;
+  if (!m) return null;
+  if (m.stil === 'verst') return 'v_' + t.nr;
+  return [m.sub, FT_KURZ[t.funcType] || 'l', t.degree, t.coeffs.map(koeffText).join(','),
+          t.factor ? koeffText(t.factor) : ''].join('_');
+}
+function aufgabeAusTeilen(teil){
+  const ft = FT_LANG[teil[1]], deg = parseInt(teil[2], 10);
+  if (!ft || !(deg >= 1 && deg <= 20) || !teil[3]) return null;
+  const coeffs = teil[3].split(',').map(koeffAusText);
+  if (coeffs.some(function(c){ return !c; }) || coeffIsZero(coeffs[0])) return null;
+  if (ft === 'polynomial' ? coeffs.length !== deg + 1 : coeffs.length !== 1) return null;
+  const factor = teil[4] ? koeffAusText(teil[4]) : null;
+  if (teil[4] && (!factor || coeffIsZero(factor))) return null;
+  return polyAufgabe(coeffs, deg, factor, ft, modusFuer(teil[0]));
+}
+/** Koeffizient {z, n} bzw. {dez} als Koeffizient der Seite. */
+function koeffAus(k){
+  if (k.dez != null) return Number.isInteger(k.dez) ? { type: 'integer', value: k.dez } : { type: 'decimal', value: k.dez };
+  let z = k.z, n = k.n;
+  if (n < 0){ z = -z; n = -n; }
+  const g = ggT(z, n);
+  z /= g; n /= g;
+  return (n === 1) ? { type: 'integer', value: z } : { type: 'fraction', num: z, den: n };
+}
+/** Eigenes Polynom lesen - auch mit einer Zahl vor einer Klammer: -3(x^2-1). */
+function eigeneLesen(txt){
+  const s = eingabeNormal(txt);
+  if (!s) return { fehler: T('Bitte eine Funktionsgleichung eintippen, z. B. -2x^3+4x-1.', 'Please type an equation, e.g. -2x^3+4x-1.') };
+  let fakt = null, innen = s;
+  const k = s.match(/^([+-]?[\d.\/]*)\*?\((.*)\)$/);
+  if (k){
+    innen = k[2];
+    if (k[1] === '-') fakt = { z: -1, n: 1 };
+    else if (k[1] !== '' && k[1] !== '+'){
+      const f = summandenLesen(k[1]);
+      if (!f || f.length !== 1 || f[0].ex !== 0) return null;
+      fakt = f[0];
+    }
+  }
+  if (/[()]/.test(innen))
+    return { fehler: T('Bitte ausmultipliziert eingeben, höchstens eine Zahl vor einer Klammer, z. B. -3(x^2-1).',
+                       'Please enter it multiplied out, at most a number in front of one bracket, e.g. -3(x^2-1).') };
+  const liste = summandenLesen(innen);
+  if (!liste) return null;
+  const P = summandenSammeln(liste);
+  const exps = Object.keys(P).map(Number).filter(function(e){
+    const a = P[e]; return (a.dez != null) ? a.dez !== 0 : a.z !== 0;
+  });
+  if (!exps.length || Math.max.apply(null, exps) === 0)
+    return { fehler: T('Das ist eine Konstante, ihr Grenzverhalten ist einfach diese Zahl. Bitte ein Polynom ab Grad 1 eingeben.',
+                       'That is a constant, its end behaviour is just that number. Please enter a polynomial of degree 1 or more.') };
+  if (fakt && ((fakt.dez != null) ? fakt.dez === 0 : fakt.z === 0))
+    return { fehler: T('Mit dem Faktor 0 bleibt nur die Nullfunktion übrig.', 'With the factor 0 only the zero function is left.') };
+  const deg = Math.max.apply(null, exps);
+  const coeffs = [];
+  for (let e = deg; e >= 0; e--) coeffs.push(P[e] && exps.indexOf(e) >= 0 ? koeffAus(P[e]) : { type: 'integer', value: 0 });
+  return { coeffs: coeffs, degree: deg, factor: fakt ? koeffAus(fakt) : null, einzeln: exps.length === 1 };
+}
+function eigeneAufgabe(r, modus){
+  /* Ein einziger Summand ist eine Potenzfunktion (mit Faktor); als
+     Vergleichsgleichungen kommen dann auch die mit anderem Vorzeichen. */
+  return polyAufgabe(r.coeffs, r.degree, r.factor, r.einzeln ? 'powerWithFactor' : 'polynomial', modus);
+}
+/* ═══ Eigene Funktion, Teilen und Seed ═════════════════════════════════════
+   Eigene Funktion: eine Gleichung eintippen und wählen, wie die Aufgabe
+   gestellt wird - an der Gleichung oder am Graphen (dann sieht man nur die
+   Skizze bzw. den Graphen dazu). Teilen: der Link enthält die Einstellungen
+   und die gerade gestellte Aufgabe. Seed: dieselbe Folge von Aufgaben für
+   alle, die denselben Seed eingeben.                                        */
+const SUB_NAMEN = {
+  gBestimmen:  ['Grenzverhalten bestimmen', 'determine the end behaviour'],
+  gSkizze:     ['passende Skizze auswählen', 'choose the matching sketch'],
+  bSkizzeVerh: ['Skizze → Grenzverhalten', 'sketch → end behaviour'],
+  bSkizzeGl:   ['Skizze → Funktionsgleichung', 'sketch → equation'],
+  bGraphVerh:  ['Graph → Grenzverhalten', 'graph → end behaviour'],
+  bGraphGl:    ['Graph → Funktionsgleichung', 'graph → equation']
+};
+function modusFuer(sub){
+  const gl = SUBS_GL.indexOf(sub) >= 0;
+  return { id: gl ? 'stilGleichung' : 'stilGraph', stil: gl ? 'gleichung' : 'graph', sub: sub };
+}
+/** Die Auswahl „Aufgabe:" im Feld für die eigene Funktion (auch nach einem Sprachwechsel). */
+function eigeneArtFuellen(){
+  const sel = document.getElementById('eigeneArt');
+  if (!sel) return;
+  const wert = sel.value;
+  sel.innerHTML = '';
+  [[T('an der Gleichung', 'from the equation'), SUBS_GL], [T('am Graphen', 'from the graph'), SUBS_GR]].forEach(function(g){
+    const og = document.createElement('optgroup');
+    og.label = g[0];
+    g[1].forEach(function(sub){
+      const o = document.createElement('option');
+      o.value = sub; o.textContent = T(SUB_NAMEN[sub][0], SUB_NAMEN[sub][1]);
+      og.appendChild(o);
+    });
+    sel.appendChild(og);
+  });
+  if (wert) sel.value = wert;
+  if (!sel.value) sel.value = 'gBestimmen';
+}
+/** Eingabe vereinheitlichen: Leerzeichen raus, Sonderzeichen ersetzen, „f(x) =" weg. */
+function eingabeNormal(txt){
+  let s = String(txt == null ? '' : txt).toLowerCase();
+  s = s.replace(/\s+/g, '').replace(/[·⋅×∙]/g, '*').replace(/[–—−]/g, '-').replace(/,/g, '.')
+       .replace(/[{\[]/g, '(').replace(/[}\]]/g, ')')
+       .replace(/[⁰¹²³⁴⁵⁶⁷⁸⁹]+/g, function(z){
+         return '^' + z.split('').map(function(c){ return '⁰¹²³⁴⁵⁶⁷⁸⁹'.indexOf(c); }).join('');
+       });
+  s = s.replace(/^[a-z]\(x\)=/, '').replace(/^y=/, '');
+  return s;
+}
+/** Ein Polynom ohne Klammern lesen: Liste [{ex, z, n, dez}] je Summand.
+    z/n: Bruch (ganzzahlig), dez: Dezimalzahl (dann zählt nur dez).
+    null, wenn es kein Polynom ist. */
+function summandenLesen(s){
+  if (!s || /[^0-9x.^+\-*\/]/.test(s)) return null;
+  const teile = s.replace(/-/g, '+-').split('+').filter(function(t){ return t !== ''; });
+  if (!teile.length) return null;
+  const re = /^(-?)(\d*\.?\d*)(?:\/(\d+))?\*?(?:(x)(?:\^(\d+))?)?(?:\/(\d+))?$/;
+  const liste = [];
+  for (let i = 0; i < teile.length; i++){
+    const m = teile[i].match(re);
+    if (!m) return null;
+    if ((m[2] === '' || m[2] === '.') && !m[4]) return null;
+    if (m[2] === '.') return null;
+    const vz = m[1] === '-' ? -1 : 1;
+    const ex = m[4] ? (m[5] != null ? parseInt(m[5], 10) : 1) : 0;
+    if (ex > 12) return null;
+    let n = 1;
+    if (m[3] != null) n *= parseInt(m[3], 10);
+    if (m[6] != null) n *= parseInt(m[6], 10);
+    if (!n) return null;
+    if (m[2].indexOf('.') >= 0){
+      const v = vz * parseFloat(m[2]) / n;
+      if (!isFinite(v)) return null;
+      liste.push({ ex: ex, dez: Math.round(v * 1e9) / 1e9 });
+    } else {
+      const z = (m[2] === '') ? 1 : parseInt(m[2], 10);
+      liste.push({ ex: ex, z: vz * z, n: n });
+    }
+  }
+  return liste;
+}
+function ggT(a, b){ a = Math.abs(a); b = Math.abs(b); while (b){ const t = b; b = a % b; a = t; } return a || 1; }
+/** Summanden mit gleichem Exponenten zusammenfassen: { ex: {z, n} oder {dez} } */
+function summandenSammeln(liste){
+  const P = {};
+  liste.forEach(function(t){
+    const a = P[t.ex];
+    if (!a){ P[t.ex] = (t.dez != null) ? { dez: t.dez } : { z: t.z, n: t.n }; return; }
+    if (a.dez != null || t.dez != null){
+      const v = (a.dez != null ? a.dez : a.z / a.n) + (t.dez != null ? t.dez : t.z / t.n);
+      P[t.ex] = { dez: Math.round(v * 1e9) / 1e9 };
+    } else {
+      const z = a.z * t.n + t.z * a.n, n = a.n * t.n, g = ggT(z, n);
+      P[t.ex] = { z: z / g, n: n / g };
+    }
+  });
+  return P;
+}
+function teilenVerdrahten(){
+  const b = document.getElementById('btnTeilen');
+  if (!b) return;
+  b.addEventListener('click', function(){
+    const u = new URL(location.href);
+    const t = aufgabeAlsText();
+    if (t) u.searchParams.set('t', t); else u.searchParams.delete('t');
+    const text = u.toString();
+    if (window.abKopiere){ abKopiere(text, b, T('✓ Link kopiert', '✓ Link copied')); return; }
+    try { if (navigator.clipboard) navigator.clipboard.writeText(text); } catch (e) {}
+  });
+}
+/* Die Aufgabe aus einem geteilten Link - gelesen, bevor die Seite ihre
+   Adresszeile neu schreibt. */
+const GV_LINK_T = (function(){ try { return new URLSearchParams(location.search).get('t'); } catch (e) { return null; } })();
+function aufgabeVorbereiten(){
+  document.getElementById('explanation').innerHTML = '';
+  document.getElementById('explanationDetails').open = false;
+  antwortenFreigeben();
+}
+/** Eine fertige Aufgabe (eigene oder aus einem Link) zeigen. */
+function aufgabeSetzen(t){
+  aufgabeVorbereiten();
+  currentTask = t;
+  aufgabeAnzeigen();
+}
+/** Beim Laden: die geteilte Aufgabe zeigen - false, wenn es keine gab. */
+function aufgabeAusLink(){
+  const text = GV_LINK_T;
+  if (!text) return false;
+  const teil = String(text).split('_');
+  if (teil[0] === 'v'){
+    const nr = parseInt(teil[1], 10);
+    if (!(nr >= 0 && nr < VFRAGEN.length)) return false;
+    aufgabeVorbereiten();
+    verstAufgabe({ id: 'stilVerst', stil: 'verst', sub: 'verst' }, nr);
+    return true;
+  }
+  if (SUBS_GL.indexOf(teil[0]) < 0 && SUBS_GR.indexOf(teil[0]) < 0) return false;
+  const t = aufgabeAusTeilen(teil);
+  if (!t) return false;
+  aufgabeSetzen(t);
+  return true;
+}
+function eigeneUebernehmen(){
+  const feld = document.getElementById('eigeneEingabe');
+  const meld = document.getElementById('eigeneMeldung');
+  const sel = document.getElementById('eigeneArt');
+  const r = eigeneLesen(feld.value);
+  if (!r || r.fehler){
+    meld.className = 'meld err';
+    meld.textContent = (r && r.fehler) ? r.fehler
+      : T('Das konnte ich nicht lesen. Beispiel: ', 'I could not read that. Example: ') + (feld.getAttribute('placeholder') || '');
+    return;
+  }
+  meld.className = 'meld'; meld.textContent = '';
+  const sub = (sel && sel.value) || 'gBestimmen';
+  aufgabeSetzen(eigeneAufgabe(r, modusFuer(sub)));
+  manualAuf(false);
+}
+function manualAuf(zeigen){
+  const feld = document.getElementById('manualPanel'), knopf = document.getElementById('manualBtn');
+  if (!feld) return;
+  feld.hidden = !zeigen;
+  if (knopf) knopf.classList.toggle('on', !!zeigen);
+  if (zeigen){
+    /* vorbelegt mit der Form der gerade gestellten Aufgabe */
+    const m = currentTask && currentTask.modus, sel = document.getElementById('eigeneArt');
+    if (sel && m && SUB_NAMEN[m.sub]) sel.value = m.sub;
+    const e = document.getElementById('eigeneEingabe');
+    if (e){ try { e.focus(); } catch (x) {} }
+  }
+}
+function seedVerdrahtenGV(){
+  const c = document.getElementById('seedAn'), f = document.getElementById('seedWert'), n = document.getElementById('seedNeu');
+  const zufall = function(){ return String(Math.floor(Math.random() * 90000) + 10000); };
+  const zurueck = function(){ if (window.abSeedZurueck) abSeedZurueck(); };
+  if (c) c.addEventListener('change', function(){
+    zurueck();
+    if (c.checked && f && !String(f.value).trim()) f.value = zufall();
+    saveSettingsToURL(); newTask();
+  });
+  if (f) f.addEventListener('change', function(){
+    zurueck(); saveSettingsToURL();
+    if (c && c.checked && String(f.value).trim()) newTask();
+  });
+  if (n) n.addEventListener('click', function(){
+    if (f) f.value = zufall();
+    if (c) c.checked = true;
+    zurueck(); saveSettingsToURL(); newTask();
+  });
+}
+document.addEventListener('DOMContentLoaded', function(){
+  eigeneArtFuellen();
+  teilenVerdrahten();
+  seedVerdrahtenGV();
+  const mk = document.getElementById('manualBtn');
+  if (mk) mk.addEventListener('click', function(){ manualAuf(document.getElementById('manualPanel').hidden); });
+  const ab = document.getElementById('eigeneAbbruch');
+  if (ab) ab.addEventListener('click', function(){ manualAuf(false); });
+  const ok = document.getElementById('eigeneBtn');
+  if (ok) ok.addEventListener('click', eigeneUebernehmen);
+  const ein = document.getElementById('eigeneEingabe');
+  if (ein) ein.addEventListener('keydown', function(ev){ if (ev.key === 'Enter') eigeneUebernehmen(); });
+});
 </script>
 </body>
 </html>
